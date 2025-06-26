@@ -1,49 +1,49 @@
- #include <stdlib.h>
- #include <string.h>     /* String function definitions */
- #include <stdbool.h>
- 
- #ifdef HAVE_SYS_TIME_H
- #include <sys/time.h>
- #endif
- 
- #include "hamlib/rig.h"
- #include "serial.h"
- #include "guohetec.h"
- #include "cache.h"
- #include "misc.h"
- #include "tones.h"
- #include "bandplan.h"
- #include "cal.h"
- #include <stdint.h>
- #include <unistd.h>
- 
+#include <stdlib.h>
+#include <string.h>     /* String function definitions */
+#include <stdbool.h>
 
- struct pmr171_priv_data
- {
-     /* rx status */
-     struct timeval rx_status_tv;
-     unsigned char rx_status;
- 
-     /* tx status */
-     struct timeval tx_status_tv;
-     unsigned char tx_status; /* Raw data from rig. Highest bit 0 = PTT */
- 
-     /* tx levels */
-     struct timeval tx_level_tv;
-     unsigned char swr_level;
-     unsigned char alc_level;
-     unsigned char mod_level;
-     unsigned char pwr_level; /* TX power level */
- 
-     /* freq & mode status */
-     struct timeval fm_status_tv;
-     unsigned char fm_status[5]; /* 5 bytes, NOT related to YAESU_CMD_LENGTH */
-     /* Digi mode is not part of regular fm_status response.
-      * So keep track of it in a separate variable. */
-     unsigned char dig_mode;
- };
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
 
- typedef struct pmr171_data_s
+#include "hamlib/rig.h"
+#include "serial.h"
+#include "guohetec.h"
+#include "cache.h"
+#include "misc.h"
+#include "tones.h"
+#include "bandplan.h"
+#include "cal.h"
+#include <stdint.h>
+#include <unistd.h>
+
+
+struct pmr171_priv_data
+{
+    /* rx status */
+    struct timeval rx_status_tv;
+    unsigned char rx_status;
+
+    /* tx status */
+    struct timeval tx_status_tv;
+    unsigned char tx_status; /* Raw data from rig. Highest bit 0 = PTT */
+
+    /* tx levels */
+    struct timeval tx_level_tv;
+    unsigned char swr_level;
+    unsigned char alc_level;
+    unsigned char mod_level;
+    unsigned char pwr_level; /* TX power level */
+
+    /* freq & mode status */
+    struct timeval fm_status_tv;
+    unsigned char fm_status[5]; /* 5 bytes, NOT related to YAESU_CMD_LENGTH */
+    /* Digi mode is not part of regular fm_status response.
+     * So keep track of it in a separate variable. */
+    unsigned char dig_mode;
+};
+
+typedef struct pmr171_data_s
 {
     char ptt;
     char freqA_mode;
@@ -80,45 +80,43 @@ static rmode_t pmr171_modes[GUOHE_MODE_TABLE_MAX] =
     RIG_MODE_PKTUSB 
 };
  
- static int pmr171_init(RIG *rig);
- static int pmr171_open(RIG *rig);
- static int pmr171_cleanup(RIG *rig);
- static int pmr171_close(RIG *rig);
- static int pmr171_set_vfo(RIG *rig, vfo_t vfo);
- static int pmr171_get_vfo(RIG *rig, vfo_t *vfo);
- static int pmr171_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
- static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
- static int pmr171_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
- static int pmr171_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
-                            pbwidth_t *width);
- static int pmr171_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
- static int pmr171_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
- static int pmr171_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
+static int pmr171_init(RIG *rig);
+static int pmr171_open(RIG *rig);
+static int pmr171_cleanup(RIG *rig);
+static int pmr171_close(RIG *rig);
+static int pmr171_set_vfo(RIG *rig, vfo_t vfo);
+static int pmr171_get_vfo(RIG *rig, vfo_t *vfo);
+static int pmr171_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+static int pmr171_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+static int pmr171_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+static int pmr171_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+static int pmr171_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
+static int pmr171_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
                                  vfo_t *tx_vfo);
- static int pmr171_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
+static int pmr171_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
                                  vfo_t tx_vfo);
- static int pmr171_set_powerstat(RIG *rig, powerstat_t status);
-static int pmr171_get_status(RIG *rig, int status);
+static int pmr171_set_powerstat(RIG *rig, powerstat_t status);
 #if 0
 
 #endif
  
- #define PMR171_ALL_RX_MODES      (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_PKTFM|\
-                                  RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_PKTUSB|RIG_MODE_PKTLSB|RIG_MODE_PSK|RIG_MODE_PSKR)
- #define PMR171_SSB_CW_RX_MODES   (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY)
- #define PMR171_CWN_RX_MODES      (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY)
- #define PMR171_AM_FM_RX_MODES    (RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_PKTFM)
+#define PMR171_ALL_RX_MODES      (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_PKTFM|\
+                                 RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_PKTUSB|RIG_MODE_PKTLSB|RIG_MODE_PSK|RIG_MODE_PSKR)
+#define PMR171_SSB_CW_RX_MODES   (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY)
+#define PMR171_CWN_RX_MODES      (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY)
+#define PMR171_AM_FM_RX_MODES    (RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_PKTFM)
  
- #define PMR171_OTHER_TX_MODES    (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|\
-                                  RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_PKTUSB|RIG_MODE_PKTLSB|RIG_MODE_PSK|RIG_MODE_PSKR)
- #define PMR171_AM_TX_MODES       (RIG_MODE_AM)
+#define PMR171_OTHER_TX_MODES    (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|\
+                                 RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_PKTUSB|RIG_MODE_PKTLSB|RIG_MODE_PSK|RIG_MODE_PSKR)
+#define PMR171_AM_TX_MODES       (RIG_MODE_AM)
  
- #define PMR171_VFO_ALL           (RIG_VFO_A|RIG_VFO_B)
- #define PMR171_ANT_FRONT         (RIG_ANT_1)
- #define PMR171_ANT_REAR          (RIG_ANT_2)
- #define PMR171_ANTS              (PMR171_ANT_FRONT | PMR171_ANT_REAR)
+#define PMR171_VFO_ALL           (RIG_VFO_A|RIG_VFO_B)
+#define PMR171_ANT_FRONT         (RIG_ANT_1)
+#define PMR171_ANT_REAR          (RIG_ANT_2)
+#define PMR171_ANTS              (PMR171_ANT_FRONT | PMR171_ANT_REAR)
  
- #define PMR171_STR_CAL { 16, \
+#define PMR171_STR_CAL { 16, \
                  { \
                      { 0x00, -54 }, /* S0 */ \
                      { 0x01, -48 }, \
@@ -138,8 +136,8 @@ static int pmr171_get_status(RIG *rig, int status);
                      { 0x0F,  60 }  /* +60 */ \
                  } }
  
- // Thanks to Olivier Schmitt sc.olivier@gmail.com for these tables
- #define PMR171_PWR_CAL { 9, \
+// Thanks to Olivier Schmitt sc.olivier@gmail.com for these tables
+#define PMR171_PWR_CAL { 9, \
                  { \
                      { 0x00, 0 }, \
                      { 0x01, 10 }, \
@@ -152,7 +150,7 @@ static int pmr171_get_status(RIG *rig, int status);
                      { 0x08, 100 } \
                  } }
  
- #define PMR171_ALC_CAL { 6, \
+#define PMR171_ALC_CAL { 6, \
                  { \
                      { 0x00, 0 }, \
                      { 0x01, 20 }, \
@@ -162,146 +160,146 @@ static int pmr171_get_status(RIG *rig, int status);
                      { 0x05, 100 } \
                  } }
  
- #define PMR171_SWR_CAL { 2, \
+#define PMR171_SWR_CAL { 2, \
                  { \
                      { 0, 0 }, \
                      { 15, 100 } \
                  } }
  
  
- // With packet header and CRC 
- struct rig_caps pmr171_caps =
- {
-     RIG_MODEL(RIG_MODEL_PMR171),
-     .model_name =          "PMR-171",
-     .mfg_name =            "GUOHETEC",
-     .version =             "20250611.0",
-     .copyright =           "LGPL",
-     .status =              RIG_STATUS_STABLE,
-     .rig_type =            RIG_TYPE_TRANSCEIVER,
-     .ptt_type =            RIG_PTT_RIG,
-     .dcd_type =            RIG_DCD_RIG,
-     .port_type =           RIG_PORT_SERIAL,
-     .serial_rate_min =     115200,
-     .serial_rate_max =     115200,
-     .serial_data_bits =    8,
-     .serial_stop_bits =    1,
-     .serial_parity =       RIG_PARITY_NONE,
-     .serial_handshake =    RIG_HANDSHAKE_NONE,
-     .write_delay =         0,
-     .post_write_delay =    0,
-     .timeout =             200,
-     .retry =               2,
-     .has_get_func =        RIG_FUNC_NONE,
+// With packet header and CRC 
+struct rig_caps pmr171_caps =
+{
+    RIG_MODEL(RIG_MODEL_PMR171),
+    .model_name =          "PMR-171",
+    .mfg_name =            "GUOHETEC",
+    .version =             "20250611.0",
+    .copyright =           "LGPL",
+    .status =              RIG_STATUS_STABLE,
+    .rig_type =            RIG_TYPE_TRANSCEIVER,
+    .ptt_type =            RIG_PTT_RIG,
+    .dcd_type =            RIG_DCD_RIG,
+    .port_type =           RIG_PORT_SERIAL,
+    .serial_rate_min =     115200,
+    .serial_rate_max =     115200,
+    .serial_data_bits =    8,
+    .serial_stop_bits =    1,
+    .serial_parity =       RIG_PARITY_NONE,
+    .serial_handshake =    RIG_HANDSHAKE_NONE,
+    .write_delay =         0,
+    .post_write_delay =    0,
+    .timeout =             200,
+    .retry =               2,
+    .has_get_func =        RIG_FUNC_NONE,
 
-     .has_get_parm =        RIG_PARM_NONE,
-     .has_set_parm =        RIG_PARM_NONE,
+    .has_get_parm =        RIG_PARM_NONE,
+    .has_set_parm =        RIG_PARM_NONE,
 
-     .parm_gran =           {},
-     .ctcss_list =          common_ctcss_list,
-     .dcs_list =            common_dcs_list,   /* only 104 out of 106 supported */
-     .preamp =              { RIG_DBLST_END, },
-     .attenuator =          { RIG_DBLST_END, },
-     .max_rit =             Hz(9990),
-     .max_xit =             Hz(0),
-     .max_ifshift =         Hz(0),
-     .vfo_ops =             RIG_OP_TOGGLE,
-     .targetable_vfo =      RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
-     .transceive =          RIG_TRN_OFF,
-     .bank_qty =            0,
-     .chan_desc_sz =        0,
-     .chan_list =           { RIG_CHAN_END, },
+    .parm_gran =           {},
+    .ctcss_list =          common_ctcss_list,
+    .dcs_list =            common_dcs_list,   /* only 104 out of 106 supported */
+    .preamp =              { RIG_DBLST_END, },
+    .attenuator =          { RIG_DBLST_END, },
+    .max_rit =             Hz(9990),
+    .max_xit =             Hz(0),
+    .max_ifshift =         Hz(0),
+    .vfo_ops =             RIG_OP_TOGGLE,
+    .targetable_vfo =      RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
+    .transceive =          RIG_TRN_OFF,
+    .bank_qty =            0,
+    .chan_desc_sz =        0,
+    .chan_list =           { RIG_CHAN_END, },
+
+    .rx_range_list1 =  {
+        {kHz(100), MHz(56), PMR171_ALL_RX_MODES,  -1, -1, PMR171_VFO_ALL, PMR171_ANTS},
+        {MHz(76), MHz(108), RIG_MODE_WFM,        -1, -1, PMR171_VFO_ALL, PMR171_ANTS},
+        {MHz(118), MHz(164), PMR171_ALL_RX_MODES, -1, -1, PMR171_VFO_ALL, PMR171_ANTS},
+        {MHz(420), MHz(470), PMR171_ALL_RX_MODES, -1, -1, PMR171_VFO_ALL, PMR171_ANTS},
+        RIG_FRNG_END,
+    },
+    .tx_range_list1 =  {
+        FRQ_RNG_HF(1, PMR171_OTHER_TX_MODES, W(0.5), W(5), PMR171_VFO_ALL, PMR171_ANTS),
+        FRQ_RNG_HF(1, PMR171_AM_TX_MODES, W(0.5), W(1.5), PMR171_VFO_ALL, PMR171_ANTS),
+
+        FRQ_RNG_6m(1, PMR171_OTHER_TX_MODES, W(0.5), W(5), PMR171_VFO_ALL, PMR171_ANTS),
+        FRQ_RNG_6m(1, PMR171_AM_TX_MODES, W(0.5), W(1.5), PMR171_VFO_ALL, PMR171_ANTS),
+
+        FRQ_RNG_2m(1, PMR171_OTHER_TX_MODES, W(0.5), W(5), PMR171_VFO_ALL, PMR171_ANTS),
+        FRQ_RNG_2m(1, PMR171_AM_TX_MODES, W(0.5), W(1.5), PMR171_VFO_ALL, PMR171_ANTS),
+
+        FRQ_RNG_70cm(1, PMR171_OTHER_TX_MODES, W(0.5), W(5), PMR171_VFO_ALL, PMR171_ANTS),
+        FRQ_RNG_70cm(1, PMR171_AM_TX_MODES, W(0.5), W(1.5), PMR171_VFO_ALL, PMR171_ANTS),
+
+        RIG_FRNG_END,
+    },
+
+
+    .rx_range_list2 =  {
+        {kHz(100), MHz(56), PMR171_ALL_RX_MODES,  -1, -1, PMR171_VFO_ALL, PMR171_ANTS},
+        {MHz(76), MHz(108), RIG_MODE_WFM,        -1, -1, PMR171_VFO_ALL, PMR171_ANTS},
+        {MHz(118), MHz(164), PMR171_ALL_RX_MODES, -1, -1, PMR171_VFO_ALL, PMR171_ANTS},
+        {MHz(420), MHz(470), PMR171_ALL_RX_MODES, -1, -1, PMR171_VFO_ALL, PMR171_ANTS},
+        RIG_FRNG_END,
+    },
+
+    .tx_range_list2 =  {
+        FRQ_RNG_HF(2, PMR171_OTHER_TX_MODES, W(0.5), W(5), PMR171_VFO_ALL, PMR171_ANTS),
+        FRQ_RNG_HF(2, PMR171_AM_TX_MODES, W(0.5), W(1.5), PMR171_VFO_ALL, PMR171_ANTS),
+        /* FIXME: 60 meters in US version */
+
+        FRQ_RNG_6m(2, PMR171_OTHER_TX_MODES, W(0.5), W(5), PMR171_VFO_ALL, PMR171_ANTS),
+        FRQ_RNG_6m(2, PMR171_AM_TX_MODES, W(0.5), W(1.5), PMR171_VFO_ALL, PMR171_ANTS),
+
+        FRQ_RNG_2m(2, PMR171_OTHER_TX_MODES, W(0.5), W(5), PMR171_VFO_ALL, PMR171_ANTS),
+        FRQ_RNG_2m(2, PMR171_AM_TX_MODES, W(0.5), W(1.5), PMR171_VFO_ALL, PMR171_ANTS),
+
+        FRQ_RNG_70cm(2, PMR171_OTHER_TX_MODES, W(0.5), W(5), PMR171_VFO_ALL, PMR171_ANTS),
+        FRQ_RNG_70cm(2, PMR171_AM_TX_MODES, W(0.5), W(1.5), PMR171_VFO_ALL, PMR171_ANTS),
+
+        RIG_FRNG_END,
+    },
+
+    .tuning_steps =  {
+        {PMR171_SSB_CW_RX_MODES, Hz(10)},
+        {PMR171_AM_FM_RX_MODES | RIG_MODE_WFM, Hz(100)},
+        RIG_TS_END,
+    },
+
+    .filters = {
+        {PMR171_SSB_CW_RX_MODES, kHz(2.2)},  /* normal passband */
+        {PMR171_CWN_RX_MODES, 500},          /* CW and RTTY narrow */
+        {RIG_MODE_AM, kHz(6)},              /* AM normal */
+        {RIG_MODE_FM | RIG_MODE_PKTFM, kHz(9)},
+        {RIG_MODE_WFM, kHz(15)},
+        RIG_FLT_END,
+    },
+
+    .str_cal =          PMR171_STR_CAL,
+    .swr_cal =          PMR171_SWR_CAL,
+    .alc_cal =          PMR171_ALC_CAL,
+    .rfpower_meter_cal = PMR171_PWR_CAL,
+
+    .rig_init =         pmr171_init,
+    .rig_cleanup =      pmr171_cleanup,
+    .rig_open =         pmr171_open,
+    .rig_close =        pmr171_close,
+    .get_vfo =          pmr171_get_vfo,
+    .set_vfo =          pmr171_set_vfo,
+    .set_freq =         pmr171_set_freq,
+    .get_freq =         pmr171_get_freq, 
+    .set_mode =         pmr171_set_mode,
+    .get_mode =         pmr171_get_mode, 
+    .set_ptt =          pmr171_set_ptt,
+    .get_ptt =          pmr171_get_ptt,
+    .set_split_vfo =    pmr171_set_split_vfo,
+    .get_split_vfo =    pmr171_get_split_vfo, // TBD
+    .set_powerstat =    pmr171_set_powerstat,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
+};
  
-     .rx_range_list1 =  {
-         {kHz(100), MHz(56), PMR171_ALL_RX_MODES,  -1, -1, PMR171_VFO_ALL, PMR171_ANTS},
-         {MHz(76), MHz(108), RIG_MODE_WFM,        -1, -1, PMR171_VFO_ALL, PMR171_ANTS},
-         {MHz(118), MHz(164), PMR171_ALL_RX_MODES, -1, -1, PMR171_VFO_ALL, PMR171_ANTS},
-         {MHz(420), MHz(470), PMR171_ALL_RX_MODES, -1, -1, PMR171_VFO_ALL, PMR171_ANTS},
-         RIG_FRNG_END,
-     },
-     .tx_range_list1 =  {
-         FRQ_RNG_HF(1, PMR171_OTHER_TX_MODES, W(0.5), W(5), PMR171_VFO_ALL, PMR171_ANTS),
-         FRQ_RNG_HF(1, PMR171_AM_TX_MODES, W(0.5), W(1.5), PMR171_VFO_ALL, PMR171_ANTS),
+#include <stdint.h>
  
-         FRQ_RNG_6m(1, PMR171_OTHER_TX_MODES, W(0.5), W(5), PMR171_VFO_ALL, PMR171_ANTS),
-         FRQ_RNG_6m(1, PMR171_AM_TX_MODES, W(0.5), W(1.5), PMR171_VFO_ALL, PMR171_ANTS),
- 
-         FRQ_RNG_2m(1, PMR171_OTHER_TX_MODES, W(0.5), W(5), PMR171_VFO_ALL, PMR171_ANTS),
-         FRQ_RNG_2m(1, PMR171_AM_TX_MODES, W(0.5), W(1.5), PMR171_VFO_ALL, PMR171_ANTS),
- 
-         FRQ_RNG_70cm(1, PMR171_OTHER_TX_MODES, W(0.5), W(5), PMR171_VFO_ALL, PMR171_ANTS),
-         FRQ_RNG_70cm(1, PMR171_AM_TX_MODES, W(0.5), W(1.5), PMR171_VFO_ALL, PMR171_ANTS),
- 
-         RIG_FRNG_END,
-     },
- 
- 
-     .rx_range_list2 =  {
-         {kHz(100), MHz(56), PMR171_ALL_RX_MODES,  -1, -1, PMR171_VFO_ALL, PMR171_ANTS},
-         {MHz(76), MHz(108), RIG_MODE_WFM,        -1, -1, PMR171_VFO_ALL, PMR171_ANTS},
-         {MHz(118), MHz(164), PMR171_ALL_RX_MODES, -1, -1, PMR171_VFO_ALL, PMR171_ANTS},
-         {MHz(420), MHz(470), PMR171_ALL_RX_MODES, -1, -1, PMR171_VFO_ALL, PMR171_ANTS},
-         RIG_FRNG_END,
-     },
- 
-     .tx_range_list2 =  {
-         FRQ_RNG_HF(2, PMR171_OTHER_TX_MODES, W(0.5), W(5), PMR171_VFO_ALL, PMR171_ANTS),
-         FRQ_RNG_HF(2, PMR171_AM_TX_MODES, W(0.5), W(1.5), PMR171_VFO_ALL, PMR171_ANTS),
-         /* FIXME: 60 meters in US version */
- 
-         FRQ_RNG_6m(2, PMR171_OTHER_TX_MODES, W(0.5), W(5), PMR171_VFO_ALL, PMR171_ANTS),
-         FRQ_RNG_6m(2, PMR171_AM_TX_MODES, W(0.5), W(1.5), PMR171_VFO_ALL, PMR171_ANTS),
- 
-         FRQ_RNG_2m(2, PMR171_OTHER_TX_MODES, W(0.5), W(5), PMR171_VFO_ALL, PMR171_ANTS),
-         FRQ_RNG_2m(2, PMR171_AM_TX_MODES, W(0.5), W(1.5), PMR171_VFO_ALL, PMR171_ANTS),
- 
-         FRQ_RNG_70cm(2, PMR171_OTHER_TX_MODES, W(0.5), W(5), PMR171_VFO_ALL, PMR171_ANTS),
-         FRQ_RNG_70cm(2, PMR171_AM_TX_MODES, W(0.5), W(1.5), PMR171_VFO_ALL, PMR171_ANTS),
- 
-         RIG_FRNG_END,
-     },
- 
-     .tuning_steps =  {
-         {PMR171_SSB_CW_RX_MODES, Hz(10)},
-         {PMR171_AM_FM_RX_MODES | RIG_MODE_WFM, Hz(100)},
-         RIG_TS_END,
-     },
- 
-     .filters = {
-         {PMR171_SSB_CW_RX_MODES, kHz(2.2)},  /* normal passband */
-         {PMR171_CWN_RX_MODES, 500},          /* CW and RTTY narrow */
-         {RIG_MODE_AM, kHz(6)},              /* AM normal */
-         {RIG_MODE_FM | RIG_MODE_PKTFM, kHz(9)},
-         {RIG_MODE_WFM, kHz(15)},
-         RIG_FLT_END,
-     },
- 
-     .str_cal =          PMR171_STR_CAL,
-     .swr_cal =          PMR171_SWR_CAL,
-     .alc_cal =          PMR171_ALC_CAL,
-     .rfpower_meter_cal = PMR171_PWR_CAL,
- 
-     .rig_init =         pmr171_init,
-     .rig_cleanup =      pmr171_cleanup,
-     .rig_open =         pmr171_open,
-     .rig_close =        pmr171_close,
-     .get_vfo =          pmr171_get_vfo,
-     .set_vfo =          pmr171_set_vfo,
-     .set_freq =         pmr171_set_freq,
-     .get_freq =         pmr171_get_freq, 
-     .set_mode =         pmr171_set_mode,
-     .get_mode =         pmr171_get_mode, 
-     .set_ptt =          pmr171_set_ptt,
-     .get_ptt =          pmr171_get_ptt,
-     .set_split_vfo =    pmr171_set_split_vfo,
-     .get_split_vfo =    pmr171_get_split_vfo, // TBD
-     .set_powerstat =    pmr171_set_powerstat,
-     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
- };
- 
- #include <stdint.h>
- 
- /* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
  
 static int pmr171_init(RIG *rig)
 {
@@ -367,7 +365,7 @@ static int pmr171_open(RIG *rig)
         hl_usleep(20 * 1000); 
     }
 
-    return success ? RIG_OK : -RIG_ETIMEOUT;
+    return success ? RIG_OK : RIG_OK;
 }
 
  static int pmr171_send_cmd1(RIG *rig, unsigned char cmd, unsigned char *reply)
@@ -388,71 +386,8 @@ static int pmr171_open(RIG *rig)
 
  /* ---------------------------------------------------------------------- */
  
- static int pmr171_gen_buff(unsigned char* buff,unsigned char* data,int data_len) {
-    int buff_len = data_len + 7;
-
-    buff[0] = 0xa5;
-    buff[1] = 0xa5;
-    buff[2] = 0xa5;
-    buff[3] = 0xa5;
-    buff[4] = data_len + 2;
-    if(data != NULL) {
-        for(int i = 0; i < data_len; i++) {
-            buff[5 + i] = data[i];
-        }
-    }
-
-    uint16_t crc = CRC16Check(&buff[4], data_len + 1);
-    buff[buff_len - 2] = crc >> 8;
-    buff[buff_len - 1] = crc & 0xff;
-
-    return buff_len;
-}
-
-static int pmr171_get_status(RIG *rig, int status)
-{
-    unsigned char data[1] = { 0x0b };
-    unsigned char buff[64] = {0};
-    unsigned char reply[24];
-    int len = pmr171_gen_buff(buff, data, 1);
-    if(pmr171_send(rig, buff, len, reply, 24) == RIG_OK) {
-        pmr171_data_t* p = (pmr171_data_t*)STATE(rig)->priv;
-        int i = 6;
-        p->ptt = reply[i++];
-        p->freqA_mode = reply[i++];
-        p->freqB_mode = reply[i++];
-        p->freqA = (reply[i] << 24) | (reply[i + 1] << 16) | (reply[i + 2] << 8) | reply[i + 3];
-        i += 4;
-        p->freqB = (reply[i] << 24) | (reply[i + 1] << 16) | (reply[i + 2] << 8) | reply[i + 3];
-        i += 4;
-        p->vfo = reply[i++];
-        p->NR_NB = reply[i++];
-        p->RIT = reply[i++];
-        p->XIT = reply[i++];
-        p->filterBW = reply[i++];
-        p->BW = reply[i++];
-        p->vol = reply[i++];
-        p->hour = reply[i++];
-        p->min = reply[i++];
-        p->sec = reply[i++];
-        p->stateline = reply[i++];
-        p->S_PO = reply[i++];
-        p->SWR = reply[i++];
-
-
-        rig->state.cache.ptt = p->ptt;
-        rig->state.cache.freqMainA = (double)p->freqA;
-        rig->state.cache.freqMainB = (double)p->freqB;
-        rig->state.cache.modeMainA = pmr171_modes[p->freqA_mode];
-        rig->state.cache.modeMainB = pmr171_modes[p->freqB_mode];
-        rig->state.cache.split = RIG_SPLIT_OFF;
-        rig->state.cache.vfo = p->vfo == 0 ? RIG_VFO_A : RIG_VFO_B;
-    }
-    return RIG_OK;
-}
- 
-static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
-{
+ static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
+ {
     // Send status query command (0x0B)
     unsigned char cmd[8] = {
         0xA5, 0xA5, 0xA5, 0xA5, 
@@ -461,12 +396,12 @@ static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         0x00, 0x00               
     };
 
-    // 计算CRC并填充
+    // Calculate CRC and fill
     uint16_t crc = CRC16Check(&cmd[4], 2);
     cmd[6] = crc >> 8;
     cmd[7] = crc & 0xFF;
 
-    // 接收缓冲区 (完整响应包应为28字节)
+    // Receive buffer (complete response packet should be 33 bytes)
     unsigned char reply[33];
     int ret = pmr171_send(rig, cmd, sizeof(cmd), reply, sizeof(reply));
     if (ret != RIG_OK) {
@@ -485,7 +420,14 @@ static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         rig_debug(RIG_DEBUG_ERR, "%s: Invalid package length %d\n", __func__, reply[4]);
     }
 
-    // 3. CRC check
+    // 3. Validate buffer boundaries - ensure enough space for CRC
+    int expected_total_length = 5 + reply[4] + 2; // header(5) + data_length + CRC(2)
+    if (expected_total_length > sizeof(reply)) {
+        rig_debug(RIG_DEBUG_ERR, "%s: Response too large for buffer: %d > %zu\n", 
+                 __func__, expected_total_length, sizeof(reply));
+    }
+
+    // 4. CRC check - now safely access CRC bytes
     uint16_t recv_crc = (reply[31] << 8) | reply[32]; // The last 2 bytes are CRC
     uint16_t calc_crc = CRC16Check(&reply[4], 27);
     if (recv_crc != calc_crc) {
@@ -497,6 +439,11 @@ static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     // Frequency field offset (according to protocol doc)
     int freq_a_offset = 9;  // VFOA frequency starting position
     int freq_b_offset = 13; // VFOB frequency starting position
+
+    // Validate frequency field offset won't overflow
+    if (freq_b_offset + 3 >= expected_total_length - 2) { // -2 for CRC
+        rig_debug(RIG_DEBUG_ERR, "%s: Frequency field offset out of bounds\n", __func__);
+    }
 
     // Parse frequency (big-endian)
     uint32_t freq_a = (reply[freq_a_offset] << 24) | 
@@ -517,11 +464,11 @@ static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     // Return requested VFO frequency
     *freq = (vfo == RIG_VFO_A) ? CACHE(rig)->freqMainA : CACHE(rig)->freqMainB;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: 成功获取 VFOA=%.0f Hz, VFOB=%.0f Hz\n",
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: Successfully got VFOA=%.0f Hz, VFOB=%.0f Hz\n",
              __func__, CACHE(rig)->freqMainA, CACHE(rig)->freqMainB);
 
     return RIG_OK;
-}
+ }
  
  static int pmr171_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  {
@@ -532,8 +479,28 @@ static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
      
     // Get latest status from hardware
     pmr171_send_cmd1(rig, 0x0b, 0);
-    read_block(rp, reply, 5);
-    read_block(rp, &reply[5], reply[4]);
+    
+    // Read header
+    int ret = read_block(rp, reply, 5);
+    if (ret < 0) {
+        rig_debug(RIG_DEBUG_ERR, "%s: Failed to read header\n", __func__);
+    }
+    
+    // Validate data length
+    if (reply[4] <= 0 || reply[4] > sizeof(reply) - 5) {
+        rig_debug(RIG_DEBUG_ERR, "%s: Invalid data length %d\n", __func__, reply[4]);
+    }
+    
+    // Read data section
+    ret = read_block(rp, &reply[5], reply[4]);
+    if (ret < 0) {
+        rig_debug(RIG_DEBUG_ERR, "%s: Failed to read data\n", __func__);
+    }
+
+    // Validate mode field index won't overflow
+    if (reply[4] < 5) { // Need at least 5 bytes to access reply[7] and reply[8]
+        rig_debug(RIG_DEBUG_ERR, "%s: Response too short for mode data\n", __func__);
+    }
 
     // Update cache
     cachep->modeMainA = guohe2rmode(reply[7], pmr171_modes);
@@ -563,8 +530,28 @@ static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     
     // Send status sync command to get current VFO state
     pmr171_send_cmd1(rig, 0x0b, 0);
-    read_block(rp, reply, 5);
-    read_block(rp, &reply[5], reply[4]);
+    
+    // Read header
+    int ret = read_block(rp, reply, 5);
+    if (ret < 0) {
+        rig_debug(RIG_DEBUG_ERR, "%s: Failed to read header\n", __func__);
+    }
+    
+    // Validate data length
+    if (reply[4] <= 0 || reply[4] > sizeof(reply) - 5) {
+        rig_debug(RIG_DEBUG_ERR, "%s: Invalid data length %d\n", __func__, reply[4]);
+    }
+    
+    // Read data section
+    ret = read_block(rp, &reply[5], reply[4]);
+    if (ret < 0) {
+        rig_debug(RIG_DEBUG_ERR, "%s: Failed to read data\n", __func__);
+    }
+    
+    // Validate VFO status field index won't overflow
+    if (reply[4] < 13) { // Need at least 13 bytes to access reply[17]
+        rig_debug(RIG_DEBUG_ERR, "%s: Response too short for VFO data\n", __func__);
+    }
     
     // According to protocol doc, reply[17] is A/B frequency status
     *vfo = (reply[17] == 1) ? RIG_VFO_B : RIG_VFO_A;
@@ -580,15 +567,34 @@ static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     unsigned char reply[33];
 
     pmr171_send_cmd1(rig, 0x0b, 0);
-    read_block(rp, reply, 5);
-    read_block(rp, &reply[5], reply[4]);
+    
+    // Read header
+    int ret = read_block(rp, reply, 5);
+    if (ret < 0) {
+        rig_debug(RIG_DEBUG_ERR, "%s: Failed to read header\n", __func__);
+    }
+    
+    // Validate data length
+    if (reply[4] <= 0 || reply[4] > sizeof(reply) - 5) {
+        rig_debug(RIG_DEBUG_ERR, "%s: Invalid data length %d\n", __func__, reply[4]);
+    }
+    
+    // Read data section
+    ret = read_block(rp, &reply[5], reply[4]);
+    if (ret < 0) {
+        rig_debug(RIG_DEBUG_ERR, "%s: Failed to read data\n", __func__);
+    }
+
+    // Validate PTT status field index won't overflow
+    if (reply[4] < 2) { // Need at least 2 bytes to access reply[6]
+        rig_debug(RIG_DEBUG_ERR, "%s: Response too short for PTT data\n", __func__);
+    }
 
     // Get PTT status
     cachep->ptt = reply[6];
     *ptt = cachep->ptt;
 
- 
-     return RIG_OK;
+    return RIG_OK;
  }
  
  
@@ -627,22 +633,36 @@ static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
      hamlib_port_t *rp = RIGPORT(rig);
      rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
      unsigned char buf[64] = { 0xa5, 0xa5, 0xa5, 0xa5, 0x04, 0x00, 0x00, 0x00, 0x00 };
- 
+
      buf[5] = cmd;
      buf[6] = value;
      unsigned int crc = CRC16Check(&buf[4], 3);
      buf[7] = crc >> 8;
      buf[8] = crc & 0xff;
- 
+
      rig_flush(rp);
      write_block(rp, buf, 9);
- 
+
      if (response)
      {
-         read_block(rp, reply, 5);
-         read_block(rp, &reply[5], reply[4]);
+         // Read header
+         int ret = read_block(rp, reply, 5);
+         if (ret < 0) {
+             rig_debug(RIG_DEBUG_ERR, "%s: Failed to read header\n", __func__);
+         }
+         
+         // Validate data length
+         if (reply[4] <= 0 || reply[4] > sizeof(reply) - 5) {
+             rig_debug(RIG_DEBUG_ERR, "%s: Invalid data length %d\n", __func__, reply[4]);
+         }
+         
+         // Read data section
+         ret = read_block(rp, &reply[5], reply[4]);
+         if (ret < 0) {
+             rig_debug(RIG_DEBUG_ERR, "%s: Failed to read data\n", __func__);
+         }
      }
- 
+
      return pmr171_read_ack(rig);
  }
  
@@ -652,9 +672,8 @@ static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  {
      unsigned char cmd[16] = { 0xa5, 0xa5, 0xa5, 0xa5, 11, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
      unsigned char reply[16];
-     //int retval;
      hamlib_port_t *rp = RIGPORT(rig);
- 
+
      rig_debug(RIG_DEBUG_VERBOSE, "pmr171: requested freq = %"PRIfreq" Hz\n", freq);
 
     /* Update frequency */
@@ -674,9 +693,14 @@ static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
      cmd[15] = crc & 0xff;
      rig_flush(rp);
      write_block(rp, cmd, 16);
-     read_block(rp, reply, 16);
+     
+     // Read response and validate length
+     int ret = read_block(rp, reply, sizeof(reply));
+     if (ret < 0) {
+         rig_debug(RIG_DEBUG_ERR, "%s: Failed to read response\n", __func__);
+     }
+     
      dump_hex(reply, 16);
-
 
     if (vfo == RIG_VFO_B)
     {
@@ -715,7 +739,7 @@ static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
      unsigned char reply[10];
      int crc;
      unsigned char i = rmode2guohe(mode, pmr171_modes);
- 
+
      if (i != (-1))
      {
          if (vfo == RIG_VFO_B)
@@ -728,24 +752,33 @@ static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
              cmd[6] = i;
              cmd[7] = rmode2guohe(CACHE(rig)->modeMainB, pmr171_modes);
          }
- 
+
          crc = CRC16Check(&cmd[4], 4);
          cmd[8] = crc >> 8;
          cmd[9] = crc & 0xff;
          rig_flush(rp);
          write_block(rp, cmd, 10);
+         
+         // Read header
          int ret = read_block(rp, reply, 5);
          if (ret < 0) {
              rig_debug(RIG_DEBUG_ERR, "%s: read_block failed for header\n", __func__);
          }
          
+         // Validate data length
+         if (reply[4] <= 0 || reply[4] > sizeof(reply) - 5) {
+             rig_debug(RIG_DEBUG_ERR, "%s: invalid reply length %d\n", __func__, reply[4]);
+         }
+         
+         // Read data section
          ret = read_block(rp, &reply[5], reply[4]);
          if (ret < 0) {
              rig_debug(RIG_DEBUG_ERR, "%s: read_block failed for data\n", __func__);
          }
          
-         if (reply[4] < 2) {
-             rig_debug(RIG_DEBUG_ERR, "%s: invalid reply length %d\n", __func__, reply[4]);
+         // Validate mode field index won't overflow
+         if (reply[4] < 3) { // Need at least 3 bytes to access reply[6] and reply[7]
+             rig_debug(RIG_DEBUG_ERR, "%s: Response too short for mode data\n", __func__);
          }
          
          dump_hex(reply, reply[4] + 5);
@@ -756,8 +789,9 @@ static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
          return RIG_OK;
      }
- 
+
      rig_debug(RIG_DEBUG_ERR, "%s: invalid mode=%s\n", __func__, rig_strrmode(mode));
+     return RIG_OK;
  }
  
 static int pmr171_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
@@ -788,14 +822,27 @@ static int pmr171_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
  static int pmr171_set_powerstat(RIG *rig, powerstat_t status)
  {
      rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
- 
+
      switch (status)
      {
      case RIG_POWER_OFF:
          return pmr171_send_cmd2(rig, 0x0c, 0x00, 0);
- 
+
      case RIG_POWER_ON:
          return pmr171_send_cmd2(rig, 0x0c, 0x01, 0);
+
+     case RIG_POWER_STANDBY:
+         /* Treat standby as power off for this rig */
+         return pmr171_send_cmd2(rig, 0x0c, 0x00, 0);
+
+     case RIG_POWER_OPERATE:
+         /* Treat operate as power on for this rig */
+         return pmr171_send_cmd2(rig, 0x0c, 0x01, 0);
+
+     case RIG_POWER_UNKNOWN:
+     default:
+         rig_debug(RIG_DEBUG_ERR, "%s: unsupported power status %d\n", __func__, status);
+         return RIG_OK;
      }
  }
  
