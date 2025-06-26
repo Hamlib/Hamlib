@@ -19,25 +19,11 @@
  *
  */
 
-//#include <stdlib.h>
-//#include <string.h>     /* String function definitions */
-//#include <unistd.h>     /* UNIX standard function definitions */
-//#include <math.h>
-
-//#include <hamlib/rig.h>
-//#include <serial.h>
-//#include <cal.h>
-//#include <token.h>
-//#include <register.h>
-
 #include "icom.h"
 #include "icom_defs.h"
 #include "icom_alt_agc.h"
 #include "frame.h"
 #include "misc.h"
-//#include "event.h"
-//#include "cache.h"
-
 
 /*
  * Note:
@@ -259,7 +245,6 @@ int icom_rig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     }
     else
     {
-        //struct rig_state *rs = STATE(rig);
         unsigned char cmdbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
         int cmd_len, ack_len = sizeof(ackbuf);
         int lvl_cn, lvl_sc;       /* Command Number, Subcommand */
@@ -387,7 +372,6 @@ int icom_rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     }   
     else
     {
-        //struct rig_state *rs;
         unsigned char cmdbuf[MAXFRAMELEN], respbuf[MAXFRAMELEN];
         int cmd_len, resp_len;
         int lvl_cn, lvl_sc;       /* Command Number, Subcommand */
@@ -412,8 +396,6 @@ int icom_rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
 
         rig_debug(RIG_DEBUG_TRACE, "%s: no extcmd found\n", __func__);
-
-        //rs = STATE(rig);
 
         cmd_len = 0;
 

@@ -233,11 +233,11 @@
  * Set AGC (S_FUNC_AGC) data
  */
 #define D_AGC_OFF	0x00
-#define D_AGC_SUPERFAST	0x01 //was 0x03 /* IC746 pro */
-#define D_AGC_FAST	0x02 //was 0x00
-#define D_AGC_SLOW	0x03 //was 0x02
+#define D_AGC_SUPERFAST	0x01
+#define D_AGC_FAST	0x02
+#define D_AGC_SLOW	0x03
 #define D_AGC_USER	0x04
-#define D_AGC_MID	0x05 //was 0x01
+#define D_AGC_MID	0x05
 #define D_AGC_AUTO	0x06
 
 /*
