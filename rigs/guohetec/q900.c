@@ -348,7 +348,6 @@ static int q900_open(RIG *rig)
 {
     hamlib_port_t *rp = RIGPORT(rig);
     int retry = 5;
-    bool success = false;
     
     while (retry > 0) {
         rig_flush(rp);
@@ -356,7 +355,6 @@ static int q900_open(RIG *rig)
         
         int r = read_block(rp, reply, rlen);
         if (r > 0) {
-            success = true;
             break;
         }
         
