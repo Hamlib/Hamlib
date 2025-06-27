@@ -22,6 +22,11 @@ Version 4.7.0
         * Remove dead getopt code.  GitHub PR #1709. (TNX Daniele Forsi)
         * Move rig_cache to separate(calloc) storage. Prepare for other moves.
           Issue #1420
+        * Many fixes for SWIG binding generation and improved Python support
+          and testing.  (TNX Daniele Forsi).
+        * Fix AGC for IC-R75, fix AGC for all Icom rigs.  (TNX Mark Fine).
+        * Separate PMR-171 and Q900 into new the GUOHETEC backend, add
+          additional support add clean up code.  (TNX FVsonar).
 
 Version 4.6.3
         * 2025-06-10
