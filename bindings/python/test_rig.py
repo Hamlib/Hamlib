@@ -50,6 +50,20 @@ class TestClass:
         assert rig.state.comm_state == 1
         info = rig.get_info()
         assert isinstance(info, str)
+
+        assert rig.set_split_vfo(-600000, Hamlib.RIG_VFO_A) is None
+        assert rig.get_split_vfo(Hamlib.RIG_VFO_TX) == [-600000, 1]
+        assert rig.set_split_vfo(5000000, Hamlib.RIG_VFO_B) is None
+        assert rig.get_split_vfo(Hamlib.RIG_VFO_TX) == [5000000, 2]
+        assert rig.set_split_vfo(5000000, Hamlib.RIG_VFO_CURR) is None
+        assert rig.get_split_vfo() == [5000000, 1]
+        assert rig.get_split_vfo(Hamlib.RIG_VFO_CURR) == [5000000, 1]
+
+        # FIXME should use a RIG_ANT_* constant but it isn't available in the bindings
+        RIG_ANT_UNKNOWN = 1<<30
+        assert rig.get_ant(Hamlib.RIG_VFO_A) == [RIG_ANT_UNKNOWN, RIG_ANT_UNKNOWN, Hamlib.RIG_VFO_A, 0]
+        assert rig.get_ant(Hamlib.RIG_VFO_A, Hamlib.RIG_VFO_A) == [RIG_ANT_UNKNOWN, RIG_ANT_UNKNOWN, Hamlib.RIG_VFO_A, 0]
+
         assert rig.close() is None
         assert rig.state.comm_state == 0
         info = rig.get_info()
@@ -63,11 +77,6 @@ class TestClass:
 
         assert rig.close() is None
         assert rig.ext_token_lookup("") is None
-        option = Hamlib.value_t()
-        ant = 0  # FIXME should use a RIG_ANT_* constant but it isn't available in the bindings
-        assert isinstance(rig.get_ant(option, ant), list)
-        assert isinstance(rig.get_ant(option, ant, Hamlib.RIG_VFO_CURR), list)
-        assert option.i == 0
         assert rig.get_chan_all() is None
         channel = 0
         readonly = 0
@@ -100,8 +109,8 @@ class TestClass:
         assert isinstance(rig.get_level_i(0), int)
         assert isinstance(rig.get_mem(), int)
         assert isinstance(rig.get_mem(Hamlib.RIG_VFO_CURR), int)
-        assert isinstance(rig.get_mode(), list)
-        assert isinstance(rig.get_mode(Hamlib.RIG_VFO_CURR), list)
+        assert len(rig.get_mode()) == 2
+        assert len(rig.get_mode(Hamlib.RIG_VFO_CURR)) == 2
         assert rig.get_parm(0) is None
         assert isinstance(rig.get_parm_f(0), float)
         assert isinstance(rig.get_parm_i(0), int)
@@ -116,19 +125,14 @@ class TestClass:
         assert isinstance(rig.get_rptr_shift(Hamlib.RIG_VFO_CURR), int)
         assert isinstance(rig.get_split_freq(), float)
         assert isinstance(rig.get_split_freq(Hamlib.RIG_VFO_CURR), float)
-        assert isinstance(rig.get_split_mode(), list)
-        assert isinstance(rig.get_split_mode(Hamlib.RIG_VFO_CURR), list)
-        with raises(TypeError):
-            assert rig.get_split_vfo() is None  # FIXME
-            assert rig.get_split_vfo(Hamlib.RIG_VFO_CURR) is None  # FIXME
+        assert len(rig.get_split_mode()) == 2
+        assert len(rig.get_split_mode(Hamlib.RIG_VFO_CURR)) == 2
         assert isinstance(rig.get_trn(), int)  # deprecated
         assert isinstance(rig.get_ts(), int)
         assert isinstance(rig.get_ts(Hamlib.RIG_VFO_CURR), int)
         assert isinstance(rig.get_vfo(), int)
-        with raises(TypeError):
-            assert rig.get_vfo_info(Hamlib.RIG_VFO_CURR) is None  # FIXME
-            assert rig.get_vfo_info(Hamlib.RIG_VFO_CURR, 2) is None  # FIXME
-            assert rig.get_vfo_info(Hamlib.RIG_VFO_CURR, 2, 3) is None  # FIXME
+        assert len(rig.get_vfo_info()) == 5
+        assert len(rig.get_vfo_info(Hamlib.RIG_VFO_CURR)) == 5
         assert isinstance(rig.get_xit(), int)
         assert isinstance(rig.get_xit(Hamlib.RIG_VFO_CURR), int)
         # assert rig_has_get_func(0)  FIXME not defined
@@ -153,10 +157,12 @@ class TestClass:
         assert rig.scan(0, 0, 0) is None
         assert rig.send_dtmf(0, "") is None
         assert rig.send_morse(0, "") is None
+        # FIXME should use a RIG_ANT_* constant but it isn't available in the bindings
+        RIG_ANT_1 = 1<<0
         option = Hamlib.value_t()
-        option.i = 0  # FIXME should use a RIG_ANT_* constant but it isn't available in the bindings
+        option.i = 0
         assert rig.set_ant(Hamlib.RIG_VFO_CURR, option) is None
-        assert rig.set_ant(Hamlib.RIG_VFO_CURR, option, 0) is None
+        assert rig.set_ant(Hamlib.RIG_VFO_CURR, option, RIG_ANT_1) is None
         assert rig.set_bank(0, 0) is None
         channel = Hamlib.channel()
         channel = Hamlib.channel(0)
