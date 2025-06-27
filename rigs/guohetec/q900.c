@@ -17,31 +17,6 @@
 #include <stdint.h>
 #include <unistd.h>
 
-struct q900_priv_data
-{
-    /* rx status */
-    struct timeval rx_status_tv;
-    unsigned char rx_status;
-
-    /* tx status */
-    struct timeval tx_status_tv;
-    unsigned char tx_status; /* Raw data from rig. Highest bit 0 = PTT */
-
-    /* tx levels */
-    struct timeval tx_level_tv;
-    unsigned char swr_level;
-    unsigned char alc_level;
-    unsigned char mod_level;
-    unsigned char pwr_level; /* TX power level */
-
-    /* freq & mode status */
-    struct timeval fm_status_tv;
-    unsigned char fm_status[5]; /* 5 bytes, NOT related to YAESU_CMD_LENGTH */
-    /* Digi mode is not part of regular fm_status response.
-     * So keep track of it in a separate variable. */
-    unsigned char dig_mode;
-};
-
 typedef struct q900_data_s
 {
     char ptt;
@@ -344,7 +319,7 @@ static int q900_open(RIG *rig)
  
 /* ---------------------------------------------------------------------- */
  
- static int q900_send(RIG *rig, unsigned char* buff, int len, unsigned char *reply, int rlen)
+ static int q900_send(RIG *rig, const unsigned char* buff, int len, unsigned char *reply, int rlen)
 {
     hamlib_port_t *rp = RIGPORT(rig);
     int retry = 5;
@@ -397,18 +372,16 @@ static int q900_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     cmd[7] = crc & 0xFF;
 
     unsigned char reply[40];
-    int ret = q900_send(rig, cmd, sizeof(cmd), reply, sizeof(reply));
-    if (ret != RIG_OK) {
-        rig_debug(RIG_DEBUG_ERR, "%s: Communication failure, error code=%d\n", __func__, ret);
-    }
+    q900_send(rig, cmd, sizeof(cmd), reply, sizeof(reply));
 
     if (reply[0] != 0xA5 || reply[1] != 0xA5 || 
         reply[2] != 0xA5 || reply[3] != 0xA5) {
         rig_debug(RIG_DEBUG_ERR, "%s: Invalid packet header\n", __func__);
     }
 
-    if (reply[4] != 0x1B) {
-        rig_debug(RIG_DEBUG_ERR, "%s: Invalid packet length %d\n", __func__, reply[4]);
+    if (reply[4] == 0 || reply[4] > sizeof(reply) - 5) {
+        rig_debug(RIG_DEBUG_ERR, "%s: Invalid data length %d\n", __func__, reply[4]);
+        return -RIG_EPROTO;
     }
 
     // Validate buffer boundaries - ensure enough space for CRC
@@ -459,7 +432,7 @@ static int q900_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  {
     struct rig_cache *cachep = CACHE(rig);
     hamlib_port_t *rp = RIGPORT(rig);
-    q900_data_t *p = (q900_data_t *) STATE(rig)->priv;
+    const q900_data_t *p = (q900_data_t *) STATE(rig)->priv;
     unsigned char reply[255];
      
     q900_send_cmd1(rig, 0x0b, 0);
@@ -468,37 +441,44 @@ static int q900_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     int ret = read_block(rp, reply, 5);
     if (ret < 0) {
         rig_debug(RIG_DEBUG_ERR, "%s: Failed to read header\n", __func__);
+        return -RIG_ETIMEOUT;
     }
     
     // Validate data length
-    if (reply[4] <= 0 || reply[4] > sizeof(reply) - 5) {
+    if (reply[4] == 0 || reply[4] > sizeof(reply) - 5) {
         rig_debug(RIG_DEBUG_ERR, "%s: Invalid data length %d\n", __func__, reply[4]);
+        return -RIG_EPROTO;
     }
     
     // Read data section
     ret = read_block(rp, &reply[5], reply[4]);
     if (ret < 0) {
         rig_debug(RIG_DEBUG_ERR, "%s: Failed to read data\n", __func__);
+        return -RIG_ETIMEOUT;
     }
     
     // Validate response length matches expected
     if (ret != reply[4]) {
         rig_debug(RIG_DEBUG_ERR, "%s: Data read mismatch: expected %d, got %d\n", 
                  __func__, reply[4], ret);
+        return -RIG_EPROTO;
     }
 
     // Validate mode field index won't overflow
     if (reply[4] < 5) { // Need at least 5 bytes to access reply[7] and reply[8]
         rig_debug(RIG_DEBUG_ERR, "%s: Response too short for mode data\n", __func__);
+        return -RIG_EPROTO;
     }
 
     // Validate mode field indices are within bounds
     if (reply[7] >= GUOHE_MODE_TABLE_MAX) {
         rig_debug(RIG_DEBUG_ERR, "%s: Invalid mode A index %d\n", __func__, reply[7]);
+        return -RIG_EPROTO;
     }
     
     if (reply[8] >= GUOHE_MODE_TABLE_MAX) {
         rig_debug(RIG_DEBUG_ERR, "%s: Invalid mode B index %d\n", __func__, reply[8]);
+        return -RIG_EPROTO;
     }
 
     cachep->modeMainA = guohe2rmode(reply[7], q900_modes);
@@ -531,33 +511,39 @@ static int q900_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     int ret = read_block(rp, reply, 5);
     if (ret < 0) {
         rig_debug(RIG_DEBUG_ERR, "%s: Failed to read header\n", __func__);
+        return -RIG_ETIMEOUT;
     }
     
     // Validate data length
-    if (reply[4] <= 0 || reply[4] > sizeof(reply) - 5) {
+    if (reply[4] == 0 || reply[4] > sizeof(reply) - 5) {
         rig_debug(RIG_DEBUG_ERR, "%s: Invalid data length %d\n", __func__, reply[4]);
+        return -RIG_EPROTO;
     }
     
     // Read data section
     ret = read_block(rp, &reply[5], reply[4]);
     if (ret < 0) {
         rig_debug(RIG_DEBUG_ERR, "%s: Failed to read data\n", __func__);
+        return -RIG_ETIMEOUT;
     }
     
     // Validate response length matches expected
     if (ret != reply[4]) {
         rig_debug(RIG_DEBUG_ERR, "%s: Data read mismatch: expected %d, got %d\n", 
                  __func__, reply[4], ret);
+        return -RIG_EPROTO;
     }
     
     // Validate VFO status field index won't overflow
     if (reply[4] < 13) { // Need at least 13 bytes to access reply[17]
         rig_debug(RIG_DEBUG_ERR, "%s: Response too short for VFO data\n", __func__);
+        return -RIG_EPROTO;
     }
     
     // Validate VFO status value
     if (reply[17] != 0 && reply[17] != 1) {
         rig_debug(RIG_DEBUG_ERR, "%s: Invalid VFO status value %d\n", __func__, reply[17]);
+        return -RIG_EPROTO;
     }
     
     *vfo = (reply[17] == 1) ? RIG_VFO_B : RIG_VFO_A;
@@ -578,33 +564,39 @@ static int q900_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     int ret = read_block(rp, reply, 5);
     if (ret < 0) {
         rig_debug(RIG_DEBUG_ERR, "%s: Failed to read header\n", __func__);
+        return -RIG_ETIMEOUT;
     }
     
     // Validate data length
-    if (reply[4] <= 0 || reply[4] > sizeof(reply) - 5) {
+    if (reply[4] == 0 || reply[4] > sizeof(reply) - 5) {
         rig_debug(RIG_DEBUG_ERR, "%s: Invalid data length %d\n", __func__, reply[4]);
+        return -RIG_EPROTO;
     }
     
     // Read data section
     ret = read_block(rp, &reply[5], reply[4]);
     if (ret < 0) {
         rig_debug(RIG_DEBUG_ERR, "%s: Failed to read data\n", __func__);
+        return -RIG_ETIMEOUT;
     }
 
     // Validate response length matches expected
     if (ret != reply[4]) {
         rig_debug(RIG_DEBUG_ERR, "%s: Data read mismatch: expected %d, got %d\n", 
                  __func__, reply[4], ret);
+        return -RIG_EPROTO;
     }
 
     // Validate PTT status field index won't overflow
     if (reply[4] < 2) { // Need at least 2 bytes to access reply[6]
         rig_debug(RIG_DEBUG_ERR, "%s: Response too short for PTT data\n", __func__);
+        return -RIG_EPROTO;
     }
 
     // Validate PTT status value
     if (reply[6] != 0 && reply[6] != 1) {
         rig_debug(RIG_DEBUG_ERR, "%s: Invalid PTT status value %d\n", __func__, reply[6]);
+        return -RIG_EPROTO;
     }
 
     cachep->ptt = reply[6];
@@ -671,7 +663,7 @@ static int q900_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
          }
          
          // Validate data length
-         if (reply[4] <= 0 || reply[4] > sizeof(reply) - 5) {
+         if (reply[4] == 0 || reply[4] > sizeof(reply) - 5) {
              rig_debug(RIG_DEBUG_ERR, "%s: Invalid data length %d\n", __func__, reply[4]);
          }
          
@@ -760,74 +752,67 @@ static int q900_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
      hamlib_port_t *rp = RIGPORT(rig);
      unsigned char cmd[10] = { 0xa5, 0xa5, 0xa5, 0xa5, 5, 0x0a, 0x00, 0x00, 0x00, 0x00 };
      unsigned char reply[10];
-     int crc;
      unsigned char i = rmode2guohe(mode, q900_modes);
- 
-     if (i != (-1))
-     {
-         if (vfo == RIG_VFO_B)
-         {
-             cmd[6] = rmode2guohe(CACHE(rig)->modeMainA, q900_modes);
-             cmd[7] = i;
-         }
-         else
-         {
-             cmd[6] = i;
-             cmd[7] = rmode2guohe(CACHE(rig)->modeMainB, q900_modes);
-         }
- 
-         crc = CRC16Check(&cmd[4], 4);
-         cmd[8] = crc >> 8;
-         cmd[9] = crc & 0xff;
-         rig_flush(rp);
-         write_block(rp, cmd, 10);
-         
-         // Read header
-         int ret = read_block(rp, reply, 5);
-         if (ret < 0) {
-             rig_debug(RIG_DEBUG_ERR, "%s: read_block failed for header\n", __func__);
-         }
-         
-         // Validate data length
-         if (reply[4] <= 0 || reply[4] > sizeof(reply) - 5) {
-             rig_debug(RIG_DEBUG_ERR, "%s: invalid reply length %d\n", __func__, reply[4]);
-         }
-         
-         // Read data section
-         ret = read_block(rp, &reply[5], reply[4]);
-         if (ret < 0) {
-             rig_debug(RIG_DEBUG_ERR, "%s: read_block failed for data\n", __func__);
-         }
-         
-         // Validate response length matches expected
-         if (ret != reply[4]) {
-             rig_debug(RIG_DEBUG_ERR, "%s: Data read mismatch: expected %d, got %d\n", 
-                      __func__, reply[4], ret);
-         }
-         
-         // Validate mode field index won't overflow
-         if (reply[4] < 3) { // Need at least 3 bytes to access reply[6] and reply[7]
-             rig_debug(RIG_DEBUG_ERR, "%s: Response too short for mode data\n", __func__);
-         }
-         
-         // Validate mode field indices are within bounds
-         if (reply[6] >= GUOHE_MODE_TABLE_MAX) {
-             rig_debug(RIG_DEBUG_ERR, "%s: Invalid mode A index %d\n", __func__, reply[6]);
-         }
-         
-         if (reply[7] >= GUOHE_MODE_TABLE_MAX) {
-             rig_debug(RIG_DEBUG_ERR, "%s: Invalid mode B index %d\n", __func__, reply[7]);
-         }
-         
-         dump_hex(reply, reply[4] + 5);
-         
-         CACHE(rig)->modeMainA = guohe2rmode(reply[6], q900_modes);
-         CACHE(rig)->modeMainB = guohe2rmode(reply[7], q900_modes);
 
-         return RIG_OK;
+     if (vfo == RIG_VFO_B)
+     {
+         cmd[6] = rmode2guohe(CACHE(rig)->modeMainA, q900_modes);
+         cmd[7] = i;
      }
- 
-     rig_debug(RIG_DEBUG_ERR, "%s: invalid mode=%s\n", __func__, rig_strrmode(mode));
+     else
+     {
+         cmd[6] = i;
+         cmd[7] = rmode2guohe(CACHE(rig)->modeMainB, q900_modes);
+     }
+
+     int crc = CRC16Check(&cmd[4], 4);
+     cmd[8] = crc >> 8;
+     cmd[9] = crc & 0xff;
+     rig_flush(rp);
+     write_block(rp, cmd, 10);
+     
+     // Read header
+     int ret = read_block(rp, reply, 5);
+     if (ret < 0) {
+         rig_debug(RIG_DEBUG_ERR, "%s: read_block failed for header\n", __func__);
+     }
+     
+     // Validate data length
+     if (reply[4] == 0 || reply[4] > sizeof(reply) - 5) {
+         rig_debug(RIG_DEBUG_ERR, "%s: invalid reply length %d\n", __func__, reply[4]);
+     }
+     
+     // Read data section
+     ret = read_block(rp, &reply[5], reply[4]);
+     if (ret < 0) {
+         rig_debug(RIG_DEBUG_ERR, "%s: read_block failed for data\n", __func__);
+     }
+     
+     // Validate response length matches expected
+     if (ret != reply[4]) {
+         rig_debug(RIG_DEBUG_ERR, "%s: Data read mismatch: expected %d, got %d\n", 
+                  __func__, reply[4], ret);
+     }
+     
+     // Validate mode field index won't overflow
+     if (reply[4] < 3) { // Need at least 3 bytes to access reply[6] and reply[7]
+         rig_debug(RIG_DEBUG_ERR, "%s: Response too short for mode data\n", __func__);
+     }
+     
+     // Validate mode field indices are within bounds
+     if (reply[6] >= GUOHE_MODE_TABLE_MAX) {
+         rig_debug(RIG_DEBUG_ERR, "%s: Invalid mode A index %d\n", __func__, reply[6]);
+     }
+     
+     if (reply[7] >= GUOHE_MODE_TABLE_MAX) {
+         rig_debug(RIG_DEBUG_ERR, "%s: Invalid mode B index %d\n", __func__, reply[7]);
+     }
+     
+     dump_hex(reply, reply[4] + 5);
+     
+     CACHE(rig)->modeMainA = guohe2rmode(reply[6], q900_modes);
+     CACHE(rig)->modeMainB = guohe2rmode(reply[7], q900_modes);
+
      return RIG_OK;
  }
  
@@ -846,10 +831,7 @@ static int q900_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     cmd[8] = crc & 0xff;
 
     unsigned char reply[9];
-    int ret = q900_send(rig, cmd, sizeof(cmd), reply, sizeof(reply));
-    if (ret != RIG_OK) {
-        rig_debug(RIG_DEBUG_ERR, "%s: PTT command failed\n", __func__);
-    }
+    q900_send(rig, cmd, sizeof(cmd), reply, sizeof(reply));
 
     // Update cache
     CACHE(rig)->ptt = ptt;

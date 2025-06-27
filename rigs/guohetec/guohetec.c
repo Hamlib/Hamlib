@@ -97,23 +97,6 @@ uint16_t CRC16Check(const unsigned char *buf, int len)
  }
  
  
- unsigned long long from_be(const unsigned char data[],
-                            unsigned int byte_len)
- {
-     int i;
-     unsigned long long f = 0;
- 
-     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
- 
-     for (i = 0; i < byte_len; i++)
-     {
-         f = (f << 8) + data[i];
-     }
- 
-     return f;
- }
-
-
 // Initialization function
 DECLARE_INITRIG_BACKEND(guohetec) {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: Initializing guohetec \n", __func__);
@@ -136,7 +119,6 @@ DECLARE_PROBERIG_BACKEND(guohetec) {
     };
     
     uint8_t reply[PMR171_REPLY_LENGTH];
-    int retval;
 
     int orig_rate = port->parm.serial.rate;
     int orig_timeout = port->timeout;
@@ -153,7 +135,7 @@ DECLARE_PROBERIG_BACKEND(guohetec) {
         
         rig_flush(port);
         
-        retval = write_block(port, cmd, PMR171_CMD_LENGTH);
+        int retval = write_block(port, cmd, PMR171_CMD_LENGTH);
         if (retval != RIG_OK) {
             continue;
         }
