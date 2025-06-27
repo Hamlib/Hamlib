@@ -397,6 +397,7 @@ int icom_rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         rig_debug(RIG_DEBUG_TRACE, "%s: no extcmd found\n", __func__);
 
+        cmdbuf[0] = 0x00;
         cmd_len = 0;
 
         lvl_cn = C_CTL_FUNC;
@@ -414,7 +415,8 @@ int icom_rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         /*
          * strbuf should contain Cn,Sc,Data area
          */
-        cmdhead = ((lvl_sc == -1) ? 1 : 2) + cmd_len;
+        //cmdhead = ((lvl_sc == -1) ? 1 : 2) + cmd_len;
+        cmdhead = 2 + cmd_len;
         resp_len -= cmdhead;
 
         if (respbuf[0] != lvl_cn)
