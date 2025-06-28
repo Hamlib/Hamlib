@@ -14,7 +14,6 @@
 #include "tones.h"
 #include "bandplan.h"
 #include "cal.h"
-#include <stdint.h>
 #include <unistd.h>
 
 
@@ -271,8 +270,6 @@ struct rig_caps pmr171_caps =
     .set_powerstat =    pmr171_set_powerstat,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
- 
-#include <stdint.h>
  
 /* ---------------------------------------------------------------------- */
  

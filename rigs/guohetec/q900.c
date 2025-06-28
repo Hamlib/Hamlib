@@ -14,7 +14,6 @@
 #include "tones.h"
 #include "bandplan.h"
 #include "cal.h"
-#include <stdint.h>
 #include <unistd.h>
 
 typedef struct q900_data_s
@@ -269,8 +268,6 @@ struct rig_caps q900_caps =
     .set_powerstat =    q900_set_powerstat,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
- 
-#include <stdint.h>
  
 /* ---------------------------------------------------------------------- */
  
