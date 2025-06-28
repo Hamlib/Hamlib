@@ -96,6 +96,26 @@ uint16_t CRC16Check(const unsigned char *buf, int len)
      return data;
  }
  
+ /**
+  * Convert from big-endian byte order
+ * @param data Data pointer
+ * @param byte_len Byte length
+ * @return Converted value
+  */
+ unsigned long long from_be(const unsigned char data[], unsigned int byte_len)
+ {
+     unsigned long long result = 0;
+     int i;
+ 
+     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+     for (i = 0; i < byte_len; i++)
+     {
+         result = (result << 8) | data[i];
+     }
+ 
+     return result;
+ }
 
 // Common response validation functions
 

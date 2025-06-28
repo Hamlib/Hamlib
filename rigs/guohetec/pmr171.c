@@ -321,7 +321,6 @@ static int pmr171_open(RIG *rig)
  /* ---------------------------------------------------------------------- */
  
  static int pmr171_send(RIG *rig, const unsigned char* buff, int len, unsigned char *reply, int rlen)
- static int pmr171_send(RIG *rig, const unsigned char* buff, int len, unsigned char *reply, int rlen)
 {
     hamlib_port_t *rp = RIGPORT(rig);
     int retry = 5;
@@ -654,50 +653,7 @@ static int pmr171_open(RIG *rig)
          cmd[6] = i;
          cmd[7] = rmode2guohe(CACHE(rig)->modeMainB, pmr171_modes);
      }
-     if (vfo == RIG_VFO_B)
-     {
-         cmd[6] = rmode2guohe(CACHE(rig)->modeMainA, pmr171_modes);
-         cmd[7] = i;
-     }
-     else
-     {
-         cmd[6] = i;
-         cmd[7] = rmode2guohe(CACHE(rig)->modeMainB, pmr171_modes);
-     }
 
-     int crc = CRC16Check(&cmd[4], 4);
-     cmd[8] = crc >> 8;
-     cmd[9] = crc & 0xff;
-     rig_flush(rp);
-     write_block(rp, cmd, 10);
-     
-     // Read header
-     int ret = read_block(rp, reply, 5);
-     if (ret < 0) {
-         rig_debug(RIG_DEBUG_ERR, "%s: read_block failed for header\n", __func__);
-     }
-     
-     // Validate data length
-     if (reply[4] == 0 || reply[4] > sizeof(reply) - 5) {
-         rig_debug(RIG_DEBUG_ERR, "%s: invalid reply length %d\n", __func__, reply[4]);
-     }
-     
-     // Read data section
-     ret = read_block(rp, &reply[5], reply[4]);
-     if (ret < 0) {
-         rig_debug(RIG_DEBUG_ERR, "%s: read_block failed for data\n", __func__);
-     }
-     
-     // Validate mode field index won't overflow
-     if (reply[4] < 3) { // Need at least 3 bytes to access reply[6] and reply[7]
-         rig_debug(RIG_DEBUG_ERR, "%s: Response too short for mode data\n", __func__);
-     }
-     
-     dump_hex(reply, reply[4] + 5);
-     
-     // Update cache
-     CACHE(rig)->modeMainA = guohe2rmode(reply[6], pmr171_modes);
-     CACHE(rig)->modeMainB = guohe2rmode(reply[7], pmr171_modes);
      int crc = CRC16Check(&cmd[4], 4);
      cmd[8] = crc >> 8;
      cmd[9] = crc & 0xff;
@@ -750,7 +706,6 @@ static int pmr171_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     cmd[8] = crc & 0xff;
 
     unsigned char reply[9];
-    pmr171_send(rig, cmd, sizeof(cmd), reply, sizeof(reply));
     pmr171_send(rig, cmd, sizeof(cmd), reply, sizeof(reply));
 
     CACHE(rig)->ptt = ptt;
