@@ -625,25 +625,27 @@ int sdr1k_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 int smartsdr_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 {
     int buf_len;
+    int retval;
     buf_len = strlen(msg) + 12;
     char cmd[buf_len];
     ENTERFUNC;
 
     sprintf(cmd, "cwx send \"%s\"", msg);
-    smartsdr_transaction(rig, cmd);
+    retval = smartsdr_transaction(rig, cmd);
 
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC(retval);
 
 }
 
 int smartsdr_stop_morse(RIG *rig, vfo_t vfo)
 {
+    int retval;
     char cmd[64];
     ENTERFUNC;
 
     sprintf(cmd, "cwx clear");
-    smartsdr_transaction(rig, cmd);
+    retval = smartsdr_transaction(rig, cmd);
 
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC(retval);
 
 }
