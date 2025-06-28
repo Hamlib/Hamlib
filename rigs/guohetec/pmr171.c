@@ -7,14 +7,12 @@
 #endif
 
 #include "hamlib/rig.h"
-#include "serial.h"
+#include "iofunc.h"
 #include "guohetec.h"
 #include "cache.h"
-#include "misc.h"
 #include "tones.h"
 #include "bandplan.h"
 #include "cal.h"
-#include <unistd.h>
 
 
 typedef struct pmr171_data_s
@@ -39,8 +37,6 @@ typedef struct pmr171_data_s
     char SWR;
 } pmr171_data_t;
 
-
-#define GUOHE_MODE_TABLE_MAX 8  
 static rmode_t pmr171_modes[GUOHE_MODE_TABLE_MAX] = 
 {
     RIG_MODE_USB,
@@ -598,17 +594,15 @@ static int pmr171_open(RIG *rig)
          return RIG_OK;
      }
      
-     dump_hex(reply, 16);
-
-    // Update cache with requested frequency
-    if (vfo == RIG_VFO_B)
-    {
-        CACHE(rig)->freqMainB = freq;
-    }
-    else
-    {
-        CACHE(rig)->freqMainA = freq;
-    }
+     // Update cache with requested frequency
+     if (vfo == RIG_VFO_B)
+     {
+         CACHE(rig)->freqMainB = freq;
+     }
+     else
+     {
+         CACHE(rig)->freqMainA = freq;
+     }
 
      return RIG_OK;
  }
@@ -683,8 +677,6 @@ static int pmr171_open(RIG *rig)
          }
          return RIG_OK;
      }
-     
-     dump_hex(reply, reply[4] + 5);
      
      // Update cache with response data
      CACHE(rig)->modeMainA = guohe2rmode(reply[6], pmr171_modes);

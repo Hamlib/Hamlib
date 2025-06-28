@@ -1,11 +1,29 @@
-#include <unistd.h>
 #include <string.h>
 #include <hamlib/rig.h>
-#include "serial.h"
+#include "iofunc.h"
 #include "register.h"
+#include "riglist.h"
 #include "guohetec.h"
-#include "misc.h"
 
+// Common response validation function implementations
+int validate_packet_header(const unsigned char *reply, const char *func_name)
+{
+    if (reply[0] != 0xA5 || reply[1] != 0xA5 || 
+        reply[2] != 0xA5 || reply[3] != 0xA5) {
+        rig_debug(RIG_DEBUG_ERR, "%s: Invalid packet header, using cached values\n", func_name);
+        return -1;
+    }
+    return 0;
+}
+
+int validate_data_length(const unsigned char *reply, int reply_size, const char *func_name)
+{
+    if (reply[4] == 0 || reply[4] > reply_size - 5) {
+        rig_debug(RIG_DEBUG_ERR, "%s: Invalid data length %d, using cached values\n", func_name, reply[4]);
+        return -1;
+    }
+    return 0;
+}
 
 // CRC16/CCITT-FALSE
 uint16_t CRC16Check(const unsigned char *buf, int len)
@@ -175,10 +193,14 @@ int validate_rig_response(RIG *rig, unsigned char *reply, int reply_size,
                          const char *func_name)
 {
     // Validate packet header
-    VALIDATE_PACKET_HEADER(reply, func_name);
+    if (validate_packet_header(reply, func_name) < 0) {
+        return -1;
+    }
     
     // Validate data length
-    VALIDATE_DATA_LENGTH(reply, reply_size, func_name);
+    if (validate_data_length(reply, reply_size, func_name) < 0) {
+        return -1;
+    }
     
     return 0;
 }
