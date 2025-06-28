@@ -31,21 +31,13 @@
     return RIG_OK; \
 } while(0)
 
-// Common response validation macros
-#define VALIDATE_PACKET_HEADER(reply, func_name) do { \
-    if (reply[0] != 0xA5 || reply[1] != 0xA5 || \
-        reply[2] != 0xA5 || reply[3] != 0xA5) { \
-        rig_debug(RIG_DEBUG_ERR, "%s: Invalid packet header, using cached values\n", func_name); \
-        return -1; \
-    } \
-} while(0)
+// Common response validation function declarations
+int validate_packet_header(const unsigned char *reply, const char *func_name);
+int validate_data_length(const unsigned char *reply, int reply_size, const char *func_name);
 
-#define VALIDATE_DATA_LENGTH(reply, reply_size, func_name) do { \
-    if (reply[4] == 0 || reply[4] > (reply_size) - 5) { \
-        rig_debug(RIG_DEBUG_ERR, "%s: Invalid data length %d, using cached values\n", func_name, reply[4]); \
-        return -1; \
-    } \
-} while(0)
+// Keep the macro for backward compatibility
+#define VALIDATE_PACKET_HEADER(reply, func_name) validate_packet_header(reply, func_name)
+#define VALIDATE_DATA_LENGTH(reply, reply_size, func_name) validate_data_length(reply, reply_size, func_name)
 
 #define VALIDATE_READ_RESULT(ret, expected, func_name) do { \
     if (ret < 0) { \

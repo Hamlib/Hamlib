@@ -7,14 +7,12 @@
 #endif
 
 #include "hamlib/rig.h"
-#include "serial.h"
+#include "iofunc.h"
 #include "guohetec.h"
 #include "cache.h"
-#include "misc.h"
 #include "tones.h"
 #include "bandplan.h"
 #include "cal.h"
-#include <unistd.h>
 
 typedef struct q900_data_s
 {
@@ -38,8 +36,6 @@ typedef struct q900_data_s
     char SWR;
 } q900_data_t;
 
-
-#define GUOHE_MODE_TABLE_MAX 8  
 static rmode_t q900_modes[GUOHE_MODE_TABLE_MAX] = 
 {
     RIG_MODE_USB,
@@ -599,17 +595,15 @@ static int q900_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
          return RIG_OK;
      }
      
-     dump_hex(reply, 16);
-
-    // Update cache with requested frequency
-    if (vfo == RIG_VFO_B)
-    {
-        CACHE(rig)->freqMainB = freq;
-    }
-    else
-    {
-        CACHE(rig)->freqMainA = freq;
-    }
+     // Update cache with requested frequency
+     if (vfo == RIG_VFO_B)
+     {
+         CACHE(rig)->freqMainB = freq;
+     }
+     else
+     {
+         CACHE(rig)->freqMainA = freq;
+     }
 
      return RIG_OK;
  }
@@ -712,8 +706,6 @@ static int q900_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
          return RIG_OK;
      }
      
-     dump_hex(reply, reply[4] + 5);
-     
      // Update cache with response data
      CACHE(rig)->modeMainA = guohe2rmode(reply[6], q900_modes);
      CACHE(rig)->modeMainB = guohe2rmode(reply[7], q900_modes);
@@ -799,3 +791,4 @@ static int q900_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
  }
  
  /* ---------------------------------------------------------------------- */
+
