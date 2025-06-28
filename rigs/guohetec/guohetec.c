@@ -189,7 +189,7 @@ int read_rig_response(RIG *rig, unsigned char *reply, int reply_size,
  * @param func_name Function name for debug messages
  * @return 0 on success, -1 on error
  */
-int validate_rig_response(RIG *rig, unsigned char *reply, int reply_size, 
+int validate_rig_response(RIG *rig, const unsigned char *reply, int reply_size, 
                          const char *func_name)
 {
     // Validate packet header
@@ -213,7 +213,7 @@ int validate_rig_response(RIG *rig, unsigned char *reply, int reply_size,
  * @param func_name Function name for debug messages
  * @return 0 on success, -1 on error
  */
-int validate_freq_response(RIG *rig, unsigned char *reply, int reply_size, 
+int validate_freq_response(RIG *rig, const unsigned char *reply, int reply_size, 
                           const char *func_name)
 {
     // Basic validation
@@ -257,7 +257,7 @@ int validate_freq_response(RIG *rig, unsigned char *reply, int reply_size,
  * @param min_length Minimum required data length
  * @return 0 on success, -1 on error
  */
-int validate_mode_response(RIG *rig, unsigned char *reply, int reply_size, 
+int validate_mode_response(RIG *rig, const unsigned char *reply, int reply_size, 
                           const char *func_name, int min_length)
 {
     // Basic validation
@@ -305,8 +305,6 @@ DECLARE_PROBERIG_BACKEND(guohetec) {
         0x0B,                   
         0x00, 0x00              
     };
-    
-    uint8_t reply[PMR171_REPLY_LENGTH];
 
     int orig_rate = port->parm.serial.rate;
     int orig_timeout = port->timeout;
@@ -314,6 +312,8 @@ DECLARE_PROBERIG_BACKEND(guohetec) {
     const int rates[] = {9600, 19200, 38400, 57600, 115200, 0};
     
     for (int i = 0; rates[i]; i++) {
+        uint8_t reply[PMR171_REPLY_LENGTH];
+        
         port->parm.serial.rate = rates[i];
         port->timeout = 500; 
         
