@@ -45,6 +45,8 @@ static int smartsdr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
                              pbwidth_t width);
 static int smartsdr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
                              pbwidth_t *width);
+static int smartsdr_send_morse(RIG *rig, vfo_t vfo, const char *msg);
+static int smartsdr_stop_morse(RIG *rig, vfo_t vfo);
 //static int smartsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 
 struct smartsdr_priv_data
@@ -619,3 +621,29 @@ int sdr1k_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     }
 }
 #endif
+
+int smartsdr_send_morse(RIG *rig, vfo_t vfo, const char *msg)
+{
+    int buf_len;
+    buf_len = strlen(msg) + 12;
+    char cmd[buf_len];
+    ENTERFUNC;
+
+    sprintf(cmd, "cwx send \"%s\"", msg);
+    smartsdr_transaction(rig, cmd);
+
+    RETURNFUNC(RIG_OK);
+
+}
+
+int smartsdr_stop_morse(RIG *rig, vfo_t vfo)
+{
+    char cmd[64];
+    ENTERFUNC;
+
+    sprintf(cmd, "cwx clear");
+    smartsdr_transaction(rig, cmd);
+
+    RETURNFUNC(RIG_OK);
+
+}
