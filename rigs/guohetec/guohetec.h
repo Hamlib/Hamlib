@@ -61,13 +61,13 @@ unsigned char *to_be(unsigned char data[], unsigned long long freq, unsigned int
 unsigned long long from_be(const unsigned char data[],unsigned int byte_len);
 
 // Common response validation functions
-int validate_rig_response(RIG *rig, unsigned char *reply, int reply_size, 
+int validate_rig_response(RIG *rig, const unsigned char *reply, int reply_size, 
                          const char *func_name);
 int read_rig_response(RIG *rig, unsigned char *reply, int reply_size, 
                      const char *func_name);
-int validate_freq_response(RIG *rig, unsigned char *reply, int reply_size, 
+int validate_freq_response(RIG *rig, const unsigned char *reply, int reply_size, 
                           const char *func_name);
-int validate_mode_response(RIG *rig, unsigned char *reply, int reply_size, 
+int validate_mode_response(RIG *rig, const unsigned char *reply, int reply_size, 
                           const char *func_name, int min_length);
 
 #endif // _guohetec_H_
