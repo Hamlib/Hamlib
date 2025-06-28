@@ -548,22 +548,9 @@ static int pmr171_open(RIG *rig)
 
      if (response)
      {
-         // Read header
-         int ret = read_block(rp, reply, 5);
-         if (ret < 0) {
-             rig_debug(RIG_DEBUG_ERR, "%s: Failed to read header\n", __func__);
-         }
-         
-         // Validate data length
-         if (reply[4] == 0 || reply[4] > sizeof(reply) - 5) {
-         if (reply[4] == 0 || reply[4] > sizeof(reply) - 5) {
-             rig_debug(RIG_DEBUG_ERR, "%s: Invalid data length %d\n", __func__, reply[4]);
-         }
-         
-         // Read data section
-         ret = read_block(rp, &reply[5], reply[4]);
-         if (ret < 0) {
-             rig_debug(RIG_DEBUG_ERR, "%s: Failed to read data\n", __func__);
+         // Use common response reading function
+         if (read_rig_response(rig, reply, sizeof(reply), __func__) < 0) {
+             return RIG_OK; // Return OK to use cached values
          }
      }
 
@@ -601,11 +588,22 @@ static int pmr171_open(RIG *rig)
      // Read response and validate length
      int ret = read_block(rp, reply, sizeof(reply));
      if (ret < 0) {
-         rig_debug(RIG_DEBUG_ERR, "%s: Failed to read response\n", __func__);
+         rig_debug(RIG_DEBUG_ERR, "%s: Failed to read response, using cached values\n", __func__);
+         // Update cache with requested frequency even if response failed
+         if (vfo == RIG_VFO_B)
+         {
+             CACHE(rig)->freqMainB = freq;
+         }
+         else
+         {
+             CACHE(rig)->freqMainA = freq;
+         }
+         return RIG_OK;
      }
      
      dump_hex(reply, 16);
 
+    // Update cache with requested frequency
     if (vfo == RIG_VFO_B)
     {
         CACHE(rig)->freqMainB = freq;
@@ -660,31 +658,38 @@ static int pmr171_open(RIG *rig)
      rig_flush(rp);
      write_block(rp, cmd, 10);
      
-     // Read header
-     int ret = read_block(rp, reply, 5);
-     if (ret < 0) {
-         rig_debug(RIG_DEBUG_ERR, "%s: read_block failed for header\n", __func__);
-     }
-     
-     // Validate data length
-     if (reply[4] == 0 || reply[4] > sizeof(reply) - 5) {
-         rig_debug(RIG_DEBUG_ERR, "%s: invalid reply length %d\n", __func__, reply[4]);
-     }
-     
-     // Read data section
-     ret = read_block(rp, &reply[5], reply[4]);
-     if (ret < 0) {
-         rig_debug(RIG_DEBUG_ERR, "%s: read_block failed for data\n", __func__);
+     // Use common response reading function
+     if (read_rig_response(rig, reply, sizeof(reply), __func__) < 0) {
+         // Update cache with requested mode even if response failed
+         if (vfo == RIG_VFO_B)
+         {
+             CACHE(rig)->modeMainB = mode;
+         }
+         else
+         {
+             CACHE(rig)->modeMainA = mode;
+         }
+         return RIG_OK;
      }
      
      // Validate mode field index won't overflow
      if (reply[4] < 3) { // Need at least 3 bytes to access reply[6] and reply[7]
-         rig_debug(RIG_DEBUG_ERR, "%s: Response too short for mode data\n", __func__);
+         rig_debug(RIG_DEBUG_ERR, "%s: Response too short for mode data, using cached values\n", __func__);
+         // Update cache with requested mode even if validation failed
+         if (vfo == RIG_VFO_B)
+         {
+             CACHE(rig)->modeMainB = mode;
+         }
+         else
+         {
+             CACHE(rig)->modeMainA = mode;
+         }
+         return RIG_OK;
      }
      
      dump_hex(reply, reply[4] + 5);
      
-     // Update cache
+     // Update cache with response data
      CACHE(rig)->modeMainA = guohe2rmode(reply[6], pmr171_modes);
      CACHE(rig)->modeMainB = guohe2rmode(reply[7], pmr171_modes);
 
