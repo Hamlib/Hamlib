@@ -302,7 +302,6 @@ DECLARE_PROBERIG_BACKEND(guohetec) {
         rig_flush(port);
         
         int retval = write_block(port, cmd, PMR171_CMD_LENGTH);
-        int retval = write_block(port, cmd, PMR171_CMD_LENGTH);
         if (retval != RIG_OK) {
             continue;
         }
