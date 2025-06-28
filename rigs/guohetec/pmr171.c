@@ -321,6 +321,7 @@ static int pmr171_open(RIG *rig)
  /* ---------------------------------------------------------------------- */
  
  static int pmr171_send(RIG *rig, const unsigned char* buff, int len, unsigned char *reply, int rlen)
+ static int pmr171_send(RIG *rig, const unsigned char* buff, int len, unsigned char *reply, int rlen)
 {
     hamlib_port_t *rp = RIGPORT(rig);
     int retry = 5;
@@ -374,48 +375,19 @@ static int pmr171_open(RIG *rig)
     cmd[6] = crc >> 8;
     cmd[7] = crc & 0xFF;
 
-    // Receive buffer (complete response packet should be 33 bytes)
+    // Receive buffer and send command
     unsigned char reply[40];
     pmr171_send(rig, cmd, sizeof(cmd), reply, sizeof(reply));
 
-    /* ----------- Protocol validation ----------- */
-    // 1. Check packet header
-    if (reply[0] != 0xA5 || reply[1] != 0xA5 || 
-        reply[2] != 0xA5 || reply[3] != 0xA5) {
-        rig_debug(RIG_DEBUG_ERR, "%s: Invalid packet header\n", __func__);
-    }
-
-    // 2. Check packet length (0x1B = 27 bytes data + length itself)
-    if (reply[4] != 0x1B) {
-        rig_debug(RIG_DEBUG_ERR, "%s: Invalid package length %d\n", __func__, reply[4]);
-    }
-
-    // 3. Validate buffer boundaries - ensure enough space for CRC
-    int expected_total_length = 5 + reply[4] + 2; // header(5) + data_length + CRC(2)
-    if (expected_total_length > sizeof(reply)) {
-        rig_debug(RIG_DEBUG_ERR, "%s: Response too large for buffer: %d > %zu\n", 
-                 __func__, expected_total_length, sizeof(reply));
-    }
-
-    // 4. CRC check - now safely access CRC bytes
-    uint16_t recv_crc = (reply[31] << 8) | reply[32]; // The last 2 bytes are CRC
-    uint16_t calc_crc = CRC16Check(&reply[4], 27);
-    if (recv_crc != calc_crc) {
-        rig_debug(RIG_DEBUG_ERR, "%s: CRC check failed (Received : %04X calculation : %04X)\n", 
-                 __func__, recv_crc, calc_crc);
-    }
-
-    /* ----------- Data parsing ----------- */
-    // Frequency field offset (according to protocol doc)
-    int freq_a_offset = 9;  // VFOA frequency starting position
-    int freq_b_offset = 13; // VFOB frequency starting position
-
-    // Validate frequency field offset won't overflow
-    if (freq_b_offset + 3 >= expected_total_length - 2) { // -2 for CRC
-        rig_debug(RIG_DEBUG_ERR, "%s: Frequency field offset out of bounds\n", __func__);
+    // Validate response using common function
+    if (validate_freq_response(rig, reply, sizeof(reply), __func__) < 0) {
+        RETURN_CACHED_FREQ(rig, vfo, freq);
     }
 
     // Parse frequency (big-endian)
+    int freq_a_offset = 9;  // VFOA frequency starting position
+    int freq_b_offset = 13; // VFOB frequency starting position
+
     uint32_t freq_a = (reply[freq_a_offset] << 24) | 
                      (reply[freq_a_offset+1] << 16) | 
                      (reply[freq_a_offset+2] << 8) | 
@@ -425,7 +397,6 @@ static int pmr171_open(RIG *rig)
                      (reply[freq_b_offset+1] << 16) | 
                      (reply[freq_b_offset+2] << 8) | 
                      reply[freq_b_offset+3];
-
 
     // Update cache
     CACHE(rig)->freqMainA = (freq_t)freq_a;
@@ -443,37 +414,20 @@ static int pmr171_open(RIG *rig)
  static int pmr171_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  {
     struct rig_cache *cachep = CACHE(rig);
-    hamlib_port_t *rp = RIGPORT(rig);
     const pmr171_data_t *p = (pmr171_data_t *) STATE(rig)->priv;
     unsigned char reply[40];
      
     // Get latest status from hardware
     pmr171_send_cmd1(rig, 0x0b, 0);
     
-    // Read header
-    int ret = read_block(rp, reply, 5);
-    if (ret < 0) {
-        rig_debug(RIG_DEBUG_ERR, "%s: Failed to read header\n", __func__);
-        return -RIG_ETIMEOUT;
-    }
-    
-    // Validate data length
-    if (reply[4] == 0 || reply[4] > sizeof(reply) - 5) {
-        rig_debug(RIG_DEBUG_ERR, "%s: Invalid data length %d\n", __func__, reply[4]);
-        return -RIG_EPROTO;
-    }
-    
-    // Read data section
-    ret = read_block(rp, &reply[5], reply[4]);
-    if (ret < 0) {
-        rig_debug(RIG_DEBUG_ERR, "%s: Failed to read data\n", __func__);
-        return -RIG_ETIMEOUT;
+    // Read and validate response using common function
+    if (read_rig_response(rig, reply, sizeof(reply), __func__) < 0) {
+        RETURN_CACHED_MODE(rig, vfo, mode, width, cachep, p);
     }
 
-    // Validate mode field index won't overflow
-    if (reply[4] < 5) { // Need at least 5 bytes to access reply[7] and reply[8]
-        rig_debug(RIG_DEBUG_ERR, "%s: Response too short for mode data\n", __func__);
-        return -RIG_EPROTO;
+    // Validate mode response using common function
+    if (validate_mode_response(rig, reply, sizeof(reply), __func__, 5) < 0) {
+        RETURN_CACHED_MODE(rig, vfo, mode, width, cachep, p);
     }
 
     // Update cache
@@ -499,36 +453,20 @@ static int pmr171_open(RIG *rig)
 
  static int pmr171_get_vfo(RIG *rig, vfo_t *vfo)
  {
-    hamlib_port_t *rp = RIGPORT(rig);
     unsigned char reply[40];
     
     // Send status sync command to get current VFO state
     pmr171_send_cmd1(rig, 0x0b, 0);
     
-    // Read header
-    int ret = read_block(rp, reply, 5);
-    if (ret < 0) {
-        rig_debug(RIG_DEBUG_ERR, "%s: Failed to read header\n", __func__);
-        return -RIG_ETIMEOUT;
-    }
-    
-    // Validate data length
-    if (reply[4] == 0 || reply[4] > sizeof(reply) - 5) {
-        rig_debug(RIG_DEBUG_ERR, "%s: Invalid data length %d\n", __func__, reply[4]);
-        return -RIG_EPROTO;
-    }
-    
-    // Read data section
-    ret = read_block(rp, &reply[5], reply[4]);
-    if (ret < 0) {
-        rig_debug(RIG_DEBUG_ERR, "%s: Failed to read data\n", __func__);
-        return -RIG_ETIMEOUT;
+    // Read and validate response using common function
+    if (read_rig_response(rig, reply, sizeof(reply), __func__) < 0) {
+        RETURN_CACHED_VFO(rig, vfo);
     }
     
     // Validate VFO status field index won't overflow
     if (reply[4] < 13) { // Need at least 13 bytes to access reply[17]
-        rig_debug(RIG_DEBUG_ERR, "%s: Response too short for VFO data\n", __func__);
-        return -RIG_EPROTO;
+        rig_debug(RIG_DEBUG_ERR, "%s: Response too short for VFO data, using cached values\n", __func__);
+        RETURN_CACHED_VFO(rig, vfo);
     }
     
     // According to protocol doc, reply[17] is A/B frequency status
@@ -541,35 +479,19 @@ static int pmr171_open(RIG *rig)
  static int pmr171_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
  {
     struct rig_cache *cachep = CACHE(rig);
-    hamlib_port_t *rp = RIGPORT(rig);
     unsigned char reply[40];
 
     pmr171_send_cmd1(rig, 0x0b, 0);
     
-    // Read header
-    int ret = read_block(rp, reply, 5);
-    if (ret < 0) {
-        rig_debug(RIG_DEBUG_ERR, "%s: Failed to read header\n", __func__);
-        return -RIG_ETIMEOUT;
-    }
-    
-    // Validate data length
-    if (reply[4] == 0 || reply[4] > sizeof(reply) - 5) {
-        rig_debug(RIG_DEBUG_ERR, "%s: Invalid data length %d\n", __func__, reply[4]);
-        return -RIG_EPROTO;
-    }
-    
-    // Read data section
-    ret = read_block(rp, &reply[5], reply[4]);
-    if (ret < 0) {
-        rig_debug(RIG_DEBUG_ERR, "%s: Failed to read data\n", __func__);
-        return -RIG_ETIMEOUT;
+    // Read and validate response using common function
+    if (read_rig_response(rig, reply, sizeof(reply), __func__) < 0) {
+        RETURN_CACHED_PTT(rig, ptt, cachep);
     }
 
     // Validate PTT status field index won't overflow
     if (reply[4] < 2) { // Need at least 2 bytes to access reply[6]
-        rig_debug(RIG_DEBUG_ERR, "%s: Response too short for PTT data\n", __func__);
-        return -RIG_EPROTO;
+        rig_debug(RIG_DEBUG_ERR, "%s: Response too short for PTT data, using cached values\n", __func__);
+        RETURN_CACHED_PTT(rig, ptt, cachep);
     }
 
     // Get PTT status
@@ -634,6 +556,7 @@ static int pmr171_open(RIG *rig)
          }
          
          // Validate data length
+         if (reply[4] == 0 || reply[4] > sizeof(reply) - 5) {
          if (reply[4] == 0 || reply[4] > sizeof(reply) - 5) {
              rig_debug(RIG_DEBUG_ERR, "%s: Invalid data length %d\n", __func__, reply[4]);
          }
@@ -731,7 +654,50 @@ static int pmr171_open(RIG *rig)
          cmd[6] = i;
          cmd[7] = rmode2guohe(CACHE(rig)->modeMainB, pmr171_modes);
      }
+     if (vfo == RIG_VFO_B)
+     {
+         cmd[6] = rmode2guohe(CACHE(rig)->modeMainA, pmr171_modes);
+         cmd[7] = i;
+     }
+     else
+     {
+         cmd[6] = i;
+         cmd[7] = rmode2guohe(CACHE(rig)->modeMainB, pmr171_modes);
+     }
 
+     int crc = CRC16Check(&cmd[4], 4);
+     cmd[8] = crc >> 8;
+     cmd[9] = crc & 0xff;
+     rig_flush(rp);
+     write_block(rp, cmd, 10);
+     
+     // Read header
+     int ret = read_block(rp, reply, 5);
+     if (ret < 0) {
+         rig_debug(RIG_DEBUG_ERR, "%s: read_block failed for header\n", __func__);
+     }
+     
+     // Validate data length
+     if (reply[4] == 0 || reply[4] > sizeof(reply) - 5) {
+         rig_debug(RIG_DEBUG_ERR, "%s: invalid reply length %d\n", __func__, reply[4]);
+     }
+     
+     // Read data section
+     ret = read_block(rp, &reply[5], reply[4]);
+     if (ret < 0) {
+         rig_debug(RIG_DEBUG_ERR, "%s: read_block failed for data\n", __func__);
+     }
+     
+     // Validate mode field index won't overflow
+     if (reply[4] < 3) { // Need at least 3 bytes to access reply[6] and reply[7]
+         rig_debug(RIG_DEBUG_ERR, "%s: Response too short for mode data\n", __func__);
+     }
+     
+     dump_hex(reply, reply[4] + 5);
+     
+     // Update cache
+     CACHE(rig)->modeMainA = guohe2rmode(reply[6], pmr171_modes);
+     CACHE(rig)->modeMainB = guohe2rmode(reply[7], pmr171_modes);
      int crc = CRC16Check(&cmd[4], 4);
      cmd[8] = crc >> 8;
      cmd[9] = crc & 0xff;
@@ -784,6 +750,7 @@ static int pmr171_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     cmd[8] = crc & 0xff;
 
     unsigned char reply[9];
+    pmr171_send(rig, cmd, sizeof(cmd), reply, sizeof(reply));
     pmr171_send(rig, cmd, sizeof(cmd), reply, sizeof(reply));
 
     CACHE(rig)->ptt = ptt;
