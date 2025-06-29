@@ -1114,7 +1114,7 @@ static int dummy_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
     if (tx_vfo == RIG_VFO_CURR || tx_vfo == RIG_VFO_TX) { tx_vfo = vfo_fixup(rig, vfo, CACHE(rig)->split); }
 
-    priv->split = split;
+    priv->split = split ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
     priv->tx_vfo = tx_vfo;
 
     RETURNFUNC(RIG_OK);
