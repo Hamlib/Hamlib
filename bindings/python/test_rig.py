@@ -59,10 +59,13 @@ class TestClass:
         assert rig.get_split_vfo() == [5000000, 1]
         assert rig.get_split_vfo(Hamlib.RIG_VFO_CURR) == [5000000, 1]
 
-        # FIXME should use a RIG_ANT_* constant but it isn't available in the bindings
+        # FIXME should use a RIG_ANT_* constant but they aren't available in the bindings
+        RIG_ANT_1 = 1<<0
         RIG_ANT_UNKNOWN = 1<<30
-        assert rig.get_ant(Hamlib.RIG_VFO_A) == [RIG_ANT_UNKNOWN, RIG_ANT_UNKNOWN, Hamlib.RIG_VFO_A, 0]
-        assert rig.get_ant(Hamlib.RIG_VFO_A, Hamlib.RIG_VFO_A) == [RIG_ANT_UNKNOWN, RIG_ANT_UNKNOWN, Hamlib.RIG_VFO_A, 0]
+        RIG_ANT_CURR = 1<<31
+        expected = [RIG_ANT_UNKNOWN, RIG_ANT_UNKNOWN, RIG_ANT_1, 0]
+        assert rig.get_ant(RIG_ANT_CURR) == expected
+        assert rig.get_ant(RIG_ANT_CURR, Hamlib.RIG_VFO_A) == expected
 
         assert rig.close() is None
         assert rig.state.comm_state == 0
