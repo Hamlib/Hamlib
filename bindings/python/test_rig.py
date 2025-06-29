@@ -195,7 +195,8 @@ class TestClass:
         assert rig.set_freq(freq, Hamlib.RIG_VFO_CURR) is None
         assert rig.set_func(0, 0, 0) is None
         assert rig.set_level(0, 0, 0) is None
-        assert rig.set_mem(0, 0) is None
+        assert rig.set_mem(0) is None
+        assert rig.set_mem(0, Hamlib.RIG_VFO_CURR) is None
         assert rig.set_mode(0) is None
         assert rig.set_mode(0, 0) is None
         assert rig.set_mode(0, 0, Hamlib.RIG_VFO_CURR) is None
