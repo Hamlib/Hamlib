@@ -89,8 +89,6 @@ typedef channel_t * const_channel_t_p;
 				{ self->error_status = rig_##f(self->rig  _VFO_ARG, _##t1##_1, _##t2##_2); }
 #define METHOD2_INIT(f, t1, t2, i2) void f (t1 _##t1##_1, t2 _##t2##_2 = i2  _VFO_DECL) \
 				{ self->error_status = rig_##f(self->rig  _VFO_ARG, _##t1##_1, _##t2##_2); }
-#define METHOD3(f, t1) void f ( vfo_t vfo, t1 _##t1) \
-				{ self->error_status = rig_##f(self->rig  _VFO_ARG, _##t1); }
 #define METHOD3_INIT(f, t1, t2, t3, i3) void f (t1 _##t1##_1, t2 _##t2##_2, t3 _##t3##_3 = i3  _VFO_DECL) \
 				{ self->error_status = rig_##f(self->rig  _VFO_ARG, _##t1##_1, _##t2##_2, _##t3##_3); }
 #define METHOD4(f, t1) void f ( vfo_t vfo, t1 _##t1) \
