@@ -150,14 +150,15 @@ class TestClass:
         assert rig.lookup_mem_caps(0) is None
         assert isinstance(rig.mem_count(), int)
         assert rig.open() is None
-        assert rig.passband_narrow(0) is None
-        assert rig.passband_normal(0) is None
-        assert rig.passband_wide(0) is None
+        assert rig.passband_narrow(Hamlib.RIG_MODE_CW) is None  # FIXME should return passband
+        assert rig.passband_normal(Hamlib.RIG_MODE_CW) is None  # FIXME should return passband
+        assert rig.passband_wide(Hamlib.RIG_MODE_CW) is None  # FIXME should return passband
         assert isinstance(rig.recv_dtmf(), str)
-        assert isinstance(rig.recv_dtmf(0), str)
+        assert isinstance(rig.recv_dtmf(Hamlib.RIG_VFO_CURR), str)
         assert rig.reset(Hamlib.RIG_RESET_NONE) is None
-        assert rig.scan(0, 0) is None
-        assert rig.scan(0, 0, 0) is None
+        channel = 0
+        assert rig.scan(Hamlib.RIG_SCAN_VFO, channel) is None
+        assert rig.scan(Hamlib.RIG_SCAN_VFO, channel, Hamlib.RIG_VFO_CURR) is None
         assert rig.send_dtmf("*0123456789#ABCD") is None
         assert rig.send_dtmf("*0123456789#ABCD", Hamlib.RIG_VFO_CURR) is None
         assert rig.send_morse("73") is None
@@ -168,10 +169,12 @@ class TestClass:
         option.i = 0
         assert rig.set_ant(Hamlib.RIG_VFO_CURR, option) is None
         assert rig.set_ant(Hamlib.RIG_VFO_CURR, option, RIG_ANT_1) is None
-        assert rig.set_bank(0, 0) is None
+        bank = 0
+        assert rig.set_bank(bank) is None
+        assert rig.set_bank(bank, Hamlib.RIG_VFO_CURR) is None
         channel = Hamlib.channel()
         channel = Hamlib.channel(0)
-        channel = Hamlib.channel(0, 0)
+        channel = Hamlib.channel(0, Hamlib.RIG_VFO_CURR)
         assert rig.set_channel(channel) is None
         assert rig.set_conf("", "") is None
         assert rig.set_ctcss_sql(0, 0) is None
@@ -187,13 +190,15 @@ class TestClass:
         assert rig.set_ext_level(level, value, Hamlib.RIG_VFO_CURR) is None
         value = Hamlib.value_t()
         assert rig.set_ext_parm(0, value) is None
-        assert rig.set_freq(0, 0) is None
+        freq = 0
+        assert rig.set_freq(freq) is None
+        assert rig.set_freq(freq, Hamlib.RIG_VFO_CURR) is None
         assert rig.set_func(0, 0, 0) is None
         assert rig.set_level(0, 0, 0) is None
         assert rig.set_mem(0, 0) is None
         assert rig.set_mode(0) is None
         assert rig.set_mode(0, 0) is None
-        assert rig.set_mode(0, 0, 0) is None
+        assert rig.set_mode(0, 0, Hamlib.RIG_VFO_CURR) is None
         assert rig.set_parm(0, 0) is None
         assert rig.set_powerstat(0) is None
         assert rig.set_ptt(0, 0) is None
