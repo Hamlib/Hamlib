@@ -148,6 +148,7 @@ typedef struct Amp {
 
   AMPMETHOD1GET(get_powerstat, powerstat_t)
 
+#ifdef SWIGPYTHON
   PyObject * get_level(setting_t level)
   {
       value_t val;
@@ -163,5 +164,5 @@ typedef struct Amp {
 
       return PyLong_FromLong(val.i);
   }
-
+#endif
 };
