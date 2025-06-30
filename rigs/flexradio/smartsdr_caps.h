@@ -75,4 +75,6 @@
 //  .reset    =     smartsdr_reset,
 //  .set_level =     smartsdr_set_level,
 //  .set_func =     _set_func,
+    .send_morse =  smartsdr_send_morse,
+    .stop_morse = smartsdr_stop_morse,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
