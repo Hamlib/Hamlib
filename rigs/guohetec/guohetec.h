@@ -1,6 +1,6 @@
 /*
  *  Hamlib GUOHETEC backend - common header file
- *  Copyright (c) 2024 by [Your Name]
+ *  Copyright (c) 2024 by GUOHETEC
  *
  *
  *   This library is free software; you can redistribute it and/or

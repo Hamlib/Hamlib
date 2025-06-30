@@ -1,6 +1,6 @@
 /*
  *  Hamlib GUOHETEC PMR-171 backend - main file
- *  Copyright (c) 2024 by [Your Name]
+ *  Copyright (c) 2024 by GUOHETEC
  *
  *
  *   This library is free software; you can redistribute it and/or
