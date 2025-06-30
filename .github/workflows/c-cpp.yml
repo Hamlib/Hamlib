@@ -22,6 +22,7 @@ jobs:
         sudo apt install libgpiod-dev
         sudo apt install grep
         sudo apt install python3-dev python3-pytest
+        sudo apt install lua5.4 liblua5.4-dev libperl-dev tcl-dev
     - name: Install dependencies on macOS
       if: runner.os == 'macOS'
       run: |
@@ -40,7 +41,7 @@ jobs:
       run: grep README Makefile.am
     - name: configure
       if: runner.os != 'macOS'
-      run: ./configure --with-python-binding
+      run: ./configure --with-lua-binding --with-perl-binding --with-python-binding --with-tcl-binding
     - name: configure on macOS
       if: runner.os == 'macOS'
       run: ./configure --without-python-binding
