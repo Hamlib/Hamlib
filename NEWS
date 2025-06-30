@@ -26,6 +26,7 @@ Version 4.6.4
         * Fix powerstat check for Icom R75 which rejects the command.  (TNX Mark Fine).
         * Restore TS-590S/SG RIG_LEVEL_RFPOWER_METER, Fix rotctl \dump_caps output
           (TNX, George Baltz).
+        * Add CW sending capability to Flex SmartSDR.  (TNX Michael Morgan)
 
 Version 4.6.3
         * 2025-06-10
