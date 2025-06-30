@@ -119,6 +119,7 @@ typedef struct Rot {
 
 	ROTMETHOD2(set_conf, hamlib_token_t, const_char_string)
 
+#ifdef SWIGPYTHON
 	ROT_GET_LONG(func)
 	ROT_GET_LONG(ext_func)
 
@@ -127,6 +128,7 @@ typedef struct Rot {
 
 	ROT_GET_VALUE_T(parm)
 	ROT_GET_VALUE_T(ext_parm)
+#endif
 
         const char *get_conf(hamlib_token_t tok) {
                 static char s[128] = "";
