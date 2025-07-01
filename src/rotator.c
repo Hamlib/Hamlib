@@ -58,6 +58,8 @@
 #include <fcntl.h>
 
 #include <hamlib/rotator.h>
+#include "hamlib/port.h"
+#include "hamlib/rot_state.h"
 #include "serial.h"
 #include "parallel.h"
 #if defined(HAVE_LIB_USB_H) || defined(HAMB_LIBUSB_1_0_LIBUSB_H)

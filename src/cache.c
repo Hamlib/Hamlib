@@ -22,6 +22,7 @@
 /* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 #include "cache.h"
+#include "hamlib/rig_state.h"
 #include "misc.h"
 
 #define CHECK_RIG_ARG(r) (!(r) || !(r)->caps || !STATE(r)->comm_state)

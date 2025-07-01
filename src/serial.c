@@ -64,6 +64,7 @@
 #endif
 
 #include <hamlib/rig.h>
+#include "hamlib/port.h"
 
 //! @cond Doxygen_Suppress
 #if defined(WIN32) && !defined(HAVE_TERMIOS_H)
@@ -211,7 +212,7 @@ int check_com_port_in_use(const char *port)
 #endif
 
 /**
- * \brief Open serial port using STATE(rig) data
+ * \brief Open serial port using port data only
  * \param rp port data structure (must spec port id eg /dev/ttyS1)
  * \return RIG_OK or < 0 if error
  */
