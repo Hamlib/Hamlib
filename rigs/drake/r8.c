@@ -353,12 +353,12 @@ int drake_r8_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
     retval = read_string(rp, (unsigned char *) data, BUFSZ,
                          LF, 1, 0, 1);
 
-    if (retval == -RIG_ETIMEOUT)
-    {
+    //if (retval == -RIG_ETIMEOUT)
+    //{
         //fprintf(stderr, "Receive timeout.\n");
-        data[0] = 0x00;
-        *data_len = 0;
-    }
+        //data[0] = 0x00;
+        //*data_len = 0;
+    //}
 
     if (retval < 0)
     {
