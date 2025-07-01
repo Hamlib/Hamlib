@@ -47,6 +47,7 @@
 #include <math.h>
 
 #include <hamlib/rig.h>
+#include "hamlib/rig_state.h"
 #include <hamlib/rotator.h>
 #include <hamlib/amplifier.h>
 

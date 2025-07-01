@@ -43,6 +43,7 @@
 
 #include <hamlib/rig.h>
 #include <hamlib/rotator.h>
+#include "hamlib/rot_state.h"
 
 
 #ifndef DOC_HIDDEN
