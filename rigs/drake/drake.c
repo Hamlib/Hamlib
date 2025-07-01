@@ -67,6 +67,11 @@ int drake_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 
     if (retval != RIG_OK)
     {
+        if ((data) && (data_len))
+        {
+            data[0] = 0x00;
+            *data_len = 0;
+        }
         return retval;
     }
 
@@ -81,15 +86,19 @@ int drake_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 
     if (retval == -RIG_ETIMEOUT)
     {
-        retval = 0;
+        data[0] = 0x00;
+        *data_len = 0;
     }
 
     if (retval < 0)
     {
+        data[0] = 0x00;
+        *data_len = 0;
         return retval;
     }
 
     *data_len = retval;
+    data[*data_len] = 0x00;
 
     return RIG_OK;
 }
