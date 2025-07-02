@@ -21,6 +21,7 @@
 
 //#include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 //#include <string.h>  /* String function definitions */
 //#include <unistd.h>  /* UNIX standard function definitions */
 
@@ -327,49 +328,41 @@ int drake_r8_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
     hamlib_port_t *rp = RIGPORT(rig);
     
     rig_flush(rp);
+    
+    //assume nothing.
+    //initialize the buffer in case empty on return
+    if ((data) && (data_len))
+    {
+        data[0] = 0x00;
+        *data_len = 0;
+    }
 
-    //fprintf(stderr, "Sending %d bytes: %s.\n", cmd_len, cmd);
     retval = write_block(rp, (unsigned char *) cmd, cmd_len);
 
     if (retval != RIG_OK)
     {
-        //fprintf(stderr, "Send error %d.\n", retval);
-        if ((data) && (data_len))
-        {
-            data[0] = 0x00;
-            *data_len = 0;
-        }
         return retval;
     }
 
     /* no data expected, TODO: flush input? */
     if (!data || !data_len)
     {
-        //fprintf(stderr, "No response expected.\n");
         return 0;
     }
 
-    //fprintf(stderr, "Receiving...\n");
     retval = read_string(rp, (unsigned char *) data, BUFSZ,
-                         LF, 1, 0, 1);
+                        LF, 1, 0, 1);
 
     //if (retval == -RIG_ETIMEOUT)
     //{
-        //fprintf(stderr, "Receive timeout.\n");
-        //data[0] = 0x00;
-        //*data_len = 0;
         //retval = 0;
     //}
 
     if (retval < 0)
     {
-        //fprintf(stderr, "Receive error %d.\n", retval);
-        data[0] = 0x00;
-        *data_len = 0;
         return retval;
     }
 
-    //fprintf(stderr, "Received %d bytes.\n", retval);
     *data_len = retval;
     data[*data_len] = 0x00;
 
@@ -778,8 +771,10 @@ int drake_r8_report_all(RIG *rig, char* owner)
  */
 int drake_r8_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    char freqbuf[16], ackbuf[16];
-    int ack_len, retval;
+    char freqbuf[16];
+    char ackbuf[BUFSZ];
+    int ack_len;
+    int retval;
 
     /*
      * 10Hz resolution
@@ -833,8 +828,10 @@ int drake_r8_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  */
 int drake_r8_set_vfo(RIG *rig, vfo_t vfo)
 {
-    char cmdbuf[16], ackbuf[16];
-    int ack_len, retval;
+    char cmdbuf[16];
+    char ackbuf[BUFSZ];
+    int ack_len;
+    int retval;
     char vfo_function;
 
     switch (vfo)
@@ -909,9 +906,11 @@ int drake_r8_get_vfo(RIG *rig, vfo_t *vfo)
  */
 int drake_r8_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    char mdbuf[16], ackbuf[16];
+    char mdbuf[16];
+    char ackbuf[BUFSZ];
+    int ack_len;
     char mode_sel;
-    int ack_len, retval;
+    int retval;
 
     switch (mode)
     {
@@ -1057,8 +1056,10 @@ int drake_r8_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  */
 int drake_r8_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 {
-    char buf[16], ackbuf[16];
-    int ack_len, retval;
+    char buf[16];
+    char ackbuf[BUFSZ];
+    int ack_len;
+    int retval;
 
     SNPRINTF((char *) buf, sizeof(buf), "A%c" EOM,
              ant == RIG_ANT_1 ? '1' : (ant == RIG_ANT_2 ? '2' : 'C'));
@@ -1109,8 +1110,10 @@ int drake_r8_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
  */
 int drake_r8_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
-    int ack_len, retval;
-    char buf[16], ackbuf[16];
+    char buf[16];
+    char ackbuf[BUFSZ];
+    int ack_len;
+    int retval;
     struct drake_priv_data *priv = STATE(rig)->priv;
 
     priv->curr_ch = ch;
@@ -1172,8 +1175,10 @@ int drake_r8_set_chan(RIG *rig, vfo_t vfo, const channel_t *chan)
     const struct drake_priv_data *priv = STATE(rig)->priv;
     vfo_t   old_vfo;
     int     old_chan;
-    char    mdbuf[16], ackbuf[16];
-    int     ack_len, retval;
+    char    mdbuf[16];
+    char    ackbuf[BUFSZ];
+    int     ack_len;
+    int     retval;
     value_t dummy;
 
     dummy.i = 0;
@@ -1240,10 +1245,10 @@ int drake_r8_set_chan(RIG *rig, vfo_t vfo, const channel_t *chan)
  */
 int drake_r8_get_chan(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 {
-    const struct drake_priv_data *priv = STATE(rig)->priv;
     vfo_t   old_vfo;
     int     old_chan;
     int     retval;
+    const struct drake_priv_data *priv = STATE(rig)->priv;
 
     chan->vfo = RIG_VFO_MEM;
     chan->ant = RIG_ANT_NONE;
@@ -1350,7 +1355,8 @@ int drake_r8_get_chan(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 int drake_r8_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
     const struct drake_priv_data *priv = STATE(rig)->priv;
-    char buf[16], ackbuf[16];
+    char buf[16];
+    char ackbuf[BUFSZ];
     int len, ack_len, retval;
 
     switch (op)
@@ -1406,8 +1412,10 @@ int drake_r8_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
  */
 int drake_r8_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
-    char buf[16], ackbuf[16];
-    int ack_len, retval;
+    char buf[16];
+    char ackbuf[BUFSZ];
+    int ack_len;
+    int retval;
     char blanker = ' ';
 
     switch (func)
@@ -1486,8 +1494,10 @@ int drake_r8_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
  */
 int drake_r8_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-    char buf[16], ackbuf[16];
-    int ack_len, retval;
+    char buf[16];
+    char ackbuf[BUFSZ];
+    int ack_len;
+    int retval;
 
     switch (level)
     {
@@ -1571,8 +1581,10 @@ int drake_r8_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 int drake_r8_set_powerstat(RIG *rig, powerstat_t status)
 {
-    char buf[16], ackbuf[16];
-    int ack_len, retval;
+    char buf[16];
+    char ackbuf[BUFSZ];
+    int ack_len;
+    int retval;
 
     SNPRINTF(buf, sizeof(buf), "P%c" EOM, status == RIG_POWER_OFF ? 'F' : 'O');
 
@@ -1618,7 +1630,8 @@ int drake_r8_get_powerstat(RIG *rig, powerstat_t *status)
 const char *drake_r8_get_info(RIG *rig)
 {
     static char idbuf[BUFSZ];
-    int retval, id_len;
+    int retval;
+    int id_len;
 
     retval = drake_r8_transaction(rig, "ID" EOM, 3, idbuf, &id_len);
 
