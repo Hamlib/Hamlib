@@ -52,6 +52,89 @@
 
 
 /*
+ * drake_fix_string
+ * recursively replaces all special characters so they are readable at output
+ * 
+ */
+void drake_fix_string(char* inStr)
+{
+    char  chChkAry[3] = {0x20, 0x0d, 0x0a};
+    char* chRepAry[3] = {"<SP>", "<CR>", "<LF>"};
+    char* chPos;
+    int   newLen;
+    int   offset;
+    int   i;
+    int   j;
+
+    for (i = 0; i < 3; i++)
+    {
+        do {
+            chPos = strchr(inStr, chChkAry[i]); 
+            if (chPos != NULL)
+            {
+              newLen = strlen(inStr);  
+              offset = chPos - inStr;   
+              for (j = newLen; j > offset; j--)  
+              {
+                  inStr[j+3] = inStr[j]; 
+              }
+              for (j = 0; j < 4; j++)
+              {
+                  inStr[offset+j] = chRepAry[i][j]; 
+              }
+            }
+        }
+        while (chPos);
+    }
+}
+
+
+/*
+ * drake_r8_trans_rept
+ * non-destructively echoes transaction in a readable way for debugging
+ */
+void drake_trans_rept(char* hdrStr, char* sentStr, int sentLen, char* recdStr, int recdLen, int res)
+{
+    char sent[BUFSZ];
+    char recd[BUFSZ];
+    char nullStr[7] =  {'<','N','U','L','L','>',0x00};
+    int  i;
+    
+    //in most cases each string is a buffer, so we need to ensure both command and response
+    //are not NULL and null-terminated before duplicastion and conversion.
+    
+    if ((sentStr != NULL) && (sentLen > 0))
+    {
+        for (i = 0; i < sentLen; i++)
+            sent[i] = sentStr[i];  
+        sent[sentLen] = 0x00;
+        drake_fix_string((char*)sent);
+    }
+    else
+    {
+        for (i = 0; i < 7; i++)
+            sent[i] = nullStr[i];  
+    }
+    
+    if ((recdStr != NULL) && (recdLen > 0))
+    {
+        for (i = 0; i < recdLen; i++)
+            recd[i] = recdStr[i];  
+        recd[recdLen] = 0x00;
+        drake_fix_string((char*)recd);
+    }
+    else
+    {
+        for (i = 0; i < 7; i++)
+            recd[i] = nullStr[i];  
+    }
+    
+    rig_debug(RIG_DEBUG_WARN, "Hamlib %s: Result %d - Sent %d chars: %s, Recd %d chars: %s\n", hdrStr, res, sentLen, sent, recdLen, recd);
+
+}
+
+
+/*
  * drake_transaction
  * We assume that rig!=NULL, STATE(rig)!= NULL, data!=NULL, data_len!=NULL
  */
@@ -117,6 +200,18 @@ int drake_init(RIG *rig)
     priv = STATE(rig)->priv;
 
     priv->curr_ch = 0;
+    priv->curr_dcd = RIG_DCD_OFF;
+    priv->curr_freq = 0.0;
+    priv->curr_ant = RIG_ANT_1;
+    priv->curr_vfo = RIG_VFO_VFO;
+    priv->curr_agc = RIG_AGC_OFF;
+    priv->curr_mode = RIG_MODE_NONE;
+    priv->curr_width = RIG_PASSBAND_NORMAL;
+    priv->curr_nb = false;
+    priv->curr_nb2 = false;
+    priv->curr_att = false;
+    priv->curr_pre = false;
+    priv->curr_pwr = false;
 
     return RIG_OK;
 }
