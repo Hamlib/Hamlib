@@ -65,6 +65,8 @@ int drake_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 int drake_set_powerstat (RIG * rig, powerstat_t status);
 int drake_get_powerstat (RIG * rig, powerstat_t *status);
 const char *drake_get_info(RIG *rig);
+int drake_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len);
+void drake_trans_rept(char* hdrStr, char* sentStr, int sentLen, char* recdStr, int recdLen, int res);
 
 extern struct rig_caps r8_caps;
 extern struct rig_caps r8a_caps;

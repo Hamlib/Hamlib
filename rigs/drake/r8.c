@@ -26,8 +26,8 @@
 //#include <unistd.h>  /* UNIX standard function definitions */
 
 #include <hamlib/rig.h>
-#include "serial.h"
-#include "misc.h"
+//#include "serial.h"
+//#include "misc.h"
 #include "idx_builtin.h"
 //#include "cal.h"
 //#include "register.h"
@@ -40,8 +40,6 @@ int drake_r8_set_vfo(RIG *rig, vfo_t vfo);
 int drake_r8_get_vfo(RIG *rig, vfo_t *vfo);
 int drake_r8_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int drake_r8_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
-int drake_r8_init(RIG *rig);
-int drake_r8_cleanup(RIG *rig);
 int drake_r8_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option);
 int drake_r8_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option, ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx);
 int drake_r8_set_mem(RIG *rig, vfo_t vfo, int ch);
@@ -203,8 +201,8 @@ struct rig_caps r8_caps =
     },
     .str_cal = R8_STR_CAL,
 
-    .rig_init = drake_r8_init,
-    .rig_cleanup = drake_r8_cleanup,
+    .rig_init = drake_init,
+    .rig_cleanup = drake_cleanup,
 
     .set_freq =  drake_r8_set_freq,
     .get_freq =  drake_r8_get_freq,
@@ -232,182 +230,6 @@ struct rig_caps r8_caps =
 /*
  * Function definitions below
  */
-
-
-/*
- * drake_r8_fix_string
- * recursively replaces all special characters so they are readable at output
- * 
- */
-void drake_r8_fix_string(char* inStr)
-{
-    char  chChkAry[3] = {0x20, 0x0d, 0x0a};
-    char* chRepAry[3] = {"<SP>", "<CR>", "<LF>"};
-    char* chPos;
-    int   newLen;
-    int   offset;
-    int   i;
-    int   j;
-
-    for (i = 0; i < 3; i++)
-    {
-        do {
-            chPos = strchr(inStr, chChkAry[i]); 
-            if (chPos != NULL)
-            {
-              newLen = strlen(inStr);  
-              offset = chPos - inStr;   
-              for (j = newLen; j > offset; j--)  
-              {
-                  inStr[j+3] = inStr[j]; 
-              }
-              for (j = 0; j < 4; j++)
-              {
-                  inStr[offset+j] = chRepAry[i][j]; 
-              }
-            }
-        }
-        while (chPos);
-    }
-}
-
-
-/*
- * drake_r8_trans_rept
- * non-destructively echoes transaction in a readable way for debugging
- */
-void drake_r8_trans_rept(char* hdrStr, char* sentStr, int sentLen, char* recdStr, int recdLen, int res)
-{
-    char sent[BUFSZ];
-    char recd[BUFSZ];
-    char nullStr[7] =  {'<','N','U','L','L','>',0x00};
-    int  i;
-    
-    //in most cases each string is a buffer, so we need to ensure both command and response
-    //are not NULL and null-terminated before duplicastion and conversion.
-    
-    if ((sentStr != NULL) && (sentLen > 0))
-    {
-        for (i = 0; i < sentLen; i++)
-            sent[i] = sentStr[i];  
-        sent[sentLen] = 0x00;
-        drake_r8_fix_string((char*)sent);
-    }
-    else
-    {
-        for (i = 0; i < 7; i++)
-            sent[i] = nullStr[i];  
-    }
-    
-    if ((recdStr != NULL) && (recdLen > 0))
-    {
-        for (i = 0; i < recdLen; i++)
-            recd[i] = recdStr[i];  
-        recd[recdLen] = 0x00;
-        drake_r8_fix_string((char*)recd);
-    }
-    else
-    {
-        for (i = 0; i < 7; i++)
-            recd[i] = nullStr[i];  
-    }
-    
-    rig_debug(RIG_DEBUG_WARN, "Hamlib %s: Result %d - Sent %d chars: %s, Recd %d chars: %s\n", hdrStr, res, sentLen, sent, recdLen, recd);
-
-}
-
-
-/*
- * drake_r8_transaction
- * We assume that rig!=NULL, STATE(rig)!= NULL, data!=NULL, data_len!=NULL
- */
-int drake_r8_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
-                      int *data_len)
-{
-    int retval;
-    hamlib_port_t *rp = RIGPORT(rig);
-    
-    rig_flush(rp);
-    
-    //assume nothing.
-    //initialize the buffer in case empty on return
-    if ((data) && (data_len))
-    {
-        data[0] = 0x00;
-        *data_len = 0;
-    }
-
-    retval = write_block(rp, (unsigned char *) cmd, cmd_len);
-
-    if (retval != RIG_OK)
-    {
-        return retval;
-    }
-
-    /* no data expected, TODO: flush input? */
-    if (!data || !data_len)
-    {
-        return 0;
-    }
-
-    retval = read_string(rp, (unsigned char *) data, BUFSZ,
-                        LF, 1, 0, 1);
-
-    //if (retval == -RIG_ETIMEOUT)
-    //{
-        //retval = 0;
-    //}
-
-    if (retval < 0)
-    {
-        return retval;
-    }
-
-    *data_len = retval;
-    data[*data_len] = 0x00;
-
-    return RIG_OK;
-}
-
-
-int drake_r8_init(RIG *rig)
-{
-    struct drake_priv_data *priv;
-    STATE(rig)->priv = calloc(1, sizeof(struct drake_priv_data));
-
-    if (!STATE(rig)->priv)
-    {
-        return -RIG_ENOMEM;
-    }
-
-    priv = STATE(rig)->priv;
-
-    priv->curr_ch = 0;
-    priv->curr_dcd = RIG_DCD_OFF;
-    priv->curr_freq = 0.0;
-    priv->curr_ant = RIG_ANT_1;
-    priv->curr_vfo = RIG_VFO_VFO;
-    priv->curr_agc = RIG_AGC_OFF;
-    priv->curr_mode = RIG_MODE_NONE;
-    priv->curr_width = RIG_PASSBAND_NORMAL;
-    priv->curr_nb = false;
-    priv->curr_nb2 = false;
-    priv->curr_att = false;
-    priv->curr_pre = false;
-    priv->curr_pwr = false;
-
-    return RIG_OK;
-}
-
-
-int drake_r8_cleanup(RIG *rig)
-{
-    struct drake_priv_data *priv = STATE(rig)->priv;
-
-    free(priv);
-
-    return RIG_OK;
-}
 
 
 /*
@@ -455,7 +277,7 @@ int drake_r8_report_frequency(RIG *rig, char* owner)
     int retval;
     char freqbuf[BUFSZ];
     
-    retval = drake_r8_transaction(rig, "RF" EOM, 3, freqbuf, &freq_len);
+    retval = drake_transaction(rig, "RF" EOM, 3, freqbuf, &freq_len);
 
     //let's trick it
     /*
@@ -470,7 +292,7 @@ int drake_r8_report_frequency(RIG *rig, char* owner)
         retval = RIG_OK;
     }*/
 
-    drake_r8_trans_rept(owner, "RF" EOM, 3, freqbuf, freq_len, retval);
+    drake_trans_rept(owner, "RF" EOM, 3, freqbuf, freq_len, retval);
 
     if (retval != RIG_OK)
     {
@@ -616,7 +438,7 @@ int drake_r8_report_mode(RIG *rig, char* owner)
     char mdbuf[BUFSZ];
     struct drake_priv_data *priv = STATE(rig)->priv;
 
-    retval = drake_r8_transaction(rig, "RM" EOM, 3, mdbuf, &mdbuf_len);
+    retval = drake_transaction(rig, "RM" EOM, 3, mdbuf, &mdbuf_len);
 
     //let's trick it
     /*
@@ -631,7 +453,7 @@ int drake_r8_report_mode(RIG *rig, char* owner)
         retval = 0;
     }*/
 
-    drake_r8_trans_rept(owner, "RM" EOM, 3, mdbuf, mdbuf_len, retval);
+    drake_trans_rept(owner, "RM" EOM, 3, mdbuf, mdbuf_len, retval);
 
     if (retval != RIG_OK)
     {
@@ -681,7 +503,7 @@ int drake_r8_report_mem_channel(RIG *rig, char* owner)
     int retval;
     char mdbuf[BUFSZ];
 
-    retval = drake_r8_transaction(rig, "RC" EOM, 3, mdbuf, &mdbuf_len);
+    retval = drake_transaction(rig, "RC" EOM, 3, mdbuf, &mdbuf_len);
 
     //let's trick it
     /*
@@ -696,7 +518,7 @@ int drake_r8_report_mem_channel(RIG *rig, char* owner)
         retval = 0;
     }*/
 
-    drake_r8_trans_rept(owner, "RC" EOM, 3, mdbuf, mdbuf_len, retval);
+    drake_trans_rept(owner, "RC" EOM, 3, mdbuf, mdbuf_len, retval);
  
     if (retval != RIG_OK)
     {
@@ -728,7 +550,7 @@ int drake_r8_report_all(RIG *rig, char* owner)
     int retval;
     char mdbuf[BUFSZ];
     
-    retval = drake_r8_transaction(rig, "RA" EOM, 3, mdbuf, &mdbuf_len);
+    retval = drake_transaction(rig, "RA" EOM, 3, mdbuf, &mdbuf_len);
 
     //let's trick it
     /*
@@ -743,7 +565,7 @@ int drake_r8_report_all(RIG *rig, char* owner)
         retval = RIG_OK;
     }*/
 
-    drake_r8_trans_rept(owner, "RA" EOM, 3, mdbuf, mdbuf_len, retval);
+    drake_trans_rept(owner, "RA" EOM, 3, mdbuf, mdbuf_len, retval);
 
     if (retval != RIG_OK)
     {
@@ -782,7 +604,7 @@ int drake_r8_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
      */
     SNPRINTF((char *) freqbuf, sizeof(freqbuf), "F%07u" EOM, (unsigned int)freq / 10);
              
-    retval = drake_r8_transaction(rig, freqbuf, strlen(freqbuf), ackbuf, &ack_len);
+    retval = drake_transaction(rig, freqbuf, strlen(freqbuf), ackbuf, &ack_len);
 
     //let's trick it
     /*
@@ -796,7 +618,7 @@ int drake_r8_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         retval = 0;
     }*/
 
-    drake_r8_trans_rept("drake_set_freq", freqbuf, strlen(freqbuf), ackbuf, ack_len, retval);
+    drake_trans_rept("drake_set_freq", freqbuf, strlen(freqbuf), ackbuf, ack_len, retval);
 
     return retval;
 }
@@ -860,7 +682,7 @@ int drake_r8_set_vfo(RIG *rig, vfo_t vfo)
         SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "%c" EOM, vfo_function);
     }
 
-    retval = drake_r8_transaction(rig, cmdbuf, strlen(cmdbuf), ackbuf, &ack_len);
+    retval = drake_transaction(rig, cmdbuf, strlen(cmdbuf), ackbuf, &ack_len);
 
     //let's trick it
     /*
@@ -873,7 +695,7 @@ int drake_r8_set_vfo(RIG *rig, vfo_t vfo)
         retval = RIG_OK;
     }*/
 
-    drake_r8_trans_rept("drake_set_vfo", cmdbuf, strlen(cmdbuf), ackbuf, ack_len, retval);
+    drake_trans_rept("drake_set_vfo", cmdbuf, strlen(cmdbuf), ackbuf, ack_len, retval);
 
     return retval;
 }
@@ -934,7 +756,7 @@ int drake_r8_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
 
     SNPRINTF((char *) mdbuf, sizeof(mdbuf), "M%c" EOM, mode_sel);
-    retval = drake_r8_transaction(rig, mdbuf, strlen(mdbuf), ackbuf, &ack_len);
+    retval = drake_transaction(rig, mdbuf, strlen(mdbuf), ackbuf, &ack_len);
 
     //let's trick it
     /*
@@ -947,7 +769,7 @@ int drake_r8_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         retval = 0;
     }*/
 
-    drake_r8_trans_rept("drake_set_mode", mdbuf, strlen(mdbuf), ackbuf, ack_len, retval);
+    drake_trans_rept("drake_set_mode", mdbuf, strlen(mdbuf), ackbuf, ack_len, retval);
 
     if (retval != RIG_OK)
     {
@@ -987,7 +809,7 @@ int drake_r8_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             }
 
             SNPRINTF((char *) mdbuf, sizeof(mdbuf), "W%c" EOM, width_sel);
-            retval = drake_r8_transaction(rig, mdbuf, strlen(mdbuf), ackbuf, &ack_len);
+            retval = drake_transaction(rig, mdbuf, strlen(mdbuf), ackbuf, &ack_len);
             
             //let's trick it
             /*
@@ -1000,7 +822,7 @@ int drake_r8_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                 retval = 0;
             }*/
 
-            drake_r8_trans_rept("drake_set_bw", mdbuf, strlen(mdbuf), ackbuf, ack_len, retval);
+            drake_trans_rept("drake_set_bw", mdbuf, strlen(mdbuf), ackbuf, ack_len, retval);
 
         }
     }
@@ -1009,7 +831,7 @@ int drake_r8_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         SNPRINTF((char *) mdbuf, sizeof(mdbuf), "S%c" EOM,
                  (mode == RIG_MODE_AMS) ? 'O' : 'F');
-        retval = drake_r8_transaction(rig, mdbuf, strlen(mdbuf), ackbuf, &ack_len);
+        retval = drake_transaction(rig, mdbuf, strlen(mdbuf), ackbuf, &ack_len);
 
         //let's trick it
         /*
@@ -1022,7 +844,7 @@ int drake_r8_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             retval = 0;
         }*/
 
-        drake_r8_trans_rept("drake_set_synch", mdbuf, strlen(mdbuf), ackbuf, ack_len, retval);
+        drake_trans_rept("drake_set_synch", mdbuf, strlen(mdbuf), ackbuf, ack_len, retval);
     }
 
     return retval;
@@ -1064,7 +886,7 @@ int drake_r8_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
     SNPRINTF((char *) buf, sizeof(buf), "A%c" EOM,
              ant == RIG_ANT_1 ? '1' : (ant == RIG_ANT_2 ? '2' : 'C'));
 
-    retval = drake_r8_transaction(rig, buf, strlen(buf), ackbuf, &ack_len);
+    retval = drake_transaction(rig, buf, strlen(buf), ackbuf, &ack_len);
 
      //let's trick it
     /*
@@ -1077,7 +899,7 @@ int drake_r8_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
         retval = 0;
     }*/
 
-   drake_r8_trans_rept("drake_set_ant", buf, strlen(buf), ackbuf, ack_len, retval);
+   drake_trans_rept("drake_set_ant", buf, strlen(buf), ackbuf, ack_len, retval);
 
     return retval;
 }
@@ -1121,7 +943,7 @@ int drake_r8_set_mem(RIG *rig, vfo_t vfo, int ch)
     SNPRINTF(buf, sizeof(buf), "C%02d" , ch);
 
     ack_len = 0; // fix compile-time warning "possibly uninitialized"
-    retval = drake_r8_transaction(rig, buf, strlen(buf), ackbuf, &ack_len);
+    retval = drake_transaction(rig, buf, strlen(buf), ackbuf, &ack_len);
 
     //let's trick it
     /*
@@ -1135,7 +957,7 @@ int drake_r8_set_mem(RIG *rig, vfo_t vfo, int ch)
         retval = 0;
     }*/
 
-    drake_r8_trans_rept("drake_set_mem", buf, strlen(buf), ackbuf, ack_len, retval);
+    drake_trans_rept("drake_set_mem", buf, strlen(buf), ackbuf, ack_len, retval);
 
     if (ack_len != 2)
     {
@@ -1214,7 +1036,7 @@ int drake_r8_set_chan(RIG *rig, vfo_t vfo, const channel_t *chan)
                    (chan->funcs & RIG_FUNC_MN) == RIG_FUNC_MN);
 
     SNPRINTF(mdbuf, sizeof(mdbuf), "PR" EOM "%02d" EOM, chan->channel_num);
-    retval = drake_r8_transaction(rig, mdbuf, strlen(mdbuf), ackbuf, &ack_len);
+    retval = drake_transaction(rig, mdbuf, strlen(mdbuf), ackbuf, &ack_len);
 
     //let's trick it
     /*
@@ -1228,7 +1050,7 @@ int drake_r8_set_chan(RIG *rig, vfo_t vfo, const channel_t *chan)
         retval = 0;
     }*/
 
-    drake_r8_trans_rept("drake_set_chan", mdbuf, strlen(mdbuf), ackbuf, ack_len, retval);
+    drake_trans_rept("drake_set_chan", mdbuf, strlen(mdbuf), ackbuf, ack_len, retval);
 
     if (old_vfo == RIG_VFO_MEM)
     {
@@ -1382,7 +1204,7 @@ int drake_r8_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
     }
 
     len = strlen(buf);
-    retval = drake_r8_transaction(rig, buf, len, len == 1 ? ackbuf : NULL, 
+    retval = drake_transaction(rig, buf, len, len == 1 ? ackbuf : NULL, 
                                                  len == 1 ? &ack_len : NULL);
 
     //let's trick it
@@ -1400,7 +1222,7 @@ int drake_r8_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
         }
     }*/
 
-    drake_r8_trans_rept("drake_vfo_op", buf, len, buf[len - 1] == 0x0d ? ackbuf : NULL, ack_len, retval);
+    drake_trans_rept("drake_vfo_op", buf, len, buf[len - 1] == 0x0d ? ackbuf : NULL, ack_len, retval);
 
     return retval;
 }
@@ -1439,7 +1261,7 @@ int drake_r8_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         return -RIG_EINVAL;
     }
 
-    retval = drake_r8_transaction(rig, buf, strlen(buf), ackbuf, &ack_len);
+    retval = drake_transaction(rig, buf, strlen(buf), ackbuf, &ack_len);
 
     //let's trick it
     /*
@@ -1452,7 +1274,7 @@ int drake_r8_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         retval = 0;
     }*/
 
-    drake_r8_trans_rept("drake_set_func", buf, strlen(buf), ackbuf, ack_len, retval);
+    drake_trans_rept("drake_set_func", buf, strlen(buf), ackbuf, ack_len, retval);
 
     return retval;
 }
@@ -1519,7 +1341,7 @@ int drake_r8_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         return -RIG_EINVAL;
     }
 
-    retval = drake_r8_transaction(rig, buf, strlen(buf), ackbuf, &ack_len);
+    retval = drake_transaction(rig, buf, strlen(buf), ackbuf, &ack_len);
 
     //let's trick it
     /*
@@ -1532,7 +1354,7 @@ int drake_r8_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         retval = 0;
     }*/
 
-    drake_r8_trans_rept("set_level", buf, strlen(buf), ackbuf, ack_len, retval);
+    drake_trans_rept("set_level", buf, strlen(buf), ackbuf, ack_len, retval);
 
     return retval;
 }
@@ -1588,7 +1410,7 @@ int drake_r8_set_powerstat(RIG *rig, powerstat_t status)
 
     SNPRINTF(buf, sizeof(buf), "P%c" EOM, status == RIG_POWER_OFF ? 'F' : 'O');
 
-    retval = drake_r8_transaction(rig, buf, strlen(buf), ackbuf, &ack_len);
+    retval = drake_transaction(rig, buf, strlen(buf), ackbuf, &ack_len);
 
     //let's trick it
     /*
@@ -1601,7 +1423,7 @@ int drake_r8_set_powerstat(RIG *rig, powerstat_t status)
         retval = 0;
     }*/
 
-    drake_r8_trans_rept("set_power", buf, strlen(buf), ackbuf, ack_len, retval);
+    drake_trans_rept("set_power", buf, strlen(buf), ackbuf, ack_len, retval);
     
     return retval;
 }
@@ -1633,7 +1455,7 @@ const char *drake_r8_get_info(RIG *rig)
     int retval;
     int id_len;
 
-    retval = drake_r8_transaction(rig, "ID" EOM, 3, idbuf, &id_len);
+    retval = drake_transaction(rig, "ID" EOM, 3, idbuf, &id_len);
 
     //let's trick it
     /*
@@ -1647,7 +1469,7 @@ const char *drake_r8_get_info(RIG *rig)
         retval = 0;
     }*/
 
-    drake_r8_trans_rept("get_id", "ID" EOM, 3, idbuf, id_len, retval);
+    drake_trans_rept("get_id", "ID" EOM, 3, idbuf, id_len, retval);
 
     if (retval != RIG_OK)
     {
