@@ -28,6 +28,7 @@ SUBDIRS = \
 
 ## Static list of distributed directories.
 DIST_SUBDIRS = \
+	$(RIG_BACKEND_OPTIONAL_LIST) \
 	$(SUBDIRS) \
 	android \
 	bindings \
