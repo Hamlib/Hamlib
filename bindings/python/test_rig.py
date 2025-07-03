@@ -5,20 +5,18 @@ Running this script directly will use the installed bindings.
 For an in-tree run use "make check", or set PYTHONPATH to point to
 the directories containing Hamlib.py and _Hamlib.so.
 """
-from pytest import raises
+import pytest
 
 import Hamlib
 
 Hamlib.rig_set_debug(Hamlib.RIG_DEBUG_NONE)
 
-RIG_MODEL = Hamlib.RIG_MODEL_DUMMY
-
 class TestClass:
     """Container class for tests"""
 
-    def test_without_open(self):
+    def test_without_open(self, model):
         """Call all the methods that do not depend on open()"""
-        rig = Hamlib.Rig(RIG_MODEL)
+        rig = Hamlib.Rig(model)
         assert rig is not None
         assert rig.do_exception == 0
         assert rig.error_status == Hamlib.RIG_OK
@@ -35,34 +33,42 @@ class TestClass:
         assert isinstance(conf, str)
         assert rig.set_conf("mcfg", "foo") is None
         conf = rig.get_conf("mcfg")
-        assert conf == "foo"
+        if model == Hamlib.RIG_MODEL_DUMMY:
+            assert conf == "foo"
+        else:
+            assert conf == ""
 
         assert rig.token_lookup("") is None
 
 
-    def test_with_open(self):
+    def test_with_open(self, model, rig_file, serial_speed):
         """Call all the methods that depend on open()"""
-        rig = Hamlib.Rig(RIG_MODEL)
+        rig = Hamlib.Rig(model)
         assert rig is not None
 
         assert rig.state.comm_state == 0
+        rig.state.rigport.pathname = rig_file  # FIXME should use rig.set_conf(Hamlib.TOK_PATHNAME, rig_file)
+        rig.state.rigport.parm.serial.rate = serial_speed  # FIXME should use rig.set_conf(TOK_SERIAL_SPEED, serial_speed)
         assert rig.open() is None
         assert rig.state.comm_state == 1
         info = rig.get_info()
         assert isinstance(info, str)
 
-        assert rig.set_split_vfo(-600000, Hamlib.RIG_VFO_A) is None
-        assert rig.get_split_vfo(Hamlib.RIG_VFO_TX) == [-600000, 1]
-        assert rig.set_split_vfo(5000000, Hamlib.RIG_VFO_B) is None
-        assert rig.get_split_vfo(Hamlib.RIG_VFO_TX) == [5000000, 2]
-        assert rig.set_split_vfo(5000000, Hamlib.RIG_VFO_CURR) is None
-        assert rig.get_split_vfo() == [5000000, 1]
-        assert rig.get_split_vfo(Hamlib.RIG_VFO_CURR) == [5000000, 1]
+        assert rig.set_split_vfo(Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_A) is None
+        assert rig.get_split_vfo(Hamlib.RIG_VFO_TX) == [Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_A]
+        assert rig.set_split_vfo(Hamlib.RIG_SPLIT_ON, Hamlib.RIG_VFO_B) is None
+        assert rig.get_split_vfo(Hamlib.RIG_VFO_TX) == [Hamlib.RIG_SPLIT_ON, Hamlib.RIG_VFO_B]
+        assert rig.set_split_vfo(Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_CURR) is None
+        assert rig.get_split_vfo() == [Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_B]
+        assert rig.get_split_vfo(Hamlib.RIG_VFO_CURR) == [Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_B]
 
-        # FIXME should use a RIG_ANT_* constant but it isn't available in the bindings
+        # FIXME should use a RIG_ANT_* constant but they aren't available in the bindings
+        RIG_ANT_1 = 1<<0
         RIG_ANT_UNKNOWN = 1<<30
-        assert rig.get_ant(Hamlib.RIG_VFO_A) == [RIG_ANT_UNKNOWN, RIG_ANT_UNKNOWN, Hamlib.RIG_VFO_A, 0]
-        assert rig.get_ant(Hamlib.RIG_VFO_A, Hamlib.RIG_VFO_A) == [RIG_ANT_UNKNOWN, RIG_ANT_UNKNOWN, Hamlib.RIG_VFO_A, 0]
+        RIG_ANT_CURR = 1<<31
+        expected = [RIG_ANT_UNKNOWN, RIG_ANT_UNKNOWN, RIG_ANT_1, 0]
+        assert rig.get_ant(RIG_ANT_CURR) == expected
+        assert rig.get_ant(RIG_ANT_CURR, Hamlib.RIG_VFO_A) == expected
 
         assert rig.close() is None
         assert rig.state.comm_state == 0
@@ -70,9 +76,10 @@ class TestClass:
         assert info is None
 
 
-    def test_misc(self):
+    @pytest.mark.skipif('config.getoption("model") != Hamlib.RIG_MODEL_DUMMY')
+    def test_misc(self, model):
         """Just call all the methods"""
-        rig = Hamlib.Rig(RIG_MODEL)
+        rig = Hamlib.Rig(model)
         assert rig is not None
 
         assert rig.close() is None
@@ -147,33 +154,43 @@ class TestClass:
         assert rig.lookup_mem_caps(0) is None
         assert isinstance(rig.mem_count(), int)
         assert rig.open() is None
-        assert rig.passband_narrow(0) is None
-        assert rig.passband_normal(0) is None
-        assert rig.passband_wide(0) is None
+        assert rig.passband_narrow(Hamlib.RIG_MODE_CW) is None  # FIXME should return passband
+        assert rig.passband_normal(Hamlib.RIG_MODE_CW) is None  # FIXME should return passband
+        assert rig.passband_wide(Hamlib.RIG_MODE_CW) is None  # FIXME should return passband
         assert isinstance(rig.recv_dtmf(), str)
-        assert isinstance(rig.recv_dtmf(0), str)
+        assert isinstance(rig.recv_dtmf(Hamlib.RIG_VFO_CURR), str)
         assert rig.reset(Hamlib.RIG_RESET_NONE) is None
-        assert rig.scan(0, 0) is None
-        assert rig.scan(0, 0, 0) is None
-        assert rig.send_dtmf(0, "") is None
-        assert rig.send_morse(0, "") is None
+        channel = 0
+        assert rig.scan(Hamlib.RIG_SCAN_VFO, channel) is None
+        assert rig.scan(Hamlib.RIG_SCAN_VFO, channel, Hamlib.RIG_VFO_CURR) is None
+        assert rig.send_dtmf("*0123456789#ABCD") is None
+        assert rig.send_dtmf("*0123456789#ABCD", Hamlib.RIG_VFO_CURR) is None
+        assert rig.send_morse("73") is None
+        assert rig.send_morse("73", Hamlib.RIG_VFO_CURR) is None
         # FIXME should use a RIG_ANT_* constant but it isn't available in the bindings
         RIG_ANT_1 = 1<<0
         option = Hamlib.value_t()
         option.i = 0
         assert rig.set_ant(Hamlib.RIG_VFO_CURR, option) is None
         assert rig.set_ant(Hamlib.RIG_VFO_CURR, option, RIG_ANT_1) is None
-        assert rig.set_bank(0, 0) is None
+        bank = 0
+        assert rig.set_bank(bank) is None
+        assert rig.set_bank(bank, Hamlib.RIG_VFO_CURR) is None
         channel = Hamlib.channel()
         channel = Hamlib.channel(0)
-        channel = Hamlib.channel(0, 0)
+        channel = Hamlib.channel(0, Hamlib.RIG_VFO_CURR)
         assert rig.set_channel(channel) is None
         assert rig.set_conf("", "") is None
-        assert rig.set_ctcss_sql(0, 0) is None
-        assert rig.set_ctcss_tone(0, 0) is None
-        assert rig.set_dcs_code(0, 0) is None
-        assert rig.set_dcs_sql(0) is None
-        assert rig.set_dcs_sql(0, 0) is None
+        tone = 0
+        assert rig.set_ctcss_sql(tone) is None
+        assert rig.set_ctcss_sql(tone, Hamlib.RIG_VFO_CURR) is None
+        assert rig.set_ctcss_tone(tone) is None
+        assert rig.set_ctcss_tone(tone, Hamlib.RIG_VFO_CURR) is None
+        code = 0
+        assert rig.set_dcs_code(code) is None
+        assert rig.set_dcs_code(code, Hamlib.RIG_VFO_CURR) is None
+        assert rig.set_dcs_sql(code) is None
+        assert rig.set_dcs_sql(code, Hamlib.RIG_VFO_CURR) is None
         assert rig.set_ext_func(0, 0) is None
         assert rig.set_ext_func(0, 0, 0) is None
         level = 0
@@ -182,20 +199,28 @@ class TestClass:
         assert rig.set_ext_level(level, value, Hamlib.RIG_VFO_CURR) is None
         value = Hamlib.value_t()
         assert rig.set_ext_parm(0, value) is None
-        assert rig.set_freq(0, 0) is None
+        freq = 0
+        assert rig.set_freq(freq) is None
+        assert rig.set_freq(freq, Hamlib.RIG_VFO_CURR) is None
         assert rig.set_func(0, 0, 0) is None
         assert rig.set_level(0, 0, 0) is None
-        assert rig.set_mem(0, 0) is None
+        assert rig.set_mem(0) is None
+        assert rig.set_mem(0, Hamlib.RIG_VFO_CURR) is None
         assert rig.set_mode(0) is None
         assert rig.set_mode(0, 0) is None
-        assert rig.set_mode(0, 0, 0) is None
+        assert rig.set_mode(0, 0, Hamlib.RIG_VFO_CURR) is None
         assert rig.set_parm(0, 0) is None
         assert rig.set_powerstat(0) is None
-        assert rig.set_ptt(0, 0) is None
-        assert rig.set_rit(0, 0) is None
-        assert rig.set_rptr_offs(0, 0) is None
-        assert rig.set_rptr_shift(0, 0) is None
-        assert rig.set_split_freq(0, 0) is None
+        assert rig.set_ptt(0) is None
+        assert rig.set_ptt(0, Hamlib.RIG_VFO_CURR) is None
+        assert rig.set_rit(0) is None
+        assert rig.set_rit(0, Hamlib.RIG_VFO_CURR) is None
+        assert rig.set_rptr_offs(0) is None
+        assert rig.set_rptr_offs(0, Hamlib.RIG_VFO_CURR) is None
+        assert rig.set_rptr_shift(0) is None
+        assert rig.set_rptr_shift(0, Hamlib.RIG_VFO_CURR) is None
+        assert rig.set_split_freq(0) is None
+        assert rig.set_split_freq(0, Hamlib.RIG_VFO_CURR) is None
         assert rig.set_split_freq_mode(0, 0) is None
         assert rig.set_split_freq_mode(0, 0, 0) is None
         assert rig.set_split_freq_mode(0, 0, 0, 0) is None
@@ -205,17 +230,21 @@ class TestClass:
         assert rig.set_split_vfo(0, 0) is None
         assert rig.set_split_vfo(0, 0, 0) is None
         assert rig.set_trn(0) is None  # deprecated
-        assert rig.set_ts(0, 0) is None
+        assert rig.set_ts(0) is None
+        assert rig.set_ts(0, Hamlib.RIG_VFO_CURR) is None
         assert rig.set_vfo(0) is None
         assert rig.set_vfo_opt(0) is None
-        assert rig.set_xit(0, 0) is None
+        assert rig.set_xit(0) is None
+        assert rig.set_xit(0, Hamlib.RIG_VFO_CURR) is None
         assert rig.token_lookup("") is None
-        assert rig.vfo_op(0, 0) is None
+        assert rig.vfo_op(0) is None
+        assert rig.vfo_op(0, Hamlib.RIG_VFO_CURR) is None
 
 
-    def test_object_creation(self):
+    @pytest.mark.skipif('config.getoption("model") != Hamlib.RIG_MODEL_DUMMY')
+    def test_object_creation(self, model):
         """Create all objects available"""
-        rig = Hamlib.Rig(RIG_MODEL)
+        rig = Hamlib.Rig(model)
         assert rig is not None
 
         assert isinstance(rig.caps, Hamlib.rig_caps)
