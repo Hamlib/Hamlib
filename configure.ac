@@ -69,6 +69,7 @@ dnl here but will be added later, e.g. "winradio".
 RIG_BACKEND_LIST="rigs/adat rigs/alinco rigs/aor rigs/barrett rigs/codan rigs/dorji rigs/drake rigs/dummy rigs/elad rigs/flexradio rigs/icom rigs/icmarine rigs/jrc rigs/kachina rigs/kenwood rigs/kit rigs/lowe rigs/pcr rigs/prm80 rigs/racal rigs/rft rigs/rs rigs/skanti rigs/tapr rigs/tentec rigs/tuner rigs/uniden rigs/wj rigs/yaesu rigs/gomspace rigs/mds rigs/anytone rigs/motorola rigs/commradio rigs/guohetec"
 RIG_BACKEND_OPTIONAL_LIST=""
 ROT_BACKEND_LIST="rotators/amsat rotators/apex rotators/ars rotators/celestron rotators/cnctrk rotators/grbltrk rotators/easycomm rotators/ether6 rotators/flir rotators/fodtrack rotators/gs232a rotators/heathkit rotators/m2 rotators/meade rotators/rotorez rotators/sartek rotators/saebrtrack rotators/spid rotators/ts7400 rotators/prosistel rotators/ioptron rotators/satel rotators/skywatcher rotators/radant"
+ROT_BACKEND_OPTIONAL_LIST=""
 # Amplifiers are all in the amplifiers directory
 AMP_BACKEND_LIST="amplifiers/elecraft amplifiers/gemini amplifiers/expert"
 
@@ -435,11 +436,12 @@ AS_IF([test x"$cf_with_indi_support" != "xno"], [
 	    cf_with_indi_support=no
 	])
 
-	AS_IF([test x"$cf_with_indi_support" != "xno"], [
-	    ROT_BACKEND_LIST="$ROT_BACKEND_LIST rotators/indi"
-	])
     ])
 ])
+AS_IF([test x"$cf_with_indi_support" != "xno"],
+	[ROT_BACKEND_LIST="$ROT_BACKEND_LIST rotators/indi"],
+	[ROT_BACKEND_OPTIONAL_LIST="$ROT_BACKEND_OPTIONAL_LIST rotators/indi"]
+)
 
 dnl Check if libgd-dev is installed, so we can enable rigmatrix
 AC_MSG_CHECKING([whether to build HTML rig feature matrix])
@@ -860,6 +862,7 @@ for be in ${ROT_BACKEND_LIST} ; do
 	ROT_BACKENDEPS="${ROT_BACKENDEPS} \$(top_builddir)/rotators/${ROTDIR}/libhamlib-${ROTDIR}.la"
 done
 
+AC_SUBST([ROT_BACKEND_OPTIONAL_LIST])
 AC_SUBST([ROT_BACKEND_LIST])
 AC_SUBST([ROT_BACKENDEPS])
 
