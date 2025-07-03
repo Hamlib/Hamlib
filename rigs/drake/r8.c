@@ -575,8 +575,10 @@ int drake_r8_report_all(RIG *rig, char* owner)
         return -RIG_ERJCTED;
     }
 
-    drake_r8_decode_mem_channel(rig, mdbuf, 0);
+    //check RC *after* decoding the VFO in RM
+    //otherwise RIG_VFO_MEM gets squashed
     drake_r8_decode_mode(rig, mdbuf, 4);
+    drake_r8_decode_mem_channel(rig, mdbuf, 0);
     drake_r8_decode_frequency(rig, mdbuf, 10);
         
     return RIG_OK;    
@@ -972,8 +974,8 @@ int drake_r8_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
     int retval;
     struct drake_priv_data *priv = STATE(rig)->priv;
-    
-    retval = drake_r8_report_mode(rig, "drake_get_mem");
+
+    retval = drake_r8_report_mem_channel(rig, "drake_get_mem");
 
     if (retval == RIG_OK)
     {
