@@ -78,4 +78,10 @@
 //  .set_func =     _set_func,
     .send_morse =  smartsdr_send_morse,
     .stop_morse = smartsdr_stop_morse,
+    .power2mW = smartsdr_power2mW,
+    .set_rit = smartsdr_set_rit,
+    .get_rit = smartsdr_get_rit,
+    .set_xit = smartsdr_set_xit,
+    .get_xit = smartsdr_get_xit,
+    .get_vfo = smartsdr_get_vfo,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS

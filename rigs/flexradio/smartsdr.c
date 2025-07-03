@@ -49,6 +49,13 @@ static int smartsdr_send_morse(RIG *rig, vfo_t vfo, const char *msg);
 static int smartsdr_stop_morse(RIG *rig, vfo_t vfo);
 static int smartsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 static int smartsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+static int smartsdr_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq,
+                rmode_t mode);
+static int smartsdr_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
+static int smartsdr_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
+static int smartsdr_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit);
+static int smartsdr_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit);
+static int smartsdr_get_vfo(RIG *rig, vfo_t *vfo);
 
 struct smartsdr_priv_data
 {
@@ -63,13 +70,17 @@ struct smartsdr_priv_data
     int widthA;
     int widthB;
     int keyspd;
+    float rfpower;
+    float maxpowerlevel;
+    shortfreq_t rit;
+    shortfreq_t xit;
 };
 
 
 #define DEFAULTPATH "127.0.0.1:4992"
 
-#define SMARTSDR_FUNC  RIG_FUNC_MUTE
-#define SMARTSDR_LEVEL (RIG_LEVEL_KEYSPD)
+#define SMARTSDR_FUNC  (RIG_FUNC_MUTE|RIG_FUNC_RIT|RIG_FUNC_XIT)
+#define SMARTSDR_LEVEL (RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER)
 #define SMARTSDR_PARM  RIG_PARM_NONE
 
 #define SMARTSDR_MODES (RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_PKTUSB|RIG_MODE_PKTLSB|RIG_MODE_CW|RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_FMN|RIG_MODE_SAM)
@@ -267,7 +278,7 @@ int smartsdr_open(RIG *rig)
     sprintf(cmd, "sub slice %d", priv->slicenum);
     //sprintf(cmd, "sub slice all");
     smartsdr_transaction(rig, cmd);
-
+    priv->maxpowerlevel = 100;
     do
     {
         hl_usleep(100 * 1000);
@@ -284,6 +295,8 @@ int smartsdr_open(RIG *rig)
         smartsdr_transaction(rig, NULL);
     }
     while (priv->keyspd == 0 && --loops > 0);
+    smartsdr_transaction(rig,"sub client all");
+    smartsdr_transaction(rig, NULL);
 
     //smartsdr_transaction(rig, "info", buf, sizeof(buf));
     //rig_debug(RIG_DEBUG_VERBOSE, "%s: info=%s", __func__, buf);
@@ -427,6 +440,9 @@ static int smartsdr_parse_S(RIG *rig, char *s)
     char *sep = "| \n";
     char *p = strtok(s2, sep);
     int gotFreq = 0, gotMode = 0;
+    char clientid[128];
+    char cmd[128];
+    float tPower;
 
     do
     {
@@ -482,7 +498,40 @@ static int smartsdr_parse_S(RIG *rig, char *s)
         }
         else if (sscanf(p, "wpm=%d\n", &priv->keyspd) == 1)
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: tx=%d\n", __func__, priv->keyspd);
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: wpm=%d\n", __func__, priv->keyspd);
+        }
+        else if (sscanf(p, "rfpower=%f\n", &tPower) == 1)
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: rPower=%f\n", __func__, tPower);
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: maxpowerlevel=%f\n", __func__, priv->maxpowerlevel);
+            if(tPower >= 0 && tPower <= priv->maxpowerlevel)
+            {
+               priv->rfpower = tPower;
+               rig_debug(RIG_DEBUG_VERBOSE, "%s: rfpower=%f\n", __func__, priv->rfpower);
+            }
+        }
+        else if (sscanf(p, "max_power_level=%f\n", &priv->maxpowerlevel) == 1)
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: maxpowerlevel=%f\n", __func__, priv->maxpowerlevel);
+        }
+        else if (sscanf(p, "client_id=%s\n",clientid))
+        {
+            if(strlen(clientid)>16)
+            {
+                sprintf(cmd, "client bind client_id=%s", clientid);
+                smartsdr_transaction(rig, cmd);
+                smartsdr_transaction(rig, NULL);
+                smartsdr_transaction(rig,"sub tx all");
+                smartsdr_transaction(rig, NULL);
+            }
+        }
+        else if (sscanf(p, "rit_freq=%ld", &priv->rit) == 1)
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: got rit=%ld\n", __func__, priv->rit);
+        }
+        else if (sscanf(p, "xit_freq=%ld", &priv->xit) == 1)
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: got xit=%ld\n", __func__, priv->xit);
         }
     }
     while ((p = strtok(NULL, sep)));
@@ -622,6 +671,8 @@ int smartsdr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 int smartsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
+    ENTERFUNC;
+    
     int retval;
     char cmd[64];
     rig_debug(RIG_DEBUG_TRACE, "%s: %s %d\n", __func__, rig_strlevel(level), val.i);
@@ -633,6 +684,11 @@ int smartsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         retval = smartsdr_transaction(rig, cmd);
         return retval;
         break;
+    case RIG_LEVEL_RFPOWER:
+        sprintf(cmd, "transmit set rfpower=%d",val.i);
+        retval = smartsdr_transaction(rig,cmd);
+        return retval;
+        break;
     default:
         return -RIG_EINVAL;
     }
@@ -641,7 +697,8 @@ int smartsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 int smartsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-    rig_debug(RIG_DEBUG_TRACE, "%s: %s %d\n", __func__, rig_strlevel(level), val->i);
+    ENTERFUNC;
+    
     smartsdr_transaction(rig, NULL);
     struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
 
@@ -650,9 +707,13 @@ int smartsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_KEYSPD:
         val->i = priv->keyspd;
         break;
+    case RIG_LEVEL_RFPOWER:
+        val->f = priv->rfpower / priv->maxpowerlevel;
+        break;
     default:
         return -RIG_EINVAL;
     }
+
     RETURNFUNC(RIG_OK);
 }
 
@@ -685,6 +746,8 @@ int smartsdr_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 
 int smartsdr_stop_morse(RIG *rig, vfo_t vfo)
 {
+    ENTERFUNC;
+    
     int retval;
     char cmd[64];
     ENTERFUNC;
@@ -693,4 +756,81 @@ int smartsdr_stop_morse(RIG *rig, vfo_t vfo)
     retval = smartsdr_transaction(rig, cmd);
 
     RETURNFUNC(retval);
+}
+
+static int smartsdr_power2mW(RIG *rig,
+                             unsigned int *mwpower,
+                             float power,
+                             freq_t freq,
+                             rmode_t mode)
+{
+    ENTERFUNC;
+
+    struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
+
+    float tPower = power;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed power = %f\n", __func__, tPower);
+    rig_debug(RIG_DEBUG_TRACE, "%s: max power level = %f\n", __func__, priv->maxpowerlevel);
+
+    power *= priv->maxpowerlevel;
+    *mwpower = (power * 1000);
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: mwPower = %u\n", __func__, *mwpower);
+
+    RETURNFUNC(RIG_OK);
+}
+
+static int smartsdr_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
+{
+    struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
+    smartsdr_transaction(rig, NULL);
+    *rit = priv->rit;  // or store `priv->rit` from `smartsdr_parse_S`
+    RETURNFUNC(RIG_OK);
+}
+
+static int smartsdr_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
+{
+    char cmd[64];
+    struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
+    sprintf(cmd, "slice set %d rit_freq=%ld rit_on=1", priv->slicenum, rit);
+    smartsdr_transaction(rig, cmd);
+    RETURNFUNC(RIG_OK);
+}
+
+static int smartsdr_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
+{
+    struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
+    smartsdr_transaction(rig, NULL);
+    *xit = priv->xit;  // or store `priv->xit` from `smartsdr_parse_S`
+    RETURNFUNC(RIG_OK);
+}
+
+static int smartsdr_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
+{
+    char cmd[64];
+    struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
+    sprintf(cmd, "slice set %d xit_freq=%ld xit_on=1", priv->slicenum, xit);
+    smartsdr_transaction(rig, cmd);
+    RETURNFUNC(RIG_OK);
+}
+
+static int smartsdr_get_vfo(RIG *rig, vfo_t *vfo)
+{
+    struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
+
+    ENTERFUNC;
+
+    // SmartSDR slice to VFO mapping
+    switch (priv->slicenum)
+    {
+        case 0: *vfo = RIG_VFO_A; break;
+        case 1: *vfo = RIG_VFO_B; break;
+        default:
+            rig_debug(RIG_DEBUG_ERR, "%s: Unknown slice %d\n", __func__, priv->slicenum);
+            return -RIG_EINVAL;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: returning VFO %s\n", __func__, rig_strvfo(*vfo));
+    RETURNFUNC(RIG_OK);
 }
