@@ -1176,10 +1176,12 @@ int drake_r8_get_chan(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
  */
 int drake_r8_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
-    const struct drake_priv_data *priv = STATE(rig)->priv;
     char buf[16];
     char ackbuf[BUFSZ];
-    int len, ack_len, retval;
+    int ack_len;
+    int len;
+    int retval;
+    const struct drake_priv_data *priv = STATE(rig)->priv;
 
     switch (op)
     {
@@ -1205,7 +1207,7 @@ int drake_r8_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
     len = strlen(buf);
     retval = drake_transaction(rig, buf, len, len == 1 ? ackbuf : NULL, 
-                                                 len == 1 ? &ack_len : NULL);
+                                              len == 1 ? &ack_len : NULL);
 
     //let's trick it
     /*
@@ -1222,7 +1224,8 @@ int drake_r8_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
         }
     }*/
 
-    drake_trans_rept("drake_vfo_op", buf, len, buf[len - 1] == 0x0d ? ackbuf : NULL, ack_len, retval);
+    drake_trans_rept("drake_vfo_op", buf, len, buf[len - 1] == 0x0d ? ackbuf : NULL, 
+                                               buf[len - 1] == 0x0d ? ack_len : 0, retval);
 
     return retval;
 }
