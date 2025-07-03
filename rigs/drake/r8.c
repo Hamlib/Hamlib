@@ -242,14 +242,10 @@ void drake_r8_decode_frequency(RIG *rig, char* freqbuf, int offset)
     char fmult;
     struct drake_priv_data *priv = STATE(rig)->priv;
   
-    switch (freqbuf[9+offset])
-    {
-    case ' ' : priv->curr_dcd = RIG_DCD_OFF; break;
-    
-    case '#' : priv->curr_dcd = RIG_DCD_ON; break;
-    
-    default : priv->curr_dcd = RIG_DCD_OFF;
-    }
+    if ((freqbuf[9+offset] == '*') || (freqbuf[9+offset] == '#'))
+        priv->curr_dcd = RIG_DCD_ON;
+    else
+        priv->curr_dcd = RIG_DCD_OFF;
     
     fmult = freqbuf[10+offset];
     
@@ -267,7 +263,7 @@ void drake_r8_decode_frequency(RIG *rig, char* freqbuf, int offset)
 
 /*
  * drake_report_freq
- * Common routine to retrieve frequency and dcd settings
+ * Common routine to retrieve frequency and squelch settings (used for DCD)
  * Data stored in priv for any routine to use
  * Assumes rig!=NULL
  */
@@ -1391,9 +1387,9 @@ int drake_r8_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         case RIG_LEVEL_AGC: val->i = priv->curr_agc; break;
 
-        case RIG_LEVEL_RAWSTR: val->i = (priv->curr_dcd ? 1 : 0); break;
+        case RIG_LEVEL_RAWSTR: val->i = ((priv->curr_dcd == RIG_DCD_ON) ? 1 : 0); break;
 
-        case RIG_LEVEL_STRENGTH: val->i = (priv->curr_dcd ? 0 : -60); break;
+        case RIG_LEVEL_STRENGTH: val->i = ((priv->curr_dcd == RIG_DCD_ON) ? 0 : -60); break;
 
         default: rig_debug(RIG_DEBUG_ERR, "Unsupported get_level %s\n", rig_strlevel(level));
                  return -RIG_EINVAL;
