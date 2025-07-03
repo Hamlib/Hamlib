@@ -47,7 +47,8 @@ static int smartsdr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
                              pbwidth_t *width);
 static int smartsdr_send_morse(RIG *rig, vfo_t vfo, const char *msg);
 static int smartsdr_stop_morse(RIG *rig, vfo_t vfo);
-//static int smartsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+static int smartsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+static int smartsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
 struct smartsdr_priv_data
 {
@@ -61,13 +62,14 @@ struct smartsdr_priv_data
     rmode_t modeB;
     int widthA;
     int widthB;
+    int keyspd;
 };
 
 
 #define DEFAULTPATH "127.0.0.1:4992"
 
 #define SMARTSDR_FUNC  RIG_FUNC_MUTE
-#define SMARTSDR_LEVEL RIG_LEVEL_PREAMP
+#define SMARTSDR_LEVEL (RIG_LEVEL_KEYSPD)
 #define SMARTSDR_PARM  RIG_PARM_NONE
 
 #define SMARTSDR_MODES (RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_PKTUSB|RIG_MODE_PKTLSB|RIG_MODE_CW|RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_FMN|RIG_MODE_SAM)
@@ -272,6 +274,16 @@ int smartsdr_open(RIG *rig)
         smartsdr_transaction(rig, NULL);
     }
     while (priv->freqA == 0 && --loops > 0);
+    
+    sprintf(cmd, "sub cwx %d", priv->slicenum);
+    smartsdr_transaction(rig, cmd);
+    loops = 20;
+    do
+    {
+        hl_usleep(100 * 1000);
+        smartsdr_transaction(rig, NULL);
+    }
+    while (priv->keyspd == 0 && --loops > 0);
 
     //smartsdr_transaction(rig, "info", buf, sizeof(buf));
     //rig_debug(RIG_DEBUG_VERBOSE, "%s: info=%s", __func__, buf);
@@ -468,6 +480,10 @@ static int smartsdr_parse_S(RIG *rig, char *s)
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s: tx=%d\n", __func__, priv->tx);
         }
+        else if (sscanf(p, "wpm=%d\n", &priv->keyspd) == 1)
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: tx=%d\n", __func__, priv->keyspd);
+        }
     }
     while ((p = strtok(NULL, sep)));
 
@@ -604,38 +620,68 @@ int smartsdr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     RETURNFUNC(RIG_OK);
 }
 
-#if 0
-int sdr1k_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+int smartsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
+    int retval;
+    char cmd[64];
     rig_debug(RIG_DEBUG_TRACE, "%s: %s %d\n", __func__, rig_strlevel(level), val.i);
 
     switch (level)
     {
-    case RIG_LEVEL_PREAMP:
-        return set_bit(rig, L_EXT, 7, !(val.i == rig->caps->preamp[0]));
-        int smartsdr_set_ptt(RIG * rig, vfo_t vfo, ptt_t ptt)
+    case RIG_LEVEL_KEYSPD:
+        sprintf(cmd, "cwx wpm %d", val.i);
+        retval = smartsdr_transaction(rig, cmd);
+        return retval;
         break;
-
     default:
         return -RIG_EINVAL;
     }
+   RETURNFUNC(RIG_OK);
 }
-#endif
+
+int smartsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+    rig_debug(RIG_DEBUG_TRACE, "%s: %s %d\n", __func__, rig_strlevel(level), val->i);
+    smartsdr_transaction(rig, NULL);
+    struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
+
+    switch (level)
+    {
+    case RIG_LEVEL_KEYSPD:
+        val->i = priv->keyspd;
+        break;
+    default:
+        return -RIG_EINVAL;
+    }
+    RETURNFUNC(RIG_OK);
+}
+
 
 int smartsdr_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 {
-    int buf_len;
-    int retval;
-    buf_len = strlen(msg) + 12;
-    char cmd[buf_len];
     ENTERFUNC;
 
-    sprintf(cmd, "cwx send \"%s\"", msg);
-    retval = smartsdr_transaction(rig, cmd);
+    size_t msg_len = strlen(msg);
+    size_t buf_len = msg_len + 20; 
 
-    RETURNFUNC(retval);
+    char newmsg[msg_len + 1];
+    strncpy(newmsg, msg, msg_len + 1);
 
+    // Replace spaces with 0x7f
+    for (size_t i = 0; newmsg[i] != '\0'; i++) {
+        if (newmsg[i] == ' ') {
+            newmsg[i] = 0x7f;
+        }
+    }
+
+    char cmd[buf_len];
+    snprintf(cmd, sizeof(cmd), "cwx send \"%s\"", newmsg);
+
+    smartsdr_transaction(rig, cmd);
+
+    RETURNFUNC(RIG_OK);
 }
+
 
 int smartsdr_stop_morse(RIG *rig, vfo_t vfo)
 {
@@ -647,5 +693,4 @@ int smartsdr_stop_morse(RIG *rig, vfo_t vfo)
     retval = smartsdr_transaction(rig, cmd);
 
     RETURNFUNC(retval);
-
 }
