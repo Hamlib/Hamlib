@@ -261,6 +261,12 @@ enum rig_debug_level_e {
 struct rig;
 struct rig_state;
 struct rig_cache;
+struct hamlib_port;
+typedef struct hamlib_port hamlib_port_t;
+//---Start cut here---
+struct hamlib_port_deprecated;
+typedef struct hamlib_port_deprecated hamlib_port_t_deprecated;
+//---End cut here---
 
 /**
  * \brief Rig structure definition (see rig for details).
@@ -2354,159 +2360,19 @@ struct hamlib_async_pipe;
 
 typedef struct hamlib_async_pipe hamlib_async_pipe_t;
 
-/**
- * \brief Port definition
- *
- * Of course, looks like OO painstakingly programmed in C, sigh.
- */
-//! @cond Doxygen_Suppress
-// DO NOT CHANGE THIS STRUCTURE ALL UNTIL 5.0
-// Right now it is static inside rig structure
-// 5.0 will change it to a pointer which can then be added to
-// At that point only add to the end of the structure
-typedef struct hamlib_port {
-    union {
-        rig_port_t rig;     /*!< Communication port type */
-        ptt_type_t ptt;     /*!< PTT port type */
-        dcd_type_t dcd;     /*!< DCD port type */
-    } type;
+//---Start cut here---
+// Definition of struct hamlib_port moved to port.h
+// Temporary include here until 5.0
+/* For non-invasive debugging */
+#ifndef NO_OLD_INCLUDES
+__END_DECLS
 
-    int fd;                 /*!< File descriptor */
-    void *handle;           /*!< handle for USB */
+#include <hamlib/port.h>
 
-    int write_delay;        /*!< Delay between each byte sent out, in mS */
-    int post_write_delay;   /*!< Delay between each commands send out, in mS */
-
-    struct {
-        int tv_sec, tv_usec;
-    } post_write_date;      /*!< hamlib internal use */
-
-    int timeout;            /*!< Timeout, in mS */
-    short retry;            /*!< Maximum number of retries, 0 to disable */
-    short flushx;           /*!< If true flush is done with read instead of TCFLUSH - MicroHam */
-
-    char pathname[HAMLIB_FILPATHLEN];      /*!< Port pathname */
-
-    union {
-        struct {
-            int rate;       /*!< Serial baud rate */
-            int data_bits;  /*!< Number of data bits */
-            int stop_bits;  /*!< Number of stop bits */
-            enum serial_parity_e parity;        /*!< Serial parity */
-            enum serial_handshake_e handshake;  /*!< Serial handshake */
-            enum serial_control_state_e rts_state;    /*!< RTS set state */
-            enum serial_control_state_e dtr_state;    /*!< DTR set state */
-        } serial;           /*!< serial attributes */
-
-        struct {
-            int pin;        /*!< Parallel port pin number */
-        } parallel;         /*!< parallel attributes */
-
-        struct {
-            int ptt_bitnum; /*!< Bit number for CM108 GPIO PTT */
-        } cm108;            /*!< CM108 attributes */
-
-        struct {
-            int vid;        /*!< Vendor ID */
-            int pid;        /*!< Product ID */
-            int conf;       /*!< Configuration */
-            int iface;      /*!< interface */
-            int alt;        /*!< alternate */
-            char *vendor_name;  /*!< Vendor name (opt.) */
-            char *product;      /*!< Product (opt.) */
-        } usb;              /*!< USB attributes */
-
-        struct {
-            int on_value;   /*!< GPIO: 1 == normal, GPION: 0 == inverted */
-            int value;      /*!< Toggle PTT ON or OFF */
-        } gpio;             /*!< GPIO attributes */
-    } parm;                 /*!< Port parameter union */
-    int client_port;        /*!< client socket port for tcp connection */
-    RIG *rig;               /*!< our parent RIG device */
-    int asyncio;            /*!< enable asynchronous data handling if true -- async collides with python keyword so _async is used */
-#if defined(_WIN32)
-    hamlib_async_pipe_t *sync_data_pipe;         /*!< pipe data structure for synchronous data */
-    hamlib_async_pipe_t *sync_data_error_pipe;   /*!< pipe data structure for synchronous data error codes */
-#else
-    int fd_sync_write;          /*!< file descriptor for writing synchronous data */
-    int fd_sync_read;           /*!< file descriptor for reading synchronous data */
-    int fd_sync_error_write;    /*!< file descriptor for writing synchronous data error codes */
-    int fd_sync_error_read;     /*!< file descriptor for reading synchronous data error codes */
-#endif
-    short timeout_retry;    /*!< number of retries to make in case of read timeout errors, some serial interfaces may require this, 0 to disable */
-// DO NOT ADD ANYTHING HERE UNTIL 5.0!!
-} hamlib_port_t;
-
- 
-// DO NOT CHANGE THIS STRUCTURE AT ALL
-// Will be removed in 5.0
-typedef struct hamlib_port_deprecated {
-    union {
-        rig_port_t rig;     /*!< Communication port type */
-        ptt_type_t ptt;     /*!< PTT port type */
-        dcd_type_t dcd;     /*!< DCD port type */
-    } type;
-
-    int fd;                 /*!< File descriptor */
-    void *handle;           /*!< handle for USB */
-
-    int write_delay;        /*!< Delay between each byte sent out, in mS */
-    int post_write_delay;   /*!< Delay between each commands send out, in mS */
-
-    struct {
-        int tv_sec, tv_usec;
-    } post_write_date;      /*!< hamlib internal use */
-
-    int timeout;            /*!< Timeout, in mS */
-    short retry;            /*!< Maximum number of retries, 0 to disable */
-    short flushx;           /*!< If true flush is done with read instead of TCFLUSH - MicroHam */
-
-    char pathname[HAMLIB_FILPATHLEN];      /*!< Port pathname */
-
-    union {
-        struct {
-            int rate;       /*!< Serial baud rate */
-            int data_bits;  /*!< Number of data bits */
-            int stop_bits;  /*!< Number of stop bits */
-            enum serial_parity_e parity;        /*!< Serial parity */
-            enum serial_handshake_e handshake;  /*!< Serial handshake */
-            enum serial_control_state_e rts_state;    /*!< RTS set state */
-            enum serial_control_state_e dtr_state;    /*!< DTR set state */
-        } serial;           /*!< serial attributes */
-
-        struct {
-            int pin;        /*!< Parallel port pin number */
-        } parallel;         /*!< parallel attributes */
-
-        struct {
-            int ptt_bitnum; /*!< Bit number for CM108 GPIO PTT */
-        } cm108;            /*!< CM108 attributes */
-
-        struct {
-            int vid;        /*!< Vendor ID */
-            int pid;        /*!< Product ID */
-            int conf;       /*!< Configuration */
-            int iface;      /*!< interface */
-            int alt;        /*!< alternate */
-            char *vendor_name;  /*!< Vendor name (opt.) */
-            char *product;      /*!< Product (opt.) */
-        } usb;              /*!< USB attributes */
-
-        struct {
-            int on_value;   /*!< GPIO: 1 == normal, GPION: 0 == inverted */
-            int value;      /*!< Toggle PTT ON or OFF */
-        } gpio;             /*!< GPIO attributes */
-    } parm;                 /*!< Port parameter union */
-    int client_port;      /*!< client socket port for tcp connection */
-    RIG *rig;             /*!< our parent RIG device */
-} hamlib_port_t_deprecated;
-//! @endcond
-
-#if !defined(__APPLE__) || !defined(__cplusplus)
-typedef hamlib_port_t_deprecated port_t_deprecated;
-typedef hamlib_port_t port_t;
+__BEGIN_DECLS
 #endif
 
+//---End cut here---
 /* Macros to access data structures/pointers
  * Make it easier to change location in preparation
  *   for moving them out of rig->state.
@@ -2519,13 +2385,13 @@ typedef hamlib_port_t port_t;
 // Note: Experimental, and subject to change!!
 #if defined(IN_HAMLIB)
 /* These are for internal use only */
-#define RIGPORT(r) (&r->state.rigport)
-#define PTTPORT(r) (&r->state.pttport)
-#define DCDPORT(r) (&r->state.dcdport)
-//Moved to cache.h #define CACHE(r) ((r)->cache_addr)
-#define AMPPORT(a) (&a->state.ampport)
-#define ROTPORT(r) (&r->state.rotport)
-#define ROTPORT2(r) (&r->state.rotport2)
+//Moved to include/hamlib/port.h #define RIGPORT(r) (&r->state.rigport)
+//  "   "             "          #define PTTPORT(r) (&r->state.pttport)
+//  "   "             "          #define DCDPORT(r) (&r->state.dcdport)
+//Moved to src/cache.h #define CACHE(r) ((r)->cache_addr)
+//Moved to include/hamlib/port.h #define AMPPORT(a) (&a->state.ampport)
+//  "   "             "          #define ROTPORT(r) (&r->state.rotport)
+//  "   "             "          #define ROTPORT2(r) (&r->state.rotport2)
 #define STATE(r) (&r->state)
 #define AMPSTATE(a) (&(a)->state)
 #define ROTSTATE(r) (&(r)->state)
@@ -2536,13 +2402,13 @@ typedef hamlib_port_t port_t;
  */
 #else
 /* Define external unique names */
-#define HAMLIB_RIGPORT(r) ((hamlib_port_t *)rig_data_pointer(r, RIG_PTRX_RIGPORT))
-#define HAMLIB_PTTPORT(r) ((hamlib_port_t *)rig_data_pointer(r, RIG_PTRX_PTTPORT))
-#define HAMLIB_DCDPORT(r) ((hamlib_port_t *)rig_data_pointer(r, RIG_PTRX_DCDPORT))
+//#define HAMLIB_RIGPORT(r) ((hamlib_port_t *)rig_data_pointer(r, RIG_PTRX_RIGPORT))
+//#define HAMLIB_PTTPORT(r) ((hamlib_port_t *)rig_data_pointer(r, RIG_PTRX_PTTPORT))
+//#define HAMLIB_DCDPORT(r) ((hamlib_port_t *)rig_data_pointer(r, RIG_PTRX_DCDPORT))
 //#define HAMLIB_CACHE(r) ((struct rig_cache *)rig_data_pointer(r, RIG_PTRX_CACHE))
-#define HAMLIB_AMPPORT(a) ((hamlib_port_t *)amp_data_pointer(a, RIG_PTRX_AMPPORT))
-#define HAMLIB_ROTPORT(r) ((hamlib_port_t *)rot_data_pointer(r, RIG_PTRX_ROTPORT))
-#define HAMLIB_ROTPORT2(r) ((hamlib_port_t *)rot_data_pointer(r, RIG_PTRX_ROTPORT2))
+//#define HAMLIB_AMPPORT(a) ((hamlib_port_t *)amp_data_pointer(a, RIG_PTRX_AMPPORT))
+//#define HAMLIB_ROTPORT(r) ((hamlib_port_t *)rot_data_pointer(r, RIG_PTRX_ROTPORT))
+//#define HAMLIB_ROTPORT2(r) ((hamlib_port_t *)rot_data_pointer(r, RIG_PTRX_ROTPORT2))
 #define HAMLIB_STATE(r) ((struct rig_state *)rig_data_pointer(r, RIG_PTRX_STATE))
 #define HAMLIB_AMPSTATE(a) ((struct amp_state *)amp_data_pointer(a, RIG_PTRX_AMPSTATE))
 #define HAMLIB_ROTSTATE(r) ((struct rot_state *)rot_data_pointer(r, RIG_PTRX_ROTSTATE))
