@@ -27,7 +27,7 @@ SUBDIRS = macros include lib security \
 DIST_SUBDIRS = \
 	$(RIG_BACKEND_OPTIONAL_LIST) \
 	$(ROT_BACKEND_OPTIONAL_LIST) \
-	macros include lib src c++ bindings tests doc android scripts rotators/indi simulators\
+	macros include lib src c++ bindings tests doc android scripts simulators\
 	security $(BACKEND_LIST) $(RIG_BACKEND_LIST) $(ROT_BACKEND_LIST) $(AMP_BACKEND_LIST)
 
 # Install any third party macros into our tree for distribution
