@@ -19,29 +19,11 @@
  *
  */
 
-//#include <stdio.h>
 #include <stdlib.h>
-//#include <stdbool.h>
-//#include <string.h>  /* String function definitions */
-//#include <unistd.h>  /* UNIX standard function definitions */
 
 #include <hamlib/rig.h>
 #include "idx_builtin.h"
-//#include "serial.h"
-//#include "misc.h"
-//#include "cal.h"
-//#include "register.h"
-
 #include "drake.h"
-
-int drake_r8_set_chan(RIG *rig, vfo_t vfo, const channel_t *chan);
-int drake_r8_get_chan(RIG *rig, vfo_t vfo, channel_t *chan, int read_only);
-
-#define BUFSZ 64
-
-#define CR "\x0d"
-#define LF "\x0a"
-#define EOM CR
 
 #define R8_MODES (RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM|RIG_MODE_AMS|RIG_MODE_FM)
 
@@ -100,7 +82,7 @@ struct rig_caps r8_caps =
     .serial_parity =  RIG_PARITY_EVEN,
     .serial_handshake =  RIG_HANDSHAKE_HARDWARE,
     .write_delay =  1,
-    .post_write_delay =  100, //1,
+    .post_write_delay =  100,
     .timeout =  250,
     .retry =  3,
 
@@ -193,8 +175,8 @@ struct rig_caps r8_caps =
     .get_ant =  drake_get_ant,
     .set_mem = drake_set_mem,
     .get_mem = drake_get_mem,
-    .set_channel = drake_r8_set_chan,
-    .get_channel = drake_r8_get_chan,
+    .set_channel = drake_set_chan,
+    .get_channel = drake_get_chan,
     .vfo_op = drake_vfo_op,
     .set_powerstat = drake_set_powerstat,
     .get_powerstat = drake_get_powerstat,
@@ -205,187 +187,4 @@ struct rig_caps r8_caps =
 /*
  * Function definitions below
  */
-
-/*
- * drake_set_chan
- * Assumes rig!=NULL
- */
-int drake_r8_set_chan(RIG *rig, vfo_t vfo, const channel_t *chan)
-{
-    const struct drake_priv_data *priv = STATE(rig)->priv;
-    vfo_t   old_vfo;
-    int     old_chan;
-    char    mdbuf[16];
-    char    ackbuf[BUFSZ];
-    int     ack_len;
-    int     retval;
-    value_t dummy;
-
-    dummy.i = 0;
-
-    drake_get_vfo(rig, &old_vfo);
-    old_chan = 0;
-
-    /* set to vfo if needed */
-    if (old_vfo == RIG_VFO_MEM)
-    {
-        old_chan = priv->curr_ch;
-        retval = drake_set_vfo(rig, RIG_VFO_VFO);
-
-        if (retval != RIG_OK)
-        {
-            return retval;
-        }
-    }
-
-    /* set all memory features */
-    drake_set_ant(rig, RIG_VFO_CURR, chan->ant, dummy);
-    drake_set_freq(rig, RIG_VFO_CURR, chan->freq);
-    drake_set_mode(rig, RIG_VFO_CURR, chan->mode, chan->width);
-    drake_set_func(rig, RIG_VFO_CURR, RIG_FUNC_NB,
-                  (chan->funcs & RIG_FUNC_NB) == RIG_FUNC_NB);
-    drake_set_func(rig, RIG_VFO_CURR, RIG_FUNC_NB2,
-                  (chan->funcs & RIG_FUNC_NB2) == RIG_FUNC_NB2);
-    drake_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_AGC,
-                   chan->levels[rig_setting2idx(RIG_LEVEL_AGC)]);
-    drake_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_PREAMP,
-                   chan->levels[rig_setting2idx(RIG_LEVEL_PREAMP)]);
-    drake_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_ATT,
-                   chan->levels[rig_setting2idx(RIG_LEVEL_ATT)]);
-    drake_set_func(rig, RIG_VFO_CURR, RIG_FUNC_MN,
-                  (chan->funcs & RIG_FUNC_MN) == RIG_FUNC_MN);
-
-    SNPRINTF(mdbuf, sizeof(mdbuf), "PR" EOM "%02d" EOM, chan->channel_num);
-    retval = drake_transaction(rig, mdbuf, strlen(mdbuf), ackbuf, &ack_len);
-
-    //let's trick it
-    /*
-    char testbuf[2] = {0x0d, 0x0a};
-    if (ack_len == 0)
-    {
-        ackbuf[0] = testbuf[0];
-        ackbuf[1] = testbuf[1];
-        ack_len = 2;
-        ackbuf[ack_len] = 0x00;
-        retval = 0;
-    }*/
-
-    drake_trans_rept("drake_set_chan", mdbuf, strlen(mdbuf), ackbuf, ack_len, retval);
-
-    if (old_vfo == RIG_VFO_MEM)
-    {
-        drake_set_mem(rig, RIG_VFO_CURR, old_chan);
-    }
-
-    return retval;
-}
-
-
-/*
- * drake_get_chan
- * Assumes rig!=NULL
- */
-int drake_r8_get_chan(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
-{
-    vfo_t   old_vfo;
-    int     old_chan;
-    int     retval;
-    const struct drake_priv_data *priv = STATE(rig)->priv;
-
-    chan->vfo = RIG_VFO_MEM;
-    chan->ant = RIG_ANT_NONE;
-    chan->freq = 0;
-    chan->mode = RIG_MODE_NONE;
-    chan->width = RIG_PASSBAND_NORMAL;
-    chan->tx_freq = 0;
-    chan->tx_mode = RIG_MODE_NONE;
-    chan->tx_width = RIG_PASSBAND_NORMAL;
-    chan->split = RIG_SPLIT_OFF;
-    chan->tx_vfo = RIG_VFO_NONE;
-    chan->rptr_shift = RIG_RPT_SHIFT_NONE;
-    chan->rptr_offs = 0;
-    chan->tuning_step = 0;
-    chan->rit = 0;
-    chan->xit = 0;
-    chan->funcs = 0;
-    chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i = RIG_AGC_OFF;
-    chan->levels[rig_setting2idx(RIG_LEVEL_ATT)].i = 0;
-    chan->levels[rig_setting2idx(RIG_LEVEL_PREAMP)].i = 0;
-    chan->ctcss_tone = 0;
-    chan->ctcss_sql = 0;
-    chan->dcs_code = 0;
-    chan->dcs_sql = 0;
-    chan->scan_group = 0;
-    chan->flags = RIG_CHFLAG_SKIP;
-    strcpy(chan->channel_desc, "       ");
-
-    drake_get_vfo(rig, &old_vfo);
-    old_chan = 0;
-
-    if (old_vfo == RIG_VFO_MEM)
-    {
-        old_chan = priv->curr_ch;
-    }
-
-    //go to new channel
-    retval = drake_set_mem(rig, RIG_VFO_CURR, chan->channel_num);
-
-    if (retval != RIG_OK)
-    {
-        return RIG_OK;
-    }
-
-    retval = drake_report_all(rig, "drake_get_chan");
-
-    if (retval != RIG_OK)
-    {
-        return RIG_OK;
-    }
-
-    if (priv->curr_nb)
-    {
-        chan->funcs |= RIG_FUNC_NB;
-    }
-    if (priv->curr_nb2)
-    {
-        chan->funcs |= RIG_FUNC_NB2;
-    }
-
-    chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i = priv->curr_agc;
-    chan->levels[rig_setting2idx(RIG_LEVEL_PREAMP)].i = (priv->curr_pre ? 10 : 0);
-    chan->levels[rig_setting2idx(RIG_LEVEL_ATT)].i = (priv->curr_att ? 10 : 0);
-
-    if (priv->curr_notch)
-    {
-        chan->funcs |= RIG_FUNC_MN;
-    }
- 
-    chan->ant = priv->curr_ant;
-    chan->width = priv->curr_width;
-    chan->mode = priv->curr_mode;
-    chan->freq = priv->curr_freq;
-
-    //now put the radio back the way it was
-    //we apparently can't do a read-only channel read
-    if (old_vfo != RIG_VFO_MEM)
-    {
-        retval = drake_set_vfo(rig, RIG_VFO_VFO);
-
-        if (retval != RIG_OK)
-        {
-            return retval;
-        }
-    }
-    else
-    {
-        retval = drake_set_mem(rig, RIG_VFO_CURR, old_chan);
-
-        if (retval != RIG_OK)
-        {
-            return retval;
-        }
-    }
-
-    return RIG_OK;
-}
 
