@@ -65,6 +65,7 @@ jobs:
         brew install automake
         brew install libtool
         brew install grep
+        brew install tcl-tk
     - name: bootstrap
       run: ./bootstrap
     - name: Suppress -Winitializer-overrides on macOS
