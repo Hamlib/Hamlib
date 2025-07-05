@@ -76,14 +76,12 @@ jobs:
       run: grep README Makefile.am
     - name: configure
       if: runner.os != 'macOS'
-      run: ./configure ${{ matrix.configure_args }}
+      run: ./configure ${{ matrix.configure_args }} --enable-silent-rules
     - name: configure on macOS
       if: runner.os == 'macOS'
-      run: ./configure ${{ matrix.configure_args }} --without-python-binding
+      run: ./configure ${{ matrix.configure_args }} --enable-silent-rules --without-python-binding
     - name: make
-      run: make -j 4
-    - name: make check
-      run: make check
+      run: make -j 4 V=0 --no-print-directory
     - name: make distcheck
-      run: make distcheck
+      run: make distcheck V=0 --no-print-directory
 
