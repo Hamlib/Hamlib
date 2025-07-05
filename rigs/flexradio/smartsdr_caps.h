@@ -1,5 +1,5 @@
     .mfg_name =       "FlexRadio",
-    .version =        "20240814.0",
+    .version =        "20240814.1",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
