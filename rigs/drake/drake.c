@@ -227,7 +227,7 @@ int drake_report_signal(RIG *rig, char* owner)
 
     //char testbuf[5] = {'2', '5', '5', 0x0d, 0x0a };
 
-    drake_trans_rept(owner, "RSS" EOM, 4, lvlbuf, lvl_len, retval);
+    //drake_trans_rept(owner, "RSS" EOM, 4, lvlbuf, lvl_len, retval);
 
     if (retval != RIG_OK)
     {
@@ -306,7 +306,7 @@ int drake_report_frequency(RIG *rig, char* owner)
 
     //char testbuf[15] = {' ', '1', '5', '.', '0', '0', '0', '0', '0', '#', 'm', 'H', 'z', 0x0d, 0x0a };
     
-    drake_trans_rept(owner, "RF" EOM, 3, freqbuf, freq_len, retval);
+    //drake_trans_rept(owner, "RF" EOM, 3, freqbuf, freq_len, retval);
 
     if (retval != RIG_OK)
     {
@@ -472,7 +472,7 @@ int drake_report_mode(RIG *rig, char* owner)
     //r8a/b - TODO Seems to be undocumented extra character at beginning of string, pushing everything to the right
     //char testbuf[8] = {'?','2','0','2','<','8', 0x0d, 0x0a}; //NB off, AGC fast, RF off, MN off, ant 1, AM mode, 6.0 bw, VFOA, sync off, not scanning
 
-    drake_trans_rept(owner, "RM" EOM, 3, mdbuf, mdbuf_len, retval);
+    //drake_trans_rept(owner, "RM" EOM, 3, mdbuf, mdbuf_len, retval);
 
     if (rig->caps->rig_model == RIG_MODEL_DKR8)
     {
@@ -561,7 +561,7 @@ int drake_report_mem_channel(RIG *rig, char* owner)
     // r8a/b 000 - 439
     //char testbuf[6] = {' ','0','0','0', 0x0d, 0x0a };
 
-    drake_trans_rept(owner, "RC" EOM, 3, mdbuf, mdbuf_len, retval);
+    //drake_trans_rept(owner, "RC" EOM, 3, mdbuf, mdbuf_len, retval);
 
     if (rig->caps->rig_model == RIG_MODEL_DKR8)
     {
@@ -621,7 +621,7 @@ int drake_report_all(RIG *rig, char* owner)
     // r8a/b - TODO Note 7-char channel name that eitehr starts at [25] or [26]
     //char testbuf[35] = {' ','0','0','0',' ','2','0','2','<','8',' ',' ','1','5','.','0','0','0','0','0','#','m','H','z',' ','M','E','M','N','A','M','E',' ', 0x0d, 0x0a };
 
-    drake_trans_rept(owner, "RA" EOM, 3, mdbuf, mdbuf_len, retval);
+    //drake_trans_rept(owner, "RA" EOM, 3, mdbuf, mdbuf_len, retval);
 
     if (rig->caps->rig_model == RIG_MODEL_DKR8)
     {
@@ -787,7 +787,7 @@ int drake_set_vfo(RIG *rig, vfo_t vfo)
 
     retval = drake_transaction(rig, cmdbuf, strlen(cmdbuf), ackbuf, &ack_len);
 
-    drake_trans_rept("drake_set_vfo", cmdbuf, strlen(cmdbuf), ackbuf, ack_len, retval);
+    //drake_trans_rept("drake_set_vfo", cmdbuf, strlen(cmdbuf), ackbuf, ack_len, retval);
     
     return retval;
 }
@@ -852,7 +852,7 @@ int drake_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     retval = drake_transaction(rig, mdbuf, strlen(mdbuf), ackbuf, &ack_len);
 
-    drake_trans_rept("drake_set_mode", mdbuf, strlen(mdbuf), ackbuf, ack_len, retval);
+    //drake_trans_rept("drake_set_mode", mdbuf, strlen(mdbuf), ackbuf, ack_len, retval);
 
     if (retval != RIG_OK)
     {
@@ -894,7 +894,7 @@ int drake_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             SNPRINTF((char *) mdbuf, sizeof(mdbuf), "W%c" EOM, width_sel);
             retval = drake_transaction(rig, mdbuf, strlen(mdbuf), ackbuf, &ack_len);
             
-            drake_trans_rept("drake_set_bw", mdbuf, strlen(mdbuf), ackbuf, ack_len, retval);
+            //drake_trans_rept("drake_set_bw", mdbuf, strlen(mdbuf), ackbuf, ack_len, retval);
 
         }
     }
@@ -907,7 +907,7 @@ int drake_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                   (mode == RIG_MODE_ECSSLSB)) ? 'O' : 'F');
         retval = drake_transaction(rig, mdbuf, strlen(mdbuf), ackbuf, &ack_len);
 
-        drake_trans_rept("drake_set_synch", mdbuf, strlen(mdbuf), ackbuf, ack_len, retval);
+        //drake_trans_rept("drake_set_synch", mdbuf, strlen(mdbuf), ackbuf, ack_len, retval);
     }
 
     return retval;
@@ -951,7 +951,7 @@ int drake_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 
     retval = drake_transaction(rig, buf, strlen(buf), ackbuf, &ack_len);
 
-    drake_trans_rept("drake_set_ant", buf, strlen(buf), ackbuf, ack_len, retval);
+    //drake_trans_rept("drake_set_ant", buf, strlen(buf), ackbuf, ack_len, retval);
 
     return retval;
 }
@@ -1004,7 +1004,7 @@ int drake_set_mem(RIG *rig, vfo_t vfo, int ch)
     ack_len = 0; // fix compile-time warning "possibly uninitialized"
     retval = drake_transaction(rig, buf, strlen(buf), ackbuf, &ack_len);
 
-    drake_trans_rept("drake_set_mem", buf, strlen(buf), ackbuf, ack_len, retval);
+    //drake_trans_rept("drake_set_mem", buf, strlen(buf), ackbuf, ack_len, retval);
 
     if (ack_len != 2)
     {
@@ -1105,7 +1105,7 @@ int drake_set_chan(RIG *rig, vfo_t vfo, const channel_t *chan)
         retval = 0;
     }*/
 
-    drake_trans_rept("drake_set_chan", mdbuf, strlen(mdbuf), ackbuf, ack_len, retval);
+    //drake_trans_rept("drake_set_chan", mdbuf, strlen(mdbuf), ackbuf, ack_len, retval);
 
     if (old_vfo == RIG_VFO_MEM)
     {
@@ -1280,8 +1280,8 @@ int drake_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
     retval = drake_transaction(rig, buf, len, buf[len - 1] == 0x0d ? ackbuf : NULL,
                                               buf[len - 1] == 0x0d ? &ack_len : NULL);
 
-    drake_trans_rept("drake_vfo_op", buf, len, buf[len - 1] == 0x0d ? ackbuf : NULL, 
-                                               buf[len - 1] == 0x0d ? ack_len : 0, retval);
+    //drake_trans_rept("drake_vfo_op", buf, len, buf[len - 1] == 0x0d ? ackbuf : NULL, 
+    //                                           buf[len - 1] == 0x0d ? ack_len : 0, retval);
 
     return retval;
 }
@@ -1335,7 +1335,7 @@ int drake_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
     retval = drake_transaction(rig, buf, strlen(buf), ackbuf, &ack_len);
 
-    drake_trans_rept("drake_set_func", buf, strlen(buf), ackbuf, ack_len, retval);
+    //drake_trans_rept("drake_set_func", buf, strlen(buf), ackbuf, ack_len, retval);
 
     return retval;
 }
@@ -1404,7 +1404,7 @@ int drake_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     retval = drake_transaction(rig, buf, strlen(buf), ackbuf, &ack_len);
 
-    drake_trans_rept("set_level", buf, strlen(buf), ackbuf, ack_len, retval);
+    //drake_trans_rept("set_level", buf, strlen(buf), ackbuf, ack_len, retval);
 
     return retval;
 }
@@ -1487,7 +1487,7 @@ int drake_set_powerstat(RIG *rig, powerstat_t status)
 
     retval = drake_transaction(rig, buf, strlen(buf), ackbuf, &ack_len);
 
-    drake_trans_rept("set_power", buf, strlen(buf), ackbuf, ack_len, retval);
+    //drake_trans_rept("set_power", buf, strlen(buf), ackbuf, ack_len, retval);
     
     return retval;
 }
@@ -1521,7 +1521,7 @@ const char *drake_get_info(RIG *rig)
 
     retval = drake_transaction(rig, "ID" EOM, 3, idbuf, &id_len);
 
-    drake_trans_rept("get_id", "ID" EOM, 3, idbuf, id_len, retval);
+    //drake_trans_rept("get_id", "ID" EOM, 3, idbuf, id_len, retval);
 
     if (retval != RIG_OK)
     {
