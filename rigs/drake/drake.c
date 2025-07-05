@@ -1032,11 +1032,11 @@ int drake_set_mem(RIG *rig, vfo_t vfo, int ch)
 
     if (rig->caps->rig_model == RIG_MODEL_DKR8)
     {
-        SNPRINTF(buf, sizeof(buf), "C%02d" EOM, ch);
+        SNPRINTF(buf, sizeof(buf), "C%02d", ch);
     }
     else
     {
-        SNPRINTF(buf, sizeof(buf), "C%03d" EOM, ch);
+        SNPRINTF(buf, sizeof(buf), "C%03d", ch);
     }
 
     ack_len = 0; // fix compile-time warning "possibly uninitialized"
