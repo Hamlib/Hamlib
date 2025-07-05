@@ -66,13 +66,6 @@ int drake_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 int drake_set_powerstat (RIG * rig, powerstat_t status);
 int drake_get_powerstat (RIG * rig, powerstat_t *status);
 const char *drake_get_info(RIG *rig);
-//temporary until everything from r8.c is moved back over to drake.c
-void drake_trans_rept(char* hdrStr, char* sentStr, int sentLen, char* recdStr, int recdLen, int res);
-int drake_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len);
-int drake_report_frequency(RIG *rig, char* owner);
-int drake_report_mode(RIG *rig, char* owner);
-int drake_report_mem_channel(RIG *rig, char* owner);
-int drake_report_all(RIG *rig, char* owner);
 
 extern struct rig_caps r8_caps;
 extern struct rig_caps r8a_caps;
