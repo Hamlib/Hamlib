@@ -24,7 +24,62 @@
 #define _ROT_STATE_H 1
 
 __BEGIN_DECLS
+/**
+ * \struct rot_state
+ * \brief Rotator state structure
+ *
+ * This structure contains live data, as well as a copy of capability fields
+ * that may be updated, i.e. customized while the #ROT handle is instantiated.
+ *
+ * It is fine to move fields around, as this kind of structure should not be
+ * initialized like rot_caps are.
+ */
+struct rot_state {
+    /*
+     * overridable fields
+     */
+    azimuth_t min_az;       /*!< Lower limit for azimuth (overridable). */
+    azimuth_t max_az;       /*!< Upper limit for azimuth (overridable). */
+    elevation_t min_el;     /*!< Lower limit for elevation (overridable). */
+    elevation_t max_el;     /*!< Upper limit for elevation (overridable). */
+    int south_zero;         /*!< South is zero degrees. */
+    azimuth_t az_offset;    /*!< Offset to be applied to azimuth. */
+    elevation_t el_offset;  /*!< Offset to be applied to elevation. */
+
+    setting_t has_get_func;     /*!< List of get functions. */
+    setting_t has_set_func;     /*!< List of set functions. */
+    setting_t has_get_level;    /*!< List of get levels. */
+    setting_t has_set_level;    /*!< List of set levels. */
+    setting_t has_get_parm;     /*!< List of get parameters. */
+    setting_t has_set_parm;     /*!< List of set parameters. */
+
+    rot_status_t has_status;    /*!< Supported status flags. */
+
+    gran_t level_gran[RIG_SETTING_MAX]; /*!< Level granularity. */
+    gran_t parm_gran[RIG_SETTING_MAX];  /*!< Parameter granularity. */
+
+    /*
+     * non overridable fields, internal use
+     */
+    hamlib_port_t_deprecated rotport_deprecated;  /*!< Rotator port (internal use). Deprecated */
+    hamlib_port_t_deprecated rotport2_deprecated;  /*!< 2nd Rotator port (internal use). Deprecated */
+
+    int comm_state;         /*!< Comm port state, i.e. opened or closed. */
+    rig_ptr_t priv;         /*!< Pointer to private rotator state data. */
+    rig_ptr_t obj;          /*!< Internal use by hamlib++ for event handling. */
+
+    int current_speed;      /*!< Current speed 1-100, to be used when no change to speed is requested. */
+    hamlib_port_t rotport;  /*!< Rotator port (internal use). */
+    hamlib_port_t rotport2;  /*!< 2nd Rotator port (internal use). */
+    rig_ptr_t *pstrotator_handler_priv_data;
+    deferred_config_header_t config_queue;
+};
 
 __END_DECLS
+
+#if defined(IN_HAMLIB)
+#define ROTSTATE(r) (&(r)->state)
+#endif
+#define HAMLIB_ROTSTATE(r) ((struct rot_state *)rot_data_pointer(r, RIG_PTRX_ROTSTATE))
 
 #endif /* _ROT_STATE_H */

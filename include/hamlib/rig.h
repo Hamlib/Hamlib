@@ -2394,7 +2394,7 @@ __BEGIN_DECLS
 //  "   "             "          #define ROTPORT2(r) (&r->state.rotport2)
 //Moved to include/hamlib/rig_state.h #define STATE(r) (&r->state)
 //Moved to include/hamlib/amp_state.h #define AMPSTATE(a) (&(a)->state)
-#define ROTSTATE(r) (&(r)->state)
+//Moved to include/hamlib/rot_state.h #define ROTSTATE(r) (&(r)->state)
 /* Then when the rigport address is stored as a pointer somewhere else(say,
  *  in the rig structure itself), the definition could be changed to
  *  #define RIGPORT(r) r->somewhereelse
@@ -2411,7 +2411,7 @@ __BEGIN_DECLS
 //#define HAMLIB_ROTPORT2(r) ((hamlib_port_t *)rot_data_pointer(r, RIG_PTRX_ROTPORT2))
 //#define HAMLIB_STATE(r) ((struct rig_state *)rig_data_pointer(r, RIG_PTRX_STATE))
 //#define HAMLIB_AMPSTATE(a) ((struct amp_state *)amp_data_pointer(a, RIG_PTRX_AMPSTATE))
-#define HAMLIB_ROTSTATE(r) ((struct rot_state *)rot_data_pointer(r, RIG_PTRX_ROTSTATE))
+//#define HAMLIB_ROTSTATE(r) ((struct rot_state *)rot_data_pointer(r, RIG_PTRX_ROTSTATE))
 #endif
 
 typedef enum {
