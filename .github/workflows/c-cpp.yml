@@ -13,7 +13,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         configure_args:
-          - >
+          - >-
             --enable-html-matrix=no
             --enable-parallel=no
             --enable-pytest=no
@@ -30,7 +30,7 @@ jobs:
             --with-readline=no
             --with-tcl-binding=no
             --with-xml-support=no
-          - >
+          - >-
             --enable-html-matrix=yes
             --enable-parallel=yes
             --enable-pytest=yes
