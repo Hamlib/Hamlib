@@ -13,29 +13,22 @@ EXTRA_DIST = PLAN LICENSE hamlib.m4 hamlib.pc.in README.md README.developer \
 doc_DATA = ChangeLog COPYING COPYING.LIB LICENSE \
 	README.md README.betatester README.developer
 
-SUBDIRS = \
-	$(AMP_BACKEND_LIST) \
-	$(BINDINGS) \
+SUBDIRS = macros include lib security \
+	$(BACKEND_LIST) \
 	$(RIG_BACKEND_LIST) \
 	$(ROT_BACKEND_LIST) \
-	doc \
-	include \
-	lib \
-	macros \
-	security \
+	$(AMP_BACKEND_LIST) \
+    security \
 	src \
-	tests
+	$(BINDINGS) \
+	tests doc
 
 ## Static list of distributed directories.
 DIST_SUBDIRS = \
 	$(RIG_BACKEND_OPTIONAL_LIST) \
 	$(ROT_BACKEND_OPTIONAL_LIST) \
-	$(SUBDIRS) \
-	android \
-	bindings \
-	c++ \
-	scripts \
-	simulators
+	macros include lib src c++ bindings tests doc android scripts rotators/indi simulators\
+	security $(BACKEND_LIST) $(RIG_BACKEND_LIST) $(ROT_BACKEND_LIST) $(AMP_BACKEND_LIST)
 
 # Install any third party macros into our tree for distribution
 ACLOCAL_AMFLAGS = -I macros --install 
