@@ -46,5 +46,3 @@ EXTRA_DIST =
 
 $(top_builddir)/src/libhamlib.la:
 	$(MAKE) -C $(top_builddir)/src/ libhamlib.la
-
-CLEANFILES = simelelecraft simicgeneric simkenwood simyaesu
