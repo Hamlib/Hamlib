@@ -86,7 +86,7 @@ jobs:
       if: runner.os == 'macOS'
       run: ./configure ${{ matrix.configure_args }} --enable-silent-rules --without-python-binding --without-lua-binding
     - name: make
-      run: make V=0 --no-print-directory
+      run: make -j 4 V=0 --no-print-directory
     - name: make distcheck
       run: make distcheck V=0 --no-print-directory
 
