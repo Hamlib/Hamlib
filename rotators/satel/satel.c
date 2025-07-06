@@ -28,6 +28,7 @@
 #include <stdbool.h>
 
 #include "hamlib/rotator.h"
+#include "hamlib/port.h"
 #include "serial.h"
 #include "register.h"
 

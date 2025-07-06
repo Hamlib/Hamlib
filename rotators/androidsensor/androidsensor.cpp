@@ -30,6 +30,7 @@
 #include <math.h>
 
 #include "hamlib/rotator.h"
+#include "hamlib/rot_state.h"
 #include "register.h"
 
 #include "androidsensor.h"
@@ -111,7 +112,7 @@ androidsensor_rot_cleanup(ROT *rot)
 
     delete priv->imu;
     free(ROTSTATE(rot)->priv);
-    ROTSTATE(rot) = NULL;
+    ROTSTATE(rot)->priv = NULL;
     return RIG_OK;
 }
 
