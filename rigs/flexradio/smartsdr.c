@@ -47,15 +47,7 @@ static int smartsdr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
                              pbwidth_t *width);
 static int smartsdr_send_morse(RIG *rig, vfo_t vfo, const char *msg);
 static int smartsdr_stop_morse(RIG *rig, vfo_t vfo);
-static int smartsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
-static int smartsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-static int smartsdr_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq,
-                rmode_t mode);
-static int smartsdr_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
-static int smartsdr_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
-static int smartsdr_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit);
-static int smartsdr_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit);
-static int smartsdr_get_vfo(RIG *rig, vfo_t *vfo);
+//static int smartsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 
 struct smartsdr_priv_data
 {
@@ -69,18 +61,13 @@ struct smartsdr_priv_data
     rmode_t modeB;
     int widthA;
     int widthB;
-    int keyspd;
-    float rfpower;
-    float maxpowerlevel;
-    shortfreq_t rit;
-    shortfreq_t xit;
 };
 
 
 #define DEFAULTPATH "127.0.0.1:4992"
 
-#define SMARTSDR_FUNC  (RIG_FUNC_MUTE|RIG_FUNC_RIT|RIG_FUNC_XIT)
-#define SMARTSDR_LEVEL (RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER)
+#define SMARTSDR_FUNC  RIG_FUNC_MUTE
+#define SMARTSDR_LEVEL RIG_LEVEL_PREAMP
 #define SMARTSDR_PARM  RIG_PARM_NONE
 
 #define SMARTSDR_MODES (RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_PKTUSB|RIG_MODE_PKTLSB|RIG_MODE_CW|RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_FMN|RIG_MODE_SAM)
@@ -200,7 +187,8 @@ int smartsdr_init(RIG *rig)
     RETURNFUNC(RIG_OK);
 }
 
-
+// flush any messages in the queue and process them too
+// return 0 if OK, otherwise SMARTSDR error code
 static int smartsdr_flush(RIG *rig)
 {
     char buf[8192];
@@ -208,120 +196,85 @@ static int smartsdr_flush(RIG *rig)
     char stopset[1] = { 0x0a };
     int len = 0;
     int retval = RIG_OK;
-    static int feature_warn_count = 0;
-
     ENTERFUNC;
+#if 0
+    // for this flush routine we expect at least one message for sure -- might be more
+    len = read_string(RIGPORT(rig), (unsigned char *)buf, buf_len, stopset, 1, 0,
+                      1);
 
-    do {
+    if (buf[0] == 'S') { smartsdr_parse_S(rig, buf); }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: read %d bytes\n", __func__, len);
+#endif
+
+    do
+    {
         buf[0] = 0;
         len = network_flush2(RIGPORT(rig), (unsigned char *)stopset, buf, buf_len);
 
-        if (buf[0] == '\0') {
-            continue; // Skip empty lines
-        }
+        if (buf[0] == 'S') { smartsdr_parse_S(rig, buf); }
 
-        if (buf[0] == 'S') {
-            smartsdr_parse_S(rig, buf);
-        }
-        else if (buf[0] == 'R') {
-            int code = 0;
-            if (sscanf(buf, "R%d", &code) == 1) {
-                rig_debug(RIG_DEBUG_TRACE, "%s: Received R code: %d", __func__, code);
-                retval = (code < 0) ? -RIG_EPROTO : RIG_OK;
-            }
-        }
-        else if (buf[0] == 'M') {
-            if (strstr(buf, "Feature not available") || strstr(buf, "Protocol error")) {
-                if (feature_warn_count++ < 3) {
-                    rig_debug(RIG_DEBUG_VERBOSE, "%s: benign message: %s", __func__, buf);
-                } else if (feature_warn_count == 3) {
-                    rig_debug(RIG_DEBUG_VERBOSE, "%s: further benign messages suppressed", __func__);
-                }
-                retval = RIG_OK;
-            } else {
-                rig_debug(RIG_DEBUG_WARN, "%s: Message: %s", __func__, buf);
-                retval = -RIG_EPROTO;
-            }
-        }
-        else if (strlen(buf) > 0) {
-            rig_debug(RIG_DEBUG_WARN, "%s: Unknown packet type=%s\n", __func__, buf);
-        }
-    } while (len > 0);
+        else if (buf[0] == 'R') { sscanf(buf, "R%d", &retval); }
+
+        else if (strlen(buf) > 0) { rig_debug(RIG_DEBUG_WARN, "%s: Unknown packet type=%s\n", __func__, buf); }
+    }
+    while (len > 0);
 
     RETURNFUNC(retval);
 }
 
-int smartsdr_transaction(RIG *rig, char *buf)
+static int smartsdr_transaction(RIG *rig, char *buf)
 {
     struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
     char cmd[4096];
     int retval;
 
-    if (priv->seqnum > 999999) {
-        priv->seqnum = 0;
-    }
+    if (priv->seqnum > 999999) { priv->seqnum = 0; }
 
-    if (buf) {
-        snprintf(cmd, sizeof(cmd), "C%d|%s%c", priv->seqnum++, buf, 0x0a);
+    if (buf)
+    {
+        sprintf(cmd, "C%d|%s%c", priv->seqnum++, buf, 0x0a);
         retval = write_block(RIGPORT(rig), (unsigned char *) cmd, strlen(cmd));
 
-        if (retval != RIG_OK) {
-            rig_debug(RIG_DEBUG_ERR, "%s: SmartSDR write_block err=0x%x\n", __func__, retval);
-            return retval;
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: SmartSDR write_block err=0x%x\n", __func__,
+                      retval);
         }
     }
 
     retval = smartsdr_flush(rig);
 
-    if (retval != RIG_OK && retval != -RIG_EPROTO) {
+    if (retval != 0)
+    {
         rig_debug(RIG_DEBUG_ERR, "%s: SmartSDR flush err=0x%x\n", __func__, retval);
-        return retval;
+        retval = -RIG_EPROTO;
     }
 
-    return RIG_OK;
-} 
+    return retval;
+}
 
 int smartsdr_open(RIG *rig)
 {
     struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
     char cmd[64];
-    int loops = 50;
+    int loops = 20;
     ENTERFUNC;
+    // Once we've connected and hit here we should have two messages queued from the initial connect
 
-    // Wait 500ms (Flex sends startup data async)
-    hl_usleep(500 * 1000);
-    smartsdr_transaction(rig, NULL); // flush unsolicited messages
-
-
-    smartsdr_transaction(rig, NULL);
     sprintf(cmd, "sub slice %d", priv->slicenum);
+    //sprintf(cmd, "sub slice all");
     smartsdr_transaction(rig, cmd);
-    smartsdr_transaction(rig, NULL);
 
-    priv->maxpowerlevel = 100;
-    do {
+    do
+    {
         hl_usleep(100 * 1000);
         smartsdr_transaction(rig, NULL);
-    } while (priv->freqA == 0 && --loops > 0);
+    }
+    while (priv->freqA == 0 && --loops > 0);
 
-    sprintf(cmd, "sub cwx %d", priv->slicenum);
-    smartsdr_transaction(rig, cmd);
-    smartsdr_transaction(rig, NULL);
-
-    loops = 50;
-    do {
-        hl_usleep(100 * 1000);
-        smartsdr_transaction(rig, NULL);
-    } while (priv->keyspd == 0 && --loops > 0);
-
-    smartsdr_transaction(rig, "sub client all");
-    smartsdr_transaction(rig, NULL);
-
-    loops = 50;
-    do {
-        hl_usleep(100 * 1000);
-        smartsdr_transaction(rig, NULL);
-    } while (priv->rfpower == 0 && --loops > 0);
+    //smartsdr_transaction(rig, "info", buf, sizeof(buf));
+    //rig_debug(RIG_DEBUG_VERBOSE, "%s: info=%s", __func__, buf);
 
     RETURNFUNC(RIG_OK);
 }
@@ -462,9 +415,6 @@ static int smartsdr_parse_S(RIG *rig, char *s)
     char *sep = "| \n";
     char *p = strtok(s2, sep);
     int gotFreq = 0, gotMode = 0;
-    char clientid[128];
-    char cmd[128];
-    float tPower;
 
     do
     {
@@ -517,43 +467,6 @@ static int smartsdr_parse_S(RIG *rig, char *s)
         else if (sscanf(p, "tx=%d\n", &priv->tx) == 1)
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s: tx=%d\n", __func__, priv->tx);
-        }
-        else if (sscanf(p, "wpm=%d\n", &priv->keyspd) == 1)
-        {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: wpm=%d\n", __func__, priv->keyspd);
-        }
-        else if (sscanf(p, "rfpower=%f\n", &tPower) == 1)
-        {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: rPower=%f\n", __func__, tPower);
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: maxpowerlevel=%f\n", __func__, priv->maxpowerlevel);
-            if(tPower >= 0 && tPower <= priv->maxpowerlevel)
-            {
-               priv->rfpower = tPower;
-               rig_debug(RIG_DEBUG_VERBOSE, "%s: rfpower=%f\n", __func__, priv->rfpower);
-            }
-        }
-        else if (sscanf(p, "max_power_level=%f\n", &priv->maxpowerlevel) == 1)
-        {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: maxpowerlevel=%f\n", __func__, priv->maxpowerlevel);
-        }
-        else if (sscanf(p, "client_id=%s\n",clientid) == 1)
-        {
-            if(strlen(clientid)>16)
-            {
-                sprintf(cmd, "client bind client_id=%s", clientid);
-                smartsdr_transaction(rig, cmd);
-                smartsdr_transaction(rig, NULL);
-                smartsdr_transaction(rig,"sub tx all");
-                smartsdr_transaction(rig, NULL);
-            }
-        }
-        else if (sscanf(p, "rit_freq=%ld", &priv->rit) == 1)
-        {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: got rit=%ld\n", __func__, priv->rit);
-        }
-        else if (sscanf(p, "xit_freq=%ld", &priv->xit) == 1)
-        {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: got xit=%ld\n", __func__, priv->xit);
         }
     }
     while ((p = strtok(NULL, sep)));
@@ -691,61 +604,29 @@ int smartsdr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     RETURNFUNC(RIG_OK);
 }
 
-int smartsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+#if 0
+int sdr1k_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-    ENTERFUNC;
-    
-    int retval;
-    char cmd[64];
     rig_debug(RIG_DEBUG_TRACE, "%s: %s %d\n", __func__, rig_strlevel(level), val.i);
 
     switch (level)
     {
-    case RIG_LEVEL_KEYSPD:
-        sprintf(cmd, "cwx wpm %d", val.i);
-        retval = smartsdr_transaction(rig, cmd);
-        smartsdr_transaction(rig, NULL);
-        return retval;
+    case RIG_LEVEL_PREAMP:
+        return set_bit(rig, L_EXT, 7, !(val.i == rig->caps->preamp[0]));
+        int smartsdr_set_ptt(RIG * rig, vfo_t vfo, ptt_t ptt)
         break;
-    case RIG_LEVEL_RFPOWER:
-        sprintf(cmd, "transmit set rfpower=%d",val.i);
-        retval = smartsdr_transaction(rig,cmd);
-        smartsdr_transaction(rig, NULL);
-        return retval;
-        break;
+
     default:
         return -RIG_EINVAL;
     }
-   RETURNFUNC(RIG_OK);
 }
-
-int smartsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
-{
-    ENTERFUNC;
-    
-    smartsdr_transaction(rig, NULL);
-    struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
-
-    switch (level)
-    {
-    case RIG_LEVEL_KEYSPD:
-        val->i = priv->keyspd;
-        break;
-    case RIG_LEVEL_RFPOWER:
-        val->f = priv->rfpower / priv->maxpowerlevel;
-        break;
-    default:
-        return -RIG_EINVAL;
-    }
-
-    RETURNFUNC(RIG_OK);
-}
-
+#endif
 
 int smartsdr_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 {
     ENTERFUNC;
 
+    int retval;
     size_t msg_len = strlen(msg);
     size_t buf_len = msg_len + 20; 
 
@@ -762,16 +643,13 @@ int smartsdr_send_morse(RIG *rig, vfo_t vfo, const char *msg)
     char cmd[buf_len];
     snprintf(cmd, sizeof(cmd), "cwx send \"%s\"", newmsg);
 
-    smartsdr_transaction(rig, cmd);
+    retval = smartsdr_transaction(rig, cmd);
 
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC(retval);
 }
-
 
 int smartsdr_stop_morse(RIG *rig, vfo_t vfo)
 {
-    ENTERFUNC;
-    
     int retval;
     char cmd[64];
     ENTERFUNC;
@@ -780,81 +658,5 @@ int smartsdr_stop_morse(RIG *rig, vfo_t vfo)
     retval = smartsdr_transaction(rig, cmd);
 
     RETURNFUNC(retval);
-}
 
-static int smartsdr_power2mW(RIG *rig,
-                             unsigned int *mwpower,
-                             float power,
-                             freq_t freq,
-                             rmode_t mode)
-{
-    ENTERFUNC;
-
-    struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
-
-    float tPower = power;
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed power = %f\n", __func__, tPower);
-    rig_debug(RIG_DEBUG_TRACE, "%s: max power level = %f\n", __func__, priv->maxpowerlevel);
-
-    power *= priv->maxpowerlevel;
-    *mwpower = (power * 1000);
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: mwPower = %u\n", __func__, *mwpower);
-
-    RETURNFUNC(RIG_OK);
-}
-
-static int smartsdr_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
-{
-    struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
-    smartsdr_transaction(rig, NULL);
-    *rit = priv->rit;  // or store `priv->rit` from `smartsdr_parse_S`
-    RETURNFUNC(RIG_OK);
-}
-
-static int smartsdr_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
-{
-    char cmd[64];
-    struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
-    sprintf(cmd, "slice set %d rit_freq=%ld rit_on=1", priv->slicenum, rit);
-    smartsdr_transaction(rig, cmd);
-    RETURNFUNC(RIG_OK);
-}
-
-static int smartsdr_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
-{
-    struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
-    smartsdr_transaction(rig, NULL);
-    *xit = priv->xit;  // or store `priv->xit` from `smartsdr_parse_S`
-    RETURNFUNC(RIG_OK);
-}
-
-static int smartsdr_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
-{
-    char cmd[64];
-    struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
-    sprintf(cmd, "slice set %d xit_freq=%ld xit_on=1", priv->slicenum, xit);
-    smartsdr_transaction(rig, cmd);
-    RETURNFUNC(RIG_OK);
-}
-
-static int smartsdr_get_vfo(RIG *rig, vfo_t *vfo)
-{
-    struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
-
-    ENTERFUNC;
-
-    // SmartSDR slice to VFO mapping
-    switch (priv->slicenum)
-    {
-        case 0: *vfo = RIG_VFO_A; break;
-        case 1: *vfo = RIG_VFO_B; break;
-        default:
-            rig_debug(RIG_DEBUG_ERR, "%s: Unknown slice %d\n", __func__, priv->slicenum);
-            return -RIG_EINVAL;
-    }
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: returning VFO %s\n", __func__, rig_strvfo(*vfo));
-    RETURNFUNC(RIG_OK);
 }
