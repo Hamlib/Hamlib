@@ -28,7 +28,7 @@
 #include "register.h"
 
 #include "gemini.h"
-
+#include "hamlib/port.h"
 
 struct gemini_priv_data *gemini_priv;
 /*

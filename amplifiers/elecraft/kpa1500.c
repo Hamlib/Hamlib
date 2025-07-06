@@ -28,6 +28,7 @@
 #include "register.h"
 
 #include "kpa.h"
+#include "hamlib/port.h"
 
 
 struct kpa_priv_data *kpa1500_priv;
