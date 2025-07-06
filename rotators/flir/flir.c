@@ -27,6 +27,8 @@
 #include <sys/time.h>
 
 #include "hamlib/rotator.h"
+#include "hamlib/port.h"
+#include "hamlib/rot_state.h"
 #include "register.h"
 #include "idx_builtin.h"
 #include "serial.h"
