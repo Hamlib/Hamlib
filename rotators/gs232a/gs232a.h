@@ -37,5 +37,6 @@ extern const struct rot_caps gs23_az_rot_caps;
 extern const struct rot_caps gs232_rot_caps;
 extern const struct rot_caps amsat_lvb_rot_caps;
 extern const struct rot_caps st2_rot_caps;
+extern const struct rot_caps gs232_af6sa_wrc_caps;
 
 #endif /* _ROT_GS232A_H */
