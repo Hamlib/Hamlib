@@ -661,6 +661,7 @@ DECLARE_INITROT_BACKEND(gs232a)
     rot_register(&gs232_rot_caps);
     rot_register(&amsat_lvb_rot_caps);
     rot_register(&st2_rot_caps);
+    rot_register(&gs232_af6sa_wrc_caps);
 
     return RIG_OK;
 }

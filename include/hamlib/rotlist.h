@@ -230,6 +230,14 @@
  * generic (even if not coded correctly) GS-232 protocol.
  */
 /**
+ * \brief A macro that returns the model number of the GS232 backend.
+ *
+ * \def ROT_MODEL_AF6SA_WRC
+ *
+ * The GS232_GENERIC backend can be used with rotators that support the
+ * generic (even if not coded correctly) GS-232 protocol.
+ */
+/**
  * \brief A macro that returns the model number of the GS232B backend.
  *
  * \def ROT_MODEL_GS232B
@@ -326,6 +334,7 @@
 #define ROT_MODEL_GS232B_AZ ROT_MAKE_MODEL(ROT_GS232A, 11)
 #define ROT_MODEL_GS232B_EL ROT_MAKE_MODEL(ROT_GS232A, 12)
 #define ROT_MODEL_GS23_AZ ROT_MAKE_MODEL(ROT_GS232A, 13)
+#define ROT_MODEL_AF6SA_WRC ROT_MAKE_MODEL(ROT_GS232A, 14)
 
 #define ROT_ARRAYSOLUTIONS 7
 #define ROT_BACKEND ARRAYSOLUTIONS "arraysolutions"

@@ -141,6 +141,33 @@ gs232_wo_transaction(ROT *rot, const char *cmdstr,
                        strlen(cmdstr));
 }
 
+static int
+wrc_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
+{
+    char cmdstr[64];
+    int retval;
+    unsigned u_az, u_el;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
+
+    if (az < 0.0)
+    {
+        az = az + 360.0;
+    }
+
+    u_az = (unsigned)rint(az);
+    u_el = (unsigned)rint(el);
+
+    SNPRINTF(cmdstr, sizeof(cmdstr), "W%03u" EOM, u_az);
+    retval = gs232_wo_transaction(rot, cmdstr, NULL, 0);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    return RIG_OK;
+}
 
 static int
 gs232_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
@@ -392,3 +419,38 @@ const struct rot_caps f1tetracker_rot_caps =
 #endif
 };
 
+/* ************************************************************************* */
+/*
+ * AF6SA WRC
+ */
+
+const struct rot_caps gs232_af6sa_wrc_caps =
+{
+    ROT_MODEL(ROT_MODEL_AF6SA_WRC),
+    .model_name =     "WRC",
+    .mfg_name =       "AF6SA",
+    .version =        "20250707.0",
+    .copyright =      "LGPL",
+    .status =         RIG_STATUS_STABLE,
+    .rot_type =       ROT_TYPE_AZEL,
+    .port_type =      RIG_PORT_SERIAL,
+    .serial_rate_min =   150,
+    .serial_rate_max =   9600,
+    .serial_data_bits =  8,
+    .serial_stop_bits =  1,
+    .serial_parity =     RIG_PARITY_NONE,
+    .serial_handshake =  RIG_HANDSHAKE_NONE,
+    .write_delay =  0,
+    .post_write_delay =  0,
+    .timeout =  400,
+    .retry =  1,
+
+    .min_az =     -180.0,
+    .max_az =     450.0,  /* vary according to rotator type */
+    .min_el =     0.0,
+    .max_el =     180.0,
+
+    .get_position =  gs232_rot_get_position,
+    .set_position =  wrc_rot_set_position,
+    .stop =          gs232_rot_stop,
+};
