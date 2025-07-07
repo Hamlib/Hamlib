@@ -1,6 +1,6 @@
 /*
  *  Hamlib Drake backend - R-8 description
- *  Copyright (c) 2001-2010, 2025 by Stephane Fillod
+ *  Copyright (c) 2025 by Mark J. Fine
  *
  *
  *   This library is free software; you can redistribute it and/or
