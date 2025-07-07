@@ -1,6 +1,6 @@
 /*
  *  Hamlib Drake backend - main file
- *  Copyright (c) 2001-2008 by Stephane Fillod
+ *  Copyright (c) 2001-2008 by Stephane Fillod, 2025 Mark J. Fine
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -254,7 +254,7 @@ int drake_report_signal(RIG *rig, char* owner)
  *
  * inputs: rig - pointer to RIG structure
  *         freqbuf - buffer containung radio's response string
- *         offset - offset to beginning of string due to differnces in R8 vs. R8A/B
+ *         offset - offset to beginning of string due to differences in R8 vs. R8A/B
  *         Note: strings are virtually identical. offset is provided as a failsafe.
  *
  * Assumes rig!=NULL
@@ -332,7 +332,7 @@ int drake_report_frequency(RIG *rig, char* owner)
  *
  * inputs: rig - pointer to RIG structure
  *         mdbuf - buffer containung radio's response string
- *         offset - offset to beginning of string due to differnces in R8 vs. R8A/B
+ *         offset - offset to beginning of string due to differences in R8 vs. R8A/B
  *
  * Assumes rig!=NULL
  */
@@ -511,7 +511,7 @@ int drake_report_mode(RIG *rig, char* owner)
  *
  * inputs: rig - pointer to RIG structure
  *         mdbuf - buffer containung radio's response string
- *         offset - offset to beginning of string due to differnces in R8 vs. R8A/B
+ *         offset - offset to beginning of string due to differences in R8 vs. R8A/B
  *         Note: except for channel number size, strings are virtually identical. offset is provided as a failsafe.
  *
  * Assumes rig!=NULL
@@ -657,7 +657,7 @@ int drake_report_all(RIG *rig, char* owner)
     drake_decode_frequency(rig, mdbuf, freq_offset);
     
     // TODO handle channel name on R8A/B
-    // TODO These models also have an additonal RN (Report Name) command for polling channel names that is not handled here
+    // TODO These models also have an additional RN (Report Name) command for polling channel names that is not handled here
         
     return RIG_OK;
 }
