@@ -49,6 +49,8 @@ hamlibdatetime.h: FORCE
 		test -f $(srcdir)/$(@F) || cp $(srcdir)/$(@F).in $(srcdir)/$(@F) ;\
 	fi
 
+snapshot_data.o rig.o: hamlibdatetime.h
+
 RCCOMPILE = $(RC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS)
 
 LTRCCOMPILE = $(LIBTOOL) --mode=compile --tag=RC $(RCCOMPILE)

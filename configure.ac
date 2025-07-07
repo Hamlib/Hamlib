@@ -66,8 +66,10 @@ dnl added to AC_CONFIG_FILES near the end of this file.  See README.developer
 dnl Beware of duplication should a backend directory include both rig and
 dnl rotor definitions, e.g. "dummy".  Optional backends will not be listed
 dnl here but will be added later, e.g. "winradio".
-RIG_BACKEND_LIST="rigs/adat rigs/alinco rigs/aor rigs/barrett rigs/codan rigs/dorji rigs/drake rigs/dummy rigs/elad rigs/flexradio rigs/icom rigs/icmarine rigs/jrc rigs/kachina rigs/kenwood rigs/kit rigs/lowe rigs/pcr rigs/prm80 rigs/racal rigs/rft rigs/rs rigs/skanti rigs/tapr rigs/tentec rigs/tuner rigs/uniden rigs/winradio rigs/wj rigs/yaesu rigs/gomspace rigs/mds rigs/anytone rigs/motorola rigs/commradio rigs/guohetec"
+RIG_BACKEND_LIST="rigs/adat rigs/alinco rigs/aor rigs/barrett rigs/codan rigs/dorji rigs/drake rigs/dummy rigs/elad rigs/flexradio rigs/icom rigs/icmarine rigs/jrc rigs/kachina rigs/kenwood rigs/kit rigs/lowe rigs/pcr rigs/prm80 rigs/racal rigs/rft rigs/rs rigs/skanti rigs/tapr rigs/tentec rigs/tuner rigs/uniden rigs/wj rigs/yaesu rigs/gomspace rigs/mds rigs/anytone rigs/motorola rigs/commradio rigs/guohetec"
+RIG_BACKEND_OPTIONAL_LIST=""
 ROT_BACKEND_LIST="rotators/amsat rotators/apex rotators/ars rotators/celestron rotators/cnctrk rotators/grbltrk rotators/easycomm rotators/ether6 rotators/flir rotators/fodtrack rotators/gs232a rotators/heathkit rotators/m2 rotators/meade rotators/rotorez rotators/sartek rotators/saebrtrack rotators/spid rotators/ts7400 rotators/prosistel rotators/ioptron rotators/satel rotators/skywatcher rotators/radant"
+ROT_BACKEND_OPTIONAL_LIST=""
 # Amplifiers are all in the amplifiers directory
 AMP_BACKEND_LIST="amplifiers/elecraft amplifiers/gemini amplifiers/expert"
 
@@ -434,11 +436,12 @@ AS_IF([test x"$cf_with_indi_support" != "xno"], [
 	    cf_with_indi_support=no
 	])
 
-	AS_IF([test x"$cf_with_indi_support" != "xno"], [
-	    ROT_BACKEND_LIST="$ROT_BACKEND_LIST rotators/indi"
-	])
     ])
 ])
+AS_IF([test x"$cf_with_indi_support" != "xno"],
+	[ROT_BACKEND_LIST="$ROT_BACKEND_LIST rotators/indi"],
+	[ROT_BACKEND_OPTIONAL_LIST="$ROT_BACKEND_OPTIONAL_LIST rotators/indi"]
+)
 
 dnl Check if libgd-dev is installed, so we can enable rigmatrix
 AC_MSG_CHECKING([whether to build HTML rig feature matrix])
@@ -778,19 +781,12 @@ AC_MSG_RESULT([$cf_with_parallel])
 DL_LIBS=""
 
 AS_IF([test x"${cf_with_winradio}" = "xyes"],
-      [RIGS_BACKEND_LIST="$RIGS_BACKEND_LIST rigs/winradio"
+      [RIG_BACKEND_LIST="$RIG_BACKEND_LIST rigs/winradio"
 dnl Check for libdl and set DL_LIBS if found--used for linradio WR-G313 backend.
        AC_CHECK_LIB([dl], [dlopen], [DL_LIBS="-ldl"],
 		    [AC_MSG_WARN([dlopen was not found in libdl--linradio backend will be disabled])])
-      ])
-
-# Still need -ldl if we have it
-AS_IF([test x"${cf_with_winradio}" = "xno"],
-      [RIGS_BACKEND_LIST="$RIGS_BACKEND_LIST"
-dnl Check for libdl and set DL_LIBS if found--used for linradio WR-G313 backend.
-       AC_CHECK_LIB([dl], [dlopen], [DL_LIBS="-ldl"],
-		    [AC_MSG_WARN([dlopen was not found in libdl--linradio backend will be disabled])])
-      ])
+      ],
+      [RIG_BACKEND_OPTIONAL_LIST="$RIG_BACKEND_OPTIONAL_LIST rigs/winradio"])
 
 dnl Set conditional compilation for G-313.
 AS_CASE(["$host_os"],
@@ -850,6 +846,7 @@ for be in ${RIG_BACKEND_LIST} ; do
 	RIG_BACKENDEPS="${RIG_BACKENDEPS} \$(top_builddir)/rigs/${RIGDIR}/libhamlib-${RIGDIR}.la"
 done
 
+AC_SUBST([RIG_BACKEND_OPTIONAL_LIST])
 AC_SUBST([RIG_BACKEND_LIST])
 AC_SUBST([RIG_BACKENDEPS])
 
@@ -865,6 +862,7 @@ for be in ${ROT_BACKEND_LIST} ; do
 	ROT_BACKENDEPS="${ROT_BACKENDEPS} \$(top_builddir)/rotators/${ROTDIR}/libhamlib-${ROTDIR}.la"
 done
 
+AC_SUBST([ROT_BACKEND_OPTIONAL_LIST])
 AC_SUBST([ROT_BACKEND_LIST])
 AC_SUBST([ROT_BACKENDEPS])
 
