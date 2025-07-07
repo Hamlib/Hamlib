@@ -1,6 +1,7 @@
 /*
  *  Hamlib Interface - Amplifier state structure
- *  Copyright (c) 2025 by The Hamlib Group
+ *  Copyright (c) 2000-2025 by the Hamlib developers
+ *  Copyright (c) 2025 by George Baltz
  *
  *
  *   This library is free software; you can redistribute it and/or
