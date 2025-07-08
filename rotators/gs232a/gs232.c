@@ -161,12 +161,8 @@ wrc_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
     SNPRINTF(cmdstr, sizeof(cmdstr), "W%03u" EOM, u_az);
     retval = gs232_wo_transaction(rot, cmdstr, NULL, 0);
 
-    if (retval != RIG_OK)
-    {
-        return retval;
-    }
+    return retval;
 
-    return RIG_OK;
 }
 
 static int
