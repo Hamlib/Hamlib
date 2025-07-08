@@ -27,7 +27,6 @@
 #endif
 
 #include <hamlib/rotator.h>
-#include "hamlib/port.h"
 #include "hamlib/rot_state.h"
 #include "parallel.h"
 #include "register.h"

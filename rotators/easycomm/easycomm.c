@@ -26,7 +26,6 @@
 #include <string.h>  /* String function definitions */
 
 #include "hamlib/rotator.h"
-#include "hamlib/port.h"
 #include "hamlib/rot_state.h"
 #include "serial.h"
 #include "register.h"
