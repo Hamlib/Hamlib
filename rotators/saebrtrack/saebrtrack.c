@@ -29,7 +29,6 @@
 #include <string.h>  /* String function definitions */
 
 #include "hamlib/rotator.h"
-#include "hamlib/port.h"
 #include "serial.h"
 #include "register.h"
 

@@ -2,7 +2,6 @@
 
 #include <math.h>
 #include "hamlib/rotator.h"
-#include "hamlib/port.h"
 #include "iofunc.h"
 #include "apex.h"
 

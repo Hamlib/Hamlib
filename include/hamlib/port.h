@@ -178,15 +178,7 @@ typedef hamlib_port_t_deprecated port_t_deprecated;
 typedef hamlib_port_t port_t;
 #endif
 
-#if defined(IN_HAMLIB)
-/* These are for internal use only */
-#define RIGPORT(r) (&(r)->state.rigport)
-#define PTTPORT(r) (&(r)->state.pttport)
-#define DCDPORT(r) (&(r)->state.dcdport)
-#define AMPPORT(a) (&(a)->state.ampport)
-#define ROTPORT(r) (&(r)->state.rotport)
-#define ROTPORT2(r) (&(r)->state.rotport2)
-#endif
+// Macros for app access to hamlib_port_t data
 #define HAMLIB_RIGPORT(r) ((hamlib_port_t *)rig_data_pointer((r), RIG_PTRX_RIGPORT))
 #define HAMLIB_PTTPORT(r) ((hamlib_port_t *)rig_data_pointer((r), RIG_PTRX_PTTPORT))
 #define HAMLIB_DCDPORT(r) ((hamlib_port_t *)rig_data_pointer((r), RIG_PTRX_DCDPORT))
