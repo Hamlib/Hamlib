@@ -27,6 +27,7 @@ Version 4.7.0
         * Fix AGC for IC-R75, fix AGC for all Icom rigs.  (TNX Mark Fine).
         * Separate PMR-171 and Q900 into new the GUOHETEC backend, add
           additional support add clean up code.  (TNX FVsonar).
+        * New Drake R8 backend.  (TNX Mark Fine)
 
 Version 4.6.3
         * 2025-06-10
