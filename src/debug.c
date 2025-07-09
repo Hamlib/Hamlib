@@ -202,6 +202,7 @@ void HAMLIB_API rig_set_debug_time_stamp(int flag)
  * The formatted character string is passed to the `vfprintf`(3) C library
  * call and follows its format specification.
  */
+#undef rig_debug
 void HAMLIB_API rig_debug(enum rig_debug_level_e debug_level,
                           const char *fmt, ...)
 {
