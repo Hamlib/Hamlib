@@ -28,6 +28,7 @@ Version 4.7.0
         * Separate PMR-171 and Q900 into new the GUOHETEC backend, add
           additional support add clean up code.  (TNX FVsonar).
         * New Drake R8 backend.  (TNX Mark Fine)
+        * New AF6SA WRC rotator backend.  (TNX Michael Morgan)
 
 Version 4.6.3
         * 2025-06-10
