@@ -53,6 +53,7 @@ jobs:
     - name: Install dependencies on Linux
       if: runner.os == 'Linux'
       run: |
+        sudo apt update
         sudo apt install libusb-1.0-0-dev
         sudo apt install libgd-dev
         sudo apt install libgpiod-dev
