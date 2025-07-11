@@ -29,6 +29,8 @@
 #include <math.h>
 
 #include "hamlib/rotator.h"
+#include "hamlib/port.h"
+#include "hamlib/rot_state.h"
 #include "serial.h"
 #include "misc.h"
 #include "idx_builtin.h"

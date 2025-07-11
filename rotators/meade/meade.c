@@ -26,6 +26,8 @@
 #include <sys/time.h>
 
 #include <hamlib/rotator.h>
+#include "hamlib/port.h"
+#include "hamlib/rot_state.h"
 #include <num_stdio.h>
 
 #include "serial.h"

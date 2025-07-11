@@ -22,6 +22,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "kpa.h"
+#include "hamlib/port.h"
+#include "hamlib/amp_state.h"
 
 struct fault_list
 {

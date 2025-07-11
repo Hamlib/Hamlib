@@ -34,6 +34,8 @@
 #endif
 
 #include "hamlib/rotator.h"
+#include "hamlib/port.h"
+#include "hamlib/rot_state.h"
 #include "hamlib/rig.h"
 #include "misc.h"
 

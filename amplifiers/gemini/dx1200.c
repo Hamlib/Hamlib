@@ -29,7 +29,6 @@
 
 #include "gemini.h"
 
-
 struct gemini_priv_data *gemini_priv;
 /*
  * API local implementation

@@ -58,6 +58,8 @@
 #include <fcntl.h>
 
 #include <hamlib/amplifier.h>
+#include "hamlib/port.h"
+#include "hamlib/amp_state.h"
 #include "serial.h"
 #include "parallel.h"
 #include "usb_port.h"

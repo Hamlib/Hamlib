@@ -22,6 +22,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "expert.h"
+#include "hamlib/port.h"
+#include "hamlib/amp_state.h"
 #include "register.h"
 #include "misc.h"
 

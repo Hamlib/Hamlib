@@ -23,13 +23,13 @@
 // cppcheck-suppress *
 #include <stdio.h>
 // cppcheck-suppress *
-// cppcheck-suppress *
 #include <string.h>  /* String function definitions */
-// cppcheck-suppress *
 // cppcheck-suppress *
 #include <math.h>
 
 #include "hamlib/rotator.h"
+#include "hamlib/port.h"
+#include "hamlib/rot_state.h"
 #include "serial.h"
 #include "misc.h"
 #include "register.h"
