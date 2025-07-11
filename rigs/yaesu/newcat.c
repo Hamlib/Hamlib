@@ -71,6 +71,7 @@ typedef enum nc_rigid_e
     NC_RIGID_FTDX101D        = 681,
     NC_RIGID_FTDX101MP       = 682,
     NC_RIGID_FT710           = 800,
+    NC_RIGID_FTX1            = 840,
 } nc_rigid_t;
 
 
@@ -95,6 +96,7 @@ typedef struct _yaesu_newcat_commands
     ncboolean           ftdx10;
     ncboolean           ft101mp;
     ncboolean           ft710;
+    ncboolean           ftx1;
     ncboolean           ft9000Old;
 } yaesu_newcat_commands_t;
 
@@ -225,6 +227,7 @@ static ncboolean is_ftdx3000dm;
 static ncboolean is_ftdx101d;
 static ncboolean is_ftdx101mp;
 static ncboolean is_ftdx10;
+static ncboolean is_ftx1;
 static ncboolean is_ftdx9000Old;
 
 /*
@@ -245,10 +248,10 @@ static ncboolean is_ftdx9000Old;
  */
 static const yaesu_newcat_commands_t valid_commands[] =
 {
-    /* Command FT-450 FT-950 FT-891 FT-991  FT-2000 FT-9000 FT-5000 FT-1200 FT-3000 FTDX101D FTDX10 FTDX101MP FT710 FT9000Old*/
-    {"AB",     FALSE, TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
-    {"AC",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
-    {"AG",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
+    /* Command FT-450 FT-950 FT-891 FT-991  FT-2000 FT-9000 FT-5000 FT-1200 FT-3000 FTDX101D FTDX10 FTDX101MP FT710 FTX1 FT9000Old*/
+    {"AB",     FALSE, TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE,  TRUE  },
+    {"AC",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE,  TRUE  },
+    {"AG",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE,  TRUE  },
     {"AI",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"AM",     FALSE, TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"AN",     FALSE, TRUE,  FALSE, FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    FALSE, TRUE,     FALSE, TRUE },
@@ -519,6 +522,7 @@ int newcat_init(RIG *rig)
     is_ftdx101mp = newcat_is_rig(rig, RIG_MODEL_FTDX101MP);
     is_ftdx10 = newcat_is_rig(rig, RIG_MODEL_FTDX10);
     is_ft710 = newcat_is_rig(rig, RIG_MODEL_FT710);
+    is_ftx1 = newcat_is_rig(rig, RIG_MODEL_FTX1);
 
     RETURNFUNC(RIG_OK);
 }
@@ -8167,7 +8171,7 @@ ncboolean newcat_valid_command(RIG *rig, char const *const command)
 
     if (!is_ft450 && !is_ft950 && !is_ft891 && !is_ft991 && !is_ft2000
             && !is_ftdx5000 && !is_ftdx9000 && !is_ftdx1200 && !is_ftdx3000 && !is_ftdx101d
-            && !is_ftdx101mp && !is_ftdx10 && !is_ft710)
+            && !is_ftdx101mp && !is_ftdx10 && !is_ft710 && !is_ftx1)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: '%s' is unknown\n", __func__, caps->model_name);
         RETURNFUNC2(FALSE);
@@ -8255,6 +8259,10 @@ ncboolean newcat_valid_command(RIG *rig, char const *const command)
                 RETURNFUNC2(TRUE);
             }
             else if (is_ft710 && valid_commands[search_index].ft710)
+            {
+                RETURNFUNC2(TRUE);
+            }
+            else if (is_ftx1 && valid_commands[search_index].ftx1)
             {
                 RETURNFUNC2(TRUE);
             }
