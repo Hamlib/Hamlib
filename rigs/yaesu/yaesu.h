@@ -69,6 +69,7 @@ extern struct rig_caps ft980_caps;
 extern struct rig_caps ft990_caps;
 extern struct rig_caps ft990uni_caps;
 extern struct rig_caps ft991_caps;
+extern struct rig_caps ftx1_caps;
 extern struct rig_caps ft1000mp_caps;
 extern struct rig_caps ft1000mpmkv_caps;
 extern struct rig_caps ft1000mpmkvfld_caps;
