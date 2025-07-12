@@ -51,6 +51,16 @@ class TestClass:
         info = rig.get_info()
         assert isinstance(info, str)
 
+        # Frequency
+
+        frequency = 5700000000
+        assert rig.set_freq(Hamlib.RIG_VFO_CURR, frequency) is None
+        assert rig.get_freq() == 5700000000.0
+        frequency = 5700000000.5
+        assert rig.set_freq(Hamlib.RIG_VFO_CURR, frequency) is None
+        assert rig.get_freq(Hamlib.RIG_VFO_CURR) == 5700000000.5
+        assert isinstance(rig.get_freq(Hamlib.RIG_VFO_CURR), float)
+
         # VFO
 
         assert rig.set_split_vfo(Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_A) is None
@@ -110,8 +120,6 @@ class TestClass:
         assert rig.get_ext_level(0) is None
         assert rig.get_ext_level(0, 0) is None
         assert rig.get_ext_parm(0) is None
-        assert isinstance(rig.get_freq(), float)
-        assert isinstance(rig.get_freq(Hamlib.RIG_VFO_CURR), float)
         assert isinstance(rig.get_func(0), int)
         assert isinstance(rig.get_func(0, 0), int)
         assert rig.get_info() is None
@@ -189,8 +197,6 @@ class TestClass:
         assert rig.set_ext_level(level, value, Hamlib.RIG_VFO_CURR) is None
         value = Hamlib.value_t()
         assert rig.set_ext_parm(0, value) is None
-        freq = 5700000000
-        assert rig.set_freq(Hamlib.RIG_VFO_CURR, freq) is None
         assert rig.set_func(0, 0, 0) is None
         assert rig.set_level(0, 0, 0) is None
         assert rig.set_mem(0, 0) is None
