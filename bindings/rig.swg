@@ -364,7 +364,7 @@ typedef channel_t * const_channel_t_p;
 #define _VFO_ARG	,vfo
 #define _VFO_DECL	,vfo_t vfo = RIG_VFO_CURR
 
-	METHOD1(set_freq, freq_t)
+	METHOD3(set_freq, freq_t)
 	METHOD2_INIT(set_mode, rmode_t, pbwidth_t, RIG_PASSBAND_NORMAL)
 	METHOD3(set_ptt, ptt_t)
 	METHOD3(set_rptr_shift, rptr_shift_t)
