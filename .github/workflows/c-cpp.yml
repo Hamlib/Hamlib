@@ -90,5 +90,8 @@ jobs:
     - name: make
       run: make -j 4 V=0 --no-print-directory
     - name: make distcheck
-      run: make distcheck V=0 --no-print-directory
-
+      if: runner.os != 'macOS'
+      run: make distcheck V=0 --no-print-directory AM_DISTCHECK_CONFIGURE_FLAGS="${{ matrix.configure_args }}"
+    - name: make distcheck on macOS
+      if: runner.os == 'macOS'
+      run: make distcheck V=0 --no-print-directory AM_DISTCHECK_CONFIGURE_FLAGS="${{ matrix.configure_args }} --without-lua-binding PYTHON=/opt/homebrew/bin/python3"
