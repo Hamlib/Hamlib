@@ -16,12 +16,27 @@ class TestClass:
 
     def test_callables(self):
         """Check that nothing was added or removed"""
-        expected_callables = ['close', 'get_conf', 'get_freq', 'get_info', 'get_level', 'get_powerstat', 'open', 'reset', 'set_conf', 'set_freq', 'set_powerstat', 'token_lookup']
+        expected_callables = ['close',
+'get_conf',
+'get_freq',
+'get_info',
+'get_level',
+'get_powerstat',
+'open',
+'reset',
+'set_conf',
+'set_freq',
+'set_powerstat',
+'token_lookup']
         assert expected_callables == self.actual_callables
 
     def test_properties(self):
         """Check that nothing was added or removed"""
-        expected_properties = ['caps', 'do_exception', 'error_status', 'state', 'thisown']
+        expected_properties = ['caps',
+'do_exception',
+'error_status',
+'state',
+'thisown']
         assert expected_properties == self.actual_properties
 
     @classmethod
