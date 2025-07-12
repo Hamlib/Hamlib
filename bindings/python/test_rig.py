@@ -177,16 +177,11 @@ class TestClass:
         channel = Hamlib.channel(0, Hamlib.RIG_VFO_CURR)
         assert rig.set_channel(channel) is None
         assert rig.set_conf("", "") is None
-        tone = 0
-        assert rig.set_ctcss_sql(tone) is None
-        assert rig.set_ctcss_sql(tone, Hamlib.RIG_VFO_CURR) is None
-        assert rig.set_ctcss_tone(tone) is None
-        assert rig.set_ctcss_tone(tone, Hamlib.RIG_VFO_CURR) is None
-        code = 0
-        assert rig.set_dcs_code(code) is None
-        assert rig.set_dcs_code(code, Hamlib.RIG_VFO_CURR) is None
-        assert rig.set_dcs_sql(code) is None
-        assert rig.set_dcs_sql(code, Hamlib.RIG_VFO_CURR) is None
+        assert rig.set_ctcss_sql(0, 0) is None
+        assert rig.set_ctcss_tone(0, 0) is None
+        assert rig.set_dcs_code(0, 0) is None
+        assert rig.set_dcs_sql(0) is None
+        assert rig.set_dcs_sql(0, 0) is None
         assert rig.set_ext_func(0, 0) is None
         assert rig.set_ext_func(0, 0, 0) is None
         level = 0
