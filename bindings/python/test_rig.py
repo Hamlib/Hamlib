@@ -160,8 +160,7 @@ class TestClass:
         assert rig.scan(Hamlib.RIG_SCAN_VFO, channel) is None
         assert rig.scan(Hamlib.RIG_SCAN_VFO, channel, Hamlib.RIG_VFO_CURR) is None
         assert rig.send_dtmf(Hamlib.RIG_VFO_CURR, "*0123456789#ABCD") is None
-        assert rig.send_morse("73") is None
-        assert rig.send_morse("73", Hamlib.RIG_VFO_CURR) is None
+        assert rig.send_morse(Hamlib.RIG_VFO_CURR, "73") is None
         # FIXME should use a RIG_ANT_* constant but it isn't available in the bindings
         RIG_ANT_1 = 1<<0
         option = Hamlib.value_t()
