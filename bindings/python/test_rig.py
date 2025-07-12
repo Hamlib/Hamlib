@@ -63,8 +63,12 @@ class TestClass:
         RIG_ANT_1 = 1<<0
         RIG_ANT_UNKNOWN = 1<<30
         RIG_ANT_CURR = 1<<31
+        option = Hamlib.value_t()
+        option.i = 0
         expected = [RIG_ANT_UNKNOWN, RIG_ANT_UNKNOWN, RIG_ANT_1, 0]
+        assert rig.set_ant(RIG_ANT_1, option) is None
         assert rig.get_ant(RIG_ANT_CURR) == expected
+        assert rig.set_ant(RIG_ANT_1, option, Hamlib.RIG_VFO_CURR) is None
         assert rig.get_ant(RIG_ANT_CURR, Hamlib.RIG_VFO_A) == expected
 
         assert rig.close() is None
@@ -161,15 +165,8 @@ class TestClass:
         assert rig.scan(Hamlib.RIG_SCAN_VFO, channel, Hamlib.RIG_VFO_CURR) is None
         assert rig.send_dtmf(Hamlib.RIG_VFO_CURR, "*0123456789#ABCD") is None
         assert rig.send_morse(Hamlib.RIG_VFO_CURR, "73") is None
-        # FIXME should use a RIG_ANT_* constant but it isn't available in the bindings
-        RIG_ANT_1 = 1<<0
-        option = Hamlib.value_t()
-        option.i = 0
-        assert rig.set_ant(Hamlib.RIG_VFO_CURR, option) is None
-        assert rig.set_ant(Hamlib.RIG_VFO_CURR, option, RIG_ANT_1) is None
         bank = 0
-        assert rig.set_bank(bank) is None
-        assert rig.set_bank(bank, Hamlib.RIG_VFO_CURR) is None
+        assert rig.set_bank(Hamlib.RIG_VFO_CURR, bank) is None
         channel = Hamlib.channel()
         channel = Hamlib.channel(0)
         channel = Hamlib.channel(0, Hamlib.RIG_VFO_CURR)
@@ -188,9 +185,8 @@ class TestClass:
         assert rig.set_ext_level(level, value, Hamlib.RIG_VFO_CURR) is None
         value = Hamlib.value_t()
         assert rig.set_ext_parm(0, value) is None
-        freq = 0
-        assert rig.set_freq(freq) is None
-        assert rig.set_freq(freq, Hamlib.RIG_VFO_CURR) is None
+        freq = 5700000000
+        assert rig.set_freq(Hamlib.RIG_VFO_CURR, freq) is None
         assert rig.set_func(0, 0, 0) is None
         assert rig.set_level(0, 0, 0) is None
         assert rig.set_mem(0, 0) is None
