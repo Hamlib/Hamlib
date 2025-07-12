@@ -84,7 +84,7 @@ jobs:
       run: ./configure ${{ matrix.configure_args }} --enable-silent-rules
     - name: configure on macOS
       if: runner.os == 'macOS'
-      run: ./configure ${{ matrix.configure_args }} --enable-silent-rules --without-python-binding --without-lua-binding
+      run: ./configure ${{ matrix.configure_args }} --enable-silent-rules --without-lua-binding PYTHON=/opt/homebrew/bin/python3
     - name: make
       run: make -j 4 V=0 --no-print-directory
     - name: make distcheck
