@@ -33,7 +33,7 @@ class TestClass:
         assert my_rig.error_status == Hamlib.RIG_OK
         assert Hamlib.rigerror2(my_rig.error_status) == "Command completed successfully\n"
 
-        assert my_rig.set_freq(5700000000, Hamlib.RIG_VFO_B) is None
+        assert my_rig.set_freq(Hamlib.RIG_VFO_B, 5700000000) is None
         assert my_rig.set_vfo(Hamlib.RIG_VFO_B) is None
         assert my_rig.get_freq() == 5700000000
 
