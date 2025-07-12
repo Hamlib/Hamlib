@@ -85,6 +85,22 @@ class TestClass:
         assert rig.set_ant(RIG_ANT_1, option, Hamlib.RIG_VFO_CURR) is None
         assert rig.get_ant(RIG_ANT_CURR, Hamlib.RIG_VFO_A) == expected
 
+        # Squelch codes and tones
+
+        assert rig.set_ctcss_sql(Hamlib.RIG_VFO_CURR, 885) is None
+        assert rig.get_ctcss_sql() == 885
+        assert rig.get_ctcss_sql(Hamlib.RIG_VFO_CURR) == 885
+        assert rig.set_ctcss_tone(Hamlib.RIG_VFO_CURR, 854) is None
+        assert rig.get_ctcss_tone() == 854
+        assert rig.get_ctcss_tone(Hamlib.RIG_VFO_CURR) == 854
+        assert rig.set_dcs_code(Hamlib.RIG_VFO_CURR, 125) is None
+        assert rig.get_dcs_code() == 125
+        assert rig.get_dcs_code(Hamlib.RIG_VFO_CURR) == 125
+        assert rig.set_dcs_sql(311) is None
+        assert rig.get_dcs_sql() == 311
+        assert rig.set_dcs_sql(134, Hamlib.RIG_VFO_CURR) is None
+        assert rig.get_dcs_sql(Hamlib.RIG_VFO_CURR) == 134
+
         assert rig.close() is None
         assert rig.state.comm_state == 0
         info = rig.get_info()
@@ -105,16 +121,8 @@ class TestClass:
         assert isinstance(rig.get_channel(channel, Hamlib.RIG_VFO_CURR), Hamlib.channel)
         assert isinstance(rig.get_channel(channel, Hamlib.RIG_VFO_CURR, readonly), Hamlib.channel)
         assert isinstance(rig.get_conf(""), str)
-        assert isinstance(rig.get_ctcss_sql(), int)
-        assert isinstance(rig.get_ctcss_sql(Hamlib.RIG_VFO_CURR), int)
-        assert isinstance(rig.get_ctcss_tone(), int)
-        assert isinstance(rig.get_ctcss_tone(Hamlib.RIG_VFO_CURR), int)
         assert isinstance(rig.get_dcd(), int)
         assert isinstance(rig.get_dcd(Hamlib.RIG_VFO_CURR), int)
-        assert isinstance(rig.get_dcs_code(), int)
-        assert isinstance(rig.get_dcs_code(Hamlib.RIG_VFO_CURR), int)
-        assert isinstance(rig.get_dcs_sql(), int)
-        assert isinstance(rig.get_dcs_sql(Hamlib.RIG_VFO_CURR), int)
         assert isinstance(rig.get_ext_func(0), int)
         assert isinstance(rig.get_ext_func(0, 0), int)
         assert rig.get_ext_level(0) is None
@@ -184,11 +192,6 @@ class TestClass:
         channel = Hamlib.channel(0, Hamlib.RIG_VFO_CURR)
         assert rig.set_channel(channel) is None
         assert rig.set_conf("", "") is None
-        assert rig.set_ctcss_sql(Hamlib.RIG_VFO_CURR, 0) is None
-        assert rig.set_ctcss_tone(Hamlib.RIG_VFO_CURR, 0) is None
-        assert rig.set_dcs_code(Hamlib.RIG_VFO_CURR, 0) is None
-        assert rig.set_dcs_sql(0) is None
-        assert rig.set_dcs_sql(0, Hamlib.RIG_VFO_CURR) is None
         assert rig.set_ext_func(0, 0) is None
         assert rig.set_ext_func(0, 0, 0) is None
         level = 0
