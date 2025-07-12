@@ -18,6 +18,7 @@ jobs:
             --enable-parallel=no
             --enable-pytest=no
             --enable-shared=yes
+            --enable-silent-rules
             --enable-static=yes
             --enable-usrp=no
             --enable-winradio=no
@@ -35,6 +36,7 @@ jobs:
             --enable-parallel=yes
             --enable-pytest=yes
             --enable-shared=yes
+            --enable-silent-rules
             --enable-static=yes
             --enable-usrp=no
             --enable-winradio=yes
@@ -81,10 +83,10 @@ jobs:
       run: grep README Makefile.am
     - name: configure
       if: runner.os != 'macOS'
-      run: ./configure ${{ matrix.configure_args }} --enable-silent-rules
+      run: ./configure ${{ matrix.configure_args }}
     - name: configure on macOS
       if: runner.os == 'macOS'
-      run: ./configure ${{ matrix.configure_args }} --enable-silent-rules --without-lua-binding PYTHON=/opt/homebrew/bin/python3
+      run: ./configure ${{ matrix.configure_args }} --without-lua-binding PYTHON=/opt/homebrew/bin/python3
     - name: make
       run: make -j 4 V=0 --no-print-directory
     - name: make distcheck
