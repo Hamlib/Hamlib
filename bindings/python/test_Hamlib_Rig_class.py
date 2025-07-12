@@ -36,4 +36,6 @@ class TestClass:
                 else:
                     properties.append(method_or_property)
 
+        callables.sort()
+        properties.sort()
         return callables, properties
