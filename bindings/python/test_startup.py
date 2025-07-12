@@ -83,7 +83,7 @@ class TestClass:
         #(freq, width, mode, split) = my_rig.get_vfo_info(Hamlib.RIG_VFO_A,freq,width,mode,split)
         #print("Rig vfo_info:\t\tfreq=%s, mode=%s, width=%s, split=%s" % (freq, mode, width, split))
 
-        assert my_rig.send_morse("73", Hamlib.RIG_VFO_A) is None
+        assert my_rig.send_morse(Hamlib.RIG_VFO_A, "73") is None
         assert my_rig.close() is None
 
         # Some static functions
