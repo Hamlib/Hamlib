@@ -54,6 +54,8 @@ class TestClass:
         info = rig.get_info()
         assert isinstance(info, str)
 
+        # VFO
+
         assert rig.set_split_vfo(Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_A) is None
         assert rig.get_split_vfo(Hamlib.RIG_VFO_TX) == [Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_A]
         assert rig.set_split_vfo(Hamlib.RIG_SPLIT_ON, Hamlib.RIG_VFO_B) is None
@@ -61,6 +63,8 @@ class TestClass:
         assert rig.set_split_vfo(Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_CURR) is None
         assert rig.get_split_vfo() == [Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_B]
         assert rig.get_split_vfo(Hamlib.RIG_VFO_CURR) == [Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_B]
+
+        # Antenna
 
         # FIXME should use a RIG_ANT_* constant but they aren't available in the bindings
         RIG_ANT_1 = 1<<0
