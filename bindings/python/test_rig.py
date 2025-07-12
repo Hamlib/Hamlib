@@ -207,16 +207,11 @@ class TestClass:
         assert rig.set_mode(0, 0, Hamlib.RIG_VFO_CURR) is None
         assert rig.set_parm(0, 0) is None
         assert rig.set_powerstat(0) is None
-        assert rig.set_ptt(0) is None
-        assert rig.set_ptt(0, Hamlib.RIG_VFO_CURR) is None
-        assert rig.set_rit(0) is None
-        assert rig.set_rit(0, Hamlib.RIG_VFO_CURR) is None
-        assert rig.set_rptr_offs(0) is None
-        assert rig.set_rptr_offs(0, Hamlib.RIG_VFO_CURR) is None
-        assert rig.set_rptr_shift(0) is None
-        assert rig.set_rptr_shift(0, Hamlib.RIG_VFO_CURR) is None
-        assert rig.set_split_freq(0) is None
-        assert rig.set_split_freq(0, Hamlib.RIG_VFO_CURR) is None
+        assert rig.set_ptt(0, 0) is None
+        assert rig.set_rit(0, 0) is None
+        assert rig.set_rptr_offs(0, 0) is None
+        assert rig.set_rptr_shift(0, 0) is None
+        assert rig.set_split_freq(0, 0) is None
         assert rig.set_split_freq_mode(0, 0) is None
         assert rig.set_split_freq_mode(0, 0, 0) is None
         assert rig.set_split_freq_mode(0, 0, 0, 0) is None
@@ -226,15 +221,12 @@ class TestClass:
         assert rig.set_split_vfo(0, 0) is None
         assert rig.set_split_vfo(0, 0, 0) is None
         assert rig.set_trn(0) is None  # deprecated
-        assert rig.set_ts(0) is None
-        assert rig.set_ts(0, Hamlib.RIG_VFO_CURR) is None
+        assert rig.set_ts(0, 0) is None
         assert rig.set_vfo(0) is None
         assert rig.set_vfo_opt(0) is None
-        assert rig.set_xit(0) is None
-        assert rig.set_xit(0, Hamlib.RIG_VFO_CURR) is None
+        assert rig.set_xit(0, 0) is None
         assert rig.token_lookup("") is None
-        assert rig.vfo_op(0) is None
-        assert rig.vfo_op(0, Hamlib.RIG_VFO_CURR) is None
+        assert rig.vfo_op(0, 0) is None
 
 
     def test_object_creation(self):
