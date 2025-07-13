@@ -96,9 +96,8 @@ class TestClass:
         assert rig.set_dcs_code(Hamlib.RIG_VFO_CURR, 125) is None
         assert rig.get_dcs_code() == 125
         assert rig.get_dcs_code(Hamlib.RIG_VFO_CURR) == 125
-        assert rig.set_dcs_sql(311) is None
-        assert rig.get_dcs_sql() == 311
-        assert rig.set_dcs_sql(134, Hamlib.RIG_VFO_CURR) is None
+        assert rig.set_dcs_sql(Hamlib.RIG_VFO_CURR, 134) is None
+        assert rig.get_dcs_sql() == 134
         assert rig.get_dcs_sql(Hamlib.RIG_VFO_CURR) == 134
 
         assert rig.close() is None
