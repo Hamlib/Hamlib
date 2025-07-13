@@ -71,6 +71,15 @@ class TestClass:
         assert rig.get_split_vfo() == [Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_B]
         assert rig.get_split_vfo(Hamlib.RIG_VFO_CURR) == [Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_B]
 
+        # RIT and XIT
+
+        assert rig.set_rit(Hamlib.RIG_VFO_CURR, 100) is None
+        assert rig.get_rit() == 100
+        assert rig.get_rit(Hamlib.RIG_VFO_CURR) == 100
+        assert rig.set_xit(Hamlib.RIG_VFO_CURR, 200) is None
+        assert rig.get_xit() == 200
+        assert rig.get_xit(Hamlib.RIG_VFO_CURR) == 200
+
         # Antenna
 
         # FIXME should use a RIG_ANT_* constant but they aren't available in the bindings
@@ -143,8 +152,6 @@ class TestClass:
         assert isinstance(rig.get_powerstat(), int)
         assert isinstance(rig.get_ptt(), int)
         assert isinstance(rig.get_ptt(Hamlib.RIG_VFO_CURR), int)
-        assert isinstance(rig.get_rit(), int)
-        assert isinstance(rig.get_rit(Hamlib.RIG_VFO_CURR), int)
         assert isinstance(rig.get_rptr_offs(), int)
         assert isinstance(rig.get_rptr_offs(Hamlib.RIG_VFO_CURR), int)
         assert isinstance(rig.get_rptr_shift(), int)
@@ -159,8 +166,6 @@ class TestClass:
         assert isinstance(rig.get_vfo(), int)
         assert len(rig.get_vfo_info()) == 5
         assert len(rig.get_vfo_info(Hamlib.RIG_VFO_CURR)) == 5
-        assert isinstance(rig.get_xit(), int)
-        assert isinstance(rig.get_xit(Hamlib.RIG_VFO_CURR), int)
         # assert rig_has_get_func(0)  FIXME not defined
         assert rig.has_get_level(0) is None  # FIXME should return setting_t
         # assert rig_has_get_parm(0)  FIXME not defined
@@ -208,7 +213,6 @@ class TestClass:
         assert rig.set_parm(0, 0) is None
         assert rig.set_powerstat(0) is None
         assert rig.set_ptt(0, 0) is None
-        assert rig.set_rit(0, 0) is None
         assert rig.set_rptr_offs(0, 0) is None
         assert rig.set_rptr_shift(0, 0) is None
         assert rig.set_split_freq(0, 0) is None
@@ -224,7 +228,6 @@ class TestClass:
         assert rig.set_ts(0, 0) is None
         assert rig.set_vfo(0) is None
         assert rig.set_vfo_opt(0) is None
-        assert rig.set_xit(0, 0) is None
         assert rig.token_lookup("") is None
         assert rig.vfo_op(0, 0) is None
 
