@@ -58,8 +58,8 @@ class TestClass:
         assert rig.get_freq() == 5700000000.0
         frequency = 5700000000.5
         assert rig.set_freq(Hamlib.RIG_VFO_CURR, frequency) is None
-        assert rig.get_freq(Hamlib.RIG_VFO_CURR) == 5700000000.5
         assert isinstance(rig.get_freq(Hamlib.RIG_VFO_CURR), float)
+        assert rig.get_freq(Hamlib.RIG_VFO_CURR) == 5700000000.5
 
         # VFO
 
