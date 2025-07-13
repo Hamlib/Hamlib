@@ -63,6 +63,8 @@ class TestClass:
 
         # VFO
 
+        assert rig.set_vfo(Hamlib.RIG_VFO_A) is None
+        assert rig.get_vfo() == Hamlib.RIG_VFO_A
         assert rig.set_split_vfo(Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_A) is None
         assert rig.get_split_vfo(Hamlib.RIG_VFO_TX) == [Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_A]
         assert rig.set_split_vfo(Hamlib.RIG_SPLIT_ON, Hamlib.RIG_VFO_B) is None
@@ -163,7 +165,6 @@ class TestClass:
         assert isinstance(rig.get_trn(), int)  # deprecated
         assert isinstance(rig.get_ts(), int)
         assert isinstance(rig.get_ts(Hamlib.RIG_VFO_CURR), int)
-        assert isinstance(rig.get_vfo(), int)
         assert len(rig.get_vfo_info()) == 5
         assert len(rig.get_vfo_info(Hamlib.RIG_VFO_CURR)) == 5
         # assert rig_has_get_func(0)  FIXME not defined
@@ -226,7 +227,6 @@ class TestClass:
         assert rig.set_split_vfo(0, 0, 0) is None
         assert rig.set_trn(0) is None  # deprecated
         assert rig.set_ts(0, 0) is None
-        assert rig.set_vfo(0) is None
         assert rig.set_vfo_opt(0) is None
         assert rig.token_lookup("") is None
         assert rig.vfo_op(0, 0) is None
