@@ -157,7 +157,8 @@ wrc_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 
     u_az = (unsigned)rint(az);
     u_el = (unsigned)rint(el);
-
+    (void)u_el;
+    
     SNPRINTF(cmdstr, sizeof(cmdstr), "W%03u" EOM, u_az);
     retval = gs232_wo_transaction(rot, cmdstr, NULL, 0);
 
