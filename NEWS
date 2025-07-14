@@ -29,6 +29,7 @@ Version 4.7.0
           additional support add clean up code.  (TNX FVsonar).
         * New Drake R8 backend.  (TNX Mark Fine)
         * New AF6SA WRC rotator backend.  (TNX Michael Morgan)
+        * New Yaesu FTX-1 model support (alpha).  (TNX Jeremy Miller).
 
 Version 4.6.3
         * 2025-06-10
