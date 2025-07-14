@@ -23,6 +23,7 @@
 #include <string.h>
 
 #include "hamlib/rotator.h"
+#include "hamlib/port.h"
 #include "serial.h"
 #include "misc.h"
 #include "register.h"

@@ -25,6 +25,7 @@
 #include <math.h>
 
 #include "hamlib/rotator.h"
+#include "hamlib/port.h"
 #include "serial.h"
 
 #define EOM "\r"

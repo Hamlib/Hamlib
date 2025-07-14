@@ -1,3 +1,28 @@
+/*
+ * simts890.c - Copyright 2019-2024 The Hamlib Group
+ *              Copyright 2024-2025 George Baltz 
+ *
+ * This program simulates the CAT actions of the Kenwood TS-890S
+ * transceiver. It takes commands over a pseudo-tty port, and responds
+ * as closely as possible in the same way as the real hardware.
+ *
+ *
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation; either version 2 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License along
+ *   with this program; if not, write to the Free Software Foundation, Inc.,
+ *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 //#define TRACE /* Full traffic trace if enabled */
 // can run this using rigctl/rigctld and socat pty devices
 #define _XOPEN_SOURCE 700

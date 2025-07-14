@@ -27,6 +27,7 @@
 #include <fcntl.h>
 
 #include "gpio.h"
+#include "hamlib/port.h"
 
 
 int gpio_open(hamlib_port_t *port, int output, int on_value)
