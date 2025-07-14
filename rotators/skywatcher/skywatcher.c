@@ -21,6 +21,8 @@
 
 #include <stdlib.h>
 #include "skywatcher.h"
+#include "hamlib/port.h"
+#include "hamlib/rot_state.h"
 #include "register.h"
 #include "serial.h"
 

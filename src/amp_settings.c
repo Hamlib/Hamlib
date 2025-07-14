@@ -42,6 +42,7 @@
 #include <hamlib/config.h>
 
 #include <hamlib/rig.h>
+#include "hamlib/amp_state.h"
 #include <hamlib/amplifier.h>
 
 

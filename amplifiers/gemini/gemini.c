@@ -23,6 +23,8 @@
 #include <string.h>
 #include "misc.h"
 #include "gemini.h"
+#include "hamlib/port.h"
+#include "hamlib/amp_state.h"
 
 #if 0
 struct fault_list

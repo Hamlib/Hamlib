@@ -38,6 +38,8 @@
 #include <string.h>  /* String function definitions */
 
 #include <hamlib/amplifier.h>
+#include "hamlib/port.h"
+#include "hamlib/amp_state.h"
 
 #include "amp_conf.h"
 #include "token.h"

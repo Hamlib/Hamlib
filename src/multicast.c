@@ -12,6 +12,8 @@
 #include <arpa/inet.h>
 #endif
 #include "hamlib/rig.h"
+#include "hamlib/port.h"
+#include "hamlib/rig_state.h"
 #include "misc.h"
 #include "cache.h"
 #include "multicast.h"

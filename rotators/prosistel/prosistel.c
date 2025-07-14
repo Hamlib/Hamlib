@@ -25,6 +25,7 @@
 #include <string.h>
 
 #include "hamlib/rotator.h"
+#include "hamlib/port.h"
 #include "serial.h"
 #include "register.h"
 #include "num_stdio.h"

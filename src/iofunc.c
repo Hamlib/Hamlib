@@ -42,7 +42,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/port.h"
 #include "iofunc.h"
 #include "misc.h"
 

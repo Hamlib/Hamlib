@@ -264,42 +264,20 @@ struct amp_caps
   const char *macro_name;                     /*!< Amplifier model macro name. */
 };
 
+//---Start cut here---
+// Amp state structure definition moved to include/hamlib/amp_state.h
+// Temporary include until 5.0
+#ifndef NO_OLD_INCLUDES
 
-/**
- * \brief Amplifier state structure.
- *
- * \struct amp_state
- *
- * This structure contains live data, as well as a copy of capability fields
- * that may be updated, i.e. customized while the #AMP handle is instantiated.
- *
- * It is fine to move fields around, as this kind of struct should not be
- * initialized like amp_caps are.
- */
-struct amp_state
-{
-  /*
-   * overridable fields
-   */
+__END_DECLS
 
-  /*
-   * non overridable fields, internal use
-   */
-  hamlib_port_t_deprecated ampport_deprecated;  /*!< Amplifier port (internal use). Deprecated */
+#include <hamlib/amp_state.h>
 
-  int comm_state;         /*!< Comm port state, opened/closed. */
-  rig_ptr_t priv;         /*!< Pointer to private amplifier state data. */
-  rig_ptr_t obj;          /*!< Internal use by hamlib++ for event handling. */
+__BEGIN_DECLS
 
-  setting_t has_get_level; /*!< List of get levels. */
-  setting_t has_set_level; /*!< List of set levels. */
+#endif
 
-  gran_t level_gran[RIG_SETTING_MAX]; /*!< Level granularity. */
-  gran_t parm_gran[RIG_SETTING_MAX];  /*!< Parameter granularity. */
-  hamlib_port_t ampport;  /*!< Amplifier port (internal use). */
-};
-
-
+//---End cut here---
 /**
  * \brief Master amplifier structure.
  *
