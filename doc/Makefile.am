@@ -8,6 +8,7 @@ dist_man_MANS = man1/ampctl.1 man1/ampctld.1 \
 SRCDOCLST = \
 	../include/hamlib/amplifier.h \
 	../include/hamlib/amplist.h \
+	../include/hamlib/amp_state.h \
 	../include/hamlib/rig.h \
 	../include/hamlib/rotator.h \
 	../include/hamlib/rotlist.h \

@@ -24,6 +24,21 @@
 #ifndef _AMP_STATE_H
 #define _AMP_STATE_H 1
 
+/**
+ * \addtogroup amplifier
+ * @{
+ */
+
+
+/**
+ * \brief Hamlib amplifier state structure.
+ *
+ * \file amp_state.h
+ *
+ * This file contains the live data state structure of the amplifier.
+ */
+
+
 __BEGIN_DECLS
 /**
  * \brief Amplifier state structure.
@@ -69,3 +84,5 @@ struct amp_state
 __END_DECLS
 
 #endif /* _AMP_STATE_H */
+
+/** @} */
