@@ -16,12 +16,40 @@ class TestClass:
 
     def test_callables(self):
         """Check that nothing was added or removed"""
-        expected_callables = ['close', 'get_conf', 'get_ext_func', 'get_ext_level', 'get_ext_parm', 'get_func', 'get_info', 'get_level', 'get_parm', 'get_position', 'move', 'open', 'park', 'reset', 'set_conf', 'set_ext_func', 'set_ext_level', 'set_ext_parm', 'set_func', 'set_level', 'set_parm', 'set_position', 'stop', 'token_lookup']
+        expected_callables = ['close',
+'get_conf',
+'get_ext_func',
+'get_ext_level',
+'get_ext_parm',
+'get_func',
+'get_info',
+'get_level',
+'get_parm',
+'get_position',
+'move',
+'open',
+'park',
+'reset',
+'set_conf',
+'set_ext_func',
+'set_ext_level',
+'set_ext_parm',
+'set_func',
+'set_level',
+'set_parm',
+'set_position',
+'stop',
+'token_lookup']
         assert expected_callables == self.actual_callables
 
     def test_properties(self):
         """Check that nothing was added or removed"""
-        expected_properties = ['caps', 'do_exception', 'error_status', 'rot', 'state', 'thisown']
+        expected_properties = ['caps',
+'do_exception',
+'error_status',
+'rot',
+'state',
+'thisown']
         assert expected_properties == self.actual_properties
 
     @classmethod
