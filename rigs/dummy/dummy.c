@@ -196,7 +196,7 @@ static void init_chan(RIG *rig, vfo_t vfo, channel_t *chan)
     chan->rit = 0;
     chan->xit = 0;
     chan->tuning_step = 0;
-    chan->ant = 0;
+    chan->ant = RIG_ANT_1;
 
     chan->funcs = (setting_t)0;
     memset(chan->levels, 0, RIG_SETTING_MAX * sizeof(value_t));
@@ -1114,7 +1114,7 @@ static int dummy_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
     if (tx_vfo == RIG_VFO_CURR || tx_vfo == RIG_VFO_TX) { tx_vfo = vfo_fixup(rig, vfo, CACHE(rig)->split); }
 
-    priv->split = split;
+    priv->split = split ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
     priv->tx_vfo = tx_vfo;
 
     RETURNFUNC(RIG_OK);
@@ -1819,6 +1819,7 @@ static int dummy_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
     case RIG_ANT_2:
     case RIG_ANT_3:
     case RIG_ANT_4:
+    case RIG_ANT_5:
         curr->ant = ant;
         break;
 
@@ -1856,6 +1857,7 @@ static int dummy_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
     case RIG_ANT_2:
     case RIG_ANT_3:
     case RIG_ANT_4:
+    case RIG_ANT_5:
         *ant_curr = ant;
         break;
 
@@ -2459,14 +2461,14 @@ struct rig_caps dummy_caps =
     .agc_levels = { RIG_AGC_OFF, RIG_AGC_SUPERFAST, RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW, RIG_AGC_AUTO, RIG_AGC_USER },
     .rx_range_list1 =  { {
             .startf = kHz(150), .endf = MHz(1500), .modes = DUMMY_MODES,
-            .low_power = -1, .high_power = -1, DUMMY_VFOS, RIG_ANT_1 | RIG_ANT_2 | RIG_ANT_3 | RIG_ANT_4,
+            .low_power = -1, .high_power = -1, DUMMY_VFOS, RIG_ANT_1 | RIG_ANT_2 | RIG_ANT_3 | RIG_ANT_4 | RIG_ANT_5,
             .label = "Dummy#1"
         },
         RIG_FRNG_END,
     },
     .tx_range_list1 =  { {
             .startf = kHz(150), .endf = MHz(1500), .modes = DUMMY_MODES,
-            .low_power = W(5), .high_power = W(100), DUMMY_VFOS, RIG_ANT_1 | RIG_ANT_2 | RIG_ANT_3 | RIG_ANT_4,
+            .low_power = W(5), .high_power = W(100), DUMMY_VFOS, RIG_ANT_1 | RIG_ANT_2 | RIG_ANT_3 | RIG_ANT_4 | RIG_ANT_5,
             .label = "Dummy#1"
         },
         RIG_FRNG_END,
