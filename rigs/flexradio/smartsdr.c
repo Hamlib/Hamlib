@@ -628,25 +628,37 @@ int smartsdr_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 
     int retval;
     size_t msg_len = strlen(msg);
-    size_t buf_len = msg_len + 20; 
+    size_t buf_len = msg_len + 20;
 
-    char newmsg[msg_len + 1];
-    strncpy(newmsg, msg, msg_len + 1);
+    char *newmsg = malloc(msg_len + 1);
+    if (!newmsg)
+        return -RIG_ENOMEM;
 
-    // Replace spaces with 0x7f
+    memcpy(newmsg, msg, msg_len + 1); // Copy including null terminator
+
     for (size_t i = 0; newmsg[i] != '\0'; i++) {
         if (newmsg[i] == ' ') {
             newmsg[i] = 0x7f;
         }
     }
 
-    char cmd[buf_len];
-    snprintf(cmd, sizeof(cmd), "cwx send \"%s\"", newmsg);
+    char *cmd = malloc(buf_len);
+    if (!cmd) {
+        free(newmsg);
+        return -RIG_ENOMEM;
+    }
+
+    snprintf(cmd, buf_len, "cwx send \"%s\"", newmsg);
+
+    free(newmsg);
 
     retval = smartsdr_transaction(rig, cmd);
 
+    free(cmd);
+
     RETURNFUNC(retval);
 }
+
 
 int smartsdr_stop_morse(RIG *rig, vfo_t vfo)
 {
