@@ -2828,6 +2828,7 @@ DECLARE_INITRIG_BACKEND(dummy)
     rig_register(&aclog_caps);
     rig_register(&sdrsharp_caps);
     rig_register(&quisk_caps);
+    rig_register(&gqrx_caps);
 //    rig_register(&tci1x_caps);
     return RIG_OK;
 }
