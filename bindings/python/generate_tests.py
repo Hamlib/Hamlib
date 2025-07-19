@@ -43,6 +43,8 @@ class TestClass:
                 else:
                     properties.append(method_or_property)
 
+        callables.sort()
+        properties.sort()
         return callables, properties
 
 
@@ -59,8 +61,8 @@ import Hamlib
 '''
     filename = f"test_{object_name.replace(".", "_")}_class.py"
     class_source = inspect.getsource(TestClass)
-    expected_callables = repr(callables)
-    expected_properties = repr(properties)
+    expected_callables = repr(callables).replace(" ", "\n")
+    expected_properties = repr(properties).replace(" ", "\n")
 
     print(f"Generating {filename}")
     with open(filename, "w", encoding='utf-8') as output_file:

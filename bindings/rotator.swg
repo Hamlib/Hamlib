@@ -30,6 +30,7 @@
 
 %include <hamlib/rotator.h>
 %include <hamlib/rotlist.h>
+%include <hamlib/rot_state.h>
 
 %inline %{
 

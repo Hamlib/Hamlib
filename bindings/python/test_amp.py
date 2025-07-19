@@ -63,46 +63,7 @@ class TestClass:
         assert level is None
         assert amp.set_powerstat(Hamlib.RIG_POWER_ON) is None
         assert amp.get_powerstat() == Hamlib.RIG_POWER_ON
-        assert amp.close() is None
 
-
-    def test_all_methods(self):
-        """Just call all the methods"""
-        amp = Hamlib.Amp(AMP_MODEL)
-        assert amp is not None
-
-        # the tests that do not depend on open()
-        assert amp.set_conf("", "") is None
-        assert amp.get_conf("") == ""
-        assert amp.get_conf(0) == ""
-        conf = amp.get_conf("mcfg")
-        assert isinstance(conf, str)
-        assert amp.set_conf("mcfg", "foo") is None
-        conf = amp.get_conf("mcfg")
-        assert conf == ""  # FIXME: should return "foo"
-        assert amp.token_lookup("") is None
-
-        # the tests that depend on open()
-        assert amp.state.comm_state == 0
-        assert amp.open() is None
-        assert amp.state.comm_state == 1
-        info = amp.get_info()
-        assert isinstance(info, str)
-        assert amp.reset(Hamlib.AMP_RESET_FAULT) is None
-        assert amp.set_freq(0) is None
-        assert amp.set_freq(123.45) is None
-        assert amp.get_freq() == 123.45
-        assert amp.get_level(Hamlib.AMP_LEVEL_NONE) is None
-        level = amp.get_level(Hamlib.AMP_LEVEL_SWR)
-        assert isinstance(level, float)
-        level = amp.get_level(Hamlib.AMP_LEVEL_PWR_REFLECTED)
-        assert isinstance(level, int)
-        level = amp.get_level(Hamlib.AMP_LEVEL_FAULT)
-        assert isinstance(level, str)
-        level = amp.get_level(123456)
-        assert level is None
-        assert amp.set_powerstat(Hamlib.RIG_POWER_ON) is None
-        assert amp.get_powerstat() == Hamlib.RIG_POWER_ON
         assert amp.close() is None
         assert amp.state.comm_state == 0
         info = amp.get_info()

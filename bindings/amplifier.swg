@@ -30,6 +30,7 @@
 
 %include <hamlib/amplist.h>
 %include <hamlib/amplifier.h>
+%include <hamlib/amp_state.h>
 
 %inline %{
 
