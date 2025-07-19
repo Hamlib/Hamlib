@@ -63,7 +63,11 @@ class TestClass:
         assert level is None
         assert amp.set_powerstat(Hamlib.RIG_POWER_ON) is None
         assert amp.get_powerstat() == Hamlib.RIG_POWER_ON
+
         assert amp.close() is None
+        assert amp.state.comm_state == 0
+        info = amp.get_info()
+        assert info is None
 
 
     def test_object_creation(self):
