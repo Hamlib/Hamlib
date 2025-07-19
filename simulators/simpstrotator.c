@@ -8,7 +8,7 @@
 #define REPLY_PORT 12002
 #define BUFFER_SIZE 1024
 
-void handle_receive(int recv_sockfd, struct sockaddr_in *client_addr,
+static void handle_receive(int recv_sockfd, struct sockaddr_in *client_addr,
                     socklen_t addr_len, char *buffer)
 {
     ssize_t recv_len;
@@ -28,7 +28,7 @@ void handle_receive(int recv_sockfd, struct sockaddr_in *client_addr,
     printf("Data: %s\n", buffer);
 }
 
-void handle_send(int send_sockfd, struct sockaddr_in *client_addr,
+static void handle_send(int send_sockfd, struct sockaddr_in *client_addr,
                  socklen_t addr_len, const char *message)
 {
     ssize_t sent_len;
