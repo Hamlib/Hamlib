@@ -575,9 +575,9 @@ static int gqrx_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     case RIG_MODE_USB:      mode_sel = strdup("USB"); break;
 
-    case RIG_MODE_CW:       mode_sel = strdup("CWL"); break;
+    case RIG_MODE_CW:       mode_sel = strdup("CWU"); break;
 
-    case RIG_MODE_CWR:      mode_sel = strdup("CWU"); break;
+    case RIG_MODE_CWR:      mode_sel = strdup("CWL"); break;
 
     case RIG_MODE_FM:       mode_sel = strdup("FM"); break;
 
@@ -681,11 +681,11 @@ static int gqrx_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     {
         *mode = RIG_MODE_USB;
     }
-    else if (strcmp(&modeStr[0], "CWL") == 0)
+    else if (strcmp(&modeStr[0], "CWU") == 0)
     {
         *mode = RIG_MODE_CW;
     }
-    else if (strcmp(&modeStr[0], "CWR") == 0)
+    else if (strcmp(&modeStr[0], "CWL") == 0)
     {
         *mode = RIG_MODE_CWR;
     }
@@ -999,7 +999,7 @@ struct rig_caps gqrx_caps =
         {RIG_MODE_AM | RIG_MODE_AMS, kHz(5)},  //narrow
         {RIG_MODE_SSB, kHz(2.7)}, //normal
         {RIG_MODE_SSB, kHz(3.9)}, //wide
-        {RIG_MODE_SSB, kHz(2.4)}, //narrow
+        {RIG_MODE_SSB, kHz(1.4)}, //narrow
         {RIG_MODE_CW | RIG_MODE_CWR, Hz(500)},  //normal
         {RIG_MODE_CW | RIG_MODE_CWR, kHz(2.0)}, //wide
         {RIG_MODE_CW | RIG_MODE_CWR, Hz(200)},  //narrow
