@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <stdbool.h>
 
 #include <hamlib/rig.h>
 #include <serial.h>
@@ -546,7 +547,7 @@ static int gqrx_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     struct gqrx_priv_data *priv = (struct gqrx_priv_data *) STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s mode=%ld\n", __func__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s mode=%llu\n", __func__,
               rig_strvfo(vfo), mode);
 
     if (check_vfo(vfo) == FALSE)
@@ -732,7 +733,7 @@ static int gqrx_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     char value[1024];
 
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s level=%ld\n", __func__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s level=%llu\n", __func__,
               rig_strvfo(vfo), level);
 
     if (check_vfo(vfo) == FALSE)
