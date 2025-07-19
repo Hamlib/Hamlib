@@ -185,41 +185,44 @@ Information for w32 Programmers
 The DLL has a cdecl interface.
 
 There is a libhamlib-4.def definition file for MS Visual C++/Visual Studio in
-lib/msvc.  Refer to the sample commands below to generate a local
-libhamlib-4.lib file for use with the VC++/VS linker.
+lib\msvc.  Refer to the recipe below to generate a local libhamlib-4.lib file
+for use with the VC++/VS linker.
 
-Simply #include <hamlib/rig.h> (add directory to include path), include
-libhamlib-4.lib in your project and you are done.  Note: VC++/VS cannot
-compile all the Hamlib code, but the API defined by rig.h has been made MSVC
-friendly :-)
+Simply '#include <hamlib/rig.h>' (or any other header) (add directory to
+include path), include libhamlib-4.lib in your project and you are done.  Note:
+VC++/VS cannot compile all the Hamlib code, but the API defined by rig.h has
+been made MSVC friendly :-)
 
 As the source code for the library DLLs is licensed under the LGPL, your
 program is not considered a "derivative work" when using the published Hamlib
 API and normal linking to the front-end library, and may be of a license of
 your choosing.
 
-As of 08 Sep 2022 a .lib file is generated using the MinGW dlltool utility.
-If this file does not work for your project, follow the steps in the following
-section:
+As of 21 Jul 2025 a .lib file is generated using the MinGW dlltool utility.
+This file is now installed to the lib\gcc-mingw directory.  As it is generated
+by the MinGW dlltool utility, it is only suitable for use with MinGW/GCC.
 
-For linking the library with MS Visual C++ 2003, from the directory you
-installed Hamlib run the following commands to generate the libhamlib-4.lib
-file needed for linking with your MSVC project:
+For developers using Microsoft Visual Studio, the following recipe is
+provided by Phil Rose, GM3ZZA:
 
-cd lib\msvc
-c:\Program Files\Microsoft Visual C++ Toolkit 2003\bin\link.exe /lib /machine:i386 /def:libhamlib-4.def
+My secret sauce is:
 
-To do the same for Visual Studio 2017:
+Open "Developer PowerShell for VS2022" in administrator mode. This adds the
+correct directory to the path and allows update of "C:\Program Files" with the
+.dll.
 
-cd lib\msvc
-c:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\Tools\MSVC\14.16.27023\bin\Hostx64\x86\bin\link.exe /lib /machine:i386 /def:libhamlib-4.def
+Then (in my case).
 
-For VS 2019:
+cd "C:\Program Files\hamlib-w32-${RELEASE}\lib\msvc"
+lib \def:libhamlib-4.def \machine:x86
 
-cd lib\msvc
-c:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.25.28610\bin\Hostx64\x86\bin\link.exe /lib /machine:i386 /def:libhamlib-4.def
+If you use any other terminal then the full path to lib.exe is needed
+(today it is
+"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\bin\Hostx64\x64\lib.exe",
+but is dependent on the version of MSVC which gets updated every few weeks).
 
-NOTE: feedback is requested on the previous two command examples!
+NOTE: feedback is requested on Phil's example!  Please let know if this works
+for you.
 
 The published Hamlib API may be found at:
 
