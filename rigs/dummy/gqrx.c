@@ -254,7 +254,10 @@ static int gqrx_transaction(RIG *rig, char *cmd, char *value,
 
             // if we get RIG_EIO the socket has probably disappeared
             // so bubble up the error so port can re re-opened
-            if (retval == -RIG_EIO) { set_transaction_inactive(rig); RETURNFUNC(retval); }
+            if (retval == -RIG_EIO)
+            {
+                set_transaction_inactive(rig); RETURNFUNC(retval);
+            }
 
             hl_usleep(50 * 1000); // 50ms sleep if error
         }
@@ -272,7 +275,10 @@ static int gqrx_transaction(RIG *rig, char *cmd, char *value,
     if (value && strlen(value) == 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: no value returned\n", __func__);
-        set_transaction_inactive(rig); RETURNFUNC(-RIG_EPROTO);
+        
+        set_transaction_inactive(rig);
+        
+        RETURNFUNC(-RIG_EPROTO);
     }
 
     ELAPSED2;
@@ -352,7 +358,7 @@ static int gqrx_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     if (vfo == RIG_VFO_CURR)
     {
         vfo = STATE(rig)->current_vfo;
-        rig_debug(RIG_DEBUG_TRACE, "%s: get_freq2 vfo=%s\n",
+        rig_debug(RIG_DEBUG_TRACE, "%s: get_freq vfo=%s\n",
                   __func__, rig_strvfo(vfo));
     }
 
@@ -440,6 +446,7 @@ static int gqrx_close(RIG *rig)
 */
 static int gqrx_cleanup(RIG *rig)
 {
+    ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
 
     if (!rig)
@@ -499,6 +506,7 @@ static int gqrx_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     char cmd[MAXARGLEN];
     char value[1024];
 
+    ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s freq=%.0f\n", __func__,
               rig_strvfo(vfo), freq);
@@ -510,14 +518,12 @@ static int gqrx_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         RETURNFUNC2(-RIG_EINVAL);
     }
 
-#if 0
-
     if (vfo == RIG_VFO_CURR)
     {
         vfo = STATE(rig)->current_vfo;
+        rig_debug(RIG_DEBUG_TRACE, "%s: set_freq vfo=%s\n",
+                  __func__, rig_strvfo(vfo));
     }
-
-#endif
 
     SNPRINTF(cmd, sizeof(cmd), "F %lf\n", freq);
 
@@ -546,6 +552,7 @@ static int gqrx_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     char* mode_sel;
     struct gqrx_priv_data *priv = (struct gqrx_priv_data *) STATE(rig)->priv;
 
+    ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s mode=%lu\n", __func__,
               rig_strvfo(vfo), mode);
@@ -557,14 +564,12 @@ static int gqrx_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         RETURNFUNC2(-RIG_EINVAL);
     }
 
-#if 0
-
     if (vfo == RIG_VFO_CURR)
     {
         vfo = STATE(rig)->current_vfo;
+        rig_debug(RIG_DEBUG_TRACE, "%s: set_mode vfo=%s\n",
+                  __func__, rig_strvfo(vfo));
     }
-
-#endif
 
     switch (mode)
     {
@@ -642,16 +647,12 @@ static int gqrx_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-#if 0
-
     if (vfo == RIG_VFO_CURR)
     {
         vfo = STATE(rig)->current_vfo;
         rig_debug(RIG_DEBUG_TRACE, "%s: get_mode vfo=%s\n",
                   __func__, rig_strvfo(vfo));
     }
-
-#endif
 
     char *cmd = "m\n";
 
@@ -732,6 +733,7 @@ static int gqrx_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     char cmd[MAXARGLEN];
     char value[1024];
 
+    ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s level=%lu\n", __func__,
               rig_strvfo(vfo), level);
@@ -743,14 +745,12 @@ static int gqrx_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         RETURNFUNC2(-RIG_EINVAL);
     }
 
-#if 0
-
     if (vfo == RIG_VFO_CURR)
     {
         vfo = STATE(rig)->current_vfo;
+        rig_debug(RIG_DEBUG_TRACE, "%s: set_level vfo=%s\n",
+                  __func__, rig_strvfo(vfo));
     }
-
-#endif
 
     switch (level)
     {
