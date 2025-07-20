@@ -37,7 +37,6 @@
 #include "cache.h"
 #include "cal.h"
 #include "newcat.h"
-#include "serial.h"
 
 /* global variables */
 static const char cat_term = ';';             /* Yaesu command terminator */

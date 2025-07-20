@@ -28,7 +28,6 @@
 #endif
 
 #include "hamlib/rig.h"
-#include "serial.h"
 #include "register.h"
 
 

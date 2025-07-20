@@ -25,7 +25,6 @@
 #include <unistd.h>  /* UNIX standard function definitions */
 
 #include "hamlib/rig.h"
-#include "serial.h"
 #include "iofunc.h"
 #include "misc.h"
 #include "num_stdio.h"
