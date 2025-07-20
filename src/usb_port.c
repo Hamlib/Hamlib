@@ -33,10 +33,10 @@
 
 #include <hamlib/config.h>
 
-
-
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
+#include <strings.h>
 
 #include <hamlib/rig.h>
 #include "hamlib/port.h"

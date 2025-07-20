@@ -512,8 +512,6 @@ static const char *dwtdll_get_info(RIG *rig)
 # include <libusb-1.0/libusb.h>
 #endif
 
-#include "token.h"
-
 
 #define USB_VID_CT  0x1539  /* AFG Engineering */
 #define USB_PID_CT_DWT  0x1730  /* Digital World Traveller */

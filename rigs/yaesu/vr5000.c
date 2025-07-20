@@ -59,7 +59,6 @@
 
 #include "hamlib/rig.h"
 #include "iofunc.h"
-#include "misc.h"
 #include "yaesu.h"
 
 #define VR5000_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_WFM)

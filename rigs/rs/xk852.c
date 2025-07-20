@@ -1,13 +1,10 @@
-#include <stdlib.h>
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include "hamlib/rig.h"
 #include "iofunc.h"
 #include "misc.h"
-#include "num_stdio.h"
 
 #include "xk852.h"
 

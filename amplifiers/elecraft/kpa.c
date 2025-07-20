@@ -18,12 +18,15 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "amplifier.h"
 #include "kpa.h"
 #include "hamlib/port.h"
 #include "hamlib/amp_state.h"
+#include "iofunc.h"
 
 struct fault_list
 {
