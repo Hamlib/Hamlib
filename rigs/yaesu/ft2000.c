@@ -29,7 +29,6 @@
 
 #include "hamlib/rig.h"
 #include "bandplan.h"
-#include "serial.h"
 #include "yaesu.h"
 #include "newcat.h"
 #include "ft2000.h"

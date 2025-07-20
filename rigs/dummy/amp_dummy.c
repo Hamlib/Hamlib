@@ -22,7 +22,6 @@
 #include <stdlib.h>
 
 #include "hamlib/amplifier.h"
-#include "serial.h"
 #include "register.h"
 
 #include "amp_dummy.h"

@@ -55,7 +55,6 @@
 #include <string.h>  /* String function definitions */
 
 #include "hamlib/rig.h"
-#include "serial.h"
 
 #include "tentec.h"
 #include "tentec2.h"
