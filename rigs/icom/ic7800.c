@@ -32,7 +32,6 @@
 #include "icom.h"
 #include "icom_defs.h"
 #include "bandplan.h"
-#include "ic7300.h"
 
 static int ic7800_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
                      int sec, double msec, int utc_offset);
