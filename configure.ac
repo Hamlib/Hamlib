@@ -640,7 +640,7 @@ AS_IF([test "x$enable_pytest" = "xyes"],
     )]
 )
 
-# "check" is replaced by the rsult ("yes" or "no")
+# "check" is replaced by the result ("yes" or "no")
 enable_pytest=$have_pytest
 
 AC_SUBST([enable_pytest])

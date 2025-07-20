@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
     if (!rig_has_get_level(rig, RIG_LEVEL_STRENGTH))
     {
         fprintf(stderr,
-                "rig backend for %s could not get S-Meter"
+                "rig backend for %s could not get S-Meter\n"
                 "or has insufficient capability\nSorry\n",
                 rig->caps->model_name);
         exit(3);
