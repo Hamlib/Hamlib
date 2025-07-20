@@ -25,16 +25,16 @@
 //    SYSTEM INCLUDES
 // ---------------------------------------------------------------------------
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <ctype.h>
 #include <errno.h>
 
 // ---------------------------------------------------------------------------
 //    HAMLIB INCLUDES
 // ---------------------------------------------------------------------------
 
+#include "config.h"
 #include <hamlib/rig.h>
 #include "serial.h"
 #include "misc.h"

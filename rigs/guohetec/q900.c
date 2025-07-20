@@ -19,9 +19,8 @@
  *
  */
 
+#include <stdint.h>
 #include <stdlib.h>
-#include <string.h>     /* String function definitions */
-#include <stdbool.h>
 
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
@@ -33,7 +32,6 @@
 #include "cache.h"
 #include "tones.h"
 #include "bandplan.h"
-#include "cal.h"
 
 typedef struct q900_data_s
 {

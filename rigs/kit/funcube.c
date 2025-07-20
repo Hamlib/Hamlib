@@ -28,7 +28,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "hamlib/rig.h"
-#include "misc.h"
 
 #define BACKEND_VER "20210830"
 

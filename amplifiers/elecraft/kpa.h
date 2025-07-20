@@ -27,7 +27,6 @@
 #define _AMP_ELECRAFT_H 1
 
 #include <hamlib/amplifier.h>
-#include <iofunc.h>
 
 // Is this big enough?
 #define KPABUFSZ 100

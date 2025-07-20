@@ -3,9 +3,8 @@
  * idk, copyright and GPL here
  */
 
+#include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 
 #include <hamlib/rig.h>
 #include <register.h>

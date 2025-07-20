@@ -60,7 +60,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <sys/stat.h>
 #include <errno.h>
 
 #include "mutex.h"

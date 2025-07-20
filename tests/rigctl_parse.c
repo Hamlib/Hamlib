@@ -35,7 +35,6 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <errno.h>
-#include <getopt.h>
 #include <rig_tests.h>
 
 // If true adds some debug statements to see flow of rigctl parsing

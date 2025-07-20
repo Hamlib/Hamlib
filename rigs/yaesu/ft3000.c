@@ -24,11 +24,12 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+#include <string.h>
 
 #include "hamlib/rig.h"
 #include "misc.h"
-#include "newcat.h"
 #include "bandplan.h"
+#include "idx_builtin.h"
 #include "newcat.h"
 #include "yaesu.h"
 #include "ft5000.h"

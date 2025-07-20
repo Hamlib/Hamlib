@@ -33,7 +33,6 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <errno.h>
-#include <getopt.h>
 
 #ifdef HAVE_LIBREADLINE
 #  if defined(HAVE_READLINE_READLINE_H)
