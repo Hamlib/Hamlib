@@ -20,7 +20,6 @@
 
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
-#include <math.h>
 #include <sys/time.h>
 #include <errno.h>
 
