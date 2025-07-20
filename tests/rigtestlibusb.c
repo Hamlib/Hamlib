@@ -32,6 +32,15 @@
 #include <libusb-1.0/libusb.h>
 #endif
 
+#ifdef __FreeBSD__
+#  ifndef bU2DevExitLat
+#  define bU2DevExitLat wU2DevExitLat
+#  endif
+#  ifndef bNumDeviceCaps
+#  define bNumDeviceCaps bNumDeviceCapabilities
+#  endif
+#endif
+
 #if HAVE_LIBUSB
 int verbose = 0;
 
