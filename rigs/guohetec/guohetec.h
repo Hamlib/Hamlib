@@ -23,7 +23,7 @@
 #ifndef _guohetec_H_
 #define _guohetec_H_
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 #define PMR171_CMD_LENGTH 8
 #define PMR171_REPLY_LENGTH 24

@@ -8,11 +8,11 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 #include "misc.h"
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #define SERIAL_PORT "/dev/ttyUSB0"
 

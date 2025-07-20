@@ -22,7 +22,7 @@
 #ifndef _AMPCLASS_H
 #define _AMPCLASS_H 1
 
-#include <hamlib/amplifier.h>
+#include "hamlib/amplifier.h"
 
 
 

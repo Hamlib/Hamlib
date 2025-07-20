@@ -22,7 +22,7 @@
 #ifndef _IOFUNC_H
 #define _IOFUNC_H 1
  
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 extern HAMLIB_EXPORT(int) port_open(hamlib_port_t *p);
 extern HAMLIB_EXPORT(int) port_close(hamlib_port_t *p, rig_port_t port_type);

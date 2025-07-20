@@ -26,7 +26,7 @@
 
 #include <stdio.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "iofunc.h"
 #include "idx_builtin.h"
 

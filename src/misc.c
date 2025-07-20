@@ -29,7 +29,7 @@
  * \brief Miscellaneous utility routines
  */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #include <stdlib.h>
 #include <stdio.h>   /* Standard input/output definitions */
@@ -45,10 +45,10 @@
 
 #include <math.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "hamlib/rig_state.h"
-#include <hamlib/rotator.h>
-#include <hamlib/amplifier.h>
+#include "hamlib/rotator.h"
+#include "hamlib/amplifier.h"
 
 #include "misc.h"
 #include "cache.h"

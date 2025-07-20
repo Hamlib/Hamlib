@@ -23,9 +23,9 @@
 #include <stdio.h>
 #include <string.h>  /* String function definitions */
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "iofunc.h"
-#include <register.h>
+#include "register.h"
 
 #include "skanti.h"
 

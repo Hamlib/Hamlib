@@ -26,7 +26,7 @@
 #define ROTCTL_PARSE_H
 
 #include <stdio.h>
-#include <hamlib/rotator.h>
+#include "hamlib/rotator.h"
 
 /*
  * external prototype

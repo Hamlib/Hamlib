@@ -23,8 +23,8 @@
 #ifndef _ROTATOR_H
 #define _ROTATOR_H 1
 
-#include <hamlib/rig.h>
-#include <hamlib/rotlist.h>
+#include "hamlib/rig.h"
+#include "hamlib/rotlist.h"
 
 /**
  * \addtogroup rotator
@@ -587,7 +587,7 @@ struct rot_caps {
 
 __END_DECLS
 
-#include <hamlib/rot_state.h>
+#include "hamlib/rot_state.h"
 
 __BEGIN_DECLS
 

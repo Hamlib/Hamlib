@@ -21,7 +21,7 @@
 
 #include <stdio.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "kenwood.h"
 
 #include "bandplan.h"

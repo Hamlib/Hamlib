@@ -35,13 +35,13 @@
  */
 
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #include <stdio.h>
 #include <sys/stat.h>
 
-#include <hamlib/rig.h>
-#include <hamlib/rotator.h>
+#include "hamlib/rig.h"
+#include "hamlib/rotator.h"
 #include "hamlib/rot_state.h"
 
 

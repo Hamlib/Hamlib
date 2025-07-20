@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "kenwood.h"
 #include "ts990s.h"
 #include "cal.h"

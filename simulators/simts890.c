@@ -43,7 +43,7 @@ struct ip_mreq
 #include <errno.h>
 #include <ctype.h>
 #include <time.h>
-//#include <hamlib/rig.h>
+//#include "hamlib/rig.h"
 
 /* Definitions */
 /* The TS-890S has some undocumented commands, left over from older

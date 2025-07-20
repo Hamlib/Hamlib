@@ -23,9 +23,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <hamlib/rig.h>
-#include <token.h>
-#include <register.h>
+#include "hamlib/rig.h"
+#include "token.h"
+#include "register.h"
 
 #include "idx_builtin.h"
 

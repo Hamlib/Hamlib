@@ -29,7 +29,7 @@
 #  include <dlfcn.h>
 #endif
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 #include "winradio.h"
 #include "linradio/wrg313api.h"

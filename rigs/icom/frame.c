@@ -19,7 +19,7 @@
  *
  */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #include <string.h>  /* String function definitions */
 

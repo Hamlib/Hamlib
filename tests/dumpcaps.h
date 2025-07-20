@@ -1,3 +1,3 @@
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 int dumpconf_list(RIG *rig, FILE *fout);

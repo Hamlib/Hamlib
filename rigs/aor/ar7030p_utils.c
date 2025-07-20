@@ -28,7 +28,7 @@
 #include <math.h>
 #include <assert.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "ar7030p.h"
 #include "iofunc.h"
 

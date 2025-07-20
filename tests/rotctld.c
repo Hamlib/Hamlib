@@ -22,7 +22,7 @@
  *
  */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -55,7 +55,7 @@
 #  include <pthread.h>
 #endif
 
-#include <hamlib/rotator.h>
+#include "hamlib/rotator.h"
 
 #include "rig.h"
 #include "rotctl_parse.h"

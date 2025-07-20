@@ -14,8 +14,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <hamlib/rig.h>
-#include <hamlib/riglist.h>
+#include "hamlib/rig.h"
+#include "hamlib/riglist.h"
 #include "sprintflst.h"
 #include "misc.h"
 

@@ -29,8 +29,8 @@
 
 #include <getopt.h>
 
-#include <hamlib/rig.h>
-#include <hamlib/config.h>
+#include "hamlib/rig.h"
+#include "hamlib/config.h"
 #include "riglist.h"
 
 #define MAXNAMSIZ 32

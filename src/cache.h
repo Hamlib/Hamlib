@@ -24,7 +24,7 @@
 #ifndef _CACHE_H
 #define _CACHE_H
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 __BEGIN_DECLS
 

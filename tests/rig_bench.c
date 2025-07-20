@@ -6,7 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include <sys/time.h>
 #include "misc.h"
 

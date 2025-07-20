@@ -4,11 +4,11 @@
  * This is mainly to test freq2bcd and bcd2freq functions.
  */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "misc.h"
 
 #define MAXDIGITS 32

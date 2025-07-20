@@ -22,7 +22,7 @@
 #ifndef _HL_SLEEP_H
 #define _HL_SLEEP_H 1
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "iofunc.h"
 
 __BEGIN_DECLS

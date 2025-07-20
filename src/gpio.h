@@ -22,7 +22,7 @@
 #ifndef _GPIO_H
 #define _GPIO_H
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 
 __BEGIN_DECLS

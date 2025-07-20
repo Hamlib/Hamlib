@@ -1,5 +1,5 @@
-#include <hamlib/rig.h>
-#include <hamlib/config.h>
+#include "hamlib/rig.h"
+#include "hamlib/config.h"
 #include "misc.h"
 
 #if defined(WIN32) && !defined(HAVE_TERMIOS_H)

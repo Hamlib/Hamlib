@@ -26,7 +26,7 @@
 #define RIGCTL_PARSE_H
 
 #include <stdio.h>
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 #define RIGCTL_PARSE_END 1
 #define RIGCTL_PARSE_ERROR 2

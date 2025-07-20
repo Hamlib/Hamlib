@@ -34,12 +34,12 @@
  * basic "virtual rig" of Hamlib.  See icom/ic746.c for an example.
  */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 #include "token.h"
 

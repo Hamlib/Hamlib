@@ -19,8 +19,8 @@
  *
  */
 
-#include <hamlib/rig.h>
-#include <register.h>
+#include "hamlib/rig.h"
+#include "register.h"
 
 #include "alinco.h"
 

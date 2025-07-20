@@ -31,7 +31,7 @@
  * To Do: get the datasheet, and testing on real hardware!!
  */
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "icom.h"
 
 #define DELTAII_VFO_ALL (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)

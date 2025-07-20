@@ -22,7 +22,7 @@
 #ifndef _GNURADIO_H
 #define _GNURADIO_H 1
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 __BEGIN_DECLS
 

@@ -32,11 +32,11 @@
 
 #include <stdlib.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "icom.h"
 #include "icom_defs.h"
 #include "frame.h"
-#include <misc.h>
+#include "misc.h"
 
 #define OMNIVIP_VFO_ALL (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
 

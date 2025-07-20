@@ -1,4 +1,4 @@
-#include <hamlib/rotator.h>
+#include "hamlib/rotator.h"
 #include <pthread.h>
 #include "iofunc.h"
 #include "register.h"

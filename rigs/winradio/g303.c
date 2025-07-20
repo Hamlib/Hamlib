@@ -19,9 +19,9 @@
  *
  */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "winradio.h"
 
 

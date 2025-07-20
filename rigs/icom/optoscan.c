@@ -19,7 +19,7 @@
  *
  */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>

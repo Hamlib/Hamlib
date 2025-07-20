@@ -25,7 +25,7 @@
  */
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -69,7 +69,7 @@
 #  endif
 #endif
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "rigctl_parse.h"
 #include "riglist.h"
 #include "sleep.h"

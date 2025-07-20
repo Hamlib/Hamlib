@@ -5,7 +5,7 @@
 
 #if defined(WIN32) && defined(HAVE_WINDOWS_H)
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include <windows.h>
 
 #define PIPE_BUFFER_SIZE_DEFAULT 65536

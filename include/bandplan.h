@@ -22,7 +22,7 @@
 #ifndef _BANDPLAN_H
 #define _BANDPLAN_H 1
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 /*
  * This header file is internal to Hamlib and its backends,

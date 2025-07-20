@@ -23,7 +23,7 @@
 #define _TONES_H 1
 
 
-#include <hamlib/rig.h>     /* and implicitly rig_dll.h */
+#include "hamlib/rig.h"     /* and implicitly rig_dll.h */
 
 
 /*

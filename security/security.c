@@ -17,7 +17,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #ifdef _WIN32
 #include <windows.h>
 //#include <Wincrypt.h>

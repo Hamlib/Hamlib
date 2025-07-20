@@ -19,9 +19,9 @@
  *
  */
 
-#include <hamlib/rig.h>
-#include <misc.h>
-#include <iofunc.h>
+#include "hamlib/rig.h"
+#include "misc.h"
+#include "iofunc.h"
 
 // char* to start of checksum for len bytes
 static unsigned int checksum(const unsigned char *buf, int len)

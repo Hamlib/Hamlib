@@ -22,7 +22,7 @@
 #ifndef _TENTEC2_H
 #define _TENTEC2_H 1
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 // The include order will determine which BACKEND_VER is used
 // tentec.h may also be included and the last include is the BACKEND_VER used

@@ -32,7 +32,7 @@
  * \brief Event handling
  */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -43,7 +43,7 @@
 #  include <pthread.h>
 #endif
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "hamlib/rig_state.h"
 #include "event.h"
 #include "misc.h"

@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "iofunc.h"
 
 static int ar3k_set_freq(RIG *rig, vfo_t vfo, freq_t freq);

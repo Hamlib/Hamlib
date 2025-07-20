@@ -22,8 +22,8 @@
 
 #include "indi_wrapper.h"
 
-#include <hamlib/rotator.h>
-#include <register.h>
+#include "hamlib/rotator.h"
+#include "register.h"
 
 const struct rot_caps indi_rot_caps =
 {

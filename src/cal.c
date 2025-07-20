@@ -30,9 +30,9 @@
  * \brief Calibration routines.
  */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "cal.h"
 
 /* add rig_set_cal(cal_table), rig_get_calstat(rawmin,rawmax,cal_table), */

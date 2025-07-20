@@ -23,7 +23,7 @@
 #ifndef _CM108_H
 #define _CM108_H 1
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "iofunc.h"
 
 

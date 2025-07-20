@@ -7,9 +7,9 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 int nrigs = 0;
 

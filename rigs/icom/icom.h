@@ -24,7 +24,7 @@
 
 #include <stddef.h>
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #include "hamlib/rig.h"
 #include "cal.h"

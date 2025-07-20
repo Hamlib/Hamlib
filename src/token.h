@@ -34,7 +34,7 @@
 
 #define _TOKEN_H 1
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 /** \brief Create a backend token, \a t */
 #define TOKEN_BACKEND(t) (t)

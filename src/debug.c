@@ -30,7 +30,7 @@
  * \brief Control Hamlib debugging functions.
  */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #include <stdarg.h>
 #include <stdio.h>  /* Standard input/output definitions */
@@ -41,8 +41,8 @@
 #  include <android/log.h>
 #endif
 
-#include <hamlib/rig.h>
-#include <hamlib/rig_dll.h>
+#include "hamlib/rig.h"
+#include "hamlib/rig_dll.h"
 #include "misc.h"
 
 /*! @} */

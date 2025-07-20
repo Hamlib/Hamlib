@@ -22,7 +22,7 @@
 #ifndef _ALINCO_H
 #define _ALINCO_H 1
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 #define BACKEND_VER "20200323"
 

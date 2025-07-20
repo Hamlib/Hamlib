@@ -1,7 +1,7 @@
 /* should work with simts2000 emulator */
 #include <stdio.h>
 #include <stdlib.h>
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #define PATH "/dev/pts/4"
 
 int

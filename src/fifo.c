@@ -1,4 +1,4 @@
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include <stdio.h>
 #include <ctype.h>
 #include "fifo.h"

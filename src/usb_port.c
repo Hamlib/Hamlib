@@ -31,14 +31,14 @@
  * doc todo: deal with defined(HAVE_LIBUSB)... quashing the doc process.
  */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
 #include <strings.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "hamlib/port.h"
 
 #ifdef HAVE_LIBUSB_H

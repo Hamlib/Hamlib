@@ -47,7 +47,7 @@
  * etc.
  */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -56,7 +56,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include <hamlib/rotator.h>
+#include "hamlib/rotator.h"
 #include "hamlib/port.h"
 #include "hamlib/rot_state.h"
 #include "serial.h"

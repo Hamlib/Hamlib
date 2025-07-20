@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <string.h>  /* String function definitions */
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "kenwood.h"
 #include "th.h"
 

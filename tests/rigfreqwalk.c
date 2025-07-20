@@ -8,9 +8,9 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #define HISTORYSIZE 10
 double history[HISTORYSIZE];

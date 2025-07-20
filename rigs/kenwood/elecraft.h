@@ -22,7 +22,7 @@
 #ifndef _ELECRAFT_H
 #define _ELECRAFT_H 1
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "token.h"
 
 /* The Elecraft Programmer's Reference details the extension level that

@@ -22,7 +22,7 @@
  *
  */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #define BACKEND_VER "20200112"
 

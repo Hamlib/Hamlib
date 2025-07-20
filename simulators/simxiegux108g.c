@@ -16,7 +16,7 @@ struct ip_mreq
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/time.h>
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "../src/misc.h"
 
 #define BUFSIZE 256

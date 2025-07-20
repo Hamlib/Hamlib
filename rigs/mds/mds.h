@@ -1,4 +1,4 @@
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 #define MDS_DATA_LEN 256
 #define MDS_RET_LEN 256

@@ -1,4 +1,4 @@
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #include "asyncpipe.h"
 

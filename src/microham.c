@@ -27,7 +27,7 @@
 // support socketpair().
 //
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #include <unistd.h>
 #include <stdio.h>

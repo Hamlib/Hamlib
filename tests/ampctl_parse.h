@@ -27,7 +27,7 @@
 #define AMPCTL_PARSE_H
 
 #include <stdio.h>
-#include <hamlib/amplifier.h>
+#include "hamlib/amplifier.h"
 
 /*
  * external prototype

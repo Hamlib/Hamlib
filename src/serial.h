@@ -22,7 +22,7 @@
 #ifndef _SERIAL_H
 #define _SERIAL_H 1
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "iofunc.h"
 
 __BEGIN_DECLS

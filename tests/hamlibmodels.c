@@ -1,7 +1,7 @@
 /* Example showing host to list all models */
 #include <stdio.h>
 #include <stdlib.h>
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 char *list[1000]; // as of 2023-01-17 we have 275 rigs so this should cover us for long time
 

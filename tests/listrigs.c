@@ -24,7 +24,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 
 int print_caps_sum(const struct rig_caps *caps, void *data)

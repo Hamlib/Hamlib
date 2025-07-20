@@ -32,7 +32,7 @@
  * \file serial.c
  */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #include <stdlib.h>
 #include <stdio.h>   /* Standard input/output definitions */
@@ -62,7 +62,7 @@
 #  endif
 #endif
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "hamlib/port.h"
 
 //! @cond Doxygen_Suppress

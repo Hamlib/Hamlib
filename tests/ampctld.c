@@ -22,7 +22,7 @@
  *
  */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -58,7 +58,7 @@
 #  include <pthread.h>
 #endif
 
-#include <hamlib/amplifier.h>
+#include "hamlib/amplifier.h"
 
 #include "ampctl_parse.h"
 #include "amplist.h"

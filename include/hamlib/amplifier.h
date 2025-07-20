@@ -23,8 +23,8 @@
 #ifndef _AMPLIFIER_H
 #define _AMPLIFIER_H 1
 
-#include <hamlib/rig.h>
-#include <hamlib/amplist.h>
+#include "hamlib/rig.h"
+#include "hamlib/amplist.h"
 
 /**
  * \addtogroup amplifier
@@ -271,7 +271,7 @@ struct amp_caps
 
 __END_DECLS
 
-#include <hamlib/amp_state.h>
+#include "hamlib/amp_state.h"
 
 __BEGIN_DECLS
 

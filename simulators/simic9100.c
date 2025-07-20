@@ -9,7 +9,7 @@ struct ip_mreq
     int dummy;
 };
 #endif
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

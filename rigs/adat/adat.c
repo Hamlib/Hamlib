@@ -34,7 +34,7 @@
 //    HAMLIB INCLUDES
 // ---------------------------------------------------------------------------
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "serial.h"
 #include "misc.h"
 #include "register.h"

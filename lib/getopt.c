@@ -22,7 +22,7 @@
 */
 /* NOTE!!!  AIX requires this to be the first thing in the file.
    Do not put ANYTHING before it!  */
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #if !__STDC__ && !defined(const) && IN_GCC
 #define const

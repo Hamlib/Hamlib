@@ -25,10 +25,10 @@
 #include <string.h>             /* String function definitions */
 #include <math.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "iofunc.h"
-#include <misc.h>
-#include <token.h>
+#include "misc.h"
+#include "token.h"
 
 #include "dummy_common.h"
 #include "flrig.h"

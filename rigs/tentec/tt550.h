@@ -22,7 +22,7 @@
 #ifndef _TT550_H
 #define _TT550_H 1
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 
 #define EOM "\015"		/* CR */

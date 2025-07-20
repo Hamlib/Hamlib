@@ -25,7 +25,7 @@
 #ifndef _EK89X_H
 #define _EK89X_H 1
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 
 int ek89x_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);

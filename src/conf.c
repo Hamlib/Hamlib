@@ -30,14 +30,14 @@
  *
  */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #include <stdlib.h>
 #include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
 #include <strings.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "hamlib/port.h"
 #include "hamlib/rig_state.h"
 #include "token.h"

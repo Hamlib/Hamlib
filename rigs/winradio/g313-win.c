@@ -19,7 +19,7 @@
 
 #include <stdlib.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "winradio.h"
 
 #define G313_FUNC  RIG_FUNC_NONE
