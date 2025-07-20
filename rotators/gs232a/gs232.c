@@ -26,7 +26,7 @@
 
 #include "hamlib/rotator.h"
 #include "hamlib/port.h"
-#include "serial.h"
+#include "iofunc.h"
 
 #define EOM "\r"
 #define REPLY_EOM "\r"

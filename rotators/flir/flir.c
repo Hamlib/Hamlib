@@ -31,7 +31,7 @@
 #include "hamlib/rot_state.h"
 #include "register.h"
 #include "idx_builtin.h"
-#include "serial.h"
+#include "iofunc.h"
 
 #include "flir.h"
 

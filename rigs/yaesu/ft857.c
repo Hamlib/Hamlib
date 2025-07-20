@@ -58,7 +58,7 @@
 #endif
 
 #include "hamlib/rig.h"
-#include "serial.h"
+#include "iofunc.h"
 #include "yaesu.h"
 #include "ft857.h"
 #include "ft817.h" /* We use functions from the 817 code */

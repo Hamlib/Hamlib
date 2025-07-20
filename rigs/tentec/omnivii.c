@@ -25,7 +25,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include <serial.h>
+#include "iofunc.h"
 #include <hamlib/rig.h>
 #include "tentec2.h"
 #include "bandplan.h"

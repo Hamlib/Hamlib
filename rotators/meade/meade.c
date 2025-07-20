@@ -30,7 +30,7 @@
 #include "hamlib/rot_state.h"
 #include <num_stdio.h>
 
-#include "serial.h"
+#include "iofunc.h"
 #include "register.h"
 
 #include "meade.h"

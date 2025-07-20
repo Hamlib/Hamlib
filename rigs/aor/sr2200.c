@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <hamlib/rig.h>
-#include "serial.h"
+#include "iofunc.h"
 #include "aor.h"
 
 #define SR2200_MODES (RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_WFM)

@@ -25,7 +25,7 @@
 #include <math.h>
 
 #include "hamlib/rig.h"
-#include "serial.h"
+#include "iofunc.h"
 #include "register.h"
 
 #include "tentec.h"

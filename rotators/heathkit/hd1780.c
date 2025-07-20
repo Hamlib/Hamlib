@@ -34,7 +34,7 @@
 #include "hamlib/rotator.h"
 #include "hamlib/port.h"
 #include "hamlib/rot_state.h"
-#include "serial.h"
+#include "iofunc.h"
 #include "register.h"
 
 #include "hd1780.h"

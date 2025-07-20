@@ -27,7 +27,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "serial.h"
+#include "iofunc.h"
 #include "elecraft.h"
 #include "kenwood.h"
 #include "misc.h"

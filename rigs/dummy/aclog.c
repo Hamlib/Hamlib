@@ -25,7 +25,7 @@
 #include <string.h>
 
 #include <hamlib/rig.h>
-#include <serial.h>
+#include "iofunc.h"
 #include <misc.h>
 
 #define DEBUG 1

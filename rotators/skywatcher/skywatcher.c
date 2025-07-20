@@ -24,7 +24,7 @@
 #include "hamlib/port.h"
 #include "hamlib/rot_state.h"
 #include "register.h"
-#include "serial.h"
+#include "iofunc.h"
 
 #define SKYWATCHER_ERROR_CODES_LENGTH 9
 #define ERROR_CHECK(x)           \

@@ -67,7 +67,7 @@
 #include "network.h"
 #include "rot_conf.h"
 #include "token.h"
-#include "serial.h"
+#include "iofunc.h"
 
 
 #ifndef DOC_HIDDEN

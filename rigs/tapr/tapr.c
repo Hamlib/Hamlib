@@ -21,7 +21,7 @@
 
 #include "hamlib/rig.h"
 #include "register.h"
-#include "serial.h"
+#include "iofunc.h"
 
 #include "tapr.h"
 

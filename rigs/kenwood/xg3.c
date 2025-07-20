@@ -28,7 +28,7 @@
 #include <string.h>
 
 #include <hamlib/rig.h>
-#include "serial.h"
+#include "iofunc.h"
 #include "kenwood.h"
 #include "elecraft.h"
 

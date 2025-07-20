@@ -88,7 +88,7 @@
 #include <sys/time.h> /* for timeofday call */
 
 #include "hamlib/rig.h"
-#include "serial.h"
+#include "iofunc.h"
 #include "misc.h"
 #include "yaesu.h"
 #include "ft980.h"
