@@ -26,7 +26,7 @@
 #include <math.h>
 
 #include "hamlib/rig.h"
-#include "serial.h"
+#include "iofunc.h"
 #include "misc.h"
 #include "cal.h"
 #include "register.h"

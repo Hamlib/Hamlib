@@ -27,7 +27,7 @@
 #include <hamlib/rig.h>
 #include "idx_builtin.h"
 #include "alinco.h"
-#include <serial.h>
+#include "iofunc.h"
 #include "tones.h"
 #include <misc.h>
 

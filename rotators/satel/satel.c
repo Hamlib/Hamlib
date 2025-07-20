@@ -28,7 +28,7 @@
 #include <stdbool.h>
 
 #include "hamlib/rotator.h"
-#include "serial.h"
+#include "iofunc.h"
 #include "register.h"
 
 #include "satel.h"

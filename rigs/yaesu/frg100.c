@@ -25,7 +25,7 @@
 #include <string.h>  /* String function definitions */
 
 #include "hamlib/rig.h"
-#include "serial.h"
+#include "iofunc.h"
 #include "misc.h"
 #include "yaesu.h"
 #include "frg100.h"

@@ -39,7 +39,7 @@
 #include "hamlib/rig.h"
 #include "misc.h"
 
-#include "serial.h"
+#include "iofunc.h"
 #include "token.h"
 
 #include "register.h"

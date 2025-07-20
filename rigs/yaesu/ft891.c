@@ -32,7 +32,7 @@
 #include <string.h>
 #include "hamlib/rig.h"
 #include "bandplan.h"
-#include "serial.h"
+#include "iofunc.h"
 #include "newcat.h"
 #include "yaesu.h"
 #include "ft891.h"

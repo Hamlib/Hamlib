@@ -28,7 +28,7 @@
 #include <ctype.h>   /* character class tests */
 
 #include "hamlib/rig.h"
-#include "serial.h"
+#include "iofunc.h"
 #include "misc.h"
 
 #include "kenwood.h"

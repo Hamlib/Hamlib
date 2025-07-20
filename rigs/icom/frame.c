@@ -28,7 +28,7 @@
 #endif
 
 #include "hamlib/rig.h"
-#include "serial.h"
+#include "iofunc.h"
 #include "misc.h"
 #include "icom.h"
 #include "icom_defs.h"

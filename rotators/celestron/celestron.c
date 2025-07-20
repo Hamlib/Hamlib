@@ -24,7 +24,7 @@
 
 #include "hamlib/rotator.h"
 #include "hamlib/port.h"
-#include "serial.h"
+#include "iofunc.h"
 #include "register.h"
 
 #include "celestron.h"

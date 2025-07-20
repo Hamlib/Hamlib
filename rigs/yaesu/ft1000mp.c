@@ -36,7 +36,7 @@
 
 #include "hamlib/rig.h"
 #include "bandplan.h"
-#include "serial.h"
+#include "iofunc.h"
 #include "misc.h"
 #include "cache.h"
 #include "yaesu.h"
