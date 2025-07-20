@@ -22,7 +22,7 @@
 #ifndef _RS_H
 #define _RS_H 1
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 #define BACKEND_VER "20090803"
 

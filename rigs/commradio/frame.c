@@ -5,7 +5,7 @@
 
 #include <stdint.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 #include "frame.h"
 

@@ -24,7 +24,7 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -61,7 +61,7 @@ extern int read_history();
 #endif                              /* HAVE_READLINE_HISTORY */
 
 
-#include <hamlib/amplifier.h>
+#include "hamlib/amplifier.h"
 
 #include "ampctl_parse.h"
 #include "amplist.h"

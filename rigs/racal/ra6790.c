@@ -19,7 +19,7 @@
  *
  */
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 #include "racal.h"
 

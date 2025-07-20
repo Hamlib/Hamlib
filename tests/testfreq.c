@@ -4,11 +4,11 @@
  * This is mainly to test kHz, MHz, GHz macros and int64_t support.
  */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "misc.h"
 
 

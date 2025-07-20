@@ -22,7 +22,7 @@
 #ifndef _EVENT_H
 #define _EVENT_H 1
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 int rig_poll_routine_start(RIG *rig);
 int rig_poll_routine_stop(RIG *rig);

@@ -39,11 +39,11 @@
  * This Hamlib interface is a frontend implementing wrapper functions.
  */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "hamlib/amp_state.h"
-#include <hamlib/amplifier.h>
+#include "hamlib/amplifier.h"
 
 
 /**

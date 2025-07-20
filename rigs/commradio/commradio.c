@@ -6,8 +6,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include <hamlib/rig.h>
-#include <register.h>
+#include "hamlib/rig.h"
+#include "register.h"
 #include "iofunc.h"
 
 #include "misc.h"

@@ -22,7 +22,7 @@
 #ifndef _USB_PORT_H
 #define _USB_PORT_H 1
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "iofunc.h"
 
 __BEGIN_DECLS

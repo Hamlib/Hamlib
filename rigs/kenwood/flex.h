@@ -23,7 +23,7 @@
 #ifndef _FLEXRADIO_H
 #define _FLEXRADIO_H 1
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 #define EXT_LEVEL_NONE -1
 #define FLEXRADIO_MAX_BUF_LEN 50

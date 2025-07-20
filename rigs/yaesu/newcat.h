@@ -33,8 +33,8 @@
 #ifndef _NEWCAT_H
 #define _NEWCAT_H 1
 
-#include <tones.h>
-#include <token.h>
+#include "tones.h"
+#include "token.h"
 
 /* Handy constants */
 

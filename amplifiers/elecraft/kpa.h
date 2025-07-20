@@ -26,7 +26,7 @@
 #ifndef _AMP_ELECRAFT_H
 #define _AMP_ELECRAFT_H 1
 
-#include <hamlib/amplifier.h>
+#include "hamlib/amplifier.h"
 
 // Is this big enough?
 #define KPABUFSZ 100

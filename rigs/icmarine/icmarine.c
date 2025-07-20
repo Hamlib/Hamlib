@@ -23,10 +23,10 @@
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "iofunc.h"
-#include <token.h>
-#include <register.h>
+#include "token.h"
+#include "register.h"
 
 #include "icmarine.h"
 

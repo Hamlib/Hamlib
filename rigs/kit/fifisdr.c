@@ -22,7 +22,7 @@
  *
  */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #ifdef HAVE_STDINT_H
 #include <stdint.h>

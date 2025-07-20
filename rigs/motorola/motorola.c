@@ -20,7 +20,7 @@
  */
 
 #include "motorola.h"
-#include <register.h>
+#include "register.h"
 
 DECLARE_INITRIG_BACKEND(motorola)
 {

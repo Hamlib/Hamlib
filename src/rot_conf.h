@@ -22,7 +22,7 @@
 #ifndef _ROT_CONF_H
 #define _ROT_CONF_H 1
 
-#include <hamlib/rotator.h>
+#include "hamlib/rotator.h"
 
 int frontrot_set_conf(ROT *rot, hamlib_token_t token, const char *val);
 int frontrot_get_conf(ROT *rot, hamlib_token_t token, char *val, int val_len);

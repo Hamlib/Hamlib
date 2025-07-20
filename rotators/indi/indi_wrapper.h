@@ -22,7 +22,7 @@
 #ifndef _INDI_WRAPPER_H
 #define _INDI_WRAPPER_H 1
 
-#include <hamlib/rotator.h>
+#include "hamlib/rotator.h"
 
 int indi_wrapper_set_position(ROT *rot, azimuth_t az, elevation_t el);
 int indi_wrapper_get_position(ROT *rot, azimuth_t *az, elevation_t *el);

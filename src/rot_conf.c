@@ -31,13 +31,13 @@
  * \file rot_conf.c
  */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #include <stdlib.h>
 #include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
 
-#include <hamlib/rotator.h>
+#include "hamlib/rotator.h"
 #include "hamlib/port.h"
 #include "hamlib/rot_state.h"
 

@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 // we have a const *char HAMLIB_CHECK_RIG_CAPS defined in most backends
 // if the structure ever changes it will produce an error during rig_init

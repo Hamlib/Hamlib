@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "misc.h"
 #include "riglist.h"
 #include "sprintflst.h"

@@ -27,7 +27,7 @@
 #undef BACKEND_VER
 #define BACKEND_VER "20210901"
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 
 int gp2000_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);

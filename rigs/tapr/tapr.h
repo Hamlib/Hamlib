@@ -22,7 +22,7 @@
 #ifndef _TAPR_H
 #define _TAPR_H 1
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 
 int tapr_set_freq(RIG *rig, vfo_t vfo, freq_t freq);

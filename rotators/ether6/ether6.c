@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
 
-#include <hamlib/rotator.h>
+#include "hamlib/rotator.h"
 #include "hamlib/rot_state.h"
 #include "iofunc.h"
 #include "register.h"

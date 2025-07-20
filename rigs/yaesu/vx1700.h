@@ -31,7 +31,7 @@
 #ifndef _VX1700_H
 #define _VX1700_H 1
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 #define	VX1700_MIN_CHANNEL	1
 #define	VX1700_MAX_CHANNEL	200

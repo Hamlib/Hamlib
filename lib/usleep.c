@@ -16,7 +16,7 @@ This file is part of the GNU C Library.
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #ifndef HAVE_USLEEP
 

@@ -22,7 +22,7 @@
 #ifndef _NETWORK_H
 #define _NETWORK_H 1
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "iofunc.h"
 
 __BEGIN_DECLS

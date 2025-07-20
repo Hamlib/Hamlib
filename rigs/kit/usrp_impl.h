@@ -22,8 +22,8 @@
 #ifndef _USRP_IMPL_H
 #define _USRP_IMPL_H 1
 
-#include <hamlib/rig.h>
-#include <token.h>
+#include "hamlib/rig.h"
+#include "token.h"
 
 __BEGIN_DECLS
 

@@ -22,7 +22,7 @@
 #ifndef _RIGCLASS_H
 #define _RIGCLASS_H 1
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include <iostream>
 
 

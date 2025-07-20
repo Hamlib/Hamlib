@@ -22,7 +22,7 @@
 #ifndef _KACHINA_H
 #define _KACHINA_H 1
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 #define BACKEND_VER "20240420"
 

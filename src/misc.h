@@ -23,8 +23,8 @@
 #ifndef _MISC_H
 #define _MISC_H 1
 
-#include <hamlib/rig.h>
-#include <hamlib/config.h>
+#include "hamlib/rig.h"
+#include "hamlib/config.h"
 
 
 /*

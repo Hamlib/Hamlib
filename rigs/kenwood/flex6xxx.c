@@ -28,7 +28,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "kenwood.h"
 #include "bandplan.h"
 #include "misc.h"

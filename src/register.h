@@ -22,10 +22,10 @@
 #define _REGISTER_H 1
 
 
-#include <hamlib/rig.h>
-#include <hamlib/rotator.h>
-#include <hamlib/amplifier.h>
-#include <hamlib/config.h>
+#include "hamlib/rig.h"
+#include "hamlib/rotator.h"
+#include "hamlib/amplifier.h"
+#include "hamlib/config.h"
 
 #ifdef __cplusplus
 #define EXTERN_C extern "C"

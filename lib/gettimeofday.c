@@ -1,5 +1,5 @@
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #ifdef HAVE_WINDOWS_H
 #include <windows.h>

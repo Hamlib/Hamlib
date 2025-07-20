@@ -1,7 +1,7 @@
 // Example of rig_get_rig_info
 // gcc -o simple simple.s -lhamlib
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 int main(int argc, char *argv[])
 {

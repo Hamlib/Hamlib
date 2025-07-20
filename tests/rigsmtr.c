@@ -27,8 +27,8 @@
 
 #include <getopt.h>
 
-#include <hamlib/rig.h>
-#include <hamlib/rotator.h>
+#include "hamlib/rig.h"
+#include "hamlib/rotator.h"
 #include "misc.h"
 #include "riglist.h"
 #include "rotlist.h"

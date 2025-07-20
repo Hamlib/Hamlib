@@ -23,7 +23,7 @@
 #include <string.h>
 #include <math.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "kenwood.h"
 #include "cal.h"
 #include "misc.h"

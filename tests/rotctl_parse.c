@@ -24,7 +24,7 @@
  *
  */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -59,7 +59,7 @@ extern int read_history();
 /* no history */
 #endif                              /* HAVE_READLINE_HISTORY */
 
-#include <hamlib/rotator.h>
+#include "hamlib/rotator.h"
 #include "iofunc.h"
 #include "misc.h"
 #include "dumpcaps_rot.h"

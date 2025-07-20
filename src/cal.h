@@ -22,7 +22,7 @@
 #ifndef _CAL_H
 #define _CAL_H 1
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 extern HAMLIB_EXPORT(float) rig_raw2val(int rawval, const cal_table_t *cal);
 extern HAMLIB_EXPORT(float) rig_raw2val_float(int rawval, const cal_table_float_t *cal);

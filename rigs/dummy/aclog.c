@@ -24,9 +24,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "iofunc.h"
-#include <misc.h>
+#include "misc.h"
 
 #define DEBUG 1
 #define DEBUG_TRACE DEBUG_VERBOSE

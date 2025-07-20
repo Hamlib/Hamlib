@@ -27,14 +27,14 @@
  * doc todo: Let's explain what's going on here!
  */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
-#include <hamlib/rotator.h>
+#include "hamlib/rotator.h"
 
 #include "register.h"
 

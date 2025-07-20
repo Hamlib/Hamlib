@@ -40,12 +40,12 @@
  * `amplifiers/elecraft/kpa.c` for an example.
  */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
 
-#include <hamlib/amplifier.h>
+#include "hamlib/amplifier.h"
 
 #include "token.h"
 

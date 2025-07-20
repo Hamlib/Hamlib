@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 int main(int argc, char *argv[])
 {

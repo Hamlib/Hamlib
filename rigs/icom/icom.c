@@ -28,11 +28,11 @@
 // cppcheck-suppress *
 #include <math.h>
 
-#include <hamlib/rig.h>
-#include <serial.h>
+#include "hamlib/rig.h"
+#include "serial.h"
 #include <cal.h>
-#include <token.h>
-#include <register.h>
+#include "token.h"
+#include "register.h"
 
 #include "icom.h"
 #include "icom_defs.h"

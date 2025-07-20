@@ -25,7 +25,7 @@
 #include <string.h>     /* String function definitions */
 #include <unistd.h>     /* UNIX standard function definitions */
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "iofunc.h"
 #include "misc.h"
 

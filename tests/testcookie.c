@@ -1,4 +1,4 @@
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 // GET tests
 static int test1()

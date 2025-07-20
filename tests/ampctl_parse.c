@@ -25,7 +25,7 @@
  *
  */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -61,7 +61,7 @@ extern int read_history();
 /* no history */
 #endif                              /* HAVE_READLINE_HISTORY */
 
-#include <hamlib/amplifier.h>
+#include "hamlib/amplifier.h"
 #include "amplist.h"
 #include "iofunc.h"
 #include "misc.h"

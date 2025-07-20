@@ -22,7 +22,7 @@
 #ifndef _DRAKE_H
 #define _DRAKE_H 1
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 #define BACKEND_VER "20200319"
 

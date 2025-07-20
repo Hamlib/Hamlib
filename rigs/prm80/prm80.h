@@ -23,7 +23,7 @@
 #define _PRM80_H 1
 
 #include <sys/time.h>
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 #define BACKEND_VER "20231002.0"
 

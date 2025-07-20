@@ -24,12 +24,12 @@
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "idx_builtin.h"
 #include "alinco.h"
 #include "iofunc.h"
 #include "tones.h"
-#include <misc.h>
+#include "misc.h"
 
 /*
  * modes in use by the "2G" command

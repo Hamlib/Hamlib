@@ -32,14 +32,14 @@
  *
  */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <sys/stat.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "hamlib/rig_state.h"
 
 #ifndef DOC_HIDDEN

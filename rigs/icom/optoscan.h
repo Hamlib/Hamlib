@@ -22,7 +22,7 @@
 #ifndef _OPTOSCAN_H
 #define _OPTOSCAN_H 1
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 #include "icom_defs.h"
 

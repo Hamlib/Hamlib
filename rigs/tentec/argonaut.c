@@ -21,7 +21,7 @@
 
 #include <stdlib.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "tentec2.h"
 #include "bandplan.h"
 #include "idx_builtin.h"

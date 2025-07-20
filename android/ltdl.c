@@ -17,7 +17,7 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 #include <ltdl.h>
 #include <dlfcn.h>
 #include <stdio.h>

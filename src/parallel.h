@@ -24,7 +24,7 @@
 #define _PARALLEL_H 1
 
 #include "config.h"
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 #ifdef HAVE_PARALLEL
 #ifdef HAVE_LINUX_PARPORT_H

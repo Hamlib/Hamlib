@@ -26,7 +26,7 @@
 #undef BACKEND_VER
 #define BACKEND_VER "20240921"
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 typedef enum {
     XK852_CMD_ADDRESS = 'A',

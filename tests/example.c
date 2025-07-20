@@ -10,12 +10,12 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <hamlib/rig.h>
-#include <hamlib/port.h>
-#include <hamlib/rig_state.h>
-#include <hamlib/riglist.h>
+#include "hamlib/rig.h"
+#include "hamlib/port.h"
+#include "hamlib/rig_state.h"
+#include "hamlib/riglist.h"
 #include "sprintflst.h"
-#include <hamlib/rotator.h>
+#include "hamlib/rotator.h"
 
 #if 1
 #define MODEL RIG_MODEL_DUMMY

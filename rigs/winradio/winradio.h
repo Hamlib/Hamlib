@@ -33,7 +33,7 @@
 #define WINRADIO_IOCTL
 #endif
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 int wr_rig_init(RIG *rig);
 int wr_set_freq(RIG *rig, vfo_t vfo, freq_t freq);

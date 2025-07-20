@@ -26,15 +26,15 @@
  * doc todo: Let's explain what's going on here!
  */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
-#include <register.h>
+#include "register.h"
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "misc.h"
 
 //! @cond Doxygen_Suppress

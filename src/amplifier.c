@@ -49,7 +49,7 @@
  * CAT type control.
  */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -57,7 +57,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 
-#include <hamlib/amplifier.h>
+#include "hamlib/amplifier.h"
 #include "hamlib/port.h"
 #include "hamlib/amp_state.h"
 #include "serial.h"

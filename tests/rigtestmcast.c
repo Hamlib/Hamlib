@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 #define TEST
 #ifdef TEST

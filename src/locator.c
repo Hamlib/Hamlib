@@ -76,7 +76,7 @@
  */
 
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -84,7 +84,7 @@
 #include <math.h>
 
 
-#include <hamlib/rotator.h>
+#include "hamlib/rotator.h"
 
 
 /** \brief Standard definition of a radian. */

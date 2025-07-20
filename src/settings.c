@@ -33,7 +33,7 @@
  *
  */
 
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -41,7 +41,7 @@
 #include <errno.h>   /* Error number definitions */
 #include <unistd.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "hamlib/rig_state.h"
 #include "cal.h"
 #include "misc.h"
@@ -1002,7 +1002,7 @@ int HAMLIB_API rig_setting2idx(setting_t s)
 #include <unistd.h>  /* UNIX standard function definitions */
 
 #if 0
-#include <hamlib/config.h>
+#include "hamlib/config.h"
 
 #include <stdlib.h>
 #include <stdarg.h>
@@ -1019,7 +1019,7 @@ int HAMLIB_API rig_setting2idx(setting_t s)
 
 #include <math.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #endif
 
 

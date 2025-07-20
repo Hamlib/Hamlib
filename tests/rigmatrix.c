@@ -29,7 +29,7 @@
 #include <gdfontg.h>
 #include <gdfonts.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "misc.h"
 
 static setting_t bitmap_func, bitmap_level, bitmap_parm, bitmap_vfo_ops;
