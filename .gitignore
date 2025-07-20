@@ -1,4 +1,3 @@
-# .gitignore
 # .gitignore for Hamlib
 $depbase.Tpo
 *.exe
@@ -24,8 +23,10 @@ __pycache__
 aclocal.m4
 autom4te.cache/
 bindings/Hamlib.py
-bindings/hamlibpy_wrap.c
+bindings/hamlib*_wrap.c
 bindings/hamlibvb.bas
+bindings/pkgIndex.tcl
+bindings/tcltest.tcl
 build-aux/
 build/
 compile
@@ -39,6 +40,8 @@ depcomp
 doc/hamlib.cfg
 doc/hamlib.html
 doc/hamlib.info
+doc/html/
+doc/man*/*.html
 doc/stamp-vti
 doc/version.texi
 hamlib-*.tar.gz
@@ -62,7 +65,10 @@ macros/pkg.m4
 missing
 obj/
 py-compile
+scripts/build-w32.sh.*
+scripts/build-w64.sh.*
 src/hamlibdatetime.h
+src/libhamlib.def
 tests/ampctl
 tests/ampctld
 tests/rigctl
