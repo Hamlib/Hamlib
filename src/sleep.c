@@ -36,7 +36,6 @@
  *
  */
 #include <unistd.h>
-#include <errno.h>
 #include <pthread.h>
 #include "hamlib/config.h"
 #include "sleep.h"

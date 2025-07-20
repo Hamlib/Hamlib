@@ -39,7 +39,6 @@
  */
 #if defined(HAVE_LIBUSB) && (defined(HAVE_LIBUSB_H) || defined(HAVE_LIBUSB_1_0_LIBUSB_H))
 
-#include <errno.h>
 
 #ifdef HAVE_LIBUSB_H
 # include <libusb.h>
