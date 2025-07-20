@@ -8,7 +8,6 @@
 #include <unistd.h>
 
 #include <hamlib/rig.h>
-#include <serial.h>
 
 #include "frame.h"
 

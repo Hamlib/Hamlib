@@ -28,7 +28,6 @@
 
 #include <hamlib/amplifier.h>
 #include <iofunc.h>
-#include <serial.h>
 
 // Is this big enough?
 #define KPABUFSZ 100

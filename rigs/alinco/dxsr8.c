@@ -24,7 +24,6 @@
 #include <string.h>  /* String function definitions */
 
 #include <hamlib/rig.h>
-#include <serial.h>
 #include "tones.h"
 #include <misc.h>
 #include <iofunc.h>
