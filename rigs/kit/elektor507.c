@@ -148,7 +148,6 @@ struct elektor507_extra_priv_data
 #elif defined(USE_LIBUSB)
 
 
-#include <errno.h>
 
 #ifdef HAVE_LIBUSB_H
 # include <libusb.h>
