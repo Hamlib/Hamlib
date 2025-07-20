@@ -22,7 +22,6 @@
 #ifndef _IOFUNC_H
 #define _IOFUNC_H 1
  
-#include <sys/types.h>
 #include <hamlib/rig.h>
 
 extern HAMLIB_EXPORT(int) port_open(hamlib_port_t *p);

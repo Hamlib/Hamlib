@@ -38,7 +38,6 @@
 #include <hamlib/config.h>
 
 #include <stdio.h>
-#include <sys/types.h>
 #include <sys/stat.h>
 
 #include <hamlib/rig.h>
