@@ -16,12 +16,103 @@ class TestClass:
 
     def test_callables(self):
         """Check that nothing was added or removed"""
-        expected_callables = ['close', 'ext_token_lookup', 'get_ant', 'get_chan_all', 'get_channel', 'get_conf', 'get_ctcss_sql', 'get_ctcss_tone', 'get_dcd', 'get_dcs_code', 'get_dcs_sql', 'get_ext_func', 'get_ext_level', 'get_ext_parm', 'get_freq', 'get_func', 'get_info', 'get_level', 'get_level_f', 'get_level_i', 'get_mem', 'get_mode', 'get_parm', 'get_parm_f', 'get_parm_i', 'get_powerstat', 'get_ptt', 'get_rit', 'get_rptr_offs', 'get_rptr_shift', 'get_split_freq', 'get_split_mode', 'get_split_vfo', 'get_trn', 'get_ts', 'get_vfo', 'get_vfo_info', 'get_xit', 'has_get_level', 'has_scan', 'has_set_func', 'has_set_parm', 'has_vfo_op', 'lookup_mem_caps', 'mem_count', 'open', 'passband_narrow', 'passband_normal', 'passband_wide', 'recv_dtmf', 'reset', 'scan', 'send_dtmf', 'send_morse', 'set_ant', 'set_bank', 'set_channel', 'set_conf', 'set_ctcss_sql', 'set_ctcss_tone', 'set_dcs_code', 'set_dcs_sql', 'set_ext_func', 'set_ext_level', 'set_ext_parm', 'set_freq', 'set_func', 'set_level', 'set_mem', 'set_mode', 'set_parm', 'set_powerstat', 'set_ptt', 'set_rit', 'set_rptr_offs', 'set_rptr_shift', 'set_split_freq', 'set_split_freq_mode', 'set_split_mode', 'set_split_vfo', 'set_trn', 'set_ts', 'set_vfo', 'set_vfo_opt', 'set_xit', 'token_lookup', 'vfo_op']
+        expected_callables = ['close',
+'ext_token_lookup',
+'get_ant',
+'get_chan_all',
+'get_channel',
+'get_conf',
+'get_ctcss_sql',
+'get_ctcss_tone',
+'get_dcd',
+'get_dcs_code',
+'get_dcs_sql',
+'get_ext_func',
+'get_ext_level',
+'get_ext_parm',
+'get_freq',
+'get_func',
+'get_info',
+'get_level',
+'get_level_f',
+'get_level_i',
+'get_mem',
+'get_mode',
+'get_parm',
+'get_parm_f',
+'get_parm_i',
+'get_powerstat',
+'get_ptt',
+'get_rit',
+'get_rptr_offs',
+'get_rptr_shift',
+'get_split_freq',
+'get_split_mode',
+'get_split_vfo',
+'get_trn',
+'get_ts',
+'get_vfo',
+'get_vfo_info',
+'get_xit',
+'has_get_level',
+'has_scan',
+'has_set_func',
+'has_set_parm',
+'has_vfo_op',
+'lookup_mem_caps',
+'mem_count',
+'open',
+'passband_narrow',
+'passband_normal',
+'passband_wide',
+'recv_dtmf',
+'reset',
+'scan',
+'send_dtmf',
+'send_morse',
+'set_ant',
+'set_bank',
+'set_channel',
+'set_conf',
+'set_ctcss_sql',
+'set_ctcss_tone',
+'set_dcs_code',
+'set_dcs_sql',
+'set_ext_func',
+'set_ext_level',
+'set_ext_parm',
+'set_freq',
+'set_func',
+'set_level',
+'set_mem',
+'set_mode',
+'set_parm',
+'set_powerstat',
+'set_ptt',
+'set_rit',
+'set_rptr_offs',
+'set_rptr_shift',
+'set_split_freq',
+'set_split_freq_mode',
+'set_split_mode',
+'set_split_vfo',
+'set_trn',
+'set_ts',
+'set_vfo',
+'set_vfo_opt',
+'set_xit',
+'token_lookup',
+'vfo_op']
         assert expected_callables == self.actual_callables
 
     def test_properties(self):
         """Check that nothing was added or removed"""
-        expected_properties = ['caps', 'do_exception', 'error_status', 'rig', 'state', 'thisown']
+        expected_properties = ['caps',
+'do_exception',
+'error_status',
+'rig',
+'state',
+'thisown']
         assert expected_properties == self.actual_properties
 
     @classmethod
@@ -36,4 +127,6 @@ class TestClass:
                 else:
                     properties.append(method_or_property)
 
+        callables.sort()
+        properties.sort()
         return callables, properties
