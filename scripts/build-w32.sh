@@ -74,8 +74,8 @@ cat > README.w32-bin <<END_OF_README
 What is it?
 ===========
 
-This ZIP archive or Windows installer contains a build of Hamlib-$RELEASE
-cross-compiled for MS Windows 32 bit using MinGW under Debian GNU/Linux 10
+This ZIP archive or Windows installer contains a build of Hamlib-${RELEASE}
+cross-compiled for MS Windows 32 bit using MinGW under Debian GNU/Linux 13
 (nice, heh!).
 
 This software is copyrighted. The library license is LGPL, and the *.EXE files
@@ -92,7 +92,21 @@ Installation and Configuration
 Extract the ZIP archive into a convenient location, C:\Program Files is a
 reasonable choice.
 
-Make sure *all* the .DLL files are in your PATH (leave them in the bin
+The archive directory structure is:
+
+hamlib-w32-4.7~git
+├── bin
+├── doc
+├── include
+│   └── hamlib
+└── lib
+    ├── gcc-mingw
+    └── msvc
+
+The 'bin' and 'doc' directories will be of interest to users while developers
+will be interested in the 'include' and 'lib' directories as well.
+
+Make sure *all* the .DLL files are in your PATH (leave them in the 'bin'
 directory and set the PATH).  To set the PATH environment variable in Windows
 2000, Windows XP, and Windows 7 (need info on Vista and Windows 8/10) do the
 following:
@@ -118,7 +132,7 @@ following:
    a semi-colon ';' after the last path before adding the Hamlib path (NB. The
    entire path is highlighted and will be erased upon typing a character so
    click in the box to unselect the text first.  The PATH is important!!)
-   Append the Hamlib path, e.g. C:\Program Files\hamlib-w32-$RELEASE\bin
+   Append the Hamlib path, e.g. C:\Program Files\hamlib-w32-${RELEASE}\bin
 
  * Click OK for all three dialog boxes to save your changes.
 
@@ -149,9 +163,9 @@ In short, the command syntax is of the form:
 
 To run rigctl or rotctl open a cmd window (Start|Run|enter 'cmd' in the
 dialog).  If text scrolls off the screen, you can scroll back with the mouse.
-To copy output text into a mailer or editor (I recommend Notepad++, a free
-editor also licensed under the GPL), highlight the text as a rectangle in the
-cmd window, press <Enter> (or right-click the window icon in the upper left
+To copy output text into a mailer or editor (Notepad++, a free editor also
+licensed under the GPL is recommended), highlight the text as a rectangle in
+the cmd window, press <Enter> (or right-click the window icon in the upper left
 corner and select Edit, then Copy), and paste it into your editor with Ctl-V
 (or Edit|Paste from the typical GUI menu).
 
@@ -221,7 +235,7 @@ Please report problems or success to hamlib-developer@lists.sourceforge.net
 
 Cheers,
 Stephane Fillod - F8CFE
-Mike Black - W9MDB
+Mike Black - W9MDB (SK)
 Nate Bargmann - N0NB
 http://www.hamlib.org
 
@@ -240,7 +254,7 @@ END_OF_README
 
 make -j 4 install
 
-mkdir -p ${ZIP_DIR}/bin ${ZIP_DIR}/lib/msvc ${ZIP_DIR}/lib/gcc ${ZIP_DIR}/include ${ZIP_DIR}/doc
+mkdir -p ${ZIP_DIR}/bin ${ZIP_DIR}/lib/msvc ${ZIP_DIR}/lib/gcc-mingw ${ZIP_DIR}/include ${ZIP_DIR}/doc
 cp -a src/libhamlib.def ${ZIP_DIR}/lib/msvc/libhamlib-4.def
 todos ${ZIP_DIR}/lib/msvc/libhamlib-4.def
 cp -a ${INST_DIR}/include/hamlib ${ZIP_DIR}/include/.
@@ -274,7 +288,7 @@ do
 done
 
 cp -a ${INST_DIR}/bin/libhamlib-?.dll ${ZIP_DIR}/bin/.
-cp -a ${INST_DIR}/lib/libhamlib.dll.a ${ZIP_DIR}/lib/gcc/.
+cp -a ${INST_DIR}/lib/libhamlib.dll.a ${ZIP_DIR}/lib/gcc-mingw/.
 
 # NB: Strip Hamlib DLLs and EXEs
 ${HOST_ARCH_STRIP} ${ZIP_DIR}/bin/*.exe ${ZIP_DIR}/bin/*hamlib-*.dll
@@ -318,7 +332,8 @@ then
     cp -a ${FILE} ${ZIP_DIR}/bin/.
 fi
 
-# Generate .lib file for MSVC
-${HOST_ARCH_DLLTOOL} --input-def ${ZIP_DIR}/lib/msvc/libhamlib-4.def --output-lib ${ZIP_DIR}/lib/msvc/libhamlib-4.lib
+# Generate .lib file for GCC on MinGW per Jonathan Yong from mingw-w64
+# https://sourceforge.net/p/mingw-w64/discussion/723798/thread/e23dceba20/?limit=25#51dd/3df2/3708/e62b
+${HOST_ARCH_DLLTOOL} --input-def ${ZIP_DIR}/lib/msvc/libhamlib-4.def --output-lib ${ZIP_DIR}/lib/gcc-mingw/libhamlib-4.lib
 
 /usr/bin/zip -r ${HL_FILENAME}.zip $(basename ${ZIP_DIR})
