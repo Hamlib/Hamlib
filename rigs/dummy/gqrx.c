@@ -554,8 +554,8 @@ static int gqrx_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s mode=%lu\n", __func__,
-              rig_strvfo(vfo), mode);
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s mode=%llu\n", __func__,
+              rig_strvfo(vfo), (long long unsigned int)mode);
 
     if (check_vfo(vfo) == FALSE)
     {
@@ -735,8 +735,8 @@ static int gqrx_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s level=%lu\n", __func__,
-              rig_strvfo(vfo), level);
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s level=%llu\n", __func__,
+              rig_strvfo(vfo), (long long unsigned int)level);
 
     if (check_vfo(vfo) == FALSE)
     {
