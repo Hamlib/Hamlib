@@ -1045,7 +1045,7 @@ int drake_set_chan(RIG *rig, vfo_t vfo, const channel_t *chan)
     char    mdbuf[16];
     char    ackbuf[BUFSZ];
     int     ack_len;
-    vfo_t   old_vfo;
+    vfo_t   old_vfo = RIG_VFO_A;
     int     old_chan;
     int     retval;
     value_t dummy;
@@ -1122,7 +1122,7 @@ int drake_set_chan(RIG *rig, vfo_t vfo, const channel_t *chan)
  */
 int drake_get_chan(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 {
-    vfo_t   old_vfo;
+    vfo_t   old_vfo = RIG_VFO_A;
     int     old_chan;
     int     retval;
     const struct drake_priv_data *priv = STATE(rig)->priv;
