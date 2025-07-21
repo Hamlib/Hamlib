@@ -9,6 +9,10 @@
 
 # See README.build-Windows for complete details.
 
+# running 'file' against the resulting .DLL should return the following or similar:
+# file libhamlib-4.dll
+# libhamlib-4.dll: PE32+ executable for MS Windows 5.02 (DLL), x86-64 (stripped to external PDB), 11 sections
+
 
 # Set this to a desired directory
 BUILD_DIR=~/builds
@@ -308,6 +312,13 @@ fi
 
 # Required for MinGW with GCC 12 (Debian 12)
 FILE="/usr/lib/gcc/i686-w64-mingw32/12-posix/libgcc_s_dw2-1.dll"
+if test -f "$FILE"
+then
+    cp -a ${FILE} ${ZIP_DIR}/bin/.
+fi
+
+# Required for MinGW with GCC 14 (Debian 13)
+FILE="/usr/lib/gcc/x86_64-w64-mingw32/14-posix/libgcc_s_seh-1.dll"
 if test -f "$FILE"
 then
     cp -a ${FILE} ${ZIP_DIR}/bin/.
