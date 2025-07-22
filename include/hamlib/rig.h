@@ -70,8 +70,8 @@
 #include <pthread.h>
 
 /* Rig list is in a separate file so as not to mess up w/ this one */
-#include "hamlib/riglist.h"
-//#include "hamlib/config.h"
+#include <hamlib/riglist.h>
+//#include <hamlib/config.h>
 
 /**
  * \addtogroup rig
@@ -122,7 +122,7 @@
 #endif
 //! @endcond
 
-#include "hamlib/rig_dll.h"
+#include <hamlib/rig_dll.h>
 
 #ifndef SWIGLUA
 //! @cond Doxygen_Suppress
@@ -2367,7 +2367,7 @@ typedef struct hamlib_async_pipe hamlib_async_pipe_t;
 #ifndef NO_OLD_INCLUDES
 __END_DECLS
 
-#include "hamlib/port.h"
+#include <hamlib/port.h>
 
 __BEGIN_DECLS
 #endif
@@ -2536,7 +2536,7 @@ struct rig_cache_deprecated {
  * \brief Multicast data items the are unique per rig instantiation
  * This is meant for internal Hamlib use only
  */
-#include "hamlib/multicast.h"
+#include <hamlib/multicast.h>
 struct multicast_s
 {
     int multicast_running;
@@ -2571,7 +2571,7 @@ typedef unsigned int rig_comm_status_t;
 
 __END_DECLS
 
-#include "hamlib/rig_state.h"
+#include <hamlib/rig_state.h>
 
 __BEGIN_DECLS
 
