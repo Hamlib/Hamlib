@@ -61,7 +61,7 @@ struct amp_state
    * non overridable fields, internal use
    */
   //---Start cut here---
-  hamlib_port_t_deprecated ampport_deprecated;  /*!< Amplifier port (internal use). Deprecated */
+  hamlib_port_t_deprecated ampport_deprecated;  /*!< \deprecated Amplifier port (internal use). */
   //---End cut here---
 
   int comm_state;         /*!< Comm port state, opened/closed. */
@@ -79,6 +79,8 @@ struct amp_state
 #if defined(IN_HAMLIB)
 #define AMPSTATE(a) (&(a)->state)
 #endif
+
+/** Macro for application access to amp_state data structure. */
 #define HAMLIB_AMPSTATE(a) ((struct amp_state *)amp_data_pointer(a, RIG_PTRX_AMPSTATE))
 
 __END_DECLS
