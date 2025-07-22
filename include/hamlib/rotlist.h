@@ -19,6 +19,7 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 #ifndef _ROTLIST_H
 #define _ROTLIST_H 1
@@ -35,8 +36,9 @@
  */
 
 /**
- * \file rotlist.h
  * \brief Hamlib rotator model definitions.
+ *
+ * \file rotlist.h
  *
  * This file contains rotator model definitions for the Hamlib rotator
  * Application Programming Interface (API).  Each distinct rotator type has a
@@ -49,12 +51,13 @@
  * function can be used.
  *
  * The model number, or ID, is used to tell Hamlib which rotator the client
- * wishes to use which is done with the rot_init() API call.
+ * wishes to use which is passed to the rot_init() API call.
  */
 
 /**
- * \def ROT_MODEL_NONE
  * \brief A macro that returns the model number for an unknown model.
+ *
+ * \def ROT_MODEL_NONE
  *
  * The none backend, as the name suggests, does nothing.  It is mainly for
  * internal use.
@@ -79,6 +82,22 @@
  *
  * The NETROTCTL backend allows use of the `rotctld` daemon through the normal
  * Hamlib API.
+ */
+/**
+ * \brief A macro that returns the model number for the PSTROTATOR backend.
+ *
+ * \def ROT_MODEL_PSTROTATOR
+ *
+ * The PSTROTATOR backend allows Hamlib clients to access the rotators controlled
+ * by the PstRotator software by YO3DMU: https://www.qsl.net/yo3dmu/index_Page346.htm
+ */
+/**
+ * \brief A macro that returns the model number for the SATROTCTL backend.
+ *
+ * \def ROT_MODEL_SATROTCTL
+ *
+ * The SATROTCTL allows Hamlib clients to access the rotators controlled by
+ * the S.A.T hardware by CSN Tecnologies: http://csntechnologies.net/
  */
 //! @cond Doxygen_Suppress
 #define ROT_DUMMY 0
@@ -316,7 +335,14 @@
  * The GS232B_EL backend can be used with elevation rotators that support the
  * GS-232B protocol.
  */
-
+/**
+ * \brief A macro that returns the model number of the GS23_AZ azimuth backend.
+ *
+ * \def ROT_MODEL_GS23_AZ
+ *
+ * The GS23_AZ backend can be used with azimuth rotators that support a
+ * generic version of the GS-232A protocol.
+ */
 //! @cond Doxygen_Suppress
 #define ROT_GS232A 6
 #define ROT_BACKEND_GS232A "gs232a"
@@ -336,9 +362,13 @@
 #define ROT_MODEL_GS23_AZ ROT_MAKE_MODEL(ROT_GS232A, 13)
 #define ROT_MODEL_AF6SA_WRC ROT_MAKE_MODEL(ROT_GS232A, 14)
 
+// Add documentation when this model is implemented.
+//! @cond Doxygen_Suppress
 #define ROT_ARRAYSOLUTIONS 7
 #define ROT_BACKEND ARRAYSOLUTIONS "arraysolutions"
 #define ROT_MODEL_ARRAYSOLUTIONS_SAL_12_20_30 ROT_MAKE_MODEL(ROT_ARRAYSOLUTIONS, 1)
+//! @endcond
+
 /**
  * \brief A macro that returns the model number of the PCROTOR backend.
  *
@@ -561,6 +591,15 @@
  * The PROSISTEL_AZEL_COMBI_TRACK_AZEL backend can be used with rotators that
  * support the Prosistel combination azimuth and elevation protocol.
  */
+/**
+ * \brief A macro that returns the model number of the PROSISTEL_D_EL_CBOXAZ
+ * backend.
+ *
+ * \def ROT_MODEL_PROSISTEL_D_EL_CBOXAZ
+ *
+ * The PROSISTEL_D_EL_CBOXAZ backend can be used with the elevation rotator
+ * with Control Box D using azimuth logic.
+ */
 //! @cond Doxygen_Suppress
 #define ROT_PROSISTEL 17
 #define ROT_BACKEND_PROSISTEL "prosistel"
@@ -642,9 +681,20 @@
 //! @endcond
 #define ROT_MODEL_RADANT ROT_MAKE_MODEL(ROT_RADANT, 1)
 
-
+/**
+ * \brief A macro that returns the model number of the ANDROIDSENSOR backend.
+ *
+ * \def ROT_MODEL_ANDROIDSENSOR
+ *
+ * The androidsensor rotator is not a real rotator, it uses the accelerometer
+ * sensor and magnetic field sensor of the cell phone or tablet to perform
+ * attitude determination for your antenna and the phone tied to it.  Now you
+ * can wave your antenna to find radio signals.
+ */
+//! @cond Doxygen_Suppress
 #define ROT_ANDROIDSENSOR 23
 #define ROT_BACKEND_ANDROIDSENSOR "androidsensor"
+//! @endcond
 #define ROT_MODEL_ANDROIDSENSOR ROT_MAKE_MODEL(ROT_ANDROIDSENSOR, 1)
 
 /**
