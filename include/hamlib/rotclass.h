@@ -22,7 +22,7 @@
 #ifndef _ROTCLASS_H
 #define _ROTCLASS_H 1
 
-#include "hamlib/rotator.h"
+#include <hamlib/rotator.h>
 
 
 

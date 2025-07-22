@@ -3,7 +3,7 @@
 //#include <string.h>
 //#include <errno.h>
 //#include <unistd.h>
-#include "hamlib/rig.h"
+#include <hamlib/rig.h>
 //#include <sys/socket.h>
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
