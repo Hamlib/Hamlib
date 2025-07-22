@@ -24,23 +24,40 @@
 #ifndef _HL_PORT_H
 #define _HL_PORT_H 1
 
+
 __BEGIN_DECLS
+
+/**
+ * \addtogroup port
+ * @{
+ */
+
+/**
+ * \brief Hamlib port data structures.
+ *
+ * \file port.h
+ *
+ * This file contains the data structures and declarations for the Hamlib
+ * port Application Programming Interface (API).
+ */
+
 /**
  * \brief Port definition
  *
  * Of course, looks like OO painstakingly programmed in C, sigh.
+ *
+ * \warning
+ * DO NOT CHANGE THIS STRUCTURE AT ALL UNTIL 5.0.
+ * Right now it is static inside the rig structure.
+ * 5.0 will change it to a pointer which can then be added to.
+ * At that point only add to the end of the structure.
  */
-//! @cond Doxygen_Suppress
-// DO NOT CHANGE THIS STRUCTURE ALL UNTIL 5.0
-// Right now it is static inside rig structure
-// 5.0 will change it to a pointer which can then be added to
-// At that point only add to the end of the structure
 typedef struct hamlib_port {
     union {
-        rig_port_t rig;     /*!< Communication port type */
-        ptt_type_t ptt;     /*!< PTT port type */
-        dcd_type_t dcd;     /*!< DCD port type */
-    } type;
+        rig_port_t rig;     /*!< Communication port of #rig_port_e type. */
+        ptt_type_t ptt;     /*!< PTT port of #ptt_type_e type. */
+        dcd_type_t dcd;     /*!< DCD port of #dcd_type_e type. */
+    } type;                 /*!< Type of port in use.*/
 
     int fd;                 /*!< File descriptor */
     void *handle;           /*!< handle for USB */
@@ -109,14 +126,20 @@ typedef struct hamlib_port {
 } hamlib_port_t;
 
 
-// DO NOT CHANGE THIS STRUCTURE AT ALL
-// Will be removed in 5.0
+/**
+ * \deprecated
+ * This structure will be removed in 5.0 and should not be used in new code.
+ *
+ * \warning
+ * DO NOT CHANGE THIS STRUCTURE AT ALL!
+ * Will be removed in 5.0.
+ */
 typedef struct hamlib_port_deprecated {
     union {
         rig_port_t rig;     /*!< Communication port type */
         ptt_type_t ptt;     /*!< PTT port type */
         dcd_type_t dcd;     /*!< DCD port type */
-    } type;
+    } type;                 /*!< Type of port in use.*/
 
     int fd;                 /*!< File descriptor */
     void *handle;           /*!< handle for USB */
@@ -171,21 +194,27 @@ typedef struct hamlib_port_deprecated {
     int client_port;      /*!< client socket port for tcp connection */
     RIG *rig;             /*!< our parent RIG device */
 } hamlib_port_t_deprecated;
-//! @endcond
 
 #if !defined(__APPLE__) || !defined(__cplusplus)
+//! @deprecated Obsolete port type
 typedef hamlib_port_t_deprecated port_t_deprecated;
+
+//! Short type name of the hamlib_port structure.
 typedef hamlib_port_t port_t;
 #endif
 
-// Macros for app access to hamlib_port_t data
+///@{
+/// Macro for application access to #hamlib_port_t data for this port type.
 #define HAMLIB_RIGPORT(r) ((hamlib_port_t *)rig_data_pointer((r), RIG_PTRX_RIGPORT))
 #define HAMLIB_PTTPORT(r) ((hamlib_port_t *)rig_data_pointer((r), RIG_PTRX_PTTPORT))
 #define HAMLIB_DCDPORT(r) ((hamlib_port_t *)rig_data_pointer((r), RIG_PTRX_DCDPORT))
 #define HAMLIB_AMPPORT(a) ((hamlib_port_t *)amp_data_pointer((a), RIG_PTRX_AMPPORT))
 #define HAMLIB_ROTPORT(r) ((hamlib_port_t *)rot_data_pointer((r), RIG_PTRX_ROTPORT))
 #define HAMLIB_ROTPORT2(r) ((hamlib_port_t *)rot_data_pointer((r), RIG_PTRX_ROTPORT2))
+///@}
 
 __END_DECLS
 
 #endif /* _HL_PORT_H */
+
+/** @} */

@@ -668,11 +668,11 @@ typedef enum dcd_e {
 
 
 /**
- * \brief DCD type
+ * \brief DCD (Data Carrier Detect) type
  *
  * \sa rig_get_dcd()
  */
-typedef enum {
+typedef enum dcd_type_e {
     RIG_DCD_NONE = 0,   /*!< No DCD available */
     RIG_DCD_RIG,        /*!< Rig has DCD status support, i.e. rig has get_dcd cap */
     RIG_DCD_SERIAL_DSR, /*!< DCD status from serial DSR signal */
@@ -697,11 +697,13 @@ typedef enum {
 
 
 /**
- * \brief PTT type
+ * \brief PTT (Push To Talk) type
+ *
+ * The method used to activate the transmitter of a radio.
  *
  * \sa rig_get_ptt()
  */
-typedef enum {
+typedef enum ptt_type_e {
     RIG_PTT_NONE = 0,       /*!< No PTT available */
     RIG_PTT_RIG,            /*!< Legacy PTT (CAT PTT) */
     RIG_PTT_SERIAL_DTR,     /*!< PTT control through serial DTR signal */

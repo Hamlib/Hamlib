@@ -9,6 +9,7 @@ SRCDOCLST = \
 	../include/hamlib/amplifier.h \
 	../include/hamlib/amplist.h \
 	../include/hamlib/amp_state.h \
+	../include/hamlib/port.h \
 	../include/hamlib/rig.h \
 	../include/hamlib/rotator.h \
 	../include/hamlib/rotlist.h \

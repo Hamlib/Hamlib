@@ -195,5 +195,6 @@ GNU/Linux.
  * \defgroup rot_internal Rotator Internal API
  * \defgroup amplifier Amplifier API
  * \defgroup amp_internal Amplifier Internal API
+ * \defgroup port Port data structure for accessing devices
  * \defgroup utilities Utility Routines API
  */
