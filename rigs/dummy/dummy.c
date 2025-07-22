@@ -20,6 +20,7 @@
  *
  */
 
+#include "config.h"
 // cppcheck-suppress *
 #include <stdint.h>
 // cppcheck-suppress *
