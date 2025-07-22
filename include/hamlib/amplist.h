@@ -20,6 +20,7 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 #ifndef _AMPLIST_H
 #define _AMPLIST_H 1
@@ -51,7 +52,7 @@
  * foreach_opened_amp() API function can be used.
  *
  * The model number, or ID, is used to tell Hamlib which amplifier the client
- * wishes to use which is done with the amp_init() API call.
+ * wishes to use which is passed to the amp_init() API call.
  */
 
 
@@ -107,20 +108,34 @@
 #define AMP_MODEL_ELECRAFT_KPA1500 AMP_MAKE_MODEL(AMP_ELECRAFT, 1)
 //#define AMP_MODEL_ELECRAFT_KPA500 AMP_MAKE_MODEL(AMP_ELECRAFT, 2)
 
+/**
+ * \brief A macro that returns the model number of the DX1200 backend.
+ *
+ * \def AMP_MODEL_GEMINI_DX1200
+ *
+ * The Gemini DX1200 covers 160 trhough 4 meters.
+ */
+//! @cond Doxygen_Suppress
 #define AMP_GEMINI 3
 #define AMP_BACKEND_GEMINI "gemini"
+//! @endcond
 #define AMP_MODEL_GEMINI_DX1200 AMP_MAKE_MODEL(AMP_GEMINI, 1)
 
+/**
+ * \brief A macro that returns the model number of the FA backend.
+ *
+ * \def AMP_MODEL_EXPERT_FA
+ *
+ * The Expert FA series of amplifiers is supported by this backend.
+ */
+//! @cond Doxygen_Suppress
 #define AMP_EXPERT 4
 #define AMP_BACKEND_EXPERT "expert"
+//! @endcond
 #define AMP_MODEL_EXPERT_FA AMP_MAKE_MODEL(AMP_EXPERT, 1)
 
 
-/**
- * \brief Convenience type definition for an amplifier model.
- *
- * \typedef typedef int amp_model_t
- */
+/** Convenience type definition for an amplifier model. */
 typedef int amp_model_t;
 
 
