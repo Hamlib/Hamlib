@@ -25,9 +25,25 @@
 #define _ROT_STATE_H 1
 
 __BEGIN_DECLS
+
 /**
- * \struct rot_state
+ * \addtogroup rotator
+ * @{
+ */
+
+
+/**
+ * \brief Hamlib rotator data structures.
+ *
+ * \file rot_state.h
+ *
+ * This file contains the live data state structure of the rotator.
+ */
+
+/**
  * \brief Rotator state structure
+ *
+ * \struct rot_state
  *
  * This structure contains live data, as well as a copy of capability fields
  * that may be updated, i.e. customized while the #ROT handle is instantiated.
@@ -72,8 +88,8 @@ struct rot_state {
     int current_speed;      /*!< Current speed 1-100, to be used when no change to speed is requested. */
     hamlib_port_t rotport;  /*!< Rotator port (internal use). */
     hamlib_port_t rotport2;  /*!< 2nd Rotator port (internal use). */
-    rig_ptr_t *pstrotator_handler_priv_data;
-    deferred_config_header_t config_queue;
+    rig_ptr_t *pstrotator_handler_priv_data; /*!< PstRotator private data. */
+    deferred_config_header_t config_queue;   /*!< Que for deferred processing. */
 };
 
 __END_DECLS
@@ -81,6 +97,9 @@ __END_DECLS
 #if defined(IN_HAMLIB)
 #define ROTSTATE(r) (&(r)->state)
 #endif
+/** Macro for application access to rot_state data structure. */
 #define HAMLIB_ROTSTATE(r) ((struct rot_state *)rot_data_pointer(r, RIG_PTRX_ROTSTATE))
 
 #endif /* _ROT_STATE_H */
+
+/** @} */
