@@ -61,7 +61,11 @@ ENABLED_SECTIONS      = ""
 PREDEFINED            = DOXYGEN "DOC_HIDDEN"
 JAVADOC_AUTOBRIEF     = NO
 OPTIMIZE_OUTPUT_FOR_C = YES
+# Allow anonymous group for related macro definitions
 DISTRIBUTE_GROUP_DOC  = YES
+# Later versions default to NO
+HAVE_DOT              = YES
+CALL_GRAPH            = YES
 
 MAN_LINKS             = NO
 MACRO_EXPANSION       = YES
