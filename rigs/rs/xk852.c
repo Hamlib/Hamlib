@@ -331,47 +331,46 @@ xk852_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
         case XK852_NOISE_BLANK_OFF:
             val->f = 1;
-            return RIG_OK;
             break;
 
         case XK852_NOISE_BLANK_ON:
             val->f = 0;
-            return RIG_OK;
-            break;
+
         }
+
+        return RIG_OK;
 
     case RIG_LEVEL_RFPOWER:
         switch (state.op_mode)
         {
         case XK852_OP_MODE_OFF:
             val->f = 0;
-            return RIG_OK;
             break;
 
         case XK852_OP_MODE_RX:
             val->f = 0;
-            return RIG_OK;
             break;
 
         case XK852_OP_MODE_TX_LOW:
             val->f = 0.099;
-            return RIG_OK;
             break;
 
         case XK852_OP_MODE_TX_MID:
             val->f = 0.499;
-            return RIG_OK;
             break;
 
         case XK852_OP_MODE_TX_FULL:
             val->f = 1;
-            return RIG_OK;
             break;
+
+        default:
+            return -RIG_EINVAL;
+
         }
+        return RIG_OK;
 
     default:
         return -RIG_ENIMPL;
-        break;
     }
 
     return -RIG_EINVAL;

@@ -116,8 +116,8 @@ getmyline(int fd, char *buf)
     if (retval != 0)
     {
         perror("read failed:");
-        close(fd);
-        fd = openPort("");
+        //close(fd);
+        //fd = openPort("");
     }
 
     if (strlen(buf) == 0) { hl_usleep(10 * 1000); }

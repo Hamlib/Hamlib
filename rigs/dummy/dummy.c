@@ -20,6 +20,7 @@
  *
  */
 
+#include "config.h"
 // cppcheck-suppress *
 #include <stdint.h>
 // cppcheck-suppress *
@@ -712,6 +713,9 @@ static int dummy_set_vfo(RIG *rig, vfo_t vfo)
             priv->curr = &priv->mem[curr->channel_num];
             break;
         }
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid memory channel %d\n", __func__,
+		  curr->channel_num);
+        RETURNFUNC(-RIG_EINVAL);
 
     case RIG_VFO_TX:
         if (priv->tx_vfo == RIG_VFO_A) { priv->curr = &priv->vfo_maina; }
