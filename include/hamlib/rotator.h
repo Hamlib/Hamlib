@@ -32,8 +32,9 @@
  */
 
 /**
- * \file rotator.h
  * \brief Hamlib rotator data structures.
+ *
+ * \file rotator.h
  *
  * This file contains the data structures and declarations for the Hamlib
  * rotator Application Programming Interface (API).
@@ -52,7 +53,6 @@ struct rot_state;
 
 
 /**
- * \typedef typedef struct s_rot ROT
  * \brief Main rotator handle type definition.
  *
  * The #ROT handle is returned by rot_init() and is passed as a parameter to
@@ -64,7 +64,6 @@ typedef struct s_rot ROT;
 
 
 /**
- * \typedef typedef float elevation_t
  * \brief Type definition for elevation.
  *
  * The \a elevation_t type is used as parameter for the rot_set_position() and
@@ -76,7 +75,6 @@ typedef float elevation_t;
 
 
 /**
- * \typedef typedef float azimuth_t
  * \brief Type definition for azimuth.
  *
  * The \a azimuth_t type is used as parameter for the rot_set_position() and
@@ -94,7 +92,6 @@ typedef float azimuth_t;
 
 
 /**
- * \def ROT_RESET_ALL
  * \brief A macro that returns the flag for the \b reset operation.
  *
  * \sa rot_reset(), rot_reset_t
@@ -103,7 +100,6 @@ typedef float azimuth_t;
 
 
 /**
- * \typedef typedef int rot_reset_t
  * \brief Type definition for rotator reset.
  *
  * The \a rot_reset_t type is used as parameter for the rot_reset() API
@@ -121,7 +117,7 @@ typedef enum {
 } rot_type_t;
 
 //! @cond Doxygen_Suppress
-/* So far only used in ests/dumpcaps_rot.c. */
+/* So far only used in tests/dumpcaps_rot.c. */
 #define ROT_TYPE_MASK (ROT_FLAG_AZIMUTH|ROT_FLAG_ELEVATION)
 //! @endcond
 
@@ -142,7 +138,6 @@ typedef enum {
 
 
 /**
- * \def ROT_MOVE_UP
  * \brief A macro that returns the flag for the \b UP direction.
  *
  * This macro defines the value of the \b UP direction which can be
@@ -154,7 +149,6 @@ typedef enum {
 #define ROT_MOVE_UP         (1<<1)
 
 /**
- * \def ROT_MOVE_DOWN
  * \brief A macro that returns the flag for the \b DOWN direction.
  *
  * This macro defines the value of the \b DOWN direction which can be
@@ -166,7 +160,6 @@ typedef enum {
 #define ROT_MOVE_DOWN       (1<<2)
 
 /**
- * \def ROT_MOVE_LEFT
  * \brief A macro that returns the flag for the \b LEFT direction.
  *
  * This macro defines the value of the \b LEFT direction which can be
@@ -178,7 +171,6 @@ typedef enum {
 #define ROT_MOVE_LEFT       (1<<3)
 
 /**
- * \def ROT_MOVE_CCW
  * \brief A macro that returns the flag for the \b counterclockwise direction.
  *
  * This macro defines the value of the \b counterclockwise direction which
@@ -191,7 +183,6 @@ typedef enum {
 #define ROT_MOVE_CCW        ROT_MOVE_LEFT
 
 /**
- * \def ROT_MOVE_RIGHT
  * \brief A macro that returns the flag for the \b RIGHT direction.
  *
  * This macro defines the value of the \b RIGHT direction which can be used
@@ -203,7 +194,6 @@ typedef enum {
 #define ROT_MOVE_RIGHT      (1<<4)
 
 /**
- * \def ROT_MOVE_CW
  * \brief A macro that returns the flag for the \b clockwise direction.
  *
  * This macro defines the value of the \b clockwise direction which can be
@@ -216,7 +206,6 @@ typedef enum {
 #define ROT_MOVE_CW         ROT_MOVE_RIGHT
 
 /**
- * \def ROT_MOVE_UP_LEFT
  * \brief A macro that returns the flag for the \b clockwise direction.
  *
  * This macro defines the value of the \b clockwise direction which can be
@@ -231,7 +220,6 @@ typedef enum {
 #define ROT_MOVE_UP_LEFT         (1<<5)
 
 /**
- * \def ROT_MOVE_UP_CCW
  * \brief A macro that returns the flag for the \b clockwise direction.
  *
  * This macro defines the value of the \b clockwise direction which can be
@@ -246,7 +234,6 @@ typedef enum {
 #define ROT_MOVE_UP_CCW         ROT_MOVE_UP_LEFT
 
 /**
- * \def ROT_MOVE_UP_RIGHT
  * \brief A macro that returns the flag for the \b clockwise direction.
  *
  * This macro defines the value of the \b clockwise direction which can be
@@ -261,7 +248,6 @@ typedef enum {
 #define ROT_MOVE_UP_RIGHT         (1<<6)
 
 /**
- * \def ROT_MOVE_UP_CW
  * \brief A macro that returns the flag for the \b clockwise direction.
  *
  * This macro defines the value of the \b clockwise direction which can be
@@ -276,7 +262,6 @@ typedef enum {
 #define ROT_MOVE_UP_CW       ROT_MOVE_UP_RIGHT
 
 /**
- * \def ROT_MOVE_DOWN_LEFT
  * \brief A macro that returns the flag for the \b clockwise direction.
  *
  * This macro defines the value of the \b clockwise direction which can be
@@ -292,7 +277,6 @@ typedef enum {
 
 
 /**
- * \def ROT_MOVE_DOWN_CCW
  * \brief A macro that returns the flag for the \b clockwise direction.
  *
  * This macro defines the value of the \b clockwise direction which can be
@@ -307,7 +291,6 @@ typedef enum {
 #define ROT_MOVE_DOWN_CCW         ROT_MOVE_DOWN_LEFT
 
 /**
- * \def ROT_MOVE_DOWN_RIGHT
  * \brief A macro that returns the flag for the \b clockwise direction.
  *
  * This macro defines the value of the \b clockwise direction which can be
@@ -322,7 +305,6 @@ typedef enum {
 #define ROT_MOVE_DOWN_RIGHT         (1 << 8)
 
 /**
- * \def ROT_MOVE_DOWN_CW
  * \brief A macro that returns the flag for the \b clockwise direction.
  *
  * This macro defines the value of the \b clockwise direction which can be
@@ -453,7 +435,6 @@ enum rot_parm_e {
  */
 
 /**
- * \struct rot_caps
  * \brief Rotator capability data structure.
  *
  * The main idea of this structure is that it will be defined by the backend
@@ -581,7 +562,7 @@ struct rot_caps {
 //! @endcond
 
 //---Start cut here---
-// Rotatot state definition moved to include/hamlib/rot_state.h
+// Rotator state definition moved to include/hamlib/rot_state.h
 // Temporary include until 5.0
 #ifndef NO_OLD_INCLUDES
 
@@ -594,7 +575,6 @@ __BEGIN_DECLS
 #endif
 //---End cut here---
 /**
- * \struct s_rot
  * \brief Master rotator structure.
  *
  * This is the master data structure acting as the #ROT handle for the
@@ -884,7 +864,6 @@ extern HAMLIB_EXPORT(void *) rot_data_pointer(ROT *rot, rig_ptrx_t idx);
 //! @endcond
 
 /**
- * \def rot_debug
  * \brief Convenience macro for generating debugging messages.
  *
  * This is an alias of the rig_debug() function call and is used in the same
