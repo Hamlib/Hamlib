@@ -123,7 +123,7 @@ int tfset = 0;
 typedef struct kvfo
 {
     int freq;
-    int mode;
+    unsigned int mode;
     short band, vfo;  // Redundant, but useful for relative movement
 } *kvfop_t;
 
@@ -267,8 +267,8 @@ getmyline(int fd, char *buf)
     if (retval != 0)
     {
         perror("read failed:");
-        close(fd);
-        fd = openPort("");
+        //close(fd);
+        //fd = openPort("");
     }
 
     if (strlen(buf) == 0) { hl_usleep(10 * 1000); }
@@ -588,7 +588,8 @@ int main(int argc, char *argv[])
         else if (strncmp(buf, "SF", 2) == 0)
         {
             // Sets and Reads the VFO (Frequency and Mode)
-            int tmpvfo, tmpfreq, tmpmode, newband;
+            int tmpvfo, tmpfreq, newband;
+            unsigned int tmpmode;
             kvfop_t ovfo, nvfo;
 
             if (sscanf(buf, SFformat, &tmpvfo, &tmpfreq, &tmpmode) != 3 || tmpvfo < 0
@@ -599,7 +600,7 @@ int main(int argc, char *argv[])
                 continue;
             }
 
-            //printf("tmpvfo=%d, tmpfreq=%d, tmpmode=%d\n", tmpvfo, tmpfreq, tmpmode);
+            //printf("tmpvfo=%d, tmpfreq=%d, tmpmode=%u\n", tmpvfo, tmpfreq, tmpmode);
             ovfo = *vfoAB[tmpvfo];
             newband = freq2band(tmpfreq);
 
@@ -1251,10 +1252,10 @@ int main(int argc, char *argv[])
             case '0': // Get/Set Local clock
             {
                 time_t t;
-                struct tm *localtm;
 
                 if (buf[3] == ';')
                 {
+                    const struct tm *localtm;
                     t = time(NULL);
                     localtm = localtime(&t);
                     strftime(&buf[3], BUFSIZ - 3, "%y%m%d%H%M%S;", localtm);

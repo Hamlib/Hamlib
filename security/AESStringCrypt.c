@@ -28,6 +28,7 @@
  * BUT NOT LIMITED TO, LOSS OF DATA OR DATA BEING RENDERED INACCURATE.
  */
 
+#include "config.h"
 #include <stdio.h>
 #include <string.h>
 
