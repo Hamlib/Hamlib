@@ -739,10 +739,14 @@ typedef enum {
     RIG_RESET_MASTER =  (1 << 3)    /*!< Master reset */
 } reset_t;
 
-typedef enum {
-    RIG_CLIENT_UNKNOWN,
-    RIG_CLIENT_WSJTX,
-    RIG_CLIENT_GPREDICT
+
+/**
+ * The client application using Hamlib.
+ */
+typedef enum client_e {
+    RIG_CLIENT_UNKNOWN,     /*!< Not known, could be any application. */
+    RIG_CLIENT_WSJTX,       /*!< Well known digital application that includes FT8 and FT4. */
+    RIG_CLIENT_GPREDICT     /*!< Satellite prediction and tracking application. */
 } client_t;
 
 
