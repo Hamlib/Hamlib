@@ -80,7 +80,19 @@ struct amp_state
 #define AMPSTATE(a) (&(a)->state)
 #endif
 
-/** Macro for application access to amp_state data structure. */
+/** Macro for application access to amp_state data structure using the #AMP
+ * handle.
+ *
+ * Example code.
+ * ```
+ * AMP *my_amp;
+ *
+ * //Instantiate an amp
+ * my_amp = amp_init(AMP_MODEL_DUMMY); // your amp (amplifier) model.
+ *
+ * const struct amp_state *my_as = HAMLIB_AMPSTATE(my_amp);
+ * ```
+ */
 #define HAMLIB_AMPSTATE(a) ((struct amp_state *)amp_data_pointer(a, RIG_PTRX_AMPSTATE))
 
 __END_DECLS
