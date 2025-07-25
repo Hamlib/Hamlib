@@ -197,7 +197,7 @@ static void init_chan(RIG *rig, vfo_t vfo, channel_t *chan)
     chan->rit = 0;
     chan->xit = 0;
     chan->tuning_step = 0;
-    chan->ant = 0;
+    chan->ant = RIG_ANT_NONE;
 
     chan->funcs = (setting_t)0;
     memset(chan->levels, 0, RIG_SETTING_MAX * sizeof(value_t));
