@@ -1210,7 +1210,7 @@ enum multicast_item_e {
 //! @endcond
 
 /**
- * \brief Setting
+ * \brief Setting bit mask.
  *
  * This can be a func, a level or a parm.
  * Each bit designates one of them.
@@ -1897,6 +1897,16 @@ struct deferred_config_header {
 };
 typedef struct deferred_config_header deferred_config_header_t;
 
+
+/**
+ * Convenience macro to map the `rig_model` number and `macro_name` string from riglist.h.
+ *
+ * Used when populating a backend rig_caps structure.
+ */
+#define RIG_MODEL(arg) .rig_model=arg,.macro_name=#arg
+
+#define HAMLIB_CHECK_RIG_CAPS "HAMLIB_CHECK_RIG_CAPS"
+
 /**
  * \brief Rig data structure.
  *
@@ -1916,9 +1926,6 @@ typedef struct deferred_config_header deferred_config_header_t;
  * mdblack: Don't move or add fields around without bumping the version numbers
  *          DLL or shared library replacement depends on order
  */
-//! @cond Doxygen_Suppress
-#define RIG_MODEL(arg) .rig_model=arg,.macro_name=#arg
-#define HAMLIB_CHECK_RIG_CAPS "HAMLIB_CHECK_RIG_CAPS"
 struct rig_caps {
     rig_model_t rig_model;      /*!< Rig model. */
     const char *model_name;     /*!< Model name. */
