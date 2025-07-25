@@ -1114,11 +1114,25 @@ static int dummy_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: split=%d, vfo=%s, tx_vfo=%s\n",
               __func__, split, rig_strvfo(vfo), rig_strvfo(tx_vfo));
 
+    switch (split)
+    {
+        case RIG_SPLIT_OFF:
+            priv->split = RIG_SPLIT_OFF;
+            break;
+
+        case RIG_SPLIT_ON:
+            priv->split = RIG_SPLIT_ON;
+            break;
+
+        default:
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported split %d", __func__, split);
+            RETURNFUNC(-RIG_EINVAL);
+    }
+
     if (tx_vfo == RIG_VFO_NONE || tx_vfo == RIG_VFO_CURR) { tx_vfo = priv->curr_vfo; }
 
     if (tx_vfo == RIG_VFO_CURR || tx_vfo == RIG_VFO_TX) { tx_vfo = vfo_fixup(rig, vfo, CACHE(rig)->split); }
 
-    priv->split = split;
     priv->tx_vfo = tx_vfo;
 
     RETURNFUNC(RIG_OK);
