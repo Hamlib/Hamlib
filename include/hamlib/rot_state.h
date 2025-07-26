@@ -97,7 +97,19 @@ __END_DECLS
 #if defined(IN_HAMLIB)
 #define ROTSTATE(r) (&(r)->state)
 #endif
-/** Macro for application access to rot_state data structure. */
+/** Macro for application access to rot_state data structure using the #ROT
+ * handle
+ *
+ * Example code.
+ * ```
+ * ROT *my_rot;
+ *
+ * //Instantiate a rotator
+ * my_rot = rot_init(ROT_MODEL_DUMMY); // your rot (rotator) model.
+ *
+ * const struct rot_state *my_rs = HAMLIB_ROTSTATE(my_rot);
+ * ```
+ */
 #define HAMLIB_ROTSTATE(r) ((struct rot_state *)rot_data_pointer(r, RIG_PTRX_ROTSTATE))
 
 #endif /* _ROT_STATE_H */

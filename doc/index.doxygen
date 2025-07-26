@@ -190,10 +190,13 @@ GNU/Linux.
 
 /*! Define groups for Doxygen
  * \defgroup rig Rig (transceiver) API
+ * \defgroup riglist Rig (radio) Model List
  * \defgroup rig_internal Rig (transceiver) Internal API
  * \defgroup rotator Rotator API
+ * \defgroup rotlist Rotator Model List
  * \defgroup rot_internal Rotator Internal API
  * \defgroup amplifier Amplifier API
+ * \defgroup amplist Amplifier Model list
  * \defgroup amp_internal Amplifier Internal API
  * \defgroup port Port data structure for accessing devices
  * \defgroup utilities Utility Routines API
