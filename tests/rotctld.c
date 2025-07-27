@@ -246,6 +246,7 @@ int main(int argc, char *argv[])
 
         case 'O':
             el_offset = atof(optarg);
+            break;
 
         case 'v':
             verbose++;

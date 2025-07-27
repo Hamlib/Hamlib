@@ -56,8 +56,10 @@ public:
 
     void setConf(hamlib_token_t token, const char *val);
     void setConf(const char *name, const char *val);
-    void getConf(hamlib_token_t token, char *val);
-    void getConf(const char *name, char *val);
+    HL_DEPRECATED void getConf(hamlib_token_t token, char *val);
+    HL_DEPRECATED void getConf(const char *name, char *val);
+    void getConf2(hamlib_token_t token, char *val, int val_len);
+    void getConf2(const char *name, char *val, int val_len);
     hamlib_token_t tokenLookup(const char *name);
 
     void setFreq(freq_t freq, vfo_t vfo = RIG_VFO_CURR);

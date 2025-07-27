@@ -3393,6 +3393,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
             rig_debug(RIG_DEBUG_ERR, "%s: unknown vfo '%s'\n", __func__,
                       rig_strvfo(rs->current_vfo));
         }
+        HL_FALLTHROUGH     // Fall into outer default
 
     default:
         if (priv->x25cmdfails == 0 || priv_caps->x25x26_always)
@@ -9111,12 +9112,14 @@ static int icom_parse_spectrum_frame(RIG *rig, size_t length,
 
         case SCOPE_MODE_FIXED:
             cache->spectrum_mode = RIG_SPECTRUM_MODE_FIXED;
+            HL_FALLTHROUGH
 
         case SCOPE_MODE_SCROLL_C:
             if (cache->spectrum_mode == RIG_SPECTRUM_MODE_NONE)
             {
                 cache->spectrum_mode = RIG_SPECTRUM_MODE_CENTER_SCROLL;
             }
+            HL_FALLTHROUGH
 
         case SCOPE_MODE_SCROLL_F:
             if (cache->spectrum_mode == RIG_SPECTRUM_MODE_NONE)

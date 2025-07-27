@@ -5600,7 +5600,7 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
                 SNPRINTF(morsebuf, sizeof morsebuf, "KY2%s", m2);
                 break;
             }
-            /* FALL THROUGH */
+            HL_FALLTHROUGH
 
         default:
             /* the command must consist of 28 bytes 0x20 padded */

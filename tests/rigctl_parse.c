@@ -2014,7 +2014,7 @@ int print_conf_list(const struct confparams *cfp, rig_ptr_t data)
     int i;
     char buf[128] = "";
 
-    rig_get_conf(rig, cfp->token, buf);
+    rig_get_conf2(rig, cfp->token, buf, sizeof(buf));
     printf("%s: \"%s\"\n" "\t" "Default: %s, Value: %s\n",
            cfp->name,
            cfp->tooltip,
@@ -2078,7 +2078,7 @@ int print_conf_list2(const struct confparams *cfp, rig_ptr_t data)
     RIG *rig = (RIG *) data;
     char buf[128] = "";
 
-    rig_get_conf(rig, cfp->token, buf);
+    rig_get_conf2(rig, cfp->token, buf, sizeof(buf));
     fprintf(stdout, "%s: \"%s\"\n" "\t" "Default: %s, Value: %s\n",
             cfp->name,
             cfp->tooltip,
@@ -6025,7 +6025,7 @@ declare_proto_rig(get_conf)
     else
     {
         char value[4096]; // no max value known -- should we limit it?
-        ret = rig_get_conf(rig, mytoken, value);
+        ret = rig_get_conf2(rig, mytoken, value, sizeof(value));
 
         if (ret != RIG_OK)
         {
