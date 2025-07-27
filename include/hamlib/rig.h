@@ -73,6 +73,23 @@
 #include <hamlib/riglist.h>
 //#include <hamlib/config.h>
 
+/* Define macros for handling attributes, if the compiler implements them
+ *   Should be available in c23-capable compilers, or c++11 ones
+ */
+// From ISO/IEC 9899:202y n3301 working draft
+#ifndef __has_c_attribute
+#define __has_c_attribute(x) 0
+#endif
+
+// Macro to mark fallthrough as OK
+// Squelch warnings if -Wimplicit-fallthrough added to CFLAGS
+#if __has_c_attribute(fallthrough)
+#define HL_FALLTHROUGH [[fallthrough]];
+#else
+/* Fall back */
+#define HL_FALLTHROUGH
+#endif
+
 /**
  * \addtogroup rig
  * @{
