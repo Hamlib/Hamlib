@@ -87,11 +87,19 @@ void Rig::setConf(const char *name, const char *val)
 
 void Rig::getConf(hamlib_token_t token, char *val)
 {
-	CHECK_RIG( rig_get_conf(theRig, token, val) );
+	CHECK_RIG( rig_get_conf2(theRig, token, val, 128) );
 }
 void Rig::getConf(const char *name, char *val)
 {
-	CHECK_RIG( rig_get_conf(theRig, tokenLookup(name), val) );
+	CHECK_RIG( rig_get_conf2(theRig, tokenLookup(name), val, 128) );
+}
+void Rig::getConf2(hamlib_token_t token, char *val, int val_len)
+{
+	CHECK_RIG( rig_get_conf2(theRig, token, val, val_len) );
+}
+void Rig::getConf2(const char *name, char *val, int val_len)
+{
+	CHECK_RIG( rig_get_conf2(theRig, tokenLookup(name), val, val_len) );
 }
 
 hamlib_token_t Rig::tokenLookup(const char *name)
