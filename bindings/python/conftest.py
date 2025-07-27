@@ -20,6 +20,12 @@ def pytest_addoption(parser):
                         metavar='ID', help='select rotator model number')
         parser.addoption('--rot-file', default=None,
                         metavar='DEVICE', help='set device of the rotator to operate on')
+    else:
+        # fallbacks for invocations through a Makefile
+        parser.addoption('--model', type=int, default=1)
+        parser.addoption('--amp-file', default=None)
+        parser.addoption('--rig-file', default=None)
+        parser.addoption('--rot-file', default=None)
     parser.addoption('--serial-speed', type=int, default=0,
                      metavar='BAUD', help='set serial speed of the serial port')
     parser.addoption('--hamlib-verbose', action='count', default=0,
