@@ -54,13 +54,13 @@ class TestClass:
         info = rig.get_info()
         assert isinstance(info, str)
 
-        assert rig.set_split_vfo(-600000, Hamlib.RIG_VFO_A) is None
-        assert rig.get_split_vfo(Hamlib.RIG_VFO_TX) == [-600000, 1]
-        assert rig.set_split_vfo(5000000, Hamlib.RIG_VFO_B) is None
-        assert rig.get_split_vfo(Hamlib.RIG_VFO_TX) == [5000000, 2]
-        assert rig.set_split_vfo(5000000, Hamlib.RIG_VFO_CURR) is None
-        assert rig.get_split_vfo() == [5000000, 1]
-        assert rig.get_split_vfo(Hamlib.RIG_VFO_CURR) == [5000000, 1]
+        assert rig.set_split_vfo(Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_A) is None
+        assert rig.get_split_vfo(Hamlib.RIG_VFO_TX) == [Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_A]
+        assert rig.set_split_vfo(Hamlib.RIG_SPLIT_ON, Hamlib.RIG_VFO_B) is None
+        assert rig.get_split_vfo(Hamlib.RIG_VFO_TX) == [Hamlib.RIG_SPLIT_ON, Hamlib.RIG_VFO_B]
+        assert rig.set_split_vfo(Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_CURR) is None
+        assert rig.get_split_vfo() == [Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_B]
+        assert rig.get_split_vfo(Hamlib.RIG_VFO_CURR) == [Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_B]
 
         # FIXME should use a RIG_ANT_* constant but it isn't available in the bindings
         RIG_ANT_UNKNOWN = 1<<30
