@@ -408,8 +408,8 @@ int HAMLIB_API port_close(hamlib_port_t *p, rig_port_t port_type)
         default:
             rig_debug(RIG_DEBUG_ERR, "%s(): Unknown port type %d\n",
                       __func__, port_type);
+            HL_FALLTHROUGH
 
-        /* fall through */
         case RIG_PORT_DEVICE:
             ret = close(p->fd);
         }
