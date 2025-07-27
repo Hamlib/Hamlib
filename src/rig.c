@@ -3611,8 +3611,8 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         {
             ptt = RIG_PTT_ON;
         }
+        HL_FALLTHROUGH
 
-    /* fall through */
     case RIG_PTT_RIG_MICDATA:
         if (caps->set_ptt == NULL)
         {
