@@ -11,8 +11,6 @@ import Hamlib
 
 Hamlib.rig_set_debug(Hamlib.RIG_DEBUG_NONE)
 
-ROT_MODEL = Hamlib.ROT_MODEL_DUMMY
-
 class TestClass:
     """Container class for tests"""
 
@@ -23,9 +21,9 @@ class TestClass:
     # TOK_EL_ROT_MAGICCOMBO = 5  # handled by get_ext_level/set_ext_level
     TOK_EL_ROT_MAGICEXTFUNC = 6
 
-    def test_without_open(self):
+    def test_without_open(self, model):
         """Call all the methods that do not depend on open()"""
-        rot = Hamlib.Rot(ROT_MODEL)
+        rot = Hamlib.Rot(model)
         assert rot is not None
         assert rot.do_exception == 0
         assert rot.error_status == Hamlib.RIG_OK
@@ -42,14 +40,17 @@ class TestClass:
         assert isinstance(conf, str)
         assert rot.set_conf("mcfg", "foo") is None
         conf = rot.get_conf("mcfg")
-        assert conf == "foo"
+        if model == Hamlib.ROT_MODEL_DUMMY:
+            assert conf == "foo"
+        else:
+            assert conf == ""
 
         assert rot.token_lookup("") is None
 
 
-    def test_with_open(self):
+    def test_with_open(self, model):
         """Call all the methods that depend on open()"""
-        rot = Hamlib.Rot(ROT_MODEL)
+        rot = Hamlib.Rot(model)
         assert rot is not None
 
         assert rot.state.comm_state == 0
@@ -106,9 +107,9 @@ class TestClass:
         assert info is None
 
 
-    def test_object_creation(self):
+    def test_object_creation(self, model):
         """Create all objects available"""
-        rot = Hamlib.Rig(ROT_MODEL)
+        rot = Hamlib.Rig(model)
         assert rot is not None
 
         assert isinstance(rot.caps, Hamlib.rig_caps)
