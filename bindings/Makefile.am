@@ -177,7 +177,7 @@ hamlibtcl_wrap.c: $(SWGDEP)
 		-I$(top_srcdir)/bindings \
 		-o $@ $$(test -f hamlib.swg || echo '$(srcdir)/')hamlib.swg
 
-do_subst = sed -e 's,[@]tcldir[@],$(tcldir),g'
+do_subst = sed -e 's,[@]tcldir[@],$(tcldir),g' -e 's,[@]builddir[@],$(builddir),g'
 
 tcltest.tcl: tcltest.tcl.in Makefile
 	$(AM_V_GEN)$(do_subst) < $(srcdir)/tcltest.tcl.in > tcltest.tcl

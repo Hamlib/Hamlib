@@ -6,7 +6,8 @@ exec tclsh "$0" "$@"
 lappend ::auto_path @tcldir@
 
 ## Brute force loading
-#load "@tcldir@/hamlibtcl.so" Hamlib
+# load "@tcldir@/hamlibtcl.so" Hamlib ; # from the installation directory
+load "@builddir@/.libs/hamlibtcl.so" Hamlib ; # from the build directory
 
 ## Preferred package loading
 package require hamlib
