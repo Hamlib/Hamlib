@@ -86,8 +86,16 @@
 #if __has_c_attribute(fallthrough)
 #define HL_FALLTHROUGH [[fallthrough]];
 #else
-/* Fall back */
+/* Fall back to nothing */
 #define HL_FALLTHROUGH
+#endif
+
+// Macro to mark function or variable as deprecated/obsolete
+#if __has_c_attribute(deprecated)
+#define HL_DEPRECATED [[deprecated]]
+#else
+// Make it vanish
+#define HL_DEPRECATED
 #endif
 
 /**
@@ -2959,7 +2967,7 @@ rig_set_conf HAMLIB_PARAMS((RIG *rig,
                             hamlib_token_t token,
                             const char *val));
 // deprecating rig_get_conf
-extern HAMLIB_EXPORT(int)
+HL_DEPRECATED extern HAMLIB_EXPORT(int)
 rig_get_conf HAMLIB_PARAMS((RIG *rig,
                             hamlib_token_t token,
                             char *val));
