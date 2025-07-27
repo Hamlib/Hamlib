@@ -5,6 +5,11 @@ import sys
 
 def pytest_addoption(parser):
     # using long options only because short options conflict with pytest's
+    if sys.argv[1].endswith("amp.py"):
+        parser.addoption('--model', type=int, default=1,
+                        metavar='ID', help='select amplifier model number')
+        parser.addoption('--amp-file', default=None,
+                        metavar='DEVICE', help='set device of the amplifier to operate on')
     if sys.argv[1].endswith("rig.py"):
         parser.addoption('--model', type=int, default=1,
                         metavar='ID', help='select radio model number')
