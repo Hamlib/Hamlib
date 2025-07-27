@@ -5,20 +5,18 @@ Running this script directly will use the installed bindings.
 For an in-tree run use "make check", or set PYTHONPATH to point to
 the directories containing Hamlib.py and _Hamlib.so.
 """
-from pytest import raises
+import pytest
 
 import Hamlib
 
 Hamlib.rig_set_debug(Hamlib.RIG_DEBUG_NONE)
 
-RIG_MODEL = Hamlib.RIG_MODEL_DUMMY
-
 class TestClass:
     """Container class for tests"""
 
-    def test_without_open(self):
+    def test_without_open(self, model):
         """Call all the methods that do not depend on open()"""
-        rig = Hamlib.Rig(RIG_MODEL)
+        rig = Hamlib.Rig(model)
         assert rig is not None
         assert rig.do_exception == 0
         assert rig.error_status == Hamlib.RIG_OK
@@ -35,17 +33,22 @@ class TestClass:
         assert isinstance(conf, str)
         assert rig.set_conf("mcfg", "foo") is None
         conf = rig.get_conf("mcfg")
-        assert conf == "foo"
+        if model == Hamlib.RIG_MODEL_DUMMY:
+            assert conf == "foo"
+        else:
+            assert conf == ""
 
         assert rig.token_lookup("") is None
 
 
-    def test_with_open(self):
+    def test_with_open(self, model, rig_file, serial_speed):
         """Call all the methods that depend on open()"""
-        rig = Hamlib.Rig(RIG_MODEL)
+        rig = Hamlib.Rig(model)
         assert rig is not None
 
         assert rig.state.comm_state == 0
+        assert rig.set_conf("rig_pathname", rig_file) is None
+        assert rig.set_conf("serial_speed", str(serial_speed)) is None
         assert rig.open() is None
         assert rig.state.comm_state == 1
         info = rig.get_info()
@@ -117,9 +120,10 @@ class TestClass:
         assert info is None
 
 
-    def test_misc(self):
+    @pytest.mark.skipif('config.getoption("model") != Hamlib.RIG_MODEL_DUMMY')
+    def test_misc(self, model):
         """Just call all the methods"""
-        rig = Hamlib.Rig(RIG_MODEL)
+        rig = Hamlib.Rig(model)
         assert rig is not None
 
         assert rig.close() is None
@@ -232,9 +236,10 @@ class TestClass:
         assert rig.vfo_op(0, 0) is None
 
 
-    def test_object_creation(self):
+    @pytest.mark.skipif('config.getoption("model") != Hamlib.RIG_MODEL_DUMMY')
+    def test_object_creation(self, model):
         """Create all objects available"""
-        rig = Hamlib.Rig(RIG_MODEL)
+        rig = Hamlib.Rig(model)
         assert rig is not None
 
         assert isinstance(rig.caps, Hamlib.rig_caps)

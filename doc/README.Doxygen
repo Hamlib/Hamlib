@@ -1,0 +1,97 @@
+Some tips on writing comments for the Doxygen documentation generator.
+
+Doxygen is a flexible and powerful tool that not only reads and processes
+specially formatted comments but also the actual code such as functions,
+structures, enumerations, and defines.  Sometimes it needs a few hints to
+generate output in a consistent manner.  As usual, there are multiple ways to
+do one thing and it's likely that nearly all of them are present in the Hamlib
+code base.
+
+
+Markdown
+
+Doxygen has supported the use of Markdown formatting elements in running text
+for some time.  Markdown has become rather universal over the past several
+years for simple markup of text.  It is widely supported by GitHub, Reddit, and
+other Web sites.  Those familiar with Markdown can use it the running Doxygen
+comment text and it will be formatted as such in the output.
+
+Common formatting is to emphasize text as italic, bold, or constant width font.
+A string will be output in italics when it is has a single asterisk or
+underscore preceding and succeeding the string, e.g. *italic*.  Likewise the
+string will be emboldened with two asterisks or underscores, e.g. **bold**.  As
+most text output will be in proportional text, a string surrounded by backticks
+will be output in a constant width font, e.b. `constant width`.
+
+
+Special commands
+
+Doxygen will associate a comment block that immediately precedes the item.  For
+example, a comment block immediately precedes a structure declaration.  It is
+not necessary to include a line such as `\struct foo` in the comment block.
+This is only necessary if the comment block must be separated from the item.
+One example of the latter is a group of #define macros where the comment block
+is placed above the group rather than interspersed.  In this case, each #define
+will need to be called out in the comment block with the \def command.  The
+choice is yours.  Sometimes the source file will look more clean with a
+separate comment block and at others interspersed comments will seem more
+appropriate.
+
+Notable exceptions are in the rotlist.h and amplist.h files where the #define
+statements for the individual models have beem grouped together and the
+comments grouped preceding them.  This is true even in the case of a backend
+with a single model as others may be added in the future.  Including the \def
+command in each comment block is appropriate.
+
+Related to the previous section, sometimes a single comment will be appropriate
+for a group of elements, particularly macros.  An anonymous group will apply
+the comment to all elements.  The anonymous group uses the ///@{ and ///@}
+constructs.
+
+
+Reference links
+
+Elements can be explicitly referenced with the # character.  This is done in
+running text to force Doxygen to create a link to the documentation for the RIG
+handle, for example.  Otherwise, it is rarely needed.  Check the output as the
+comment is being written and use the # character if needed.
+
+Functions have two methods of forcing a reference.  The first is to precede the
+function name with a pair of colons, e.g. ::rig_init.  This acts much like #
+where it is sort of a hard instruction to Doxygen and a warning will be printed
+if the function is not found in the list of files passed to Doxygen or it has
+no associated comment.  The second is to place a pair of parentheses
+immediately after the function, e.g. rig_init().  This second construct is
+preferred as Doxygen will not print a warning if the function is not found or
+commented.
+
+Links to external Web sites can be done in the Markdown syntax.
+
+
+Code blocks in comments
+
+Code blocks can be delimited with use of the \code and \endcode special
+commands or with a Markdown "fence" which consists of three backticks on a line
+preceding and succeeding the code block.  Backticks are shorter to type.
+
+
+Check the output
+
+Always check the output to be sure it is what you want!  I edit in one terminal
+window, switch to another to run `make doc` from within the 'doc' directory and
+reload the local page in the browser.  This will show if a reference command is
+required.
+
+Be aware the members of an enumeration or structure cannot be linked to even
+though they are documented.  In that case, surround the member name with
+backticks to render it in a constant width font.
+
+
+What to document
+
+For now the frontend part of the library is being documented.  This includes
+most files in `include/hamlib` and `src`.  No decision has been made on
+expanding this to the individual backends.  That would be a Herculean task!
+
+
+73, Nate, N0NB
