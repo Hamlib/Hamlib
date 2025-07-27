@@ -1,13 +1,20 @@
 """Tests of the Python bindings for Hamlib
 """
 import pytest
+import sys
 
 def pytest_addoption(parser):
     # using long options only because short options conflict with pytest's
-    parser.addoption('--model', type=int, default=1,
-                     metavar='ID', help='select radio model number')
-    parser.addoption('--rig-file', default=None,
-                     metavar='DEVICE', help='set device of the radio to operate on')
+    if sys.argv[1].endswith("rig.py"):
+        parser.addoption('--model', type=int, default=1,
+                        metavar='ID', help='select radio model number')
+        parser.addoption('--rig-file', default=None,
+                        metavar='DEVICE', help='set device of the radio to operate on')
+    elif sys.argv[1].endswith("rot.py"):
+        parser.addoption('--model', type=int, default=1,
+                        metavar='ID', help='select rotator model number')
+        parser.addoption('--rot-file', default=None,
+                        metavar='DEVICE', help='set device of the rotator to operate on')
     parser.addoption('--serial-speed', type=int, default=0,
                      metavar='BAUD', help='set serial speed of the serial port')
     parser.addoption('--hamlib-verbose', action='count', default=0,
