@@ -25,6 +25,21 @@
 #define _RIG_STATE_H 1
 
 __BEGIN_DECLS
+
+
+/**
+ * \addtogroup rig
+ * @{
+ */
+
+/**
+ *  \brief Hamlib rig state data structure.
+ *
+ *  \file rig_state.h
+ *
+ *  This file contains the live data structure of the rig (radio).
+ */
+
 /**
  * \brief Rig state containing live data and customized fields.
  *
@@ -44,13 +59,13 @@ struct rig_state {
     // this should allow changes to hamlib_port_t without breaking shared libraries
     // these will maintain a copy of the new port_t for backwards compatibility
     // to these offsets -- note these must stay until a major version update is done like 5.0
-    hamlib_port_t_deprecated rigport_deprecated;  /*!< Rig port (internal use). */
-    hamlib_port_t_deprecated pttport_deprecated;  /*!< PTT port (internal use). */
-    hamlib_port_t_deprecated dcdport_deprecated;  /*!< DCD port (internal use). */
+    hamlib_port_t_deprecated rigport_deprecated;  /*!< \deprecated Rig port (internal use). */
+    hamlib_port_t_deprecated pttport_deprecated;  /*!< \deprecated PTT port (internal use). */
+    hamlib_port_t_deprecated dcdport_deprecated;  /*!< \deprecated DCD port (internal use). */
 
     double vfo_comp;        /*!< VFO compensation in PPM, 0.0 to disable */
 
-    int deprecated_itu_region;         /*!< ITU region to select among freq_range_t */
+    int deprecated_itu_region;         /*!< \deprecated ITU region to select among freq_range_t */
     freq_range_t rx_range_list[HAMLIB_FRQRANGESIZ];    /*!< Receive frequency range list */
     freq_range_t tx_range_list[HAMLIB_FRQRANGESIZ];    /*!< Transmit frequency range list */
 
@@ -111,7 +126,7 @@ struct rig_state {
     int twiddle_timeout;        /*!< timeout to resume from twiddling */
     // uplink allows gpredict to behave better by no reading the uplink VFO
     int uplink;                 /*!< uplink=1 will not read Sub, uplink=2 will not read Main */
-    struct rig_cache_deprecated cache; // Only here for backward compatibility
+    struct rig_cache_deprecated cache; /*!< \deprecated Only here for backward compatibility */
     int vfo_opt;                /*!< Is -o switch turned on? */
     int auto_power_on;          /*!< Allow Hamlib to power on rig
                                    automatically if supported */
@@ -129,15 +144,15 @@ struct rig_state {
     int twiddle_state;          /*!< keeps track of twiddle status */
     vfo_t rx_vfo;               /*!< Rx VFO currently set */
 
-    volatile unsigned int snapshot_packet_sequence_number;
+    volatile unsigned int snapshot_packet_sequence_number;  /*!< Sequence number for JSON output. */
 
-    volatile int multicast_publisher_run;
-    void *multicast_publisher_priv_data;
-    volatile int async_data_handler_thread_run;
-    void *async_data_handler_priv_data;
-    volatile int poll_routine_thread_run;
-    void *poll_routine_priv_data;
-    pthread_mutex_t mutex_set_transaction;
+    volatile int multicast_publisher_run;           /*!< Multicast publisher run flag. */
+    void *multicast_publisher_priv_data;            /*!< Pointer to multicast_publisher_priv_data. */
+    volatile int async_data_handler_thread_run;     /*!< Async data handler thread run flag. */
+    void *async_data_handler_priv_data;             /*!< Pointer to async_data_handler_priv_data. */
+    volatile int poll_routine_thread_run;           /*!< Poll routine thread run flag. */
+    void *poll_routine_priv_data;                   /*!< Pointer to rig_poll_routine_priv_data. */
+    pthread_mutex_t mutex_set_transaction;          /*!< Thread mutex flag. */
     hamlib_port_t rigport;  /*!< Rig port (internal use). */
     hamlib_port_t pttport;  /*!< PTT port (internal use). */
     hamlib_port_t dcdport;  /*!< DCD port (internal use). */
@@ -204,36 +219,37 @@ struct rig_state {
     freq_t spectrum_spans[HAMLIB_MAX_SPECTRUM_SPANS];                   /*!< Supported spectrum scope frequency spans in Hz in center mode. Last entry must be 0. */
     struct rig_spectrum_avg_mode spectrum_avg_modes[HAMLIB_MAX_SPECTRUM_AVG_MODES]; /*!< Supported spectrum scope averaging modes. Last entry must have NULL name. */
     int spectrum_attenuator[HAMLIB_MAXDBLSTSIZ];    /*!< Spectrum attenuator list in dB, 0 terminated */
-    volatile int morse_data_handler_thread_run;
-    void *morse_data_handler_priv_data;
-    FIFO_RIG *fifo_morse;
+    volatile int morse_data_handler_thread_run;     /*!< Morse data handler thread flag. */
+    void *morse_data_handler_priv_data;             /*!< Morse data handler private structure. */
+    FIFO_RIG *fifo_morse;                           /*!< FIFO queue for Morse Code transmission. */
     int doppler;         /*!< True if doppler changing detected */
     char *multicast_data_addr;  /*!< Multicast data UDP address for publishing rig data and state */
     int multicast_data_port;  /*!< Multicast data UDP port for publishing rig data and state */
     char *multicast_cmd_addr;  /*!< Multicast command server UDP address for sending commands to rig */
     int multicast_cmd_port;  /*!< Multicast command server UDP port for sending commands to rig */
-    volatile int multicast_receiver_run;
-    void *multicast_receiver_priv_data;
-    rig_comm_status_t comm_status; /*!< Detailed rig control status */
-    char device_id[HAMLIB_RIGNAMSIZ];
-    int dual_watch; /*!< Boolean DUAL_WATCH status */
-    int post_ptt_delay;         /*!< delay after PTT to allow for relays and such */
-    struct timespec freq_event_elapsed;
+    volatile int multicast_receiver_run;    /*!< Multicast receiver run flag. */
+    void *multicast_receiver_priv_data;     /*!< Multicast receiver private data structure, */
+    rig_comm_status_t comm_status;          /*!< Detailed rig control status */
+    char device_id[HAMLIB_RIGNAMSIZ];       /*!< Device name, */
+    int dual_watch;         /*!< Boolean DUAL_WATCH status */
+    int post_ptt_delay;     /*!< delay after PTT to allow for relays and such */
+    struct timespec freq_event_elapsed;     /*!< Time struct used by various caches. */
     int freq_skip; /*!< allow frequency skip for gpredict RX/TX freq set */
-    client_t client;
-    pthread_mutex_t api_mutex;   // Lock for any API entry
+    client_t client;        /*!< Client application of the library. */
+    pthread_mutex_t api_mutex;      /*!< Lock for any API entry. */
 // New rig_state items go before this line ============================================
 };
 
 //---Start cut here---
 /**
  * \brief Deprecated Rig state containing live data and customized fields.
- * Due to DLL problems this remains in-place in the rig_caps structure but is no longer referred to
- * A new rig_state has been added at the end of the structure instead of the middle
  *
- * This struct contains no data and is just a place holder for DLL alignment
- *
- * It is NOT fine to touch this struct AT ALL!!!
+ * \deprecated
+ * Due to DLL problems this remains in-place in the rig_caps structure but is no
+ * longer referred to.\n\n A new rig_state has been added at the end of the
+ * structure instead of the middle.\n\n This struct contains no data and is just a
+ * place holder for DLL alignment.\n\n It is NOT fine to touch this struct AT
+ * ALL!!!\n\n Do not use in new code.
  */
 struct rig_state_deprecated {
     /********* ENSURE YOU DO NOT EVER MODIFY THIS STRUCTURE *********/
@@ -312,7 +328,7 @@ struct rig_state_deprecated {
     int twiddle_timeout;        /*!< timeout to resume from twiddling */
     // uplink allows gpredict to behave better by no reading the uplink VFO
     int uplink;                 /*!< uplink=1 will not read Sub, uplink=2 will not read Main */
-    struct rig_cache_deprecated cache; // Here for backward compatibility
+    struct rig_cache_deprecated cache;  /*!< Here for backward compatibility. */
     int vfo_opt;                /*!< Is -o switch turned on? */
     int auto_power_on;          /*!< Allow Hamlib to power on rig
                                    automatically if supported */
@@ -330,15 +346,15 @@ struct rig_state_deprecated {
     int twiddle_state;          /*!< keeps track of twiddle status */
     vfo_t rx_vfo;               /*!< Rx VFO currently set */
 
-    volatile unsigned int snapshot_packet_sequence_number;
+    volatile unsigned int snapshot_packet_sequence_number;  /*!< Sequence number for JSON output. */
 
-    volatile int multicast_publisher_run;
-    void *multicast_publisher_priv_data;
-    volatile int async_data_handler_thread_run;
-    void *async_data_handler_priv_data;
-    volatile int poll_routine_thread_run;
-    void *poll_routine_priv_data;
-    pthread_mutex_t mutex_set_transaction;
+    volatile int multicast_publisher_run;           /*!< Multicast publisher run flag. */
+    void *multicast_publisher_priv_data;            /*!< Pointer to multicast_publisher_priv_data. */
+    volatile int async_data_handler_thread_run;     /*!< Async data handler thread run flag. */
+    void *async_data_handler_priv_data;             /*!< Pointer to async_data_handler_priv_data. */
+    volatile int poll_routine_thread_run;           /*!< Poll routine thread run flag. */
+    void *poll_routine_priv_data;                   /*!< Pointer to rig_poll_routine_priv_data. */
+    pthread_mutex_t mutex_set_transaction;          /*!< Thread mutex flag. */
     hamlib_port_t rigport;  /*!< Rig port (internal use). */
     hamlib_port_t pttport;  /*!< PTT port (internal use). */
     hamlib_port_t dcdport;  /*!< DCD port (internal use). */
@@ -362,8 +378,23 @@ struct rig_state_deprecated {
 #if defined(IN_HAMLIB)
 #define STATE(r) (&(r)->state)
 #endif
+/** Macro for application access to rig_state data structure using the #RIG
+ * handle.
+ *
+ * Example code.
+ * ```
+ * RIG *my_rig;
+ *
+ * //Instantiate a rig
+ * my_rig = rig_init(RIG_MODEL_DUMMY); // your rig (radio) model.
+ *
+ * const struct rig_state *my_rs = HAMLIB_STATE(my_rig);
+ * ```
+ */
 #define HAMLIB_STATE(r) ((struct rig_state *)rig_data_pointer(r, RIG_PTRX_STATE))
 
 __END_DECLS
 
 #endif /* _RIG_STATE_H */
+
+/** @} */
