@@ -488,7 +488,7 @@ grbltrk_rot_open(ROT *rot)
     }
     else if (rot->caps->rot_model == ROT_MODEL_GRBLTRK_NET)
     {
-        rot_get_conf(rot, TOK_PATHNAME, host);
+        rot_get_conf2(rot, TOK_PATHNAME, host, sizeof(host));
         rot_debug(RIG_DEBUG_ERR, "%s:%d ctrl via net, host [%s]\n", __func__, __LINE__,
                   host);
         grbl_net_open(rot, 23);

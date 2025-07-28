@@ -613,7 +613,7 @@ extern HAMLIB_EXPORT(int)
 rot_set_conf HAMLIB_PARAMS((ROT *rot,
                             hamlib_token_t token,
                             const char *val));
-extern HAMLIB_EXPORT(int)
+HL_DEPRECATED extern HAMLIB_EXPORT(int)
 rot_get_conf HAMLIB_PARAMS((ROT *rot,
                             hamlib_token_t token,
                             char *val));

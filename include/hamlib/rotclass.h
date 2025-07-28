@@ -55,6 +55,8 @@ public:
     void setConf(const char *name, const char *val);
     void getConf(hamlib_token_t token, char *val);
     void getConf(const char *name, char *val);
+    void getConf2(hamlib_token_t token, char *val, int len);
+    void getConf2(const char *name, char *val, int len);
     hamlib_token_t tokenLookup(const char *name);
 
     void setPosition(azimuth_t az, elevation_t el);

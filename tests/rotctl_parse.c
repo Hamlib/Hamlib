@@ -1698,7 +1698,7 @@ declare_proto_rot(get_conf)
     else
     {
         char value[4096];
-        ret = rot_get_conf(rot, rot_token_lookup(rot, arg1), value);
+        ret = rot_get_conf2(rot, rot_token_lookup(rot, arg1), value, sizeof(value));
 
         if (ret != RIG_OK)
         {
@@ -2917,7 +2917,7 @@ int print_conf_list2(const struct confparams *cfp, rig_ptr_t data, FILE *fout)
     ROT *rot = (ROT *) data;
     char buf[128] = "";
 
-    rot_get_conf(rot, cfp->token, buf);
+    rot_get_conf2(rot, cfp->token, buf, sizeof(buf));
     fprintf(fout, "%s: \"%s\"\n" "\t" "Default: %s, Value: %s\n",
             cfp->name,
             cfp->tooltip,
