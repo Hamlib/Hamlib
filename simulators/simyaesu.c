@@ -240,7 +240,7 @@ int main(int argc, char *argv[])
             n = write(fd, buf, strlen(buf));
             //printf("n=%d\n", n);
 
-            if (n <= 0) { perror("ID"); }
+            if (n <= 0) { perror("AI"); }
         }
         else if (strcmp(buf, "AI0;") == 0)
         {
@@ -321,7 +321,7 @@ int main(int argc, char *argv[])
             SNPRINTF(resp, sizeof(resp), "MD1%c;", modeB);
             n = write(fd, resp, strlen(resp));
 
-            if (n < 0) { perror("MD0;"); }
+            if (n < 0) { perror("MD1;"); }
         }
         else if (strncmp(buf, "MD1", 3) == 0)
         {
