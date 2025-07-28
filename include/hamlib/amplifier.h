@@ -232,7 +232,7 @@ struct amp_caps
   int (*get_freq)(AMP *amp, freq_t *val); /*!< Pointer to backend implementation of amp_get_freq(). */
 
   int (*set_conf)(AMP *amp, hamlib_token_t token, const char *val); /*!< Pointer to backend implementation of amp_set_conf(). */
-  int (*get_conf2)(AMP *amp, hamlib_token_t token, char *val, int val_len);       /*!< Pointer to backend implementation of amp_get_conf(). */
+  int (*get_conf2)(AMP *amp, hamlib_token_t token, char *val, int val_len);       /*!< Pointer to backend implementation of amp_get_conf2(). */
   int (*get_conf)(AMP *amp, hamlib_token_t token, char *val);       /*!< Pointer to backend implementation of amp_get_conf(). */
 
   /*
@@ -310,10 +310,15 @@ extern HAMLIB_EXPORT(int)
 amp_set_conf HAMLIB_PARAMS((AMP *amp,
                             hamlib_token_t token,
                             const char *val));
-extern HAMLIB_EXPORT(int)
+HL_DEPRECATED extern HAMLIB_EXPORT(int)
 amp_get_conf HAMLIB_PARAMS((AMP *amp,
                             hamlib_token_t token,
                             char *val));
+extern HAMLIB_EXPORT(int)
+amp_get_conf2 HAMLIB_PARAMS((AMP *amp,
+                            hamlib_token_t token,
+                            char *val,
+                            int val_len));
 extern HAMLIB_EXPORT(int)
 amp_set_powerstat HAMLIB_PARAMS((AMP *amp,
                                  powerstat_t status));
