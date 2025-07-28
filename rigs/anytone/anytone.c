@@ -46,7 +46,7 @@
 // ---------------------------------------------------------------------------
 
 #include "anytone.h"
-int anytone_transaction(RIG *rig, unsigned char *cmd, int cmd_len,
+static int anytone_transaction(RIG *rig, unsigned char *cmd, int cmd_len,
                         unsigned char *reply, int reply_len, int expected_len);
 
 DECLARE_INITRIG_BACKEND(anytone)
@@ -94,7 +94,7 @@ DECLARE_PROBERIG_BACKEND(anytone)
 
 // AnyTone needs a keep-alive to emulate the MIC
 // Apparently to keep the rig from getting stuck in PTT if mic disconnects
-void *anytone_thread(void *vrig)
+static void *anytone_thread(void *vrig)
 {
     RIG *rig = (RIG *)vrig;
     hamlib_port_t *rp = RIGPORT(rig);
@@ -135,7 +135,7 @@ void *anytone_thread(void *vrig)
 // ---------------------------------------------------------------------------
 // anytone_send
 // ---------------------------------------------------------------------------
-int anytone_send(RIG  *rig,
+static int anytone_send(RIG  *rig,
                  unsigned char *cmd, int cmd_len)
 {
     int               retval       = RIG_OK;
@@ -154,7 +154,7 @@ int anytone_send(RIG  *rig,
 // ---------------------------------------------------------------------------
 // anytone_receive
 // ---------------------------------------------------------------------------
-int anytone_receive(RIG  *rig, unsigned char *buf, int buf_len, int expected)
+static int anytone_receive(RIG  *rig, unsigned char *buf, int buf_len, int expected)
 {
     int               retval       = RIG_OK;
     hamlib_port_t *rp = RIGPORT(rig);
@@ -178,7 +178,7 @@ int anytone_receive(RIG  *rig, unsigned char *buf, int buf_len, int expected)
 // ---------------------------------------------------------------------------
 // anytone_transaction
 // ---------------------------------------------------------------------------
-int anytone_transaction(RIG *rig, unsigned char *cmd, int cmd_len,
+static int anytone_transaction(RIG *rig, unsigned char *cmd, int cmd_len,
                         unsigned char *reply, int reply_len, int expected_len)
 {
     int retval   = RIG_OK;
@@ -293,8 +293,12 @@ int anytone_open(RIG *rig)
 int anytone_close(RIG *rig)
 {
     int retval = RIG_OK;
+    anytone_priv_data_t *p = STATE(rig)->priv;
 
     ENTERFUNC;
+
+    // Tell thread to give up
+    p->runflag = 0;
     char *cmd  = "+ADATA:00,000\r\n";
     anytone_transaction(rig, (unsigned char *)cmd, strlen(cmd), NULL, 0, 0);
 

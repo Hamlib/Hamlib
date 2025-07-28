@@ -143,7 +143,6 @@ const struct rot_caps androidsensor_rot_caps =
 
 /* ************************************************************************* */
 
-// cppcheck-suppress syntaxError
 DECLARE_INITROT_BACKEND(androidsensor)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
