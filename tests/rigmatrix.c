@@ -34,7 +34,7 @@
 
 static setting_t bitmap_func, bitmap_level, bitmap_parm, bitmap_vfo_ops;
 
-int create_png_range(const freq_range_t rx_range_list[],
+static int create_png_range(const freq_range_t rx_range_list[],
                      const freq_range_t tx_range_list[], int num);
 
 int print_caps_sum(struct rig_caps *caps, void *data)
@@ -565,7 +565,6 @@ static void draw_range(const freq_range_t range_list[],
 
     }
 }
-
 
 static int create_png_range(const freq_range_t rx_range_list[],
                      const freq_range_t tx_range_list[],

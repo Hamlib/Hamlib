@@ -1000,7 +1000,7 @@ static int multicast_publisher_read_packet(multicast_publisher_args
     return (RIG_OK);
 }
 
-void *multicast_publisher(void *arg)
+static void *multicast_publisher(void *arg)
 {
     unsigned char spectrum_data[HAMLIB_MAX_SPECTRUM_DATA];
     char snapshot_buffer[HAMLIB_MAX_SNAPSHOT_PACKET_SIZE];
@@ -1257,7 +1257,7 @@ int is_wireless()
 #include <unistd.h>
 #include <ifaddrs.h>
 
-int is_networked(char *ipv4, int ipv4_length)
+static int is_networked(char *ipv4, int ipv4_length)
 {
     struct ifaddrs *interfaces, *iface;
     char addr_str[INET_ADDRSTRLEN];
@@ -1345,7 +1345,7 @@ int is_wireless()
 #endif
 #endif
 
-void *multicast_receiver(void *arg)
+static void *multicast_receiver(void *arg)
 {
     char data[4096];
     char ip4[INET6_ADDRSTRLEN];
