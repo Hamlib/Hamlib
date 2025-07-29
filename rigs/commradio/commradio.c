@@ -226,12 +226,3 @@ DECLARE_INITRIG_BACKEND(commradio)
 
     return (RIG_OK);
 }
-
-/*
- * For some reason, I can't get this to even link without this function.
- */
-DECLARE_PROBERIG_BACKEND(commradio)
-{
-    return (RIG_MODEL_NONE);
-}
-
