@@ -57,7 +57,7 @@
         { 238,  60 }, \
     } }
 
-int icr8500_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
+static int icr8500_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 
 static struct icom_priv_caps icr8500_priv_caps =
 {
@@ -199,7 +199,7 @@ struct rig_caps icr8500_caps =
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
-int icr8500_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+static int icr8500_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
     switch (func)
     {

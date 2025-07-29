@@ -49,7 +49,7 @@ typedef enum nc_rigid_e
     NC_RIGID_FTDX101MP       = 682
 } nc_rigid_t;
 
-void load_dat(const char *filename, unsigned char buf[1492])
+static void load_dat(const char *filename, unsigned char buf[1492])
 {
     FILE *fp = fopen(filename, "r");
     char line[4096];
