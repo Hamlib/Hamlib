@@ -87,10 +87,7 @@ int openPort(char *comport) // doesn't matter for using pts devices
 int main(int argc, char *argv[])
 {
     char buf[256];
-    char *pbuf;
     int fd = openPort(argv[1]);
-    int freqa = 14074000, freqb = 140735000;
-    int modeA = 0; // , modeB = 0;
 
     while (1)
     {
