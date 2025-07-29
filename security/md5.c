@@ -1,6 +1,6 @@
 #include "md5.h"
 
-char *make_digest(const unsigned char *digest, int len) /* {{{ */
+static char *make_digest(const unsigned char *digest, int len) /* {{{ */
 {
     int md5len = sizeof(char) * (len * 2 + 1);
     char *md5str = (char *) calloc(1, md5len);
@@ -64,7 +64,7 @@ char *make_digest(const unsigned char *digest, int len) /* {{{ */
  * This processes one or more 64-byte data blocks, but does NOT update
  * the bit counters.  There are no alignment requirements.
  */
-const void *body(void *ctxBuf, const void *data, size_t size)
+static const void *body(void *ctxBuf, const void *data, size_t size)
 {
     MD5_CTX *ctx = (MD5_CTX *)ctxBuf;
     const unsigned char *ptr;
@@ -174,7 +174,7 @@ const void *body(void *ctxBuf, const void *data, size_t size)
     return ptr;
 }
 
-void MD5Init(void *ctxBuf)
+static void MD5Init(void *ctxBuf)
 {
     MD5_CTX *ctx = (MD5_CTX *)ctxBuf;
     ctx->a = 0x67452301;
@@ -186,7 +186,7 @@ void MD5Init(void *ctxBuf)
     ctx->hi = 0;
 }
 
-void MD5Update(void *ctxBuf, const void *data, size_t size)
+static void MD5Update(void *ctxBuf, const void *data, size_t size)
 {
     MD5_CTX *ctx = (MD5_CTX *)ctxBuf;
     MD5_u32plus saved_lo;
@@ -229,7 +229,7 @@ void MD5Update(void *ctxBuf, const void *data, size_t size)
     memcpy(ctx->buffer, data, size);
 }
 
-void MD5Final(unsigned char *result, void *ctxBuf)
+static void MD5Final(unsigned char *result, void *ctxBuf)
 {
     MD5_CTX *ctx = (MD5_CTX *)ctxBuf;
     MD5_u32plus used, free;
@@ -282,7 +282,7 @@ void MD5Final(unsigned char *result, void *ctxBuf)
     memset(ctx, 0, sizeof(*ctx));
 }
 
-unsigned char *make_hash(const char *arg)
+static unsigned char *make_hash(const char *arg)
 {
     MD5_CTX context;
     static unsigned char digest[65];

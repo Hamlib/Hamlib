@@ -63,7 +63,7 @@ int do_init = 1;
 #define XTIME(x) ( ( x <<  1 ) ^ ( ( x & 0x80 ) ? 0x1B : 0x00 ) )
 #define MUL(x,y) ( ( x &&  y ) ? pow[(log[x] + log[y]) % 255] : 0 )
 
-void aes_gen_tables(void)
+static void aes_gen_tables(void)
 {
     int i;
     uint8 x, y;

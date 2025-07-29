@@ -106,7 +106,7 @@ static int test_host(char *hoststr, char host[256], char port[6])
 }
 
 int
-main(int argc, char *argv[])
+main(int argc, const char *argv[])
 {
     // IPV4
     test_host("127.0.0.1", "127.0.0.1", "");

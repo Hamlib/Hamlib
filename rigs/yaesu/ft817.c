@@ -674,7 +674,7 @@ static inline long timediff(const struct timeval *tv1,
     return ((tv.tv_sec * 1000L) + (tv.tv_usec / 1000L));
 }
 
-static int check_cache_timeout(struct timeval *tv)
+static int check_cache_timeout(const struct timeval *tv)
 {
     struct timeval curr;
     long t;
