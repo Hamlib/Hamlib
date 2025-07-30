@@ -1923,6 +1923,7 @@ struct rig_caps ts590_caps =
     .get_mem =  kenwood_get_mem,
     .vfo_ops = TS590_VFO_OPS,
     .vfo_op =  kenwood_vfo_op,
+    .morse_qsize = 24,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
@@ -2353,5 +2354,6 @@ struct rig_caps ts590sg_caps =
     .get_mem =  kenwood_get_mem,
     .vfo_ops = TS590_VFO_OPS,
     .vfo_op =  kenwood_vfo_op,
+    .morse_qsize = 24,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
