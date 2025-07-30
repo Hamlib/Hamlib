@@ -43,12 +43,12 @@ static int apex_get_string(ROT *rot, char *s, int maxlen)
 static void *apex_read(void *arg)
 {
     ROT *rot = arg;
-    int retval = 0;
     char data[64];
     int expected_return_length = 63;
 
     while (1)
     {
+        int retval;
         retval = apex_get_string(rot, data, expected_return_length);
 
         if (strstr(data, "<VER>"))

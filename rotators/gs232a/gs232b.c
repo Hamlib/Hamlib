@@ -294,10 +294,10 @@ static int gs232b_rot_set_level(ROT *rot, setting_t level, value_t val)
 
     switch (level)
     {
-        int retval;
 
     case ROT_LEVEL_SPEED:
     {
+        int retval;
         int speed = val.i;
 
         if (speed < 1)
@@ -310,7 +310,7 @@ static int gs232b_rot_set_level(ROT *rot, setting_t level, value_t val)
         }
 
         /* between 1 (slowest) and 4 (fastest) */
-        SNPRINTF(cmdstr, sizeof(cmdstr), "X%u" EOM, speed);
+        SNPRINTF(cmdstr, sizeof(cmdstr), "X%d" EOM, speed);
         retval = gs232b_transaction(rot, cmdstr, NULL, 0, 1);
 
         if (retval != RIG_OK)
