@@ -566,7 +566,7 @@ int kpa_get_powerstat(AMP *amp, powerstat_t *status)
 int kpa_set_powerstat(AMP *amp, powerstat_t status)
 {
     int retval;
-    char *cmd = NULL;
+    const char *cmd = NULL;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 

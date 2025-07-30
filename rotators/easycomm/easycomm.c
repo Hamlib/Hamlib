@@ -50,9 +50,9 @@
 static int
 easycomm_transaction(ROT *rot, const char *cmdstr, char *data, size_t data_len)
 {
-    hamlib_port_t *rotp = ROTPORT(rot);
+    hamlib_port_t *rotp;
     int retval;
-    int retry = rot->caps->retry;
+    int retry;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called: %s\n", __func__, cmdstr);
 
@@ -60,6 +60,9 @@ easycomm_transaction(ROT *rot, const char *cmdstr, char *data, size_t data_len)
     {
         return -RIG_EINVAL;
     }
+
+    rotp = ROTPORT(rot);
+    retry = rot->caps->retry;
 
     do
     {

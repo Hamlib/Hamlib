@@ -134,7 +134,7 @@ const char *gemini_get_info(AMP *amp)
     return rc->model_name;
 }
 
-int gemini_status_parse(AMP *amp)
+static int gemini_status_parse(AMP *amp)
 {
     int retval, n = 0;
     char *p;
@@ -204,7 +204,7 @@ int gemini_get_freq(AMP *amp, freq_t *freq)
 int gemini_set_freq(AMP *amp, freq_t freq)
 {
     int retval;
-    char *cmd;
+    const char *cmd;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -268,7 +268,7 @@ int gemini_get_level(AMP *amp, setting_t level, value_t *val)
 
 int gemini_set_level(AMP *amp, setting_t level, value_t val)
 {
-    char *cmd = "?";
+    const char *cmd = "?";
     int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -340,7 +340,7 @@ int gemini_get_powerstat(AMP *amp, powerstat_t *status)
 int gemini_set_powerstat(AMP *amp, powerstat_t status)
 {
     int retval;
-    char *cmd = NULL;
+    const char *cmd = NULL;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
