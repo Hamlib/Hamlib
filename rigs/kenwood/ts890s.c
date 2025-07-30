@@ -720,5 +720,6 @@ struct rig_caps ts890s_caps =
     .get_func = ts890_get_func,
     .get_clock = kenwood_get_clock,
     .set_clock = kenwood_set_clock,
+    .morse_qsize = 24,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
