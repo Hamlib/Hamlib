@@ -58,7 +58,7 @@ void usage();
 void version();
 static int set_conf(RIG *rig, char *conf_parms);
 
-int clear_chans(RIG *rig, const char *infilename);
+static int clear_chans(RIG *rig, const char *infilename);
 
 /*
  * Reminder: when adding long options,
@@ -450,7 +450,7 @@ static int set_conf(RIG *rig, char *conf_parms)
 /*
  * Pretty nasty, clears everything you have in rig memory
  */
-int clear_chans(RIG *rig, const char *infilename)
+static int clear_chans(RIG *rig, const char *infilename)
 {
     int i, j, ret;
     channel_t chan;

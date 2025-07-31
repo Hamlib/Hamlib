@@ -4414,9 +4414,9 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         case RIG_METER_VDD:  SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), format, 5);
             break;
 
+        default:
             rig_debug(RIG_DEBUG_ERR, "%s: unknown val.i=%d\n", __func__, val.i);
-
-        default: RETURNFUNC(-RIG_EINVAL);
+            RETURNFUNC(-RIG_EINVAL);
         }
 
         break;

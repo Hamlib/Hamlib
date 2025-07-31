@@ -22,11 +22,15 @@ SWGDEP = \
 
 EXTRA_DIST = $(SWGFILES) \
 	Makefile.PL perltest.pl tcltest.tcl.in \
+	python/conftest.py \
 	python/generate_tests.py \
 	python/test_Hamlib_Amp_class.py \
-	python/test_Hamlib_class.py \
 	python/test_Hamlib_Rig_class.py \
 	python/test_Hamlib_Rot_class.py \
+	python/test_Hamlib_class.py \
+	python/test_amp.py \
+	python/test_rig.py \
+	python/test_rot.py \
 	python/test_startup.py \
 	luatest.lua README.python
 
@@ -177,7 +181,7 @@ hamlibtcl_wrap.c: $(SWGDEP)
 		-I$(top_srcdir)/bindings \
 		-o $@ $$(test -f hamlib.swg || echo '$(srcdir)/')hamlib.swg
 
-do_subst = sed -e 's,[@]tcldir[@],$(tcldir),g'
+do_subst = sed -e 's,[@]tcldir[@],$(tcldir),g' -e 's,[@]builddir[@],$(builddir),g'
 
 tcltest.tcl: tcltest.tcl.in Makefile
 	$(AM_V_GEN)$(do_subst) < $(srcdir)/tcltest.tcl.in > tcltest.tcl
@@ -186,8 +190,7 @@ all-tcl: pkgIndex.tcl $(tcl_ltlib) tcltest.tcl
 
 check-tcl: all-tcl
 	$(AM_V_at)cp $(builddir)/pkgIndex.tcl $(builddir)/.libs
-	$(AM_V_at)TCLLIBPATH=$(builddir)/.libs tclsh $(builddir)/tcltest.tcl \
-		|| echo "Tcl test failed" 1>&2
+	$(AM_V_at)TCLLIBPATH=$(builddir)/.libs tclsh $(builddir)/tcltest.tcl
 	$(AM_V_at)rm -f $(builddir)/.libs/pkgIndex.tcl
 
 install-tcl:
@@ -220,8 +223,7 @@ Hamliblua_la_LTLIBRARIES = $(luaexec_ltlib)
 all-lua: $(luaexec_ltlib)
 
 check-lua: all-lua
-	$(AM_V_at)LUA_CPATH="$(abs_builddir)/.libs/?.so" $(LUA) $(srcdir)/luatest.lua \
-		|| echo "Lua test failed" 1>&2
+	$(AM_V_at)LUA_CPATH="$(abs_builddir)/.libs/?.so" $(LUA) $(srcdir)/luatest.lua
 
 Hamlib.lua: hamliblua_wrap.c
 

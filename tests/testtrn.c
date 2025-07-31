@@ -14,7 +14,7 @@
 #define SERIAL_PORT "/dev/ttyS0"
 
 
-int myfreq_event(RIG *rig, vfo_t vfo, freq_t freq, rig_ptr_t arg)
+static int myfreq_event(RIG *rig, vfo_t vfo, freq_t freq, rig_ptr_t arg)
 {
     int *count_ptr = (int *) arg;
 

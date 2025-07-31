@@ -69,9 +69,8 @@ typedef struct amp AMP;
  * \brief Type definition for
  * <a href="https://en.wikipedia.org/wiki/Standing_wave_ratio" >SWR (Standing Wave Ratio)</a>.
  *
- * \typedef typedef float swr_t
- *
- * The \a swr_t type is used as a parameter for the amp_get_swr() function.
+ * \noop amp_get_swr() is not implemented.
+ * \noop The \a swr_t type is used as a parameter for the amp_get_swr() function.
  *
  * The unit of \a swr_t is 1.0 to the maximum value reported by the amplifier's
  * internal antenna system tuner, i.e.
@@ -89,8 +88,6 @@ typedef float swr_t;
  * and
  * <a href="https://en.wikipedia.org/wiki/Inductance" >inductance</a>.
  *
- * \typedef typedef float tune_value_t
- *
  * The \a tune_value_t type is used as a parameter for amp_get_level().
  *
  * The unit of \a tune_value_t is
@@ -107,36 +104,35 @@ typedef int tune_value_t;
 #define NETAMPCTL_RET "RPRT "
 
 
-//! @cond Doxygen_Suppress
-typedef enum
+/** \brief Amplifier reset tokens. */
+typedef enum amp_reset_e
 {
-  AMP_RESET_MEM,    // erase tuner memory
-  AMP_RESET_FAULT,  // reset any fault
-  AMP_RESET_AMP     // for kpa1500
+  AMP_RESET_MEM,    /*!< Erase tuner memory. */
+  AMP_RESET_FAULT,  /*!< Reset any fault. */
+  AMP_RESET_AMP     /*!< For Elecraft KPA-1500. */
 } amp_reset_t;
-//! @endcond
 
-/**
- * \brief Amplifier type flags
- */
-typedef enum
+/** \brief Amplifier type flags. */
+typedef enum amp_type_e
 {
   AMP_FLAG_1 = (1 << 1),      /*!< TBD */
   AMP_FLAG_2 = (1 << 2)       /*!< TBD */
 } amp_type_t;
 
-//! @cond Doxygen_Suppress
 // TBD AMP_TYPE
+///@{
+/// Amplifier type bit masks.
 #define AMP_TYPE_MASK  (AMP_FLAG_1|AMP_FLAG_2)
 
 #define AMP_TYPE_OTHER 0
 #define AMP_TYPE_1     AMP_FLAG_1
 #define AMP_TYPE_2     AMP_FLAG_2
 #define AMP_TYPE_ALL   (AMP_FLAG_1|AMP_FLAG_2)
-//! @endcond
+///@}
 
 
-//! @cond Doxygen_Suppress
+///@{
+/// Amplifier levels as bit masks.
 enum amp_level_e
 {
   AMP_LEVEL_NONE          = 0,        /*!< '' -- No Level. */
@@ -150,9 +146,10 @@ enum amp_level_e
   AMP_LEVEL_FAULT         = (1 << 7), /*!< \c Fault code. */
   AMP_LEVEL_PWR           = (1 << 8), /*!< \c Power setting. */
 };
-//! @endcond
+///@}
 
 //! @cond Doxygen_Suppress
+// Not used yet.
 #define AMP_LEVEL_FLOAT_LIST  (AMP_LEVEL_SWR)
 #define AMP_LEVEL_STRING_LIST  (AMP_LEVEL_FAULT)
 #define AMP_LEVEL_IS_FLOAT(l) ((l)&AMP_LEVEL_FLOAT_LIST)
@@ -164,14 +161,15 @@ enum amp_level_e
  * enquiries about capabilities.
  */
 
-//! @cond Doxygen_Suppress
+/**
+ * Convenience macro to map the `amp_model` number and `macro_name` string from amplist.h.
+ *
+ * Used when populating a backend amp_caps structure.
+ */
 #define AMP_MODEL(arg) .amp_model=arg,.macro_name=#arg
-//! @endcond
 
 /**
  * \brief Amplifier capabilities.
- *
- * \struct amp_caps
  *
  * The main idea of this struct is that it will be defined by the backend
  * amplifier driver and will remain read-only for the application.  Fields
@@ -225,39 +223,37 @@ struct amp_caps
    *
    */
 
-  int (*amp_init)(AMP *amp);    /*!< Pointer to backend implementation of ::amp_init(). */
-  int (*amp_cleanup)(AMP *amp); /*!< Pointer to backend implementation of ::amp_cleanup(). */
-  int (*amp_open)(AMP *amp);    /*!< Pointer to backend implementation of ::amp_open(). */
-  int (*amp_close)(AMP *amp);   /*!< Pointer to backend implementation of ::amp_close(). */
+  int (*amp_init)(AMP *amp);    /*!< Pointer to backend implementation of amp_init(). */
+  int (*amp_cleanup)(AMP *amp); /*!< Pointer to backend implementation of amp_cleanup(). */
+  int (*amp_open)(AMP *amp);    /*!< Pointer to backend implementation of amp_open(). */
+  int (*amp_close)(AMP *amp);   /*!< Pointer to backend implementation of amp_close(). */
 
-  int (*set_freq)(AMP *amp, freq_t val);  /*!< Pointer to backend implementation of ::amp_set_freq(). */
-  int (*get_freq)(AMP *amp, freq_t *val); /*!< Pointer to backend implementation of ::amp_get_freq(). */
+  int (*set_freq)(AMP *amp, freq_t val);  /*!< Pointer to backend implementation of amp_set_freq(). */
+  int (*get_freq)(AMP *amp, freq_t *val); /*!< Pointer to backend implementation of amp_get_freq(). */
 
-  int (*set_conf)(AMP *amp, hamlib_token_t token, const char *val); /*!< Pointer to backend implementation of ::amp_set_conf(). */
-  int (*get_conf2)(AMP *amp, hamlib_token_t token, char *val, int val_len);       /*!< Pointer to backend implementation of ::amp_get_conf(). */
-  int (*get_conf)(AMP *amp, hamlib_token_t token, char *val);       /*!< Pointer to backend implementation of ::amp_get_conf(). */
+  int (*set_conf)(AMP *amp, hamlib_token_t token, const char *val); /*!< Pointer to backend implementation of amp_set_conf(). */
+  int (*get_conf2)(AMP *amp, hamlib_token_t token, char *val, int val_len);       /*!< Pointer to backend implementation of amp_get_conf2(). */
+  int (*get_conf)(AMP *amp, hamlib_token_t token, char *val);       /*!< Pointer to backend implementation of amp_get_conf(). */
 
   /*
    *  General API commands, from most primitive to least.. :()
    *  List Set/Get functions pairs
    */
 
-  int (*reset)(AMP *amp, amp_reset_t reset);                   /*!< Pointer to backend implementation of ::amp_reset(). */
-  int (*get_level)(AMP *amp, setting_t level, value_t *val);   /*!< Pointer to backend implementation of ::amp_get_level(). */
-  int (*set_level)(AMP *amp, setting_t level, value_t val);    /*!< Pointer to backend implementation of ::amp_get_level(). */
-  int (*get_ext_level)(AMP *amp, hamlib_token_t level, value_t *val); /*!< Pointer to backend implementation of ::amp_get_ext_level(). */
-  int (*set_ext_level)(AMP *amp, hamlib_token_t level, value_t val);  /*!< Pointer to backend implementation of ::amp_set_ext_level(). */
-  int (*set_powerstat)(AMP *amp, powerstat_t status);          /*!< Pointer to backend implementation of ::amp_set_powerstat(). */
-  int (*get_powerstat)(AMP *amp, powerstat_t *status);         /*!< Pointer to backend implementation of ::amp_get_powerstat(). */
+  int (*reset)(AMP *amp, amp_reset_t reset);                   /*!< Pointer to backend implementation of amp_reset(). */
+  int (*get_level)(AMP *amp, setting_t level, value_t *val);   /*!< Pointer to backend implementation of amp_get_level(). */
+  int (*set_level)(AMP *amp, setting_t level, value_t val);    /*!< Pointer to backend implementation of amp_get_level(). */
+  int (*get_ext_level)(AMP *amp, hamlib_token_t level, value_t *val); /*!< Pointer to backend implementation of amp_get_ext_level(). */
+  int (*set_ext_level)(AMP *amp, hamlib_token_t level, value_t val);  /*!< Pointer to backend implementation of amp_set_ext_level(). */
+  int (*set_powerstat)(AMP *amp, powerstat_t status);          /*!< Pointer to backend implementation of amp_set_powerstat(). */
+  int (*get_powerstat)(AMP *amp, powerstat_t *status);         /*!< Pointer to backend implementation of amp_get_powerstat(). */
 
 
   /* get firmware info, etc. */
-  const char *(*get_info)(AMP *amp); /*!< Pointer to backend implementation of ::amp_get_info(). */
+  const char *(*get_info)(AMP *amp); /*!< Pointer to backend implementation of amp_get_info(). */
 
-//! @cond Doxygen_Suppress
-  setting_t levels;
-  unsigned ext_levels;
-//! @endcond
+  setting_t levels;         /*!< Levels bit mask */
+  unsigned ext_levels;      /*!< Extension levels value. */
   const struct confparams *extlevels;         /*!< Extension levels list.  \sa extamp.c */
   const struct confparams *extparms;          /*!< Extension parameters list.  \sa extamp.c */
 
@@ -280,8 +276,6 @@ __BEGIN_DECLS
 //---End cut here---
 /**
  * \brief Master amplifier structure.
- *
- * \struct amp
  *
  * Master amplifier data structure acting as the #AMP handle for the
  * controlled amplifier.  A pointer to this structure is returned by the
@@ -316,10 +310,15 @@ extern HAMLIB_EXPORT(int)
 amp_set_conf HAMLIB_PARAMS((AMP *amp,
                             hamlib_token_t token,
                             const char *val));
-extern HAMLIB_EXPORT(int)
+HL_DEPRECATED extern HAMLIB_EXPORT(int)
 amp_get_conf HAMLIB_PARAMS((AMP *amp,
                             hamlib_token_t token,
                             char *val));
+extern HAMLIB_EXPORT(int)
+amp_get_conf2 HAMLIB_PARAMS((AMP *amp,
+                            hamlib_token_t token,
+                            char *val,
+                            int val_len));
 extern HAMLIB_EXPORT(int)
 amp_set_powerstat HAMLIB_PARAMS((AMP *amp,
                                  powerstat_t status));
@@ -431,8 +430,6 @@ extern HAMLIB_EXPORT(void *) amp_data_pointer(AMP *amp, rig_ptrx_t idx);
 
 /**
  * \brief Convenience macro for generating debugging messages.
- *
- * \def amp_debug
  *
  * This is an alias of the rig_debug() function call and is used in the same
  * manner.

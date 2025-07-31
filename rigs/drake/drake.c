@@ -62,9 +62,9 @@
  */
 void drake_fix_string(char* inStr)
 {
-    char  chChkAry[3] = {0x20, 0x0d, 0x0a};
-    char* chRepAry[3] = {"<SP>", "<CR>", "<LF>"};
-    char* chPos;
+    const char  chChkAry[3] = {0x20, 0x0d, 0x0a};
+    const char* chRepAry[3] = {"<SP>", "<CR>", "<LF>"};
+    const char* chPos;
     int   newLen;
     int   offset;
     int   i;
@@ -108,7 +108,7 @@ void drake_trans_rept(char* hdrStr, char* sentStr, int sentLen, char* recdStr, i
 {
     char sent[BUFSZ];
     char recd[BUFSZ];
-    char nullStr[7] =  {'<','N','U','L','L','>',0x00};
+    const char nullStr[7] =  {'<','N','U','L','L','>',0x00};
     int  i;
     
     //in most cases each string is a buffer, so we need to ensure both command and response
@@ -1583,7 +1583,7 @@ DECLARE_PROBERIG_BACKEND(drake)
 
     close(port->fd);
 
-    if (retval != RIG_OK || id_len <= 0 || id_len >= BUFSZ)
+    if (retval != RIG_OK || id_len <= 1 || id_len >= BUFSZ)
     {
         return RIG_MODEL_NONE;
     }

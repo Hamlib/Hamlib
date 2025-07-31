@@ -73,6 +73,31 @@
 #include <hamlib/riglist.h>
 //#include <hamlib/config.h>
 
+/* Define macros for handling attributes, if the compiler implements them
+ *   Should be available in c23-capable compilers, or c++11 ones
+ */
+// From ISO/IEC 9899:202y n3301 working draft
+#ifndef __has_c_attribute
+#define __has_c_attribute(x) 0
+#endif
+
+// Macro to mark fallthrough as OK
+// Squelch warnings if -Wimplicit-fallthrough added to CFLAGS
+#if __has_c_attribute(fallthrough)
+#define HL_FALLTHROUGH [[fallthrough]];
+#else
+/* Fall back to nothing */
+#define HL_FALLTHROUGH
+#endif
+
+// Macro to mark function or variable as deprecated/obsolete
+#if __has_c_attribute(deprecated)
+#define HL_DEPRECATED [[deprecated]]
+#else
+// Make it vanish
+#define HL_DEPRECATED
+#endif
+
 /**
  * \addtogroup rig
  * @{
@@ -739,10 +764,14 @@ typedef enum {
     RIG_RESET_MASTER =  (1 << 3)    /*!< Master reset */
 } reset_t;
 
-typedef enum {
-    RIG_CLIENT_UNKNOWN,
-    RIG_CLIENT_WSJTX,
-    RIG_CLIENT_GPREDICT
+
+/**
+ * The client application using Hamlib.
+ */
+typedef enum client_e {
+    RIG_CLIENT_UNKNOWN,     /*!< Not known, could be any application. */
+    RIG_CLIENT_WSJTX,       /*!< Well known digital application that includes FT8 and FT4. */
+    RIG_CLIENT_GPREDICT     /*!< Satellite prediction and tracking application. */
 } client_t;
 
 
@@ -1206,7 +1235,7 @@ enum multicast_item_e {
 //! @endcond
 
 /**
- * \brief Setting
+ * \brief Setting bit mask.
  *
  * This can be a func, a level or a parm.
  * Each bit designates one of them.
@@ -1893,6 +1922,16 @@ struct deferred_config_header {
 };
 typedef struct deferred_config_header deferred_config_header_t;
 
+
+/**
+ * Convenience macro to map the `rig_model` number and `macro_name` string from riglist.h.
+ *
+ * Used when populating a backend rig_caps structure.
+ */
+#define RIG_MODEL(arg) .rig_model=arg,.macro_name=#arg
+
+#define HAMLIB_CHECK_RIG_CAPS "HAMLIB_CHECK_RIG_CAPS"
+
 /**
  * \brief Rig data structure.
  *
@@ -1912,9 +1951,6 @@ typedef struct deferred_config_header deferred_config_header_t;
  * mdblack: Don't move or add fields around without bumping the version numbers
  *          DLL or shared library replacement depends on order
  */
-//! @cond Doxygen_Suppress
-#define RIG_MODEL(arg) .rig_model=arg,.macro_name=#arg
-#define HAMLIB_CHECK_RIG_CAPS "HAMLIB_CHECK_RIG_CAPS"
 struct rig_caps {
     rig_model_t rig_model;      /*!< Rig model. */
     const char *model_name;     /*!< Model name. */
@@ -2931,7 +2967,7 @@ rig_set_conf HAMLIB_PARAMS((RIG *rig,
                             hamlib_token_t token,
                             const char *val));
 // deprecating rig_get_conf
-extern HAMLIB_EXPORT(int)
+HL_DEPRECATED extern HAMLIB_EXPORT(int)
 rig_get_conf HAMLIB_PARAMS((RIG *rig,
                             hamlib_token_t token,
                             char *val));

@@ -1298,6 +1298,7 @@ static int get_freq_and_mode(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode,
 
     case MD_CWN:
         *width = rig_passband_narrow(rig, RIG_MODE_CW);
+        HL_FALLTHROUGH
 
     case MD_CW:
         *mode = RIG_MODE_CW;
@@ -1305,6 +1306,7 @@ static int get_freq_and_mode(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode,
 
     case MD_CWNR:
         *width = rig_passband_narrow(rig, RIG_MODE_CW);
+        HL_FALLTHROUGH
 
     case MD_CWR:
         *mode = RIG_MODE_CWR;
@@ -1312,6 +1314,7 @@ static int get_freq_and_mode(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode,
 
     case MD_AMN:
         *width = rig_passband_narrow(rig, RIG_MODE_AM);
+        HL_FALLTHROUGH
 
     case MD_AM:
         *mode = RIG_MODE_AM;
@@ -1319,6 +1322,7 @@ static int get_freq_and_mode(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode,
 
     case MD_FMN:
         *width = rig_passband_narrow(rig, RIG_MODE_FM);
+        HL_FALLTHROUGH
 
     case MD_FM:
         *mode = RIG_MODE_FM;
