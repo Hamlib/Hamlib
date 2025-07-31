@@ -76,7 +76,7 @@ empty_calibration:
     return 0;
 }
 
-void write_calibration(int cal[NUM_CHANNELS][2])
+void write_calibration(const int cal[NUM_CHANNELS][2])
 {
     unsigned short buf[16];
     int i, j, k = 0;
@@ -107,7 +107,7 @@ static void erase_calibration()
 }
 
 int check_calibration(int cal[NUM_CHANNELS][2],
-                      int stored_cal[NUM_CHANNELS][2], int state)
+                      const int stored_cal[NUM_CHANNELS][2], int state)
 {
     double pcnt_diff;
     int i, j, erase_cal = 0;

@@ -4,7 +4,7 @@
 #include<stdio.h>
 #include<fcntl.h>
 
-unsigned int parseBinary(char *str)
+unsigned int parseBinary(const char *str)
 {
     unsigned int val = 0;
 

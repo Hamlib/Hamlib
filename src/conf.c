@@ -1477,7 +1477,7 @@ int HAMLIB_API rig_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !rig->caps)
+    if (!rig || !rig->caps || !val)
     {
         return -RIG_EINVAL;
     }

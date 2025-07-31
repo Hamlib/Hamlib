@@ -9,14 +9,12 @@ import Hamlib
 
 Hamlib.rig_set_debug(Hamlib.RIG_DEBUG_NONE)
 
-AMP_MODEL = Hamlib.AMP_MODEL_DUMMY
-
 class TestClass:
     """Container class for tests"""
 
-    def test_without_open(self):
+    def test_without_open(self, model):
         """Call all the methods that do not depend on open()"""
-        amp = Hamlib.Amp(AMP_MODEL)
+        amp = Hamlib.Amp(model)
         assert amp is not None
         assert amp.do_exception == 0
         assert amp.error_status == Hamlib.RIG_OK
@@ -38,9 +36,9 @@ class TestClass:
         assert amp.token_lookup("") is None
 
 
-    def test_with_open(self):
+    def test_with_open(self, model):
         """Call all the methods that depend on open()"""
-        amp = Hamlib.Amp(AMP_MODEL)
+        amp = Hamlib.Amp(model)
         assert amp is not None
 
         assert amp.state.comm_state == 0
@@ -70,9 +68,9 @@ class TestClass:
         assert info is None
 
 
-    def test_object_creation(self):
+    def test_object_creation(self, model):
         """Create all objects available"""
-        amp = Hamlib.Rig(AMP_MODEL)
+        amp = Hamlib.Rig(model)
         assert amp is not None
 
         assert isinstance(amp.caps, Hamlib.rig_caps)

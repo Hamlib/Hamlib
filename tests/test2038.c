@@ -6,7 +6,7 @@ Does fail when compiled with gcc -m32 -o test2038 test2038.c
 #include <time.h>
 #include <string.h>
 
-int test2038(void)
+static int test2038(void)
 {
     time_t x;
 

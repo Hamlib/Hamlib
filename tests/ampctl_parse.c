@@ -1501,7 +1501,7 @@ int print_conf_list(const struct confparams *cfp, rig_ptr_t data)
     int i;
     char buf[128] = "";
 
-    amp_get_conf(amp, cfp->token, buf);
+    amp_get_conf2(amp, cfp->token, buf, sizeof(buf));
     printf("%s: \"%s\"\n" "\tDefault: %s, Value: %s\n",
            cfp->name,
            cfp->tooltip,

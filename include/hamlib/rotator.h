@@ -510,56 +510,60 @@ struct rot_caps {
      *
      */
 
-    int (*rot_init)(ROT *rot);     /*!< Pointer to backend implementation of ::rot_init(). */
-    int (*rot_cleanup)(ROT *rot);  /*!< Pointer to backend implementation of ::rot_cleanup(). */
-    int (*rot_open)(ROT *rot);     /*!< Pointer to backend implementation of ::rot_open(). */
-    int (*rot_close)(ROT *rot);    /*!< Pointer to backend implementation of ::rot_close(). */
+    int (*rot_init)(ROT *rot);     /*!< Pointer to backend implementation of rot_init(). */
+    int (*rot_cleanup)(ROT *rot);  /*!< Pointer to backend implementation of rot_cleanup(). */
+    int (*rot_open)(ROT *rot);     /*!< Pointer to backend implementation of rot_open(). */
+    int (*rot_close)(ROT *rot);    /*!< Pointer to backend implementation of rot_close(). */
 
-    int (*set_conf)(ROT *rot, hamlib_token_t token, const char *val); /*!< Pointer to backend implementation of ::rot_set_conf(). */
-    int (*get_conf)(ROT *rot, hamlib_token_t token, char *val);       /*!< Pointer to backend implementation of ::rot_get_conf(). */
+    int (*set_conf)(ROT *rot, hamlib_token_t token, const char *val); /*!< Pointer to backend implementation of rot_set_conf(). */
+    int (*get_conf)(ROT *rot, hamlib_token_t token, char *val);       /*!< Pointer to backend implementation of rot_get_conf(). */
 
     /*
      *  General API commands, from most primitive to least.. :()
      *  List Set/Get functions pairs
      */
 
-    int (*set_position)(ROT *rot, azimuth_t azimuth, elevation_t elevation);   /*!< Pointer to backend implementation of ::rot_set_position(). */
-    int (*get_position)(ROT *rot, azimuth_t *azimuth, elevation_t *elevation); /*!< Pointer to backend implementation of ::rot_get_position(). */
+    int (*set_position)(ROT *rot, azimuth_t azimuth, elevation_t elevation);   /*!< Pointer to backend implementation of rot_set_position(). */
+    int (*get_position)(ROT *rot, azimuth_t *azimuth, elevation_t *elevation); /*!< Pointer to backend implementation of rot_get_position(). */
 
-    int (*stop)(ROT *rot); /*!< Pointer to backend implementation of ::rot_stop(). */
-    int (*park)(ROT *rot); /*!< Pointer to backend implementation of ::rot_park(). */
-    int (*reset)(ROT *rot, rot_reset_t reset);         /*!< Pointer to backend implementation of ::rot_reset(). */
-    int (*move)(ROT *rot, int direction, int speed);   /*!< Pointer to backend implementation of ::rot_move(). */
+    int (*stop)(ROT *rot); /*!< Pointer to backend implementation of rot_stop(). */
+    int (*park)(ROT *rot); /*!< Pointer to backend implementation of rot_park(). */
+    int (*reset)(ROT *rot, rot_reset_t reset);         /*!< Pointer to backend implementation of rot_reset(). */
+    int (*move)(ROT *rot, int direction, int speed);   /*!< Pointer to backend implementation of rot_move(). */
 
     /* get firmware info, etc. */
-    const char * (*get_info)(ROT *rot);    /*!< Pointer to backend implementation of ::rot_get_info(). */
+    const char * (*get_info)(ROT *rot);    /*!< Pointer to backend implementation of rot_get_info(). */
 
-    int (*set_level)(ROT *rot, setting_t level, value_t val);  /*!< Pointer to backend implementation of ::rot_set_level(). */
-    int (*get_level)(ROT *rot, setting_t level, value_t *val); /*!< Pointer to backend implementation of ::rot_get_level(). */
+    int (*set_level)(ROT *rot, setting_t level, value_t val);  /*!< Pointer to backend implementation of rot_set_level(). */
+    int (*get_level)(ROT *rot, setting_t level, value_t *val); /*!< Pointer to backend implementation of rot_get_level(). */
 
-    int (*set_func)(ROT *rot, setting_t func, int status);     /*!< Pointer to backend implementation of ::rot_set_func(). */
-    int (*get_func)(ROT *rot, setting_t func, int *status);    /*!< Pointer to backend implementation of ::rot_get_func(). */
+    int (*set_func)(ROT *rot, setting_t func, int status);     /*!< Pointer to backend implementation of rot_set_func(). */
+    int (*get_func)(ROT *rot, setting_t func, int *status);    /*!< Pointer to backend implementation of rot_get_func(). */
 
-    int (*set_parm)(ROT *rot, setting_t parm, value_t val);    /*!< Pointer to backend implementation of ::rot_set_parm(). */
-    int (*get_parm)(ROT *rot, setting_t parm, value_t *val);   /*!< Pointer to backend implementation of ::rot_get_parm(). */
+    int (*set_parm)(ROT *rot, setting_t parm, value_t val);    /*!< Pointer to backend implementation of rot_set_parm(). */
+    int (*get_parm)(ROT *rot, setting_t parm, value_t *val);   /*!< Pointer to backend implementation of rot_get_parm(). */
 
-    int (*set_ext_level)(ROT *rot, hamlib_token_t token, value_t val);    /*!< Pointer to backend implementation of ::rot_set_ext_level(). */
-    int (*get_ext_level)(ROT *rot, hamlib_token_t token, value_t *val);   /*!< Pointer to backend implementation of ::rot_get_ext_level(). */
+    int (*set_ext_level)(ROT *rot, hamlib_token_t token, value_t val);    /*!< Pointer to backend implementation of rot_set_ext_level(). */
+    int (*get_ext_level)(ROT *rot, hamlib_token_t token, value_t *val);   /*!< Pointer to backend implementation of rot_get_ext_level(). */
 
-    int (*set_ext_func)(ROT *rot, hamlib_token_t token, int status);  /*!< Pointer to backend implementation of ::rot_set_ext_func(). */
-    int (*get_ext_func)(ROT *rot, hamlib_token_t token, int *status); /*!< Pointer to backend implementation of ::rot_get_ext_func(). */
+    int (*set_ext_func)(ROT *rot, hamlib_token_t token, int status);  /*!< Pointer to backend implementation of rot_set_ext_func(). */
+    int (*get_ext_func)(ROT *rot, hamlib_token_t token, int *status); /*!< Pointer to backend implementation of rot_get_ext_func(). */
 
-    int (*set_ext_parm)(ROT *rot, hamlib_token_t token, value_t val);     /*!< Pointer to backend implementation of ::rot_set_ext_parm(). */
-    int (*get_ext_parm)(ROT *rot, hamlib_token_t token, value_t *val);    /*!< Pointer to backend implementation of ::rot_get_ext_parm(). */
+    int (*set_ext_parm)(ROT *rot, hamlib_token_t token, value_t val);     /*!< Pointer to backend implementation of rot_set_ext_parm(). */
+    int (*get_ext_parm)(ROT *rot, hamlib_token_t token, value_t *val);    /*!< Pointer to backend implementation of rot_get_ext_parm(). */
 
-    int (*get_status)(ROT *rot, rot_status_t *status); /*!< Pointer to backend implementation of ::rot_get_status(). */
+    int (*get_status)(ROT *rot, rot_status_t *status); /*!< Pointer to backend implementation of rot_get_status(). */
 
     const char *macro_name;                    /*!< Rotator model macro name. */
-    int (*get_conf2)(ROT *rot, hamlib_token_t token, char *val, int val_len);       /*!< Pointer to backend implementation of ::rot_get_conf2(). */
+    int (*get_conf2)(ROT *rot, hamlib_token_t token, char *val, int val_len);       /*!< Pointer to backend implementation of rot_get_conf2(). */
 };
-//! @cond Doxygen_Suppress
+
+/**
+ * Convenience macro to map the `rot_model` number and `macro_name` string from rotlist.h.
+ *
+ * Used when populating a backend rot_caps structure.
+ */
 #define ROT_MODEL(arg) .rot_model=arg,.macro_name=#arg
-//! @endcond
 
 //---Start cut here---
 // Rotator state definition moved to include/hamlib/rot_state.h
@@ -609,7 +613,7 @@ extern HAMLIB_EXPORT(int)
 rot_set_conf HAMLIB_PARAMS((ROT *rot,
                             hamlib_token_t token,
                             const char *val));
-extern HAMLIB_EXPORT(int)
+HL_DEPRECATED extern HAMLIB_EXPORT(int)
 rot_get_conf HAMLIB_PARAMS((ROT *rot,
                             hamlib_token_t token,
                             char *val));

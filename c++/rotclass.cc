@@ -73,13 +73,21 @@ void Rotator::setConf(const char *name, const char *val)
 	CHECK_ROT( rot_set_conf(theRot, tokenLookup(name), val) );
 }
 
-void Rotator::getConf(hamlib_token_t token, char *val)
+HL_DEPRECATED void Rotator::getConf(hamlib_token_t token, char *val)
 {
-	CHECK_ROT( rot_get_conf(theRot, token, val) );
+	CHECK_ROT( rot_get_conf2(theRot, token, val, 128) );
 }
-void Rotator::getConf(const char *name, char *val)
+HL_DEPRECATED void Rotator::getConf(const char *name, char *val)
 {
-	CHECK_ROT( rot_get_conf(theRot, tokenLookup(name), val) );
+	CHECK_ROT( rot_get_conf2(theRot, tokenLookup(name), val, 128) );
+}
+void Rotator::getConf2(hamlib_token_t token, char *val, int val_len)
+{
+	CHECK_ROT( rot_get_conf2(theRot, token, val, val_len) );
+}
+void Rotator::getConf2(const char *name, char *val, int val_len)
+{
+	CHECK_ROT( rot_get_conf2(theRot, tokenLookup(name), val, val_len) );
 }
 
 hamlib_token_t Rotator::tokenLookup(const char *name)

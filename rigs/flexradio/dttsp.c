@@ -462,7 +462,7 @@ static int dttsp_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_le
         /* if it's not for the dttsp backend, maybe it's for the tuner */
         if (priv->tuner)
         {
-            return rig_get_conf(priv->tuner, token, val);
+            return rig_get_conf2(priv->tuner, token, val, val_len);
         }
         else
         {

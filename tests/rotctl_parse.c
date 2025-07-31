@@ -246,7 +246,7 @@ struct test_table test_list[] =
 };
 
 
-struct test_table *find_cmd_entry(int cmd)
+static struct test_table *find_cmd_entry(int cmd)
 {
     int i;
 
@@ -286,7 +286,7 @@ struct mod_lst
 struct mod_lst *models = NULL;
 
 /* Add model information to the hash */
-void hash_add_model(int id,
+static void hash_add_model(int id,
                     const char *mfg_name,
                     const char *model_name,
                     const char *version,
@@ -309,20 +309,20 @@ void hash_add_model(int id,
 
 
 /* Hash sorting functions */
-int hash_model_id_sort(const struct mod_lst *a, const struct mod_lst *b)
+static int hash_model_id_sort(const struct mod_lst *a, const struct mod_lst *b)
 {
     return (a->id > b->id);
 }
 
 
-void hash_sort_by_model_id()
+static void hash_sort_by_model_id()
 {
     HASH_SORT(models, hash_model_id_sort);
 }
 
 
 /* Delete hash */
-void hash_delete_all()
+static void hash_delete_all()
 {
     struct mod_lst *current_model, *tmp = NULL;
 
@@ -372,7 +372,7 @@ static void rp_getline(const char *s)
 /*
  * TODO: use Lex?
  */
-char parse_arg(const char *arg)
+static char parse_arg(const char *arg)
 {
     int i;
 
@@ -1698,7 +1698,7 @@ declare_proto_rot(get_conf)
     else
     {
         char value[4096];
-        ret = rot_get_conf(rot, rot_token_lookup(rot, arg1), value);
+        ret = rot_get_conf2(rot, rot_token_lookup(rot, arg1), value, sizeof(value));
 
         if (ret != RIG_OK)
         {
@@ -2917,7 +2917,7 @@ int print_conf_list2(const struct confparams *cfp, rig_ptr_t data, FILE *fout)
     ROT *rot = (ROT *) data;
     char buf[128] = "";
 
-    rot_get_conf(rot, cfp->token, buf);
+    rot_get_conf2(rot, cfp->token, buf, sizeof(buf));
     fprintf(fout, "%s: \"%s\"\n" "\t" "Default: %s, Value: %s\n",
             cfp->name,
             cfp->tooltip,

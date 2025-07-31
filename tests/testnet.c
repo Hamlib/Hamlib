@@ -25,7 +25,7 @@
 #  include <arpa/inet.h>
 #endif
 
-int rig_network_addr(char *hoststr, char *portstr)
+static int rig_network_addr(char *hoststr, char *portstr)
 {
 
     struct in6_addr serveraddr;
@@ -73,7 +73,7 @@ int rig_network_addr(char *hoststr, char *portstr)
     return 0;
 }
 
-int test_host(char *hoststr, char host[256], char port[6])
+static int test_host(char *hoststr, char host[256], char port[6])
 {
     int status;
     char host2[256], port2[6];
@@ -106,7 +106,7 @@ int test_host(char *hoststr, char host[256], char port[6])
 }
 
 int
-main(int argc, char *argv[])
+main(int argc, const char *argv[])
 {
     // IPV4
     test_host("127.0.0.1", "127.0.0.1", "");
