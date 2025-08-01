@@ -32,7 +32,7 @@
 #include <cal.h>
 #include "idx_builtin.h"
 
-#define BACKEND_VER "20250718.0"
+#define BACKEND_VER "20250718.1"
 
 #define TRUE 1
 #define FALSE 0
@@ -932,7 +932,7 @@ struct rig_caps gqrx_caps =
 {
     RIG_MODEL(RIG_MODEL_GQRX),
     .model_name = "GQRX",
-    .mfg_name = "GQRX",
+    .mfg_name = "OZ9AEC",
     .version = BACKEND_VER,
     .copyright = "LGPL",
     .status = RIG_STATUS_NEW,
