@@ -455,9 +455,9 @@ struct rig_caps ft1000mp_caps =
 struct rig_caps ft1000mpmkv_caps =
 {
     RIG_MODEL(RIG_MODEL_FT1000MPMKV),
-    .model_name =         "MARK-V FT-1000MP",
+    .model_name =         "FT-1000MP MARK-V",
     .mfg_name =           "Yaesu",
-    .version =            "20241105.0",
+    .version =            "20241105.1",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -598,9 +598,9 @@ struct rig_caps ft1000mpmkv_caps =
 struct rig_caps ft1000mpmkvfld_caps =
 {
     RIG_MODEL(RIG_MODEL_FT1000MPMKVFLD),
-    .model_name =         "MARK-V Field FT-1000MP",
+    .model_name =         "FT-1000MP MARK-V Field",
     .mfg_name =           "Yaesu",
-    .version =            "20241105.0",
+    .version =            "20241105.1",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
