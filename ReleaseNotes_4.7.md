@@ -1,4 +1,4 @@
-# HAMLIB 4.7 - Release Notes
+# HAMLIB 4.7 - Release Notes (WIP)                        2025-12-01(?)
 
 This release brings new equipment support, bug fixes/code cleanups, and some
 changes to ease transition to 5.0
@@ -13,8 +13,9 @@ changes to ease transition to 5.0
 ## Bug Fixes & Code cleanups
 - Codebase conforms to ISO/IEC 9899:2024 (-std=c23)
 - Reduce gripes from cppcheck and other static analyzers
-- Functions rig_get_conf(), rot_get_conf() and amp_get_conf() are deprecated and
-  will be removed in 5.0. Use xyz_get_conf2() instead. See issue #924
+- Functions `rig_get_conf()`, `rot_get_conf()` and `amp_get_conf()` are deprecated and
+  will be removed in 5.0. Use `..._get_conf2()` instead. See issue
+  [#924](https://github.com/Hamlib/Hamlib/issues/924).
 - (TBD)
 
 ## Build/install Changes
@@ -30,9 +31,12 @@ with 4.7, making the transition much easier. The Application Programming Interfa
 does not change.
 
 ### Storage restructuring
-HAMLIB 5.0 will move many data items/structures out of rig_struct into separate,
-calloc'ed buffers. This changes many of the methods for accessing HAMLIB internal
-data. It also removes some obsolete items, and restructures/resizes others.
+HAMLIB 5.0 will move many data items/structures out of rig_struct into separate heap
+buffers. See issues [#487](https://github.com/Hanlib/Hamlib/issues/487),
+[#1445](https://github.com/Hamlib/Hamlib/issues/1445), and
+[#1420](https://github.com/Hamlib/Hamlib/issues/1420). This changes many of
+the methods for accessing HAMLIB internal data. It also removes some obsolete
+items, and restructures/resizes others.
 
 ### Include files
 Along with the moves to separate storage, the definitions of these data structures
