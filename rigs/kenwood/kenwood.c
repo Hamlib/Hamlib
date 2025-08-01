@@ -2290,7 +2290,7 @@ int kenwood_set_rit_new(RIG *rig, vfo_t vfo, shortfreq_t rit)
     char rdbuf[10];
 
     ENTERFUNC;
-    if (abs(rit) > 9999) { RETURNFUNC(-RIG_EINVAL); }
+    if (labs(rit) > 9999) { RETURNFUNC(-RIG_EINVAL); }
     retval = kenwood_get_rit_new(rig, vfo, &oldrit);
     if (retval != RIG_OK) { RETURNFUNC(retval); }
     if (rit == oldrit)  // if the new value is the same
