@@ -3,6 +3,32 @@
 
 #include "../src/misc.h"
 
+/* ID 0310 == 310, Must drop leading zero */
+typedef enum nc_rigid_e
+{
+    NC_RIGID_NONE            = 0,
+    NC_RIGID_FT450           = 241,
+    NC_RIGID_FT450D          = 244,
+    NC_RIGID_FT950           = 310,
+    NC_RIGID_FT891           = 135,
+    NC_RIGID_FT991           = 570,
+    NC_RIGID_FT991A          = 670,
+    NC_RIGID_FT2000          = 251,
+    NC_RIGID_FT2000D         = 252,
+    NC_RIGID_FTDX1200        = 583,
+    NC_RIGID_FTDX10          = 761,
+    NC_RIGID_FTDX9000D       = 101,
+    NC_RIGID_FTDX9000Contest = 102,
+    NC_RIGID_FTDX9000MP      = 103,
+    NC_RIGID_FTDX5000        = 362,
+    NC_RIGID_FTDX3000        = 460,
+    NC_RIGID_FTDX3000DM      = 462, // an undocumented FT-DX3000DM 50W rig
+    NC_RIGID_FTDX101D        = 681,
+    NC_RIGID_FTDX101MP       = 682,
+    NC_RIGID_FT710           = 800,
+    NC_RIGID_FTX1            = 840,
+} nc_rigid_t;
+
 #define WRITE(f,b,l) write_sim(f,(const unsigned char*)b,l,__func__,__LINE__)
 
 int write_sim(int fd, const unsigned char *buf, int buflen, const char *func,

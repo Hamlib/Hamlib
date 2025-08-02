@@ -27,28 +27,6 @@ char modeB = '1';
 int width = 0;
 int ptt;
 
-// ID 0310 == 310, Must drop leading zero
-typedef enum nc_rigid_e
-{
-    NC_RIGID_NONE            = 0,
-    NC_RIGID_FT450           = 241,
-    NC_RIGID_FT450D          = 244,
-    NC_RIGID_FT950           = 310,
-    NC_RIGID_FT891           = 135,
-    NC_RIGID_FT991           = 135,
-    NC_RIGID_FT2000          = 251,
-    NC_RIGID_FT2000D         = 252,
-    NC_RIGID_FTDX1200        = 583,
-    NC_RIGID_FTDX9000D       = 101,
-    NC_RIGID_FTDX9000Contest = 102,
-    NC_RIGID_FTDX9000MP      = 103,
-    NC_RIGID_FTDX5000        = 362,
-    NC_RIGID_FTDX3000        = 460,
-    NC_RIGID_FTDX3000DM      = 462,
-    NC_RIGID_FTDX101D        = 681,
-    NC_RIGID_FTDX101MP       = 682
-} nc_rigid_t;
-
 int
 getmyline(int fd, char *buf)
 {
