@@ -127,6 +127,8 @@ int main(int argc, char *argv[])
         if (getmyline(fd, buf))
         {
             printf("Cmd:%s\n", buf);
+            resp[0] = 0;
+            pbuf = NULL;
         }
 
         //else { return 0; }
@@ -443,6 +445,14 @@ int main(int argc, char *argv[])
             fprintf(stderr, "Unknown command: '%s'\n", buf);
         }
 
+        if (pbuf)
+        {
+            printf("Resp:%s\n", pbuf);
+        }
+        else if (resp[0])
+        {
+            printf("Resp:%s\n", resp);
+        }
     }
 
     return 0;
