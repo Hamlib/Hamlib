@@ -9,13 +9,12 @@ struct ip_mreq
 #endif
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
 #include <pthread.h>
 
 #include "../include/hamlib/rig.h"
+#include "misc.h"
 
 #define BUFSIZE 256
 
@@ -47,6 +46,7 @@ getmyline(int fd, char *buf)
 }
 
 #include "sim.h"
+
 int thread_args[2];
 
 

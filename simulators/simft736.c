@@ -9,10 +9,9 @@ struct ip_mreq
 #endif
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
+
 #define BUFSIZE 256
 
 float freqA = 14074000;

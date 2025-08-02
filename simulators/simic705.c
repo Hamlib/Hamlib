@@ -11,15 +11,13 @@ struct ip_mreq
 #endif
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include <errno.h>
+
 #include "hamlib/rig.h"
 #include "../src/misc.h"
 #include "sim.h"
-
 /* Simulators really shouldn't be using ANY of the definitions
  *  from the Hamlib rig.h parameters, but only those of the
  *  rig itself.  This still won't be a clean room implementation,
