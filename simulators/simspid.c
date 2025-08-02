@@ -13,8 +13,6 @@ struct ip_mreq
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
-#include "../include/hamlib/rig.h"
-
 #define BUFSIZE 256
 
 float freqA = 14074000;

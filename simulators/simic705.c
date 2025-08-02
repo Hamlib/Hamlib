@@ -16,11 +16,8 @@ struct ip_mreq
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
-#include <sys/time.h>
 #include "hamlib/rig.h"
 #include "../src/misc.h"
-#include <termios.h>
-#include <unistd.h>
 
 /* Simulators really shouldn't be using ANY of the definitions
  *  from the Hamlib rig.h parameters, but only those of the
