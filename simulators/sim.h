@@ -1,5 +1,6 @@
 #include <errno.h>
 #include <fcntl.h>
+#include <stdlib.h>
 
 #include "../src/misc.h"
 
