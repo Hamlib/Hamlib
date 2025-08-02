@@ -685,7 +685,7 @@ processor. - Keep out (by order).
      byte 2 bit 4  rx_aux        Aux relay enable
      byte 2 bit 5  rx_fs5        Filter select : FS5
      byte 2 bit 6  rx_fs6        Filter select : FS6
-     byte 2 bit 7  rx_ibw        IF b/w : 0 = 4kHz / 1 = 10kHz
+     byte 2 bit 7  rx_ibw        IF b/w : 0 = 4 kHz / 1 = 10 kHz
      byte 3 bit 0  rx_chg        Fast charge enable
      byte 3 bit 1  rx_pwr        PSU enable
      byte 3 bit 2  rx_svi        Sync VCO inhibit

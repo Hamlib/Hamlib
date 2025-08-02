@@ -99,7 +99,7 @@ struct rig_caps ic970_caps =
     .rx_range_list1 =   {
         {MHz(144), MHz(146), IC970_MODES, -1, -1, IC970_VFO_ALL},
         {MHz(430), MHz(440), IC970_MODES, -1, -1, IC970_VFO_ALL},
-        /* 1200MHz band module is optional */
+        /* 1200 MHz band module is optional */
 //  {MHz(1240),MHz(1300),IC970_MODES,-1,-1,IC970_VFO_ALL},
         RIG_FRNG_END,
     },
@@ -113,7 +113,7 @@ struct rig_caps ic970_caps =
     .rx_range_list2 =   {
         {MHz(144), MHz(150), IC970_MODES, -1, -1, IC970_VFO_ALL},
         {MHz(430), MHz(450), IC970_MODES, -1, -1, IC970_VFO_ALL},
-        /* 1200MHz band module is optional */
+        /* 1200 MHz band module is optional */
 //  {MHz(1240),MHz(1300),IC970_MODES,-1,-1,IC970_VFO_ALL},
         RIG_FRNG_END,
     },

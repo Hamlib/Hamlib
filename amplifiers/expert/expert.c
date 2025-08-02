@@ -398,7 +398,7 @@ int expert_get_level(AMP *amp, setting_t level, value_t *val)
             return -RIG_EPROTO;
         }
 
-        rig_debug(RIG_DEBUG_VERBOSE, "%s freq range=%dKHz,%dKHz\n", __func__,
+        rig_debug(RIG_DEBUG_VERBOSE, "%s freq range=%dkHz,%dkHz\n", __func__,
                   int_value, int_value2);
 
         //

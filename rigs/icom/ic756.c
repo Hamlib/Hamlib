@@ -528,7 +528,7 @@ static const struct confparams ic756pro2_ext_parms[] =
 #define S_MEM_TRCV      0x532   /* CI-V transceive mode */
 #define S_MEM_LANG      0x536   /* 0=English 1=Japanese for voice announcer */
 #define S_MEM_SCN_SPD       0x556   /* 0 = low; 1 = high */
-#define S_MEM_RTTY_FL_PB    0x561   /* 0=250 Hz, 1=300' 2 = 350, 3 = 500, 4 = 1 KHz */
+#define S_MEM_RTTY_FL_PB    0x561   /* 0=250 Hz, 1=300' 2 = 350, 3 = 500, 4 = 1 kHz */
 #define S_MEM_RTTY_TWNPK    0x562   /* rtty twin peak filter off/on */
 
 

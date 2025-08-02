@@ -178,7 +178,7 @@ int commradio_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         }
     }
     // CTX-10 returns 11 02 30 00 00 00 01 if we try to go out of its
-    // general-coverage frequency range 150kHz - 30MHz. I'm not sure why Hamlib
+    // general-coverage frequency range 150 kHz - 30 MHz. I'm not sure why Hamlib
     // even tries to do this, since its defined in the caps...
     else
     {
