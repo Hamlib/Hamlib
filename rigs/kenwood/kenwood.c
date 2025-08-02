@@ -726,7 +726,7 @@ transaction_quit:
  *
  * Parameters:
  *  cmd     Same as kenwood_transaction() cmdstr
- *  buf     Same as kenwwod_transaction() data
+ *  buf     Same as kenwood_transaction() data
  *  buf_size  Same as kenwood_transaction() datasize
  *  expected  Value of expected string length
  *
@@ -1918,7 +1918,7 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         if (RIG_OK != err) { RETURNFUNC2(err); }
     }
 
-    // Malchite is so slow we don't do the get_freq
+    // Malachite is so slow we don't do the get_freq
     // And when we have detected Doppler operations we just set the freq all the time
     // This should provide stable timing for set_ptt operation so relay delays are consistent
     if (!RIG_IS_MALACHITE && STATE(rig)->doppler == 0)
@@ -2265,7 +2265,7 @@ int kenwood_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     {
         SNPRINTF(buf, sizeof(buf), "R%c", (rit > 0) ? 'U' : 'D');
         diff = labs(((curr_rit - rit) + (curr_rit - rit) >= 0 ? 5 : -5) /
-                    10); // round to nearest 10Hz
+                    10); // round to nearest 10 Hz
         rig_debug(RIG_DEBUG_TRACE, "%s: rit=%ld, curr_rit=%ld, diff=%d\n", __func__,
                   rit, curr_rit, diff);
         rig_debug(RIG_DEBUG_TRACE, "%s: rit change loop=%d\n", __func__, diff);

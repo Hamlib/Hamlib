@@ -1920,7 +1920,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     *freq = from_bcd(freqbuf + freqbuf_offset, freq_len * 2);
 
-    // 3-byte freq for ID5100 is in 10000Hz units so convert to Hz
+    // 3-byte freq for ID5100 is in 10000 Hz units so convert to Hz
     if (freq_len == 3) { *freq *= 10000; }
 
     if (vfo == RIG_VFO_MEM && civ_731_mode_save) { priv->civ_731_mode = 1; }
@@ -5665,7 +5665,7 @@ int icom_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
     offs_len = (priv_caps->offs_len) ? priv_caps->offs_len : OFFS_LEN;
 
     /*
-     * Icoms are using a 100Hz unit (at least on 706MKIIg) -- SF
+     * Icoms are using a 100 Hz unit (at least on 706MKIIg) -- SF
      */
     to_bcd(offsbuf, rptr_offs / 100, offs_len * 2);
 
@@ -5721,7 +5721,7 @@ int icom_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
     }
 
     /*
-     * Icoms are using a 100Hz unit (at least on 706MKIIg) -- SF
+     * Icoms are using a 100 Hz unit (at least on 706MKIIg) -- SF
      */
     *rptr_offs = from_bcd(offsbuf + 1, buf_len * 2) * 100;
 

@@ -102,7 +102,7 @@ void drake_fix_string(char* inStr)
  *         sentLen - the length of sentSt
  *         recdStr - the radio's response string
  *         recdLen - the length of recdStr
- *         res - The transaction reposnse
+ *         res - The transaction response
  */
 void drake_trans_rept(char* hdrStr, char* sentStr, int sentLen, char* recdStr, int recdLen, int res)
 {
@@ -112,7 +112,7 @@ void drake_trans_rept(char* hdrStr, char* sentStr, int sentLen, char* recdStr, i
     int  i;
     
     //in most cases each string is a buffer, so we need to ensure both command and response
-    //are not NULL and null-terminated before duplicastion and conversion.
+    //are not NULL and null-terminated before duplication and conversion.
     
     if ((sentStr != NULL) && (sentLen > 0))
     {
@@ -253,7 +253,7 @@ int drake_report_signal(RIG *rig, char* owner)
  * Common routine to decode the frequency block 
  *
  * inputs: rig - pointer to RIG structure
- *         freqbuf - buffer containung radio's response string
+ *         freqbuf - buffer containing radio's response string
  *         offset - offset to beginning of string due to differences in R8 vs. R8A/B
  *         Note: strings are virtually identical. offset is provided as a failsafe.
  *
@@ -331,7 +331,7 @@ int drake_report_frequency(RIG *rig, char* owner)
  * Common routine to break out the 5-character mode string
  *
  * inputs: rig - pointer to RIG structure
- *         mdbuf - buffer containung radio's response string
+ *         mdbuf - buffer containing radio's response string
  *         offset - offset to beginning of string due to differences in R8 vs. R8A/B
  *
  * Assumes rig!=NULL
@@ -510,7 +510,7 @@ int drake_report_mode(RIG *rig, char* owner)
  * Common routine to break out the 3 or 4-character mem string
  *
  * inputs: rig - pointer to RIG structure
- *         mdbuf - buffer containung radio's response string
+ *         mdbuf - buffer containing radio's response string
  *         offset - offset to beginning of string due to differences in R8 vs. R8A/B
  *         Note: except for channel number size, strings are virtually identical. offset is provided as a failsafe.
  *
@@ -716,7 +716,7 @@ int drake_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     int ack_len;
     int retval;
 
-    // 10Hz resolution - TODO: round nearest?
+    // 10 Hz resolution - TODO: round nearest?
     SNPRINTF((char *) freqbuf, sizeof(freqbuf), "F%07u" EOM, (unsigned int)freq / 10);
     
     retval = drake_transaction(rig, freqbuf, strlen(freqbuf), ackbuf, &ack_len);

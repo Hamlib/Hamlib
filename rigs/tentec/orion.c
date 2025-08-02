@@ -312,8 +312,7 @@ static void start_thread(RIG *rig)
  * \param rig
  * \brief tt565_open routine
  *
- * Open the rig - check f * This backend supports the Ten-Tec Orion (565) and Orion II (566) transceivers.
-irmware version issues
+ * Open the rig - check firmware version issues
  */
 int tt565_open(RIG *rig)
 {

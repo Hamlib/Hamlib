@@ -850,7 +850,7 @@ static int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         vfo = STATE(rig)->current_vfo;
     }
 
-    // round freq to 10Hz intervals due to rig restriction
+    // round freq to 10 Hz intervals due to rig restriction
     freq = round(freq / 10.0) * 10.0;
 
     switch (vfo)
@@ -1487,7 +1487,7 @@ static int ft1000mp_set_rxit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     priv->p_cmd[0] = rit_freq[0];   // 10 hz
 
     to_bcd_be(rit_freq, rit / 1000, 2);
-    priv->p_cmd[1] = rit_freq[0];   // Khz
+    priv->p_cmd[1] = rit_freq[0];   // kHz
 
     priv->p_cmd[2] = direction;
 

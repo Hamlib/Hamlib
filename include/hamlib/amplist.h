@@ -126,7 +126,7 @@
 /**
  * \brief A macro that returns the model number of `DX1200`.
  *
- * The Gemini DX1200 covers 160 trhough 4 meters.
+ * The Gemini DX1200 covers 160 through 4 meters.
  */
 #define AMP_MODEL_GEMINI_DX1200 AMP_MAKE_MODEL(AMP_GEMINI, 1)
 

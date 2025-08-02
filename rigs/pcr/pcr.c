@@ -55,7 +55,7 @@
 #define MD_P25  '8' /* PCR-2500 Only */
 
 
-/* define 2.8kHz, 6kHz, 15kHz, 50kHz, and 230kHz */
+/* define 2.8 kHz, 6 kHz, 15 kHz, 50 kHz, and 230 kHz */
 #define FLT_2_8kHz  '0'
 #define FLT_6kHz    '1'
 #define FLT_15kHz   '2'
@@ -726,7 +726,7 @@ pcr_get_vfo(RIG *rig, vfo_t *vfo)
  * Assumes rig!=NULL
  *
  * K0GMMMKKKHHHmmff00
- * GMMMKKKHHH is frequency GHz.MHz.KHz.Hz
+ * GMMMKKKHHH is frequency GHz.MHz.kHz.Hz
  * mm is the mode setting
  *  00 = LSB
  *  01 = USB
@@ -736,11 +736,11 @@ pcr_get_vfo(RIG *rig, vfo_t *vfo)
  *  05 = NFM
  *  06 = WFM
  * ff is the filter setting
- *  00 = 2.8 Khz (CW USB LSB AM)
- *  01 = 6.0 Khz (CW USB LSB AM NFM)
- *  02 = 15  Khz (AM NFM)
- *  03 = 50  Khz (AM NFM WFM)
- *  04 = 230 Khz (WFM)
+ *  00 = 2.8 kHz (CW USB LSB AM)
+ *  01 = 6.0 kHz (CW USB LSB AM NFM)
+ *  02 = 15  kHz (AM NFM)
+ *  03 = 50  kHz (AM NFM WFM)
+ *  04 = 230 kHz (WFM)
  *
  */
 

@@ -159,7 +159,7 @@ static int wj_transaction(RIG *rig, int monitor)
     buf[5] |= wj_mode & 0x7;
 
     /* BFO frequency, not sure though */
-    wj_bfo = (priv->ifshift.i / 10) + 0x400; /* LSBit is 10Hz, +455kHz */
+    wj_bfo = (priv->ifshift.i / 10) + 0x400; /* LSBit is 10 Hz, +455 kHz */
     buf[6] |= (wj_bfo >> 5) & 0x3f;
     buf[7] |= (wj_bfo & 0x1f) << 2;
 

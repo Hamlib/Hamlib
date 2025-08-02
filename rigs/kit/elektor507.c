@@ -836,7 +836,7 @@ static void find_P_Q_DIV1N(struct elektor507_priv_data *priv, freq_t freq)
      * P:8..2055, best 16..1023 (because of Pump)
 
        For stable operation:
-       + REF/Qtotal must not fall below 250kHz (
+       + REF/Qtotal must not fall below 250 kHz (
        + P*(REF/Qtotal) must not be above 400 MHz or below 100 MHz
       */
 #if 1
@@ -885,7 +885,7 @@ static void find_P_Q_DIV1N(struct elektor507_priv_data *priv, freq_t freq)
      * P:8..2055, best 16..1023 (because of Pump)
 
        For stable operation:
-       + REF/Qtotal must not fall below 250kHz (
+       + REF/Qtotal must not fall below 250 kHz (
        + P*(REF/Qtotal) must not be above 400 MHz or below 100 MHz
       */
 #if 1
@@ -977,7 +977,7 @@ static void find_P_Q_DIV1N(
     double newdelta, delta = fabs((priv->P * (Ref / priv->Q) / priv->Div1N) -
                                   freq4);
 
-    /* For stable operation: Ref/Qtotal must not fall below 250kHz */
+    /* For stable operation: Ref/Qtotal must not fall below 250 kHz */
     /* Qmax = (int) ( Ref / 250000); */
     for (Qtotal = 2; Qtotal <= Qmax; Qtotal++)
     {
