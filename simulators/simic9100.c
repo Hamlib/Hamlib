@@ -46,13 +46,6 @@ int ovf_status = 0;
 int powerstat = 1;
 int subband = 1;
 
-void dumphex(const unsigned char *buf, int n)
-{
-    for (int i = 0; i < n; ++i) { printf("%02x ", buf[i]); }
-
-    printf("\n");
-}
-
 int
 frameGet(int fd, unsigned char *buf)
 {

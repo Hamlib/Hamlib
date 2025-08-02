@@ -20,6 +20,7 @@ struct ip_mreq
 
 #include "hamlib/rig.h"
 #include "../src/misc.h"
+#include "sim.h"
 
 
 #define BUFSIZE 256
@@ -49,13 +50,6 @@ int agc_time = 1;
 int ovf_status = 0;
 int powerstat = 1;
 int keyertype = 0;
-
-void dumphex(const unsigned char *buf, int n)
-{
-    for (int i = 0; i < n; ++i) { printf("%02x ", buf[i]); }
-
-    printf("\n");
-}
 
 int
 frameGet(int fd, unsigned char *buf)
@@ -692,7 +686,7 @@ if (n == 0) { printf("Write failed=%s\n", strerror(errno)); }
 
 }
 
-#include "sim.h"
+
 void rigStatus()
 {
 char vfoa = current_vfo == RIG_VFO_A ? '*' : ' ';

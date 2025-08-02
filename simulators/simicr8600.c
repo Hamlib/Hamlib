@@ -42,13 +42,6 @@ ant_t ant_curr = 0;
 int ant_option = 0;
 int ptt = 0;
 
-void dumphex(const unsigned char *buf, int n)
-{
-    for (int i = 0; i < n; ++i) { printf("%02x ", buf[i]); }
-
-    printf("\n");
-}
-
 int
 frameGet(int fd, unsigned char *buf)
 {

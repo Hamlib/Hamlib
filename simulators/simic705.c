@@ -18,6 +18,7 @@ struct ip_mreq
 #include <errno.h>
 #include "hamlib/rig.h"
 #include "../src/misc.h"
+#include "sim.h"
 
 /* Simulators really shouldn't be using ANY of the definitions
  *  from the Hamlib rig.h parameters, but only those of the
@@ -55,13 +56,6 @@ int agc_time = 1;
 int ovf_status = 0;
 int powerstat = 1;
 const char *vfonames[2] = {"VFOA", "VFOB"};
-
-void dumphex(const unsigned char *buf, int n)
-{
-    for (int i = 0; i < n; ++i) { printf("%02x ", buf[i]); }
-
-    printf("\n");
-}
 
 int
 frameGet(int fd, unsigned char *buf)
@@ -583,7 +577,7 @@ void frameParse(int fd, unsigned char *frame, int len)
 
 }
 
-#include "sim.h"
+
 void rigStatus()
 {
     char vfoa = current_vfo == S_VFOA ? '*' : ' ';
