@@ -49,7 +49,7 @@ getmyline(int fd, char *buf)
 
 int main(int argc, char *argv[])
 {
-    char buf[256];
+    char buf[BUFSIZE];
     int fd = openPort(argv[1]);
 
     while (1)

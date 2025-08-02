@@ -73,7 +73,7 @@ getmyline(int fd, char *buf)
 
 int main(int argc, char *argv[])
 {
-    char buf[256];
+    char buf[BUFSIZE];
     char resp[256];
     char *pbuf;
     int n;
