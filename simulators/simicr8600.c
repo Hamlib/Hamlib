@@ -15,7 +15,6 @@ struct ip_mreq
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <sys/time.h>
 #include "hamlib/rig.h"
 #include "../src/misc.h"
 #include "sim.h"

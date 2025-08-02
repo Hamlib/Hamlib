@@ -13,7 +13,6 @@ struct ip_mreq
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
-#include "../include/hamlib/rig.h"
 #include "../src/misc.h"
 
 #define BUFSIZE 256

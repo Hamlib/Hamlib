@@ -13,8 +13,6 @@ struct ip_mreq
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
-#include "../include/hamlib/rig.h"
-
 #define BUFSIZE 256
 
 int vfo = 0; // 0=A, !0=B
