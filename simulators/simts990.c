@@ -85,7 +85,7 @@ getmyline(int fd, char *buf)
 
 int main(int argc, char *argv[])
 {
-    char buf[256];
+    char buf[BUFSIZE];
     char *pbuf;
     int fd = openPort(argv[1]);
     char modeA = '1', modeB = '2';

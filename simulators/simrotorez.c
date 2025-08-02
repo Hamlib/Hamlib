@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
 static void *rotorez_thread(void *arg)
 {
     int n = 0;
-    char buf[256];
+    char buf[BUFSIZE];
     int fd = *(int *)arg;
     float az = 123;
     float el = 45;

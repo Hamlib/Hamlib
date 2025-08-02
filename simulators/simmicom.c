@@ -56,7 +56,7 @@ getmyline(int fd, unsigned char *buf)
 
 int main(int argc, char *argv[])
 {
-    unsigned char buf[256];
+    unsigned char buf[BUFSIZE];
 
 
 again:

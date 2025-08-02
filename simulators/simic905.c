@@ -607,7 +607,7 @@ void rigStatus()
 
 int main(int argc, char **argv)
 {
-    unsigned char buf[256];
+    unsigned char buf[BUFSIZE];
     int fd = openPort(argv[1]);
 
     printf("%s: %s\n", argv[0], rig_version());
