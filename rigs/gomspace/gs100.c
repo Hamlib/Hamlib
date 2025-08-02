@@ -578,11 +578,4 @@ DECLARE_INITRIG_BACKEND(gomspace)
     return (RIG_OK);
 }
 
-
-/* Probe RIG backend function */
-DECLARE_PROBERIG_BACKEND(gomspace)
-{
-    return (RIG_MODEL_GS100);
-}
-
 /*----------------------------------------------------------------------------*/
