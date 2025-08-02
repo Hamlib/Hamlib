@@ -34,14 +34,14 @@ struct ip_mreq
 };
 #endif
 
-#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
 #include <ctype.h>
 #include <time.h>
+
+#include "config.h"
 //#include "hamlib/rig.h"
 
 /* Definitions */
@@ -211,6 +211,7 @@ static void swapvfos(kvfop_t *vfoset[]);
 int hl_usleep(unsigned long usec);  // Until it's replaced
 
 #include "sim.h"
+
 int
 getmyline(int fd, char *buf)
 {

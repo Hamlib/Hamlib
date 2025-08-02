@@ -9,13 +9,12 @@ struct ip_mreq
 #endif
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
 
 #include "hamlib/rig.h"
+#include "misc.h"
 
 #define BUFSIZE 256
 
@@ -62,6 +61,7 @@ int pc = 50;
 
 
 #include "sim.h"
+
 int
 getmyline(int fd, char *buf)
 {
