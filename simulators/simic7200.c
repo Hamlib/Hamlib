@@ -20,6 +20,7 @@ struct ip_mreq
 
 #include "hamlib/rig.h"
 #include "../src/misc.h"
+#include "sim.h"
 
 
 #define BUFSIZE 256
@@ -58,13 +59,6 @@ int noisereduction = 0;
 int speechcompressor = 0;
 int agc = 0;
 int vox = 0;
-
-void dumphex(const unsigned char *buf, int n)
-{
-    for (int i = 0; i < n; ++i) { printf("%02x ", buf[i]); }
-
-    printf("\n");
-}
 
 int
 frameGet(int fd, unsigned char *buf)
@@ -803,7 +797,6 @@ void frameParse(int fd, unsigned char *frame, int len)
 
 }
 
-#include "sim.h"
 void rigStatus()
 {
     char vfoa = current_vfo == RIG_VFO_A ? '*' : ' ';

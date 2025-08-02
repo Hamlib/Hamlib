@@ -51,13 +51,6 @@ int keyspd = 25;
 int datamode = 0;
 int filter = 0;
 
-void dumphex(const unsigned char *buf, int n)
-{
-    for (int i = 0; i < n; ++i) { printf("%02x ", buf[i]); }
-
-    printf("\n");
-}
-
 int
 frameGet(int fd, unsigned char *buf)
 {

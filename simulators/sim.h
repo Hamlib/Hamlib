@@ -29,6 +29,13 @@ typedef enum nc_rigid_e
     NC_RIGID_FTX1            = 840,
 } nc_rigid_t;
 
+void dumphex(const unsigned char *buf, int n)
+{
+    for (int i = 0; i < n; ++i) { printf("%02x ", buf[i]); }
+
+    printf("\n");
+}
+
 #define WRITE(f,b,l) write_sim(f,(const unsigned char*)b,l,__func__,__LINE__)
 
 int write_sim(int fd, const unsigned char *buf, int buflen, const char *func,
