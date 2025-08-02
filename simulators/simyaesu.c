@@ -151,7 +151,6 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "RM5;") == 0)
         {
-            printf("%s\n", buf);
             hl_usleep(50 * 1000);
             pbuf = "RM5100000;";
             n = write(fd, pbuf, strlen(pbuf));
@@ -161,7 +160,6 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "RM8;") == 0)
         {
-            printf("%s\n", buf);
             hl_usleep(50 * 1000);
             pbuf = "RM8197000;";
             n = write(fd, pbuf, strlen(pbuf));
@@ -171,7 +169,6 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "RM9;") == 0)
         {
-            printf("%s\n", buf);
             hl_usleep(50 * 1000);
             pbuf = "RM9089000;";
             n = write(fd, pbuf, strlen(pbuf));
@@ -182,7 +179,6 @@ int main(int argc, char *argv[])
 
         else if (strcmp(buf, "AN0;") == 0)
         {
-            printf("%s\n", buf);
             hl_usleep(50 * 1000);
             pbuf = "AN030;";
             n = write(fd, pbuf, strlen(pbuf));
@@ -213,7 +209,6 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "IF;") == 0)
         {
-            printf("%s\n", buf);
             hl_usleep(50 * 1000);
             pbuf = "IF00107041000+000000200000;";
             n = write(fd, pbuf, strlen(pbuf));
@@ -223,7 +218,6 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "ID;") == 0)
         {
-            printf("%s\n", buf);
             hl_usleep(50 * 1000);
             int id = NC_RIGID_FT991;
             SNPRINTF(buf, sizeof(buf), "ID%03d;", id);
@@ -234,7 +228,6 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "AI;") == 0)
         {
-            printf("%s\n", buf);
             hl_usleep(50 * 1000);
             SNPRINTF(buf, sizeof(buf), "AI0;");
             n = write(fd, buf, strlen(buf));
@@ -257,8 +250,7 @@ int main(int argc, char *argv[])
         {
             if (strcmp(buf, "AI;"))
             {
-                printf("%s\n", buf);
-                hl_usleep(50 * 1000);
+                    hl_usleep(50 * 1000);
                 n = fprintf(fp, "%s", "AI0;");
                 printf("n=%d\n", n);
 
@@ -274,7 +266,6 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "VS;") == 0)
         {
-            printf("%s\n", buf);
             hl_usleep(50 * 1000);
             pbuf = "VS0;";
 
@@ -352,7 +343,6 @@ int main(int argc, char *argv[])
         {
             static int ant = 0;
             ant = (ant + 1) % 3;
-            printf("%s\n", buf);
             hl_usleep(50 * 1000);
             SNPRINTF(buf, sizeof(buf), "EX032%1d;", ant);
             n = write(fd, buf, strlen(buf));
