@@ -9,7 +9,6 @@ struct ip_mreq
     int dummy;
 };
 #endif
-#include "hamlib/rig.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,7 +16,10 @@ struct ip_mreq
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/types.h>
+
+#include "hamlib/rig.h"
 #include "sim.h"
+#include "misc.h"
 
 #define BUFSIZE 256
 //#define X25
