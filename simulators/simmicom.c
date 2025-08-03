@@ -12,7 +12,7 @@ struct ip_mreq
 #include <string.h>
 #include <unistd.h>
 
-#include "../src/misc.h"
+#include "misc.h"
 
 #define BUFSIZE 256
 
