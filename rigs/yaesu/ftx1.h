@@ -169,7 +169,7 @@
 
 /* Delay sequential fast writes */
 
-#define FTX1_POST_WRITE_DELAY               2
+#define FTX1_POST_WRITE_DELAY               5
 
 typedef struct
 {

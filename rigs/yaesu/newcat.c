@@ -456,6 +456,11 @@ static int newcat_band_index(freq_t freq)
     else if (freq >= MHz(1.8) && freq < MHz(2)) { band = 0; }
     else if (freq >= MHz(0.5) && freq < MHz(1.705)) { band = 12; } // MW Medium Wave
 
+
+    if ((freq >= MHz(420) && freq < MHz(470)) && is_ftx1) { band = 14; }
+    else if ((freq >= MHz(144) && freq < MHz(148)) && is_ftx1) { band = 13; }
+    else if ((freq >= MHz(118) && freq < MHz(164)) && is_ftx1) { band = 12; }
+
     rig_debug(RIG_DEBUG_TRACE, "%s: freq=%g, band=%d\n", __func__, freq, band);
     return (band);
 }
@@ -1196,7 +1201,6 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
                          newcat_band_index(freq), cat_term);
             }
 
-
             if (RIG_OK != (err = newcat_set_cmd(rig)))
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: Unexpected error with BS command#1=%s\n",
@@ -1385,6 +1389,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
     else
     {
+
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "F%c%0*"PRIll";", c,
                  priv->width_frequency, (int64_t)freq);
     }
@@ -1418,7 +1423,6 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     RETURNFUNC(RIG_OK);
 }
-
 
 /*
  * rig_get_freq
@@ -1502,7 +1506,6 @@ int newcat_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     RETURNFUNC(RIG_OK);
 }
-
 
 int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
@@ -9393,7 +9396,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             RETURNFUNC(err);
         }
     } // end is_ftdx5000
-    else if (is_ftdx101d || is_ftdx101mp || is_ftdx10 || is_ft710)
+    else if (is_ftdx101d || is_ftdx101mp || is_ftdx10 || is_ft710 || is_ftx1)
     {
         switch (mode)
         {
@@ -11116,7 +11119,7 @@ int newcat_get_vfo_mode(RIG *rig, vfo_t vfo, vfo_t *vfo_mode)
 
     case 41: // FT-991 V2-01 seems to randomly give 13 extra bytes
     case 28: offset = 22; priv->width_frequency = 9; break;
-
+    case 30: offset = 24; priv->width_frequency = 9; break;
     default:
         rig_debug(RIG_DEBUG_ERR,
                   "%s: incorrect length of IF response, expected 27 or 28, got %d\n", __func__,
