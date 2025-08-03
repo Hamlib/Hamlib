@@ -1218,17 +1218,7 @@ static int ftx1_get_vfo(RIG *rig, vfo_t *vfo)
     RETURNFUNC2(RIG_OK);
 }
 
-/* Error handling function */
-static int ftx1_handle_cat_error(RIG *rig, const char *response)
-{
-    if (strstr(response, "?;")) {
-        return -RIG_EPROTO;  // Protocol error
-    }
-    if (strstr(response, "N;")) {
-        return -RIG_ERJCTED; // Command rejected
-    }
-    return RIG_OK;
-}
+
 
 
 
@@ -1369,46 +1359,7 @@ static int ftx1_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
     return RIG_OK;
 }
 
-/* Split functions */
-static int ftx1_get_split(RIG *rig, vfo_t vfo, split_t *split)
-{
-    int err;
-    split_t is_split;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !split)
-    {
-        return -RIG_EINVAL;
-    }
-
-    err = ftx1_get_tx_split(rig, &is_split);
-    if (err != RIG_OK)
-    {
-        return err;
-    }
-
-    *split = is_split;
-    return RIG_OK;
-}
-
-static int ftx1_set_split(RIG *rig, vfo_t vfo, split_t split)
-{
-    int err;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (split == RIG_SPLIT_ON)
-    {
-        err = newcat_set_tx_vfo(rig, RIG_VFO_B);
-    }
-    else
-    {
-        err = newcat_set_tx_vfo(rig, RIG_VFO_A);
-    }
-
-    return err;
-}
 
 /* Tuning step functions */
 static int ftx1_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
@@ -1533,7 +1484,6 @@ int ftx1_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     char c;
-    int err;
 
     ENTERFUNC;
 

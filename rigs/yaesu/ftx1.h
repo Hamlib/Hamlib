@@ -197,11 +197,8 @@ static int ftx1_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
 static int ftx1_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
 static int ftx1_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit);
 static int ftx1_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit);
-static int ftx1_get_split(RIG *rig, vfo_t vfo, split_t *split);
-static int ftx1_set_split(RIG *rig, vfo_t vfo, split_t split);
 static int ftx1_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts);
 static int ftx1_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts);
-static int ftx1_handle_cat_error(RIG *rig, const char *response);
 
 /* FTX-1 specific power control function */
 int ftx1_set_power_control(RIG *rig, vfo_t vfo, setting_t level, value_t val);
