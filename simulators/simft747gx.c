@@ -1,13 +1,6 @@
 // can run this using rigctl/rigctld and socat pty devices
 #define _XOPEN_SOURCE 700
 // since we are POSIX here we need this
-#if 0
-struct ip_mreq
-{
-    int dummy;
-};
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
