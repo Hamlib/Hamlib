@@ -18,7 +18,7 @@ struct ip_mreq
 #include <sys/types.h>
 
 #include "hamlib/rig.h"
-#include "../src/misc.h"
+#include "misc.h"
 #include "sim.h"
 
 

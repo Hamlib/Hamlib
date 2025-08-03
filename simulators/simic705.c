@@ -16,7 +16,7 @@ struct ip_mreq
 #include <errno.h>
 
 #include "hamlib/rig.h"
-#include "../src/misc.h"
+#include "misc.h"
 #include "sim.h"
 /* Simulators really shouldn't be using ANY of the definitions
  *  from the Hamlib rig.h parameters, but only those of the
