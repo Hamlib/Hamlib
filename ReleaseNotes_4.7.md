@@ -35,8 +35,8 @@ HAMLIB 5.0 will move many data items/structures out of rig_struct into separate 
 buffers. See issues [#487](https://github.com/Hanlib/Hamlib/issues/487),
 [#1445](https://github.com/Hamlib/Hamlib/issues/1445), and
 [#1420](https://github.com/Hamlib/Hamlib/issues/1420). This changes many of
-the methods for accessing HAMLIB internal data. It also removes some obsolete
-items, and restructures/resizes others.
+the methods for accessing HAMLIB internal data. HAMLIB 4.7 marks these old methods as
+"Deprecated", and supplies macros to use for forward compatibility.
 
 ### Include files
 Along with the moves to separate storage, the definitions of these data structures
