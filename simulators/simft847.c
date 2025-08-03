@@ -6,7 +6,7 @@
 #include <unistd.h>
 //#include "hamlib/rig.h"
 
-#define BUFSIZE 256
+#include "sim.h"
 
 /* In hono(u)r of the 10Hz resolution of the FT-847, vfo frequencies
  *   are stored in decaHertz(daHz)
@@ -17,28 +17,6 @@ char *vfoNames[4] = {"Main", "SAT Rx", "SAT Tx", "Bogus"};
 int width_main = 500;
 int width_sub = 700;
 int vfo;
-
-
-int
-getmyline(int fd, unsigned char *buf)
-{
-    unsigned char c;
-    int i = 0;
-    int n = 0;
-    memset(buf, 0, BUFSIZE);
-
-    while (i < 5 && read(fd, &c, 1) > 0)
-    {
-        buf[i++] = c;
-        n++;
-    }
-
-    printf("n=%d %02x %02x %02x %02x %02x\n", n, buf[0], buf[1], buf[2], buf[3],
-           buf[4]);
-    return n;
-}
-
-#include "sim.h"
 
 
 int main(int argc, char *argv[])
@@ -52,7 +30,7 @@ again:
 
     while (1)
     {
-        int bytes = getmyline(fd, buf);
+        int bytes = getmyline5(fd, buf);
 
         if (bytes == 0)
         {
