@@ -3,13 +3,6 @@
 // Needs a lot of improvement to work on all Icoms
 #define _XOPEN_SOURCE 700
 // since we are POSIX here we need this
-#if 0
-struct ip_mreq
-{
-    int dummy;
-};
-#endif
-
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
