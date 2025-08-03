@@ -5,7 +5,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#define BUFSIZE 256
+#include "sim.h"
 
 float freqA = 14074000;
 float freqB = 14074500;
@@ -15,28 +15,6 @@ char modeA = '1';
 char modeB = '1';
 int width_main = 500;
 int width_sub = 700;
-
-
-int
-getmyline(int fd, unsigned char *buf)
-{
-    unsigned char c;
-    int i = 0;
-    int n = 0;
-    memset(buf, 0, BUFSIZE);
-
-    while (i < 5 && read(fd, &c, 1) > 0)
-    {
-        buf[i++] = c;
-        n++;
-    }
-
-    printf("n=%d %02x %02x %02x %02x %02x\n", n, buf[0], buf[1], buf[2], buf[3],
-           buf[4]);
-    return n;
-}
-
-#include "sim.h"
 
 
 int main(int argc, char *argv[])
@@ -49,7 +27,7 @@ again:
 
     while (1)
     {
-        int bytes = getmyline(fd, buf);
+        int bytes = getmyline5(fd, buf);
 
         if (bytes == 0)
         {
