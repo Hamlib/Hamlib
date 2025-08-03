@@ -3,6 +3,7 @@
  *
  * yaesu.h - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
  *           (C) Stephane Fillod 2001-2010
+ *           (C) Jeremy Miller KO4SSD 2025 (ko4ssd at ko4ssd.com)
  *
  * Common yaesu declarations for hamlib
  *
