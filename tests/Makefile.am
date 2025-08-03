@@ -39,8 +39,6 @@ if HAVE_LIBUSB
     rigtestlibusb_SOURCES = rigtestlibusb.c
 endif
 
-
-
 # include generated include files ahead of any in sources
 rigctl_CPPFLAGS = -I$(top_builddir)/tests -I$(top_builddir)/src -I$(srcdir) -I$(top_builddir)/security $(AM_CPPFLAGS) 
 
