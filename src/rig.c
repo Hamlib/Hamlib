@@ -669,7 +669,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->async_data_enabled = 0;
     //    rs->depth = 1;
     rs->comm_state = 0;
-    rs->comm_status = RIG_COMM_STATUS_CONNECTING;
+    rs->comm_status = RIG_COMM_STATUS_DISCONNECTED;
     rs->tuner_control_pathname = DEFAULT_TUNER_CONTROL_PATHNAME;
     strncpy(rs->client_version, "Hamlib", sizeof(rs->client_version));
 
