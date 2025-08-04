@@ -204,7 +204,7 @@ struct rig_caps ic7200_caps =
     },
 
     .rx_range_list2 =   { {kHz(30), MHz(60), IC7200_ALL_RX_MODES, -1, -1, IC7200_VFOS}, RIG_FRNG_END, },
-    .tx_range_list2 =  { /* needs the 5 mhz channels added */
+    .tx_range_list2 =  { /* needs the 5 MHz channels added */
         FRQ_RNG_HF(2, IC7200_OTHER_TX_MODES, W(2), W(100), IC7200_VFOS, RIG_ANT_1),
         FRQ_RNG_6m(2, IC7200_OTHER_TX_MODES, W(2), W(100), IC7200_VFOS, RIG_ANT_1),
         FRQ_RNG_HF(2, IC7200_AM_TX_MODES, W(1), W(40), IC7200_VFOS, RIG_ANT_1), /* AM class */

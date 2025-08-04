@@ -64,8 +64,8 @@ static rmode_t thd74_mode_table[10] =
 
 static pbwidth_t thd74_width_table[10] =
 {
-    [0] = 10000,    // +-5KHz
-    [1] =  5000,    // +-2.5KHz
+    [0] = 10000,    // +-5 kHz
+    [1] =  5000,    // +-2.5 kHz
     [2] = 10000,    // FIXME: what should this be?
     [3] = 10000,    // FIXME: what should this be?
     [4] = 10000,    // FIXME: what should this be?

@@ -603,7 +603,7 @@ int ft100_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     memcpy(p_cmd, &ncmd[cmd_index].nseq, YAESU_CMD_LENGTH);
 
-    /* fixed 10Hz bug by OH2MMY */
+    /* fixed 10 Hz bug by OH2MMY */
     freq = (int) freq / 10;
     to_bcd(p_cmd, freq, 8); /* store bcd format in in p_cmd */
 
@@ -645,7 +645,7 @@ int ft100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
              priv->status.freq[3]);
 
     d1 = strtol(freq_str, NULL, 16);
-    d2 = (d1 * 1.25);    /* fixed 10Hz bug by OH2MMY */
+    d2 = (d1 * 1.25);    /* fixed 10 Hz bug by OH2MMY */
 
     rig_debug(RIG_DEBUG_VERBOSE, "ft100: d1=%"PRIfreq" d2=%"PRIfreq"\n", d1, d2);
 

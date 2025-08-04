@@ -463,7 +463,7 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 // if needed for testing enable this to emulate a rig with 100hz resolution
 #if 0
-    // we emulate a rig with 100Hz set freq interval limits -- truncation
+    // we emulate a rig with 100 Hz set freq interval limits -- truncation
     freq = freq - fmod(freq, 100);
 #endif
     usleep(CMDSLEEP);

@@ -56,7 +56,7 @@ const
     HAMLIB_RIGVERSIZ = 8;
     HAMLIB_FILPATHLEN = 512;
     HAMLIB_FRQRANGESIZ = 30;
-    HAMLIB_MAXCHANDESC = 30;		{* describe channel eg: "WWV 5Mhz" *}
+    HAMLIB_MAXCHANDESC = 30;		{* describe channel eg: "WWV 5 MHz" *}
     HAMLIB_TSLSTSIZ = 20;			{* max tuning step list size, zero ended *}
     HAMLIB_FLTLSTSIZ = 16;		    {* max mode/filter list size, zero ended *}
     HAMLIB_MAXDBLSTSIZ = 8;		{* max preamp/att levels supported, zero ended *}

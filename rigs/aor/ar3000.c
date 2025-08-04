@@ -232,7 +232,7 @@ int ar3k_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     /*
      * actually, frequency must be like nnnn.nnnnm,
-     * where m must be 0 or 5 (for 50Hz).
+     * where m must be 0 or 5 (for 50 Hz).
      */
     lowhz = ((unsigned)freq) % 100;
     freq /= 100;
@@ -400,7 +400,7 @@ int ar3k_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 
     /*
      * actually, frequency must be like nnn.nm,
-     * where m must be 0 or 5 (for 50Hz).
+     * where m must be 0 or 5 (for 50 Hz).
      */
     lowhz = ts % 100;
     ts /= 100;

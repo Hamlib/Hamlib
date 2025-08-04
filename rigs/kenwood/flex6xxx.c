@@ -547,7 +547,7 @@ static int powersdr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     case RIG_VFO_A:
         if ((mode == RIG_MODE_PKTUSB || mode == RIG_MODE_PKTLSB) && width > 3000)
         {
-            // 150Hz on the low end should be enough
+            // 150 Hz on the low end should be enough
             // Set high to the width requested
             SNPRINTF(buf, sizeof(buf), "ZZFL00150;ZZFH%05d;", (int)width);
         }

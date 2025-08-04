@@ -303,7 +303,7 @@ typedef struct s_rig RIG;
 #define HAMLIB_RIGVERSIZ 8
 #define HAMLIB_FILPATHLEN 512
 #define HAMLIB_FRQRANGESIZ 30
-#define HAMLIB_MAXCHANDESC 30      /* describe channel eg: "WWV 5Mhz" */
+#define HAMLIB_MAXCHANDESC 30      /* describe channel eg: "WWV 5 MHz" */
 #define HAMLIB_TSLSTSIZ 20         /* max tuning step list size, zero ended */
 #define HAMLIB_FLTLSTSIZ 60        /* max mode/filter list size, zero ended */
 #define HAMLIB_MAXDBLSTSIZ 8       /* max preamp/att levels supported, zero ended */

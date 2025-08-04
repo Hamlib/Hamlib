@@ -41,7 +41,7 @@
 #define AR5000_VFO (RIG_VFO_A | RIG_VFO_B | RIG_VFO_C | RIG_VFO_N(3) | RIG_VFO_N(4))
 
 /* As reported with rigctl 'l RAWSTR' for AR5000A S/n: 171218
-   on 7040kHz / CW / 3kHz Bw.
+   on 7040 kHz / CW / 3 kHz Bw.
 
    The data available on http://www.aoruk.com did not match very well on HF */
 #define AR5000_STR_CAL { 16, { \

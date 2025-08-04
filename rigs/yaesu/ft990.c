@@ -160,10 +160,10 @@ static const yaesu_cmd_set_t ncmd[] =
     { 1, { 0x00, 0x00, 0x00, 0x00, 0x05 } }, /* Select VFO (A) */
     { 1, { 0x00, 0x00, 0x00, 0x01, 0x05 } }, /* Select VFO (B) */
     { 0, { 0x00, 0x00, 0x00, 0x00, 0x06 } }, /* Copy Memory Data to VFO A */
-    { 1, { 0x00, 0x00, 0x00, 0x00, 0x07 } }, /* OP Freq Up 0.1MHz */
-    { 1, { 0x00, 0x00, 0x01, 0x00, 0x07 } }, /* OP Freq Up 1MHz */
-    { 1, { 0x00, 0x00, 0x00, 0x00, 0x08 } }, /* OP Freq Down 0.1MHz */
-    { 1, { 0x00, 0x00, 0x01, 0x00, 0x08 } }, /* OP Freq Down 1MHz */
+    { 1, { 0x00, 0x00, 0x00, 0x00, 0x07 } }, /* OP Freq Up 0.1 MHz */
+    { 1, { 0x00, 0x00, 0x01, 0x00, 0x07 } }, /* OP Freq Up 1 MHz */
+    { 1, { 0x00, 0x00, 0x00, 0x00, 0x08 } }, /* OP Freq Down 0.1 MHz */
+    { 1, { 0x00, 0x00, 0x01, 0x00, 0x08 } }, /* OP Freq Down 1 MHz */
     { 1, { 0x00, 0x00, 0x00, 0x00, 0x09 } }, /* RX Clarifier (OFF) */
     { 1, { 0x00, 0x00, 0x00, 0x01, 0x09 } }, /* RX Clarifier (ON) */
     { 1, { 0x00, 0x00, 0x00, 0x80, 0x09 } }, /* TX Clarifier (OFF) */
@@ -173,10 +173,10 @@ static const yaesu_cmd_set_t ncmd[] =
     { 0, { 0x00, 0x00, 0x00, 0x00, 0x0a } }, /* Set Op Freq */
     { 1, { 0x00, 0x00, 0x00, 0x00, 0x0c } }, /* OP Mode Set LSB */
     { 1, { 0x00, 0x00, 0x00, 0x01, 0x0c } }, /* OP Mode Set USB */
-    { 1, { 0x00, 0x00, 0x00, 0x02, 0x0c } }, /* OP Mode Set CW 2.4KHz */
-    { 1, { 0x00, 0x00, 0x00, 0x03, 0x0c } }, /* OP Mode Set CW 500Hz */
-    { 1, { 0x00, 0x00, 0x00, 0x04, 0x0c } }, /* OP Mode Set AM 6KHz */
-    { 1, { 0x00, 0x00, 0x00, 0x05, 0x0c } }, /* OP Mode Set AM 2.4KHz */
+    { 1, { 0x00, 0x00, 0x00, 0x02, 0x0c } }, /* OP Mode Set CW 2.4 kHz */
+    { 1, { 0x00, 0x00, 0x00, 0x03, 0x0c } }, /* OP Mode Set CW 500 Hz */
+    { 1, { 0x00, 0x00, 0x00, 0x04, 0x0c } }, /* OP Mode Set AM 6 kHz */
+    { 1, { 0x00, 0x00, 0x00, 0x05, 0x0c } }, /* OP Mode Set AM 2.4 kHz */
     { 1, { 0x00, 0x00, 0x00, 0x06, 0x0c } }, /* OP Mode Set FM */
     { 1, { 0x00, 0x00, 0x00, 0x08, 0x0c } }, /* OP Mode Set RTTY LSB */
     { 1, { 0x00, 0x00, 0x00, 0x09, 0x0c } }, /* OP Mode Set RTTY USB */
@@ -2155,7 +2155,7 @@ int ft990_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
               rig_strrmode(*mode));
 
     // The FT990 firmware appears to have a bug since the
-    // AM bandwidth for 2400Hz and 6000Hz are interchanged.
+    // AM bandwidth for 2400 Hz and 6000 Hz are interchanged.
     switch (*fl & (~FT990_BW_FMPKTRTTY))
     {
     case FT990_BW_F2400:
@@ -2909,7 +2909,7 @@ int ft990_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
      * Get RX bandwidth selection
      *
      * The FT990 firmware appears to have a bug since the
-     * AM bandwidth for 2400Hz and 6000Hz are interchanged.
+     * AM bandwidth for 2400 Hz and 6000 Hz are interchanged.
      */
     switch (p->filter & (~FT990_BW_FMPKTRTTY))
     {
@@ -3084,7 +3084,7 @@ int ft990_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
          * Get RX bandwidth selection
          *
          * The FT990 firmware appears to have a bug since the
-         * AM bandwidth for 2400Hz and 6000Hz are interchanged.
+         * AM bandwidth for 2400 Hz and 6000 Hz are interchanged.
          */
         switch (p->filter & (~FT990_BW_FMPKTRTTY))
         {
