@@ -28,7 +28,7 @@ int usb_af_input = 9;
 int mic_gain = 50;
 
 int
-getmyline(int fd, char *buf)
+_getmyline(int fd, char *buf)
 {
     char c;
     int i = 0;
@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
     {
         buf[0] = 0;
 
-        if (getmyline(fd, buf) > 0) { printf("Cmd:%s\n", buf); }
+        if (_getmyline(fd, buf) > 0) { printf("Cmd:%s\n", buf); }
 
 //        else { return 0; }
 
