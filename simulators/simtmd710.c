@@ -18,7 +18,7 @@ int datamode = 0;
 int vfo, vfo_tx, ptt, ptt_data, ptt_mic, ptt_tune;
 
 int
-getmyline(int fd, char *buf)
+_getmyline(int fd, char *buf)
 {
     char c;
     int i = 0;
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     {
         buf[0] = 0;
 
-        if (getmyline(fd, buf) > 0) { printf("Cmd:%s\n", buf); }
+        if (_getmyline(fd, buf) > 0) { printf("Cmd:%s\n", buf); }
 
         if (strncmp(buf, "BC", 2) == 0)
         {

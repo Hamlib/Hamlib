@@ -26,7 +26,7 @@ int band = 0;
 int control = 1;
 
 int
-getmyline(int fd, char *buf)
+_getmyline(int fd, char *buf)
 {
     char c;
     int i = 0;
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 
     while (1)
     {
-        if (getmyline(fd, buf))
+        if (_getmyline(fd, buf))
         {
             printf("Cmd:%s\n", buf);
         }
