@@ -6,7 +6,7 @@
  *           (C) Terry Embry 2008-2009
  *           (C) Michael Black W9MDB 2015 -- taken from ft950.c
  *
- * The FT991 is very much like the FT950 except freq max increases for 440MHz
+ * The FT991 is very much like the FT950 except freq max increases for 440 MHz
  * So most of this code is a duplicate of the FT950
  *
  * This shared library provides an API for communicating
@@ -241,7 +241,7 @@ struct rig_caps ft991_caps =
     .chan_list =          {
         {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
         {   100,  117, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP }, // P1L-P9U PMS channels
-        {   118,  127, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP }, // 5xx 5MHz band
+        {   118,  127, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP }, // 5xx 5 MHz band
         {   1,      5, RIG_MTYPE_VOICE },
         {   1,      5, RIG_MTYPE_MORSE },
         RIG_CHAN_END,

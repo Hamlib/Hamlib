@@ -1324,7 +1324,7 @@ static int ft818_817_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
         eeprom_ant[0] &= 1 << 1;
         break;
 
-    case 0xB:  /* FM BCB 76Mhz - 108Mhz, bit 2 */
+    case 0xB:  /* FM BCB 76 MHz - 108 MHz, bit 2 */
         eeprom_ant[0] &= 1 << 2;
         break;
 

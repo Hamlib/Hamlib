@@ -1359,7 +1359,7 @@ int main(int argc, char *argv[])
             case 'G': // Audio Scope Attenuator
             case 'H': // Audio Scope Span
             case 'I': // Oscilloscope Level
-            case 'J': // Oscilloscpoe Sweep Time
+            case 'J': // Oscilloscope Sweep Time
             case 'K': // Bandscope Shift Position
             case 'L': // Bandscope Receive Circuit State
             case 'M': // Bandscope Scope Range Lower/Upper Frequency Limit
@@ -1475,7 +1475,7 @@ int main(int argc, char *argv[])
             switch (buf[2])
             {
             case '0': // Memory Channel Configuration
-            case '1': // Memort Channel (Direct Write)
+            case '1': // Memory Channel (Direct Write)
             case '2': // Memory Channel (Channel Name)
             case '3': // Memory Channel (Scan Lockout)
             case '4': // Memory Channel (Channel Copy)

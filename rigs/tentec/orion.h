@@ -335,8 +335,8 @@ RIG_MODEL(RIG_MODEL_TT565),
 	},
         /* mode/filter list, remember: order matters! */
 .filters =  {
-	/* 9MHz IF filters: 15kHz, 6kHz, 2.4kHz, 1.0kHz */
-	/* opt: 1.8kHz, 500Hz, 250Hz */
+	/* 9 MHz IF filters: 15 kHz, 6 kHz, 2.4 kHz, 1.0 kHz */
+	/* opt: 1.8 kHz, 500 Hz, 250 Hz */
 		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY, kHz(2.4)},
 		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY, 100},
 		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY, kHz(6)},
@@ -525,8 +525,8 @@ RIG_MODEL(RIG_MODEL_TT599),
 	},
         /* mode/filter list, remember: order matters! */
 .filters =  {
-	/*  15kHz, 6kHz, 2.4kHz, 1.0kHz */
-    /* 9MHz IF filters: 2.4K standard */
+	/*  15 kHz, 6 kHz, 2.4 kHz, 1.0 kHz */
+    /* 9 MHz IF filters: 2.4K standard */
     /* optional = 300, 600, 1.8k, 6k, 15k */
 		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB, kHz(2.4)},
 		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB, 600},

@@ -1221,7 +1221,7 @@ int tmd710_do_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         freq_sent = freq625;
     }
 
-    /* Step needs to be at least 10kHz on higher band, otherwise 5 kHz */
+    /* Step needs to be at least 10 kHz on higher band, otherwise 5 kHz */
     fo_struct.step = freq_sent >= MHz(470) ? 4 : step;
     fo_struct.freq = freq_sent >= MHz(470) ? (round(freq_sent / 10000) * 10000) :
                      freq_sent;
@@ -1858,7 +1858,7 @@ int tmd710_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t freq)
         freq_sent = freq625;
     }
 
-    /* Step needs to be at least 10kHz on higher band, otherwise 5 kHz */
+    /* Step needs to be at least 10 kHz on higher band, otherwise 5 kHz */
     fo_struct.offset = freq_sent >= MHz(470) ? (round(freq_sent / 10000) * 10000) :
                        freq_sent;
 

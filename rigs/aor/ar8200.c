@@ -170,7 +170,7 @@ struct rig_caps ar8200_caps =
         {RIG_MODE_AM, kHz(3)},
         {RIG_MODE_FM | RIG_MODE_AM, kHz(12)},
         {RIG_MODE_FM, kHz(9)},
-        {RIG_MODE_WFM, kHz(230)}, /* 50kHz at -3dB, 380kHz at -20dB */
+        {RIG_MODE_WFM, kHz(230)}, /* 50 kHz at -3dB, 380 kHz at -20dB */
         RIG_FLT_END,
     },
 

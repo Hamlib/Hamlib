@@ -2368,7 +2368,7 @@ static int malachite_init(RIG *rig)
 
     priv = STATE(rig)->priv;
 
-    priv->no_id = 1;  // the Malchite doesn't like the ID; verify cmd
+    priv->no_id = 1;  // the Malachite doesn't like the ID; verify cmd
 
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
@@ -2447,7 +2447,7 @@ struct rig_caps malachite_caps =
     .serial_parity = RIG_PARITY_NONE,
     .serial_handshake = RIG_HANDSHAKE_NONE,
     .write_delay = 0,
-    // Malchite needs 125ms unless going from low to high band -- see malachite_set_freq
+    // Malachite needs 125ms unless going from low to high band -- see malachite_set_freq
     // Do not change this without checking the 300ms delay in malachite_set_freq
     .post_write_delay = 250,
     .timeout = 3000,

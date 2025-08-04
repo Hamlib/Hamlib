@@ -37,20 +37,20 @@
  * 500-1000 mS before reading it.
 
  * The vr5000 has two vfo, but only 1 native. The second vfo is a following
- * vfo which only can tune into the frequency range of VFO_A (+,-) 20 Mhz.
+ * vfo which only can tune into the frequency range of VFO_A (+,-) 20 MHz.
  *
  * The vr5000 has no CAT commands for reading the frequency, ts nor mode.
- * These function are emulated, because the vr5000 thunkates the input
+ * These function are emulated, because the vr5000 truncates the input
  * frequency. Secondly when changing the mode, ts will change, and since
- * ts it the one that decides how the frequency is thunkated, the frequency
+ * ts it the one that decides how the frequency is truncated, the frequency
  * will change.
  *
  * True receiver range was not specified correctly in manual. No all
- * mode allow to go down to 100 Khz. Therefore the minimum frequency
- * which will be allowed is 101.5 kKz. Maximum is 2599.99 Mhz.
+ * mode allow to go down to 100 kHz. Therefore the minimum frequency
+ * which will be allowed is 101.5 kHz. Maximum is 2599.99 MHz.
  *
  *
- * Supported : VFO_A, 101.5 Khz to 2599.99 Mhz.
+ * Supported : VFO_A, 101.5 kHz to 2599.99 MHz.
  */
 
 
@@ -300,7 +300,7 @@ int vr5000_open(RIG *rig)
         return retval;
     }
 
-    /* set RIG_VFO_A to 10 Mhz normal AM, step 10 kHz */
+    /* set RIG_VFO_A to 10 MHz normal AM, step 10 kHz */
     priv->curr_vfo  = RIG_VFO_A;
     priv->curr_mode = RIG_MODE_WFM;
     priv->curr_width = RIG_PASSBAND_NORMAL;

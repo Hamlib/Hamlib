@@ -3,7 +3,7 @@
  * Very simple test program to check locator conversion against some other --SF
  * This is mainly to test longlat2locator and locator2longlat functions.
  *
- * Takes at least two arguments, which is a locator and desired locater
+ * Takes at least two arguments, which is a locator and desired locator
  * precision in pairs, e.g. EM19ov is three pairs.  precision is limited
  * to >= 1 or <= 6.  If two locators are given, then the qrb is also
  * calculated.

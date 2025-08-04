@@ -231,10 +231,10 @@ static ncboolean is_ftx1;
 static ncboolean is_ftdx9000Old;
 
 /*
- * Even thought this table does make a handy reference, it could be depreciated as it is not really needed.
+ * Even though this table does make a handy reference, it could be deprecated as it is not really needed.
  * All of the CAT commands used in the newcat interface are available on the FT-950, FT-2000, FT-5000, and FT-9000.
  * There are 5 CAT commands used in the newcat interface that are not available on the FT-450.
- * Thesec CAT commands are XT -TX Clarifier ON/OFF, AN - Antenna select, PL - Speech Proc Level,
+ * These CAT commands are XT -TX Clarifier ON/OFF, AN - Antenna select, PL - Speech Proc Level,
  * PR - Speech Proc ON/OFF, and BC - Auto Notch filter ON/OFF.
  * The FT-450 returns -RIG_ENVAIL for these unavailable CAT commands.
  *
@@ -9425,7 +9425,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             else if (width <= 3000) { w = 18; }
             else if (width <= 3200) { w = 19; }
             else if (width <= 3500) { w = 20; }
-            else { w = 21; } // 4000Hz
+            else { w = 21; } // 4000 Hz
 
             break;
 
@@ -9454,7 +9454,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             else if (width <= 3000) {  w = 20; }
             else if (width <= 3200) {  w = 21; }
             else if (width <= 3500) {  w = 22; }
-            else { w = 23; } // 4000Hz
+            else { w = 23; } // 4000 Hz
 
             break;
 

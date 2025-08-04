@@ -425,7 +425,7 @@ transaction_quit:
  *
  * Parameters:
  *  cmd     Same as elad_transaction() cmdstr
- *  buf     Same as kenwwod_transaction() data
+ *  buf     Same as kenwood_transaction() data
  *  buf_size  Same as elad_transaction() datasize
  *  expected  Value of expected string length
  *

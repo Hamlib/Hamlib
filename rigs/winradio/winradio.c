@@ -132,9 +132,9 @@ int wr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     case RMD_FMN: *mode = RIG_MODE_FM; break; /* 15kHz or 17kHz on WR-3100 */
 
-    case RMD_FM6: *mode = RIG_MODE_FM; break; /* 6kHz */
+    case RMD_FM6: *mode = RIG_MODE_FM; break; /* 6 kHz */
 
-    case RMD_FMM: *mode = RIG_MODE_FM; break; /* 50kHz */
+    case RMD_FMM: *mode = RIG_MODE_FM; break; /* 50 kHz */
 
     case RMD_FMW: *mode = RIG_MODE_WFM; break;
 

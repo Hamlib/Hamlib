@@ -184,10 +184,10 @@ static const yaesu_cmd_set_t ncmd[] =
     { 1, { 0x00, 0x00, 0x00, 0x00, 0x05 } }, /* Select VFO (A) */
     { 1, { 0x00, 0x00, 0x00, 0x01, 0x05 } }, /* Select VFO (B) */
     { 0, { 0x00, 0x00, 0x00, 0x00, 0x06 } }, /* Copy Memory Data to VFO A */
-    { 1, { 0x00, 0x00, 0x00, 0x00, 0x07 } }, /* OP Freq Up 0.1MHz */
-    { 1, { 0x00, 0x00, 0x01, 0x00, 0x07 } }, /* OP Freq Up 1MHz */
-    { 1, { 0x00, 0x00, 0x00, 0x00, 0x08 } }, /* OP Freq Down 0.1MHz */
-    { 1, { 0x00, 0x00, 0x01, 0x00, 0x08 } }, /* OP Freq Down 1MHz */
+    { 1, { 0x00, 0x00, 0x00, 0x00, 0x07 } }, /* OP Freq Up 0.1 MHz */
+    { 1, { 0x00, 0x00, 0x01, 0x00, 0x07 } }, /* OP Freq Up 1 MHz */
+    { 1, { 0x00, 0x00, 0x00, 0x00, 0x08 } }, /* OP Freq Down 0.1 MHz */
+    { 1, { 0x00, 0x00, 0x01, 0x00, 0x08 } }, /* OP Freq Down 1 MHz */
     { 1, { 0x00, 0x00, 0x00, 0x00, 0x09 } }, /* RX Clarifier (OFF) */
     { 1, { 0x00, 0x00, 0x00, 0x01, 0x09 } }, /* RX Clarifier (ON) */
     { 1, { 0x00, 0x00, 0x00, 0x80, 0x09 } }, /* TX Clarifier (OFF) */
@@ -197,10 +197,10 @@ static const yaesu_cmd_set_t ncmd[] =
     { 0, { 0x00, 0x00, 0x00, 0x00, 0x0a } }, /* Set Op Freq */
     { 1, { 0x00, 0x00, 0x00, 0x00, 0x0c } }, /* OP Mode Set LSB */
     { 1, { 0x00, 0x00, 0x00, 0x01, 0x0c } }, /* OP Mode Set USB */
-    { 1, { 0x00, 0x00, 0x00, 0x02, 0x0c } }, /* OP Mode Set CW 2.4KHz */
-    { 1, { 0x00, 0x00, 0x00, 0x03, 0x0c } }, /* OP Mode Set CW 500Hz */
-    { 1, { 0x00, 0x00, 0x00, 0x04, 0x0c } }, /* OP Mode Set AM 6KHz */
-    { 1, { 0x00, 0x00, 0x00, 0x05, 0x0c } }, /* OP Mode Set AM 2.4KHz */
+    { 1, { 0x00, 0x00, 0x00, 0x02, 0x0c } }, /* OP Mode Set CW 2.4 kHz */
+    { 1, { 0x00, 0x00, 0x00, 0x03, 0x0c } }, /* OP Mode Set CW 500 Hz */
+    { 1, { 0x00, 0x00, 0x00, 0x04, 0x0c } }, /* OP Mode Set AM 6 kHz */
+    { 1, { 0x00, 0x00, 0x00, 0x05, 0x0c } }, /* OP Mode Set AM 2.4 kHz */
     { 1, { 0x00, 0x00, 0x00, 0x06, 0x0c } }, /* OP Mode Set FM */
     { 1, { 0x00, 0x00, 0x00, 0x08, 0x0c } }, /* OP Mode Set RTTY LSB */
     { 1, { 0x00, 0x00, 0x00, 0x09, 0x0c } }, /* OP Mode Set RTTY USB */
@@ -208,10 +208,10 @@ static const yaesu_cmd_set_t ncmd[] =
     { 1, { 0x00, 0x00, 0x00, 0x0b, 0x0c } }, /* OP Mode Set PKT FM */
     { 1, { 0x00, 0x00, 0x00, 0x80, 0x0c } }, /* Sub VFOB OP Mode Set LSB Added December 2016 */
     { 1, { 0x00, 0x00, 0x00, 0x81, 0x0c } }, /* Sub VFOB OP Mode Set USB Added December 2016 */
-    { 1, { 0x00, 0x00, 0x00, 0x82, 0x0c } }, /* Sub VFOB OP Mode Set CW 2.4KHz Added December 2016 */
-    { 1, { 0x00, 0x00, 0x00, 0x83, 0x0c } }, /* Sub VFOB OP Mode Set CW 500Hz Added December 2016 */
-    { 1, { 0x00, 0x00, 0x00, 0x84, 0x0c } }, /* Sub VFOB OP Mode Set AM 6KHz Added December 2016 */
-    { 1, { 0x00, 0x00, 0x00, 0x85, 0x0c } }, /* Sub VFOB OP Mode Set AM 2.4KHz Added December 2016 */
+    { 1, { 0x00, 0x00, 0x00, 0x82, 0x0c } }, /* Sub VFOB OP Mode Set CW 2.4 kHz Added December 2016 */
+    { 1, { 0x00, 0x00, 0x00, 0x83, 0x0c } }, /* Sub VFOB OP Mode Set CW 500 Hz Added December 2016 */
+    { 1, { 0x00, 0x00, 0x00, 0x84, 0x0c } }, /* Sub VFOB OP Mode Set AM 6 kHz Added December 2016 */
+    { 1, { 0x00, 0x00, 0x00, 0x85, 0x0c } }, /* Sub VFOB OP Mode Set AM 2.4 kHz Added December 2016 */
     { 1, { 0x00, 0x00, 0x00, 0x86, 0x0c } }, /* Sub VFOB OP Mode Set FM Added December 2016*/
     { 1, { 0x00, 0x00, 0x00, 0x88, 0x0c } }, /* Sub VFOB OP Mode Set RTTY LSB Added December 2016 */
     { 1, { 0x00, 0x00, 0x00, 0x89, 0x0c } }, /* Sub VFOB OP Mode Set RTTY USB Added December 2016 */
@@ -2365,7 +2365,7 @@ static int ft1000d_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
               rig_strrmode(*mode));
 
     // The FT1000D firmware appears to have a bug since the
-    // AM bandwidth for 2400Hz and 6000Hz are interchanged.
+    // AM bandwidth for 2400 Hz and 6000 Hz are interchanged.
     switch (*fl & (~FT1000D_BW_FMPKTRTTY))
     {
     case FT1000D_BW_F2400:
@@ -3130,7 +3130,7 @@ static int ft1000d_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
      * Get RX bandwidth selection
      *
      * The FT1000D firmware appears to have a bug since the
-     * AM bandwidth for 2400Hz and 6000Hz are interchanged.
+     * AM bandwidth for 2400 Hz and 6000 Hz are interchanged.
      */
     switch (p->filter & (~FT1000D_BW_FMPKTRTTY))
     {
@@ -3305,7 +3305,7 @@ static int ft1000d_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
          * Get RX bandwidth selection
          *
          * The FT1000D firmware appears to have a bug since the
-         * AM bandwidth for 2400Hz and 6000Hz are interchanged.
+         * AM bandwidth for 2400 Hz and 6000 Hz are interchanged.
          */
         switch (p->filter & (~FT1000D_BW_FMPKTRTTY))
         {
