@@ -50,14 +50,12 @@ static void load_dat(const char *filename, unsigned char buf[1492])
 static unsigned char alldata[1492];
 
 int
-getmyline(int fd, char *buf)
+getmyline(int fd, unsigned char *buf)
 {
     unsigned char c;
     int i = 0;
     int n = 0;
     memset(buf, 0, BUFSIZE);
-
-#if 1
 
     while (i < 5 && read(fd, &c, 1) > 0)
     {
@@ -65,9 +63,6 @@ getmyline(int fd, char *buf)
         n++;
     }
 
-#else
-    n = read(fd, buf, 5);
-#endif
     printf("n=%d %02x %02x %02x %02x %02x\n", n, buf[0], buf[1], buf[2], buf[3],
            buf[4]);
     return n;
