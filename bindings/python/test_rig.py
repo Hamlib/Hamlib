@@ -47,10 +47,12 @@ class TestClass:
         assert rig is not None
 
         assert rig.state.comm_state == 0
+        assert rig.state.comm_status == Hamlib.RIG_COMM_STATUS_DISCONNECTED
         assert rig.set_conf("rig_pathname", rig_file) is None
         assert rig.set_conf("serial_speed", str(serial_speed)) is None
         assert rig.open() is None
         assert rig.state.comm_state == 1
+        assert rig.state.comm_status == Hamlib.RIG_COMM_STATUS_OK
         info = rig.get_info()
         assert isinstance(info, str)
 
@@ -116,6 +118,7 @@ class TestClass:
 
         assert rig.close() is None
         assert rig.state.comm_state == 0
+        assert rig.state.comm_status == Hamlib.RIG_COMM_STATUS_DISCONNECTED
         info = rig.get_info()
         assert info is None
 
