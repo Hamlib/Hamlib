@@ -14,7 +14,7 @@
 static void *rotorez_thread(void *arg);
 
 int
-getmyline(int fd, char *buf)
+_getmyline(int fd, char *buf)
 {
     unsigned char c = 0;
     int i = 0;
@@ -61,8 +61,8 @@ int main(int argc, char *argv[])
     while (1)
     {
         int bytes;
-        if (!flag) bytes = getmyline(fd, buf);
-        else bytes = getmyline(fd2, buf);
+        if (!flag) bytes = _getmyline(fd, buf);
+        else bytes = _getmyline(fd2, buf);
         flag = !flag;
 
         if (bytes == 0)
@@ -116,7 +116,7 @@ again:
     while (1)
     {
         int bytes;
-        bytes = getmyline(fd, buf);
+        bytes = _getmyline(fd, buf);
 
         if (bytes == 0)
         {

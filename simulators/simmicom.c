@@ -20,7 +20,7 @@ int width_sub = 700;
 
 
 int
-getmyline(int fd, unsigned char *buf)
+_getmyline(int fd, unsigned char *buf)
 {
     int i = 0;
     int n = 0;
@@ -56,7 +56,7 @@ again:
 
     while (1)
     {
-        int bytes = getmyline(fd, buf);
+        int bytes = _getmyline(fd, buf);
 
         if (bytes == 0)
         {

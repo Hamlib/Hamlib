@@ -15,7 +15,7 @@ int ptt = 0;
 int keyspd = 20;
 
 int
-getmyline(int fd, char *buf)
+_getmyline(int fd, char *buf)
 {
     unsigned char c;
     int i = 0;
@@ -45,7 +45,7 @@ again:
 
     while (1)
     {
-        int bytes = getmyline(fd, buf);
+        int bytes = _getmyline(fd, buf);
 
         if (bytes == 0)
         {
