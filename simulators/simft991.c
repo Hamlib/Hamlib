@@ -24,24 +24,6 @@ int vd = 0;
 int sm0 = 0;
 int sm1 = 0;
 
-int
-getmyline(int fd, char *buf)
-{
-    char c;
-    int i = 0;
-    memset(buf, 0, BUFSIZE);
-
-    while (read(fd, &c, 1) > 0)
-    {
-        buf[i++] = c;
-
-        if (c == ';') { return strlen(buf); }
-    }
-
-    if (strlen(buf) == 0) { hl_usleep(10 * 1000); }
-
-    return strlen(buf);
-}
 
 #include "sim.h"
 
