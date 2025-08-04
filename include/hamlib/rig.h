@@ -2646,13 +2646,13 @@ typedef int (*spectrum_cb_t)(RIG *,
  * Events from the rig are received through async io,
  * so callback functions will be called from the SIGIO sighandler context.
  *
- * Don't set these fields directly, use rig_set_freq_callback et. al. instead.
+ * Don't set these fields directly, use rig_set_freq_callback() et. al. instead.
  *
  * Callbacks suit event based programming very well,
  * really appropriate in a GUI.
  *
- * \sa rig_set_freq_callback(), rig_set_mode_callback(), rig_set_vfo_callback(),
- *     rig_set_ptt_callback(), rig_set_dcd_callback()
+ * \sa rig_set_dcd_callback(), rig_set_freq_callback(), rig_set_mode_callback(),
+ *     rig_set_ptt_callback(), rig_set_spectrum_callback(), rig_set_vfo_callback()
  */
 // Do NOT add/remove from this structure -- it will break DLL backwards compatibility
 struct rig_callbacks {

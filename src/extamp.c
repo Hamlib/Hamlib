@@ -62,7 +62,7 @@
  * not strictly positive.
  *
  * \returns A zero value which means a normal end of iteration, or a
- * **negative value** which means an abnormal end,
+ * **negative value** which means an abnormal end.
  *
  * \retval RIG_OK All extension levels elements successfully processed.
  * \retval -RIG_EINVAL \a amp or \a cfunc is NULL or inconsistent.

@@ -962,7 +962,7 @@ int HAMLIB_API amp_get_powerstat(AMP *amp, powerstat_t *status)
 /**
  * \brief Get the address of amplifier data structure(s)
  *
- * \sa rig_data_pointer
+ * \sa rig_data_pointer(), rot_data_pointer()
  *
  */
 void *HAMLIB_API amp_data_pointer(AMP *amp, rig_ptrx_t idx)

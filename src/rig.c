@@ -9056,7 +9056,7 @@ int morse_data_handler_set_keyspd(RIG *rig, int keyspd)
 }
 #endif
 
-/*
+/**
  * \brief Get the address of a Hamlib data structure
  * \param rig Pointer to main data anchor
  * \param idx enum for which pointer requested
@@ -9069,7 +9069,7 @@ int morse_data_handler_set_keyspd(RIG *rig, int keyspd)
  * Note: This is meant for use by the HAMLIB_???PORT macros mostly. Only
  *  compatibility with them is supported.
  *
- * \sa amp_data_pointer, rot_data_pointer
+ * \sa amp_data_pointer(), rot_data_pointer()
  */
 HAMLIB_EXPORT(void *) rig_data_pointer(RIG *rig, rig_ptrx_t idx)
 {
