@@ -2580,7 +2580,7 @@ struct multicast_s
     int multicast_running;
     int sock;
     int seqnumber;
-    int runflag; // = 0;
+    volatile int runflag; // = 0;
     pthread_t threadid;
     // this mutex is needed to control serial access
     // as of 2023-05-13 we have main thread and multicast thread needing it

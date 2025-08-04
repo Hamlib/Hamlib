@@ -24,7 +24,7 @@ typedef struct _anytone_priv_data
 {
     ptt_t         ptt;
     vfo_t         vfo_curr;
-    int           runflag; // thread control
+    volatile int  runflag; // thread control
     char          buf[64];
     pthread_mutex_t mutex;
 } anytone_priv_data_t,

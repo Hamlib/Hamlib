@@ -326,7 +326,7 @@ int tt585_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct tt585_priv_data *priv = (struct tt585_priv_data *)STATE(rig)->priv;
     int ret;
-    unsigned char *p;
+    const unsigned char *p;
 
     ret = tt585_get_status_data(rig);
 

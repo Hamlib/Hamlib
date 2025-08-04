@@ -325,6 +325,7 @@ int rx340_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         return -RIG_EPROTO;
     }
 
+    // cppcheck-suppress uninitvar
     *freq = f * 1e6;
 
     return RIG_OK;
@@ -443,6 +444,7 @@ int rx340_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         return -RIG_EPROTO;
     }
 
+    // cppcheck-suppress uninitvar
     *width = f * 1e3;
 
     return RIG_OK;
