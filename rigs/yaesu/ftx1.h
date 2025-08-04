@@ -164,12 +164,12 @@
 /* Delay between bytes sent to FTX-1
  * Should not exceed value set in CAT TOT menu (rig default is 10 mSec)
  */
-#define FTX1_WRITE_DELAY                    0
+#define FTX1_WRITE_DELAY                    5
 
 
 /* Delay sequential fast writes */
 
-#define FTX1_POST_WRITE_DELAY               2
+#define FTX1_POST_WRITE_DELAY               5
 
 typedef struct
 {

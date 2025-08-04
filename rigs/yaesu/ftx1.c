@@ -631,7 +631,7 @@ static void debug_ftx1info_data(const ftx1info *rdata)
  *              VFO B mode directly so we'll just set A and swap A
  *              into B but we must preserve the VFO A mode and VFO B
  *              frequency.
- *
+ *              [TODO] This is inaccurate and based on copying the FT991A code to build this.  Remove the above and implement it correctly.
  */
 
 static int ftx1_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
@@ -1364,17 +1364,171 @@ static int ftx1_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 /* Tuning step functions */
 static int ftx1_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 {
-    // FTX-1 doesn't have a direct tuning step query command
-    // Return a default value
-    *ts = 100;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
+    int err;
+    char response[32];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!rig || !ts)
+    {
+        return -RIG_EINVAL;
+    }
+
+    // Get current mode to determine which tuning step setting to query
+    rmode_t mode;
+    pbwidth_t width;
+    if (RIG_OK != (err = rig_get_mode(rig, vfo, &mode, &width)))
+    {
+        return err;
+    }
+
+    // Determine which tuning step setting to query based on mode
+    int setting_num;
+    if (mode == RIG_MODE_FM || mode == RIG_MODE_FMN)
+    {
+        setting_num = 3;  // FM DIAL STEP
+    }
+    else if (mode == RIG_MODE_RTTY || mode == RIG_MODE_RTTYR || 
+             mode == RIG_MODE_PKTLSB || mode == RIG_MODE_PKTUSB)
+    {
+        setting_num = 2;  // RTTY/PSK DIAL STEP
+    }
+    else
+    {
+        setting_num = 1;  // SSB/CW DIAL STEP
+    }
+
+    // Send EX0306[setting_num]; to query current tuning step
+    // The radio returns the current value in the response
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX0306%02d;", setting_num);
+
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    {
+        return err;
+    }
+
+    // Parse response like "EX0306012;" or "EX0306021;" or "EX0306033;"
+    strncpy(response, priv->ret_data, sizeof(response) - 1);
+    response[sizeof(response) - 1] = '\0';
+
+    if (strlen(response) >= 9 && strncmp(response, "EX0306", 6) == 0)
+    {
+        // Extract the step value from the response (last digit before semicolon)
+        char step_str[2];
+        int len = strlen(response);
+        if (len >= 9) {
+            step_str[0] = response[len - 2];  // Get the digit before semicolon
+            step_str[1] = '\0';
+        } else {
+            step_str[0] = '1';  // Default to 1 (10Hz)
+            step_str[1] = '\0';
+        }
+        
+        int step_value = atoi(step_str);
+        
+        // Convert step value to frequency based on mode
+        if (mode == RIG_MODE_FM || mode == RIG_MODE_FMN)
+        {
+            // FM DIAL STEP values: 0:5kHz, 1:6.25kHz, 2:10kHz, 3:12.5kHz, 4:20kHz, 5:25kHz, 6:Auto
+            switch (step_value) {
+                case 0: *ts = 5000; break;
+                case 1: *ts = 6250; break;
+                case 2: *ts = 10000; break;
+                case 3: *ts = 12500; break;
+                case 4: *ts = 20000; break;
+                case 5: *ts = 25000; break;
+                case 6: *ts = 0; break;  // Auto - return 0 to indicate auto mode
+                default: *ts = 10000; break;
+            }
+        }
+        else if (mode == RIG_MODE_RTTY || mode == RIG_MODE_RTTYR || 
+                 mode == RIG_MODE_PKTLSB || mode == RIG_MODE_PKTUSB)
+        {
+            // RTTY/PSK DIAL STEP values: 0:5Hz, 1:10Hz, 2:20Hz
+            switch (step_value) {
+                case 0: *ts = 5; break;
+                case 1: *ts = 10; break;
+                case 2: *ts = 20; break;
+                default: *ts = 10; break;
+            }
+        }
+        else
+        {
+            // SSB/CW DIAL STEP values: 0:5Hz, 1:10Hz, 2:20Hz
+            switch (step_value) {
+                case 0: *ts = 5; break;
+                case 1: *ts = 10; break;
+                case 2: *ts = 20; break;
+                default: *ts = 10; break;
+            }
+        }
+        
+        rig_debug(RIG_DEBUG_TRACE, "%s: response=%s, setting=%d, step_value=%d, ts=%ld\n", 
+                 __func__, response, setting_num, step_value, *ts);
+        
+        return RIG_OK;
+    }
+
+    // If parsing failed, return default
+    *ts = 10;
     return RIG_OK;
 }
 
 static int ftx1_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 {
-    // FTX-1 doesn't have a direct tuning step set command
-    // This would need to be implemented via mode-specific commands
-    return -RIG_ENIMPL;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
+    int step_value, setting_num;
+    rmode_t mode;
+    pbwidth_t width;
+    int err;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called with ts=%ld\n", __func__, ts);
+
+    // Get current mode to determine which tuning step setting to modify
+    if (RIG_OK != (err = rig_get_mode(rig, vfo, &mode, &width)))
+    {
+        return err;
+    }
+
+    // Determine which tuning step setting to modify based on mode
+    if (mode == RIG_MODE_FM || mode == RIG_MODE_FMN)
+    {
+        setting_num = 3;  // FM DIAL STEP
+        // Convert frequency to FM step value: 0:5kHz, 1:6.25kHz, 2:10kHz, 3:12.5kHz, 4:20kHz, 5:25kHz, 6:Auto
+        if (ts == 0) step_value = 6;  // Auto mode
+        else if (ts <= 5000) step_value = 0;
+        else if (ts <= 6250) step_value = 1;
+        else if (ts <= 10000) step_value = 2;
+        else if (ts <= 12500) step_value = 3;
+        else if (ts <= 20000) step_value = 4;
+        else step_value = 5;
+    }
+    else if (mode == RIG_MODE_RTTY || mode == RIG_MODE_RTTYR || 
+             mode == RIG_MODE_PKTLSB || mode == RIG_MODE_PKTUSB)
+    {
+        setting_num = 2;  // RTTY/PSK DIAL STEP
+        // Convert frequency to RTTY step value: 0:5Hz, 1:10Hz, 2:20Hz
+        if (ts <= 5) step_value = 0;
+        else if (ts <= 10) step_value = 1;
+        else step_value = 2;
+    }
+    else
+    {
+        setting_num = 1;  // SSB/CW DIAL STEP
+        // Convert frequency to SSB/CW step value: 0:5Hz, 1:10Hz, 2:20Hz
+        if (ts <= 5) step_value = 0;
+        else if (ts <= 10) step_value = 1;
+        else step_value = 2;
+    }
+
+    // Format: EX0306[setting_num][step_value]; 
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX0306%02d%d;", setting_num, step_value);
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s (setting=%d, step_value=%d)\n", 
+             __func__, priv->cmd_str, setting_num, step_value);
+
+    return newcat_set_cmd(rig);
 }
 
 /*
