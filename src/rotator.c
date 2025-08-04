@@ -1089,7 +1089,7 @@ int HAMLIB_API rot_get_status(ROT *rot, rot_status_t *status)
 /**
  * \brief Get the address of rotator data structure(s)
  *
- * \sa rig_data_pointer
+ * \sa amp_data_pointer(), rig_data_pointer()
  *
  */
 void *HAMLIB_API rot_data_pointer(ROT *rot, rig_ptrx_t idx)

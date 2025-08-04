@@ -512,7 +512,7 @@ static int setAddr(RIG *rig, enum PAGE_e page, unsigned int addr)
     return (rc);
 }
 
-/*
+/**
  * \brief Write one byte to the receiver
  *
  * \param rig Pointer to rig struct
@@ -553,8 +553,8 @@ int writeByte(RIG *rig, enum PAGE_e page, unsigned int addr, unsigned char x)
     return (rc);
 }
 
-/*
- * \brief Write two bytes to the receiver
+/**
+ * brief  Write two bytes to the receiver
  *
  * \param rig  Pointer to rig struct
  * \param page Memory page number (0-4, 15)
@@ -580,7 +580,7 @@ int writeShort(RIG *rig, enum PAGE_e page, unsigned int addr, unsigned short x)
     return (rc);
 }
 
-/*
+/**
  * \brief Write three bytes to the receiver
  *
  * \param rig  Pointer to rig struct
@@ -615,7 +615,7 @@ int write3Bytes(RIG *rig, enum PAGE_e page, unsigned int addr, unsigned int x)
 
 #ifdef XXREMOVEDXX
 // this function is not referenced anywhere
-/*
+/**
  * \brief Write unsigned int (4 bytes) to the receiver
  *
  * \param rig  Pointer to rig struct
@@ -655,7 +655,7 @@ int writeInt(RIG *rig, enum PAGE_e page, unsigned int addr, unsigned int x)
 }
 #endif
 
-/*
+/**
  * \brief Read one byte from the receiver
  *
  * \param rig Pointer to rig struct
@@ -696,7 +696,7 @@ int readByte(RIG *rig, enum PAGE_e page, unsigned int addr, unsigned char *x)
     return (rc);
 }
 
-/*
+/**
  * \brief Read an unsigned short (two bytes) from the receiver
  *
  * \param rig Pointer to rig struct
@@ -733,7 +733,7 @@ int readShort(RIG *rig, enum PAGE_e page, unsigned int addr, unsigned short *x)
     return (rc);
 }
 
-/*
+/**
  * \brief Read an unsigned int (three bytes) from the receiver
  *
  * \param rig Pointer to rig struct
@@ -778,7 +778,7 @@ int read3Bytes(RIG *rig, enum PAGE_e page, unsigned int addr, unsigned int *x)
 
 #ifdef XXREMOVEDXX
 // this function is not referenced anywhere
-/*
+/**
  * \brief Read an unsigned int (four bytes) from the receiver
  *
  * \param rig Pointer to rig struct
@@ -826,7 +826,7 @@ int readInt(RIG *rig, enum PAGE_e page, unsigned int addr, unsigned int *x)
 }
 #endif
 
-/*
+/**
  * \brief Read raw AGC value from the radio
  *
  * \param rig Pointer to rig struct
@@ -857,7 +857,7 @@ int readSignal(RIG *rig, unsigned char *x)
 
 #ifdef XXREMOVEDXX
 // this function is not referenced anywhere
-/*
+/**
  * \brief Flush I/O with radio
  *
  * \param rig Pointer to rig struct
@@ -879,7 +879,7 @@ int flushBuffer(RIG *rig)
 }
 #endif
 
-/*
+/**
  * \brief Lock receiver for remote operations
  *
  * \param rig Pointer to rig struct
@@ -919,7 +919,7 @@ int lockRx(RIG *rig, enum LOCK_LVL_e level)
     return (rc);
 }
 
-/*
+/**
  * \brief Convert one byte BCD value to int
  *
  * \param bcd BCD value (0-99)
@@ -949,7 +949,7 @@ int bcd2Int(const unsigned char bcd)
     return (rc);
 }
 
-/*
+/**
  * \brief Convert raw AGC value to calibrated level in dBm
  *
  * \param rig Pointer to rig struct
@@ -1073,7 +1073,7 @@ int getCalLevel(RIG *rig, unsigned char rawAgc, int *dbm)
     return (rc);
 }
 
-/*
+/**
  * \brief Get bandwidth of given filter
  *
  * \param rig Pointer to rig struct
@@ -1103,7 +1103,7 @@ int getFilterBW(RIG *rig, enum FILTER_e filter)
     return (rc);
 }
 
-/*
+/**
  * \brief Convert DDS steps to frequency in Hz
  *
  * \param steps DDS count
@@ -1119,7 +1119,7 @@ freq_t ddsToHz(const unsigned int steps)
     return (rc);
 }
 
-/*
+/**
  * \brief Convert frequency in Hz to DDS steps
  *
  * \param freq Frequency in Hz
@@ -1155,7 +1155,7 @@ unsigned int hzToDDS(const freq_t freq)
     return (rc);
 }
 
-/*
+/**
  * \brief Convert PBS/BFO steps to frequency in Hz
  *
  * \param steps PBS/BFO offset steps
@@ -1186,8 +1186,8 @@ float pbsToHz(const unsigned char steps)
 
 #ifdef XXREMOVEDXX
 // this function is not referenced anywhere
-/*
- * \brief Convert PBS/BFO offset frequency in Hz to steps
+/**
+ * brief Convert PBS/BFO offset frequency in Hz to steps
  *
  * \param freq Offset frequency in Hz
  *
@@ -1228,8 +1228,8 @@ unsigned char hzToPBS(const float freq)
 }
 #endif
 
-/*
- * \brief Convert native Mode to Hamlib mode
+/**
+ * brief Convert native Mode to Hamlib mode
  *
  * \param mode Native mode value
  *
@@ -1279,8 +1279,8 @@ rmode_t modeToHamlib(const unsigned char mode)
     return (rc);
 }
 
-/*
- * \brief Convert Hamlib Mode to native mode
+/**
+ * brief Convert Hamlib Mode to native mode
  *
  * \param mode Hamlib mode value
  *
@@ -1330,8 +1330,8 @@ unsigned char modeToNative(const rmode_t mode)
     return (rc);
 }
 
-/*
- * \brief Convert native AGC speed to Hamlib AGC speed
+/**
+ * brief Convert native AGC speed to Hamlib AGC speed
  *
  * \param agc Native AGC speed value
  *
@@ -1369,8 +1369,8 @@ enum agc_level_e agcToHamlib(const unsigned char agc)
     return (rc);
 }
 
-/*
- * \brief Convert Hamlib AGC speed to native AGC speed
+/**
+ * brief Convert Hamlib AGC speed to native AGC speed
  *
  * \param agc Hamlib AGC speed value
  *
@@ -1412,8 +1412,8 @@ unsigned char agcToNative(const enum agc_level_e agc)
     return (rc);
 }
 
-/*
- * \brief Get page size
+/**
+ * brief Get page size
  *
  * \param page Page to get size of
  *
@@ -1439,8 +1439,8 @@ int pageSize(const enum PAGE_e page)
     return (rc);
 }
 
-/*
- * \brief Set and execute IR controller code
+/**
+ * brief Set and execute IR controller code
  *
  * \param code IR code to execute
  *
