@@ -55,7 +55,6 @@ _getmyline(int fd, unsigned char *buf)
 int main(int argc, char *argv[])
 {
     unsigned char buf[BUFSIZE], buf2[256];
-    int n;
 
 again:
     int fd = openPort(argv[1]);
@@ -63,6 +62,7 @@ again:
     while (1)
     {
         int bytes = _getmyline(fd, buf);
+        int n = 0;
 
         if (bytes == 0)
         {
