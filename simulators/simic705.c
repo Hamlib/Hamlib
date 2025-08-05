@@ -19,7 +19,6 @@
  */
 #include "../rigs/icom/icom_defs.h"
 
-#define BUFSIZE 256
 #define X25
 #undef SATMODE
 

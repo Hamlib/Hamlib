@@ -8,7 +8,6 @@
 #include "hamlib/rig.h"
 #include "misc.h"
 
-#define BUFSIZE 256
 
 int mysleep = 20;
 

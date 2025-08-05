@@ -10,7 +10,6 @@
 #include "sim.h"
 #include "misc.h"
 
-#define BUFSIZE 256
 
 float freqA = 14074000;
 float freqB = 14074500;
