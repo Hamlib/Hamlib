@@ -18,8 +18,9 @@ char modeB = '1';
 int width_main = 500;
 int width_sub = 700;
 
+#define ALL_DATA_SIZE 1492
 
-static void load_dat(const char *filename, unsigned char buf[1492])
+static void load_dat(const char *filename, unsigned char buf[ALL_DATA_SIZE])
 {
     FILE *fp = fopen(filename, "r");
     char line[4096];
@@ -47,7 +48,7 @@ static void load_dat(const char *filename, unsigned char buf[1492])
     printf("%d bytes read\n", n);
 }
 
-static unsigned char alldata[1492];
+static unsigned char alldata[ALL_DATA_SIZE];
 
 #include "sim.h"
 
@@ -72,7 +73,7 @@ int main(int argc, char *argv[])
 
         if (buf[4] == 0x10)
         {
-            write(fd, alldata, 1492);
+            write(fd, alldata, ALL_DATA_SIZE);
         }
     }
 
