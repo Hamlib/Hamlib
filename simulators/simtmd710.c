@@ -52,21 +52,26 @@ int main(int argc, char *argv[])
 
         if (strncmp(buf, "BC", 2) == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "BC %d %d%c", vfo, vfo_tx, 0x0d);
+            SNPRINTF(buf, sizeof(buf), "BC %d,%d%c", vfo, vfo_tx, 0x0d);
             printf("R:%s\n", buf);
             write(fd, buf, strlen(buf));
             continue;
         }
         else if (strncmp(buf, "FO", 2) == 0)
         {
-            if (buf[3] == '0')
-            {
-                SNPRINTF(buf, sizeof(buf), "FO 0 %d%c", freqA, 0x0d);
+            char vfo = buf[3];
+            int frequency;
+            char tone_frequency[] = "10"; // 94.8
+            char ctcss_frequency[] = "05"; // 79,7
+            char dcs_frequency[] = "016"; // 114
+
+            if (vfo == '0') {
+                frequency = (int)freqA;
+            } else {
+                frequency = (int)freqB;
             }
-            else
-            {
-                SNPRINTF(buf, sizeof(buf), "FO 1 %d%c", freqB, 0x0d);
-            }
+            SNPRINTF(buf, sizeof(buf), "FO %c,%.10d,0,0,0,0,0,0,%.2s,%.2s,%.3s,00000000,0%c",
+                     vfo, frequency, tone_frequency, ctcss_frequency, dcs_frequency, 0x0d);
 
             printf("R:%s\n", buf);
             write(fd, buf, strlen(buf));
