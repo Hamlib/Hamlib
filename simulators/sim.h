@@ -102,17 +102,17 @@ getmyline(int fd, char *buf)
     char c;
     int i = 0;
     memset(buf, 0, BUFSIZE);
-    
+
     while (read(fd, &c, 1) > 0)
     {
         buf[i++] = c;
-        
-        if (c == ';') { return strlen(buf); }
+
+        if (c == ';') { return i; }
     }
-    
-    if (strlen(buf) == 0) { hl_usleep(10 * 1000); }
-    
-    return strlen(buf);
+
+    if (i == 0) { hl_usleep(10 * 1000); }
+
+    return i;
 }
 
 int
