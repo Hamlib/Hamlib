@@ -14,7 +14,6 @@
 #include "sim.h"
 
 
-#define BUFSIZE 256
 //#define X25
 
 int civ_731_mode = 0;

@@ -9,7 +9,6 @@
 #include "sim.h"
 #include "misc.h"
 
-#define BUFSIZE 256
 
 int freqA = 14074000;
 int freqB = 14074500;

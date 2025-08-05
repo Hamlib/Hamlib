@@ -44,8 +44,6 @@
  *   app is only using the latest-and-greatest, comment out the next define.
  */
 #define LEGACY
-// Size of command buffer
-#define BUFSIZE 256
 // Number of selectable bands
 #define NBANDS 11
 /* Type we're emulating - K=The Americas(default), E=Europe */
