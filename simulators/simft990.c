@@ -54,7 +54,7 @@ static unsigned char alldata[1492];
 
 int main(int argc, char *argv[])
 {
-    char buf[BUFSIZE];
+    unsigned char buf[BUFSIZE];
     int fd = openPort(argv[1]);
 
     load_dat("simft990.dat", alldata);
