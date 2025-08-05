@@ -36,7 +36,7 @@ static void load_dat(const char *filename, unsigned char buf[1492])
             sscanf(p, "%x", &val);
             buf[n++] = val;
         }
-        while (p = strtok(NULL, " \r\n"));
+        while ((p = strtok(NULL, " \r\n")));
 
         strtok(s, "\r\n");
         //printf("n=%d, %s\n",n,s);
