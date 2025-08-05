@@ -7,6 +7,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "sim.h"
 
 float freqA = 14074000;
 float freqB = 14074500;
@@ -44,13 +45,10 @@ static void load_dat(const char *filename, unsigned char buf[ALL_DATA_SIZE])
     }
 
     fclose(fp);
-    printf("%d bytes read\n", n);
+    printf("%d bytes read from file %s\n", n, filename);
 }
 
 static unsigned char alldata[ALL_DATA_SIZE];
-
-#include "sim.h"
-
 
 int main(int argc, char *argv[])
 {
@@ -68,7 +66,10 @@ int main(int argc, char *argv[])
         if (bytes != 5)
         {
             printf("Not 5 bytes?  bytes=%d\n", bytes);
+            continue;
         }
+
+        // Protocol of rigs/yaesu/ft990v12.c
 
         if (buf[4] == 0x10)
         {
