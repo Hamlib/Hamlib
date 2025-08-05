@@ -131,5 +131,10 @@ getmyline5(int fd, unsigned char *buf)
 
     printf("n=%d %02x %02x %02x %02x %02x\n", n, buf[0], buf[1], buf[2], buf[3],
            buf[4]);
+
+    if (i == 0) {
+        hl_usleep(10 * 1000);
+    }
+
     return n;
 }
