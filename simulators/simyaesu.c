@@ -42,8 +42,6 @@ int main(int argc, char *argv[])
         if (getmyline(fd, buf))
         {
             printf("Cmd:%s\n", buf);
-            resp[0] = 0;
-            pbuf = NULL;
         }
 
         //else { return 0; }
@@ -54,6 +52,9 @@ int main(int argc, char *argv[])
         }
 
         if (power == 0 && strcmp(buf, "PS1;") != 0) { continue; }
+
+        resp[0] = 0;
+        pbuf = NULL;
 
         if (strcmp(buf, "PS;") == 0)
         {
