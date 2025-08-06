@@ -2373,7 +2373,7 @@ static int icom_set_mode_x26(RIG *rig, vfo_t vfo, rmode_t mode,
     int ack_len = sizeof(ackbuf);
     int buf_len = 3;
     int mode_len;
-    unsigned char mode_buf[4];
+    unsigned char mode_buf[5];
 
     if (priv->x26cmdfails > 0 && !priv_caps->x25x26_always)
     {
