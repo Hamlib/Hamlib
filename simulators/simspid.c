@@ -21,7 +21,6 @@ int main(int argc, char *argv[])
 {
     unsigned char buf[BUFSIZE];
 
-
 again:
     int fd = openPort(argv[1]);
 
