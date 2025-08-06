@@ -5,6 +5,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "sim.h"
+
 #define BUFSIZE 256
 
 float freqA = 14074000;
@@ -36,20 +38,15 @@ _getmyline(int fd, unsigned char *buf)
         {
             buf[i++] = c;
         }
-
-        n++;
     }
     while (c != 0x0a);
 
-    printf("n=%d \n", n);
-
-    for (i = 0; i < n; ++i) { printf("%02x ", buf[i]); }
-
+    printf("n=%d", i);
+    for (n = 0; n < i; ++n) { printf(" %02x", buf[n]); }
     printf("\n");
-    return n;
-}
 
-#include "sim.h"
+    return i;
+}
 
 
 int main(int argc, char *argv[])
