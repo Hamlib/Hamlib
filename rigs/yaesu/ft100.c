@@ -971,14 +971,16 @@ int ft100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
 
     int ret;
-    int split = CACHE(rig)->split;
-    int ptt = CACHE(rig)->ptt;
+    int split, ptt;
 
     FT100_METER_INFO ft100_meter;
 
     if (!rig) { return -RIG_EINVAL; }
 
     if (!val) { return -RIG_EINVAL; }
+
+    split = CACHE(rig)->split;
+    ptt = CACHE(rig)->ptt;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: %s\n", __func__, rig_strlevel(level));
 
