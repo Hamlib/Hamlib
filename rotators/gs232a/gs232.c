@@ -198,7 +198,7 @@ gs232_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 static int
 gs232_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
-    char posbuf[32];
+    char posbuf[BUFSZ];
     // these really shouldn't be static but it's fixing faulty firmware -- see below
     static int expected = 12;
     static int expected_flag = 0;
