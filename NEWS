@@ -15,6 +15,11 @@ Version 5.x -- future
 Version 4.7.0
         * 2025-12-01 (target)
 
+Version 4.6.5
+        * 2025-??-??
+        * Update Kenwood CW buffer max message size, fix one byte buffer
+          overrun in icom.c.  (TNX George Baltz).
+
 Version 4.6.4
         * 2025-07-18--Hamlib's 25th birthday!!!
         * Fix handling of unprintable characters in kenwood.c that broke radios
