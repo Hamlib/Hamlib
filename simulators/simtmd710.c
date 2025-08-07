@@ -1,18 +1,10 @@
 // can run this using rigctl/rigctld and socat pty devices
 #define _XOPEN_SOURCE 700
 // since we are POSIX here we need this
-#if 0
-struct ip_mreq
-{
-    int dummy;
-};
-#endif
-
 #include <stdio.h>
-#include <stdlib.h>
-#include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
+
 #include "hamlib/rig.h"
 
 #define BUFSIZE 256
@@ -26,7 +18,7 @@ int datamode = 0;
 int vfo, vfo_tx, ptt, ptt_data, ptt_mic, ptt_tune;
 
 int
-getmyline(int fd, char *buf)
+_getmyline(int fd, char *buf)
 {
     char c;
     int i = 0;
@@ -44,74 +36,42 @@ getmyline(int fd, char *buf)
     return strlen(buf);
 }
 
-#if defined(WIN32) || defined(_WIN32)
-int openPort(char *comport) // doesn't matter for using pts devices
-{
-    int fd;
-    fd = open(comport, O_RDWR);
-
-    if (fd < 0)
-    {
-        perror(comport);
-    }
-
-    return fd;
-}
-
-#else
-int openPort(char *comport) // doesn't matter for using pts devices
-{
-    int fd = posix_openpt(O_RDWR);
-    char *name = ptsname(fd);
-
-    if (name == NULL)
-    {
-        perror("ptsname");
-        return -1;
-    }
-
-    printf("name=%s\n", name);
-
-    if (fd == -1 || grantpt(fd) == -1 || unlockpt(fd) == -1)
-    {
-        perror("posix_openpt");
-        return -1;
-    }
-
-    return fd;
-}
-#endif
-
+#include "sim.h"
 
 
 int main(int argc, char *argv[])
 {
-    char buf[256];
+    char buf[BUFSIZE];
     int fd = openPort(argv[1]);
 
     while (1)
     {
         buf[0] = 0;
 
-        if (getmyline(fd, buf) > 0) { printf("Cmd:%s\n", buf); }
+        if (_getmyline(fd, buf) > 0) { printf("Cmd:%s\n", buf); }
 
         if (strncmp(buf, "BC", 2) == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "BC %d %d%c", vfo, vfo_tx, 0x0d);
+            SNPRINTF(buf, sizeof(buf), "BC %d,%d%c", vfo, vfo_tx, 0x0d);
             printf("R:%s\n", buf);
             write(fd, buf, strlen(buf));
             continue;
         }
         else if (strncmp(buf, "FO", 2) == 0)
         {
-            if (buf[3] == '0')
-            {
-                SNPRINTF(buf, sizeof(buf), "FO 0 %d%c", freqA, 0x0d);
+            char vfo = buf[3];
+            int frequency;
+            char tone_frequency[] = "10"; // 94.8
+            char ctcss_frequency[] = "05"; // 79,7
+            char dcs_frequency[] = "016"; // 114
+
+            if (vfo == '0') {
+                frequency = (int)freqA;
+            } else {
+                frequency = (int)freqB;
             }
-            else
-            {
-                SNPRINTF(buf, sizeof(buf), "FO 1 %d%c", freqB, 0x0d);
-            }
+            SNPRINTF(buf, sizeof(buf), "FO %c,%.10d,0,0,0,0,0,0,%.2s,%.2s,%.3s,00000000,0%c",
+                     vfo, frequency, tone_frequency, ctcss_frequency, dcs_frequency, 0x0d);
 
             printf("R:%s\n", buf);
             write(fd, buf, strlen(buf));
