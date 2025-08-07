@@ -48,8 +48,6 @@ frameGet(int fd, unsigned char *buf)
     memset(buf, 0, BUFSIZE);
     unsigned char c;
 
-again:
-
     while (read(fd, &c, 1) > 0)
     {
         buf[i++] = c;
@@ -73,7 +71,7 @@ again:
             }
 
             i = 0;
-            goto again;
+            continue;
         }
     }
 
