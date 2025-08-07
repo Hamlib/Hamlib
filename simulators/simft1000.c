@@ -21,7 +21,6 @@ int main(int argc, char *argv[])
 {
     unsigned char buf[BUFSIZE];
 
-again:
     int fd = openPort(argv[1]);
 
     while (1)
@@ -30,8 +29,7 @@ again:
 
         if (bytes == 0)
         {
-            close(fd);
-            goto again;
+            continue;
         }
 
         if (bytes != 5)
