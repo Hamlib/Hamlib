@@ -1,19 +1,11 @@
 // can run this using rigctl/rigctld and socat pty devices
 #define _XOPEN_SOURCE 700
 // since we are POSIX here we need this
-#if 0
-struct ip_mreq
-{
-    int dummy;
-};
-#endif
-
 #include <stdio.h>
-#include <stdlib.h>
-#include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
-#include "../include/hamlib/rig.h"
+
+#include "sim.h"
 
 #define BUFSIZE 256
 
@@ -30,7 +22,7 @@ int curr_vfo = 0;
 
 
 int
-getmyline(int fd, unsigned char *buf)
+_getmyline(int fd, unsigned char *buf)
 {
     unsigned char c;
     int i = 0;
@@ -46,75 +38,31 @@ getmyline(int fd, unsigned char *buf)
         {
             buf[i++] = c;
         }
-
-        n++;
     }
     while (c != 0x0a);
 
-    printf("n=%d \n", n);
-
-    for (i = 0; i < n; ++i) { printf("%02x ", buf[i]); }
-
+    printf("n=%d", i);
+    for (n = 0; n < i; ++n) { printf(" %02x", buf[n]); }
     printf("\n");
-    return n;
+
+    return i;
 }
-
-#if defined(WIN32) || defined(_WIN32)
-int openPort(char *comport) // doesn't matter for using pts devices
-{
-    int fd;
-    fd = open(comport, O_RDWR);
-
-    if (fd < 0)
-    {
-        perror(comport);
-    }
-
-    return fd;
-}
-
-#else
-int openPort(char *comport) // doesn't matter for using pts devices
-{
-    int fd = posix_openpt(O_RDWR);
-    char *name = ptsname(fd);
-
-    if (name == NULL)
-    {
-        perror("ptsname");
-        return -1;
-    }
-
-    printf("name=%s\n", name);
-
-    if (fd == -1 || grantpt(fd) == -1 || unlockpt(fd) == -1)
-    {
-        perror("posix_openpt");
-        return -1;
-    }
-
-    return fd;
-}
-#endif
-
 
 
 int main(int argc, char *argv[])
 {
-    unsigned char buf[256], buf2[256];
-    int n;
+    unsigned char buf[BUFSIZE], buf2[256];
 
-again:
     int fd = openPort(argv[1]);
 
     while (1)
     {
-        int bytes = getmyline(fd, buf);
+        int bytes = _getmyline(fd, buf);
+        int n = 0;
 
         if (bytes == 0)
         {
-            close(fd);
-            goto again;
+            continue;
         }
 
         if (bytes != 8)
