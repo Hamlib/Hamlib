@@ -111,7 +111,6 @@ static void *rotorez_thread(void *arg)
     int fd = *(int *)arg;
     float az = 123;
     float el = 45;
-again:
 
     while (1)
     {
@@ -120,10 +119,8 @@ again:
 
         if (bytes == 0)
         {
-            //close(fd);
             hl_usleep(100 * 1000);
-            //printf("again\n");
-            goto again;
+            continue;
         }
 
         printf("line[%d]=%s\n", fd, buf);
