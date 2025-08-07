@@ -40,7 +40,6 @@ int main(int argc, char *argv[])
 {
     char buf[BUFSIZE], reply[256];
 
-again:
     int fd = openPort(argv[1]);
 
     while (1)
@@ -49,8 +48,7 @@ again:
 
         if (bytes == 0)
         {
-            close(fd);
-            goto again;
+            continue;
         }
 
         if (strncmp(buf, "?V", 2) == 0)
