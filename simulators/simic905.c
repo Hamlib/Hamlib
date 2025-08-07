@@ -84,6 +84,7 @@ frameGet(int fd, unsigned char *buf)
 void frameParse(int fd, unsigned char *frame, int len)
 {
     double freq;
+    int freq_len = 5;
 
     if (len == 0)
     {
@@ -105,7 +106,6 @@ void frameParse(int fd, unsigned char *frame, int len)
     case 0x03:
 
         //from_bcd(frameackbuf[2], (civ_731_mode ? 4 : 5) * 2);
-        int freq_len = 5;
 
         if (current_vfo == RIG_VFO_A || current_vfo == RIG_VFO_MAIN)
         {
