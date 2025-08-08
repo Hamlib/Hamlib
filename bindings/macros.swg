@@ -122,13 +122,13 @@ void set_ ## event_name ## _callback(PyObject *cb, PyObject *arg=NULL)
 	};
 
 	Py_XINCREF(cb);
-	Py_XDECREF(self->python_callbacks. ## event_name ## _event);
+	Py_XDECREF(self->python_callbacks-> ## event_name ## _event);
 
 	Py_XINCREF(arg);
-	Py_XDECREF(self->python_callbacks. ## event_name ## _arg);
+	Py_XDECREF(self->python_callbacks-> ## event_name ## _arg);
 
-	self->python_callbacks. ## event_name ## _event = cb;
-	self->python_callbacks. ## event_name ## _arg = arg;
+	self->python_callbacks-> ## event_name ## _event = cb;
+	self->python_callbacks-> ## event_name ## _arg = arg;
 	self->error_status = function_prefix ## set_ ## event_name ## _callback(class_pointer, callback, self);
 
 	return;
