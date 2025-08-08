@@ -45,16 +45,9 @@
 
 #pragma SWIG nowarn=451
 
-typedef struct Rig {
-	RIG *rig;
-	struct rig_caps *caps;		/* shortcut to RIG->caps */
-	struct rig_state *state;	/* shortcut to RIG->state */
-	int error_status;
-	int do_exception;
-	// Handling of event callbacks
 #ifdef SWIGPYTHON
 	// This mirrors "struct rig_callbacks" from rig.h using Python types
-	struct {
+	typedef struct {
 		PyObject *freq_event;     /*!< Frequency change event */
 		PyObject *freq_arg;       /*!< Frequency change argument */
 		PyObject *mode_event;     /*!< Mode change event */
@@ -70,7 +63,17 @@ typedef struct Rig {
 		PyObject *spectrum_event; /*!< Spectrum line reception event */
 		PyObject *spectrum_arg;   /*!< Spectrum line reception argument */
 		/* etc.. */
-	} python_callbacks;
+	} python_callbacks_t;
+#endif
+
+typedef struct Rig {
+	RIG *rig;
+	struct rig_caps *caps;		/* shortcut to RIG->caps */
+	struct rig_state *state;	/* shortcut to RIG->state */
+	int error_status;
+	int do_exception;
+#ifdef SWIGPYTHON
+	python_callbacks_t *python_callbacks;
 #endif
 } Rig;
 
@@ -87,10 +90,10 @@ int *rig_freq_cb_python(RIG *rig, vfo_t vfo, freq_t freq, rig_ptr_t arg)
     python_arguments = PyTuple_Pack(3,
                                     PyLong_FromLong(vfo),
                                     PyFloat_FromDouble(freq),
-                                    self->python_callbacks.freq_arg
+                                    self->python_callbacks->freq_arg
                                     );
 
-    PyObject_CallObject(self->python_callbacks.freq_event, python_arguments);
+    PyObject_CallObject(self->python_callbacks->freq_event, python_arguments);
     Py_XDECREF(python_arguments);
 
     return RIG_OK;
@@ -105,10 +108,10 @@ int *rig_mode_cb_python(RIG *rig, vfo_t vfo, rmode_t rmode, pbwidth_t pbwidth, r
                                     PyLong_FromLong(vfo),
                                     PyLong_FromLong(rmode),
                                     PyLong_FromLong(pbwidth),
-                                    self->python_callbacks.mode_arg
+                                    self->python_callbacks->mode_arg
                                     );
 
-    PyObject_CallObject(self->python_callbacks.mode_event, python_arguments);
+    PyObject_CallObject(self->python_callbacks->mode_event, python_arguments);
 
     Py_XDECREF(python_arguments);
 
@@ -120,11 +123,12 @@ int *rig_vfo_cb_python(RIG *rig, vfo_t vfo, rig_ptr_t arg)
     Rig *self = arg;
     PyObject *python_arguments;
 
-    python_arguments = PyTuple_Pack(1,
-                                    self->python_callbacks.vfo_arg
+    python_arguments = PyTuple_Pack(2,
+                                    PyLong_FromLong(vfo),
+                                    self->python_callbacks->vfo_arg
                                     );
 
-    PyObject_CallObject(self->python_callbacks.vfo_event, python_arguments);
+    PyObject_CallObject(self->python_callbacks->vfo_event, python_arguments);
 
     Py_XDECREF(python_arguments);
 
@@ -136,27 +140,31 @@ int *rig_ptt_cb_python(RIG *rig, vfo_t vfo, ptt_t ptt, rig_ptr_t arg)
     Rig *self = arg;
     PyObject *python_arguments;
 
-    python_arguments = PyTuple_Pack(1,
-                                    self->python_callbacks.ptt_arg
+    python_arguments = PyTuple_Pack(3,
+                                    PyLong_FromLong(vfo),
+                                    PyLong_FromLong(ptt),
+                                    self->python_callbacks->ptt_arg
                                     );
 
-    PyObject_CallObject(self->python_callbacks.ptt_event, python_arguments);
+    PyObject_CallObject(self->python_callbacks->ptt_event, python_arguments);
 
     Py_XDECREF(python_arguments);
 
     return RIG_OK;
 }
 
-int *rig_dcd_cb_python(RIG *rig, vfo_t vfo, dcd_t, rig_ptr_t arg)
+int *rig_dcd_cb_python(RIG *rig, vfo_t vfo, dcd_t dcd, rig_ptr_t arg)
 {
     Rig *self = arg;
     PyObject *python_arguments;
 
-    python_arguments = PyTuple_Pack(1,
-                                    self->python_callbacks.dcd_arg
+    python_arguments = PyTuple_Pack(3,
+                                    PyLong_FromLong(vfo),
+                                    PyLong_FromLong(dcd),
+                                    self->python_callbacks->dcd_arg
                                     );
 
-    PyObject_CallObject(self->python_callbacks.dcd_event, python_arguments);
+    PyObject_CallObject(self->python_callbacks->dcd_event, python_arguments);
 
     Py_XDECREF(python_arguments);
 
@@ -169,10 +177,10 @@ int *rig_pltune_cb_python(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *rmode, pbw
     PyObject *python_arguments;
 
     python_arguments = PyTuple_Pack(1,
-                                    self->python_callbacks.pltune_arg
+                                    self->python_callbacks->pltune_arg
                                     );
 
-    PyObject_CallObject(self->python_callbacks.pltune_event, python_arguments);
+    PyObject_CallObject(self->python_callbacks->pltune_event, python_arguments);
 
     Py_XDECREF(python_arguments);
 
@@ -185,10 +193,10 @@ int *rig_spectrum_cb_python(RIG *rig, struct rig_spectrum_line *rig_spectrum_lin
     PyObject *python_arguments;
 
     python_arguments = PyTuple_Pack(1,
-                                    self->python_callbacks.spectrum_arg
+                                    self->python_callbacks->spectrum_arg
                                     );
 
-    PyObject_CallObject(self->python_callbacks.spectrum_event, python_arguments);
+    PyObject_CallObject(self->python_callbacks->spectrum_event, python_arguments);
 
     Py_XDECREF(python_arguments);
 
@@ -468,6 +476,13 @@ int *rig_spectrum_cb_python(RIG *rig, struct rig_spectrum_line *rig_spectrum_lin
 			free(r);
 			return NULL;
 		}
+#ifdef SWIGPYTHON
+		r->python_callbacks = calloc(1, sizeof(python_callbacks_t));
+		if (!r->python_callbacks) {
+			free(r);
+			return NULL;
+		}
+#endif
 		/* install shortcuts */
 		r->caps = r->rig->caps;
 		r->state = &r->rig->state;
@@ -478,6 +493,9 @@ int *rig_spectrum_cb_python(RIG *rig, struct rig_spectrum_line *rig_spectrum_lin
 	}
 	~Rig () {
 		rig_cleanup(self->rig);
+#ifdef SWIGPYTHON
+		free(self->python_callbacks);
+#endif
 		free(self);
 	}
 
