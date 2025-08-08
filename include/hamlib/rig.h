@@ -2652,7 +2652,8 @@ typedef int (*spectrum_cb_t)(RIG *,
  * really appropriate in a GUI.
  *
  * \sa rig_set_dcd_callback(), rig_set_freq_callback(), rig_set_mode_callback(),
- *     rig_set_ptt_callback(), rig_set_spectrum_callback(), rig_set_vfo_callback()
+ *     rig_set_pltune_callback(), rig_set_ptt_callback(), rig_set_spectrum_callback(),
+ *     rig_set_vfo_callback()
  */
 // Do NOT add/remove from this structure -- it will break DLL backwards compatibility
 struct rig_callbacks {
