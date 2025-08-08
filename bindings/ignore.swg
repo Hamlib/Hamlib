@@ -68,6 +68,7 @@
 %rename("%s", regexmatch$name="^RIG_VFO_") "";
 %ignore RIG_EK; // an internal macro
 %ignore RIG_ELAD; // an internal macro
+%rename("$ignore", regexmatch$name="python_callbacks$") ""; // internal structs and methods used by bindings
 
 // Rotators
 

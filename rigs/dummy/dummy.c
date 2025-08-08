@@ -488,6 +488,12 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     case RIG_VFO_C: priv->vfo_c.freq = freq; break;
     }
 
+    if (rig->callbacks.freq_event)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s callbacks.freq_event(%p, %p)\n", __func__, rig->callbacks.freq_event, rig->callbacks.freq_arg);
+        rig->callbacks.freq_event(rig, vfo, freq, rig->callbacks.freq_arg);
+    }
+
     if (!priv->split)
     {
         priv->curr->tx_freq = freq;
