@@ -65,7 +65,7 @@ typedef struct Rig {
 		PyObject *ptt_arg;        /*!< PTT change argument */
 		PyObject *dcd_event;      /*!< DCD change event */
 		PyObject *dcd_arg;        /*!< DCD change argument */
-		PyObject *pltune;         /*!< Pipeline tuning module freq/mode/width callback */
+		PyObject *pltune_event;   /*!< Pipeline tuning module freq/mode/width callback NOTE: the C struct doesn't have the _event suffix*/
 		PyObject *pltune_arg;     /*!< Pipeline tuning argument */
 		PyObject *spectrum_event; /*!< Spectrum line reception event */
 		PyObject *spectrum_arg;   /*!< Spectrum line reception argument */
@@ -91,6 +91,105 @@ int *rig_freq_cb_python(RIG *rig, vfo_t vfo, freq_t freq, rig_ptr_t arg)
                                     );
 
     PyObject_CallObject(self->python_callbacks.freq_event, python_arguments);
+    Py_XDECREF(python_arguments);
+
+    return RIG_OK;
+}
+
+int *rig_mode_cb_python(RIG *rig, vfo_t vfo, rmode_t rmode, pbwidth_t pbwidth, rig_ptr_t arg)
+{
+    Rig *self = arg;
+    PyObject *python_arguments;
+
+    python_arguments = PyTuple_Pack(4,
+                                    PyLong_FromLong(vfo),
+                                    PyLong_FromLong(rmode),
+                                    PyLong_FromLong(pbwidth),
+                                    self->python_callbacks.mode_arg
+                                    );
+
+    PyObject_CallObject(self->python_callbacks.mode_event, python_arguments);
+
+    Py_XDECREF(python_arguments);
+
+    return RIG_OK;
+}
+
+int *rig_vfo_cb_python(RIG *rig, vfo_t vfo, rig_ptr_t arg)
+{
+    Rig *self = arg;
+    PyObject *python_arguments;
+
+    python_arguments = PyTuple_Pack(1,
+                                    self->python_callbacks.vfo_arg
+                                    );
+
+    PyObject_CallObject(self->python_callbacks.vfo_event, python_arguments);
+
+    Py_XDECREF(python_arguments);
+
+    return RIG_OK;
+}
+
+int *rig_ptt_cb_python(RIG *rig, vfo_t vfo, ptt_t ptt, rig_ptr_t arg)
+{
+    Rig *self = arg;
+    PyObject *python_arguments;
+
+    python_arguments = PyTuple_Pack(1,
+                                    self->python_callbacks.ptt_arg
+                                    );
+
+    PyObject_CallObject(self->python_callbacks.ptt_event, python_arguments);
+
+    Py_XDECREF(python_arguments);
+
+    return RIG_OK;
+}
+
+int *rig_dcd_cb_python(RIG *rig, vfo_t vfo, dcd_t, rig_ptr_t arg)
+{
+    Rig *self = arg;
+    PyObject *python_arguments;
+
+    python_arguments = PyTuple_Pack(1,
+                                    self->python_callbacks.dcd_arg
+                                    );
+
+    PyObject_CallObject(self->python_callbacks.dcd_event, python_arguments);
+
+    Py_XDECREF(python_arguments);
+
+    return RIG_OK;
+}
+
+int *rig_pltune_cb_python(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *rmode, pbwidth_t *pbwidth, rig_ptr_t arg)
+{
+    Rig *self = arg;
+    PyObject *python_arguments;
+
+    python_arguments = PyTuple_Pack(1,
+                                    self->python_callbacks.pltune_arg
+                                    );
+
+    PyObject_CallObject(self->python_callbacks.pltune_event, python_arguments);
+
+    Py_XDECREF(python_arguments);
+
+    return RIG_OK;
+}
+
+int *rig_spectrum_cb_python(RIG *rig, struct rig_spectrum_line *rig_spectrum_line, rig_ptr_t arg)
+{
+    Rig *self = arg;
+    PyObject *python_arguments;
+
+    python_arguments = PyTuple_Pack(1,
+                                    self->python_callbacks.spectrum_arg
+                                    );
+
+    PyObject_CallObject(self->python_callbacks.spectrum_event, python_arguments);
+
     Py_XDECREF(python_arguments);
 
     return RIG_OK;
@@ -374,6 +473,7 @@ int *rig_freq_cb_python(RIG *rig, vfo_t vfo, freq_t freq, rig_ptr_t arg)
 		r->state = &r->rig->state;
 		r->do_exception = 0;	/* default is disabled */
 		r->error_status = RIG_OK;
+
 		return r;
 	}
 	~Rig () {
@@ -525,6 +625,12 @@ int *rig_freq_cb_python(RIG *rig, vfo_t vfo, freq_t freq, rig_ptr_t arg)
 	// Handling of event callbacks
 #ifdef SWIGPYTHON
 	RIG_SET_CALLBACK(freq)
+	RIG_SET_CALLBACK(mode)
+	RIG_SET_CALLBACK(vfo)
+	RIG_SET_CALLBACK(ptt)
+	RIG_SET_CALLBACK(dcd)
+	RIG_SET_CALLBACK(pltune)
+	RIG_SET_CALLBACK(spectrum)
 #endif
 
 	int mem_count(void) {

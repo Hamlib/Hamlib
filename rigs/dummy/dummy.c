@@ -638,6 +638,12 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     case RIG_VFO_C: priv->vfo_c.width = width; break;
     }
 
+    if (rig->callbacks.mode_event)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s callbacks.mode_event(%p, %p)\n", __func__, rig->callbacks.mode_event, rig->callbacks.mode_arg);
+        rig->callbacks.mode_event(rig, vfo, mode, width, rig->callbacks.mode_arg);
+    }
+
     RETURNFUNC(RIG_OK);
 }
 
@@ -737,6 +743,12 @@ static int dummy_set_vfo(RIG *rig, vfo_t vfo)
         RETURNFUNC(-RIG_EINVAL);
     }
 
+    if (rig->callbacks.vfo_event)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s callbacks.vfo_event(%p, %p)\n", __func__, rig->callbacks.vfo_event, rig->callbacks.vfo_arg);
+        rig->callbacks.vfo_event(rig, vfo, rig->callbacks.vfo_arg);
+    }
+
     priv->last_vfo = priv->curr_vfo;
     priv->curr_vfo = vfo;
     STATE(rig)->current_vfo = vfo;
@@ -762,6 +774,12 @@ static int dummy_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
 
     ENTERFUNC;
+    if (rig->callbacks.ptt_event)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s callbacks.ptt_event(%p, %p)\n", __func__, rig->callbacks.ptt_event, rig->callbacks.ptt_arg);
+        rig->callbacks.ptt_event(rig, vfo, ptt, rig->callbacks.ptt_arg);
+    }
+
     priv->ptt = ptt;
 
     RETURNFUNC(RIG_OK);
