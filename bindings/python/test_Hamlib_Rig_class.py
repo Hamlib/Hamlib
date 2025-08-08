@@ -82,6 +82,7 @@ class TestClass:
 'set_ext_level',
 'set_ext_parm',
 'set_freq',
+'set_freq_callback',
 'set_func',
 'set_level',
 'set_mem',

@@ -22,6 +22,7 @@
 #include <hamlib/rig.h>
 %}
 
+%include macros.swg
 %immutable rig_caps::model_name;
 %immutable rig_caps::mfg_name;
 %immutable rig_caps::version;
@@ -50,12 +51,51 @@ typedef struct Rig {
 	struct rig_state *state;	/* shortcut to RIG->state */
 	int error_status;
 	int do_exception;
+	// Handling of event callbacks
+#ifdef SWIGPYTHON
+	// This mirrors "struct rig_callbacks" from rig.h using Python types
+	struct {
+		PyObject *freq_event;     /*!< Frequency change event */
+		PyObject *freq_arg;       /*!< Frequency change argument */
+		PyObject *mode_event;     /*!< Mode change event */
+		PyObject *mode_arg;       /*!< Mode change argument */
+		PyObject *vfo_event;      /*!< VFO change event */
+		PyObject *vfo_arg;        /*!< VFO change argument */
+		PyObject *ptt_event;      /*!< PTT change event */
+		PyObject *ptt_arg;        /*!< PTT change argument */
+		PyObject *dcd_event;      /*!< DCD change event */
+		PyObject *dcd_arg;        /*!< DCD change argument */
+		PyObject *pltune;         /*!< Pipeline tuning module freq/mode/width callback */
+		PyObject *pltune_arg;     /*!< Pipeline tuning argument */
+		PyObject *spectrum_event; /*!< Spectrum line reception event */
+		PyObject *spectrum_arg;   /*!< Spectrum line reception argument */
+		/* etc.. */
+	} python_callbacks;
+#endif
 } Rig;
 
 typedef char * char_string;
 typedef channel_t * channel_t_p;
 typedef channel_t * const_channel_t_p;
 
+#ifdef SWIGPYTHON
+int *rig_freq_cb_python(RIG *rig, vfo_t vfo, freq_t freq, rig_ptr_t arg)
+{
+    Rig *self = arg;
+    PyObject *python_arguments;
+
+    python_arguments = PyTuple_Pack(3,
+                                    PyLong_FromLong(vfo),
+                                    PyFloat_FromDouble(freq),
+                                    self->python_callbacks.freq_arg
+                                    );
+
+    PyObject_CallObject(self->python_callbacks.freq_event, python_arguments);
+    Py_XDECREF(python_arguments);
+
+    return RIG_OK;
+}
+#endif
 %}
 
 %extend channel {
@@ -482,6 +522,11 @@ typedef channel_t * const_channel_t_p;
 	METHOD1GET(get_trn, int)
 	METHOD1VGET(get_dcd, dcd_t)
 
+	// Handling of event callbacks
+#ifdef SWIGPYTHON
+	RIG_SET_CALLBACK(freq)
+#endif
+
 	int mem_count(void) {
 		return rig_mem_count(self->rig);
 	}
@@ -647,6 +692,5 @@ struct channel *Rig_get_chan_all(Rig *self)
 	/* TODO: copy ext_level's */
 	return chans;
 }
-
 
 %}

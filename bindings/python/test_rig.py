@@ -116,11 +116,26 @@ class TestClass:
         assert rig.get_dcs_sql() == 134
         assert rig.get_dcs_sql(Hamlib.RIG_VFO_CURR) == 134
 
+        # Callbacks
+        self.do_test_callbacks(rig)
+
         assert rig.close() is None
         assert rig.state.comm_state == 0
         assert rig.state.comm_status == Hamlib.RIG_COMM_STATUS_DISCONNECTED
         info = rig.get_info()
         assert info is None
+
+    def do_test_callbacks(self, rig):
+        # Frequency event callback
+        def freq_callback(vfo, freq, arg):
+            assert (1, 144200000.5, 1234567890) == (vfo, freq, arg)
+
+        assert rig.set_freq_callback(freq_callback, 1234567890) is None
+        assert rig.set_freq(Hamlib.RIG_VFO_CURR, 144200000.5) is None
+        # TODO assert that freq_callback() is called once
+        assert rig.set_freq_callback(None) is None
+        assert rig.set_freq(Hamlib.RIG_VFO_CURR, 144210000) is None
+        # TODO assert that freq_callback() is called once
 
 
     @pytest.mark.skipif('config.getoption("model") != Hamlib.RIG_MODEL_DUMMY')

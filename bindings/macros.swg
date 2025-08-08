@@ -90,3 +90,61 @@ PyObject * ##function_name(hamlib_token_t token)
 %define ROT_GET_VALUE_T(function_name)
 	GET_VALUE_T(rot_, get_ ##function_name, self->rot, ROT_)
 %enddef
+
+/*
+ * Macro SET_CALLBACK
+ *
+ * Creates a method that stores the Python arguments and sets the C callback.
+ *
+ * function_prefix:
+ * the first part of the function name (eg. one of: amp_ rig_ rot_)
+ *
+ * class_pointer:
+ * the pointer to the instance of the class (eg. one of self->amp self->rig self->rot)
+ *
+ * event_name:
+ * the name that creates a valid Hamlib function name when used together
+ * with the function_prefix and some predefined parts
+ * eg. SET_CALLBACK("rig_", "freq") creates rig_set_freq_callback()
+ */
+%define SET_CALLBACK(function_prefix, class_pointer, event_name)
+void set_ ## event_name ## _callback(PyObject *cb, PyObject *arg=NULL)
+{
+	void *callback;
+
+	if (cb == Py_None) {
+		callback = NULL;
+	} else if (!PyCallable_Check(cb)) {
+		SWIG_Python_RaiseOrModifyTypeError("The callback isn't a Python callable object");
+		return;
+	} else {
+		callback = function_prefix ## event_name ## _cb_python;
+	};
+
+	Py_XINCREF(cb);
+	Py_XDECREF(self->python_callbacks. ## event_name ## _event);
+
+	Py_XINCREF(arg);
+	Py_XDECREF(self->python_callbacks. ## event_name ## _arg);
+
+	self->python_callbacks. ## event_name ## _event = cb;
+	self->python_callbacks. ## event_name ## _arg = arg;
+	self->error_status = function_prefix ## set_ ## event_name ## _callback(class_pointer, callback, self);
+
+	return;
+}
+%enddef
+
+/*
+ * Macro RIG_SET_CALLBACK
+ *
+ * Creates a method that stores the Python arguments and sets the C callback.
+ *
+ * event_name:
+ * the name that creates a valid Hamlib function name when used together
+ * with the function_prefix and some predefined parts
+ * eg. RIG_SET_CALLBACK("freq") creates rig_set_freq_callback()
+ */
+%define RIG_SET_CALLBACK(event_name)
+	SET_CALLBACK(rig_, self->rig, event_name)
+%enddef
