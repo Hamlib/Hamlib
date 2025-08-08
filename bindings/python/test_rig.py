@@ -137,6 +137,70 @@ class TestClass:
         assert rig.set_freq(Hamlib.RIG_VFO_CURR, 144210000) is None
         # TODO assert that freq_callback() is called once
 
+        # Mode event callback
+        def mode_callback(vfo, mode, pbwidth, arg):
+            assert (1, 32, 5000, 2345678901) == (vfo, mode, pbwidth, arg)
+
+        # FIXME should use a Hamlib.RIG_PASSBAND_* constant but they aren't available in the bindings
+        RIG_PASSBAND_NOCHANGE = -1
+        assert rig.set_mode_callback(mode_callback, 2345678901) is None
+        assert rig.set_mode(Hamlib.RIG_MODE_FM, 5000) is None
+        # TODO assert that mode_callback() is called once
+        assert rig.set_mode_callback(None) is None
+        assert rig.set_mode(Hamlib.RIG_MODE_FM, 15000) is None
+        # TODO assert that mode_callback() is called once
+
+        # VFO event callback
+        def vfo_callback(vfo, arg):
+            assert (1, 3456789012) == (vfo, arg)
+
+        assert rig.set_vfo(Hamlib.RIG_VFO_B) is None
+        assert rig.set_vfo_callback(vfo_callback, 3456789012) is None
+        assert rig.set_vfo(Hamlib.RIG_VFO_A) is None
+        # TODO assert that vfo_callback() is called once
+        assert rig.set_vfo_callback(None) is None
+        assert rig.set_vfo(Hamlib.RIG_VFO_CURR) is None
+        # TODO assert that vfo_callback() is called once
+
+        # PTT event callback
+        def ptt_callback(vfo, ptt, arg):
+            print("ptt_callback", vfo, ptt, arg)
+            assert (1, 5000, 4567890123) == (vfo, arg)
+
+        assert rig.set_ptt_callback(ptt_callback, 4567890123) is None
+        assert rig.set_ptt(Hamlib.RIG_VFO_CURR, Hamlib.RIG_PTT_ON) is None
+        # TODO assert that ptt_callback() is called once
+        assert rig.set_ptt_callback(None) is None
+        assert rig.set_ptt(Hamlib.RIG_VFO_CURR, Hamlib.RIG_PTT_OFF) is None
+        # TODO assert that ptt_callback() is called once
+
+        # DCD event callback
+        def dcd_callback(vfo, ptt, arg):
+            print("dcd_callback", vfo, dcd, arg)
+            assert (1, 5000, 2345678901) == (vfo, arg)
+
+        assert rig.set_dcd_callback(dcd_callback, 5678901234) is None
+        # TODO simulate dcd events in dummy.c
+        assert rig.set_dcd_callback(None) is None
+
+        # PLtune event callback
+        def pltune_callback(vfo, ptt, arg):
+            print("pltune_callback", vfo, ptt, arg)
+            assert (1, 5000, 2345678901) == (vfo, arg)
+
+        assert rig.set_pltune_callback(pltune_callback, 6789012345) is None
+        # TODO simulate pltune events in dummy.c
+        assert rig.set_pltune_callback(None) is None
+
+        # spectrum event callback
+        def spectrum_callback(vfo, ptt, arg):
+            print("spectrum_callback", vfo, ptt, arg)
+            assert (1, 5000, 2345678901) == (vfo, arg)
+
+        assert rig.set_spectrum_callback(spectrum_callback, 7890123456) is None
+        # TODO simulate spectrum events in dummy.c
+        assert rig.set_spectrum_callback(None) is None
+
 
     @pytest.mark.skipif('config.getoption("model") != Hamlib.RIG_MODEL_DUMMY')
     def test_misc(self, model):
