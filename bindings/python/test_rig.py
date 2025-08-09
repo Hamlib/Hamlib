@@ -41,23 +41,10 @@ class TestClass:
         assert rig.token_lookup("") is None
 
 
-    def test_with_open(self, model, rig_file, serial_speed):
-        """Call all the methods that depend on open()"""
-        rig = Hamlib.Rig(model)
-        assert rig is not None
+    def do_test_frequency(self, rig):
+        """Frequency tests"""
 
-        assert rig.state.comm_state == 0
-        assert rig.state.comm_status == Hamlib.RIG_COMM_STATUS_DISCONNECTED
-        assert rig.set_conf("rig_pathname", rig_file) is None
-        assert rig.set_conf("serial_speed", str(serial_speed)) is None
-        assert rig.open() is None
-        assert rig.state.comm_state == 1
-        assert rig.state.comm_status == Hamlib.RIG_COMM_STATUS_OK
-        info = rig.get_info()
-        assert isinstance(info, str)
-
-        # Frequency
-
+        # TODO use a frequency suitable for the VFO
         frequency = 5700000000
         assert rig.set_freq(Hamlib.RIG_VFO_CURR, frequency) is None
         assert rig.get_freq() == 5700000000.0
@@ -66,7 +53,9 @@ class TestClass:
         assert isinstance(rig.get_freq(Hamlib.RIG_VFO_CURR), float)
         assert rig.get_freq(Hamlib.RIG_VFO_CURR) == 5700000000.5
 
-        # VFO
+
+    def do_test_vfo(self, rig):
+        """VFO tests"""
 
         assert rig.set_vfo(Hamlib.RIG_VFO_A) is None
         assert rig.get_vfo() == Hamlib.RIG_VFO_A
@@ -78,7 +67,9 @@ class TestClass:
         assert rig.get_split_vfo() == [Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_B]
         assert rig.get_split_vfo(Hamlib.RIG_VFO_CURR) == [Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_B]
 
-        # RIT and XIT
+
+    def do_test_rit_xit(self, rig):
+        """RIT and XIT tests"""
 
         assert rig.set_rit(Hamlib.RIG_VFO_CURR, 100) is None
         assert rig.get_rit() == 100
@@ -87,7 +78,9 @@ class TestClass:
         assert rig.get_xit() == 200
         assert rig.get_xit(Hamlib.RIG_VFO_CURR) == 200
 
-        # Antenna
+
+    def do_test_antenna(self, rig):
+        """Antenna tests"""
 
         # FIXME should use a RIG_ANT_* constant but they aren't available in the bindings
         RIG_ANT_1 = 1<<0
@@ -101,7 +94,9 @@ class TestClass:
         assert rig.set_ant(RIG_ANT_1, option, Hamlib.RIG_VFO_CURR) is None
         assert rig.get_ant(RIG_ANT_CURR, Hamlib.RIG_VFO_A) == expected
 
-        # Squelch codes and tones
+
+    def do_test_squelch(self, rig):
+        """Squelch codes and tones"""
 
         assert rig.set_ctcss_sql(Hamlib.RIG_VFO_CURR, 885) is None
         assert rig.get_ctcss_sql() == 885
@@ -116,16 +111,10 @@ class TestClass:
         assert rig.get_dcs_sql() == 134
         assert rig.get_dcs_sql(Hamlib.RIG_VFO_CURR) == 134
 
-        # Callbacks
-        self.do_test_callbacks(rig)
 
-        assert rig.close() is None
-        assert rig.state.comm_state == 0
-        assert rig.state.comm_status == Hamlib.RIG_COMM_STATUS_DISCONNECTED
-        info = rig.get_info()
-        assert info is None
+    def do_test_callback(self, rig):
+        """Callback tests"""
 
-    def do_test_callbacks(self, rig):
         # Frequency event callback
         def freq_callback(vfo, freq, arg):
             assert (1, 144200000.5, 1234567890) == (vfo, freq, arg)
@@ -200,6 +189,35 @@ class TestClass:
         assert rig.set_spectrum_callback(spectrum_callback, 7890123456) is None
         # TODO simulate spectrum events in dummy.c
         assert rig.set_spectrum_callback(None) is None
+
+
+    def test_with_open(self, model, rig_file, serial_speed):
+        """Call all the methods that depend on open()"""
+        rig = Hamlib.Rig(model)
+        assert rig is not None
+
+        assert rig.state.comm_state == 0
+        assert rig.state.comm_status == Hamlib.RIG_COMM_STATUS_DISCONNECTED
+        assert rig.set_conf("rig_pathname", rig_file) is None
+        assert rig.set_conf("serial_speed", str(serial_speed)) is None
+        assert rig.open() is None
+        assert rig.state.comm_state == 1
+        assert rig.state.comm_status == Hamlib.RIG_COMM_STATUS_OK
+        info = rig.get_info()
+        assert isinstance(info, str)
+
+        self.do_test_frequency(rig)
+        self.do_test_vfo(rig)
+        self.do_test_rit_xit(rig)
+        self.do_test_antenna(rig)
+        self.do_test_squelch(rig)
+        self.do_test_callback(rig)
+
+        assert rig.close() is None
+        assert rig.state.comm_state == 0
+        assert rig.state.comm_status == Hamlib.RIG_COMM_STATUS_DISCONNECTED
+        info = rig.get_info()
+        assert info is None
 
 
     @pytest.mark.skipif('config.getoption("model") != Hamlib.RIG_MODEL_DUMMY')
