@@ -111,6 +111,8 @@
 %ignore PRIfreq;
 %ignore SCNfreq;
 
+%rename("$ignore", regexmatch$name="python_callbacks") ""; // internal structs and methods used by bindings
+
 #ifdef SWIGLUA
 %ignore Rig::set_level(setting_t,int,vfo_t);
 %ignore Rig::set_ext_level(setting_t,value_t,vfo_t);

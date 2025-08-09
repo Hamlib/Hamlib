@@ -41,6 +41,155 @@ class TestClass:
         assert rig.token_lookup("") is None
 
 
+    def do_test_frequency(self, rig):
+        """Frequency tests"""
+
+        # TODO use a frequency suitable for the VFO
+        frequency = 5700000000
+        assert rig.set_freq(Hamlib.RIG_VFO_CURR, frequency) is None
+        assert rig.get_freq() == 5700000000.0
+        frequency = 5700000000.5
+        assert rig.set_freq(Hamlib.RIG_VFO_CURR, frequency) is None
+        assert isinstance(rig.get_freq(Hamlib.RIG_VFO_CURR), float)
+        assert rig.get_freq(Hamlib.RIG_VFO_CURR) == 5700000000.5
+
+
+    def do_test_vfo(self, rig):
+        """VFO tests"""
+
+        assert rig.set_vfo(Hamlib.RIG_VFO_A) is None
+        assert rig.get_vfo() == Hamlib.RIG_VFO_A
+        assert rig.set_split_vfo(Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_A) is None
+        assert rig.get_split_vfo(Hamlib.RIG_VFO_TX) == [Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_A]
+        assert rig.set_split_vfo(Hamlib.RIG_SPLIT_ON, Hamlib.RIG_VFO_B) is None
+        assert rig.get_split_vfo(Hamlib.RIG_VFO_TX) == [Hamlib.RIG_SPLIT_ON, Hamlib.RIG_VFO_B]
+        assert rig.set_split_vfo(Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_CURR) is None
+        assert rig.get_split_vfo() == [Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_B]
+        assert rig.get_split_vfo(Hamlib.RIG_VFO_CURR) == [Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_B]
+
+
+    def do_test_rit_xit(self, rig):
+        """RIT and XIT tests"""
+
+        assert rig.set_rit(Hamlib.RIG_VFO_CURR, 100) is None
+        assert rig.get_rit() == 100
+        assert rig.get_rit(Hamlib.RIG_VFO_CURR) == 100
+        assert rig.set_xit(Hamlib.RIG_VFO_CURR, 200) is None
+        assert rig.get_xit() == 200
+        assert rig.get_xit(Hamlib.RIG_VFO_CURR) == 200
+
+
+    def do_test_antenna(self, rig):
+        """Antenna tests"""
+
+        # FIXME should use a RIG_ANT_* constant but they aren't available in the bindings
+        RIG_ANT_1 = 1<<0
+        RIG_ANT_UNKNOWN = 1<<30
+        RIG_ANT_CURR = 1<<31
+        option = Hamlib.value_t()
+        option.i = 0
+        expected = [RIG_ANT_UNKNOWN, RIG_ANT_UNKNOWN, RIG_ANT_1, 0]
+        assert rig.set_ant(RIG_ANT_1, option) is None
+        assert rig.get_ant(RIG_ANT_CURR) == expected
+        assert rig.set_ant(RIG_ANT_1, option, Hamlib.RIG_VFO_CURR) is None
+        assert rig.get_ant(RIG_ANT_CURR, Hamlib.RIG_VFO_A) == expected
+
+
+    def do_test_squelch(self, rig):
+        """Squelch codes and tones"""
+
+        assert rig.set_ctcss_sql(Hamlib.RIG_VFO_CURR, 885) is None
+        assert rig.get_ctcss_sql() == 885
+        assert rig.get_ctcss_sql(Hamlib.RIG_VFO_CURR) == 885
+        assert rig.set_ctcss_tone(Hamlib.RIG_VFO_CURR, 854) is None
+        assert rig.get_ctcss_tone() == 854
+        assert rig.get_ctcss_tone(Hamlib.RIG_VFO_CURR) == 854
+        assert rig.set_dcs_code(Hamlib.RIG_VFO_CURR, 125) is None
+        assert rig.get_dcs_code() == 125
+        assert rig.get_dcs_code(Hamlib.RIG_VFO_CURR) == 125
+        assert rig.set_dcs_sql(Hamlib.RIG_VFO_CURR, 134) is None
+        assert rig.get_dcs_sql() == 134
+        assert rig.get_dcs_sql(Hamlib.RIG_VFO_CURR) == 134
+
+
+    def do_test_callback(self, rig):
+        """Callback tests"""
+
+        # Frequency event callback
+        def freq_callback(vfo, freq, arg):
+            assert (1, 144200000.5, 1234567890) == (vfo, freq, arg)
+
+        assert rig.set_freq_callback(freq_callback, 1234567890) is None
+        assert rig.set_freq(Hamlib.RIG_VFO_CURR, 144200000.5) is None
+        # TODO assert that freq_callback() is called once
+        assert rig.set_freq_callback(None) is None
+        assert rig.set_freq(Hamlib.RIG_VFO_CURR, 144210000) is None
+        # TODO assert that freq_callback() is called once
+
+        # Mode event callback
+        def mode_callback(vfo, mode, pbwidth, arg):
+            assert (1, 32, 5000, 2345678901) == (vfo, mode, pbwidth, arg)
+
+        # FIXME should use a Hamlib.RIG_PASSBAND_* constant but they aren't available in the bindings
+        RIG_PASSBAND_NOCHANGE = -1
+        assert rig.set_mode_callback(mode_callback, 2345678901) is None
+        assert rig.set_mode(Hamlib.RIG_MODE_FM, 5000) is None
+        # TODO assert that mode_callback() is called once
+        assert rig.set_mode_callback(None) is None
+        assert rig.set_mode(Hamlib.RIG_MODE_FM, 15000) is None
+        # TODO assert that mode_callback() is called once
+
+        # VFO event callback
+        def vfo_callback(vfo, arg):
+            assert (1, 3456789012) == (vfo, arg)
+
+        assert rig.set_vfo(Hamlib.RIG_VFO_B) is None
+        assert rig.set_vfo_callback(vfo_callback, 3456789012) is None
+        assert rig.set_vfo(Hamlib.RIG_VFO_A) is None
+        # TODO assert that vfo_callback() is called once
+        assert rig.set_vfo_callback(None) is None
+        assert rig.set_vfo(Hamlib.RIG_VFO_CURR) is None
+        # TODO assert that vfo_callback() is called once
+
+        # PTT event callback
+        def ptt_callback(vfo, ptt, arg):
+            assert (Hamlib.RIG_VFO_CURR, Hamlib.RIG_PTT_ON, 4567890123) == (vfo, ptt, arg)
+
+        assert rig.set_ptt_callback(ptt_callback, 4567890123) is None
+        assert rig.set_ptt(Hamlib.RIG_VFO_CURR, Hamlib.RIG_PTT_ON) is None
+        # TODO assert that ptt_callback() is called once
+        assert rig.set_ptt_callback(None) is None
+        assert rig.set_ptt(Hamlib.RIG_VFO_CURR, Hamlib.RIG_PTT_OFF) is None
+        # TODO assert that ptt_callback() is called once
+
+        # DCD event callback
+        def dcd_callback(vfo, ptt, arg):
+            print("dcd_callback", vfo, dcd, arg)
+            assert (1, 5000, 2345678901) == (vfo, arg)
+
+        assert rig.set_dcd_callback(dcd_callback, 5678901234) is None
+        # TODO simulate dcd events in dummy.c
+        assert rig.set_dcd_callback(None) is None
+
+        # PLtune event callback
+        def pltune_callback(vfo, ptt, arg):
+            print("pltune_callback", vfo, ptt, arg)
+            assert (1, 5000, 2345678901) == (vfo, arg)
+
+        assert rig.set_pltune_callback(pltune_callback, 6789012345) is None
+        # TODO simulate pltune events in dummy.c
+        assert rig.set_pltune_callback(None) is None
+
+        # spectrum event callback
+        def spectrum_callback(rig_spectrum_line, arg):
+            print("spectrum_callback", rig_spectrum_line, arg)
+            assert (1, 5000, 2345678901) == (vfo, arg)
+
+        assert rig.set_spectrum_callback(spectrum_callback, 7890123456) is None
+        # TODO simulate spectrum events in dummy.c
+        assert rig.set_spectrum_callback(None) is None
+
+
     def test_with_open(self, model, rig_file, serial_speed):
         """Call all the methods that depend on open()"""
         rig = Hamlib.Rig(model)
@@ -56,65 +205,12 @@ class TestClass:
         info = rig.get_info()
         assert isinstance(info, str)
 
-        # Frequency
-
-        frequency = 5700000000
-        assert rig.set_freq(Hamlib.RIG_VFO_CURR, frequency) is None
-        assert rig.get_freq() == 5700000000.0
-        frequency = 5700000000.5
-        assert rig.set_freq(Hamlib.RIG_VFO_CURR, frequency) is None
-        assert isinstance(rig.get_freq(Hamlib.RIG_VFO_CURR), float)
-        assert rig.get_freq(Hamlib.RIG_VFO_CURR) == 5700000000.5
-
-        # VFO
-
-        assert rig.set_vfo(Hamlib.RIG_VFO_A) is None
-        assert rig.get_vfo() == Hamlib.RIG_VFO_A
-        assert rig.set_split_vfo(Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_A) is None
-        assert rig.get_split_vfo(Hamlib.RIG_VFO_TX) == [Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_A]
-        assert rig.set_split_vfo(Hamlib.RIG_SPLIT_ON, Hamlib.RIG_VFO_B) is None
-        assert rig.get_split_vfo(Hamlib.RIG_VFO_TX) == [Hamlib.RIG_SPLIT_ON, Hamlib.RIG_VFO_B]
-        assert rig.set_split_vfo(Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_CURR) is None
-        assert rig.get_split_vfo() == [Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_B]
-        assert rig.get_split_vfo(Hamlib.RIG_VFO_CURR) == [Hamlib.RIG_SPLIT_OFF, Hamlib.RIG_VFO_B]
-
-        # RIT and XIT
-
-        assert rig.set_rit(Hamlib.RIG_VFO_CURR, 100) is None
-        assert rig.get_rit() == 100
-        assert rig.get_rit(Hamlib.RIG_VFO_CURR) == 100
-        assert rig.set_xit(Hamlib.RIG_VFO_CURR, 200) is None
-        assert rig.get_xit() == 200
-        assert rig.get_xit(Hamlib.RIG_VFO_CURR) == 200
-
-        # Antenna
-
-        # FIXME should use a RIG_ANT_* constant but they aren't available in the bindings
-        RIG_ANT_1 = 1<<0
-        RIG_ANT_UNKNOWN = 1<<30
-        RIG_ANT_CURR = 1<<31
-        option = Hamlib.value_t()
-        option.i = 0
-        expected = [RIG_ANT_UNKNOWN, RIG_ANT_UNKNOWN, RIG_ANT_1, 0]
-        assert rig.set_ant(RIG_ANT_1, option) is None
-        assert rig.get_ant(RIG_ANT_CURR) == expected
-        assert rig.set_ant(RIG_ANT_1, option, Hamlib.RIG_VFO_CURR) is None
-        assert rig.get_ant(RIG_ANT_CURR, Hamlib.RIG_VFO_A) == expected
-
-        # Squelch codes and tones
-
-        assert rig.set_ctcss_sql(Hamlib.RIG_VFO_CURR, 885) is None
-        assert rig.get_ctcss_sql() == 885
-        assert rig.get_ctcss_sql(Hamlib.RIG_VFO_CURR) == 885
-        assert rig.set_ctcss_tone(Hamlib.RIG_VFO_CURR, 854) is None
-        assert rig.get_ctcss_tone() == 854
-        assert rig.get_ctcss_tone(Hamlib.RIG_VFO_CURR) == 854
-        assert rig.set_dcs_code(Hamlib.RIG_VFO_CURR, 125) is None
-        assert rig.get_dcs_code() == 125
-        assert rig.get_dcs_code(Hamlib.RIG_VFO_CURR) == 125
-        assert rig.set_dcs_sql(Hamlib.RIG_VFO_CURR, 134) is None
-        assert rig.get_dcs_sql() == 134
-        assert rig.get_dcs_sql(Hamlib.RIG_VFO_CURR) == 134
+        self.do_test_frequency(rig)
+        self.do_test_vfo(rig)
+        self.do_test_rit_xit(rig)
+        self.do_test_antenna(rig)
+        self.do_test_squelch(rig)
+        self.do_test_callback(rig)
 
         assert rig.close() is None
         assert rig.state.comm_state == 0
