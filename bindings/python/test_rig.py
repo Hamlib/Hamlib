@@ -181,8 +181,8 @@ class TestClass:
         assert rig.set_pltune_callback(None) is None
 
         # spectrum event callback
-        def spectrum_callback(vfo, ptt, arg):
-            print("spectrum_callback", vfo, ptt, arg)
+        def spectrum_callback(rig_spectrum_line, arg):
+            print("spectrum_callback", rig_spectrum_line, arg)
             assert (1, 5000, 2345678901) == (vfo, arg)
 
         assert rig.set_spectrum_callback(spectrum_callback, 7890123456) is None
