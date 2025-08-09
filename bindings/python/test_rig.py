@@ -153,8 +153,7 @@ class TestClass:
 
         # PTT event callback
         def ptt_callback(vfo, ptt, arg):
-            print("ptt_callback", vfo, ptt, arg)
-            assert (1, 5000, 4567890123) == (vfo, arg)
+            assert (Hamlib.RIG_VFO_CURR, Hamlib.RIG_PTT_ON, 4567890123) == (vfo, ptt, arg)
 
         assert rig.set_ptt_callback(ptt_callback, 4567890123) is None
         assert rig.set_ptt(Hamlib.RIG_VFO_CURR, Hamlib.RIG_PTT_ON) is None
