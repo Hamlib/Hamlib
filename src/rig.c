@@ -8927,6 +8927,7 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
                   __func__, rig->caps->model_name);
         memcpy(reply, send, send_len);
         retval = send_len;
+        set_transaction_inactive(rig);
         ELAPSED2;
         RETURNFUNC(retval);
     }
