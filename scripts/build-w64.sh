@@ -100,7 +100,7 @@ hamlib-w64-4.7~git
 ├── include
 │   └── hamlib
 └── lib
-    ├── gcc-mingw
+    ├── gcc
     └── msvc
 
 The 'bin' and 'doc' directories will be of interest to users while developers
@@ -188,7 +188,7 @@ There is a libhamlib-4.def definition file for MS Visual C++/Visual Studio in
 lib\msvc.  Refer to the recipe below to generate a local libhamlib-4.lib file
 for use with the VC++/VS linker.
 
-Simply '#include <hamlib/rig.h>' (pr any other header) (add directory to
+Simply '#include <hamlib/rig.h>' (or any other header) (add directory to
 include path), include libhamlib-4.lib in your project and you are done.  Note:
 VC++/VS cannot compile all the Hamlib code, but the API defined by rig.h has
 been made MSVC friendly :-)
@@ -198,8 +198,8 @@ program is not considered a "derivative work" when using the published Hamlib
 API and normal linking to the front-end library, and may be of a license of
 your choosing.
 
-As of 21 Jul 2025 a .lib file is generated using the MinGW dlltool utility.
-This file is now installed to the lib\gcc-mingw directory.  As it is generated
+As of 04 Aug 2025 a .lib file is generated using the MinGW dlltool utility.
+This file is now installed to the lib\gcc directory.  As it is generated
 by the MinGW dlltool utility, it is only suitable for use with MinGW/GCC.
 
 For developers using Microsoft Visual Studio, the following recipe is
@@ -255,9 +255,9 @@ END_OF_README
  LDFLAGS="-L${LIBUSB_1_0_BIN_PATH}/MinGW64/dll"
 
 
-make -j 4 install
+make -j 4 --no-print-directory install
 
-mkdir -p ${ZIP_DIR}/bin ${ZIP_DIR}/lib/msvc ${ZIP_DIR}/lib/gcc-mingw ${ZIP_DIR}/include ${ZIP_DIR}/doc
+mkdir -p ${ZIP_DIR}/bin ${ZIP_DIR}/lib/msvc ${ZIP_DIR}/lib/gcc ${ZIP_DIR}/include ${ZIP_DIR}/doc
 cp -a src/libhamlib.def ${ZIP_DIR}/lib/msvc/libhamlib-4.def
 todos ${ZIP_DIR}/lib/msvc/libhamlib-4.def
 cp -a ${INST_DIR}/include/hamlib ${ZIP_DIR}/include/.
@@ -291,7 +291,7 @@ do
 done
 
 cp -a ${INST_DIR}/bin/libhamlib-?.dll ${ZIP_DIR}/bin/.
-cp -a ${INST_DIR}/lib/libhamlib.dll.a ${ZIP_DIR}/lib/gcc-mingw/.
+cp -a ${INST_DIR}/lib/libhamlib.dll.a ${ZIP_DIR}/lib/gcc/.
 
 # NB: Strip Hamlib DLLs and EXEs
 ${HOST_ARCH_STRIP} ${ZIP_DIR}/bin/*.exe ${ZIP_DIR}/bin/*hamlib-*.dll
@@ -337,6 +337,6 @@ fi
 
 # Generate .lib file for GCC on MinGW per Jonathan Yong from mingw-w64
 # https://sourceforge.net/p/mingw-w64/discussion/723798/thread/e23dceba20/?limit=25#51dd/3df2/3708/e62b
-${HOST_ARCH_DLLTOOL} --input-def ${ZIP_DIR}/lib/msvc/libhamlib-4.def --output-lib ${ZIP_DIR}/lib/gcc-mingw/libhamlib-4.lib
+${HOST_ARCH_DLLTOOL} --input-def ${ZIP_DIR}/lib/msvc/libhamlib-4.def --output-lib ${ZIP_DIR}/lib/gcc/libhamlib-4.lib
 
 /usr/bin/zip -r ${HL_FILENAME}.zip $(basename ${ZIP_DIR})
