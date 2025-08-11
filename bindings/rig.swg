@@ -699,7 +699,7 @@ int *rig_spectrum_cb_python(RIG *rig, struct rig_spectrum_line *rig_spectrum_lin
 
 	void get_conf(hamlib_token_t tok, char *returnstr) {
 		returnstr[0] = '\0';
-		self->error_status = rig_get_conf(self->rig, tok, returnstr);
+		self->error_status = rig_get_conf2(self->rig, tok, returnstr, MAX_RETURNSTR);
 	}
 
 	void get_conf(const char *name, char *returnstr) {
@@ -708,7 +708,7 @@ int *rig_spectrum_cb_python(RIG *rig, struct rig_spectrum_line *rig_spectrum_lin
 		if (tok == RIG_CONF_END)
 			self->error_status = -RIG_EINVAL;
 		else
-			self->error_status = rig_get_conf(self->rig, tok, returnstr);
+			self->error_status = rig_get_conf2(self->rig, tok, returnstr, MAX_RETURNSTR);
 	}
 
 	void recv_dtmf(char *returnstr, vfo_t vfo = RIG_VFO_CURR) {
