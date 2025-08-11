@@ -133,7 +133,7 @@ typedef struct Rot {
 
         const char *get_conf(hamlib_token_t tok) {
                 static char s[128] = "";
-                self->error_status = rot_get_conf2(self->rot, tok, s, sizeof *s);
+                self->error_status = rot_get_conf2(self->rot, tok, s, sizeof s);
                 return s;
         }
 
@@ -143,7 +143,7 @@ typedef struct Rot {
                 if (tok == RIG_CONF_END)
                         self->error_status = -RIG_EINVAL;
                 else
-                        self->error_status = rot_get_conf2(self->rot, tok, s, sizeof *s);
+                        self->error_status = rot_get_conf2(self->rot, tok, s, sizeof s);
                 return s;
         }
 
