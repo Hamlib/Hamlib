@@ -27,11 +27,15 @@ class TestClass:
         assert amp.set_conf("", "") is None
         assert amp.get_conf("") == ""
         assert amp.get_conf(0) == ""
-        conf = amp.get_conf("mcfg")
-        assert isinstance(conf, str)
-        assert amp.set_conf("mcfg", "foo") is None
-        conf = amp.get_conf("mcfg")
-        assert conf == ""  # FIXME: should return "foo"
+        if model == Hamlib.AMP_MODEL_DUMMY:
+            conf = amp.get_conf("mcfg")
+            assert conf == ""
+            assert amp.set_conf("mcfg", "foobar") is None
+            conf = amp.get_conf("mcfg")
+            assert conf == ""  # FIXME: should return "foobar"
+        else:
+            conf = amp.get_conf("mcfg")
+            assert conf == ""
 
         assert amp.token_lookup("") is None
 

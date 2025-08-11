@@ -29,13 +29,14 @@ class TestClass:
         assert rig.set_conf("", "") is None
         assert rig.get_conf("") == ""
         assert rig.get_conf(0) == ""
-        conf = rig.get_conf("mcfg")
-        assert isinstance(conf, str)
-        assert rig.set_conf("mcfg", "foo") is None
-        conf = rig.get_conf("mcfg")
         if model == Hamlib.RIG_MODEL_DUMMY:
-            assert conf == "foo"
+            conf = rig.get_conf("mcfg")
+            assert conf == "DX"
+            assert rig.set_conf("mcfg", "foobar") is None
+            conf = rig.get_conf("mcfg")
+            assert conf == "foobar"
         else:
+            conf = rig.get_conf("mcfg")
             assert conf == ""
 
         assert rig.token_lookup("") is None
