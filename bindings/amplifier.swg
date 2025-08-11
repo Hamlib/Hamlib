@@ -124,7 +124,7 @@ typedef struct Amp {
 
   const char *get_conf(hamlib_token_t tok) {
           static char s[128] = "";
-          self->error_status = amp_get_conf2(self->amp, tok, s, sizeof *s);
+          self->error_status = amp_get_conf2(self->amp, tok, s, sizeof s);
           return s;
   }
 
@@ -134,7 +134,7 @@ typedef struct Amp {
           if (tok == RIG_CONF_END)
                   self->error_status = -RIG_EINVAL;
           else
-                  self->error_status = amp_get_conf2(self->amp, tok, s, sizeof *s);
+                  self->error_status = amp_get_conf2(self->amp, tok, s, sizeof s);
           return s;
   }
 
