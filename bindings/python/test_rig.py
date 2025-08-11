@@ -190,6 +190,23 @@ class TestClass:
         assert rig.set_spectrum_callback(None) is None
 
 
+    def do_test_send_raw(self, rig):
+        """rig_send_raw() tests"""
+
+        # When using the Dummy driver, rig.c replies with a copy of the data
+        test_string_1 = "test string 012\n"
+        test_string_2 = test_string_1 * 2
+        assert rig.send_raw(test_string_1) == test_string_1
+        assert rig.send_raw(test_string_2, "\n") == test_string_1
+        assert rig.send_raw(test_string_2, bytes([10])) == test_string_1
+
+        test_bytes_1 = bytes("test bytes\x00\x01\x02", "ASCII")
+        test_bytes_2 = test_bytes_1 * 2
+        assert rig.send_raw(test_bytes_1) == test_bytes_1
+        assert rig.send_raw(test_bytes_1, "s") == b"tes"
+        assert rig.send_raw(test_bytes_2, b"\x02") == test_bytes_1
+
+
     def test_with_open(self, model, rig_file, serial_speed):
         """Call all the methods that depend on open()"""
         rig = Hamlib.Rig(model)
@@ -211,6 +228,9 @@ class TestClass:
         self.do_test_antenna(rig)
         self.do_test_squelch(rig)
         self.do_test_callback(rig)
+        # When using the Dummy driver, rig.c replies with a copy of the data
+        if model == Hamlib.RIG_MODEL_DUMMY:
+            self.do_test_send_raw(rig)
 
         assert rig.close() is None
         assert rig.state.comm_state == 0

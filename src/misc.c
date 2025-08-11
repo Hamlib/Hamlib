@@ -1031,7 +1031,7 @@ static const struct
 
 /**
  * \brief check input to set_level
- * \param rig Pointer to rig data
+ * \param rig The rig handle
  * \param level RIG_LEVEL_* trying to set
  * \param val Raw input from the caller
  * \param gran If not NULL, set to location of level_gran data

@@ -735,6 +735,48 @@ int *rig_spectrum_cb_python(RIG *rig, struct rig_spectrum_line *rig_spectrum_lin
 		return status;
 	}
 
+#ifdef SWIGPYTHON
+	PyObject *send_raw(PyObject *send_obj, PyObject *term_obj=NULL)
+	{
+		char *send, *term;
+		size_t send_len;
+		int reply_len = MAX_RETURNSTR;
+		unsigned char reply_buffer[MAX_RETURNSTR];
+		int count;
+
+		if (PyUnicode_Check(send_obj)) {
+			send = PyUnicode_AsUTF8AndSize(send_obj, &send_len);
+		} else if (PyBytes_Check(send_obj)) {
+			PyBytes_AsStringAndSize(send_obj, &send, &send_len);
+		} else {
+			SWIG_Python_RaiseOrModifyTypeError("Expected string or bytes for send argument");
+			return NULL;
+		}
+
+		// Using NULL for length in PyUnicode_AsUTF8AndSize() and PyBytes_AsStringAndSize()
+		// because we can't accept '\0' because there is no length for term in rig_send_raw()
+		if (PyUnicode_Check(term_obj)) {
+			term = PyUnicode_AsUTF8AndSize(term_obj, NULL);
+		} else if (PyBytes_Check(term_obj)) {
+			PyBytes_AsStringAndSize(term_obj, &term, NULL);
+		} else if (term_obj == Py_None) {
+			term = NULL;
+		} else {
+			SWIG_Python_RaiseOrModifyTypeError("Expected string or bytes or NULL for term argument");
+			return NULL;
+		}
+
+		count = rig_send_raw(self->rig, send, send_len, reply_buffer, reply_len, term);
+		self->error_status = count < 0 ? count : RIG_OK;
+
+		if (PyUnicode_Check(send_obj)) {
+			return PyUnicode_FromStringAndSize(reply_buffer, count);
+		} else {
+			return PyBytes_FromStringAndSize(reply_buffer, count);
+		}
+	}
+#endif
+
 //#ifndef SWIGJAVA
 	/* TODO */
 	void get_level(setting_t level, vfo_t vfo = RIG_VFO_CURR)
