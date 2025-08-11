@@ -8923,13 +8923,9 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
 
     if (simulate)
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: simulating response for model %s\n",
-                  __func__, rig->caps->model_name);
-        memcpy(reply, send, send_len);
-        retval = send_len;
-        set_transaction_inactive(rig);
-        ELAPSED2;
-        RETURNFUNC(retval);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: simulating write for model %s\n",
+                    __func__, rig->caps->model_name);
+        retval = RIG_OK;
     }
     else
     {
@@ -8950,8 +8946,18 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
         if (simulate)
         {
             // Simulate a response by copying the command
-            memcpy(buf, send, send_len);
-            nbytes = send_len + 1;
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: simulating response for model %s\n",
+                      __func__, rig->caps->model_name);
+
+            nbytes = send_len < reply_len ? send_len : reply_len;
+            for (int i = 0; i < nbytes; i++)
+            {
+                buf[i] = send[i];
+                if (term && memchr(term, send[i], 1)) {
+                    nbytes = i + 1;
+                    break;
+                }
+            }
         }
         else
         {
