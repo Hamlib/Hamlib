@@ -218,7 +218,7 @@ int HAMLIB_API rig_ext_parm_foreach(RIG *rig,
 
 
 /**
- * \param rig
+ * \param rig   The rig handle
  * \param name
  * \brief lookup ext token by its name, return pointer to confparams struct.
  *
@@ -267,7 +267,7 @@ const struct confparams *HAMLIB_API rig_ext_lookup(RIG *rig, const char *name)
 }
 
 /**
- * \param rig
+ * \param rig   The rig handle
  * \param token
  * \brief lookup ext token, return pointer to confparams struct.
  *
@@ -316,7 +316,7 @@ const struct confparams *HAMLIB_API rig_ext_lookup_tok(RIG *rig,
 
 
 /**
- * \param rig
+ * \param rig   The rig handle
  * \param name
  * \brief Simple lookup returning token id associated with name
  */

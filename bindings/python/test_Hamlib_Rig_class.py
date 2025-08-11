@@ -70,6 +70,7 @@ class TestClass:
 'scan',
 'send_dtmf',
 'send_morse',
+'send_raw',
 'set_ant',
 'set_bank',
 'set_channel',
