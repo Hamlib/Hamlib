@@ -19,6 +19,7 @@ Version 4.6.5
         * 2025-??-??
         * Update Kenwood CW buffer max message size, fix one byte buffer
           overrun in icom.c.  (TNX George Baltz).
+        * Fix Segmentation Fault in rigs/dummy/netrigctl.c. (TNX Daniele Forsi)
 
 Version 4.6.4
         * 2025-07-18--Hamlib's 25th birthday!!!
