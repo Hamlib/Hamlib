@@ -2930,7 +2930,7 @@ declare_proto_rot(pause)
     return RIG_OK;
 }
 
-// short list for rigctl/rigctld display
+// short list for rotctl/rotctld display
 int print_conf_list2(const struct confparams *cfp, rig_ptr_t data, FILE *fout)
 {
     ROT *rot = (ROT *) data;

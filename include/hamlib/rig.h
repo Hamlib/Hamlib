@@ -629,7 +629,7 @@ typedef unsigned int vfo_t;
 
 /*
  * targetable bitfields, for internal use.
- * In rig.c lack of a flag will case a VFO change if needed
+ * In rig.c lack of a flag will cause a VFO change if needed
  * So setting this flag will mean the backend handles any VFO needs
  * For many rigs RITXIT, PTT, MEM, and BANK are non-VFO commands so need these flags to avoid unnecessary VFO swapping
  */
@@ -971,7 +971,7 @@ typedef enum {
     RIG_ANN_RXMODE =    (1 << 1),       /*!< Announce receive mode */
     RIG_ANN_CW =        (1 << 2),       /*!< CW */
     RIG_ANN_ENG =       (1 << 3),       /*!< English */
-    RIG_ANN_JAP =       (1 << 4)        /*!< Japan */
+    RIG_ANN_JAP =       (1 << 4)        /*!< Japanese */
 } ann_t;
 
 
@@ -1188,7 +1188,7 @@ enum rig_parm_e {
     RIG_PARM_AFIF =         (1 << 9),   /*!< \c AFIF for USB -- 0=AF audio, 1=IF audio -- see IC-7300/9700/705 */
     RIG_PARM_BANDSELECT =   (1 << 10),  /*!< \c BANDSELECT -- e.g. BAND160M, BAND80M, BAND70CM, BAND2CM */
     RIG_PARM_KEYERTYPE =    (1 << 11),  /*!< \c KEYERTYPE -- 0,1,2 or STRAIGHT PADDLE BUG */
-    RIG_PARM_AFIF_LAN =     (1 << 12),  /*!< \c AFIF for LAN -- 0=AF audi , 1=IF audio -- see IC-9700 */
+    RIG_PARM_AFIF_LAN =     (1 << 12),  /*!< \c AFIF for LAN -- 0=AF audio , 1=IF audio -- see IC-9700 */
     RIG_PARM_AFIF_WLAN =    (1 << 13),  /*!< \c AFIF_WLAN -- 0=AF audio, 1=IF audio -- see IC-705 */
     RIG_PARM_AFIF_ACC =     (1 << 14)   /*!< \c AFIF_ACC -- 0=AF audio, 1=IF audio -- see IC-9700 */
 };

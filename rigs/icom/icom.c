@@ -4814,7 +4814,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_AGC_TIME:
 
-        // some rigs have different level interpretaions for different modes
+        // some rigs have different level interpretations for different modes
         if (rs->current_mode == RIG_MODE_AM)
         {
             val->f = agc_level2[icom_val];

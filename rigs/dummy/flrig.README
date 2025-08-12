@@ -1,5 +1,5 @@
 As of version 1.0 20180508 this works very well with flrig-1.3.40.50 and WSJT-X split mode.
-Log4OM can be run conconcurrently connecting to "rigctld -M 4".
+Log4OM can be run concurrently connecting to "rigctld -M 4".
 Note that for that Log4OM instance only clients that use extended protocol can connect to the client (since Log4OM uses extended protocol).  If you want to use a client that does not have extended protocol you must run another rigctld on a separate TCP port.
 The same thing holds for any vfo mode clients.  
 So you could end up with 4 rigctld's.  One for each combination of extended/vfo mode.

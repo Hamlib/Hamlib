@@ -3852,7 +3852,7 @@ int newcat_get_powerstat(RIG *rig, powerstat_t *status)
         }
     }
 
-    // Yeasu rigs in powered-off state require the PS command to be sent between 1 and 2 seconds after dummy data
+    // Yaesu rigs in powered-off state require the PS command to be sent between 1 and 2 seconds after dummy data
     hl_usleep(1100000);
     // Discard any unsolicited data
     rig_flush(rp);

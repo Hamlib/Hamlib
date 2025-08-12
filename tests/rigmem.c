@@ -90,7 +90,7 @@ int all;
 
 int main(int argc, char *argv[])
 {
-    RIG *rig;       /* handle to rig (nstance) */
+    RIG *rig;       /* handle to rig (instance) */
     rig_model_t my_model = RIG_MODEL_DUMMY;
 
     int retcode;        /* generic return code from functions */
