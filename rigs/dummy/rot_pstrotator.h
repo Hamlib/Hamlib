@@ -51,7 +51,7 @@ typedef struct pstrotator_handler_priv_data_s
 {
     pthread_t thread_id;
     pstrotator_handler_args args;
-    int pstrotator_handler_thread_run;
+    volatile int pstrotator_handler_thread_run;
     int sockfd2;
 
 } pstrotator_handler_priv_data;

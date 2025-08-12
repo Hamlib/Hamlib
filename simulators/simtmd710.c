@@ -59,19 +59,19 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "FO", 2) == 0)
         {
-            char vfo = buf[3];
+            char vfon = buf[3];
             int frequency;
-            char tone_frequency[] = "10"; // 94.8
-            char ctcss_frequency[] = "05"; // 79,7
-            char dcs_frequency[] = "016"; // 114
+            const char tone_frequency[] = "10"; // 94.8
+            const char ctcss_frequency[] = "05"; // 79,7
+            const char dcs_frequency[] = "016"; // 114
 
-            if (vfo == '0') {
+            if (vfon == '0') {
                 frequency = (int)freqA;
             } else {
                 frequency = (int)freqB;
             }
             SNPRINTF(buf, sizeof(buf), "FO %c,%.10d,0,0,0,0,0,0,%.2s,%.2s,%.3s,00000000,0%c",
-                     vfo, frequency, tone_frequency, ctcss_frequency, dcs_frequency, 0x0d);
+                     vfon, frequency, tone_frequency, ctcss_frequency, dcs_frequency, 0x0d);
 
             printf("R:%s\n", buf);
             write(fd, buf, strlen(buf));
