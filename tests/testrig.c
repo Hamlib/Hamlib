@@ -16,7 +16,7 @@
 
 int main(int argc, const char *argv[])
 {
-    RIG *my_rig;        /* handle to rig (nstance) */
+    RIG *my_rig;        /* handle to rig (instance) */
     freq_t freq;        /* frequency  */
     rmode_t rmode;      /* radio mode of operation */
     pbwidth_t width;
@@ -105,7 +105,7 @@ int main(int argc, const char *argv[])
      */
 
     /*
-     * Example of setting rig paameters
+     * Example of setting rig parameters
      * and some error checking on the return code.
      */
 

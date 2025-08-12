@@ -2,7 +2,7 @@ This is a small backend for iOptron alt-az mounts. It implements get position, g
 
 A warning on iOptron command language. iOptron is in the process of moving from V2 to V3 of the command lamguage and presently (December 2018) uses a mix of the two. This back end should work with mounts with current firmware, but new firmware may change commands and break it.
 
-Minor annoyance - the mount will automatically start siderial tracking after a slew. Adding a stop tracking command at the end of the goto set did not solve the problem.
+Minor annoyance - the mount will automatically start sidereal tracking after a slew. Adding a stop tracking command at the end of the goto set did not solve the problem.
 
 Bigger annoyance - Be careful with the GEM mounts (iEQ30, iEQ45) in alt-az mode. The dec/el motor cord easily catches on the ra/az clutch knobs when slewing in az. I attached a small standoff to keep the cord out of the way.
 
