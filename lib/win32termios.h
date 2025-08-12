@@ -19,7 +19,7 @@
 |   License along with this library; if not, write to the Free Software
 |   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 |
-| This file was taken from rxtx-2.1-7pre16 and adaptated for Hamlib.
+| This file was taken from rxtx-2.1-7pre16 and adapted for Hamlib.
 --------------------------------------------------------------------------*/
 
 #ifndef _WIN32TERMIOS_H
