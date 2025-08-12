@@ -1950,6 +1950,25 @@ declare_proto_rot(set_level)
 
     level = rot_parse_level(arg1);
 
+    if (!strcmp(arg2, "?"))
+    {
+        const gran_t *gran = STATE(rot)->level_gran;
+        int idx = rig_setting2idx(level);
+
+        if (ROT_LEVEL_IS_FLOAT(level))
+        {
+            fprintf(fout, "(%f..%f/%f)%c", gran[idx].min.f,
+                    gran[idx].max.f, gran[idx].step.f, resp_sep);
+        }
+        else
+        {
+            fprintf(fout, "(%d..%d/%d)%c", gran[idx].min.i,
+                    gran[idx].max.i, gran[idx].step.i, resp_sep);
+        }
+
+        return RIG_OK;
+    }
+
     if (!rot_has_set_level(rot, level))
     {
         const struct confparams *cfp;
