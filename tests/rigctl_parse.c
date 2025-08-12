@@ -3352,9 +3352,27 @@ declare_proto_rig(set_level)
 
     level = rig_parse_level(arg1);
 
-    if ((!strcmp(arg2, "?") || arg2[0] == 0) && level == RIG_LEVEL_METER)
+    if (!strcmp(arg2, "?"))
     {
-        fprintf(fout, "COMP ALC SWR ID/IC VDD DB PO TEMP%c", resp_sep);
+        if (level == RIG_LEVEL_METER)
+        {
+            fprintf(fout, "COMP ALC SWR ID/IC VDD DB PO TEMP%c", resp_sep);
+        } else {
+            const gran_t *gran = STATE(rig)->level_gran;
+            int idx = rig_setting2idx(level);
+
+            if (RIG_LEVEL_IS_FLOAT(level))
+            {
+                fprintf(fout, "(%f..%f/%f)%c", gran[idx].min.f,
+                        gran[idx].max.f, gran[idx].step.f, resp_sep);
+            }
+            else
+            {
+                fprintf(fout, "(%d..%d/%d)%c", gran[idx].min.i,
+                        gran[idx].max.i, gran[idx].step.i, resp_sep);
+            }
+        }
+
         RETURNFUNC2(RIG_OK);
     }
 
