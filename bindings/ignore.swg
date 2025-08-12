@@ -5,6 +5,7 @@
 %rename("$ignore", regexmatch$name="^AMP_") "";
 %rename("$ignore", regexmatch$name="^RIG_") "";
 %rename("$ignore", regexmatch$name="^ROT_") "";
+%rename("$ignore", regexmatch$name="deprecated") "";
 
 // re-add useful defines
 
@@ -86,6 +87,7 @@
 %rename("$ignore", regexmatch$name="^amp_", %$isfunction) "";
 %rename("$ignore", regexmatch$name="^rig_", %$isfunction) "";
 %rename("$ignore", regexmatch$name="^rot_", %$isfunction) "";
+
 // re-add some methods
 %rename("%s") rig_set_debug;
 %rename("%s", regexmatch$name="^rig_str", %$isfunction) "";
@@ -111,7 +113,9 @@
 %ignore PRIfreq;
 %ignore SCNfreq;
 
+// others
 %rename("$ignore", regexmatch$name="python_callbacks") ""; // internal structs and methods used by bindings
+%ignore rig_state::cache; // deprecated
 
 #ifdef SWIGLUA
 %ignore Rig::set_level(setting_t,int,vfo_t);

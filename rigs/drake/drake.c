@@ -618,7 +618,7 @@ int drake_report_all(RIG *rig, char* owner)
     // strings show mem off, ch 00, NB off, AGC fast, RF off, MN off, ant 1, AM mode, 6.0 bw, VFOA, sync off, not scanning
     // r8
     //char testbuf[25] = {' ','0','0',' ','2','0','2','<','8',' ',' ','1','5','.','0','0','0','0','0','#','m','H','z', 0x0d, 0x0a };
-    // r8a/b - TODO Note 7-char channel name that eitehr starts at [25] or [26]
+    // r8a/b - TODO Note 7-char channel name that either starts at [25] or [26]
     //char testbuf[35] = {' ','0','0','0',' ','2','0','2','<','8',' ',' ','1','5','.','0','0','0','0','0','#','m','H','z',' ','M','E','M','N','A','M','E',' ', 0x0d, 0x0a };
 
     //drake_trans_rept(owner, "RA" EOM, 3, mdbuf, mdbuf_len, retval);
