@@ -3151,18 +3151,18 @@ int queue_deferred_config(deferred_config_header_t *head, hamlib_token_t token,
     }
 
     item->token = token;
-    item->next = NULL;
+    item->nextt = NULL;
 
-    if (!head->first)
+    if (!head->firstt)
     {
-        head->first = item;
+        head->firstt = item;
     }
     else
     {
-        head->last->next = item;
+        head->lastt->nextt = item;
     }
 
-    head->last = item;
+    head->lastt = item;
 
     return RIG_OK;
 }
