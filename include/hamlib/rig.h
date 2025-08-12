@@ -1187,7 +1187,7 @@ enum rig_parm_e {
     RIG_PARM_SCREENSAVER =  (1 << 8),   /*!< \c SCREENSAVER -- rig specific timeouts */
     RIG_PARM_AFIF =         (1 << 9),   /*!< \c AFIF for USB -- 0=AF audio, 1=IF audio -- see IC-7300/9700/705 */
     RIG_PARM_BANDSELECT =   (1 << 10),  /*!< \c BANDSELECT -- e.g. BAND160M, BAND80M, BAND70CM, BAND2CM */
-    RIG_PARM_KEYERTYPE =    (1 << 11),  /*!< \c KEYERTYPE -- 0,1,2,4 or STRAIGHT BUG PADDLE UNKNOWN */
+    RIG_PARM_KEYERTYPE =    (1 << 11),  /*!< \c KEYERTYPE -- Has multiple Morse keyer types, see #rig_keyertype_e */
     RIG_PARM_AFIF_LAN =     (1 << 12),  /*!< \c AFIF for LAN -- 0=AF audio , 1=IF audio -- see IC-9700 */
     RIG_PARM_AFIF_WLAN =    (1 << 13),  /*!< \c AFIF_WLAN -- 0=AF audio, 1=IF audio -- see IC-705 */
     RIG_PARM_AFIF_ACC =     (1 << 14)   /*!< \c AFIF_ACC -- 0=AF audio, 1=IF audio -- see IC-9700 */
