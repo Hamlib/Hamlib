@@ -3812,11 +3812,13 @@ declare_proto_rig(set_parm)
     }
     else if (RIG_PARM_IS_STRING(parm))
     {
+#if 0
         if (parm == RIG_PARM_KEYERTYPE)
         {
             val.i = atoi(arg2);
         }
         else
+#endif
         {
             val.cs = arg2;
         }
