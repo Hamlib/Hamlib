@@ -1701,7 +1701,7 @@ static int dummy_set_parm(RIG *rig, setting_t parm, value_t val)
 
     if (RIG_PARM_IS_STRING(parm))
     {
-        strcpy(pstr, val.cs);
+        SNPRINTF(pstr, sizeof(pstr), "%s", val.cs);
     }
     else
     {
