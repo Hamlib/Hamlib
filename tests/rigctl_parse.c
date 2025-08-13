@@ -3942,12 +3942,14 @@ declare_proto_rig(get_parm)
 
     if (parm == RIG_PARM_KEYERTYPE)
     {
-        char *s = "STRAIGHT";
+        const char *cs;
 
-        if (val.i == 1) { s = "BUG"; }
-        else if (val.i == 2) { s = "PADDLE"; }
+        if (strcmp(val.cs, "0") == 0) {cs = "STRAIGHT";}
+        else if (strcmp(val.cs, "1") == 0) {cs = "BUG";}
+        else if (strcmp(val.cs, "2") == 0) {cs = "PADDLE";}
+        else {cs = "UNKNOWN";}
 
-        fprintf(fout, "%s%c", s, resp_sep);
+        fprintf(fout, "%s%c", cs, resp_sep);
     }
     else if (RIG_PARM_IS_FLOAT(parm))
     {
