@@ -3717,7 +3717,9 @@ declare_proto_rig(set_parm)
         RETURNFUNC2(RIG_OK);
     }
 
-    if (strcmp(arg1, "BANDSELECT") == 0 && !strcmp(arg2, "?"))
+    parm = rig_parse_parm(arg1);
+
+    if (parm == RIG_PARM_BANDSELECT && !strcmp(arg2, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
         rig_sprintf_parm_gran(s, sizeof(s) - 1, RIG_PARM_BANDSELECT,
@@ -3740,15 +3742,13 @@ declare_proto_rig(set_parm)
         else { RETURNFUNC2(-RIG_EINTERNAL); }
     }
 
-    if (strcmp(arg1, "KEYERTYPE") == 0 && strcmp(arg2, "?") != 0)
+    if (parm == RIG_PARM_KEYERTYPE && strcmp(arg2, "?") != 0)
     {
         if (strcmp(arg2, "STRAIGHT") == 0) {arg2 = "0";}
         else if (strcmp(arg2, "BUG") == 0) {arg2 = "1";}
         else if (strcmp(arg2, "PADDLE") == 0) {arg2 = "2";}
         else {RETURNFUNC2(-RIG_EINVAL)}
     }
-
-    parm = rig_parse_parm(arg1);
 
     if (!rig_has_set_parm(rig, parm))
     {
