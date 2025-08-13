@@ -3944,7 +3944,8 @@ declare_proto_rig(get_parm)
     {
         const char *cs;
 
-        if (strcmp(val.cs, "0") == 0) {cs = "STRAIGHT";}
+        if (val.cs == NULL) {cs = "(null)";}
+        else if (strcmp(val.cs, "0") == 0) {cs = "STRAIGHT";}
         else if (strcmp(val.cs, "1") == 0) {cs = "BUG";}
         else if (strcmp(val.cs, "2") == 0) {cs = "PADDLE";}
         else {cs = "UNKNOWN";}
