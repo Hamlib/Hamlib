@@ -3745,6 +3745,7 @@ declare_proto_rig(set_parm)
         if (strcmp(arg2, "STRAIGHT") == 0) {arg2 = "0";}
         else if (strcmp(arg2, "BUG") == 0) {arg2 = "1";}
         else if (strcmp(arg2, "PADDLE") == 0) {arg2 = "2";}
+        else {RETURNFUNC2(-RIG_EINVAL)}
     }
 
     parm = rig_parse_parm(arg1);
