@@ -739,13 +739,16 @@ int *rig_spectrum_cb_python(RIG *rig, struct rig_spectrum_line *rig_spectrum_lin
 	PyObject *send_raw(PyObject *send_obj, PyObject *term_obj=NULL)
 	{
 		char *send, *term;
+		PyObject *bytes_obj;
 		size_t send_len;
 		int reply_len = MAX_RETURNSTR;
 		unsigned char reply_buffer[MAX_RETURNSTR];
 		int count;
 
 		if (PyUnicode_Check(send_obj)) {
-			send = PyUnicode_AsUTF8AndSize(send_obj, &send_len);
+			bytes_obj = PyUnicode_AsUTF8String(send_obj);
+			PyBytes_AsStringAndSize(bytes_obj, &send, &send_len);
+			Py_XDECREF(bytes_obj);
 		} else if (PyBytes_Check(send_obj)) {
 			PyBytes_AsStringAndSize(send_obj, &send, &send_len);
 		} else {
@@ -756,7 +759,9 @@ int *rig_spectrum_cb_python(RIG *rig, struct rig_spectrum_line *rig_spectrum_lin
 		// Using NULL for length in PyUnicode_AsUTF8AndSize() and PyBytes_AsStringAndSize()
 		// because we can't accept '\0' because there is no length for term in rig_send_raw()
 		if (PyUnicode_Check(term_obj)) {
-			term = PyUnicode_AsUTF8AndSize(term_obj, NULL);
+			bytes_obj = PyUnicode_AsUTF8String(term_obj);
+			PyBytes_AsStringAndSize(bytes_obj, &term, NULL);
+			Py_XDECREF(bytes_obj);
 		} else if (PyBytes_Check(term_obj)) {
 			PyBytes_AsStringAndSize(term_obj, &term, NULL);
 		} else if (term_obj == Py_None) {
