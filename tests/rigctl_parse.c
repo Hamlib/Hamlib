@@ -3719,11 +3719,10 @@ declare_proto_rig(set_parm)
 
     parm = rig_parse_parm(arg1);
 
-    if (parm == RIG_PARM_BANDSELECT && !strcmp(arg2, "?"))
+    if ((parm == RIG_PARM_BANDSELECT || parm == RIG_PARM_KEYERTYPE) && !strcmp(arg2, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_parm_gran(s, sizeof(s) - 1, RIG_PARM_BANDSELECT,
-                              rig->caps->parm_gran);
+        rig_sprintf_parm_gran(s, sizeof(s) - 1, parm, rig->caps->parm_gran);
         char *p = strchr(s, ')');
 
         if (p) { *p = 0; }
