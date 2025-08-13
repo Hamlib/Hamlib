@@ -3944,7 +3944,7 @@ declare_proto_rig(get_parm)
         if (val.i == 1) { s = "BUG"; }
         else if (val.i == 2) { s = "PADDLE"; }
 
-        fprintf(fout, "%s%cv", s, resp_sep);
+        fprintf(fout, "%s%c", s, resp_sep);
     }
     else if (RIG_PARM_IS_FLOAT(parm))
     {
