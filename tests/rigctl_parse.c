@@ -3717,11 +3717,12 @@ declare_proto_rig(set_parm)
         RETURNFUNC2(RIG_OK);
     }
 
-    if (strcmp(arg1, "BANDSELECT") == 0 && !strcmp(arg2, "?"))
+    parm = rig_parse_parm(arg1);
+
+    if ((parm == RIG_PARM_BANDSELECT || parm == RIG_PARM_KEYERTYPE) && !strcmp(arg2, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_parm_gran(s, sizeof(s) - 1, RIG_PARM_BANDSELECT,
-                              rig->caps->parm_gran);
+        rig_sprintf_parm_gran(s, sizeof(s) - 1, parm, rig->caps->parm_gran);
         char *p = strchr(s, ')');
 
         if (p) { *p = 0; }
@@ -3740,14 +3741,13 @@ declare_proto_rig(set_parm)
         else { RETURNFUNC2(-RIG_EINTERNAL); }
     }
 
-    if (strcmp(arg1, "KEYERTYPE") == 0 && strcmp(arg2, "?") != 0)
+    if (parm == RIG_PARM_KEYERTYPE && strcmp(arg2, "?") != 0)
     {
         if (strcmp(arg2, "STRAIGHT") == 0) {arg2 = "0";}
         else if (strcmp(arg2, "BUG") == 0) {arg2 = "1";}
         else if (strcmp(arg2, "PADDLE") == 0) {arg2 = "2";}
+        else {RETURNFUNC2(-RIG_EINVAL)}
     }
-
-    parm = rig_parse_parm(arg1);
 
     if (!rig_has_set_parm(rig, parm))
     {
@@ -3811,11 +3811,13 @@ declare_proto_rig(set_parm)
     }
     else if (RIG_PARM_IS_STRING(parm))
     {
+#if 0
         if (parm == RIG_PARM_KEYERTYPE)
         {
             val.i = atoi(arg2);
         }
         else
+#endif
         {
             val.cs = arg2;
         }
@@ -3939,12 +3941,15 @@ declare_proto_rig(get_parm)
 
     if (parm == RIG_PARM_KEYERTYPE)
     {
-        char *s = "STRAIGHT";
+        const char *cs;
 
-        if (val.i == 1) { s = "BUG"; }
-        else if (val.i == 2) { s = "PADDLE"; }
+        if (val.cs == NULL) {cs = "(null)";}
+        else if (strcmp(val.cs, "0") == 0) {cs = "STRAIGHT";}
+        else if (strcmp(val.cs, "1") == 0) {cs = "BUG";}
+        else if (strcmp(val.cs, "2") == 0) {cs = "PADDLE";}
+        else {cs = "UNKNOWN";}
 
-        fprintf(fout, "%s%cv", s, resp_sep);
+        fprintf(fout, "%s%c", cs, resp_sep);
     }
     else if (RIG_PARM_IS_FLOAT(parm))
     {
