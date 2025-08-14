@@ -115,7 +115,8 @@ EXTRA_DIST = \
 	testrotctld.pl
 
 # Support 'make check' target for simple tests
-check_SCRIPTS = test2038.sh testbcd.sh testcache.sh testcookie.sh testfreq.sh testgrid.sh testloc.sh testrig.sh testrigcaps.sh
+# Omitting cachetest.sh because it needs 2 instances of rigctld running
+check_SCRIPTS = amptest.sh test2038.sh testbcd.sh testcache.sh testcaps.sh testcookie.sh testfreq.sh testgrid.sh testloc.sh testrig.sh testrigcaps.sh
 
 TESTS = $(check_SCRIPTS)
 
