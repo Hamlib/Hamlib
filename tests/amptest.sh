@@ -11,12 +11,11 @@
 ./ampctl l PWRFORWARD l PWRFORWARD
 ./ampctl l PWRREFLECTED l PWRREFLECTED
 ./ampctl l PWRPEAK l PWRPEAK
-# Powerstat 0=Off, 1=On, 2=Standbyd, 4=Operate, 8=Unknown
+# Powerstat 0=Off, 1=On, 2=Standby, 4=Operate, 8=Unknown
 ./ampctl \set_powerstat 0
 ./ampctl \set_powerstat 1
 ./ampctl \set_powerstat 2
 ./ampctl \set_powerstat 4
 ./ampctl \set_powerstat 8
-# Sets/reads tuner frequenchy
-./ampctl F 14074000
-./ampctl f
+# Sets/reads tuner frequency
+./ampctl F 14074000 f
