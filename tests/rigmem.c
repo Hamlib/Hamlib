@@ -382,7 +382,7 @@ void usage()
         "  -r, --rig-file=DEVICE         set device of the radio to operate on\n"
         "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
         "  -c, --civaddr=ID              set CI-V address, decimal (for Icom rigs only)\n"
-        "  -C, --set-conf=PARM=VAL       set config parameters\n"
+        "  -C, --set-conf=PARM=VAL[,...] set config parameters\n"
         "  -p, --set-separator=CHAR      set character separator instead of the CSV comma\n"
         "  -a, --all                     bypass mem_caps, apply to all fields of channel_t\n"
 #ifdef HAVE_XML2

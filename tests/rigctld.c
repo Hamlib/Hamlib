@@ -1438,7 +1438,7 @@ void usage(void)
         "  -v, --verbose                 set verbose mode, cumulative (-v to -vvvvv)\n"
         "  -W, --twiddle_timeout=SECONDS timeout after detecting vfo manual change\n"
         "  -w, --twiddle_rit=SECONDS     suppress VFOB getfreq so RIT can be twiddled\n"
-        "  -x, --uplink=OPTION           set uplink get_freq ignore: option 1=Sub, 2=Main\n"
+        "  -x, --uplink=OPTION           set uplink get_freq ignore, option 1=Sub, 2=Main\n"
         "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
         "  -A, --password=PASSWORD       set password for rigctld access (NOT IMPLEMENTED)\n"
         "  -R, --rigctld-idle            make rigctld close the rig when no clients are connected\n"

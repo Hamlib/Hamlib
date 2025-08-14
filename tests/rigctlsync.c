@@ -611,7 +611,7 @@ void usage()
         "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
         "  -S, --serial-speed2=BAUD      set serial speed of the virtual com port [default=115200]\n"
         "  -c, --civaddr=ID              set CI-V address, decimal (for Icom rigs only)\n"
-        "  -C, --set-conf=PARM=VAL       set config parameters\n"
+        "  -C, --set-conf=PARM=VAL[,...] set config parameters\n"
         "  -L, --show-conf               list all config parameters\n"
         "  -l, --list                    list all model numbers and exit\n"
         "  -u, --dump-caps               dump capabilities and exit\n"
