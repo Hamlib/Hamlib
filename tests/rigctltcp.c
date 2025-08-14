@@ -139,7 +139,7 @@ static unsigned client_count;
 
 static RIG *my_rig;             /* handle to rig (instance) */
 static volatile int rig_opened = 0;
-static int verbose;
+static int verbose = RIG_DEBUG_NONE;
 
 #ifdef HAVE_SIG_ATOMIC_T
 static sig_atomic_t volatile ctrl_c;
