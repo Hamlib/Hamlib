@@ -137,7 +137,7 @@ int lowe_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int lowe_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     char mdbuf[16], ackbuf[16];
-    char *mode_sel;
+    const char *mode_sel;
     int ack_len, retval;
 
     switch (mode)

@@ -1908,17 +1908,18 @@ struct rig_spectrum_line
 
 /**
  * Config item for deferred processing
+ *  (Funky names to avoid clash with perl keywords. Sheesh.)
  **/
 struct deferred_config_item {
-  struct deferred_config_item *next;
+  struct deferred_config_item *nextt;
   hamlib_token_t token;
   char *value;                  // strdup'ed, must be freed
 };
 typedef struct deferred_config_item deferred_config_item_t;
 
 struct deferred_config_header {
-  struct deferred_config_item *first;   // NULL if none
-  struct deferred_config_item *last;
+  struct deferred_config_item *firstt;   // NULL if none
+  struct deferred_config_item *lastt;
 };
 typedef struct deferred_config_header deferred_config_header_t;
 

@@ -1443,7 +1443,7 @@ const char *aor_get_info(RIG *rig)
     static char infobuf[BUFSZ];
     int id_len, frm_len, retval;
     char idbuf[BUFSZ];
-    char frmbuf[32]; // only expect 6 chars...please check
+    char frmbuf[BUFSZ];
 
     retval = aor_transaction(rig, "\001" EOM, 2, idbuf, &id_len);
 
