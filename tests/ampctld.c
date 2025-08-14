@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
 
     int retcode;        /* generic return code from functions */
 
-    int verbose = 0;
+    int verbose = RIG_DEBUG_NONE;
     int show_conf = 0;
     int dump_caps_opt = 0;
     const char *amp_file = NULL;

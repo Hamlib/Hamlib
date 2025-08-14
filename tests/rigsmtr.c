@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 
     int retcode;        /* generic return code from functions */
 
-    int verbose = 0;
+    int verbose = RIG_DEBUG_NONE;
     const char *rig_file = NULL, *rot_file = NULL;
     int serial_rate = 0;
     int rot_serial_rate = 0;

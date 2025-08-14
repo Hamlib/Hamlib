@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 
     int retcode;        /* generic return code from functions */
 
-    int verbose = 0;
+    int verbose = RIG_DEBUG_NONE;
 #ifdef HAVE_XML2
     int xml = 0;
 #endif
