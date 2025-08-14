@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 
     int retcode;        /* generic return code from functions */
 
-    int verbose = 0;
+    int verbose = RIG_DEBUG_NONE;
     const char *rig_file = NULL, *ptt_file = NULL;
     ptt_type_t ptt_type = RIG_PTT_NONE;
     int serial_rate = 0;
