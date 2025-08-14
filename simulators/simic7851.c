@@ -96,11 +96,6 @@ void frameParse(int fd, unsigned char *frame, int len)
     }
 
     //dumphex(frame, len);
-    if (len == 0)
-    {
-        printf("%s: len==0\n", __func__);
-        return;
-    }
 
     if (frame[0] != 0xfe && frame[1] != 0xfe)
     {

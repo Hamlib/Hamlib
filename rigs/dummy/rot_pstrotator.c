@@ -115,7 +115,7 @@ static void set_timeout(int fd, int sec, int usec)
     }
 }
 
-void readPacket(int sockfd, char *buf, int buf_len, int expected)
+static void readPacket(int sockfd, char *buf, int buf_len, int expected)
 {
     struct sockaddr_in serverAddr;
     socklen_t addrLen = sizeof(serverAddr);

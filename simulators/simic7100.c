@@ -132,7 +132,7 @@ void frameParse(int fd, unsigned char *frame, int len)
             dump_hex(frame2, 11);
             n = write(fd, frame2, 11);
             dump_hex(frame, 11);
-            n = write(fd, frame, 11);
+            n += write(fd, frame, 11);
         }
 
         break;
