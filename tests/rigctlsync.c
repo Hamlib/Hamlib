@@ -109,7 +109,7 @@ void usage();
 static RIG *my_rig;             /* handle to rig */
 static RIG
 *my_rig_sync;        /* rig the gets synchronized -- freq only for now */
-static int verbose;
+static int verbose = RIG_DEBUG_NONE;
 /* CW Skimmer can only set VFOA */
 /* IC7300 for example can run VFOA on FM and VFOB on CW */
 /* So -A/--mapa2b changes set_freq on VFOA to VFOB */
