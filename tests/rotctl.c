@@ -70,7 +70,7 @@ extern int read_history();
 /*
  * Prototypes
  */
-void usage();
+void usage(FILE *fout);
 
 /*
  * Reminder: when adding long options,
@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
         switch (c)
         {
         case 'h':
-            usage();
+            usage(stdout);
             exit(0);
 
         case 'V':
@@ -258,7 +258,7 @@ int main(int argc, char *argv[])
             break;
 
         default:
-            usage();    /* unknown option? */
+            usage(stderr);    /* unknown option? */
             exit(1);
         }
     }
@@ -478,12 +478,12 @@ int main(int argc, char *argv[])
 }
 
 
-void usage()
+void usage(FILE *fout)
 {
-    printf("Usage: rotctl [OPTION]... [COMMAND]...\n"
+    fprintf(fout, "Usage: rotctl [OPTION]... [COMMAND]...\n"
            "Send COMMANDs to a connected antenna rotator.\n\n");
 
-    printf(
+    fprintf(fout,
         "  -m, --model=ID                select rotator model number. See model list (-l)\n"
         "  -r, --rot-file=DEVICE         set device of the rotator to operate on\n"
         "  -R, --rot-file2=DEVICE        set device of the 2nd rotator controller to operate on\n"
@@ -507,5 +507,5 @@ void usage()
         "\n"
     );
 
-    usage_rot(stdout);
+    usage_rot(fout);
 }

@@ -54,7 +54,7 @@ extern int csv_parm_load(RIG *rig, const char *infilename);
 /*
  * Prototypes
  */
-void usage();
+void usage(FILE *fout);
 void version();
 static int set_conf(RIG *rig, char *conf_parms);
 
@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
         switch (c)
         {
         case 'h':
-            usage();
+            usage(stdout);
             exit(0);
 
         case 'V':
@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
             break;
 
         default:
-            usage();    /* unknown option? */
+            usage(stderr);    /* unknown option? */
             exit(1);
         }
     }
@@ -201,7 +201,7 @@ int main(int argc, char *argv[])
 
     if (optind + 1 >= argc)
     {
-        usage();
+        usage(stderr);
         exit(1);
     }
 
@@ -348,7 +348,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        usage();
+        usage(stderr);
         exit(1);
     }
 
@@ -372,13 +372,13 @@ void version()
 }
 
 
-void usage()
+void usage(FILE *fout)
 {
-    printf("Usage: rigmem [OPTION]... COMMAND... FILE\n"
+    fprintf(fout, "Usage: rigmem [OPTION]... COMMAND... FILE\n"
            "Backup/restore COMMANDs to a connected radio transceiver or receiver.\n\n");
 
 
-    printf(
+    fprintf(fout,
         "  -m, --model=ID                select radio model number. See model list (rigctl -l)\n"
         "  -r, --rig-file=DEVICE         set device of the radio to operate on\n"
         "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
@@ -394,7 +394,7 @@ void usage()
         "  -V, --version                 output version information and exit\n\n"
     );
 
-    printf(
+    fprintf(fout,
         "COMMANDs:\n"
         "  load\n"
         "  save\n"
@@ -403,8 +403,7 @@ void usage()
         "  clear\n\n"
     );
 
-    printf("\nReport bugs to <hamlib-developer@lists.sourceforge.net>.\n");
-
+    fprintf(fout, "\nReport bugs to <hamlib-developer@lists.sourceforge.net>.\n");
 }
 
 

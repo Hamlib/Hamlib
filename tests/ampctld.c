@@ -72,7 +72,7 @@ struct handle_data
 
 void *handle_socket(void *arg);
 
-void usage();
+void usage(FILE *fout);
 
 /*
  * Reminder: when adding long options,
@@ -192,7 +192,7 @@ int main(int argc, char *argv[])
         switch (c)
         {
         case 'h':
-            usage();
+            usage(stdout);
             exit(0);
 
         case 'V':
@@ -262,7 +262,7 @@ int main(int argc, char *argv[])
             break;
 
         default:
-            usage();    /* unknown option? */
+            usage(stderr);    /* unknown option? */
             exit(1);
         }
     }
@@ -673,12 +673,12 @@ handle_exit:
 }
 
 
-void usage()
+void usage(FILE *fout)
 {
-    printf("Usage: ampctld [OPTION]... [COMMAND]...\n"
+    fprintf(fout, "Usage: ampctld [OPTION]... [COMMAND]...\n"
            "Daemon serving COMMANDs to a connected amplifier.\n\n");
 
-    printf(
+    fprintf(fout,
         "  -m, --model=ID                select amplifier model number. See model list (-l)\n"
         "  -r, --amp-file=DEVICE         set device of the amplifier to operate on\n"
         "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
@@ -694,5 +694,5 @@ void usage()
         "  -V, --version                 output version information and exit\n\n",
         portno);
 
-    usage_amp(stdout);
+    usage_amp(fout);
 }
