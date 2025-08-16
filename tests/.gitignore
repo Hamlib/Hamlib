@@ -3,6 +3,8 @@ ampctld
 cachetest
 cachetest2
 dumpmem
+example
+func_chk
 hamlibmodels
 listrigs
 rig_bench
@@ -20,6 +22,8 @@ rigtestmcast
 rigtestmcastrx
 rotctl
 rotctld
+sendraw
+simple
 test-suite.log
 test2038
 test2038.sh
@@ -37,10 +41,12 @@ testlibusb
 testloc
 testloc.sh
 testmW2power
+testnet
 testrig
 testrig.sh
 testrigcaps
 testrigcaps.sh
 testrigopen
+testsecurity
 testtrn
 tuner_control.log
