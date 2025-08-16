@@ -21,7 +21,10 @@ SWGDEP = \
 	$(SWGFILES)
 
 EXTRA_DIST = $(SWGFILES) \
-	Makefile.PL perltest.pl tcltest.tcl.in \
+	Makefile.PL \
+	README.python \
+	luatest.lua \
+	perltest.pl \
 	python/conftest.py \
 	python/generate_tests.py \
 	python/test_Hamlib_Amp_class.py \
@@ -32,7 +35,7 @@ EXTRA_DIST = $(SWGFILES) \
 	python/test_rig.py \
 	python/test_rot.py \
 	python/test_startup.py \
-	luatest.lua README.python
+	tcltest.tcl.in
 
 exampledir = $(docdir)/examples
 example_DATA =
