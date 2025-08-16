@@ -18,9 +18,11 @@ check_PROGRAMS = \
 	simft450 \
 	simft710 \
 	simft736 \
+	simft747gx \
 	simft817 \
 	simft818 \
 	simft847 \
+	simft897 \
 	simft990 \
 	simft991 \
 	simftdx101 \
