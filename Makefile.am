@@ -8,14 +8,24 @@ pkgconfig_DATA = hamlib.pc
 
 EXTRA_DIST = \
 	Android.mk \
-	README.betatester \
+	CODE_OF_CONDUCT.md \
+	CONTRIBUTING.md \
 	LICENSE \
 	PLAN \
+	README.betatester \
+	README.coding_style \
 	README.developer \
 	README.freqranges \
 	README.md \
 	README.multicast \
 	README.osx \
+	README.release \
+	README.win32 \
+	SECURITY.md \
+	Segfault-award \
+	VFOs.txt \
+	astyle.sh \
+	cppcheck.sh \
 	hamlib.m4 \
 	hamlib.pc.in
 
