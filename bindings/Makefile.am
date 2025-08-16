@@ -23,8 +23,15 @@ SWGDEP = \
 EXTRA_DIST = $(SWGFILES) \
 	Makefile.PL \
 	README.python \
+	csharp/multicast/PLAN.txt \
+	csharp/multicast/README.txt \
+	csharp/multicast/multicast.cs \
+	csharp/multicast/multicast.csproj \
+	csharp/multicast/test.json \
+	hamlibvb.bas.in \
 	luatest.lua \
 	perltest.pl \
+	phpdemo.php \
 	python/conftest.py \
 	python/generate_tests.py \
 	python/test_Hamlib_Amp_class.py \
