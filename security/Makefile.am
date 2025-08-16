@@ -1,5 +1,5 @@
 ACLOCAL_AMFLAGS = -I.
-EXTRA_DIST =  sctest.c
+EXTRA_DIST = Android.mk sctest.c
 
 noinst_LTLIBRARIES = libsecurity.la
 
