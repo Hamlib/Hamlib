@@ -40,6 +40,7 @@ int main(int argc, char *argv[])
         {
             printf("Not 5 bytes?  bytes=%d\n", bytes);
         }
+        n = 0;
 
         switch (buf[4])
         {
@@ -104,6 +105,7 @@ int main(int argc, char *argv[])
 
         default: printf("Unknown cmd=%02x\n", buf[4]);
         }
+        if (n < 0) {printf("Write failed - n = %d\n", n); }
     }
 
     return 0;
