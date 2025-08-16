@@ -106,6 +106,7 @@ int main()
     if (ciphertext_length == AESSTRINGCRYPT_ERROR)
     {
         printf("Error encrypting the string\n");
+        return 1;
     }
 
     printf("Ciphertext length: %d\n", ciphertext_length);
@@ -120,7 +121,10 @@ int main()
     if (plaintext_length == AESSTRINGCRYPT_ERROR)
     {
         printf("Error decrypting the string\n");
+        return 1;
     }
 
     printf("Decrypted plaintext length: %d, %s\n", plaintext_length, plaintext);
+
+    return 0;
 }
