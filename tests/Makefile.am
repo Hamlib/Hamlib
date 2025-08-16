@@ -103,7 +103,11 @@ rigmatrix.html: rigmatrix_head.html rigmatrix listrigs
 endif
 
 
-EXTRA_DIST = rigmatrix_head.html rig_split_lst.awk testctld.pl testrotctld.pl
+EXTRA_DIST = \
+	rig_split_lst.awk \
+	rigmatrix_head.html \
+	testctld.pl \
+	testrotctld.pl
 
 # Support 'make check' target for simple tests
 check_SCRIPTS = test2038.sh testbcd.sh testcache.sh testcookie.sh testfreq.sh testgrid.sh testloc.sh testrig.sh testrigcaps.sh
