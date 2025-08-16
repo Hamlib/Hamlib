@@ -16,7 +16,10 @@ libhamlib_kenwood_la_SOURCES = $(TSSRC) $(THSRC) $(IC10SRC) $(KENWOODSRC)
 
 EXTRA_DIST = \
 	Android.mk \
+	NOTES.txt \
 	README.flex \
 	README.k2 \
 	README.k3 \
-	README.kenwood
+	README.kenwood \
+	README.ts2k \
+	ts2000.txt

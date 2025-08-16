@@ -18,6 +18,10 @@ noinst_LTLIBRARIES = libhamlib-yaesu.la
 libhamlib_yaesu_la_SOURCES = yaesu.c yaesu.h level_gran_yaesu.h $(YAESUSRC) $(NEWCATSRC)
 
 EXTRA_DIST = \
+	Android.mk \
+	FT-817CAT.pdf \
+	FT-817MemoryMap.pdf \
+	FT8X7eeprom.odt \
 	README.ft890 \
 	README.ft920 \
-	Android.mk \
+	YaesuTargetableVFO.ods

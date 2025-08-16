@@ -3,4 +3,4 @@ DUMMYSRC = dummy_common.c dummy_common.h dummy.c dummy.h rot_dummy.c rot_dummy.h
 noinst_LTLIBRARIES = libhamlib-dummy.la
 libhamlib_dummy_la_SOURCES = $(DUMMYSRC)
 
-EXTRA_DIST = Android.mk
+EXTRA_DIST = Android.mk flrig.README
