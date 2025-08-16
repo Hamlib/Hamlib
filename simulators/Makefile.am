@@ -32,7 +32,7 @@ simkenwood_LDFLAGS = $(WINEXELDFLAGS)
 simyaesu_LDFLAGS = $(WINEXELDFLAGS)
 simid5100_LDFLAGS = $(WINEXELDFLAGS)
 
-EXTRA_DIST = sim.h
+EXTRA_DIST = sim.h simft990.dat
 
 # Support 'make check' target for simple tests
 #check_SCRIPTS = 
