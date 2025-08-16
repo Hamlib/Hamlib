@@ -9,9 +9,7 @@
 #include <sys/types.h>
 #include <signal.h>
 
-#define HAVE_NETINET_IN_H
-#define HAVE_NETDB_H
-#define HAVE_ARPA_INET_H
+#include "config.h"
 
 #ifdef HAVE_NETINET_IN_H
 #  include <netinet/in.h>
@@ -24,6 +22,8 @@
 #ifdef HAVE_ARPA_INET_H
 #  include <arpa/inet.h>
 #endif
+
+#include "../src/misc.h"
 
 static int rig_network_addr(char *hoststr, char *portstr)
 {
@@ -73,11 +73,11 @@ static int rig_network_addr(char *hoststr, char *portstr)
     return 0;
 }
 
-static int test_host(char *hoststr, char host[256], char port[6])
+static int test_host(char *hoststr, char *host, char *port)
 {
     int status;
     char host2[256], port2[6];
-    status = parse_hoststr(hoststr, host2, port2);
+    status = parse_hoststr(hoststr, strlen(hoststr), host2, port2);
 
     printf("---------------------\n");
 
