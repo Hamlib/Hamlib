@@ -104,8 +104,13 @@ endif
 
 
 EXTRA_DIST = \
+	Android.mk \
+	amptest.sh \
+	cachetest.sh \
+	hamlib_tuner_control \
 	rig_split_lst.awk \
 	rigmatrix_head.html \
+	testcaps.sh \
 	testctld.pl \
 	testrotctld.pl
 
