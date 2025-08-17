@@ -899,7 +899,6 @@ doc/Makefile
 doc/hamlib.cfg
 docker-build/Makefile
 extra/Makefile
-perl/Makefile
 rotators/amsat/Makefile
 rotators/apex/Makefile
 rotators/ars/Makefile

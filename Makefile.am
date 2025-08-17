@@ -58,7 +58,6 @@ DIST_SUBDIRS = \
 	include \
 	lib \
 	macros \
-	perl \
 	scripts \
 	security \
 	simulators \
