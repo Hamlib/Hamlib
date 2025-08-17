@@ -32,8 +32,6 @@ rotctl_SOURCES = rotctl.c $(ROTCOMMONSRC)
 rotctld_SOURCES = rotctld.c $(ROTCOMMONSRC)
 ampctl_SOURCES = ampctl.c $(AMPCOMMONSRC)
 ampctld_SOURCES = ampctld.c $(AMPCOMMONSRC)
-rigswr_SOURCES = rigswr.c
-rigsmtr_SOURCES = rigsmtr.c
 rigmem_SOURCES = rigmem.c memsave.c memload.c memcsv.c
 if HAVE_LIBUSB
     rigtestlibusb_SOURCES = rigtestlibusb.c
