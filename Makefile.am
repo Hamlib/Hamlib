@@ -26,8 +26,10 @@ EXTRA_DIST = \
 	VFOs.txt \
 	astyle.sh \
 	cppcheck.sh \
+	extra \
 	hamlib.m4 \
-	hamlib.pc.in
+	hamlib.pc.in \
+	rotators/androidsensor
 
 doc_DATA = ChangeLog COPYING COPYING.LIB LICENSE \
 	README.md README.betatester README.developer
@@ -54,7 +56,6 @@ DIST_SUBDIRS = \
 	c++ \
 	doc \
 	docker-build \
-	extra \
 	include \
 	lib \
 	macros \
