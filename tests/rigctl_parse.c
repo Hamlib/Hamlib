@@ -4828,7 +4828,9 @@ declare_proto_rig(dump_state)
 
         for (i = 0; i < RIG_SETTING_MAX; ++i)
         {
-            if (RIG_LEVEL_IS_FLOAT(i))
+            setting_t level = rig_idx2setting(i);
+
+            if (RIG_LEVEL_IS_FLOAT(level))
             {
                 fprintf(fout, "%d=%g,%g,%g;", i, rs->level_gran[i].min.f,
                         rs->level_gran[i].max.f, rs->level_gran[i].step.f);
@@ -4844,10 +4846,16 @@ declare_proto_rig(dump_state)
 
         for (i = 0; i < RIG_SETTING_MAX; ++i)
         {
-            if (RIG_LEVEL_IS_FLOAT(i))
+            setting_t parm = rig_idx2setting(i);
+
+            if (RIG_PARM_IS_FLOAT(parm))
             {
                 fprintf(fout, "%d=%g,%g,%g;", i, rs->parm_gran[i].min.f,
                         rs->parm_gran[i].max.f, rs->parm_gran[i].step.f);
+            }
+            else if (RIG_PARM_IS_STRING(parm))
+            {
+                fprintf(fout, "%d=%s;", i, rs->parm_gran[i].step.cs);
             }
             else
             {
