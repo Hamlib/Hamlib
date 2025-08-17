@@ -2154,7 +2154,7 @@ void list_models()
 
     if (status != RIG_OK)
     {
-        printf("rig_list_foreach: error = %s \n", rigerror(status));
+        rig_debug(RIG_DEBUG_ERR, "rig_list_foreach: error = %s \n", rigerror(status));
         exit(2);
     }
 
