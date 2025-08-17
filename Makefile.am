@@ -43,10 +43,24 @@ SUBDIRS = macros include lib security \
 
 ## Static list of distributed directories.
 DIST_SUBDIRS = \
+	$(AMP_BACKEND_LIST) \
+	$(BACKEND_LIST) \
+	$(RIG_BACKEND_LIST) \
 	$(RIG_BACKEND_OPTIONAL_LIST) \
+	$(ROT_BACKEND_LIST) \
 	$(ROT_BACKEND_OPTIONAL_LIST) \
-	macros include lib src c++ bindings tests doc android scripts simulators\
-	security $(BACKEND_LIST) $(RIG_BACKEND_LIST) $(ROT_BACKEND_LIST) $(AMP_BACKEND_LIST)
+	android \
+	bindings \
+	c++ \
+	doc \
+	include \
+	lib \
+	macros \
+	scripts \
+	security \
+	simulators \
+	src \
+	tests
 
 # Install any third party macros into our tree for distribution
 ACLOCAL_AMFLAGS = -I macros --install 
