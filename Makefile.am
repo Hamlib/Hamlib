@@ -53,9 +53,12 @@ DIST_SUBDIRS = \
 	bindings \
 	c++ \
 	doc \
+	docker-build \
+	extra \
 	include \
 	lib \
 	macros \
+	perl \
 	scripts \
 	security \
 	simulators \

@@ -1,4 +1,5 @@
 EXTRA_DIST = \
+	MSVC \
 	README.build-JTSDK.txt \
 	README.build-VB.NET \
 	README.build-Windows \
