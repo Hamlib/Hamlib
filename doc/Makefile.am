@@ -5,6 +5,7 @@ EXTRA_DIST = \
 	hamlib.cfg \
 	hamlib.css \
 	hamlib.png \
+	hamlib_voice_cw_memory_4.6.0.xlsx \
 	index.doxygen \
 	manuals/OTRSP_Protocol.pdf \
 	split-man.pl
