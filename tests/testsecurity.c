@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <string.h>
 #ifdef _WIN32
+#include <winsock2.h>
 #include <windows.h>
 //#include <Wincrypt.h>
 #else

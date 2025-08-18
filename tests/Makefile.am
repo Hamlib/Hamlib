@@ -57,7 +57,9 @@ rigctlsync_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/security
 if HAVE_LIBUSB
     rigtestlibusb_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) $(LIBUSB_CFLAGS)
 endif
-testsecurity_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_srcdir)/security
+
+# Document building testsecurity
+### testsecurity_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_srcdir)/security
 
 rigctl_LDADD = $(PTHREAD_LIBS) $(READLINE_LIBS) $(LDADD)
 rigctld_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
@@ -72,6 +74,9 @@ rigctlsync_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 if HAVE_LIBUSB
     rigtestlibusb_LDADD = $(LIBUSB_LIBS)
 endif
+
+# Document linking testsecurity
+### testsecurity_LDADD = $(PTHREAD_LIBS) $(LDADD) $(top_builddir)/security/libsecurity.la
 
 # Linker options
 rigctl_LDFLAGS = $(WINEXELDFLAGS)
@@ -90,6 +95,8 @@ if HAVE_LIBUSB
     rigtestlibusb_LDFLAGS = $(WINEXELDFLAGS)
 endif
 
+# Document linking testsecurity with MinGW
+### testsecurity_LDFLAGS = $(WINEXELDFLAGS)
 
 if HTML_MATRIX
 EXTRA_PROGRAMS = rigmatrix
