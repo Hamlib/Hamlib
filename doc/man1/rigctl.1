@@ -199,6 +199,7 @@ Set configuration parameter(s). Some common ones are:
 .BR   dcd_pathname: "Path name to the device file of the Data Carrier Detect (or squelch)"
 .BR   disable_yaesu_bandselect: "True disables the automatic band select on band change for Yaesu rigs"
 .BR   dtr_state:  "ON turns on DTR, OFF turns it off, Unset disables it"
+.BR   freq_skip: "!=0 skips setting freq on TX_VFO when in RX and on RX_VFO when in TX -- for use with gpredict and rigs that do not have TARGETABLE_VFO
 .BR   lo_freq: "Frequency to add to the VFO frequency for use with a transverter"
 .BR   post_write_delay: "Delay in ms between each command sent out"
 .BR   ptt_share: "True enables ptt port to be shared with other apps"
@@ -1558,10 +1559,6 @@ Can also use 1,2,3,4
 .TP
 .BR skip_init
 Skips rig initialization -- useful when executing commands with rigctl to speed up things
-.
-.TP
-.BR freq_skip " " 'skip'
-When skip!=0 skips setting freq on TX_VFO when in RX and on RX_VFO when in TX -- for use with gpredict and rigs that do not have TARGETABLE_VFO
 .
 .SH READLINE
 .
