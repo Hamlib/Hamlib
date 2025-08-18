@@ -146,6 +146,18 @@ int dumpstate(RIG *rig, FILE *fout)
         fprintf(fout, "Rig capable (Mic/Data)\n");
         break;
 
+    case RIG_PTT_CM108:
+        fprintf(fout, "CM108 GPIO pin\n");
+        break;
+
+    case RIG_PTT_GPIO:
+        fprintf(fout, "GPIO pin\n");
+        break;
+
+    case RIG_PTT_GPION:
+        fprintf(fout, "GPIO pin inverted\n");
+        break;
+
     default:
         fprintf(fout, "Unknown\n");
         strcat(warnbuf, " PTT_TYPE");
