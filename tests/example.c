@@ -90,7 +90,7 @@ int main()
 
     if (status != RIG_OK) { printf("Get mode failed?? Err=%s\n", rigerror(status)); }
 
-    printf("Current mode = 0x%lX = %s, width = %ld\n", mode, rig_strrmode(mode),
+    printf("Current mode = 0x%llX = %s, width = %ld\n", (unsigned long long)mode, rig_strrmode(mode),
            width);
 
     /* rig power output */
