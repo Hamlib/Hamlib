@@ -54,7 +54,7 @@
                     RIG_MODE_FM | RIG_MODE_WFM | RIG_MODE_FMN | RIG_MODE_PKTFM |\
                     RIG_MODE_C4FM | RIG_MODE_DSTAR)
 
-#define FLRIG_LEVELS (RIG_LEVEL_AF | RIG_LEVEL_RF | RIG_LEVEL_MICGAIN | RIG_LEVEL_STRENGTH | RIG_LEVEL_RFPOWER_METER | RIG_LEVEL_RFPOWER_METER_WATTS | RIG_LEVEL_RFPOWER | RIG_LEVEL_SWR)
+#define FLRIG_LEVELS (RIG_LEVEL_AF | RIG_LEVEL_AGC | RIG_LEVEL_RF | RIG_LEVEL_MICGAIN | RIG_LEVEL_STRENGTH | RIG_LEVEL_RFPOWER_METER | RIG_LEVEL_RFPOWER_METER_WATTS | RIG_LEVEL_RFPOWER | RIG_LEVEL_SWR)
 
 #define FLRIG_PARM (TOK_FLRIG_VERIFY_FREQ|TOK_FLRIG_VERIFY_PTT)
 
@@ -2377,6 +2377,8 @@ static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_RFPOWER_METER_WATTS:
     case RIG_LEVEL_RFPOWER_METER: cmd = "rig.get_pwrmeter"; break;
 
+    case RIG_LEVEL_AGC: cmd = "rig.get_agc"; break; // flrig 2.0.6+
+
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unknown level=%d\n", __func__, (int)level);
         RETURNFUNC(-RIG_EINVAL);
@@ -2433,6 +2435,11 @@ static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_RFPOWER_METER_WATTS:
         val->f = atof(value) * priv->powermeter_scale;
         rig_debug(RIG_DEBUG_TRACE, "%s: val.f='%s'(%g)\n", __func__, value, val->f);
+        break;
+
+    case RIG_LEVEL_AGC: // flrig 2.0.6+
+        val->i = atoi(value);
+        rig_debug(RIG_DEBUG_TRACE, "%s: val.i='%s'(%d)\n", __func__, value, val->i);
         break;
 
     default:
