@@ -122,28 +122,40 @@ int dumpstate(RIG *rig, FILE *fout)
 
     switch (rs->ptt_type)
     {
+    case RIG_PTT_NONE:
+        fprintf(fout, "None\n");
+        break;
+
     case RIG_PTT_RIG:
         fprintf(fout, "Rig capable\n");
-        break;
-
-    case RIG_PTT_RIG_MICDATA:
-        fprintf(fout, "Rig capable (Mic/Data)\n");
-        break;
-
-    case RIG_PTT_PARALLEL:
-        fprintf(fout, "Parallel port (DATA0)\n");
-        break;
-
-    case RIG_PTT_SERIAL_RTS:
-        fprintf(fout, "Serial port (CTS/RTS)\n");
         break;
 
     case RIG_PTT_SERIAL_DTR:
         fprintf(fout, "Serial port (DTR/DSR)\n");
         break;
 
-    case RIG_PTT_NONE:
-        fprintf(fout, "None\n");
+    case RIG_PTT_SERIAL_RTS:
+        fprintf(fout, "Serial port (CTS/RTS)\n");
+        break;
+
+    case RIG_PTT_PARALLEL:
+        fprintf(fout, "Parallel port (DATA0)\n");
+        break;
+
+    case RIG_PTT_RIG_MICDATA:
+        fprintf(fout, "Rig capable (Mic/Data)\n");
+        break;
+
+    case RIG_PTT_CM108:
+        fprintf(fout, "CM108 GPIO pin\n");
+        break;
+
+    case RIG_PTT_GPIO:
+        fprintf(fout, "GPIO pin\n");
+        break;
+
+    case RIG_PTT_GPION:
+        fprintf(fout, "GPIO pin inverted\n");
         break;
 
     default:
