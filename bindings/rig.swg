@@ -782,6 +782,17 @@ int *rig_spectrum_cb_python(RIG *rig, struct rig_spectrum_line *rig_spectrum_lin
 	}
 #endif
 
+#ifdef SWIGPERL
+	char *send_raw(char *send, char *term, char *returnstr)
+	{
+		returnstr[0] = '\0';
+		int count;
+
+		count = rig_send_raw(self->rig, send, strlen(send), returnstr, MAX_RETURNSTR, term);
+		self->error_status = count < 0 ? count : RIG_OK;
+	}
+#endif
+
 //#ifndef SWIGJAVA
 	/* TODO */
 	void get_level(setting_t level, vfo_t vfo = RIG_VFO_CURR)
