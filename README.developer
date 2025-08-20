@@ -159,7 +159,7 @@ file.  This document introduces hacking the code of Hamlib.
 
   git clone git://git.code.sf.net/p/hamlib/code hamlib
 
-The clone has to only be done the first time.
+The clone only has to be done the first time.
 
 After the initial clone, whenever you want to update your local
 repository, issue the following command in the root directory of Hamlib:
@@ -276,6 +276,9 @@ distributions may differ).
 * automake      1.11                        # automake --version
 * libtool       2.2.6b+                     # libtool --version
 * Git for connection to git.code.sf.net/p/hamlib/code
+
+As of Hamlib 4.7, POSIX thread support (pthreads) is required to compile or
+run Hamlib.
 
 N.B. Hamlib requires libtool >= 2.2.6b in compliance with CVE-2009-3736.
 
@@ -518,6 +521,7 @@ So far, Hamlib has been tested successfully under the following systems:
     * Debian sid mipsel
     * Raspbian armhf (Raspberry Pi Debian derivative)
     * RedHat i386
+    * openSUSE (Leap & Tumbleweed)
     * Linux ppc
     * Slackware i386
     * FreeBSD & NetBSD
