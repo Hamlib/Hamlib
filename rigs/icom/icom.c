@@ -9049,7 +9049,6 @@ int icom_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq,
     RETURNFUNC(RIG_OK);
 }
 
-#if defined(HAVE_PTHREAD)
 static int icom_parse_spectrum_frame(RIG *rig, size_t length,
                                      const unsigned char *frame_data)
 {
@@ -9209,7 +9208,6 @@ static int icom_parse_spectrum_frame(RIG *rig, size_t length,
 
     RETURNFUNC(RIG_OK);
 }
-#endif
 
 int icom_is_async_frame(RIG *rig, size_t frame_length,
                         const unsigned char *frame)
@@ -9262,9 +9260,7 @@ int icom_process_async_frame(RIG *rig, size_t frame_length,
         // TODO: Disable cache timeout for frequency after first transceive packet once we figure out how to get active VFO reliably with transceive updates
         // TODO: rig_set_cache_timeout_ms(rig, HAMLIB_CACHE_FREQ, HAMLIB_CACHE_ALWAYS);
         freq_t freq = (freq_t) from_bcd(frame + 5, (priv->civ_731_mode ? 4 : 5) * 2);
-#if defined(HAVE_PTHREAD)
         rig_fire_freq_event(rig, RIG_VFO_CURR, freq);
-#endif
 
 #if 0
 
@@ -9284,9 +9280,7 @@ int icom_process_async_frame(RIG *rig, size_t frame_length,
         // TODO: Disable cache timeout for frequency after first transceive packet once we figure out how to get active VFO reliably with transceive updates
         // TODO: rig_set_cache_timeout_ms(rig, HAMLIB_CACHE_MODE, HAMLIB_CACHE_ALWAYS);
         icom2rig_mode(rig, frame[5], frame[6], &mode, &width);
-#if defined(HAVE_PTHREAD)
         rig_fire_mode_event(rig, RIG_VFO_CURR, mode, width);
-#endif
 
         if (rs->use_cached_mode != 1)
         {
@@ -9297,8 +9291,6 @@ int icom_process_async_frame(RIG *rig, size_t frame_length,
 
         break;
 
-#if defined(HAVE_PTHREAD)
-
     case C_CTL_SCP:
         if (frame[5] == S_SCP_DAT)
         {
@@ -9306,7 +9298,6 @@ int icom_process_async_frame(RIG *rig, size_t frame_length,
         }
 
         break;
-#endif
 
     default:
         rig_debug(RIG_DEBUG_VERBOSE, "%s: transceive cmd unsupported %#2.2x\n",
