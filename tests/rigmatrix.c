@@ -37,7 +37,7 @@ static setting_t bitmap_func, bitmap_level, bitmap_parm, bitmap_vfo_ops;
 static int create_png_range(const freq_range_t rx_range_list[],
                      const freq_range_t tx_range_list[], int num);
 
-int print_caps_sum(struct rig_caps *caps, void *data)
+int print_caps_sum(const struct rig_caps *caps, void *data)
 {
 
     printf("<TR><TD><A HREF=\"support/model%u.txt\">%s</A></TD><TD>%s</TD>"
@@ -112,7 +112,7 @@ int print_caps_sum(struct rig_caps *caps, void *data)
 /*
  * IO params et al.
  */
-static int print_caps_parameters(struct rig_caps *caps, void *data)
+static int print_caps_parameters(const struct rig_caps *caps, void *data)
 {
     printf("<A NAME=\"parms%u\"><TR><TD>%s</TD><TD>",
            caps->rig_model,
@@ -223,7 +223,7 @@ static int print_caps_parameters(struct rig_caps *caps, void *data)
  *
  * TODO: add new API calls!
  */
-static int print_caps_caps(struct rig_caps *caps, void *data)
+static int print_caps_caps(const struct rig_caps *caps, void *data)
 {
     printf("<A NAME=\"caps%u\"><TR><TD>%s</TD>",
            caps->rig_model,
@@ -271,7 +271,7 @@ static int print_caps_caps(struct rig_caps *caps, void *data)
 /*
  * Get/Set parm abilities
  */
-static int print_caps_parm(struct rig_caps *caps, void *data)
+static int print_caps_parm(const struct rig_caps *caps, void *data)
 {
     setting_t parm;
     int i;
@@ -307,7 +307,7 @@ static int print_caps_parm(struct rig_caps *caps, void *data)
 /*
  * VFO Ops capabilities
  */
-static int print_caps_vfo_ops(struct rig_caps *caps, void *data)
+static int print_caps_vfo_ops(const struct rig_caps *caps, void *data)
 {
     setting_t vfo_ops;
     int i;
@@ -345,7 +345,7 @@ static int print_caps_vfo_ops(struct rig_caps *caps, void *data)
 /*
  * Get/Set level abilities
  */
-static int print_caps_level(struct rig_caps *caps, void *data)
+static int print_caps_level(const struct rig_caps *caps, void *data)
 {
     setting_t level;
     int i;
@@ -382,7 +382,7 @@ static int print_caps_level(struct rig_caps *caps, void *data)
 /*
  * Get/Set func abilities
  */
-static int print_caps_func(struct rig_caps *caps, void *data)
+static int print_caps_func(const struct rig_caps *caps, void *data)
 {
     setting_t func;
     int i;
@@ -421,7 +421,7 @@ static int print_caps_func(struct rig_caps *caps, void *data)
  *
  * FIXME: default output pics is for region2: add region 1 too!
  */
-static int print_caps_range(struct rig_caps *caps, void *data)
+static int print_caps_range(const struct rig_caps *caps, void *data)
 {
     create_png_range(caps->rx_range_list2, caps->tx_range_list2,
                      caps->rig_model);
