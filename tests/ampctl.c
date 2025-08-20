@@ -132,6 +132,7 @@ int main(int argc, char *argv[])
     int serial_rate = 0;
     char conf_parms[MAXCONFLEN] = "";
 
+    rig_set_debug(verbose);
     while (1)
     {
         int c;
@@ -216,6 +217,7 @@ int main(int argc, char *argv[])
 
         case 'v':
             verbose++;
+            rig_set_debug(verbose);
             break;
 
         case 'L':
@@ -223,7 +225,6 @@ int main(int argc, char *argv[])
             break;
 
         case 'l':
-            rig_set_debug(0);
             list_models();
             exit(0);
 
@@ -240,8 +241,6 @@ int main(int argc, char *argv[])
             exit(1);
         }
     }
-
-    rig_set_debug(verbose);
 
     rig_debug(RIG_DEBUG_VERBOSE, "ampctl %s\n", hamlib_version2);
     rig_debug(RIG_DEBUG_VERBOSE, "%s",
