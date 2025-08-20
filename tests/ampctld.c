@@ -694,7 +694,7 @@ void usage()
         "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
         "  -t, --port=NUM                set TCP listening port, default %s\n"
         "  -T, --listen-addr=IPADDR      set listening IP address, default ANY\n"
-        "  -C, --set-conf=PARM=VAL       set config parameters\n"
+        "  -C, --set-conf=PARM=VAL[,...] set config parameters\n"
         "  -L, --show-conf               list all config parameters\n"
         "  -l, --list                    list all model numbers and exit\n"
         "  -u, --dump-caps               dump capabilities and exit\n"
@@ -705,6 +705,4 @@ void usage()
         portno);
 
     usage_amp(stdout);
-
-    printf("\nReport bugs to <hamlib-developer@lists.sourceforge.net>.\n");
 }
