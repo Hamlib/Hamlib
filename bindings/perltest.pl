@@ -68,6 +68,15 @@ print "Attenuators:\t\t@$att\n";
 print "\nSending Morse, '73'\n";
 $rig->send_morse($Hamlib::RIG_VFO_A, "73");
 
+print "\nSending raw string\n";
+$send = "test string 012\n";
+
+$reply = $rig->send_raw($send, "\n");
+exit(1) if(!$reply eq $send);
+
+$reply = $rig->send_raw($send, "1");
+exit(1) if(!$reply eq "test string 01");
+
 $rig->close();
 
 
