@@ -172,6 +172,7 @@ int main(int argc, char *argv[])
 #endif
     struct handle_data *arg;
 
+    rig_set_debug(verbose);
     while (1)
     {
         int c;
@@ -250,6 +251,7 @@ int main(int argc, char *argv[])
 
         case 'v':
             verbose++;
+            rig_set_debug(verbose);
             break;
 
         case 'L':
@@ -273,8 +275,6 @@ int main(int argc, char *argv[])
             exit(1);
         }
     }
-
-    rig_set_debug(verbose);
 
     rig_debug(RIG_DEBUG_VERBOSE, "rotctld, %s\n", hamlib_version2);
     rig_debug(RIG_DEBUG_VERBOSE, "%s",

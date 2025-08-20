@@ -289,7 +289,7 @@ int main(int argc, char *argv[])
 
     if (err) { rig_debug(RIG_DEBUG_ERR, "%s: setvbuf err=%s\n", __func__, strerror(err)); }
 
-
+    rig_set_debug(verbose);
     while (1)
     {
         int c;
@@ -481,6 +481,7 @@ int main(int argc, char *argv[])
 
         case 'v':
             verbose++;
+            rig_set_debug(verbose);
             break;
 
         case 'L':
@@ -547,8 +548,6 @@ int main(int argc, char *argv[])
     }
 
 #endif
-
-    rig_set_debug(verbose);
 
     SNPRINTF(rigstartup, sizeof(rigstartup), "%s(%d) Startup:", __FILE__, __LINE__);
 

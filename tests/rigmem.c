@@ -105,6 +105,7 @@ int main(int argc, char *argv[])
     char conf_parms[MAXCONFLEN] = "";
     extern char csv_sep;
 
+    rig_set_debug(verbose);
     while (1)
     {
         int c;
@@ -182,6 +183,7 @@ int main(int argc, char *argv[])
 
         case 'v':
             verbose++;
+            rig_set_debug(verbose);
             break;
 
         default:

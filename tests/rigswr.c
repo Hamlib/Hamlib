@@ -79,6 +79,7 @@ int main(int argc, char *argv[])
     freq_t step = kHz(100);
     value_t pwr;
 
+    rig_set_debug(verbose);
     while (1)
     {
         int c;
@@ -173,6 +174,7 @@ int main(int argc, char *argv[])
 
         case 'v':
             verbose++;
+            rig_set_debug(verbose);
             break;
 
         default:

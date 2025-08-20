@@ -89,6 +89,7 @@ int main(int argc, char *argv[])
     elevation_t elevation;
     unsigned step = 1000000;    /* 1e6 us */
 
+    rig_set_debug(verbose);
     while (1)
     {
         int c;
@@ -172,6 +173,7 @@ int main(int argc, char *argv[])
 
         case 'v':
             verbose++;
+            rig_set_debug(verbose);
             break;
 
         default:

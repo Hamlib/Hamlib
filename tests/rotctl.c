@@ -140,6 +140,7 @@ int main(int argc, char *argv[])
     azimuth_t az_offset = 0;
     elevation_t el_offset = 0;
 
+    rig_set_debug(verbose);
     while (1)
     {
         int c;
@@ -237,6 +238,7 @@ int main(int argc, char *argv[])
 
         case 'v':
             verbose++;
+            rig_set_debug(verbose);
             break;
 
         case 'L':
@@ -244,7 +246,6 @@ int main(int argc, char *argv[])
             break;
 
         case 'l':
-            rig_set_debug(0);
             list_models();
             exit(0);
 
@@ -261,8 +262,6 @@ int main(int argc, char *argv[])
             exit(1);
         }
     }
-
-    rig_set_debug(verbose);
 
     rig_debug(RIG_DEBUG_VERBOSE, "rotctl %s\n", hamlib_version2);
     rig_debug(RIG_DEBUG_VERBOSE, "%s",
