@@ -24,8 +24,10 @@
 #ifndef _RIG_STATE_H
 #define _RIG_STATE_H 1
 
-__BEGIN_DECLS
+//#include <hamlib/rig.h>
+//#include <pthread.h>
 
+__BEGIN_DECLS
 
 /**
  * \addtogroup rig
