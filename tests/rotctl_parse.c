@@ -1738,7 +1738,7 @@ declare_proto_rot(set_conf)
     }
     else
     {
-        ret = rot_set_conf(rot, rot_token_lookup(rot, arg1), arg2);
+        ret = rot_set_conf(rot, mytoken, arg2);
     }
 
     return (ret);

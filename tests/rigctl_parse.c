@@ -6102,7 +6102,7 @@ declare_proto_rig(set_conf)
     }
     else
     {
-        ret = rig_set_conf(rig, rig_token_lookup(rig, arg1), arg2);
+        ret = rig_set_conf(rig, mytoken, arg2);
     }
 
     return (ret);
