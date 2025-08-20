@@ -734,6 +734,4 @@ void usage()
         portno);
 
     usage_rot(stdout);
-
-    printf("\nReport bugs to <hamlib-developer@lists.sourceforge.net>.\n");
 }

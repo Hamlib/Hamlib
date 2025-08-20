@@ -1432,7 +1432,7 @@ void usage(void)
         "  -t, --port=NUM                set TCP listening port, default %s\n"
         "  -S, --separator=CHAR          set char as rigctld response separator, default is \\n\n"
         "  -T, --listen-addr=IPADDR      set listening IP address, default ANY\n"
-        "  -C, --set-conf=PARM=VAL       set config parameters\n"
+        "  -C, --set-conf=PARM=VAL[,...] set config parameters\n"
         "  -L, --show-conf               list all config parameters\n"
         "  -l, --list                    list all model numbers and exit\n"
         "  -u, --dump-caps               dump capabilities and exit\n"
@@ -1440,7 +1440,7 @@ void usage(void)
         "  -v, --verbose                 set verbose mode, cumulative (-v to -vvvvv)\n"
         "  -W, --twiddle_timeout=SECONDS timeout after detecting vfo manual change\n"
         "  -w, --twiddle_rit=SECONDS     suppress VFOB getfreq so RIT can be twiddled\n"
-        "  -x, --uplink                  set uplink get_freq ignore, 1=Sub, 2=Main\n"
+        "  -x, --uplink=OPTION           set uplink get_freq ignore, option 1=Sub, 2=Main\n"
         "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
         "  -M, --multicast-addr=ADDR     set multicast UDP address, default 0.0.0.0 (off), recommend 224.0.1.1\n"
         "  -n, --multicast-port=PORT     set multicast UDP port, default 4531\n"
@@ -1451,15 +1451,4 @@ void usage(void)
         portno);
 
     usage_rig(stdout);
-
-    printf("\nError codes and messages\n");
-
-    for (enum rig_errcode_e e = 0; e < RIG_EEND; ++e)
-    {
-        printf("-%d - %s", e, rigerror2(e));
-    }
-
-
-    printf("\nReport bugs to <hamlib-developer@lists.sourceforge.net>.\n");
-
 }
