@@ -409,6 +409,8 @@ AC_ARG_WITH([indi],
     [cf_with_indi_support=yes]
 )
 
+AC_MSG_RESULT([$cf_with_indi_support])
+
 AS_IF([test x"$cf_with_indi_support" = "xyes"], [
     AS_IF([test x"${cf_with_cxx}" != "xyes"], [
         AC_MSG_ERROR([INDI support needs a C++ compiler.])
