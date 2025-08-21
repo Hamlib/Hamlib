@@ -111,10 +111,10 @@ AC_PROG_AWK
 AC_PROG_INSTALL
 AC_PROG_LN_S
 
-AS_IF([test -z "$CXX"], [
-	cf_with_cxx=yes,
-	cf_with_cxx=no
-])
+AS_IF([test -z "$CXX"],
+	[cf_with_cxx=no],
+	[cf_with_cxx=yes]
+)
 AM_CONDITIONAL([ENABLE_CXX], [test x"${cf_with_cxx}" = "xyes"])
 
 dnl Broke on older Automake, so test for its existence.
