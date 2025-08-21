@@ -111,9 +111,10 @@ AC_PROG_AWK
 AC_PROG_INSTALL
 AC_PROG_LN_S
 
-# TODO: check whether CXX is functional
-AC_CHECK_PROG([cf_with_cxx], ["${CXX}"], [yes], [no])
-
+AS_IF([test -z "$CXX"], [
+	cf_with_cxx=yes,
+	cf_with_cxx=no
+])
 AM_CONDITIONAL([ENABLE_CXX], [test x"${cf_with_cxx}" = "xyes"])
 
 dnl Broke on older Automake, so test for its existence.
