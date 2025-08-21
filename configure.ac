@@ -401,20 +401,17 @@ AS_IF([test x"$ax_cv_lib_readline" = "xno"], [
 
 dnl Check if INDI support in rigctl/rotctl is wanted
 AC_MSG_CHECKING([whether to use INDI in rigctl/rotctl])
-#AS_IF([test x"${cf_with_cxx_binding}" = "xyes"], [
-    AC_ARG_WITH([indi],
-        [AS_HELP_STRING([--without-indi],
-    	[disable INDI in rigctl/rotctl @<:@default=yes@:>@])],
-    	[cf_with_indi_support=$with_indi],
-    	[cf_with_indi_support=no]
-    )
-#])
 
-AS_IF([test x"$cf_with_indi_support" != "xno"], [
-    # INDI support needs a C++ compiler, tested for presence above.
+AC_ARG_WITH([indi],
+    [AS_HELP_STRING([--without-indi],
+    [disable INDI in rigctl/rotctl @<:@default=yes@:>@])],
+    [cf_with_indi_support=$withval],
+    [cf_with_indi_support=yes]
+)
+
+AS_IF([test x"$cf_with_indi_support" = "xyes"], [
     AS_IF([test x"${cf_with_cxx}" != "xyes"], [
-	AC_MSG_WARN([INDI support needs a C++ compiler.])
-	cf_with_indi_support=no
+        AC_MSG_ERROR([INDI support needs a C++ compiler.])
     ])
 ])
 
@@ -556,8 +553,14 @@ AC_ARG_WITH([cxx-binding],
 	    [AS_HELP_STRING([--without-cxx-binding],
 			    [do not build C++ binding @<:@default=yes@:>@])],
 	    [cf_with_cxx_binding=$withval],
-	    [cf_with_cxx_binding=$cf_with_cxx])
+	    [cf_with_cxx_binding=yes])
 AC_MSG_RESULT([$cf_with_cxx_binding])
+
+AS_IF([test x"$cf_with_cxx_binding" = "xyes"], [
+    AS_IF([test x"${cf_with_cxx}" != "xyes"], [
+        AC_MSG_ERROR([C++ binding needs a C++ compiler.])
+    ])
+])
 
 AS_IF([test x"${cf_with_cxx_binding}" = "xyes"],
       [BINDINGS="${BINDINGS} c++"])
@@ -816,7 +819,7 @@ AS_IF([test x"${DL_LIBS}" = "x-ldl"],
 AC_SUBST([DL_LIBS])
 
 dnl check for c++11
-AX_CXX_COMPILE_STDCXX([11],[noext],[mandatory])
+AX_CXX_COMPILE_STDCXX([11],[noext],[optional])
 
 
 dnl stuff that requires C++ support
