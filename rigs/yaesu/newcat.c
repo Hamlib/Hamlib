@@ -438,11 +438,15 @@ static int newcat_band_index(freq_t freq)
     // using < instead of <= for the moment
     // does anybody work LSB or RTTYR at the upper band edge?
     // what about band 13 -- what is it?
-    if (freq >= MHz(420) && freq < MHz(470)) { band = 16; }
+    if (freq >= MHz(420) && freq < MHz(470) && !is_ftx1) { band = 16; }
+    else if (freq >= MHz(420) && freq < MHz(470) && is_ftx1) { band = 14; }
+    else if (freq >= MHz(144) && freq < MHz(148) && is_ftx1) { band = 13; }
     else if (freq >= MHz(144) && freq < MHz(148)) { band = 15; }
     // band 14 is RX only
     // override band 15 with 14 if needed
+    else if (freq >= MHz(118) && freq < MHz(164) && is_ftx1) { band = 12; }
     else if (freq >= MHz(118) && freq < MHz(164)) { band = 14; }
+    else if (freq >= MHz(70) && freq < MHz(70.5) && is_ftx1) { band = 11; }
     else if (freq >= MHz(70) && freq < MHz(70.5)) { band = 17; }
     else if (freq >= MHz(50) && freq < MHz(55)) { band = 10; }
     else if (freq >= MHz(28) && freq < MHz(29.7)) { band = 9; }
@@ -864,7 +868,7 @@ int newcat_60m_exception(RIG *rig, freq_t freq, mode_t mode)
     // some rigs need to skip freq/mode settings as 60M only operates in memory mode
     if (is_ft991 || is_ft897 || is_ft897d || is_ftdx5000 || is_ftdx10) { return 1; }
 
-    if (!is_ftdx10 && !is_ft710 && !is_ftdx101d && !is_ftdx101mp) { return 0; }
+    if (!is_ftdx10 && !is_ft710 && !is_ftdx101d && !is_ftdx101mp && !is_ftx1) { return 0; }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: 60M exception ignoring freq/mode commands\n",
               __func__);
@@ -2790,7 +2794,7 @@ int newcat_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         vfo = RIG_VFO_A;
         tx_vfo = RIG_SPLIT_ON == split ? RIG_VFO_B : RIG_VFO_A;
     }
-    else if (is_ftdx101d || is_ftdx101mp)
+    else if (is_ftdx101d || is_ftdx101mp || is_ftx1)
     {
         // FTDX101(D/MP) always use Sub VFO for transmit when in split mode
         vfo = RIG_VFO_MAIN;
@@ -3025,7 +3029,7 @@ int newcat_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 
     case 41: // FT-991 V2-01 seems to randomly give 13 extra bytes
     case 28: offset = 14; break;
-
+    case 30: offset = 14; break;
     default: offset = 0;
     }
 
@@ -3139,7 +3143,7 @@ int newcat_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
     switch (strlen(priv->ret_data))
     {
     case 27: offset = 13; break;
-
+    case 30: offset = 14; break;
     case 41: // FT-991 V2-01 seems to randomly give 13 extra bytes
     case 28: offset = 14; break;
 
@@ -8583,7 +8587,7 @@ static int newcat_get_split(RIG *rig, split_t *split, vfo_t *tx_vfo)
         *split = RIG_SPLIT_ON;
 
         // These rigs have fixed RX and TX VFOs when using the ST split command
-        if (is_ftdx101d || is_ftdx101mp)
+        if (is_ftdx101d || is_ftdx101mp || is_ftx1)
         {
             *tx_vfo = RIG_VFO_SUB;
         }
@@ -11114,7 +11118,7 @@ int newcat_get_vfo_mode(RIG *rig, vfo_t vfo, vfo_t *vfo_mode)
     switch (strlen(priv->ret_data))
     {
     case 27: offset = 21; priv->width_frequency = 8; break;
-
+    case 30: offset = 21; priv->width_frequency = 8; break;
     case 41: // FT-991 V2-01 seems to randomly give 13 extra bytes
     case 28: offset = 22; priv->width_frequency = 9; break;
 

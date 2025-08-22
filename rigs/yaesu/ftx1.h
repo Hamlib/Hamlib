@@ -164,7 +164,7 @@
 /* Delay between bytes sent to FTX-1
  * Should not exceed value set in CAT TOT menu (rig default is 10 mSec)
  */
-#define FTX1_WRITE_DELAY                    5
+#define FTX1_WRITE_DELAY                    0
 
 
 /* Delay sequential fast writes */
