@@ -783,7 +783,7 @@ int *rig_spectrum_cb_python(RIG *rig, struct rig_spectrum_line *rig_spectrum_lin
 #endif
 
 #ifdef SWIGPERL
-	char *send_raw(char *send, char *term, char *returnstr)
+	void send_raw(char *send, char *term, char *returnstr)
 	{
 		returnstr[0] = '\0';
 		int count;
