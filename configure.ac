@@ -111,11 +111,13 @@ AC_PROG_AWK
 AC_PROG_INSTALL
 AC_PROG_LN_S
 
-AS_IF([test -z "$CXX"],
-	[cf_with_cxx=no],
-	[cf_with_cxx=yes]
+dml check whether CXX is functional
+AX_CXX_COMPILE_STDCXX([11],[noext],[optional])
+AS_IF([test "$HAVE_CXX11" = 1],
+       [cf_with_cxx=yes],
+       [cf_with_cxx=no]
 )
-AM_CONDITIONAL([ENABLE_CXX], [test x"${cf_with_cxx}" = "xyes"])
+AM_CONDITIONAL([ENABLE_CXX], [test "$HAVE_CXX11" = 1])
 
 dnl Broke on older Automake, so test for its existence.
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
@@ -820,9 +822,6 @@ AS_IF([test x"${DL_LIBS}" = "x-ldl"],
       [AC_CHECK_HEADERS([dlfcn.h])])
 
 AC_SUBST([DL_LIBS])
-
-dnl check for c++11
-AX_CXX_COMPILE_STDCXX([11],[noext],[optional])
 
 
 dnl stuff that requires C++ support
