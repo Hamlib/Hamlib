@@ -111,7 +111,7 @@ AC_PROG_AWK
 AC_PROG_INSTALL
 AC_PROG_LN_S
 
-dml check whether CXX is functional
+dnl check whether CXX is functional
 AX_CXX_COMPILE_STDCXX([11],[noext],[optional])
 AS_IF([test "$HAVE_CXX11" = 1],
        [cf_with_cxx=yes],
