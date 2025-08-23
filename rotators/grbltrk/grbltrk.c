@@ -125,9 +125,9 @@ grbl_request(ROT *rot, char *request, uint32_t req_size, char *response,
         if ((retval = write_block(rotp, (unsigned char *)request,
                                   req_size)) != RIG_OK)
         {
-            rot_debug(RIG_DEBUG_ERR, "%s write_block fail!\n", __func__);
-            //exit(-1);
             fail_count++;
+            rot_debug(RIG_DEBUG_ERR, "%s write_block fail! (%d) fail_count %d\n", __func__, retval, fail_count);
+            //exit(-1);
             //return -RIG_EIO;
         }
         else
@@ -142,9 +142,9 @@ grbl_request(ROT *rot, char *request, uint32_t req_size, char *response,
         if ((retval = read_string(rotp, (unsigned char *)response, 1024,
                                   "\n", 1, 0, 1)) < 0)
         {
-            rot_debug(RIG_DEBUG_ERR, "%s read_string fail! (%d) \n", __func__, retval);
-            //exit(-1);
             fail_count++;
+            rot_debug(RIG_DEBUG_ERR, "%s read_string fail! (%d) fail_count %d\n", __func__, retval, fail_count);
+            //exit(-1);
             //return -RIG_EIO;
         }
         else
