@@ -448,11 +448,11 @@ grbltrk_rot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
 static int
 grbltrk_rot_open(ROT *rot)
 {
-    int r = RIG_OK;
+    int r;
 
     rot_debug(RIG_DEBUG_TRACE, "%s:%d\n", __func__, __LINE__);
 
-    grbl_init(rot);
+    r = grbl_init(rot);
 
     return r;
 }
