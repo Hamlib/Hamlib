@@ -155,7 +155,7 @@ grbl_request(ROT *rot, char *request, uint32_t req_size, char *response,
         if (fail_count >= 10)
         {
             rot_debug(RIG_DEBUG_ERR, "%s too much xfer fail! exit\n", __func__);
-            return -RIG_EPROTO;
+            return retval;
         }
 
         rig_flush(rotp);
@@ -198,7 +198,7 @@ grbl_init(ROT *rot)
         if (retval != RIG_OK)
         {
             rot_debug(RIG_DEBUG_ERR, "grbl_request [%s] fail\n", grbl_init_list[i]);
-            return -RIG_EIO;
+            return retval;
         }
     }
 
