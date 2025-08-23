@@ -116,8 +116,6 @@ grbl_request(ROT *rot, char *request, uint32_t req_size, char *response,
     static int fail_count = 0;
     hamlib_port_t *rotp = ROTPORT(rot);
 
-    rot_debug(RIG_DEBUG_ERR, "req: [%s][%d]\n", request, fail_count);
-
     if (rot->caps->rot_model == ROT_MODEL_GRBLTRK_SER
             || rot->caps->rot_model == ROT_MODEL_GRBLTRK_NET)
     {
@@ -162,11 +160,7 @@ grbl_request(ROT *rot, char *request, uint32_t req_size, char *response,
 
         rig_flush(rotp);
 
-        rot_debug(RIG_DEBUG_ERR, "rsp: [%s]\n", response);
-        //fprintf(stderr, "rsp: [%s]\n", response);
-
         *resp_size = retval;
-
     }
 
     return RIG_OK;
@@ -194,7 +188,7 @@ grbl_init(ROT *rot)
     for (i = 0; i < init_count; i++)
     {
         int retval;
-        rot_debug(RIG_DEBUG_ERR, "grbl_request [%s] ", grbl_init_list[i]);
+
         retval = grbl_request(rot, grbl_init_list[i], strlen(grbl_init_list[i]), rsp,
                               &resp_size);
 
