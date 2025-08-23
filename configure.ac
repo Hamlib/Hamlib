@@ -402,12 +402,12 @@ AS_IF([test x"$ax_cv_lib_readline" = "xno"], [
     cf_with_readline_support=no
     ])
 
-dnl Check if INDI support in rigctl/rotctl is wanted
-AC_MSG_CHECKING([whether to use INDI in rigctl/rotctl])
+dnl Check if INDI support in rotctl/rotctld is wanted
+AC_MSG_CHECKING([whether to use INDI in rotctl/rotctld])
 
 AC_ARG_WITH([indi],
     [AS_HELP_STRING([--without-indi],
-    [disable INDI in rigctl/rotctl @<:@default=yes@:>@])],
+        [disable INDI in rotctl/rotctld @<:@default=yes:>@])],
     [cf_with_indi_support=$withval],
     [cf_with_indi_support=yes]
 )
