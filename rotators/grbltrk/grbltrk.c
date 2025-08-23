@@ -174,6 +174,8 @@ grbl_init(ROT *rot)
     char rsp[RSIZE];
     uint32_t resp_size;
 
+    rot_debug(RIG_DEBUG_TRACE, "%s:%d\n", __func__, __LINE__);
+
     /* get total config */
     grbl_request(rot, grbl_get_config, strlen(grbl_get_config), rsp, &resp_size);
 
@@ -444,65 +446,13 @@ grbltrk_rot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
 }
 
 static int
-grbltrk_rot_init(ROT *rot)
-{
-    int r = RIG_OK;
-
-    rot_debug(RIG_DEBUG_TRACE, "%s:%d rot->caps->rot_model: %d\n", __func__, __LINE__,
-              rot->caps->rot_model);
-
-    return r;
-}
-
-static int
-grbl_net_open(ROT *rot, int port)
-{
-    //network_open(ROTPORT(rot), port);
-
-    //rot_debug(RIG_DEBUG_TRACE, "%s:%d network_fd: %d\n", __func__, __LINE__, ROTPORT(rot)->fd);
-    rot_debug(RIG_DEBUG_TRACE, "%s:%d \n", __func__, __LINE__);
-
-    return 0;
-}
-
-static int
 grbltrk_rot_open(ROT *rot)
 {
     int r = RIG_OK;
-    char host[128] = {0};
-    //char ip[32];
-    //int port;
 
-    //rot_debug(RIG_DEBUG_TRACE, "%s:%d rot->caps->rot_model: %d\n", __func__, __LINE__, rot->caps->rot_model);
-    if (rot->caps->rot_model == ROT_MODEL_GRBLTRK_SER)
-    {
-        rot_debug(RIG_DEBUG_TRACE, "%s:%d ctrl via serial\n", __func__, __LINE__);
-    }
-    else if (rot->caps->rot_model == ROT_MODEL_GRBLTRK_NET)
-    {
-        rot_get_conf2(rot, TOK_PATHNAME, host, sizeof(host));
-        rot_debug(RIG_DEBUG_TRACE, "%s:%d ctrl via net, host [%s]\n", __func__, __LINE__,
-                  host);
-        grbl_net_open(rot, 23);
-
-#if 0
-
-        if (sscanf(host, "%[^:]:%d", ip, &port) == 2)
-        {
-            grbl_net_open(rot, ip, port);
-        }
-        else
-        {
-            grbl_net_open(rot, NULL, 0); /* use default ip & port */
-        }
-
-#endif
-
-    }
+    rot_debug(RIG_DEBUG_TRACE, "%s:%d\n", __func__, __LINE__);
 
     grbl_init(rot);
-
-    //rot_debug(RIG_DEBUG_TRACE, "%s:%d\n", __func__, __LINE__);
 
     return r;
 }
@@ -518,11 +468,7 @@ grbltrk_rot_close(ROT *rot)
 {
     int r = RIG_OK;
 
-    if (rot->caps->rot_model == ROT_MODEL_GRBLTRK_SER)
-    {
-        rot_debug(RIG_DEBUG_TRACE, "%s:%d\n", __func__, __LINE__);
-    }
-    else if (rot->caps->rot_model == ROT_MODEL_GRBLTRK_NET)
+    if (rot->caps->rot_model == ROT_MODEL_GRBLTRK_NET)
     {
         rot_debug(RIG_DEBUG_TRACE, "%s:%d\n", __func__, __LINE__);
         grbl_net_close(rot);
@@ -563,7 +509,6 @@ const struct rot_caps grbltrk_serial_rot_caps =
     .min_el =     0,
     .max_el =     90,
 
-    .rot_init     =  grbltrk_rot_init,
     .rot_open     =  grbltrk_rot_open,
 
     .set_position =  grbltrk_rot_set_position,
@@ -595,7 +540,6 @@ const struct rot_caps grbltrk_net_rot_caps =
     .min_el =     0,
     .max_el =     90,
 
-    .rot_init     =  grbltrk_rot_init,
     .rot_open     =  grbltrk_rot_open,
     .rot_close    =  grbltrk_rot_close,
 
