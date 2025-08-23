@@ -224,7 +224,7 @@ grbltrk_rot_set_position(ROT *rot, azimuth_t curr_az, elevation_t curr_el)
 
     /* az:x: 0 - 360 */
     /* el:y: 0 - 90 */
-    rot_debug(RIG_DEBUG_ERR,
+    rot_debug(RIG_DEBUG_TRACE,
               "%s: (prev_x) = (%.3f); (prev_az) = (%.3f); (prev_el) = (%.3f); (curr_az, curr_el) = (%.3f, %.3f)\n",
               __func__,
               prev_x, prev_az, prev_el, curr_az, curr_el);
@@ -238,7 +238,7 @@ grbltrk_rot_set_position(ROT *rot, azimuth_t curr_az, elevation_t curr_el)
             (curr_az > 0   && curr_az < 90))
     {
 
-        rot_debug(RIG_DEBUG_ERR, "%s:%d\n", __func__, __LINE__);
+        rot_debug(RIG_DEBUG_TRACE, "%s:%d\n", __func__, __LINE__);
 
         if (prev_x >= XDEGREE2MM(270))
         {
@@ -254,7 +254,7 @@ grbltrk_rot_set_position(ROT *rot, azimuth_t curr_az, elevation_t curr_el)
     else if ((prev_az > 0   && prev_az < 90) &&
              (curr_az > 270 && curr_az < 360))
     {
-        rot_debug(RIG_DEBUG_ERR, "%s:%d\n", __func__, __LINE__);
+        rot_debug(RIG_DEBUG_TRACE, "%s:%d\n", __func__, __LINE__);
 
         if (prev_x >= XDEGREE2MM(360))
         {
@@ -269,12 +269,12 @@ grbltrk_rot_set_position(ROT *rot, azimuth_t curr_az, elevation_t curr_el)
     }
     else if (curr_az == 0 && curr_el == 0)
     {
-        rot_debug(RIG_DEBUG_ERR, "%s: reset\n", __func__);
+        rot_debug(RIG_DEBUG_TRACE, "%s: reset\n", __func__);
         curr_x = 0;
     }
     else
     {
-        rot_debug(RIG_DEBUG_ERR, "%s:%d prev_x: %.3f\n", __func__, __LINE__, prev_x);
+        rot_debug(RIG_DEBUG_TRACE, "%s:%d prev_x: %.3f\n", __func__, __LINE__, prev_x);
 
         x[0] = XDEGREE2MM(curr_az) - XDEGREE2MM(360);
         x[1] = XDEGREE2MM(curr_az);
@@ -303,7 +303,7 @@ grbltrk_rot_set_position(ROT *rot, azimuth_t curr_az, elevation_t curr_el)
         }
 
         curr_x = x[min_index];
-        rot_debug(RIG_DEBUG_ERR, "min_index: %d; curr_x: %.3f\n", min_index, curr_x);
+        rot_debug(RIG_DEBUG_TRACE, "min_index: %d; curr_x: %.3f\n", min_index, curr_x);
     }
 
     y = YDEGREE2MM(curr_el);
@@ -341,7 +341,7 @@ grbltrk_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
     int i;
 
-    rot_debug(RIG_DEBUG_ERR, "%s called\n", __func__);
+    rot_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     //snprintf(req, sizeof(req), "?\r\n");
 
@@ -371,7 +371,7 @@ grbltrk_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
         //<Idle|MPos:0.000,0.000,0.000|FS:0,0|Pn:P|WCO:5.000,0.000,0.000>
         sscanf(rsp, "%[^'|']|MPos:%f,%f,%255s", dummy0, &mpos[0], &mpos[1], dummy1);
 
-        //rot_debug(RIG_DEBUG_ERR, "%s: (%.3f, %.3f) (%.3f, %.3f)\n", __func__, mpos[0], mpos[1], wpos[0], wpos[1]);
+        //rot_debug(RIG_DEBUG_TRACE, "%s: (%.3f, %.3f) (%.3f, %.3f)\n", __func__, mpos[0], mpos[1], wpos[0], wpos[1]);
 
         //*az = (azimuth_t) mpos[0] / 0.111;
         //*el = (elevation_t) mpos[1] / 0.111;
@@ -383,9 +383,7 @@ grbltrk_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
             (*az) = (*az) + 360;
         }
 
-        //rot_debug(RIG_DEBUG_ERR, "%s: (az, el) = (%.3f, %.3f)\n", __func__, *az, *el);
-
-        rot_debug(RIG_DEBUG_ERR, "%s: (az, el) = (%.3f, %.3f)\n", __func__, *az, *el);
+        rot_debug(RIG_DEBUG_TRACE, "%s: (az, el) = (%.3f, %.3f)\n", __func__, *az, *el);
 
         return RIG_OK;
 
@@ -401,7 +399,7 @@ grbltrk_rot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
 {
     uint32_t resp_size, len;
 
-    rot_debug(RIG_DEBUG_ERR, "token: %ld; value: [%s]\n", token, val);
+    rot_debug(RIG_DEBUG_TRACE, "token: %ld; value: [%s]\n", token, val);
 
     len = strlen(val);
 
@@ -432,7 +430,7 @@ grbltrk_rot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
         req[i] = '\n';
         len = strlen(req);
 
-        rot_debug(RIG_DEBUG_ERR, "send gcode [%s]\n", req);
+        rot_debug(RIG_DEBUG_TRACE, "send gcode [%s]\n", req);
         retval = grbl_request(rot, req, len, rsp, &resp_size);
 
         if (retval < 0)
@@ -450,7 +448,7 @@ grbltrk_rot_init(ROT *rot)
 {
     int r = RIG_OK;
 
-    rot_debug(RIG_DEBUG_ERR, "%s:%d rot->caps->rot_model: %d\n", __func__, __LINE__,
+    rot_debug(RIG_DEBUG_TRACE, "%s:%d rot->caps->rot_model: %d\n", __func__, __LINE__,
               rot->caps->rot_model);
 
     return r;
@@ -461,8 +459,8 @@ grbl_net_open(ROT *rot, int port)
 {
     //network_open(ROTPORT(rot), port);
 
-    //rot_debug(RIG_DEBUG_ERR, "%s:%d network_fd: %d\n", __func__, __LINE__, ROTPORT(rot)->fd);
-    rot_debug(RIG_DEBUG_ERR, "%s:%d \n", __func__, __LINE__);
+    //rot_debug(RIG_DEBUG_TRACE, "%s:%d network_fd: %d\n", __func__, __LINE__, ROTPORT(rot)->fd);
+    rot_debug(RIG_DEBUG_TRACE, "%s:%d \n", __func__, __LINE__);
 
     return 0;
 }
@@ -475,15 +473,15 @@ grbltrk_rot_open(ROT *rot)
     //char ip[32];
     //int port;
 
-    //rot_debug(RIG_DEBUG_ERR, "%s:%d rot->caps->rot_model: %d\n", __func__, __LINE__, rot->caps->rot_model);
+    //rot_debug(RIG_DEBUG_TRACE, "%s:%d rot->caps->rot_model: %d\n", __func__, __LINE__, rot->caps->rot_model);
     if (rot->caps->rot_model == ROT_MODEL_GRBLTRK_SER)
     {
-        rot_debug(RIG_DEBUG_ERR, "%s:%d ctrl via serial\n", __func__, __LINE__);
+        rot_debug(RIG_DEBUG_TRACE, "%s:%d ctrl via serial\n", __func__, __LINE__);
     }
     else if (rot->caps->rot_model == ROT_MODEL_GRBLTRK_NET)
     {
         rot_get_conf2(rot, TOK_PATHNAME, host, sizeof(host));
-        rot_debug(RIG_DEBUG_ERR, "%s:%d ctrl via net, host [%s]\n", __func__, __LINE__,
+        rot_debug(RIG_DEBUG_TRACE, "%s:%d ctrl via net, host [%s]\n", __func__, __LINE__,
                   host);
         grbl_net_open(rot, 23);
 
@@ -504,7 +502,7 @@ grbltrk_rot_open(ROT *rot)
 
     grbl_init(rot);
 
-    //rot_debug(RIG_DEBUG_ERR, "%s:%d\n", __func__, __LINE__);
+    //rot_debug(RIG_DEBUG_TRACE, "%s:%d\n", __func__, __LINE__);
 
     return r;
 }
@@ -522,15 +520,15 @@ grbltrk_rot_close(ROT *rot)
 
     if (rot->caps->rot_model == ROT_MODEL_GRBLTRK_SER)
     {
-        rot_debug(RIG_DEBUG_ERR, "%s:%d\n", __func__, __LINE__);
+        rot_debug(RIG_DEBUG_TRACE, "%s:%d\n", __func__, __LINE__);
     }
     else if (rot->caps->rot_model == ROT_MODEL_GRBLTRK_NET)
     {
-        rot_debug(RIG_DEBUG_ERR, "%s:%d\n", __func__, __LINE__);
+        rot_debug(RIG_DEBUG_TRACE, "%s:%d\n", __func__, __LINE__);
         grbl_net_close(rot);
     }
 
-    rot_debug(RIG_DEBUG_ERR, "%s:%d\n", __func__, __LINE__);
+    rot_debug(RIG_DEBUG_TRACE, "%s:%d\n", __func__, __LINE__);
 
     return r;
 }
@@ -611,9 +609,7 @@ const struct rot_caps grbltrk_net_rot_caps =
 
 DECLARE_INITROT_BACKEND(grbltrk)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
-
-    //rot_debug(RIG_DEBUG_ERR, "%s: _init called\n", __func__);
+    rot_debug(RIG_DEBUG_TRACE, "%s: _init called\n", __func__);
 
     rot_register(&grbltrk_serial_rot_caps);
 
