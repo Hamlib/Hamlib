@@ -555,22 +555,27 @@ BINDING_LIST=""
 BINDING_LIB_TARGETS=""
 
 
-dnl Check if cxx-binding not wanted, default is to build it
+dnl Check if cxx-binding not wanted, default is to build it if a C++ compiler is available
 
 # C++ binding
 AC_MSG_CHECKING([whether to build C++ binding])
 AC_ARG_WITH([cxx-binding],
 	    [AS_HELP_STRING([--without-cxx-binding],
-			    [do not build C++ binding @<:@default=yes@:>@])],
+			[do not build C++ binding @<:@default=detect@:>@])],
 	    [cf_with_cxx_binding=$withval],
-	    [cf_with_cxx_binding=yes])
+	    [cf_with_cxx_binding=detect])
 AC_MSG_RESULT([$cf_with_cxx_binding])
 
-AS_IF([test x"$cf_with_cxx_binding" = "xyes"], [
-    AS_IF([test x"${cf_with_cxx}" != "xyes"], [
-        AC_MSG_ERROR([C++ binding needs a C++ compiler.])
-    ])
-])
+case "${cf_with_cxx_binding}" in
+  detect)   cf_with_cxx_binding=$cf_with_cxx ;;
+  yes)
+            AS_IF([test x"${cf_with_cxx}" != "xyes"],
+                [AC_MSG_ERROR([C++ binding needs a C++ compiler.])]
+            )
+            ;;
+  no)       ;;
+  *)        AC_MSG_ERROR([invalid value for --without-cxx-binding: ${cf_with_cxx_binding}]) ;;
+esac
 
 AS_IF([test x"${cf_with_cxx_binding}" = "xyes"],
       [BINDINGS="${BINDINGS} c++"])
