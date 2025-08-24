@@ -414,37 +414,35 @@ AC_ARG_WITH([indi],
 
 AC_MSG_RESULT([$cf_with_indi_support])
 
-case "${cf_with_indi_support}" in
-  detect)   cf_with_indi_support=$cf_with_cxx ;;
-  yes)
-            AS_IF([test x"${cf_with_cxx}" != "xyes"],
-                [AC_MSG_ERROR([INDI support needs a C++ compiler.])]
-            )
-            ;;
-  no)       ;;
-    *)      AC_MSG_ERROR([invalid value for --without-indi: ${cf_with_indi_support}]) ;;
-esac
-
 AS_IF([test x"$cf_with_indi_support" != "xno"], [
     # macros/ax_lib_nova.m4
     AX_LIB_NOVA
 
-    AS_IF([test x"$ax_cv_lib_nova" = "xno"], [
-	AC_MSG_WARN([libnova support not found, required by INDI.])
-	cf_with_indi_support=no
-	])
-
-    AS_IF([test x"$ax_cv_lib_nova" != "xno"], [
-	# macros/ax_lib_indi.m4
-	AX_LIB_INDI
-
-	AS_IF([test x"$ax_cv_lib_indi" = "xno"], [
-	    AC_MSG_WARN([INDI support not found.])
-	    cf_with_indi_support=no
-	])
-
-    ])
+    # macros/ax_lib_indi.m4
+    AX_LIB_INDI
 ])
+
+AS_IF([test x"$cf_with_indi_support" = "xyes"], [
+    AS_IF([test x"$cf_with_cxx" = "xno"],
+        [AC_MSG_ERROR([INDI support needs a C++ compiler.])]
+    )
+
+    AS_IF([test x"$ax_cv_lib_nova" = "xno"],
+        [AC_MSG_ERROR([libnova support not found, required by INDI.])]
+    )
+
+    AS_IF([test x"$ax_cv_lib_indi" = "xno"],
+        [AC_MSG_ERROR([libindi support not found, required by INDI.])]
+    )
+])
+
+AS_IF([test x"$cf_with_indi_support" = "xdetect"], [
+    AS_IF([test x"$cf_with_cxx" = "xno" -o x"$ax_cv_lib_nova" = "xno" -o x"$ax_cv_lib_indi" = "xno"],
+          [cf_with_indi_support=no],
+          [cf_with_indi_support=yes]
+    )
+])
+
 AS_IF([test x"$cf_with_indi_support" != "xno"],
 	[ROT_BACKEND_LIST="$ROT_BACKEND_LIST rotators/indi"],
 	[ROT_BACKEND_OPTIONAL_LIST="$ROT_BACKEND_OPTIONAL_LIST rotators/indi"]
