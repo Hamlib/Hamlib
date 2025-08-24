@@ -54,7 +54,6 @@ static struct rig_type_s rig_type[] =
     {RIG_FLAG_APRS, "APRS"},
     {RIG_FLAG_TNC, "TNC"},
     {RIG_FLAG_DXCLUSTER, "DxCluster"},
-    {RIG_FLAG_DXCLUSTER, "DxCluster"},
     {RIG_FLAG_TUNER, "Tuner"},
     {-1, "?\n"}
 };
