@@ -111,10 +111,13 @@ AC_PROG_AWK
 AC_PROG_INSTALL
 AC_PROG_LN_S
 
-# TODO: check whether CXX is functional
-AC_CHECK_PROG([cf_with_cxx], ["${CXX}"], [yes], [no])
-
-AM_CONDITIONAL([ENABLE_CXX], [test x"${cf_with_cxx}" = "xyes"])
+dnl check whether CXX is functional
+AX_CXX_COMPILE_STDCXX([11],[noext],[optional])
+AS_IF([test "$HAVE_CXX11" = 1],
+       [cf_with_cxx=yes],
+       [cf_with_cxx=no]
+)
+AM_CONDITIONAL([ENABLE_CXX], [test "$HAVE_CXX11" = 1])
 
 dnl Broke on older Automake, so test for its existence.
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
@@ -399,45 +402,47 @@ AS_IF([test x"$ax_cv_lib_readline" = "xno"], [
     cf_with_readline_support=no
     ])
 
-dnl Check if INDI support in rigctl/rotctl is wanted
-AC_MSG_CHECKING([whether to use INDI in rigctl/rotctl])
-#AS_IF([test x"${cf_with_cxx_binding}" = "xyes"], [
-    AC_ARG_WITH([indi],
-        [AS_HELP_STRING([--without-indi],
-    	[disable INDI in rigctl/rotctl @<:@default=yes@:>@])],
-    	[cf_with_indi_support=$with_indi],
-    	[cf_with_indi_support=no]
-    )
-#])
+dnl Check if INDI support in rotctl/rotctld is wanted
+AC_MSG_CHECKING([whether to use INDI in rotctl/rotctld])
 
-AS_IF([test x"$cf_with_indi_support" != "xno"], [
-    # INDI support needs a C++ compiler, tested for presence above.
-    AS_IF([test x"${cf_with_cxx}" != "xyes"], [
-	AC_MSG_WARN([INDI support needs a C++ compiler.])
-	cf_with_indi_support=no
-    ])
-])
+AC_ARG_WITH([indi],
+    [AS_HELP_STRING([--without-indi],
+        [disable INDI in rotctl/rotctld @<:@default=detect@:>@])],
+    [cf_with_indi_support=$withval],
+    [cf_with_indi_support=detect]
+)
+
+AC_MSG_RESULT([$cf_with_indi_support])
 
 AS_IF([test x"$cf_with_indi_support" != "xno"], [
     # macros/ax_lib_nova.m4
     AX_LIB_NOVA
 
-    AS_IF([test x"$ax_cv_lib_nova" = "xno"], [
-	AC_MSG_WARN([libnova support not found, required by INDI.])
-	cf_with_indi_support=no
-	])
-
-    AS_IF([test x"$ax_cv_lib_nova" != "xno"], [
-	# macros/ax_lib_indi.m4
-	AX_LIB_INDI
-
-	AS_IF([test x"$ax_cv_lib_indi" = "xno"], [
-	    AC_MSG_WARN([INDI support not found.])
-	    cf_with_indi_support=no
-	])
-
-    ])
+    # macros/ax_lib_indi.m4
+    AX_LIB_INDI
 ])
+
+AS_IF([test x"$cf_with_indi_support" = "xyes"], [
+    AS_IF([test x"$cf_with_cxx" = "xno"],
+        [AC_MSG_ERROR([INDI support needs a C++ compiler.])]
+    )
+
+    AS_IF([test x"$ax_cv_lib_nova" = "xno"],
+        [AC_MSG_ERROR([libnova support not found, required by INDI.])]
+    )
+
+    AS_IF([test x"$ax_cv_lib_indi" = "xno"],
+        [AC_MSG_ERROR([libindi support not found, required by INDI.])]
+    )
+])
+
+AS_IF([test x"$cf_with_indi_support" = "xdetect"], [
+    AS_IF([test x"$cf_with_cxx" = "xno" -o x"$ax_cv_lib_nova" = "xno" -o x"$ax_cv_lib_indi" = "xno"],
+          [cf_with_indi_support=no],
+          [cf_with_indi_support=yes]
+    )
+])
+
 AS_IF([test x"$cf_with_indi_support" != "xno"],
 	[ROT_BACKEND_LIST="$ROT_BACKEND_LIST rotators/indi"],
 	[ROT_BACKEND_OPTIONAL_LIST="$ROT_BACKEND_OPTIONAL_LIST rotators/indi"]
@@ -548,16 +553,27 @@ BINDING_LIST=""
 BINDING_LIB_TARGETS=""
 
 
-dnl Check if cxx-binding not wanted, default is to build it
+dnl Check if cxx-binding not wanted, default is to build it if a C++ compiler is available
 
 # C++ binding
 AC_MSG_CHECKING([whether to build C++ binding])
 AC_ARG_WITH([cxx-binding],
 	    [AS_HELP_STRING([--without-cxx-binding],
-			    [do not build C++ binding @<:@default=yes@:>@])],
+			[do not build C++ binding @<:@default=detect@:>@])],
 	    [cf_with_cxx_binding=$withval],
-	    [cf_with_cxx_binding=$cf_with_cxx])
+	    [cf_with_cxx_binding=detect])
 AC_MSG_RESULT([$cf_with_cxx_binding])
+
+case "${cf_with_cxx_binding}" in
+  detect)   cf_with_cxx_binding=$cf_with_cxx ;;
+  yes)
+            AS_IF([test x"${cf_with_cxx}" != "xyes"],
+                [AC_MSG_ERROR([C++ binding needs a C++ compiler.])]
+            )
+            ;;
+  no)       ;;
+  *)        AC_MSG_ERROR([invalid value for --without-cxx-binding: ${cf_with_cxx_binding}]) ;;
+esac
 
 AS_IF([test x"${cf_with_cxx_binding}" = "xyes"],
       [BINDINGS="${BINDINGS} c++"])
@@ -814,9 +830,6 @@ AS_IF([test x"${DL_LIBS}" = "x-ldl"],
       [AC_CHECK_HEADERS([dlfcn.h])])
 
 AC_SUBST([DL_LIBS])
-
-dnl check for c++11
-AX_CXX_COMPILE_STDCXX([11],[noext],[mandatory])
 
 
 dnl stuff that requires C++ support
