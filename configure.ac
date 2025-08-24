@@ -407,18 +407,23 @@ AC_MSG_CHECKING([whether to use INDI in rotctl/rotctld])
 
 AC_ARG_WITH([indi],
     [AS_HELP_STRING([--without-indi],
-        [disable INDI in rotctl/rotctld @<:@default=yes:>@])],
+        [disable INDI in rotctl/rotctld @<:@default=detect:>@])],
     [cf_with_indi_support=$withval],
-    [cf_with_indi_support=yes]
+    [cf_with_indi_support=detect]
 )
 
 AC_MSG_RESULT([$cf_with_indi_support])
 
-AS_IF([test x"$cf_with_indi_support" = "xyes"], [
-    AS_IF([test x"${cf_with_cxx}" != "xyes"], [
-        AC_MSG_ERROR([INDI support needs a C++ compiler.])
-    ])
-])
+case "${cf_with_indi_support}" in
+  detect)   cf_with_indi_support=$cf_with_cxx ;;
+  yes)
+            AS_IF([test x"${cf_with_cxx}" != "xyes"],
+                [AC_MSG_ERROR([INDI support needs a C++ compiler.])]
+            )
+            ;;
+  no)       ;;
+    *)      AC_MSG_ERROR([invalid value for --without-indi: ${cf_with_indi_support}]) ;;
+esac
 
 AS_IF([test x"$cf_with_indi_support" != "xno"], [
     # macros/ax_lib_nova.m4
