@@ -407,7 +407,7 @@ AC_MSG_CHECKING([whether to use INDI in rotctl/rotctld])
 
 AC_ARG_WITH([indi],
     [AS_HELP_STRING([--without-indi],
-        [disable INDI in rotctl/rotctld @<:@default=detect:>@])],
+        [disable INDI in rotctl/rotctld @<:@default=detect@:>@])],
     [cf_with_indi_support=$withval],
     [cf_with_indi_support=detect]
 )
