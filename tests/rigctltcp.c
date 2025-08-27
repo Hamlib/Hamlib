@@ -68,9 +68,7 @@
 #  include <netdb.h>
 #endif
 
-#ifdef HAVE_PTHREAD
-#  include <pthread.h>
-#endif
+#include <pthread.h>
 
 #include "hamlib/rig.h"
 #include "misc.h"
@@ -132,10 +130,7 @@ struct handle_data
 void *handle_socket(void *arg);
 void usage(void);
 
-
-#ifdef HAVE_PTHREAD
 static unsigned client_count;
-#endif
 
 static RIG *my_rig;             /* handle to rig (instance) */
 static volatile int rig_opened = 0;
@@ -163,7 +158,6 @@ static int rigctld_idle =
 
 void mutex_rigctld(int lock)
 {
-#ifdef HAVE_PTHREAD
     static pthread_mutex_t client_lock = PTHREAD_MUTEX_INITIALIZER;
 
     if (lock)
@@ -177,7 +171,6 @@ void mutex_rigctld(int lock)
         pthread_mutex_unlock(&client_lock);
     }
 
-#endif
 }
 
 #ifdef WIN32
@@ -273,10 +266,8 @@ int main(int argc, char *argv[])
     struct sigaction act;
 #endif
 
-#ifdef HAVE_PTHREAD
     pthread_t thread;
     pthread_attr_t attr;
-#endif
     struct handle_data *arg;
     int vfo_mode = 0; /* vfo_mode=0 means target VFO is current VFO */
     int i;
@@ -980,7 +971,6 @@ int main(int argc, char *argv[])
                       host,
                       serv);
 
-#ifdef HAVE_PTHREAD
             pthread_attr_init(&attr);
             pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
@@ -992,16 +982,12 @@ int main(int argc, char *argv[])
                 break;
             }
 
-#else
-            handle_socket(arg);
-#endif
         }
     }
     while (!ctrl_c);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: while loop done\n", __func__);
 
-#ifdef HAVE_PTHREAD
     /* allow threads to finish current action */
     mutex_rigctld(1);
 
@@ -1012,9 +998,6 @@ int main(int argc, char *argv[])
 
     rig_close(my_rig);
     mutex_rigctld(0);
-#else
-    rig_close(my_rig); /* close port */
-#endif
 
     network_multicast_publisher_stop(my_rig);
 
@@ -1088,7 +1071,6 @@ void *handle_socket(void *arg)
         goto handle_exit;
     }
 
-#ifdef HAVE_PTHREAD
     mutex_rigctld(1);
 
     ++client_count;
@@ -1109,19 +1091,6 @@ void *handle_socket(void *arg)
 #endif
 
     mutex_rigctld(0);
-#else
-    mutex_rigctld(1);
-    retcode = rig_open(my_rig);
-    mutex_rigctld(1);
-
-    if (RIG_OK == retcode && verbose > RIG_DEBUG_ERR)
-    {
-        printf("Opened rig model %d, '%s'\n",
-               my_rig->caps->rig_model,
-               my_rig->caps->model_name);
-    }
-
-#endif
 
     if (my_rig->caps->get_powerstat)
     {
@@ -1316,23 +1285,18 @@ void *handle_socket(void *arg)
 
 client_done:
 
-#if defined(HAVE_PTHREAD)
-
     if (rigctld_idle && client_count == 1)
-#else
-    if (rigctld_idle)
-#endif
     {
         rig_close(my_rig);
 
         if (verbose > RIG_DEBUG_ERR) { printf("Closed rig model %s.  Will reopen for new clients\n", my_rig->caps->model_name); }
     }
 
-
-#ifdef HAVE_PTHREAD
+    mutex_rigctld(1);
     --client_count;
 
     if (rigctld_idle && client_count > 0) { printf("%u client%s still connected so rig remains open\n", client_count, client_count > 1 ? "s" : ""); }
+    mutex_rigctld(0);
 
 #if 0
     mutex_rigctld(1);
@@ -1351,17 +1315,6 @@ client_done:
     }
 
     mutex_rigctld(0);
-#endif
-#else
-    rig_close(my_rig);
-
-    if (verbose > RIG_DEBUG_ERR)
-    {
-        printf("Closed rig model %d, '%s - will reopen for new clients'\n",
-               my_rig->caps->rig_model,
-               my_rig->caps->model_name);
-    }
-
 #endif
 
     if ((retcode = getnameinfo((struct sockaddr const *)&handle_data_arg->cli_addr,
@@ -1406,9 +1359,7 @@ handle_exit:
 
     free(arg);
 
-#ifdef HAVE_PTHREAD
     pthread_exit(NULL);
-#endif
     return NULL;
 }
 
