@@ -88,11 +88,9 @@ extern int read_history();
 /* Hash table implementation See:  http://uthash.sourceforge.net/ */
 #include "uthash.h"
 
-#ifdef HAVE_PTHREAD
-#  include <pthread.h>
+#include <pthread.h>
 
 static pthread_mutex_t rot_mutex = PTHREAD_MUTEX_INITIALIZER;
-#endif
 
 #define STR1(S) #S
 #define STR(S) STR1(S)
@@ -1413,9 +1411,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, const char *argv[],
      * mutex locking needed because rotctld is multithreaded
      * and hamlib is not MT-safe
      */
-#ifdef HAVE_PTHREAD
     pthread_mutex_lock(&rot_mutex);
-#endif
 
     if (!prompt)
     {
@@ -1467,9 +1463,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, const char *argv[],
                                         "");
 #endif
 
-#ifdef HAVE_PTHREAD
     pthread_mutex_unlock(&rot_mutex);
-#endif
 
     if (retcode == -RIG_EIO) { return retcode; }
 
