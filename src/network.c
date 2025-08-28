@@ -1348,7 +1348,7 @@ int is_wireless()
 static void *multicast_receiver(void *arg)
 {
     char data[4096];
-    char ip4[INET6_ADDRSTRLEN];
+    char ip4[INET6_ADDRSTRLEN] = "";
 
     struct multicast_receiver_args_s *args = (struct multicast_receiver_args_s *)
             arg;

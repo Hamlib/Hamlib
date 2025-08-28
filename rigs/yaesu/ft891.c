@@ -455,7 +455,7 @@ static int ft891_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
     }
 
     // Get split mode status
-    *split = priv->ret_data[2] != '0'; // 1=split, 2=split + 5khz
+    *split = priv->ret_data[2] != '0'; // 1=split, 2=split + 5kHz
     rig_debug(RIG_DEBUG_TRACE, "%s: get split = 0x%02x\n", __func__, *split);
 
     *tx_vfo = RIG_VFO_A;

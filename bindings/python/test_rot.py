@@ -36,13 +36,14 @@ class TestClass:
         assert rot.set_conf("", "") is None
         assert rot.get_conf("") == ""
         assert rot.get_conf(0) == ""
-        conf = rot.get_conf("mcfg")
-        assert isinstance(conf, str)
-        assert rot.set_conf("mcfg", "foo") is None
-        conf = rot.get_conf("mcfg")
         if model == Hamlib.ROT_MODEL_DUMMY:
-            assert conf == "foo"
+            conf = rot.get_conf("mcfg")
+            assert conf == "ROTATOR"
+            assert rot.set_conf("mcfg", "foobar") is None
+            conf = rot.get_conf("mcfg")
+            assert conf == "foobar"
         else:
+            conf = rot.get_conf("mcfg")
             assert conf == ""
 
         assert rot.token_lookup("") is None

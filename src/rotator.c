@@ -557,9 +557,9 @@ int HAMLIB_API rot_open(ROT *rot)
      * Now that the rotator port is officially opened, we can
      *  send the deferred configuration info.
      */
-    while ((item = rs->config_queue.first))
+    while ((item = rs->config_queue.firstt))
     {
-        rs->config_queue.first = item->next;
+        rs->config_queue.firstt = item->nextt;
         status = rot_set_conf(rot, item->token, item->value);
         free(item->value);
         free(item);
@@ -1089,7 +1089,7 @@ int HAMLIB_API rot_get_status(ROT *rot, rot_status_t *status)
 /**
  * \brief Get the address of rotator data structure(s)
  *
- * \sa rig_data_pointer
+ * \sa amp_data_pointer(), rig_data_pointer()
  *
  */
 void *HAMLIB_API rot_data_pointer(ROT *rot, rig_ptrx_t idx)

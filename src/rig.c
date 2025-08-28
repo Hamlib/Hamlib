@@ -669,7 +669,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->async_data_enabled = 0;
     //    rs->depth = 1;
     rs->comm_state = 0;
-    rs->comm_status = RIG_COMM_STATUS_CONNECTING;
+    rs->comm_status = RIG_COMM_STATUS_DISCONNECTED;
     rs->tuner_control_pathname = DEFAULT_TUNER_CONTROL_PATHNAME;
     strncpy(rs->client_version, "Hamlib", sizeof(rs->client_version));
 
@@ -8887,9 +8887,23 @@ extern int read_icom_frame(hamlib_port_t *p, const unsigned char rxbuffer[],
                            size_t rxbuffer_len);
 
 
-// Returns # of bytes read
-// reply_len should be max bytes expected + 1
-// if term is null then will read reply_len bytes exactly and reply will not be null terminated
+/**
+ * \brief Send verbatim data
+ *
+ * \a reply_len should be max bytes expected + 1
+ *
+ * If \a term is NULL then will read \a reply_len bytes exactly and reply will not be '\0' terminated.
+ * \param rig The rig handle
+ * \param send The buffer containing the data to be sent
+ * \param send_len The length of send buffer
+ * \param reply The buffer that will contain the data to be received
+ * \param reply_len The length of the reply buffer
+ * \param term The optional 1-char string that will terminate the read
+ *
+ * \return the number of bytes read if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
+ * set appropriately).
+ */
 HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
                                 int send_len, unsigned char *reply, int reply_len, unsigned char *term)
 {
@@ -8909,12 +8923,9 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
 
     if (simulate)
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: simulating response for model %s\n",
-                  __func__, rig->caps->model_name);
-        memcpy(reply, send, send_len);
-        retval = send_len;
-        ELAPSED2;
-        RETURNFUNC(retval);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: simulating write for model %s\n",
+                    __func__, rig->caps->model_name);
+        retval = RIG_OK;
     }
     else
     {
@@ -8935,8 +8946,18 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
         if (simulate)
         {
             // Simulate a response by copying the command
-            memcpy(buf, send, send_len);
-            nbytes = send_len + 1;
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: simulating response for model %s\n",
+                      __func__, rig->caps->model_name);
+
+            nbytes = send_len < reply_len ? send_len : reply_len;
+            for (int i = 0; i < nbytes; i++)
+            {
+                buf[i] = send[i];
+                if (term && memchr(term, send[i], 1)) {
+                    nbytes = i + 1;
+                    break;
+                }
+            }
         }
         else
         {
@@ -9056,7 +9077,7 @@ int morse_data_handler_set_keyspd(RIG *rig, int keyspd)
 }
 #endif
 
-/*
+/**
  * \brief Get the address of a Hamlib data structure
  * \param rig Pointer to main data anchor
  * \param idx enum for which pointer requested
@@ -9069,7 +9090,7 @@ int morse_data_handler_set_keyspd(RIG *rig, int keyspd)
  * Note: This is meant for use by the HAMLIB_???PORT macros mostly. Only
  *  compatibility with them is supported.
  *
- * \sa amp_data_pointer, rot_data_pointer
+ * \sa amp_data_pointer(), rot_data_pointer()
  */
 HAMLIB_EXPORT(void *) rig_data_pointer(RIG *rig, rig_ptrx_t idx)
 {

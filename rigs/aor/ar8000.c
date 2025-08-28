@@ -145,7 +145,7 @@ struct rig_caps ar8000_caps =
         /* mode/filter list, .remember =  order matters! */
         {RIG_MODE_SSB | RIG_MODE_CW, kHz(2)},
         {RIG_MODE_FM | RIG_MODE_AM, kHz(12)},
-        {RIG_MODE_WFM, kHz(180)}, /* 50kHz at -3dB, 380kHz at -20dB */
+        {RIG_MODE_WFM, kHz(180)}, /* 50 kHz at -3dB, 380 kHz at -20dB */
         RIG_FLT_END,
     },
 

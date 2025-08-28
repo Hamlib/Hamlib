@@ -1245,7 +1245,7 @@ static int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         break;
 
     case RIG_MODE_PSK:
-        mode = RIG_MODE_PSK; // in "DT3" subband RIG_MODE_PSK = USB # kenwood.c mode but may need kenwwod.c mode table review.
+        mode = RIG_MODE_PSK; // in "DT3" subband RIG_MODE_PSK = USB # kenwood.c mode but may need kenwood.c mode table review.
         SNPRINTF(cmd_m, sizeof(cmd_m),
                  "%s3", dtcmd); /* PSK D Mode - direct PSK keying, USB is "normal", VFO dial is MARK */
         break;
@@ -1333,7 +1333,7 @@ static int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         }
 
 #endif
-        width += 9;  // rounds to 10Hz
+        width += 9;  // rounds to 10 Hz
 
         if (width > 99999) { width = 99999; }
 

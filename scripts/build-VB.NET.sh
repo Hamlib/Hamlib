@@ -98,7 +98,7 @@ Covered are:
 	- set/get VFO
 	- get Riginfo
 
-	-rig_debug_level_e not verified  (Function is Void, VB Dokumentation
+	-rig_debug_level_e not verified  (Function is Void, VB Documentation
 says this is not possible to be marshaled, but Compiler is still accepting this)
 
 

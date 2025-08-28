@@ -16,8 +16,9 @@ DISTCLEANFILES = rigctl.log rigctl.sum testbcd.log testbcd.sum
 
 bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld rigctlcom rigctltcp rigctlsync ampctl ampctld rigtestmcast rigtestmcastrx $(TESTLIBUSB) rigfreqwalk
 
-#check_PROGRAMS = dumpmem testrig testrigopen testrigcaps testtrn testbcd testfreq listrigs testloc rig_bench testcache cachetest cachetest2 testcookie testgrid testsecurity
 check_PROGRAMS = dumpmem testrig testrigopen testrigcaps testtrn testbcd testfreq listrigs testloc rig_bench testcache cachetest cachetest2 testcookie testgrid hamlibmodels testmW2power test2038
+# Document building testsecurity
+### check_PROGRAMS += testsecurity
 
 RIGCOMMONSRC = rigctl_parse.c rigctl_parse.h dumpcaps.c dumpstate.c uthash.h rig_tests.c rig_tests.h dumpcaps.h
 ROTCOMMONSRC = rotctl_parse.c rotctl_parse.h dumpcaps_rot.c uthash.h dumpcaps_rot.h
@@ -32,8 +33,6 @@ rotctl_SOURCES = rotctl.c $(ROTCOMMONSRC)
 rotctld_SOURCES = rotctld.c $(ROTCOMMONSRC)
 ampctl_SOURCES = ampctl.c $(AMPCOMMONSRC)
 ampctld_SOURCES = ampctld.c $(AMPCOMMONSRC)
-rigswr_SOURCES = rigswr.c
-rigsmtr_SOURCES = rigsmtr.c
 rigmem_SOURCES = rigmem.c memsave.c memload.c memcsv.c
 if HAVE_LIBUSB
     rigtestlibusb_SOURCES = rigtestlibusb.c
@@ -57,7 +56,9 @@ rigctlsync_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/security
 if HAVE_LIBUSB
     rigtestlibusb_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) $(LIBUSB_CFLAGS)
 endif
-#testsecurity_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/src -I$(top_builddir)/security
+
+# Document building testsecurity
+### testsecurity_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_srcdir)/security
 
 rigctl_LDADD = $(PTHREAD_LIBS) $(READLINE_LIBS) $(LDADD)
 rigctld_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
@@ -72,6 +73,9 @@ rigctlsync_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 if HAVE_LIBUSB
     rigtestlibusb_LDADD = $(LIBUSB_LIBS)
 endif
+
+# Document linking testsecurity
+### testsecurity_LDADD = $(PTHREAD_LIBS) $(LDADD) $(top_builddir)/security/libsecurity.la
 
 # Linker options
 rigctl_LDFLAGS = $(WINEXELDFLAGS)
@@ -90,6 +94,8 @@ if HAVE_LIBUSB
     rigtestlibusb_LDFLAGS = $(WINEXELDFLAGS)
 endif
 
+# Document linking testsecurity with MinGW
+### testsecurity_LDFLAGS = $(WINEXELDFLAGS)
 
 if HTML_MATRIX
 EXTRA_PROGRAMS = rigmatrix
@@ -103,10 +109,20 @@ rigmatrix.html: rigmatrix_head.html rigmatrix listrigs
 endif
 
 
-EXTRA_DIST = rigmatrix_head.html rig_split_lst.awk testctld.pl testrotctld.pl
+EXTRA_DIST = \
+	Android.mk \
+	amptest.sh \
+	cachetest.sh \
+	hamlib_tuner_control \
+	rig_split_lst.awk \
+	rigmatrix_head.html \
+	testcaps.sh \
+	testctld.pl \
+	testrotctld.pl
 
 # Support 'make check' target for simple tests
-check_SCRIPTS = testrig.sh testfreq.sh testbcd.sh testloc.sh testrigcaps.sh testcache.sh testcookie.sh testgrid.sh test2038.sh
+# Omitting cachetest.sh because it needs 2 instances of rigctld running
+check_SCRIPTS = amptest.sh test2038.sh testbcd.sh testcache.sh testcaps.sh testcookie.sh testfreq.sh testgrid.sh testloc.sh testrig.sh testrigcaps.sh
 
 TESTS = $(check_SCRIPTS)
 
@@ -149,4 +165,4 @@ test2038.sh:
 	echo 'LD_LIBRARY_PATH=$(top_builddir)/src/.libs:$(top_builddir)/dummy/.libs ./test2038 1' > test2038.sh
 	chmod +x ./test2038.sh
 
-CLEANFILES = testrig.sh testfreq.sh testbcd.sh testloc.sh testrigcaps.sh testcache.sh testcookie.sh rigtestlibusb build-w32.sh build-w64.sh build-w64-jtsdk.sh testgrid.sh testrigcaps.sh test2038.sh tuner_control.log
+CLEANFILES = rigmatrix testrig.sh testfreq.sh testbcd.sh testloc.sh testrigcaps.sh testcache.sh testcookie.sh rigtestlibusb build-w32.sh build-w64.sh build-w64-jtsdk.sh testgrid.sh testrigcaps.sh test2038.sh tuner_control.log

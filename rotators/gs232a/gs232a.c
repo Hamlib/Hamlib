@@ -276,7 +276,7 @@ static int gs232a_rot_set_level(ROT *rot, setting_t level, value_t val)
         }
 
         /* between 1 (slowest) and 4 (fastest) */
-        SNPRINTF(cmdstr, sizeof(cmdstr), "X%u" EOM, speed);
+        SNPRINTF(cmdstr, sizeof(cmdstr), "X%d" EOM, speed);
         retval = gs232a_transaction(rot, cmdstr, NULL, 0, 1);
 
         if (retval != RIG_OK)

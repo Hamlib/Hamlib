@@ -381,6 +381,7 @@ struct rig_caps ts990s_caps =
     .reset =  kenwood_reset,
     .get_clock = kenwood_get_clock,
     .set_clock = kenwood_set_clock,
+    .morse_qsize = 24,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 

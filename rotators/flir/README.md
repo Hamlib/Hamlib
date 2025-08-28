@@ -16,7 +16,7 @@ Tested only with PTU-D48 yet and with one rotor per chain only.
 
 1. Connect the rotor via serial (RS232 or RS485)
 2. Power up the rotor
-3. The rotor must be calibrated after each power up. This can be accived
+3. The rotor must be calibrated after each power up. This can be achieved
 either using the rotctl `Reset` command (R) or manually via serial terminal
 sending the `R\n` command.
 4. To enable the rotor to fully turn +/- 180°, the softlock must be disabled.

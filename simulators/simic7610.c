@@ -2,27 +2,16 @@
 // Needs a lot of improvement to work on all Icoms
 #define _XOPEN_SOURCE 700
 // since we are POSIX here we need this
-#if 0
-struct ip_mreq
-{
-    int dummy;
-};
-#endif
-
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include <errno.h>
-#include <sys/time.h>
+#include <sys/types.h>
+
 #include "hamlib/rig.h"
-#include "../src/misc.h"
-#include <termios.h>
-#include <unistd.h>
+#include "misc.h"
+#include "sim.h"
 
-
-#define BUFSIZE 256
 #define X25
 
 int civ_731_mode = 0;
@@ -52,21 +41,12 @@ int tx_inhibit = 0;
 int dpp = 0;
 int dualwatch = 0;
 
-void dumphex(const unsigned char *buf, int n)
-{
-    for (int i = 0; i < n; ++i) { printf("%02x ", buf[i]); }
-
-    printf("\n");
-}
-
 int
 frameGet(int fd, unsigned char *buf)
 {
     int i = 0;
     memset(buf, 0, BUFSIZE);
     unsigned char c;
-
-again:
 
     while (read(fd, &c, 1) > 0)
     {
@@ -91,7 +71,7 @@ again:
             }
 
             i = 0;
-            goto again;
+            continue;
         }
     }
 
@@ -732,44 +712,6 @@ void frameParse(int fd, unsigned char *frame, int len)
 
 }
 
-#if defined(WIN32) || defined(_WIN32)
-int openPort(char *comport) // doesn't matter for using pts devices
-{
-    int fd;
-    fd = open(comport, O_RDWR);
-
-    if (fd < 0)
-    {
-        perror(comport);
-    }
-
-    return fd;
-}
-
-#else
-int openPort(char *comport) // doesn't matter for using pts devices
-{
-    int fd = posix_openpt(O_RDWR);
-    char *name = ptsname(fd);
-
-    if (name == NULL)
-    {
-        perror("ptsname");
-        return -1;
-    }
-
-    printf("name=%s\n", name);
-
-    if (fd == -1 || grantpt(fd) == -1 || unlockpt(fd) == -1)
-    {
-        perror("posix_openpt");
-        return -1;
-    }
-
-    return fd;
-}
-#endif
-
 void rigStatus()
 {
     char vfoa = current_vfo == RIG_VFO_A ? '*' : ' ';
@@ -786,7 +728,7 @@ void rigStatus()
 
 int main(int argc, char **argv)
 {
-    unsigned char buf[256];
+    unsigned char buf[BUFSIZE];
     int fd = openPort(argv[1]);
 
     printf("%s: %s\n", argv[0], rig_version());

@@ -44,7 +44,7 @@ static double sigma(double arr[], int length)
 
 int main(int argc, const char *argv[])
 {
-    RIG *my_rig;        /* handle to rig (nstance) */
+    RIG *my_rig;        /* handle to rig (instance) */
     int strength;       /* S-Meter level */
     int retcode;        /* generic return code from functions */
 

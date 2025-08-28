@@ -90,12 +90,12 @@ int all;
 
 int main(int argc, char *argv[])
 {
-    RIG *rig;       /* handle to rig (nstance) */
+    RIG *rig;       /* handle to rig (instance) */
     rig_model_t my_model = RIG_MODEL_DUMMY;
 
     int retcode;        /* generic return code from functions */
 
-    int verbose = 0;
+    int verbose = RIG_DEBUG_NONE;
 #ifdef HAVE_XML2
     int xml = 0;
 #endif
@@ -105,6 +105,7 @@ int main(int argc, char *argv[])
     char conf_parms[MAXCONFLEN] = "";
     extern char csv_sep;
 
+    rig_set_debug(verbose);
     while (1)
     {
         int c;
@@ -182,10 +183,10 @@ int main(int argc, char *argv[])
 
         case 'v':
             verbose++;
+            rig_set_debug(verbose);
             break;
 
         default:
-            fprintf(stderr, "Unknown option '%c'\n", c);
             usage();    /* unknown option? */
             exit(1);
         }
@@ -382,7 +383,7 @@ void usage()
         "  -r, --rig-file=DEVICE         set device of the radio to operate on\n"
         "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
         "  -c, --civaddr=ID              set CI-V address, decimal (for Icom rigs only)\n"
-        "  -C, --set-conf=PARM=VAL       set config parameters\n"
+        "  -C, --set-conf=PARM=VAL[,...] set config parameters\n"
         "  -p, --set-separator=CHAR      set character separator instead of the CSV comma\n"
         "  -a, --all                     bypass mem_caps, apply to all fields of channel_t\n"
 #ifdef HAVE_XML2

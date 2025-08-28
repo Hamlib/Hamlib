@@ -274,7 +274,7 @@ static int tt588_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         if (retval == RIG_OK)
         {
             // All responses except from "XX" terminate with EOM (i.e. \r) so that is our stop char
-            char *term = EOM;
+            const char *term = EOM;
 
             if (cmd[0] ==
                     'X') // we'll let the timeout take care of this as it shouldn't happen anyways

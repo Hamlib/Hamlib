@@ -69,6 +69,7 @@ static int rx331_init(RIG *rig);
 static int rx331_cleanup(RIG *rig);
 static int rx331_set_conf(RIG *rig, hamlib_token_t token, const char *val);
 static int rx331_get_conf(RIG *rig, hamlib_token_t token, char *val);
+static int rx331_get_conf2(RIG *rig, hamlib_token_t token, char *val, int len);
 static int rx331_open(RIG *rig);
 static int rx331_close(RIG *rig);
 static int rx331_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
@@ -178,6 +179,7 @@ struct rig_caps rx331_caps =
     .rig_close =  rx331_close,
     .set_conf =   rx331_set_conf,
     .get_conf =   rx331_get_conf,
+    .get_conf2 =  rx331_get_conf2,
     .set_freq =   rx331_set_freq,
     .get_freq =   rx331_get_freq,
     .set_mode =   rx331_set_mode,
@@ -428,6 +430,8 @@ int rx331_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         return -RIG_EPROTO;
     }
 
+    // cppcheck doesn't grok num_sscanf()
+    // cppcheck-suppress uninitvar
     *freq = f * 1e6;
 
     return RIG_OK;
@@ -547,6 +551,7 @@ int rx331_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         return -RIG_EPROTO;
     }
 
+    // cppcheck-suppress uninitvar
     *width = f * 1e3;
 
     return RIG_OK;

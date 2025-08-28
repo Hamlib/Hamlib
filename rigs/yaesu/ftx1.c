@@ -35,6 +35,8 @@
 #include "yaesu.h"
 #include "ftx1.h"
 
+static const char cat_term = ';';             /* Yaesu command terminator */
+
 /* Prototypes */
 static int ftx1_init(RIG *rig);
 static int ftx1_set_vfo(RIG *rig, vfo_t vfo);
@@ -54,6 +56,11 @@ static int ftx1_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone);
 static int ftx1_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone);
 static int ftx1_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code);
 static int ftx1_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code);
+
+/* Configuration parameters */
+const struct confparams ftx1_cfg_params[] = {
+    { RIG_CONF_END, NULL, }
+};
 
 const struct confparams ftx1_ext_levels[] =
 {
@@ -154,6 +161,7 @@ const struct confparams ftx1_ext_levels[] =
         RIG_CONF_NUMERIC,
         { .n = { .min = 5, .max = 50, .step = 1 } },
     },
+
     { RIG_CONF_END, NULL, }
 };
 
@@ -238,7 +246,7 @@ struct rig_caps ftx1_caps =
     .chan_list =          {
         {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
         {   100,  117, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP }, // P1L-P9U PMS channels
-        {   118,  127, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP }, // 5xx 5MHz band
+        {   118,  127, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP }, // 5xx 5 MHz band
         {   1,      5, RIG_MTYPE_VOICE },
         {   1,      5, RIG_MTYPE_MORSE },
         RIG_CHAN_END,
@@ -278,70 +286,71 @@ struct rig_caps ftx1_caps =
 
     /* mode/filter list, .remember =  order matters! */
     .filters =            {
-        {FTX1_RTTY_DATA_RX_MODES,    Hz(500)},     /* Normal RTTY, DATA */
-        {FTX1_RTTY_DATA_RX_MODES,    Hz(300)},     /* Narrow RTTY, DATA */
-        {FTX1_RTTY_DATA_RX_MODES,    Hz(3000)},    /* Wide   RTTY, DATA */
-        {FTX1_RTTY_DATA_RX_MODES,    Hz(2400)},    /*        RTTY, DATA */
-        {FTX1_RTTY_DATA_RX_MODES,    Hz(2000)},    /*        RTTY, DATA */
-        {FTX1_RTTY_DATA_RX_MODES,    Hz(1700)},    /*        RTTY, DATA */
-        {FTX1_RTTY_DATA_RX_MODES,    Hz(1400)},    /*        RTTY, DATA */
-        {FTX1_RTTY_DATA_RX_MODES,    Hz(1200)},    /*        RTTY, DATA */
-        {FTX1_RTTY_DATA_RX_MODES,    Hz(800)},     /*        RTTY, DATA */
-        {FTX1_RTTY_DATA_RX_MODES,    Hz(450)},     /*        RTTY, DATA */
-        {FTX1_RTTY_DATA_RX_MODES,    Hz(400)},     /*        RTTY, DATA */
-        {FTX1_RTTY_DATA_RX_MODES,    Hz(350)},     /*        RTTY, DATA */
-        {FTX1_RTTY_DATA_RX_MODES,    Hz(250)},     /*        RTTY, DATA */
-        {FTX1_RTTY_DATA_RX_MODES,    Hz(200)},     /*        RTTY, DATA */
-        {FTX1_RTTY_DATA_RX_MODES,    Hz(150)},     /*        RTTY, DATA */
-        {FTX1_RTTY_DATA_RX_MODES,    Hz(100)},     /*        RTTY, DATA */
-        {FTX1_RTTY_DATA_RX_MODES,    Hz(50)},      /*        RTTY, DATA */
-        {FTX1_CW_RX_MODES,           Hz(2400)},    /* Normal CW */
-        {FTX1_CW_RX_MODES,           Hz(500)},     /* Narrow CW */
-        {FTX1_CW_RX_MODES,           Hz(3000)},    /* Wide   CW */
-        {FTX1_CW_RX_MODES,           Hz(2000)},    /*        CW */
-        {FTX1_CW_RX_MODES,           Hz(1700)},    /*        CW */
-        {FTX1_CW_RX_MODES,           Hz(1400)},    /*        CW */
-        {FTX1_CW_RX_MODES,           Hz(1200)},    /*        CW */
-        {FTX1_CW_RX_MODES,           Hz(800)},     /*        CW */
-        {FTX1_CW_RX_MODES,           Hz(450)},     /*        CW */
-        {FTX1_CW_RX_MODES,           Hz(400)},     /*        CW */
-        {FTX1_CW_RX_MODES,           Hz(350)},     /*        CW */
-        {FTX1_CW_RX_MODES,           Hz(300)},     /*        CW */
-        {FTX1_CW_RX_MODES,           Hz(250)},     /*        CW */
-        {FTX1_CW_RX_MODES,           Hz(200)},     /*        CW */
-        {FTX1_CW_RX_MODES,           Hz(150)},     /*        CW */
-        {FTX1_CW_RX_MODES,           Hz(100)},     /*        CW */
-        {FTX1_CW_RX_MODES,           Hz(50)},      /*        CW */
-        {RIG_MODE_SSB,                Hz(2400)},    /* Normal SSB */
-        {RIG_MODE_SSB,                Hz(1500)},    /* Narrow SSB */
-        {RIG_MODE_SSB,                Hz(3200)},    /* Wide   SSB */
-        {RIG_MODE_SSB,                Hz(3000)},    /*        SSB */
-        {RIG_MODE_SSB,                Hz(2900)},    /*        SSB */
-        {RIG_MODE_SSB,                Hz(2800)},    /*        SSB */
-        {RIG_MODE_SSB,                Hz(2700)},    /*        SSB */
-        {RIG_MODE_SSB,                Hz(2600)},    /*        SSB */
-        {RIG_MODE_SSB,                Hz(2500)},    /*        SSB */
-        {RIG_MODE_SSB,                Hz(2300)},    /*        SSB */
-        {RIG_MODE_SSB,                Hz(2200)},    /*        SSB */
-        {RIG_MODE_SSB,                Hz(2100)},    /*        SSB */
-        {RIG_MODE_SSB,                Hz(1950)},    /*        SSB */
-        {RIG_MODE_SSB,                Hz(1650)},    /*        SSB */
-        {RIG_MODE_SSB,                Hz(1350)},    /*        SSB */
-        {RIG_MODE_SSB,                Hz(1100)},    /*        SSB */
-        {RIG_MODE_SSB,                Hz(850)},     /*        SSB */
-        {RIG_MODE_SSB,                Hz(600)},     /*        SSB */
-        {RIG_MODE_SSB,                Hz(400)},     /*        SSB */
-        {RIG_MODE_SSB,                Hz(200)},     /*        SSB */
-        {RIG_MODE_AM,                 Hz(9000)},    /* Normal AM */
-        {RIG_MODE_AMN,                Hz(6000)},    /* Narrow AM */
-        {FTX1_FM_WIDE_RX_MODES,      Hz(16000)},   /* Normal FM, PKTFM, C4FM */
-        {RIG_MODE_FMN,                Hz(9000)},    /* Narrow FM */
+        {RIG_MODE_SSB, Hz(2400)},    /* Normal SSB */
+        {RIG_MODE_SSB, Hz(1500)},    /* Narrow SSB */
+        {RIG_MODE_SSB, Hz(3200)},    /* Wide SSB */
+        {RIG_MODE_CW, Hz(500)},      /* Normal CW */
+        {RIG_MODE_CW, Hz(300)},      /* Narrow CW */
+        {RIG_MODE_CW, Hz(2400)},     /* Wide CW */
+        {RIG_MODE_FM, Hz(16000)},    /* Normal FM */
+        {RIG_MODE_FMN, Hz(9000)},    /* Narrow FM */
+        {RIG_MODE_AM, Hz(9000)},     /* Normal AM */
+        {RIG_MODE_AMN, Hz(6000)},    /* Narrow AM */
+        {FTX1_RTTY_DATA_RX_MODES, Hz(500)},     /* Normal RTTY, DATA */
+        {FTX1_RTTY_DATA_RX_MODES, Hz(300)},     /* Narrow RTTY, DATA */
+        {FTX1_RTTY_DATA_RX_MODES, Hz(3000)},    /* Wide   RTTY, DATA */
+        {FTX1_RTTY_DATA_RX_MODES, Hz(2400)},    /*        RTTY, DATA */
+        {FTX1_RTTY_DATA_RX_MODES, Hz(2000)},    /*        RTTY, DATA */
+        {FTX1_RTTY_DATA_RX_MODES, Hz(1700)},    /*        RTTY, DATA */
+        {FTX1_RTTY_DATA_RX_MODES, Hz(1400)},    /*        RTTY, DATA */
+        {FTX1_RTTY_DATA_RX_MODES, Hz(1200)},    /*        RTTY, DATA */
+        {FTX1_RTTY_DATA_RX_MODES, Hz(800)},     /*        RTTY, DATA */
+        {FTX1_RTTY_DATA_RX_MODES, Hz(450)},     /*        RTTY, DATA */
+        {FTX1_RTTY_DATA_RX_MODES, Hz(400)},     /*        RTTY, DATA */
+        {FTX1_RTTY_DATA_RX_MODES, Hz(350)},     /*        RTTY, DATA */
+        {FTX1_RTTY_DATA_RX_MODES, Hz(250)},     /*        RTTY, DATA */
+        {FTX1_RTTY_DATA_RX_MODES, Hz(200)},     /*        RTTY, DATA */
+        {FTX1_RTTY_DATA_RX_MODES, Hz(150)},     /*        RTTY, DATA */
+        {FTX1_RTTY_DATA_RX_MODES, Hz(100)},     /*        RTTY, DATA */
+        {FTX1_RTTY_DATA_RX_MODES, Hz(50)},      /*        RTTY, DATA */
+        {FTX1_CW_RX_MODES, Hz(2000)},    /*        CW */
+        {FTX1_CW_RX_MODES, Hz(1700)},    /*        CW */
+        {FTX1_CW_RX_MODES, Hz(1400)},    /*        CW */
+        {FTX1_CW_RX_MODES, Hz(1200)},    /*        CW */
+        {FTX1_CW_RX_MODES, Hz(800)},     /*        CW */
+        {FTX1_CW_RX_MODES, Hz(450)},     /*        CW */
+        {FTX1_CW_RX_MODES, Hz(400)},     /*        CW */
+        {FTX1_CW_RX_MODES, Hz(350)},     /*        CW */
+        {FTX1_CW_RX_MODES, Hz(300)},     /*        CW */
+        {FTX1_CW_RX_MODES, Hz(250)},     /*        CW */
+        {FTX1_CW_RX_MODES, Hz(200)},     /*        CW */
+        {FTX1_CW_RX_MODES, Hz(150)},     /*        CW */
+        {FTX1_CW_RX_MODES, Hz(100)},     /*        CW */
+        {FTX1_CW_RX_MODES, Hz(50)},      /*        CW */
+        {RIG_MODE_SSB, Hz(3000)},    /*        SSB */
+        {RIG_MODE_SSB, Hz(2900)},    /*        SSB */
+        {RIG_MODE_SSB, Hz(2800)},    /*        SSB */
+        {RIG_MODE_SSB, Hz(2700)},    /*        SSB */
+        {RIG_MODE_SSB, Hz(2600)},    /*        SSB */
+        {RIG_MODE_SSB, Hz(2500)},    /*        SSB */
+        {RIG_MODE_SSB, Hz(2300)},    /*        SSB */
+        {RIG_MODE_SSB, Hz(2200)},    /*        SSB */
+        {RIG_MODE_SSB, Hz(2100)},    /*        SSB */
+        {RIG_MODE_SSB, Hz(1950)},    /*        SSB */
+        {RIG_MODE_SSB, Hz(1650)},    /*        SSB */
+        {RIG_MODE_SSB, Hz(1350)},    /*        SSB */
+        {RIG_MODE_SSB, Hz(1100)},    /*        SSB */
+        {RIG_MODE_SSB, Hz(850)},     /*        SSB */
+        {RIG_MODE_SSB, Hz(600)},     /*        SSB */
+        {RIG_MODE_SSB, Hz(400)},     /*        SSB */
+        {RIG_MODE_SSB, Hz(200)},     /*        SSB */
 
         RIG_FLT_END,
     },
 
     .ext_tokens =         ftx1_ext_tokens,
     .extlevels =          ftx1_ext_levels,
+    .cfgparams =          ftx1_cfg_params,
 
     .priv =               NULL,           /* private data FIXME: */
 
@@ -350,7 +359,7 @@ struct rig_caps ftx1_caps =
     .rig_open =           newcat_open,     /* port opened */
     .rig_close =          newcat_close,    /* port closed */
 
-    .set_freq =           newcat_set_freq,
+    .set_freq =           ftx1_set_freq,
     .get_freq =           newcat_get_freq,
     .set_mode =           newcat_set_mode,
     .get_mode =           newcat_get_mode,
@@ -364,16 +373,16 @@ struct rig_caps ftx1_caps =
     .get_split_freq =     ftx1_get_split_freq,
     .get_split_mode =     ftx1_get_split_mode,
     .set_split_mode =     ftx1_set_split_mode,
-    .set_rit =            newcat_set_rit,
-    .get_rit =            newcat_get_rit,
-    .set_xit =            newcat_set_xit,
-    .get_xit =            newcat_get_xit,
+    .set_rit =            ftx1_set_rit,
+    .get_rit =            ftx1_get_rit,
+    .set_xit =            ftx1_set_xit,
+    .get_xit =            ftx1_get_xit,
     .get_func =           newcat_get_func,
     .set_func =           newcat_set_func,
     .get_parm =           newcat_get_parm,
     .set_parm =           newcat_set_parm,
-    .get_level =          newcat_get_level,
-    .set_level =          newcat_set_level,
+    .get_level =          ftx1_get_power_control,
+    .set_level =          ftx1_set_power_control,
     .get_mem =            newcat_get_mem,
     .set_mem =            newcat_set_mem,
     .vfo_op =             newcat_vfo_op,
@@ -394,8 +403,8 @@ struct rig_caps ftx1_caps =
     .get_dcs_sql =        ftx1_get_dcs_sql,
     .set_powerstat =      newcat_set_powerstat,
     .get_powerstat =      newcat_get_powerstat,
-    .set_ts =             newcat_set_ts,
-    .get_ts =             newcat_get_ts,
+    .set_ts =             ftx1_set_ts,
+    .get_ts =             ftx1_get_ts,
     .set_trn =            newcat_set_trn,
     .get_trn =            newcat_get_trn,
     .set_channel =        newcat_set_channel,
@@ -622,7 +631,7 @@ static void debug_ftx1info_data(const ftx1info *rdata)
  *              VFO B mode directly so we'll just set A and swap A
  *              into B but we must preserve the VFO A mode and VFO B
  *              frequency.
- *
+ *              [TODO] This is inaccurate and based on copying the FT991A code to build this.  Remove the above and implement it correctly.
  */
 
 static int ftx1_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
@@ -1207,4 +1216,455 @@ static int ftx1_get_vfo(RIG *rig, vfo_t *vfo)
 {
     *vfo = STATE(rig)->current_vfo;
     RETURNFUNC2(RIG_OK);
+}
+
+
+
+
+
+/* RIT/XIT functions */
+static int ftx1_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
+    int err;
+    ftx1info *rdata;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!rig || !rit)
+    {
+        return -RIG_EINVAL;
+    }
+
+    rdata = (ftx1info *)priv->ret_data;
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "IF;");
+
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    {
+        return err;
+    }
+
+    debug_ftx1info_data(rdata);
+
+    if (rdata->rx_clarifier == '1')
+    {
+        *rit = atoi(rdata->clarifier);
+        if (rdata->clarifier[0] == '-')
+        {
+            *rit = -*rit;
+        }
+    }
+    else
+    {
+        *rit = 0;
+    }
+
+    return RIG_OK;
+}
+
+static int ftx1_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
+    int err;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (rit == 0)
+    {
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RC0;");
+    }
+    else if (rit > 0)
+    {
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RC+%04ld;", rit);
+    }
+    else
+    {
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RC%05ld;", rit);
+    }
+
+    if (RIG_OK != (err = newcat_set_cmd(rig)))
+    {
+        return err;
+    }
+
+    return RIG_OK;
+}
+
+static int ftx1_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
+    int err;
+    ftx1info *rdata;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!rig || !xit)
+    {
+        return -RIG_EINVAL;
+    }
+
+    rdata = (ftx1info *)priv->ret_data;
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "IF;");
+
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    {
+        return err;
+    }
+
+    debug_ftx1info_data(rdata);
+
+    if (rdata->tx_clarifier == '1')
+    {
+        *xit = atoi(rdata->clarifier);
+        if (rdata->clarifier[0] == '-')
+        {
+            *xit = -*xit;
+        }
+    }
+    else
+    {
+        *xit = 0;
+    }
+
+    return RIG_OK;
+}
+
+static int ftx1_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
+    int err;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (xit == 0)
+    {
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "TC0;");
+    }
+    else if (xit > 0)
+    {
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "TC+%04ld;", xit);
+    }
+    else
+    {
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "TC%05ld;", xit);
+    }
+
+    if (RIG_OK != (err = newcat_set_cmd(rig)))
+    {
+        return err;
+    }
+
+    return RIG_OK;
+}
+
+
+
+/* Tuning step functions */
+static int ftx1_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
+    int err;
+    char response[32];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!rig || !ts)
+    {
+        return -RIG_EINVAL;
+    }
+
+    // Get current mode to determine which tuning step setting to query
+    rmode_t mode;
+    pbwidth_t width;
+    if (RIG_OK != (err = rig_get_mode(rig, vfo, &mode, &width)))
+    {
+        return err;
+    }
+
+    // Determine which tuning step setting to query based on mode
+    int setting_num;
+    if (mode == RIG_MODE_FM || mode == RIG_MODE_FMN)
+    {
+        setting_num = 3;  // FM DIAL STEP
+    }
+    else if (mode == RIG_MODE_RTTY || mode == RIG_MODE_RTTYR || 
+             mode == RIG_MODE_PKTLSB || mode == RIG_MODE_PKTUSB)
+    {
+        setting_num = 2;  // RTTY/PSK DIAL STEP
+    }
+    else
+    {
+        setting_num = 1;  // SSB/CW DIAL STEP
+    }
+
+    // Send EX0306[setting_num]; to query current tuning step
+    // The radio returns the current value in the response
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX0306%02d;", setting_num);
+
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    {
+        return err;
+    }
+
+    // Parse response like "EX0306012;" or "EX0306021;" or "EX0306033;"
+    strncpy(response, priv->ret_data, sizeof(response) - 1);
+    response[sizeof(response) - 1] = '\0';
+
+    if (strlen(response) >= 9 && strncmp(response, "EX0306", 6) == 0)
+    {
+        // Extract the step value from the response (last digit before semicolon)
+        char step_str[2];
+        int len = strlen(response);
+        if (len >= 9) {
+            step_str[0] = response[len - 2];  // Get the digit before semicolon
+            step_str[1] = '\0';
+        } else {
+            step_str[0] = '1';  // Default to 1 (10Hz)
+            step_str[1] = '\0';
+        }
+        
+        int step_value = atoi(step_str);
+        
+        // Convert step value to frequency based on mode
+        if (mode == RIG_MODE_FM || mode == RIG_MODE_FMN)
+        {
+            // FM DIAL STEP values: 0:5kHz, 1:6.25kHz, 2:10kHz, 3:12.5kHz, 4:20kHz, 5:25kHz, 6:Auto
+            switch (step_value) {
+                case 0: *ts = 5000; break;
+                case 1: *ts = 6250; break;
+                case 2: *ts = 10000; break;
+                case 3: *ts = 12500; break;
+                case 4: *ts = 20000; break;
+                case 5: *ts = 25000; break;
+                case 6: *ts = 0; break;  // Auto - return 0 to indicate auto mode
+                default: *ts = 10000; break;
+            }
+        }
+        else if (mode == RIG_MODE_RTTY || mode == RIG_MODE_RTTYR || 
+                 mode == RIG_MODE_PKTLSB || mode == RIG_MODE_PKTUSB)
+        {
+            // RTTY/PSK DIAL STEP values: 0:5Hz, 1:10Hz, 2:20Hz
+            switch (step_value) {
+                case 0: *ts = 5; break;
+                case 1: *ts = 10; break;
+                case 2: *ts = 20; break;
+                default: *ts = 10; break;
+            }
+        }
+        else
+        {
+            // SSB/CW DIAL STEP values: 0:5Hz, 1:10Hz, 2:20Hz
+            switch (step_value) {
+                case 0: *ts = 5; break;
+                case 1: *ts = 10; break;
+                case 2: *ts = 20; break;
+                default: *ts = 10; break;
+            }
+        }
+        
+        rig_debug(RIG_DEBUG_TRACE, "%s: response=%s, setting=%d, step_value=%d, ts=%ld\n", 
+                 __func__, response, setting_num, step_value, *ts);
+        
+        return RIG_OK;
+    }
+
+    // If parsing failed, return default
+    *ts = 10;
+    return RIG_OK;
+}
+
+static int ftx1_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
+    int step_value, setting_num;
+    rmode_t mode;
+    pbwidth_t width;
+    int err;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called with ts=%ld\n", __func__, ts);
+
+    // Get current mode to determine which tuning step setting to modify
+    if (RIG_OK != (err = rig_get_mode(rig, vfo, &mode, &width)))
+    {
+        return err;
+    }
+
+    // Determine which tuning step setting to modify based on mode
+    if (mode == RIG_MODE_FM || mode == RIG_MODE_FMN)
+    {
+        setting_num = 3;  // FM DIAL STEP
+        // Convert frequency to FM step value: 0:5kHz, 1:6.25kHz, 2:10kHz, 3:12.5kHz, 4:20kHz, 5:25kHz, 6:Auto
+        if (ts == 0) step_value = 6;  // Auto mode
+        else if (ts <= 5000) step_value = 0;
+        else if (ts <= 6250) step_value = 1;
+        else if (ts <= 10000) step_value = 2;
+        else if (ts <= 12500) step_value = 3;
+        else if (ts <= 20000) step_value = 4;
+        else step_value = 5;
+    }
+    else if (mode == RIG_MODE_RTTY || mode == RIG_MODE_RTTYR || 
+             mode == RIG_MODE_PKTLSB || mode == RIG_MODE_PKTUSB)
+    {
+        setting_num = 2;  // RTTY/PSK DIAL STEP
+        // Convert frequency to RTTY step value: 0:5Hz, 1:10Hz, 2:20Hz
+        if (ts <= 5) step_value = 0;
+        else if (ts <= 10) step_value = 1;
+        else step_value = 2;
+    }
+    else
+    {
+        setting_num = 1;  // SSB/CW DIAL STEP
+        // Convert frequency to SSB/CW step value: 0:5Hz, 1:10Hz, 2:20Hz
+        if (ts <= 5) step_value = 0;
+        else if (ts <= 10) step_value = 1;
+        else step_value = 2;
+    }
+
+    // Format: EX0306[setting_num][step_value]; 
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX0306%02d%d;", setting_num, step_value);
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s (setting=%d, step_value=%d)\n", 
+             __func__, priv->cmd_str, setting_num, step_value);
+
+    return newcat_set_cmd(rig);
+}
+
+/*
+ * FTX-1 specific power control function
+ * The FTX-1 uses PC command with format: PC[amp][power] where:
+ * amp: 1 = radio only, 2 = amplifier
+ * power: 3-digit percentage (005-010 for radio, 005-100 for amp)
+ */
+int ftx1_set_power_control(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
+    int amp_setting = 2; // Default to amp on (2)
+    int power_percent;
+    
+    ENTERFUNC;
+    
+    // Only handle RIG_LEVEL_RFPOWER
+    if (level != RIG_LEVEL_RFPOWER)
+    {
+        // For other levels, use the standard newcat function
+        return newcat_set_level(rig, vfo, level, val);
+    }
+    
+    // Convert power value (0.0-1.0) to percentage (0-100)
+    power_percent = (int)(val.f * 100.0f + 0.5f);
+    
+    // Ensure power is within valid range for amp (5-100)
+    if (power_percent < 5) power_percent = 5;
+    if (power_percent > 100) power_percent = 100;
+    
+    // Format: PC[amp][power] where amp=2 for amplifier, power=3 digits
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC%d%03d%c", amp_setting, power_percent, cat_term);
+    
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
+    
+    RETURNFUNC(newcat_set_cmd(rig));
+}
+
+/*
+ * FTX-1 specific power reading function
+ * The FTX-1 returns PC command responses in format: PC[amp][power] where:
+ * amp: 1 = radio only, 2 = amplifier
+ * power: 3-digit percentage (005-010 for radio, 005-100 for amp)
+ */
+int ftx1_get_power_control(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
+    int amp_setting, power_percent;
+    char response[16];
+    int err;
+    
+    ENTERFUNC;
+    
+    // Only handle RIG_LEVEL_RFPOWER
+    if (level != RIG_LEVEL_RFPOWER)
+    {
+        // For other levels, use the standard newcat function
+        return newcat_get_level(rig, vfo, level, val);
+    }
+    
+    // Send PC; command to get current power setting
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC%c", cat_term);
+    
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    {
+        RETURNFUNC(err);
+    }
+    
+    // Parse response like "PC2075;" or "PC1004;"
+    // Extract the numeric part (2075 or 1004)
+    strncpy(response, priv->ret_data, sizeof(response) - 1);
+    response[sizeof(response) - 1] = '\0';
+    
+    // Remove "PC" prefix and ";" suffix
+    if (strlen(response) >= 4 && strncmp(response, "PC", 2) == 0)
+    {
+        char *numeric_part = response + 2; // Skip "PC"
+        char *semicolon = strchr(numeric_part, ';');
+        if (semicolon) *semicolon = '\0';
+        
+        if (strlen(numeric_part) == 4)
+        {
+            amp_setting = numeric_part[0] - '0';  // First digit (1 or 2)
+            power_percent = atoi(numeric_part + 1); // Last 3 digits
+            
+            // Convert to 0.0-1.0 range
+            val->f = (float)power_percent / 100.0f;
+            
+            rig_debug(RIG_DEBUG_TRACE, "%s: response=%s, amp=%d, power=%d, val=%.3f\n", 
+                     __func__, response, amp_setting, power_percent, val->f);
+            
+            RETURNFUNC(RIG_OK);
+        }
+    }
+    
+    // If parsing failed, return error
+    RETURNFUNC(-RIG_EPROTO);
+}
+
+/*
+ * FTX-1 specific frequency setting function
+ * The FTX-1 requires FA command with format: FA[11 digits]; where:
+ * frequency is formatted as 11 digits with leading zeros
+ * e.g., FA007200000; for 7.2 MHz
+ */
+int ftx1_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
+    char c;
+
+    ENTERFUNC;
+
+    // Determine VFO letter (A or B)
+    if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN)
+    {
+        c = 'A';
+    }
+    else if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
+    {
+        c = 'B';
+    }
+    else
+    {
+        // For other VFOs, default to A
+        c = 'A';
+    }
+
+    // Format: F[VFO][10 digits]; where 10 digits include leading zeros
+    // Radio returns: FA028100000; (10 digits after FA)
+    // We should send: FA028200000; (10 digits after FA, not 11)
+    // The frequency needs to be formatted as 10 digits with proper leading zeros
+    char freq_str[16];
+    SNPRINTF(freq_str, sizeof(freq_str), "%09"PRIll, (int64_t)freq);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "F%c%s%c", c, freq_str, cat_term);
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
+
+    RETURNFUNC(newcat_set_cmd(rig));
 }

@@ -109,7 +109,7 @@ void usage();
 static RIG *my_rig;             /* handle to rig */
 static RIG
 *my_rig_sync;        /* rig the gets synchronized -- freq only for now */
-static int verbose;
+static int verbose = RIG_DEBUG_NONE;
 /* CW Skimmer can only set VFOA */
 /* IC7300 for example can run VFOA on FM and VFOB on CW */
 /* So -A/--mapa2b changes set_freq on VFOA to VFOB */
@@ -215,6 +215,7 @@ int main(int argc, char *argv[])
 
     printf("rigctlsync Version 1.0\n");
 
+    rig_set_debug(verbose);
     while (1)
     {
         int c;
@@ -388,6 +389,7 @@ int main(int argc, char *argv[])
 
         case 'v':
             verbose++;
+            rig_set_debug(verbose);
             break;
 
         case 'L':
@@ -395,7 +397,6 @@ int main(int argc, char *argv[])
             break;
 
         case 'l':
-            rig_set_debug(verbose);
             list_models();
             exit(0);
 
@@ -412,8 +413,6 @@ int main(int argc, char *argv[])
             exit(1);
         }
     }
-
-    rig_set_debug(verbose);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s, %s\n", "rigctlsync", hamlib_version2);
     rig_debug(RIG_DEBUG_VERBOSE, "%s",
@@ -611,7 +610,7 @@ void usage()
         "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
         "  -S, --serial-speed2=BAUD      set serial speed of the virtual com port [default=115200]\n"
         "  -c, --civaddr=ID              set CI-V address, decimal (for Icom rigs only)\n"
-        "  -C, --set-conf=PARM=VAL       set config parameters\n"
+        "  -C, --set-conf=PARM=VAL[,...] set config parameters\n"
         "  -L, --show-conf               list all config parameters\n"
         "  -l, --list                    list all model numbers and exit\n"
         "  -u, --dump-caps               dump capabilities and exit\n"

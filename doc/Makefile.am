@@ -1,4 +1,9 @@
-EXTRA_DIST = hamlib.cfg index.doxygen hamlib.css footer.html hamlib.png
+EXTRA_DIST = \
+	footer.html \
+	hamlib.cfg \
+	hamlib.css \
+	hamlib.png \
+	index.doxygen
 
 dist_man_MANS = man1/ampctl.1 man1/ampctld.1 \
 	man1/rigctl.1 man1/rigctld.1 man1/rigmem.1 man1/rigsmtr.1 \

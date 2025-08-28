@@ -56,7 +56,7 @@ puts "status:\t\t[my_rig cget -error_status]"
 
 puts "strength:\t[my_rig get_level_i $RIG_LEVEL_STRENGTH]"
 puts "status:\t\t[my_rig cget -error_status]"
-puts "status(str):\t[rigerror [my_rig cget -error_status]]"
+puts "status(str):\t[rigerror2 [my_rig cget -error_status]]"
 
 puts "\nSending Morse, '73'"
 my_rig send_morse $RIG_VFO_A "73"

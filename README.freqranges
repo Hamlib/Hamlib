@@ -4,7 +4,7 @@ region restrictions
 As of 2020-05-05 the behavior is:
 
 #1 Any range which shows ITU# or TBD has not been modified to this convention
-#2 Ranges on the backends are being change to USA/EUR/KOR/TPE/ITR per the
+#2 Ranges on the backends are being changed to USA/EUR/KOR/TPE/ITR per the
  IC-9700 convention.  So if you see one of those monikers on a rig's freq
  range it should accurately reflect the rig's capabilities.
 

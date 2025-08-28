@@ -861,8 +861,9 @@ static int netrigctl_open(RIG *rig)
 
                 for (i = 0; p != NULL && i < RIG_SETTING_MAX; ++i)
                 {
-                    int level;
-                    sscanf(p, "%d", &level);
+                    int idx, level;
+                    sscanf(p, "%d", &idx);
+                    level = rig_idx2setting(idx);
 
                     rig->caps->parm_gran[i].step.s = 0;
 

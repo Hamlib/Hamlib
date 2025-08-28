@@ -174,7 +174,7 @@ int elecraft_open(RIG *rig)
         }
     }
 
-    priv->save_k2_ext_lvl = -1; // so we don't restore if not neeede
+    priv->save_k2_ext_lvl = -1; // so we don't restore if not needed
 
     if (rig->caps->rig_model != RIG_MODEL_XG3)   // XG3 doesn't have extended
     {

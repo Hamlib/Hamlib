@@ -203,7 +203,7 @@ struct rig_caps thf7e_caps =
 
     .tuning_steps =  {
         /* This table is ordered according to protocol, from '0' to 'b' */
-        /* The steps are not available on every band/frequency limit 470MHz */
+        /* The steps are not available on every band/frequency limit 470 MHz */
         {THF7_ALL_MODES, kHz(5)},
         {THF7_ALL_MODES, kHz(6.25)},
         {THF7_ALL_MODES, kHz(8.33)},

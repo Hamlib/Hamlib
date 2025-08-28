@@ -198,7 +198,7 @@ gs232_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 static int
 gs232_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
-    char posbuf[32];
+    char posbuf[BUFSZ];
     // these really shouldn't be static but it's fixing faulty firmware -- see below
     static int expected = 12;
     static int expected_flag = 0;
@@ -225,7 +225,6 @@ gs232_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     {
         rig_debug(RIG_DEBUG_WARN,
                   "%s: rotor didn't send CR...assuming it won't in the future\n", __func__);
-        retval = RIG_OK;
         expected = 11; // we won't expect the CR
         ROTPORT(rot)->retry = 3;
     }

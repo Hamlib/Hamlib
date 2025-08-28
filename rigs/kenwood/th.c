@@ -233,7 +233,7 @@ th_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         freq_sent = freq625;
     }
 
-    /* Step needs to be at least 10kHz on higher band, otherwise 5 kHz */
+    /* Step needs to be at least 10 kHz on higher band, otherwise 5 kHz */
     step = freq_sent >= MHz(470) ? 4 : step;
     freq_sent = freq_sent >= MHz(470) ? (round(freq_sent / 10000) * 10000) :
                 freq_sent;

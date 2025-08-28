@@ -6,6 +6,7 @@
  *            (C) Stephane Fillod 2008-2010
  *            (C) Terry Embry 2008-2010
  *            (C) David Fannin (kk6df at arrl.net)
+ *            (C) Jeremy Miller KO4SSD 2025 (ko4ssd at ko4ssd.com)
  *
  * This shared library provides an API for communicating
  * via serial interface to any newer Yaesu radio using the
@@ -230,10 +231,10 @@ static ncboolean is_ftx1;
 static ncboolean is_ftdx9000Old;
 
 /*
- * Even thought this table does make a handy reference, it could be depreciated as it is not really needed.
+ * Even though this table does make a handy reference, it could be deprecated as it is not really needed.
  * All of the CAT commands used in the newcat interface are available on the FT-950, FT-2000, FT-5000, and FT-9000.
  * There are 5 CAT commands used in the newcat interface that are not available on the FT-450.
- * Thesec CAT commands are XT -TX Clarifier ON/OFF, AN - Antenna select, PL - Speech Proc Level,
+ * These CAT commands are XT -TX Clarifier ON/OFF, AN - Antenna select, PL - Speech Proc Level,
  * PR - Speech Proc ON/OFF, and BC - Auto Notch filter ON/OFF.
  * The FT-450 returns -RIG_ENVAIL for these unavailable CAT commands.
  *
@@ -254,17 +255,17 @@ static const yaesu_newcat_commands_t valid_commands[] =
     {"AI",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"AM",     FALSE, TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"AN",     FALSE, TRUE,  FALSE, FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    FALSE, TRUE,     FALSE, TRUE },
-    {"AO",     FALSE, FALSE, FALSE, FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE,    TRUE,  TRUE,     TRUE, FALSE },
-    {"BA",     FALSE, FALSE, TRUE,  TRUE,   FALSE,  FALSE,  FALSE,   TRUE,   TRUE,  TRUE,    TRUE,  TRUE,     TRUE, FALSE },
+    {"AO",     FALSE, FALSE, FALSE, FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE,    TRUE,  TRUE,     TRUE, TRUE },
+    {"BA",     FALSE, FALSE, TRUE,  TRUE,   FALSE,  FALSE,  FALSE,   TRUE,   TRUE,  TRUE,    TRUE,  TRUE,     TRUE, TRUE },
     {"BC",     FALSE, TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"BD",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"BI",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
-    {"BM",     FALSE, FALSE, FALSE, FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE,    TRUE,  TRUE,     TRUE, FALSE },
+    {"BM",     FALSE, FALSE, FALSE, FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE,    TRUE,  TRUE,     TRUE, TRUE },
     {"BP",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"BS",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"BU",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"BY",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
-    {"CF",     FALSE, FALSE, FALSE, FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,    TRUE,  FALSE,   TRUE, FALSE },
+    {"CF",     FALSE, FALSE, FALSE, FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,    TRUE,  FALSE,   TRUE, TRUE },
     {"CH",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"CN",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"CO",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
@@ -274,7 +275,7 @@ static const yaesu_newcat_commands_t valid_commands[] =
     {"DN",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"DP",     FALSE, TRUE,  FALSE, FALSE,  TRUE,   TRUE,   TRUE,   FALSE,  FALSE,  FALSE,   FALSE, FALSE,    FALSE, TRUE },
     {"DS",     TRUE,  FALSE, FALSE, FALSE,  TRUE,   TRUE,   TRUE,   FALSE,  FALSE,  FALSE,   FALSE, FALSE,    FALSE, TRUE },
-    {"DT",     FALSE, FALSE, TRUE,  TRUE,   FALSE,  FALSE,  FALSE,  TRUE,   FALSE,  TRUE,    TRUE,  TRUE,     TRUE, FALSE },
+    {"DT",     FALSE, FALSE, TRUE,  TRUE,   FALSE,  FALSE,  FALSE,  TRUE,   FALSE,  TRUE,    TRUE,  TRUE,     TRUE, TRUE },
     {"ED",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"EK",     FALSE, TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   FALSE,  TRUE,   TRUE,   FALSE,   FALSE, TRUE,     FALSE, TRUE },
     {"EM",     FALSE, FALSE, FALSE, FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE,    TRUE,  FALSE,    TRUE, FALSE },
@@ -284,7 +285,7 @@ static const yaesu_newcat_commands_t valid_commands[] =
     {"FA",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"FB",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"FK",     FALSE, TRUE,  FALSE, FALSE,  TRUE,   TRUE,   FALSE,  FALSE,  FALSE,  FALSE,   FALSE, FALSE,    FALSE, TRUE },
-    {"FN",     FALSE, FALSE, FALSE, FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE,    TRUE,  TRUE,     TRUE, FALSE },
+    {"FN",     FALSE, FALSE, FALSE, FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE,    TRUE,  TRUE,     TRUE, TRUE },
     {"FR",     FALSE, TRUE,  FALSE, FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"FS",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    FALSE,  TRUE,    FALSE, TRUE },
     {"FT",     TRUE,  TRUE,  FALSE, TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
@@ -300,7 +301,7 @@ static const yaesu_newcat_commands_t valid_commands[] =
     {"LK",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"LM",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"MA",     FALSE, TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
-    {"MB",     FALSE, FALSE, FALSE, FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE,    TRUE,  TRUE,     TRUE, FALSE },
+    {"MB",     FALSE, FALSE, FALSE, FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE,    TRUE,  TRUE,     TRUE, TRUE },
     {"MC",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"MD",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"MG",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
@@ -308,10 +309,10 @@ static const yaesu_newcat_commands_t valid_commands[] =
     {"ML",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"MR",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"MS",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
-    {"MT",     FALSE, FALSE, FALSE, FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE,    TRUE,  TRUE,     TRUE, FALSE },
+    {"MT",     FALSE, FALSE, FALSE, FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE,    TRUE,  TRUE,     TRUE, TRUE },
     {"MW",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"MX",     FALSE, TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
-    {"NA",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   FALSE,  TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, FALSE },
+    {"NA",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   FALSE,  TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE },
     {"NB",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"NL",     FALSE, TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"NR",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
@@ -345,13 +346,13 @@ static const yaesu_newcat_commands_t valid_commands[] =
     {"SH",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"SM",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"SQ",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
-    {"SS",     FALSE, FALSE, FALSE, FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE,    TRUE,  TRUE,     TRUE, FALSE },
+    {"SS",     FALSE, FALSE, FALSE, FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE,    TRUE,  TRUE,     TRUE, TRUE },
     // ST command has two meanings Step or Split Status
     // If new rig is added that has ST ensure it means Split
     // Otherwise modify newcat_(set|get)_split
-    {"ST",     TRUE,  FALSE, FALSE, FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE,    TRUE,  TRUE,     TRUE, FALSE },
+    {"ST",     TRUE,  FALSE, FALSE, FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE,    TRUE,  TRUE,     TRUE, TRUE },
     {"SV",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
-    {"SY",     FALSE, FALSE, FALSE, FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE,   FALSE,  TRUE,     FALSE, FALSE},
+    {"SY",     FALSE, FALSE, FALSE, FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE,   FALSE,  TRUE,     FALSE, TRUE },
     {"TS",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"TX",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"UL",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
@@ -361,12 +362,12 @@ static const yaesu_newcat_commands_t valid_commands[] =
     {"VG",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"VM",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"VR",     TRUE,  FALSE, FALSE, FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE,     FALSE, FALSE },
-    {"VS",     TRUE,  TRUE,  FALSE, FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, FALSE  },
-    {"VT",     FALSE, FALSE, FALSE, FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE,   FALSE,  TRUE,     TRUE, FALSE  },
-    {"VV",     TRUE,  FALSE, FALSE, FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE,     FALSE, FALSE },
+    {"VS",     TRUE,  TRUE,  FALSE, FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
+    {"VT",     FALSE, FALSE, FALSE, FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE,   FALSE,  TRUE,     TRUE, TRUE  },
+    {"VV",     TRUE,  FALSE, FALSE, FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE,     FALSE, TRUE },
     {"VX",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"XT",     FALSE, TRUE,  FALSE, TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     FALSE, TRUE  },
-    {"ZI",     FALSE, FALSE, TRUE,  TRUE,   FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE,    TRUE,  TRUE,     TRUE, FALSE  },
+    {"ZI",     FALSE, FALSE, TRUE,  TRUE,   FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
 } ;
 
 int valid_commands_count = sizeof(valid_commands) / sizeof(
@@ -437,11 +438,15 @@ static int newcat_band_index(freq_t freq)
     // using < instead of <= for the moment
     // does anybody work LSB or RTTYR at the upper band edge?
     // what about band 13 -- what is it?
-    if (freq >= MHz(420) && freq < MHz(470)) { band = 16; }
+    if (freq >= MHz(420) && freq < MHz(470) && !is_ftx1) { band = 16; }
+    else if (freq >= MHz(420) && freq < MHz(470) && is_ftx1) { band = 14; }
+    else if (freq >= MHz(144) && freq < MHz(148) && is_ftx1) { band = 13; }
     else if (freq >= MHz(144) && freq < MHz(148)) { band = 15; }
     // band 14 is RX only
     // override band 15 with 14 if needed
+    else if (freq >= MHz(118) && freq < MHz(164) && is_ftx1) { band = 12; }
     else if (freq >= MHz(118) && freq < MHz(164)) { band = 14; }
+    else if (freq >= MHz(70) && freq < MHz(70.5) && is_ftx1) { band = 11; }
     else if (freq >= MHz(70) && freq < MHz(70.5)) { band = 17; }
     else if (freq >= MHz(50) && freq < MHz(55)) { band = 10; }
     else if (freq >= MHz(28) && freq < MHz(29.7)) { band = 9; }
@@ -863,7 +868,7 @@ int newcat_60m_exception(RIG *rig, freq_t freq, mode_t mode)
     // some rigs need to skip freq/mode settings as 60M only operates in memory mode
     if (is_ft991 || is_ft897 || is_ft897d || is_ftdx5000 || is_ftdx10) { return 1; }
 
-    if (!is_ftdx10 && !is_ft710 && !is_ftdx101d && !is_ftdx101mp) { return 0; }
+    if (!is_ftdx10 && !is_ft710 && !is_ftdx101d && !is_ftdx101mp && !is_ftx1) { return 0; }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: 60M exception ignoring freq/mode commands\n",
               __func__);
@@ -2789,7 +2794,7 @@ int newcat_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         vfo = RIG_VFO_A;
         tx_vfo = RIG_SPLIT_ON == split ? RIG_VFO_B : RIG_VFO_A;
     }
-    else if (is_ftdx101d || is_ftdx101mp)
+    else if (is_ftdx101d || is_ftdx101mp || is_ftx1)
     {
         // FTDX101(D/MP) always use Sub VFO for transmit when in split mode
         vfo = RIG_VFO_MAIN;
@@ -3024,7 +3029,7 @@ int newcat_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 
     case 41: // FT-991 V2-01 seems to randomly give 13 extra bytes
     case 28: offset = 14; break;
-
+    case 30: offset = 14; break;
     default: offset = 0;
     }
 
@@ -3138,7 +3143,7 @@ int newcat_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
     switch (strlen(priv->ret_data))
     {
     case 27: offset = 13; break;
-
+    case 30: offset = 14; break;
     case 41: // FT-991 V2-01 seems to randomly give 13 extra bytes
     case 28: offset = 14; break;
 
@@ -3851,7 +3856,7 @@ int newcat_get_powerstat(RIG *rig, powerstat_t *status)
         }
     }
 
-    // Yeasu rigs in powered-off state require the PS command to be sent between 1 and 2 seconds after dummy data
+    // Yaesu rigs in powered-off state require the PS command to be sent between 1 and 2 seconds after dummy data
     hl_usleep(1100000);
     // Discard any unsolicited data
     rig_flush(rp);
@@ -8582,7 +8587,7 @@ static int newcat_get_split(RIG *rig, split_t *split, vfo_t *tx_vfo)
         *split = RIG_SPLIT_ON;
 
         // These rigs have fixed RX and TX VFOs when using the ST split command
-        if (is_ftdx101d || is_ftdx101mp)
+        if (is_ftdx101d || is_ftdx101mp || is_ftx1)
         {
             *tx_vfo = RIG_VFO_SUB;
         }
@@ -9424,7 +9429,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             else if (width <= 3000) { w = 18; }
             else if (width <= 3200) { w = 19; }
             else if (width <= 3500) { w = 20; }
-            else { w = 21; } // 4000Hz
+            else { w = 21; } // 4000 Hz
 
             break;
 
@@ -9453,7 +9458,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             else if (width <= 3000) {  w = 20; }
             else if (width <= 3200) {  w = 21; }
             else if (width <= 3500) {  w = 22; }
-            else { w = 23; } // 4000Hz
+            else { w = 23; } // 4000 Hz
 
             break;
 
@@ -11113,7 +11118,7 @@ int newcat_get_vfo_mode(RIG *rig, vfo_t vfo, vfo_t *vfo_mode)
     switch (strlen(priv->ret_data))
     {
     case 27: offset = 21; priv->width_frequency = 8; break;
-
+    case 30: offset = 21; priv->width_frequency = 8; break;
     case 41: // FT-991 V2-01 seems to randomly give 13 extra bytes
     case 28: offset = 22; priv->width_frequency = 9; break;
 

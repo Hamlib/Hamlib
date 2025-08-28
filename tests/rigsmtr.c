@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 
     int retcode;        /* generic return code from functions */
 
-    int verbose = 0;
+    int verbose = RIG_DEBUG_NONE;
     const char *rig_file = NULL, *rot_file = NULL;
     int serial_rate = 0;
     int rot_serial_rate = 0;
@@ -89,6 +89,7 @@ int main(int argc, char *argv[])
     elevation_t elevation;
     unsigned step = 1000000;    /* 1e6 us */
 
+    rig_set_debug(verbose);
     while (1)
     {
         int c;
@@ -172,6 +173,7 @@ int main(int argc, char *argv[])
 
         case 'v':
             verbose++;
+            rig_set_debug(verbose);
             break;
 
         default:

@@ -134,7 +134,7 @@
 #define S_NXDNVN 0x19		/* Set to NXDN_VN */
 #define S_NXDN_N 0x20		/* Set to NXDN-N */
 #define S_DCR	0x21		/* Set to DCR */
-#define S_DD	0x22		/* Set to DD  1200Mhz only? */
+#define S_DD	0x22		/* Set to DD  1200 MHz only? */
 
 #define S_R7000_SSB	0x05	/* Set to SSB on R-7000 */
 

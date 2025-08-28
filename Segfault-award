@@ -7,6 +7,8 @@ A developer cannot apply for HSHR for segfaults on his/her own code.
 
 Here is the list of the brave fellows:
 
+* Daniele Forsi, IU5HKX, v4.6.4, Improper indexing in netrigctl_open().
+
 * Christoph Berg DF7CB  python with Hamlib.rig_parse(None)
 
 * Saku Nyland OH1KH v4.5.1, 10/2022, rigctld.c using ptt_type=RTS

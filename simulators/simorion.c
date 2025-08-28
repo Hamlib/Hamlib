@@ -1,19 +1,9 @@
 // can run this using rigctl/rigctld and socat pty devices
 #define _XOPEN_SOURCE 700
 // since we are POSIX here we need this
-#if 0
-struct ip_mreq
-{
-    int dummy;
-};
-#endif
-
 #include <stdio.h>
-#include <stdlib.h>
-#include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
-#include "../include/hamlib/rig.h"
 
 #define BUFSIZE 256
 
@@ -25,7 +15,7 @@ int ptt = 0;
 int keyspd = 20;
 
 int
-getmyline(int fd, char *buf)
+_getmyline(int fd, char *buf)
 {
     unsigned char c;
     int i = 0;
@@ -43,61 +33,22 @@ getmyline(int fd, char *buf)
     return n;
 }
 
-#if defined(WIN32) || defined(_WIN32)
-int openPort(char *comport) // doesn't matter for using pts devices
-{
-    int fd;
-    fd = open(comport, O_RDWR);
-
-    if (fd < 0)
-    {
-        perror(comport);
-    }
-
-    return fd;
-}
-
-#else
-int openPort(char *comport) // doesn't matter for using pts devices
-{
-    int fd = posix_openpt(O_RDWR);
-    char *name = ptsname(fd);
-
-    if (name == NULL)
-    {
-        perror("ptsname");
-        return -1;
-    }
-
-    printf("name=%s\n", name);
-
-    if (fd == -1 || grantpt(fd) == -1 || unlockpt(fd) == -1)
-    {
-        perror("posix_openpt");
-        return -1;
-    }
-
-    return fd;
-}
-#endif
-
+#include "sim.h"
 
 
 int main(int argc, char *argv[])
 {
-    char buf[256], reply[256];
+    char buf[BUFSIZE], reply[256];
 
-again:
     int fd = openPort(argv[1]);
 
     while (1)
     {
-        int bytes = getmyline(fd, buf);
+        int bytes = _getmyline(fd, buf);
 
         if (bytes == 0)
         {
-            close(fd);
-            goto again;
+            continue;
         }
 
         if (strncmp(buf, "?V", 2) == 0)

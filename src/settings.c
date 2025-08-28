@@ -1266,6 +1266,8 @@ HAMLIB_EXPORT(int) rig_settings_load_all(char *settings_file)
         }
     }
 
+    fclose(fp);
+
     return RIG_OK;
 }
 

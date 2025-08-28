@@ -365,7 +365,7 @@ int kpa_get_level(AMP *amp, setting_t level, value_t *val)
             return -RIG_EPROTO;
         }
 
-        rig_debug(RIG_DEBUG_VERBOSE, "%s freq range=%dKHz,%dKHz\n", __func__,
+        rig_debug(RIG_DEBUG_VERBOSE, "%s freq range=%dkHz,%dkHz\n", __func__,
                   int_value, int_value2);
 
         //
@@ -566,7 +566,7 @@ int kpa_get_powerstat(AMP *amp, powerstat_t *status)
 int kpa_set_powerstat(AMP *amp, powerstat_t status)
 {
     int retval;
-    char *cmd = NULL;
+    const char *cmd = NULL;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 

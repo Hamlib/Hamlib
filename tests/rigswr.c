@@ -64,12 +64,12 @@ static struct option long_options[] =
 
 int main(int argc, char *argv[])
 {
-    RIG *rig;       /* handle to rig (nstance) */
+    RIG *rig;       /* handle to rig (instance) */
     rig_model_t my_model = RIG_MODEL_DUMMY;
 
     int retcode;        /* generic return code from functions */
 
-    int verbose = 0;
+    int verbose = RIG_DEBUG_NONE;
     const char *rig_file = NULL, *ptt_file = NULL;
     ptt_type_t ptt_type = RIG_PTT_NONE;
     int serial_rate = 0;
@@ -79,6 +79,7 @@ int main(int argc, char *argv[])
     freq_t step = kHz(100);
     value_t pwr;
 
+    rig_set_debug(verbose);
     while (1)
     {
         int c;
@@ -173,6 +174,7 @@ int main(int argc, char *argv[])
 
         case 'v':
             verbose++;
+            rig_set_debug(verbose);
             break;
 
         default:
