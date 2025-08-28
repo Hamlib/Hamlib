@@ -141,8 +141,8 @@ GNU/Linux.
 \latexinclude build-w64.sh.tex
 */
 
-/*! \page Rdmeosx README.osx
-\verbinclude README.osx
+/*! \page Rdmeosx README.macos
+\verbinclude README.macos
 */
 
 /*! \page Rdmefrq README.freqranges
