@@ -2233,7 +2233,7 @@ int HAMLIB_API parse_hoststr(char *hoststr, int hoststr_len, char host[256],
 
     if (n >= 1 && strlen(dummy) == 0) { return RIG_OK; }
 
-    printf("Unhandled host=%s\n", hoststr);
+    rig_debug(RIG_DEBUG_BUG, "%s: Unhandled host=%s\n", __func__, hoststr);
 
     return -1;
 }
