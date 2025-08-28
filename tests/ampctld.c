@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
 
     int retcode;        /* generic return code from functions */
 
-    int verbose = 0;
+    int verbose = RIG_DEBUG_NONE;
     int show_conf = 0;
     int dump_caps_opt = 0;
     const char *amp_file = NULL;
@@ -179,6 +179,7 @@ int main(int argc, char *argv[])
 #endif
 #endif
 
+    rig_set_debug(verbose);
     while (1)
     {
         int c;
@@ -245,6 +246,7 @@ int main(int argc, char *argv[])
 
         case 'v':
             verbose++;
+            rig_set_debug(verbose);
             break;
 
         case 'L':
@@ -268,8 +270,6 @@ int main(int argc, char *argv[])
             exit(1);
         }
     }
-
-    rig_set_debug(verbose);
 
     rig_debug(RIG_DEBUG_VERBOSE, "ampctld, %s\n", hamlib_version2);
     rig_debug(RIG_DEBUG_VERBOSE, "%s",
@@ -694,7 +694,7 @@ void usage()
         "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
         "  -t, --port=NUM                set TCP listening port, default %s\n"
         "  -T, --listen-addr=IPADDR      set listening IP address, default ANY\n"
-        "  -C, --set-conf=PARM=VAL       set config parameters\n"
+        "  -C, --set-conf=PARM=VAL[,...] set config parameters\n"
         "  -L, --show-conf               list all config parameters\n"
         "  -l, --list                    list all model numbers and exit\n"
         "  -u, --dump-caps               dump capabilities and exit\n"
@@ -705,6 +705,4 @@ void usage()
         portno);
 
     usage_amp(stdout);
-
-    printf("\nReport bugs to <hamlib-developer@lists.sourceforge.net>.\n");
 }

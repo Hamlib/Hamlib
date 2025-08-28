@@ -126,7 +126,7 @@ static int kachina_trans_n(RIG *rig, unsigned char cmd1, const char *data,
 }
 
 /*
- * convert a frequency in Hz in the range of 30kHz to 30MHz
+ * convert a frequency in Hz in the range of 30 kHz to 30 MHz
  * to DDS value, as expected by the Kachina.
  */
 static void freq2dds(freq_t freq, int ant_port, unsigned char fbuf[4])

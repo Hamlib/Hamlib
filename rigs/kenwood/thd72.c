@@ -63,8 +63,8 @@ static rmode_t thd72_mode_table[3] =
 
 static pbwidth_t thd72_width_table[3] =
 {
-    [0] = 10000,  // +-5KHz
-    [1] =  5000,  // +-2.5KHz
+    [0] = 10000,  // +-5 kHz
+    [1] =  5000,  // +-2.5 kHz
     [2] = 10000,  // what should this be?
 };
 

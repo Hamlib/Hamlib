@@ -222,6 +222,7 @@ unsigned long long AESStringCrypt(unsigned char *password,
     {
         if (fread(buffer, 1, 32, randfp) != 32)
         {
+            fclose(randfp);
             return AESSTRINGCRYPT_ERROR;
         }
 

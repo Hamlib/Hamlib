@@ -126,6 +126,7 @@ struct rig_state {
     int twiddle_timeout;        /*!< timeout to resume from twiddling */
     // uplink allows gpredict to behave better by no reading the uplink VFO
     int uplink;                 /*!< uplink=1 will not read Sub, uplink=2 will not read Main */
+    HL_DEPRECATED
     struct rig_cache_deprecated cache; /*!< \deprecated Only here for backward compatibility */
     int vfo_opt;                /*!< Is -o switch turned on? */
     int auto_power_on;          /*!< Allow Hamlib to power on rig

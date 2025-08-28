@@ -64,11 +64,11 @@
                RIG_FUNC_MON|RIG_FUNC_NB|RIG_FUNC_NR|RIG_FUNC_VOX|\
                RIG_FUNC_FBKIN|RIG_FUNC_COMP|RIG_FUNC_ANF|RIG_FUNC_MN|\
                RIG_FUNC_RIT|RIG_FUNC_XIT|\
-               RIG_FUNC_TUNER|RIG_FUNC_APF)
+               RIG_FUNC_TUNER|RIG_FUNC_APF|RIG_FUNC_MUTE)
 
 #define FTX1_VFO_OPS (RIG_OP_TUNE|RIG_OP_CPY|RIG_OP_XCHG|\
                RIG_OP_UP|RIG_OP_DOWN|RIG_OP_BAND_UP|RIG_OP_BAND_DOWN|\
-               RIG_OP_TO_VFO|RIG_OP_FROM_VFO)
+               RIG_OP_TO_VFO|RIG_OP_FROM_VFO|RIG_OP_MCL)
 
 // Borrowed from FLRig -- Thanks to Dave W1HKJ
 #define FTX1_RFPOWER_METER_CAL \
@@ -169,7 +169,7 @@
 
 /* Delay sequential fast writes */
 
-#define FTX1_POST_WRITE_DELAY               2
+#define FTX1_POST_WRITE_DELAY               5
 
 typedef struct
 {
@@ -191,5 +191,20 @@ typedef struct
     char repeater_offset; /* '0' = Simplex, '1' Plus, '2' minus */
     char terminator;      /* ';' */
 } ftx1info;
+
+/* Function prototypes for new commands */
+static int ftx1_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
+static int ftx1_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
+static int ftx1_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit);
+static int ftx1_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit);
+static int ftx1_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts);
+static int ftx1_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts);
+
+/* FTX-1 specific power control function */
+int ftx1_set_power_control(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+int ftx1_get_power_control(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+
+/* FTX-1 specific frequency setting function */
+int ftx1_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 
 #endif /* _FTX1_H */ 

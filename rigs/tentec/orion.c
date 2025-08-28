@@ -228,7 +228,7 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 }
 
 /**
- * \param rig
+ * \param rig   The rig handle
  * \returns RIG_OK or < 0
  * \brief Basically, it just sets up *priv
  */
@@ -257,7 +257,7 @@ int tt565_close(RIG *rig)
 }
 
 /**
- * \param rig
+ * \param rig   The rig handle
  * \brief tt565_cleanup routine
  *
  * the serial port is closed by the frontend
@@ -309,11 +309,10 @@ static void start_thread(RIG *rig)
 }
 
 /**
- * \param rig
+ * \param rig   The rig handle
  * \brief tt565_open routine
  *
- * Open the rig - check f * This backend supports the Ten-Tec Orion (565) and Orion II (566) transceivers.
-irmware version issues
+ * Open the rig - check firmware version issues
  */
 int tt565_open(RIG *rig)
 {
@@ -343,7 +342,7 @@ int tt565_open(RIG *rig)
 }
 
 /**
- * \param rig
+ * \param rig   The rig handle
  * \param vfo RIG_VFO_MAIN or RIG_VFO_SUB
  * \returns 'M' or 'S' for main or subreceiver or <0 error
  * \brief vfo must be RIG_VFO_MAIN or RIG_VFO_SUB
@@ -376,7 +375,7 @@ static char which_receiver(const RIG *rig, vfo_t vfo)
     }
 }
 /**
- * \param rig
+ * \param rig   The rig handle
  * \param vfo RIG_VFO_A, RIG_VFO_B, or RIG_VFO_NONE
  * \returns 'A' or 'B' or 'N' for VFO A, B, or null VFO, or <0 error
  * \brief vfo must be RIG_VFO_A, RIG_VFO_B, or RIG_VFO_NONE.
@@ -1973,7 +1972,7 @@ int tt565_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 }
 
 /**
- * \param rig
+ * \param rig   The rig handle
  * \param vfo
  * \param msg A message string (<= 20 char)
  * \returns RIG_OK

@@ -157,7 +157,7 @@ struct cmdparams
 struct icom_spectrum_scope_caps
 {
     int spectrum_line_length; /*!< Number of bytes in a complete spectrum scope line */
-    int single_frame_data_length; /*!< Number of bytes of specrtum data in a single CI-V frame when the data split to multiple frames */
+    int single_frame_data_length; /*!< Number of bytes of spectrum data in a single CI-V frame when the data split to multiple frames */
     int data_level_min; /*!<  */
     int data_level_max;
     double signal_strength_min;

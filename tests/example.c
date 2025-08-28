@@ -90,7 +90,7 @@ int main()
 
     if (status != RIG_OK) { printf("Get mode failed?? Err=%s\n", rigerror(status)); }
 
-    printf("Current mode = 0x%lX = %s, width = %ld\n", mode, rig_strrmode(mode),
+    printf("Current mode = 0x%llX = %s, width = %ld\n", (unsigned long long)mode, rig_strrmode(mode),
            width);
 
     /* rig power output */
@@ -129,7 +129,7 @@ int main()
     const freq_range_t *range = rig_get_range(&my_rs->rx_range_list[0],
                                 14074000, RIG_MODE_USB);
 
-    if (status != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s: error rig_get_ragne: %s\n", __func__, rigerror(status)); }
+    if (status != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s: error rig_get_range: %s\n", __func__, rigerror(status)); }
 
     if (range)
     {

@@ -467,7 +467,7 @@ static const char *ar7030p_get_info(RIG *rig)
     return (p);
 }
 
-/*
+/**
  * \brief Set receiver frequency
  *
  * \param rig Pointer to rig struct
@@ -527,7 +527,7 @@ static int ar7030p_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     return (rc);
 }
 
-/*
+/**
  * \brief Get receiver frequency
  *
  * \param rig Pointer to rig struct
@@ -583,7 +583,7 @@ static int ar7030p_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     return (rc);
 }
 
-/*
+/**
  * \brief Set receiver mode
  *
  * \param rig Pointer to rig struct
@@ -649,7 +649,7 @@ static int ar7030p_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
     return (rc);
 }
 
-/*
+/**
  * \brief Get receiver mode and bandwidth
  *
  * \param rig Pointer to rig struct
@@ -693,7 +693,7 @@ static int ar7030p_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
     return (rc);
 }
 
-/*
+/**
  * \brief Get memory channel parameters
  *
  * \param rig Pointer to rig struct
@@ -817,7 +817,7 @@ static void ar7030p_get_memory(RIG *rig, const unsigned int chan,
 }
 #endif /* unused */
 
-/*
+/**
  * \brief Set receiver levels
  *
  * \param rig Pointer to rig struct
@@ -995,7 +995,7 @@ static int ar7030p_set_level(RIG *rig, vfo_t vfo, setting_t level,
 }
 
 
-/*
+/**
  * \brief Get receiver levels
  *
  * \param rig Pointer to rig struct
@@ -1468,7 +1468,7 @@ static int ar7030p_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
     return (rc);
 }
 
-/*
+/**
  * \brief Get receiver tuning step size
  *
  * \param rig Pointer to rig struct
@@ -1505,7 +1505,7 @@ static int ar7030p_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
     return (rc);
 }
 
-/*
+/**
  * \brief Set receiver power status
  *
  * \param rig Pointer to rig struct
@@ -1541,7 +1541,7 @@ static int ar7030p_set_powerstat(RIG *rig, powerstat_t status)
     return (-RIG_ENIMPL);
 }
 
-/*
+/**
  * \brief Get receiver power status
  *
  * \param rig Pointer to rig struct
@@ -1580,7 +1580,7 @@ static int ar7030p_get_powerstat(RIG *rig, powerstat_t *status)
     return (rc);
 }
 
-/*
+/**
  * \brief Reset receiver
  *
  * \param rig Pointer to rig struct

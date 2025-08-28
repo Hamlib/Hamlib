@@ -8,7 +8,67 @@ DISTCLEANFILES =
 
 bin_PROGRAMS = 
 
-check_PROGRAMS = simelecraft simicgeneric simkenwood simyaesu simic9100 simic9700 simft991 simftdx1200 simftdx3000 simjupiter simpowersdr simid5100 simft736 simftdx5000 simtmd700 simrotorez simspid simft817 simts590 simft847 simic7300 simic7000 simic7100 simic7200 simatd578 simic905 simts450 simic7600 simic7610 simic705 simts950 simts990 simic7851 simftdx101 simxiegug90 simqrplabs simft818 simic275 simtrusdx simft1000 simtmd710 simts890 simxiegux108g simxiegux6100 simic910 simft450 simelecraftk4 simmicom simflex simft710 simic2730 simorion simpmr171 simic7700 simft990 simpstrotator simeasycomm simicr8600
+check_PROGRAMS = \
+	simatd578 \
+	simeasycomm \
+	simelecraft \
+	simelecraftk4 \
+	simflex \
+	simft1000 \
+	simft450 \
+	simft710 \
+	simft736 \
+	simft747gx \
+	simft817 \
+	simft818 \
+	simft847 \
+	simft897 \
+	simft990 \
+	simft991 \
+	simftdx101 \
+	simftdx1200 \
+	simftdx3000 \
+	simftdx5000 \
+	simic2730 \
+	simic275 \
+	simic7000 \
+	simic705 \
+	simic7100 \
+	simic7200 \
+	simic7300 \
+	simic7600 \
+	simic7610 \
+	simic7700 \
+	simic7851 \
+	simic905 \
+	simic910 \
+	simic9100 \
+	simic9700 \
+	simicgeneric \
+	simicr8600 \
+	simid5100 \
+	simjupiter \
+	simkenwood \
+	simmicom \
+	simorion \
+	simpmr171 \
+	simpowersdr \
+	simpstrotator \
+	simqrplabs \
+	simrotorez \
+	simspid \
+	simtmd700 \
+	simtmd710 \
+	simtrusdx \
+	simts450 \
+	simts590 \
+	simts890 \
+	simts950 \
+	simts990 \
+	simxiegug90 \
+	simxiegux108g \
+	simxiegux6100 \
+	simyaesu
 
 # include generated include files ahead of any in sources
 #rigctl_CPPFLAGS = -I$(top_builddir)/tests -I$(top_builddir)/src -I$(srcdir) $(AM_CPPFLAGS)
@@ -32,7 +92,7 @@ simkenwood_LDFLAGS = $(WINEXELDFLAGS)
 simyaesu_LDFLAGS = $(WINEXELDFLAGS)
 simid5100_LDFLAGS = $(WINEXELDFLAGS)
 
-EXTRA_DIST = sim.h
+EXTRA_DIST = sim.h simft990.dat
 
 # Support 'make check' target for simple tests
 #check_SCRIPTS = 

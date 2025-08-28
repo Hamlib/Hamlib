@@ -22,6 +22,7 @@
 #include <hamlib/rig.h>
 %}
 
+%include macros.swg
 %immutable rig_caps::model_name;
 %immutable rig_caps::mfg_name;
 %immutable rig_caps::version;
@@ -44,18 +45,164 @@
 
 #pragma SWIG nowarn=451
 
+#ifdef SWIGPYTHON
+	// This mirrors "struct rig_callbacks" from rig.h using Python types
+	typedef struct {
+		PyObject *freq_event;     /*!< Frequency change event */
+		PyObject *freq_arg;       /*!< Frequency change argument */
+		PyObject *mode_event;     /*!< Mode change event */
+		PyObject *mode_arg;       /*!< Mode change argument */
+		PyObject *vfo_event;      /*!< VFO change event */
+		PyObject *vfo_arg;        /*!< VFO change argument */
+		PyObject *ptt_event;      /*!< PTT change event */
+		PyObject *ptt_arg;        /*!< PTT change argument */
+		PyObject *dcd_event;      /*!< DCD change event */
+		PyObject *dcd_arg;        /*!< DCD change argument */
+		PyObject *pltune_event;   /*!< Pipeline tuning module freq/mode/width callback NOTE: the C struct doesn't have the _event suffix*/
+		PyObject *pltune_arg;     /*!< Pipeline tuning argument */
+		PyObject *spectrum_event; /*!< Spectrum line reception event */
+		PyObject *spectrum_arg;   /*!< Spectrum line reception argument */
+		/* etc.. */
+	} python_callbacks_t;
+#endif
+
 typedef struct Rig {
 	RIG *rig;
 	struct rig_caps *caps;		/* shortcut to RIG->caps */
 	struct rig_state *state;	/* shortcut to RIG->state */
 	int error_status;
 	int do_exception;
+#ifdef SWIGPYTHON
+	python_callbacks_t *python_callbacks;
+#endif
 } Rig;
 
 typedef char * char_string;
 typedef channel_t * channel_t_p;
 typedef channel_t * const_channel_t_p;
 
+#ifdef SWIGPYTHON
+int *rig_freq_cb_python(RIG *rig, vfo_t vfo, freq_t freq, rig_ptr_t arg)
+{
+    Rig *self = arg;
+    PyObject *python_arguments;
+
+    python_arguments = PyTuple_Pack(3,
+                                    PyLong_FromLong(vfo),
+                                    PyFloat_FromDouble(freq),
+                                    self->python_callbacks->freq_arg
+                                    );
+
+    PyObject_CallObject(self->python_callbacks->freq_event, python_arguments);
+    Py_XDECREF(python_arguments);
+
+    return RIG_OK;
+}
+
+int *rig_mode_cb_python(RIG *rig, vfo_t vfo, rmode_t rmode, pbwidth_t pbwidth, rig_ptr_t arg)
+{
+    Rig *self = arg;
+    PyObject *python_arguments;
+
+    python_arguments = PyTuple_Pack(4,
+                                    PyLong_FromLong(vfo),
+                                    PyLong_FromLong(rmode),
+                                    PyLong_FromLong(pbwidth),
+                                    self->python_callbacks->mode_arg
+                                    );
+
+    PyObject_CallObject(self->python_callbacks->mode_event, python_arguments);
+
+    Py_XDECREF(python_arguments);
+
+    return RIG_OK;
+}
+
+int *rig_vfo_cb_python(RIG *rig, vfo_t vfo, rig_ptr_t arg)
+{
+    Rig *self = arg;
+    PyObject *python_arguments;
+
+    python_arguments = PyTuple_Pack(2,
+                                    PyLong_FromLong(vfo),
+                                    self->python_callbacks->vfo_arg
+                                    );
+
+    PyObject_CallObject(self->python_callbacks->vfo_event, python_arguments);
+
+    Py_XDECREF(python_arguments);
+
+    return RIG_OK;
+}
+
+int *rig_ptt_cb_python(RIG *rig, vfo_t vfo, ptt_t ptt, rig_ptr_t arg)
+{
+    Rig *self = arg;
+    PyObject *python_arguments;
+
+    python_arguments = PyTuple_Pack(3,
+                                    PyLong_FromLong(vfo),
+                                    PyLong_FromLong(ptt),
+                                    self->python_callbacks->ptt_arg
+                                    );
+
+    PyObject_CallObject(self->python_callbacks->ptt_event, python_arguments);
+
+    Py_XDECREF(python_arguments);
+
+    return RIG_OK;
+}
+
+int *rig_dcd_cb_python(RIG *rig, vfo_t vfo, dcd_t dcd, rig_ptr_t arg)
+{
+    Rig *self = arg;
+    PyObject *python_arguments;
+
+    python_arguments = PyTuple_Pack(3,
+                                    PyLong_FromLong(vfo),
+                                    PyLong_FromLong(dcd),
+                                    self->python_callbacks->dcd_arg
+                                    );
+
+    PyObject_CallObject(self->python_callbacks->dcd_event, python_arguments);
+
+    Py_XDECREF(python_arguments);
+
+    return RIG_OK;
+}
+
+int *rig_pltune_cb_python(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *rmode, pbwidth_t *pbwidth, rig_ptr_t arg)
+{
+    Rig *self = arg;
+    PyObject *python_arguments;
+
+    python_arguments = PyTuple_Pack(1,
+                                    self->python_callbacks->pltune_arg
+                                    );
+
+    PyObject_CallObject(self->python_callbacks->pltune_event, python_arguments);
+
+    Py_XDECREF(python_arguments);
+
+    return RIG_OK;
+}
+
+int *rig_spectrum_cb_python(RIG *rig, struct rig_spectrum_line *rig_spectrum_line, rig_ptr_t arg)
+{
+    Rig *self = arg;
+    PyObject *python_arguments;
+
+    python_arguments = PyTuple_Pack(1,
+                                    self->python_callbacks->spectrum_arg
+                                    );
+
+    PyObject_CallObject(self->python_callbacks->spectrum_event, python_arguments);
+
+    Py_XDECREF(python_arguments);
+
+    return RIG_OK;
+}
+#endif
 %}
 
 %extend channel {
@@ -329,15 +476,26 @@ typedef channel_t * const_channel_t_p;
 			free(r);
 			return NULL;
 		}
+#ifdef SWIGPYTHON
+		r->python_callbacks = calloc(1, sizeof(python_callbacks_t));
+		if (!r->python_callbacks) {
+			free(r);
+			return NULL;
+		}
+#endif
 		/* install shortcuts */
 		r->caps = r->rig->caps;
 		r->state = &r->rig->state;
 		r->do_exception = 0;	/* default is disabled */
 		r->error_status = RIG_OK;
+
 		return r;
 	}
 	~Rig () {
 		rig_cleanup(self->rig);
+#ifdef SWIGPYTHON
+		free(self->python_callbacks);
+#endif
 		free(self);
 	}
 
@@ -482,6 +640,17 @@ typedef channel_t * const_channel_t_p;
 	METHOD1GET(get_trn, int)
 	METHOD1VGET(get_dcd, dcd_t)
 
+	// Handling of event callbacks
+#ifdef SWIGPYTHON
+	RIG_SET_CALLBACK(freq)
+	RIG_SET_CALLBACK(mode)
+	RIG_SET_CALLBACK(vfo)
+	RIG_SET_CALLBACK(ptt)
+	RIG_SET_CALLBACK(dcd)
+	RIG_SET_CALLBACK(pltune)
+	RIG_SET_CALLBACK(spectrum)
+#endif
+
 	int mem_count(void) {
 		return rig_mem_count(self->rig);
 	}
@@ -530,7 +699,7 @@ typedef channel_t * const_channel_t_p;
 
 	void get_conf(hamlib_token_t tok, char *returnstr) {
 		returnstr[0] = '\0';
-		self->error_status = rig_get_conf(self->rig, tok, returnstr);
+		self->error_status = rig_get_conf2(self->rig, tok, returnstr, MAX_RETURNSTR);
 	}
 
 	void get_conf(const char *name, char *returnstr) {
@@ -539,7 +708,7 @@ typedef channel_t * const_channel_t_p;
 		if (tok == RIG_CONF_END)
 			self->error_status = -RIG_EINVAL;
 		else
-			self->error_status = rig_get_conf(self->rig, tok, returnstr);
+			self->error_status = rig_get_conf2(self->rig, tok, returnstr, MAX_RETURNSTR);
 	}
 
 	void recv_dtmf(char *returnstr, vfo_t vfo = RIG_VFO_CURR) {
@@ -565,6 +734,64 @@ typedef channel_t * const_channel_t_p;
 		self->error_status = rig_get_ext_func(self->rig, vfo, func, &status);
 		return status;
 	}
+
+#ifdef SWIGPYTHON
+	PyObject *send_raw(PyObject *send_obj, PyObject *term_obj=NULL)
+	{
+		char *send, *term;
+		PyObject *bytes_obj;
+		size_t send_len;
+		int reply_len = MAX_RETURNSTR;
+		unsigned char reply_buffer[MAX_RETURNSTR];
+		int count;
+
+		if (PyUnicode_Check(send_obj)) {
+			bytes_obj = PyUnicode_AsUTF8String(send_obj);
+			PyBytes_AsStringAndSize(bytes_obj, &send, &send_len);
+			Py_XDECREF(bytes_obj);
+		} else if (PyBytes_Check(send_obj)) {
+			PyBytes_AsStringAndSize(send_obj, &send, &send_len);
+		} else {
+			SWIG_Python_RaiseOrModifyTypeError("Expected string or bytes for send argument");
+			return NULL;
+		}
+
+		// Using NULL for length in PyUnicode_AsUTF8AndSize() and PyBytes_AsStringAndSize()
+		// because we can't accept '\0' because there is no length for term in rig_send_raw()
+		if (PyUnicode_Check(term_obj)) {
+			bytes_obj = PyUnicode_AsUTF8String(term_obj);
+			PyBytes_AsStringAndSize(bytes_obj, &term, NULL);
+			Py_XDECREF(bytes_obj);
+		} else if (PyBytes_Check(term_obj)) {
+			PyBytes_AsStringAndSize(term_obj, &term, NULL);
+		} else if (term_obj == Py_None) {
+			term = NULL;
+		} else {
+			SWIG_Python_RaiseOrModifyTypeError("Expected string or bytes or NULL for term argument");
+			return NULL;
+		}
+
+		count = rig_send_raw(self->rig, send, send_len, reply_buffer, reply_len, term);
+		self->error_status = count < 0 ? count : RIG_OK;
+
+		if (PyUnicode_Check(send_obj)) {
+			return PyUnicode_FromStringAndSize(reply_buffer, count);
+		} else {
+			return PyBytes_FromStringAndSize(reply_buffer, count);
+		}
+	}
+#endif
+
+#ifdef SWIGPERL
+	void send_raw(char *send, char *term, char *returnstr)
+	{
+		returnstr[0] = '\0';
+		int count;
+
+		count = rig_send_raw(self->rig, send, strlen(send), returnstr, MAX_RETURNSTR, term);
+		self->error_status = count < 0 ? count : RIG_OK;
+	}
+#endif
 
 //#ifndef SWIGJAVA
 	/* TODO */
@@ -647,6 +874,5 @@ struct channel *Rig_get_chan_all(Rig *self)
 	/* TODO: copy ext_level's */
 	return chans;
 }
-
 
 %}

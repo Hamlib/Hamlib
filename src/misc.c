@@ -736,6 +736,7 @@ static const struct
     { RIG_FUNC_DIVERSITY, "DIVERSITY"},
     { RIG_FUNC_CSQL, "CSQL" },
     { RIG_FUNC_SCEN, "SCEN" },
+    { RIG_FUNC_SLICE, "SLICE" },
     { RIG_FUNC_TRANSCEIVE, "TRANSCEIVE" },
     { RIG_FUNC_SPECTRUM, "SPECTRUM" },
     { RIG_FUNC_SPECTRUM_HOLD, "SPECTRUM_HOLD" },
@@ -1031,7 +1032,7 @@ static const struct
 
 /**
  * \brief check input to set_level
- * \param rig Pointer to rig data
+ * \param rig The rig handle
  * \param level RIG_LEVEL_* trying to set
  * \param val Raw input from the caller
  * \param gran If not NULL, set to location of level_gran data
@@ -2731,7 +2732,7 @@ static const struct
     { RIG_COMM_STATUS_OK, "OK" },
     { RIG_COMM_STATUS_CONNECTING, "CONNECTING" },
     { RIG_COMM_STATUS_DISCONNECTED, "DISCONNECTED" },
-    { RIG_COMM_STATUS_TERMINATED, "TERMINATIED" },
+    { RIG_COMM_STATUS_TERMINATED, "TERMINATED" },
     { RIG_COMM_STATUS_WARNING, "WARNING" },
     { RIG_COMM_STATUS_ERROR, "ERROR" },
     { 0xffffffff, "" },
@@ -3151,18 +3152,18 @@ int queue_deferred_config(deferred_config_header_t *head, hamlib_token_t token,
     }
 
     item->token = token;
-    item->next = NULL;
+    item->nextt = NULL;
 
-    if (!head->first)
+    if (!head->firstt)
     {
-        head->first = item;
+        head->firstt = item;
     }
     else
     {
-        head->last->next = item;
+        head->lastt->nextt = item;
     }
 
-    head->last = item;
+    head->lastt = item;
 
     return RIG_OK;
 }

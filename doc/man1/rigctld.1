@@ -67,7 +67,7 @@ commands with the requested values, one per line, when successful, otherwise,
 it responds with one line \(lqRPRT x\(rq, where \(oqx\(cq is a negative number
 indicating the error code.  Commands that do not return values respond with
 the line \(lqRPRT x\(rq, where \(oqx\(cq is \(oq0\(cq when successful,
-otherwise is a regative number indicating the error code.  Each line is
+otherwise is a negative number indicating the error code.  Each line is
 terminated with a newline \(oq\\n\(cq character.  This protocol is primarily
 for use by the
 .B NET rigctl
@@ -1376,7 +1376,7 @@ Returns Hamlib version with ISO8601 date/time
 Performs test routines.  Under development.
 .
 .TP
-.BR set_gpio " \(aq" \fIGPIO#\fP "\(aq
+.BR set_gpio " \(aq" \fIGPIO#\fP "\(aq \(aq" \fI0/1\fP "\(aq
 Sets GPIO1, GPIO2, GPIO3, GPIO4 on the GPIO ptt port
 Can also use 1,2,3,4
 .

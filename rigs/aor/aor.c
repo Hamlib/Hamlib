@@ -152,7 +152,7 @@ static int format_freq(char *buf, int buf_len, freq_t freq)
 
     /*
      * actually, frequency must be like nnnnnnnnm0,
-     * where m must be 0 or 5 (for 50Hz).
+     * where m must be 0 or 5 (for 50 Hz).
      */
     lowhz = f % 100;
     f /= 100;
@@ -461,7 +461,7 @@ int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         if (retval != RIG_OK) { return retval; }
 
         strncpy(mdbuf2, mdbuf + 4, 3); /* Extract first 'BW' part */
-        mdbuf2[3] = '\0'; // in case strnpy produces and un-terminated string
+        mdbuf2[3] = '\0'; // in case strncpy produces and un-terminated string
         mdbuf2_len = strlen(mdbuf2);
 
         retval = aor_transaction(rig, mdbuf2, mdbuf2_len, NULL, NULL);
@@ -595,7 +595,7 @@ int aor_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 
     /*
      * actually, tuning step must be like nnnnm0,
-     * where m must be 0 or 5 (for 50Hz).
+     * where m must be 0 or 5 (for 50 Hz).
      */
     SNPRINTF(tsbuf, sizeof(tsbuf), "ST%06ld" EOM, ts);
 
@@ -1443,7 +1443,7 @@ const char *aor_get_info(RIG *rig)
     static char infobuf[BUFSZ];
     int id_len, frm_len, retval;
     char idbuf[BUFSZ];
-    char frmbuf[32]; // only expect 6 chars...please check
+    char frmbuf[BUFSZ];
 
     retval = aor_transaction(rig, "\001" EOM, 2, idbuf, &id_len);
 

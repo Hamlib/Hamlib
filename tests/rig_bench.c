@@ -17,7 +17,7 @@
 
 int main(int argc, const char *argv[])
 {
-    RIG *my_rig;        /* handle to rig (nstance) */
+    RIG *my_rig;        /* handle to rig (instance) */
     int retcode;        /* generic return code from functions */
     rig_model_t myrig_model;
     unsigned i;

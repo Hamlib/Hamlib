@@ -130,7 +130,7 @@ int is_uh_radio_fd(int fd)
 #include <windows.h>
 #include <strsafe.h>
 
-void WinErrorShow(LPCTSTR lpszFunction, DWORD dw)
+static void WinErrorShow(LPCTSTR lpszFunction, DWORD dw)
 {
     // Retrieve the system error message for the last-error code
 
@@ -145,6 +145,7 @@ void WinErrorShow(LPCTSTR lpszFunction, DWORD dw)
         NULL,
         dw,
         MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+	// cppcheck-suppress uninitvar
         (LPTSTR) &lpMsgBuf,
         0, NULL);
 
@@ -172,7 +173,7 @@ enum serial_status
     SER_AVAILABLE
 };
 
-int check_com_port_in_use(const char *port)
+static int check_com_port_in_use(const char *port)
 {
     char device[1024];
     snprintf(device, sizeof(device), "\\\\.\\%s", port);
@@ -570,7 +571,6 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
                   "%s: unsupported rate specified: %d\n",
                   __func__,
                   rp->parm.serial.rate);
-        CLOSE(fd);
 
         return (-RIG_ECONF);
     }
@@ -617,10 +617,8 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
                   "%s: unsupported serial_data_bits specified: %d\n",
                   __func__,
                   rp->parm.serial.data_bits);
-        CLOSE(fd);
 
         return (-RIG_ECONF);
-        break;
     }
 
     /*
@@ -645,10 +643,8 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
                   "%s: unsupported serial_stop_bits specified: %d\n",
                   __func__,
                   rp->parm.serial.stop_bits);
-        CLOSE(fd);
 
         return (-RIG_ECONF);
-        break;
     }
 
     /*
@@ -691,10 +687,8 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
                   "%s: unsupported serial_parity specified: %d\n",
                   __func__,
                   rp->parm.serial.parity);
-        CLOSE(fd);
 
         return (-RIG_ECONF);
-        break;
     }
 
 
@@ -727,10 +721,8 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
                   "%s: unsupported flow_control specified: %d\n",
                   __func__,
                   rp->parm.serial.handshake);
-        CLOSE(fd);
 
         return (-RIG_ECONF);
-        break;
     }
 
     /*
@@ -772,7 +764,6 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
                   "%s: tcsetattr failed: %s\n",
                   __func__,
                   strerror(errno));
-        CLOSE(fd);
 
         return (-RIG_ECONF);      /* arg, so close! */
     }
@@ -787,7 +778,6 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
                   "%s: ioctl(TCSETA) failed: %s\n",
                   __func__,
                   strerror(errno));
-        CLOSE(fd);
 
         return (-RIG_ECONF);      /* arg, so close! */
     }
@@ -803,7 +793,6 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
                   "%s: ioctl(TIOCSETP) failed: %s\n",
                   __func__,
                   strerror(errno));
-        CLOSE(fd);
 
         return (-RIG_ECONF);      /* arg, so close! */
     }

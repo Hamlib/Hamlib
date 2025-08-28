@@ -27,22 +27,14 @@
 // can run this using rigctl/rigctld and socat pty devices
 #define _XOPEN_SOURCE 700
 // since we are POSIX here we need this
-#if  0
-struct ip_mreq
-{
-    int dummy;
-};
-#endif
-
-#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
-#include <errno.h>
 #include <ctype.h>
 #include <time.h>
+
+#include "config.h"
 //#include "hamlib/rig.h"
 
 /* Definitions */
@@ -52,8 +44,6 @@ struct ip_mreq
  *   app is only using the latest-and-greatest, comment out the next define.
  */
 #define LEGACY
-// Size of command buffer
-#define BUFSIZE 256
 // Number of selectable bands
 #define NBANDS 11
 /* Type we're emulating - K=The Americas(default), E=Europe */
@@ -211,74 +201,12 @@ static void swapvfos(kvfop_t *vfoset[]);
 // Extracted from rig.h
 int hl_usleep(unsigned long usec);  // Until it's replaced
 
-#if defined(WIN32) || defined(_WIN32)
-int openPort(char *comport) // doesn't matter for using pts devices
-{
-    int fd;
-    fd = open(comport, O_RDWR);
+#include "sim.h"
 
-    if (fd < 0)
-    {
-        perror(comport);
-    }
-
-    return fd;
-}
-
-#else
-int openPort(char *comport) // doesn't matter for using pts devices
-{
-    int fd = posix_openpt(O_RDWR);
-    char *name = ptsname(fd);
-
-    if (name == NULL)
-    {
-        perror("ptsname");
-        return -1;
-    }
-
-    printf("name=%s\n", name);
-
-    if (fd == -1 || grantpt(fd) == -1 || unlockpt(fd) == -1)
-    {
-        perror("posix_openpt");
-        return -1;
-    }
-
-    return fd;
-}
-#endif
-
-int
-getmyline(int fd, char *buf)
-{
-    char c;
-    int i = 0;
-    memset(buf, 0, BUFSIZE);
-    int retval;
-
-    while ((retval = read(fd, &c, 1)) > 0)
-    {
-        buf[i++] = c;
-
-        if (c == ';') { return strlen(buf); }
-    }
-
-    if (retval != 0)
-    {
-        perror("read failed:");
-        //close(fd);
-        //fd = openPort("");
-    }
-
-    if (strlen(buf) == 0) { hl_usleep(10 * 1000); }
-
-    return strlen(buf);
-}
 
 int main(int argc, char *argv[])
 {
-    char buf[256];
+    char buf[BUFSIZE];
     char *pbuf;
     int fd = openPort(argv[1]);
     int cmd_err = 0;
@@ -1359,7 +1287,7 @@ int main(int argc, char *argv[])
             case 'G': // Audio Scope Attenuator
             case 'H': // Audio Scope Span
             case 'I': // Oscilloscope Level
-            case 'J': // Oscilloscpoe Sweep Time
+            case 'J': // Oscilloscope Sweep Time
             case 'K': // Bandscope Shift Position
             case 'L': // Bandscope Receive Circuit State
             case 'M': // Bandscope Scope Range Lower/Upper Frequency Limit
@@ -1475,7 +1403,7 @@ int main(int argc, char *argv[])
             switch (buf[2])
             {
             case '0': // Memory Channel Configuration
-            case '1': // Memort Channel (Direct Write)
+            case '1': // Memory Channel (Direct Write)
             case '2': // Memory Channel (Channel Name)
             case '3': // Memory Channel (Scan Lockout)
             case '4': // Memory Channel (Channel Copy)

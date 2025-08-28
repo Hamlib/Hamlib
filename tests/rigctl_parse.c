@@ -2005,6 +2005,15 @@ void usage_rig(FILE *fout)
             "Commands and arguments read from standard input must be white space separated,\n"
             "comments are allowed, comments start with the # character and continue to the\n"
             "end of the line.\n");
+
+    fprintf(fout, "\nError codes and messages\n");
+
+    for (enum rig_errcode_e e = 0; e < RIG_EEND; ++e)
+    {
+        fprintf(fout, "-%d - %s", e, rigerror2(e));
+    }
+
+    fprintf(fout, "\nReport bugs to <hamlib-developer@lists.sourceforge.net>.\n");
 }
 
 
@@ -3352,9 +3361,27 @@ declare_proto_rig(set_level)
 
     level = rig_parse_level(arg1);
 
-    if ((!strcmp(arg2, "?") || arg2[0] == 0) && level == RIG_LEVEL_METER)
+    if (!strcmp(arg2, "?"))
     {
-        fprintf(fout, "COMP ALC SWR ID/IC VDD DB PO TEMP%c", resp_sep);
+        if (level == RIG_LEVEL_METER)
+        {
+            fprintf(fout, "COMP ALC SWR ID/IC VDD DB PO TEMP%c", resp_sep);
+        } else {
+            const gran_t *gran = STATE(rig)->level_gran;
+            int idx = rig_setting2idx(level);
+
+            if (RIG_LEVEL_IS_FLOAT(level))
+            {
+                fprintf(fout, "(%f..%f/%f)%c", gran[idx].min.f,
+                        gran[idx].max.f, gran[idx].step.f, resp_sep);
+            }
+            else
+            {
+                fprintf(fout, "(%d..%d/%d)%c", gran[idx].min.i,
+                        gran[idx].max.i, gran[idx].step.i, resp_sep);
+            }
+        }
+
         RETURNFUNC2(RIG_OK);
     }
 
@@ -3699,11 +3726,12 @@ declare_proto_rig(set_parm)
         RETURNFUNC2(RIG_OK);
     }
 
-    if (strcmp(arg1, "BANDSELECT") == 0 && !strcmp(arg2, "?"))
+    parm = rig_parse_parm(arg1);
+
+    if ((parm == RIG_PARM_BANDSELECT || parm == RIG_PARM_KEYERTYPE) && !strcmp(arg2, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_parm_gran(s, sizeof(s) - 1, RIG_PARM_BANDSELECT,
-                              rig->caps->parm_gran);
+        rig_sprintf_parm_gran(s, sizeof(s) - 1, parm, rig->caps->parm_gran);
         char *p = strchr(s, ')');
 
         if (p) { *p = 0; }
@@ -3722,14 +3750,13 @@ declare_proto_rig(set_parm)
         else { RETURNFUNC2(-RIG_EINTERNAL); }
     }
 
-    if (strcmp(arg1, "KEYERTYPE") == 0 && strcmp(arg2, "?") != 0)
+    if (parm == RIG_PARM_KEYERTYPE && strcmp(arg2, "?") != 0)
     {
         if (strcmp(arg2, "STRAIGHT") == 0) {arg2 = "0";}
         else if (strcmp(arg2, "BUG") == 0) {arg2 = "1";}
         else if (strcmp(arg2, "PADDLE") == 0) {arg2 = "2";}
+        else {RETURNFUNC2(-RIG_EINVAL)}
     }
-
-    parm = rig_parse_parm(arg1);
 
     if (!rig_has_set_parm(rig, parm))
     {
@@ -3793,11 +3820,13 @@ declare_proto_rig(set_parm)
     }
     else if (RIG_PARM_IS_STRING(parm))
     {
+#if 0
         if (parm == RIG_PARM_KEYERTYPE)
         {
             val.i = atoi(arg2);
         }
         else
+#endif
         {
             val.cs = arg2;
         }
@@ -3921,12 +3950,15 @@ declare_proto_rig(get_parm)
 
     if (parm == RIG_PARM_KEYERTYPE)
     {
-        char *s = "STRAIGHT";
+        const char *cs;
 
-        if (val.i == 1) { s = "BUG"; }
-        else if (val.i == 2) { s = "PADDLE"; }
+        if (val.cs == NULL) {cs = "(null)";}
+        else if (strcmp(val.cs, "0") == 0) {cs = "STRAIGHT";}
+        else if (strcmp(val.cs, "1") == 0) {cs = "BUG";}
+        else if (strcmp(val.cs, "2") == 0) {cs = "PADDLE";}
+        else {cs = "UNKNOWN";}
 
-        fprintf(fout, "%s%cv", s, resp_sep);
+        fprintf(fout, "%s%c", cs, resp_sep);
     }
     else if (RIG_PARM_IS_FLOAT(parm))
     {
@@ -4805,7 +4837,9 @@ declare_proto_rig(dump_state)
 
         for (i = 0; i < RIG_SETTING_MAX; ++i)
         {
-            if (RIG_LEVEL_IS_FLOAT(i))
+            setting_t level = rig_idx2setting(i);
+
+            if (RIG_LEVEL_IS_FLOAT(level))
             {
                 fprintf(fout, "%d=%g,%g,%g;", i, rs->level_gran[i].min.f,
                         rs->level_gran[i].max.f, rs->level_gran[i].step.f);
@@ -4821,10 +4855,16 @@ declare_proto_rig(dump_state)
 
         for (i = 0; i < RIG_SETTING_MAX; ++i)
         {
-            if (RIG_LEVEL_IS_FLOAT(i))
+            setting_t parm = rig_idx2setting(i);
+
+            if (RIG_PARM_IS_FLOAT(parm))
             {
                 fprintf(fout, "%d=%g,%g,%g;", i, rs->parm_gran[i].min.f,
                         rs->parm_gran[i].max.f, rs->parm_gran[i].step.f);
+            }
+            else if (RIG_PARM_IS_STRING(parm))
+            {
+                fprintf(fout, "%d=%s;", i, rs->parm_gran[i].step.cs);
             }
             else
             {
@@ -6062,7 +6102,7 @@ declare_proto_rig(set_conf)
     }
     else
     {
-        ret = rig_set_conf(rig, rig_token_lookup(rig, arg1), arg2);
+        ret = rig_set_conf(rig, mytoken, arg2);
     }
 
     return (ret);

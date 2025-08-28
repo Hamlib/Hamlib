@@ -303,7 +303,7 @@ typedef struct s_rig RIG;
 #define HAMLIB_RIGVERSIZ 8
 #define HAMLIB_FILPATHLEN 512
 #define HAMLIB_FRQRANGESIZ 30
-#define HAMLIB_MAXCHANDESC 30      /* describe channel eg: "WWV 5Mhz" */
+#define HAMLIB_MAXCHANDESC 30      /* describe channel eg: "WWV 5 MHz" */
 #define HAMLIB_TSLSTSIZ 20         /* max tuning step list size, zero ended */
 #define HAMLIB_FLTLSTSIZ 60        /* max mode/filter list size, zero ended */
 #define HAMLIB_MAXDBLSTSIZ 8       /* max preamp/att levels supported, zero ended */
@@ -629,7 +629,7 @@ typedef unsigned int vfo_t;
 
 /*
  * targetable bitfields, for internal use.
- * In rig.c lack of a flag will case a VFO change if needed
+ * In rig.c lack of a flag will cause a VFO change if needed
  * So setting this flag will mean the backend handles any VFO needs
  * For many rigs RITXIT, PTT, MEM, and BANK are non-VFO commands so need these flags to avoid unnecessary VFO swapping
  */
@@ -971,7 +971,7 @@ typedef enum {
     RIG_ANN_RXMODE =    (1 << 1),       /*!< Announce receive mode */
     RIG_ANN_CW =        (1 << 2),       /*!< CW */
     RIG_ANN_ENG =       (1 << 3),       /*!< English */
-    RIG_ANN_JAP =       (1 << 4)        /*!< Japan */
+    RIG_ANN_JAP =       (1 << 4)        /*!< Japanese */
 } ann_t;
 
 
@@ -1187,8 +1187,8 @@ enum rig_parm_e {
     RIG_PARM_SCREENSAVER =  (1 << 8),   /*!< \c SCREENSAVER -- rig specific timeouts */
     RIG_PARM_AFIF =         (1 << 9),   /*!< \c AFIF for USB -- 0=AF audio, 1=IF audio -- see IC-7300/9700/705 */
     RIG_PARM_BANDSELECT =   (1 << 10),  /*!< \c BANDSELECT -- e.g. BAND160M, BAND80M, BAND70CM, BAND2CM */
-    RIG_PARM_KEYERTYPE =    (1 << 11),  /*!< \c KEYERTYPE -- 0,1,2 or STRAIGHT PADDLE BUG */
-    RIG_PARM_AFIF_LAN =     (1 << 12),  /*!< \c AFIF for LAN -- 0=AF audi , 1=IF audio -- see IC-9700 */
+    RIG_PARM_KEYERTYPE =    (1 << 11),  /*!< \c KEYERTYPE -- Has multiple Morse keyer types, see #rig_keyertype_e */
+    RIG_PARM_AFIF_LAN =     (1 << 12),  /*!< \c AFIF for LAN -- 0=AF audio , 1=IF audio -- see IC-9700 */
     RIG_PARM_AFIF_WLAN =    (1 << 13),  /*!< \c AFIF_WLAN -- 0=AF audio, 1=IF audio -- see IC-705 */
     RIG_PARM_AFIF_ACC =     (1 << 14)   /*!< \c AFIF_ACC -- 0=AF audio, 1=IF audio -- see IC-9700 */
 };
@@ -1908,17 +1908,18 @@ struct rig_spectrum_line
 
 /**
  * Config item for deferred processing
+ *  (Funky names to avoid clash with perl keywords. Sheesh.)
  **/
 struct deferred_config_item {
-  struct deferred_config_item *next;
+  struct deferred_config_item *nextt;
   hamlib_token_t token;
   char *value;                  // strdup'ed, must be freed
 };
 typedef struct deferred_config_item deferred_config_item_t;
 
 struct deferred_config_header {
-  struct deferred_config_item *first;   // NULL if none
-  struct deferred_config_item *last;
+  struct deferred_config_item *firstt;   // NULL if none
+  struct deferred_config_item *lastt;
 };
 typedef struct deferred_config_header deferred_config_header_t;
 
@@ -2580,7 +2581,7 @@ struct multicast_s
     int multicast_running;
     int sock;
     int seqnumber;
-    int runflag; // = 0;
+    volatile int runflag; // = 0;
     pthread_t threadid;
     // this mutex is needed to control serial access
     // as of 2023-05-13 we have main thread and multicast thread needing it
@@ -2646,13 +2647,14 @@ typedef int (*spectrum_cb_t)(RIG *,
  * Events from the rig are received through async io,
  * so callback functions will be called from the SIGIO sighandler context.
  *
- * Don't set these fields directly, use rig_set_freq_callback et. al. instead.
+ * Don't set these fields directly, use rig_set_freq_callback() et. al. instead.
  *
  * Callbacks suit event based programming very well,
  * really appropriate in a GUI.
  *
- * \sa rig_set_freq_callback(), rig_set_mode_callback(), rig_set_vfo_callback(),
- *     rig_set_ptt_callback(), rig_set_dcd_callback()
+ * \sa rig_set_dcd_callback(), rig_set_freq_callback(), rig_set_mode_callback(),
+ *     rig_set_pltune_callback(), rig_set_ptt_callback(), rig_set_spectrum_callback(),
+ *     rig_set_vfo_callback()
  */
 // Do NOT add/remove from this structure -- it will break DLL backwards compatibility
 struct rig_callbacks {

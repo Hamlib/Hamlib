@@ -1572,6 +1572,8 @@ void usage_rot(FILE *fout)
             "Commands and arguments read from standard input must be white space separated,\n"
             "comments are allowed, comments start with the # character and continue to the\n"
             "end of the line.\n");
+
+    fprintf(fout, "\nReport bugs to <hamlib-developer@lists.sourceforge.net>.\n");
 }
 
 
@@ -1736,7 +1738,7 @@ declare_proto_rot(set_conf)
     }
     else
     {
-        ret = rot_set_conf(rot, rot_token_lookup(rot, arg1), arg2);
+        ret = rot_set_conf(rot, mytoken, arg2);
     }
 
     return (ret);
@@ -1949,6 +1951,25 @@ declare_proto_rot(set_level)
     }
 
     level = rot_parse_level(arg1);
+
+    if (!strcmp(arg2, "?"))
+    {
+        const gran_t *gran = STATE(rot)->level_gran;
+        int idx = rig_setting2idx(level);
+
+        if (ROT_LEVEL_IS_FLOAT(level))
+        {
+            fprintf(fout, "(%f..%f/%f)%c", gran[idx].min.f,
+                    gran[idx].max.f, gran[idx].step.f, resp_sep);
+        }
+        else
+        {
+            fprintf(fout, "(%d..%d/%d)%c", gran[idx].min.i,
+                    gran[idx].max.i, gran[idx].step.i, resp_sep);
+        }
+
+        return RIG_OK;
+    }
 
     if (!rot_has_set_level(rot, level))
     {
@@ -2911,7 +2932,7 @@ declare_proto_rot(pause)
     return RIG_OK;
 }
 
-// short list for rigctl/rigctld display
+// short list for rotctl/rotctld display
 int print_conf_list2(const struct confparams *cfp, rig_ptr_t data, FILE *fout)
 {
     ROT *rot = (ROT *) data;

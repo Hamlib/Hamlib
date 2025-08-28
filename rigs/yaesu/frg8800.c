@@ -185,7 +185,7 @@ int frg8800_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     /* store bcd format in cmd (LSB) */
     to_bcd(cmd, freq / 10, 8);
 
-    /* Byte1: 100Hz's and 25Hz step code */
+    /* Byte1: 100 Hz's and 25 Hz step code */
     cmd[0] = (cmd[0] & 0xf0) | (1 << ((((long long)freq) % 100) / 25));
 
     /* Frequency set */

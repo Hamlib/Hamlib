@@ -6,9 +6,18 @@ aclocal_DATA = hamlib.m4
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = hamlib.pc
 
-EXTRA_DIST = PLAN LICENSE hamlib.m4 hamlib.pc.in README.md README.developer \
-	README.betatester README.freqranges README.multicast README.osx \
-	Android.mk
+EXTRA_DIST = \
+	Android.mk \
+	README.betatester \
+	LICENSE \
+	PLAN \
+	README.developer \
+	README.freqranges \
+	README.md \
+	README.multicast \
+	README.osx \
+	hamlib.m4 \
+	hamlib.pc.in
 
 doc_DATA = ChangeLog COPYING COPYING.LIB LICENSE \
 	README.md README.betatester README.developer
@@ -24,10 +33,24 @@ SUBDIRS = macros include lib security \
 
 ## Static list of distributed directories.
 DIST_SUBDIRS = \
+	$(AMP_BACKEND_LIST) \
+	$(BACKEND_LIST) \
+	$(RIG_BACKEND_LIST) \
 	$(RIG_BACKEND_OPTIONAL_LIST) \
+	$(ROT_BACKEND_LIST) \
 	$(ROT_BACKEND_OPTIONAL_LIST) \
-	macros include lib src c++ bindings tests doc android scripts simulators\
-	security $(BACKEND_LIST) $(RIG_BACKEND_LIST) $(ROT_BACKEND_LIST) $(AMP_BACKEND_LIST)
+	android \
+	bindings \
+	c++ \
+	doc \
+	include \
+	lib \
+	macros \
+	scripts \
+	security \
+	simulators \
+	src \
+	tests
 
 # Install any third party macros into our tree for distribution
 ACLOCAL_AMFLAGS = -I macros --install 

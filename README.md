@@ -11,7 +11,7 @@ Daily snapshots are available at https://n0nb.users.sourceforge.net/
 Development happens on the github master (often by
 merging feature branches) and each release has a release branch.
 
-Many Amateur Radio Transceivers come with serial interfaces that allows
+Many Amateur Radio Transceivers come with serial interfaces that allow
 software to control the radio. This project will endeavour to provide shared
 libraries that greatly simplify the application programmer's interaction
 with radio equipment and other controllable devices such as rotators,
@@ -90,7 +90,7 @@ Note: if ./configure does not exist run ./bootstrap first
         sudo make install
 
 For debugging use this configure
-        ./configure CFLAGS=-g -O0 -fPIC --no-create --no-recursio
+        ./configure CFLAGS=-g -O0 -fPIC --no-create --no-recursion
 
 See the INSTALL file for more information.
 

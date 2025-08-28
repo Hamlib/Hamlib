@@ -379,7 +379,7 @@ tt550_init(RIG *rig)
     priv->tx_cwbfo = priv->cwbfo = kHz(0.7);
     priv->agc = 2;        /* medium */
     priv->lineout = priv->spkvol = 0.0;   /* mute */
-    priv->stepsize = 100;     /* default to 100Hz tuning step */
+    priv->stepsize = 100;     /* default to 100 Hz tuning step */
 
     return RIG_OK;
 }
@@ -1744,7 +1744,7 @@ tt550_decode_event(RIG *rig)
         {
         case KEY_F1_DOWN:
 
-            /* F1 changes the Step size from 1hz to 1mhz */
+            /* F1 changes the Step size from 1 Hz to 1 MHz */
             if (priv->stepsize < 10000)
             {
                 /* In powers of ten */

@@ -463,7 +463,7 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 // if needed for testing enable this to emulate a rig with 100hz resolution
 #if 0
-    // we emulate a rig with 100Hz set freq interval limits -- truncation
+    // we emulate a rig with 100 Hz set freq interval limits -- truncation
     freq = freq - fmod(freq, 100);
 #endif
     usleep(CMDSLEEP);
@@ -486,6 +486,12 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     case RIG_VFO_SUB_B: priv->vfo_subb.freq = freq; break;
 
     case RIG_VFO_C: priv->vfo_c.freq = freq; break;
+    }
+
+    if (rig->callbacks.freq_event)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s callbacks.freq_event(%p, %p)\n", __func__, rig->callbacks.freq_event, rig->callbacks.freq_arg);
+        rig->callbacks.freq_event(rig, vfo, freq, rig->callbacks.freq_arg);
     }
 
     if (!priv->split)
@@ -632,6 +638,12 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     case RIG_VFO_C: priv->vfo_c.width = width; break;
     }
 
+    if (rig->callbacks.mode_event)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s callbacks.mode_event(%p, %p)\n", __func__, rig->callbacks.mode_event, rig->callbacks.mode_arg);
+        rig->callbacks.mode_event(rig, vfo, mode, width, rig->callbacks.mode_arg);
+    }
+
     RETURNFUNC(RIG_OK);
 }
 
@@ -731,6 +743,12 @@ static int dummy_set_vfo(RIG *rig, vfo_t vfo)
         RETURNFUNC(-RIG_EINVAL);
     }
 
+    if (rig->callbacks.vfo_event)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s callbacks.vfo_event(%p, %p)\n", __func__, rig->callbacks.vfo_event, rig->callbacks.vfo_arg);
+        rig->callbacks.vfo_event(rig, vfo, rig->callbacks.vfo_arg);
+    }
+
     priv->last_vfo = priv->curr_vfo;
     priv->curr_vfo = vfo;
     STATE(rig)->current_vfo = vfo;
@@ -756,6 +774,12 @@ static int dummy_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
 
     ENTERFUNC;
+    if (rig->callbacks.ptt_event)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s callbacks.ptt_event(%p, %p)\n", __func__, rig->callbacks.ptt_event, rig->callbacks.ptt_arg);
+        rig->callbacks.ptt_event(rig, vfo, ptt, rig->callbacks.ptt_arg);
+    }
+
     priv->ptt = ptt;
 
     RETURNFUNC(RIG_OK);
@@ -1677,7 +1701,7 @@ static int dummy_set_parm(RIG *rig, setting_t parm, value_t val)
 
     if (RIG_PARM_IS_STRING(parm))
     {
-        strcpy(pstr, val.cs);
+        SNPRINTF(pstr, sizeof(pstr), "%s", val.cs);
     }
     else
     {
@@ -2436,7 +2460,7 @@ struct rig_caps dummy_caps =
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
     .targetable_vfo = RIG_TARGETABLE_PTT | RIG_TARGETABLE_RITXIT | RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE | RIG_TARGETABLE_SPECTRUM,
-    .ptt_type =       RIG_PTT_NONE,
+    .ptt_type =       RIG_PTT_RIG,
     .dcd_type =       RIG_DCD_RIG,
     .port_type =      RIG_PORT_NONE,
     .has_get_func =   DUMMY_FUNC,
