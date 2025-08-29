@@ -24,7 +24,6 @@
 #define _CM108_H 1
 
 #include "hamlib/rig.h"
-#include "iofunc.h"
 
 
 __BEGIN_DECLS

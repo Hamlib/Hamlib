@@ -58,13 +58,11 @@
 #include <fcntl.h>
 
 #include "hamlib/amplifier.h"
-#include "hamlib/port.h"
 #include "hamlib/amp_state.h"
 #include "serial.h"
 #include "parallel.h"
 #include "usb_port.h"
 #include "network.h"
-#include "token.h"
 
 //! @cond Doxygen_Suppress
 #define CHECK_AMP_ARG(r) (!(r) || !(r)->caps || !AMPSTATE(r)->comm_state)

@@ -999,7 +999,6 @@ int HAMLIB_API rig_setting2idx(setting_t s)
     return 0;
 }
 
-#include <unistd.h>  /* UNIX standard function definitions */
 
 #if 0
 #include "hamlib/config.h"

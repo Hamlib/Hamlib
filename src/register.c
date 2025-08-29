@@ -35,7 +35,6 @@
 #include "register.h"
 
 #include "hamlib/rig.h"
-#include "misc.h"
 
 //! @cond Doxygen_Suppress
 #ifndef PATH_MAX

@@ -39,7 +39,6 @@
 #include <strings.h>
 
 #include "hamlib/rig.h"
-#include "hamlib/port.h"
 
 #ifdef HAVE_LIBUSB_H
 #  include <libusb.h>

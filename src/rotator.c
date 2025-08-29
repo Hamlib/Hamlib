@@ -53,11 +53,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <sys/stat.h>
 #include <fcntl.h>
 
 #include "hamlib/rotator.h"
-#include "hamlib/port.h"
 #include "hamlib/rot_state.h"
 #include "serial.h"
 #include "parallel.h"
@@ -65,9 +63,6 @@
 #include "usb_port.h"
 #endif
 #include "network.h"
-#include "rot_conf.h"
-#include "token.h"
-#include "iofunc.h"
 
 
 #ifndef DOC_HIDDEN

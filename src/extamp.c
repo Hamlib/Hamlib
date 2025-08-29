@@ -47,9 +47,6 @@
 
 #include "hamlib/amplifier.h"
 
-#include "token.h"
-
-
 /**
  * \brief Executes \a cfunc on all the elements stored in the amp_caps::extlevels
  * extension levels table.
