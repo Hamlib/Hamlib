@@ -45,10 +45,6 @@
 #  include <sys/ioctl.h>
 #endif
 
-#ifdef HAVE_SYS_PARAM_H
-#  include <sys/param.h>
-#endif
-
 #ifdef HAVE_WINDOWS_H
 #  include <windows.h>
 #  include "par_nt.h"
@@ -67,8 +63,6 @@
 #endif
 
 #include "cm108.h"
-
-#include <stdio.h>
 
 const char *get_usb_device_class_string(int device_class)
 {
