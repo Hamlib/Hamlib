@@ -26,6 +26,7 @@
 #include <libindi/baseclient.h>
 
 #include <hamlib/rotator.h>
+#include "misc.h"
 
 class RotINDIClient : public INDI::BaseClient
 {
