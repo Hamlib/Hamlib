@@ -54,9 +54,7 @@
 #  include <netdb.h>
 #endif
 
-#ifdef HAVE_PTHREAD
-#  include <pthread.h>
-#endif
+#include <pthread.h>
 
 #include "hamlib/amplifier.h"
 
@@ -168,10 +166,8 @@ int main(int argc, char *argv[])
     char host[NI_MAXHOST];
     char serv[NI_MAXSERV];
 
-#ifdef HAVE_PTHREAD
     pthread_t thread;
     pthread_attr_t attr;
-#endif
     struct handle_data *arg;
 #ifdef SIGPIPE
 #if HAVE_SIGACTION
@@ -557,7 +553,6 @@ int main(int argc, char *argv[])
                   host,
                   serv);
 
-#ifdef HAVE_PTHREAD
         pthread_attr_init(&attr);
         pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
@@ -569,9 +564,6 @@ int main(int argc, char *argv[])
             break;
         }
 
-#else
-        handle_socket(arg);
-#endif
     }
 
     while (retcode == 0);
@@ -676,9 +668,7 @@ handle_exit:
 #endif
     free(arg);
 
-#ifdef HAVE_PTHREAD
     pthread_exit(NULL);
-#endif
     return NULL;
 }
 
