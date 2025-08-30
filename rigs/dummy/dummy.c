@@ -20,7 +20,7 @@
  *
  */
 
-#include "config.h"
+#include "hamlib/config.h"
 // cppcheck-suppress *
 #include <stdint.h>
 // cppcheck-suppress *

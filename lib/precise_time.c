@@ -20,7 +20,7 @@
 // along with fldigi.  If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-#include "config.h"
+#include "hamlib/config.h"
 #include <errno.h>
 #include <time.h>
 #include <sys/time.h>
