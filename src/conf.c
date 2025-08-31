@@ -1221,6 +1221,14 @@ static int frontend_get_conf2(RIG *rig, hamlib_token_t token, char *val,
         SNPRINTF(val, val_len, "%g", rs->lo_freq);
         break;
 
+    case TOK_RANGE_SELECTED:
+        SNPRINTF(val, val_len, "%d", 0); // FIXME
+        break;
+
+    case TOK_RANGE_NAME:
+        SNPRINTF(val, val_len, "%s", ""); // FIXME
+        break;
+
     case TOK_CACHE_TIMEOUT:
         SNPRINTF(val, val_len, "%d", rig_get_cache_timeout_ms(rig, HAMLIB_CACHE_ALL));
         break;
@@ -1257,8 +1265,20 @@ static int frontend_get_conf2(RIG *rig, hamlib_token_t token, char *val,
         SNPRINTF(val, val_len, "%d", rs->twiddle_rit);
         break;
 
+    case TOK_OFFSET_VFOA:
+        SNPRINTF(val, val_len, "%g", rs->offset_vfoa);
+        break;
+
+    case TOK_OFFSET_VFOB:
+        SNPRINTF(val, val_len, "%g", rs->offset_vfob);
+        break;
+
     case TOK_ASYNC:
         SNPRINTF(val, val_len, "%d", rs->async_data_enabled);
+        break;
+
+    case TOK_TUNER_CONTROL_PATHNAME:
+        SNPRINTF(val, val_len, "%s", rs->tuner_control_pathname);
         break;
 
     case TOK_TIMEOUT_RETRY:
@@ -1279,6 +1299,10 @@ static int frontend_get_conf2(RIG *rig, hamlib_token_t token, char *val,
 
     case TOK_MULTICAST_CMD_PORT:
         SNPRINTF(val, val_len, "%d", rs->multicast_cmd_port);
+        break;
+
+    case TOK_FREQ_SKIP:
+        SNPRINTF(val, val_len, "%d", rs->freq_skip);
         break;
 
     default:
