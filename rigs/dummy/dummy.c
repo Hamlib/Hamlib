@@ -430,6 +430,10 @@ static int dummy_get_conf(RIG *rig, hamlib_token_t token, char *val)
         strcpy(val, priv->magic_conf);
         break;
 
+    case TOK_CFG_STATIC_DATA:
+        SNPRINTF(val, 128, "%d", priv->static_data);
+        break;
+
     default:
         RETURNFUNC(-RIG_EINVAL);
     }
