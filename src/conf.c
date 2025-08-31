@@ -81,13 +81,13 @@ static const struct confparams frontend_cfg_params[] =
         "1", RIG_CONF_NUMERIC, { .n = { 0, 100, 1 } }
     },
     {
-        TOK_RANGE_SELECTED, "Selected range list", "Range list#",
-        "The tx/rx range list in use",
+        TOK_RANGE_SELECTED, "range_list_number", "Range list number",
+        "The tx/rx range list number in use",
         "0", RIG_CONF_NUMERIC, { .n = { 1, 5, 1 } }
     },
     {
-        TOK_RANGE_NAME, "Selected range list", "Range list name",
-        "The tx/rx range list name",
+        TOK_RANGE_NAME, "range_list_name", "Range list name",
+        "The tx/rx range list name in use",
         "Default", RIG_CONF_STRING
     },
     {
