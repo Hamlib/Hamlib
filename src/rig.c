@@ -1918,7 +1918,6 @@ int HAMLIB_API rig_cleanup(RIG *rig)
  * \param seconds    The timeout to set to
  *
  * timeout seconds to stop rigctld when VFO is manually changed
- * turns on/off the radio.
  *
  * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
