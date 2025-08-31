@@ -6048,7 +6048,7 @@ declare_proto_rig(get_conf)
 
     if (arg1 == NULL || arg1[0] == '?')
     {
-        dumpconf_list(rig, stdout);
+        dumpconf_list(rig, fout);
         debugmsgsave[0] = 0;
         debugmsgsave2[0] = 0;
         return RIG_OK;
