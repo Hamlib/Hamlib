@@ -10,10 +10,8 @@ void initFIFO(FIFO_RIG *fifo)
 {
     fifo->head = 0;
     fifo->tail = 0;
-#ifdef _PTHREAD_H
     static pthread_mutex_t t = PTHREAD_MUTEX_INITIALIZER;
     fifo->mutex = t;
-#endif
 }
 
 void resetFIFO(FIFO_RIG *fifo)
@@ -27,9 +25,7 @@ void resetFIFO(FIFO_RIG *fifo)
 // return -RIG error if overflow
 int push(FIFO_RIG *fifo, const char *msg)
 {
-#ifdef _PTHREAD_H
     pthread_mutex_lock(&fifo->mutex);
-#endif
     int len = strlen(msg);
 
     for (int i = 0; i < len; ++i)
@@ -59,9 +55,7 @@ int push(FIFO_RIG *fifo, const char *msg)
         fifo->tail = (fifo->tail + 1) % HAMLIB_FIFO_SIZE;
     }
 
-#ifdef _PTHREAD_H
     pthread_mutex_unlock(&fifo->mutex);
-#endif
     return RIG_OK;
 }
 
@@ -75,9 +69,7 @@ int peek(FIFO_RIG *fifo)
 
     if (fifo->tail == fifo->head) { return -1; }
 
-#ifdef _PTHREAD_H
     pthread_mutex_lock(&fifo->mutex);
-#endif
     char c = fifo->data[fifo->head];
 
 #if 0
@@ -91,9 +83,7 @@ int peek(FIFO_RIG *fifo)
                   fifo->tail);
 
 #endif
-#ifdef _PTHREAD_H
     pthread_mutex_unlock(&fifo->mutex);
-#endif
     return c;
 }
 
@@ -101,9 +91,7 @@ int pop(FIFO_RIG *fifo)
 {
     if (fifo->tail == fifo->head) { return -1; }
 
-#ifdef _PTHREAD_H
     pthread_mutex_lock(&fifo->mutex);
-#endif
     char c = fifo->data[fifo->head];
 #if 0
 
@@ -117,9 +105,7 @@ int pop(FIFO_RIG *fifo)
 
 #endif
     fifo->head = (fifo->head + 1) % HAMLIB_FIFO_SIZE;
-#ifdef _PTHREAD_H
     pthread_mutex_unlock(&fifo->mutex);
-#endif
     return c;
 }
 

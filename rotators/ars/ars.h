@@ -30,12 +30,10 @@ struct ars_priv_data {
     int curr_move;
     unsigned char pp_control;
     unsigned char pp_data;
-#ifdef HAVE_PTHREAD
     pthread_t thread;
     int set_pos_active;
     azimuth_t target_az;
     elevation_t target_el;
-#endif
 };
 
 extern const struct rot_caps rci_az_rot_caps;

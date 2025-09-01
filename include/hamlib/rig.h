@@ -178,11 +178,7 @@ typedef struct
     int head;
     int tail;
     int flush;  // flush flag for stop_morse
-#ifdef _PTHREAD_H
     pthread_mutex_t mutex;
-#else
-    int mutex;
-#endif
 } FIFO_RIG;
 
 

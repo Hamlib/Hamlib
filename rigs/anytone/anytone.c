@@ -223,9 +223,7 @@ int anytone_init(RIG *rig)
         {
             STATE(rig)->priv = p;
             p->vfo_curr = RIG_VFO_NONE;
-#ifdef HAVE_PTHREAD
             pthread_mutex_init(&p->mutex, NULL);
-#endif
         }
     }
 

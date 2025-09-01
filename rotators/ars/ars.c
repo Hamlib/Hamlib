@@ -27,9 +27,7 @@
 #include <sys/ioctl.h>
 #endif
 
-#ifdef HAVE_PTHREAD
 #include <pthread.h>
-#endif
 
 #include "hamlib/rotator.h"
 #include "hamlib/rot_state.h"
@@ -84,9 +82,7 @@ static int ars_set_position_sync(ROT *rot, azimuth_t az, elevation_t el);
 static int ars_set_position(ROT *rot, azimuth_t az, elevation_t el);
 static int ars_get_position(ROT *rot, azimuth_t *az, elevation_t *el);
 
-#ifdef HAVE_PTHREAD
 static void *handle_set_position(void *);
-#endif
 
 /* ************************************************************************* */
 
@@ -193,7 +189,6 @@ ars_open(ROT *rot)
     /* make it idle, and known state */
     ars_stop(rot);
 
-#ifdef HAVE_PTHREAD
     {
         struct ars_priv_data *priv = (struct ars_priv_data *)ROTSTATE(rot)->priv;
         pthread_attr_t attr;
@@ -212,7 +207,6 @@ ars_open(ROT *rot)
             return -RIG_ENOMEM;
         }
     }
-#endif
 
     return RIG_OK;
 }
@@ -220,11 +214,9 @@ ars_open(ROT *rot)
 int
 ars_close(ROT *rot)
 {
-#ifdef HAVE_PTHREAD
     struct ars_priv_data *priv = (struct ars_priv_data *)ROTSTATE(rot)->priv;
 
     pthread_cancel(priv->thread);
-#endif
 
     /* leave it in safe state */
     ars_stop(rot);
@@ -241,9 +233,7 @@ ars_stop(ROT *rot)
     rig_debug(RIG_DEBUG_TRACE, "%s called, brake was %s\n", __func__,
               priv->brake_off ? "OFF" : "ON");
 
-#ifdef HAVE_PTHREAD
     priv->set_pos_active = 0;
-#endif
 
     par_lock(pport);
 
@@ -422,7 +412,6 @@ static int angle_in_range(float angle, float angle_base, float range)
 /*
  * Thread handler
  */
-#ifdef HAVE_PTHREAD
 static void *handle_set_position(void *arg)
 {
     ROT *rot = (ROT *) arg;
@@ -453,7 +442,6 @@ static void *handle_set_position(void *arg)
 
     return NULL;
 }
-#endif
 
 /*
  * ars_set_position_sync() is synchronous.
@@ -583,7 +571,6 @@ ars_set_position_sync(ROT *rot, azimuth_t az, elevation_t el)
 int
 ars_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
-#ifdef HAVE_PTHREAD
     struct ars_priv_data *priv = (struct ars_priv_data *)ROTSTATE(rot)->priv;
 
     /* will be picked by handle_set_position() next polling tick */
@@ -592,9 +579,6 @@ ars_set_position(ROT *rot, azimuth_t az, elevation_t el)
     priv->set_pos_active = 1;
 
     return RIG_OK;
-#else
-    return ars_set_position_sync(rot, az, el);
-#endif
 }
 
 static int comparunsigned(const void *a, const void *b)
