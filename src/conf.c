@@ -174,7 +174,7 @@ static const struct confparams frontend_cfg_params[] =
     {
         TOK_TWIDDLE_TIMEOUT, "twiddle_timeout", "Timeout(secs) to resume VFO polling when twiddling VFO",
         "For satellite ops when VFOB is twiddled will pause VFOB commands until timeout",
-        "Unset", RIG_CONF_COMBO, { .c = {{ "Unset", "ON", "OFF", NULL }} }
+        "0", RIG_CONF_NUMERIC, { .n = { 0, 100, 1 } }
     },
     {
         TOK_TWIDDLE_RIT, "twiddle_rit", "RIT twiddle",
