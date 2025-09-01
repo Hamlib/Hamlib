@@ -5,7 +5,7 @@
 .\"
 .\" Note: Please keep this page in sync with the source, rotctl.c
 .\"
-.TH ROTCTL "1" "2020-09-09" "Hamlib" "Hamlib Utilities"
+.TH ROTCTL "1" "2025-09-01" "Hamlib" "Hamlib Utilities"
 .
 .
 .SH NAME
@@ -802,6 +802,30 @@ TCP port, and querying the position:
 .in +4n
 .EX
 .RB $ " rotctl -m 2 -r localhost:4533 \\get_pos"
+.EE
+.in
+.
+.PP
+Start
+.B rotctl
+for INDI using an address other than the default \fIlocalhost:5764\fP:
+.
+.PP
+.in +4n
+.EX
+.RB $ " rotctl -m 2001 -r example.com:12345"
+.EE
+.in
+.
+.PP
+Start
+.B rotctl
+for INDI using the local domain on Linux:
+.
+.PP
+.in +4n
+.EX
+.RB $ " rotctl -m 2001 -r @/tmp/indiserver"
 .EE
 .in
 .
