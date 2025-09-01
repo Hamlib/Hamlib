@@ -2131,14 +2131,14 @@ int HAMLIB_API parse_hoststr(char *hoststr, int hoststr_len, char host[256],
 
     // Exclude any names that aren't a host:port format
     // Handle device names 1st
-    if (strstr(hoststr, "/dev")) { return -1; }
+    if (strstr(hoststr, "/dev")) { return -RIG_EINVAL; }
 
-    if (strstr(hoststr, "/")) { return -1; } // probably a path so not a hoststr
+    if (strstr(hoststr, "/")) { return -RIG_EINVAL; } // probably a path so not a hoststr
 
-    if (strncasecmp(hoststr, "com", 3) == 0) { return -1; }
+    if (strncasecmp(hoststr, "com", 3) == 0) { return -RIG_EINVAL; }
 
     // escaped COM port like \\.\COM3 or \.\COM3
-    if (strstr(hoststr, "\\.\\")) { return -1; }
+    if (strstr(hoststr, "\\.\\")) { return -RIG_EINVAL; }
 
     // Now let's try and parse a host:port thing
     // bracketed IPV6 with optional port
@@ -2233,9 +2233,9 @@ int HAMLIB_API parse_hoststr(char *hoststr, int hoststr_len, char host[256],
 
     if (n >= 1 && strlen(dummy) == 0) { return RIG_OK; }
 
-    printf("Unhandled host=%s\n", hoststr);
+    rig_debug(RIG_DEBUG_BUG, "%s: Unhandled host=%s\n", __func__, hoststr);
 
-    return -1;
+    return -RIG_EINVAL;
 }
 
 
