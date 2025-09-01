@@ -23,7 +23,7 @@
 #ifndef _PARALLEL_H
 #define _PARALLEL_H 1
 
-#include "config.h"
+#include "hamlib/config.h"
 #include "hamlib/rig.h"
 
 #ifdef HAVE_PARALLEL

@@ -1,8 +1,10 @@
-#include "hamlib/rig.h"
+#include "hamlib/config.h"
+
 #include <stdio.h>
 #include <ctype.h>
+
+#include "hamlib/rig.h"
 #include "fifo.h"
-#include "config.h"
 
 void initFIFO(FIFO_RIG *fifo)
 {

@@ -9,7 +9,7 @@
 #include <sys/types.h>
 #include <signal.h>
 
-#include "config.h"
+#include <hamlib/config.h>
 
 #ifdef HAVE_NETINET_IN_H
 #  include <netinet/in.h>
