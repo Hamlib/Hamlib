@@ -96,7 +96,6 @@ int HAMLIB_API rig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             || vfo == RIG_VFO_CURR
             || vfo == STATE(rig)->current_vfo)
     {
-#if defined(HAVE_PTHREAD)
 
         if (level == RIG_LEVEL_KEYSPD)
         {
@@ -104,7 +103,6 @@ int HAMLIB_API rig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             morse_data_handler_set_keyspd(rig, val.i);
         }
 
-#endif
         retcode = caps->set_level(rig, vfo, level, val);
         rig_lock(rig, 0);
         return retcode;

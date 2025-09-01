@@ -301,7 +301,6 @@ int smartsdr_cleanup(RIG *rig)
 }
 
 #if 0
-#if defined(HAVE_PTHREAD)
 typedef struct smartsdr_data_handler_args_s
 {
     RIG *rig;
@@ -369,7 +368,6 @@ static int smartsdr_data_handler_start(RIG *rig)
     XVTB
 
 }
-#endif
 #endif
 
 /* Example response to "sub slice 0"

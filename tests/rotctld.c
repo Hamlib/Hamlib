@@ -51,9 +51,7 @@
 #  include <netdb.h>
 #endif
 
-#ifdef HAVE_PTHREAD
-#  include <pthread.h>
-#endif
+#include <pthread.h>
 
 #include "hamlib/rotator.h"
 
@@ -166,10 +164,8 @@ int main(int argc, char *argv[])
     char host[NI_MAXHOST];
     char serv[NI_MAXSERV];
 
-#ifdef HAVE_PTHREAD
     pthread_t thread;
     pthread_attr_t attr;
-#endif
     struct handle_data *arg;
 
     rig_set_debug(verbose);
@@ -575,7 +571,6 @@ int main(int argc, char *argv[])
                   host,
                   serv);
 
-#ifdef HAVE_PTHREAD
         pthread_attr_init(&attr);
         pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
@@ -587,12 +582,7 @@ int main(int argc, char *argv[])
             break;
         }
 
-#else
-        handle_socket(arg);
-        retcode = 1;
-#endif
     }
-
     while (retcode == 0);
 
     rot_close(my_rot); /* close port */
@@ -702,9 +692,7 @@ handle_exit:
 #endif
     free(arg);
 
-#ifdef HAVE_PTHREAD
     pthread_exit(NULL);
-#endif
     return NULL;
 }
 

@@ -178,7 +178,6 @@ static void readPacket(int sockfd, char *buf, int buf_len, int expected)
     //if (n > 0) { rig_debug(RIG_DEBUG_VERBOSE, "%s: buf=%s\n", __func__, buf); }
 }
 
-#if defined(HAVE_PTHREAD)
 #if 0
 typedef struct pstrotator_handler_args_sw
 {
@@ -244,8 +243,6 @@ static void *pstrotator_handler_start(void *arg)
 
     return NULL;
 }
-
-#endif
 
 static int pstrotator_rot_init(ROT *rot)
 {
