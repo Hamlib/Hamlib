@@ -1667,7 +1667,7 @@ void list_models()
 
     if (status != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "rot_list_foreach: error = %s \n", rigerror(status));
+        fprintf(stderr, "rot_list_foreach: error = %s \n", rigerror2(status));
         exit(2);
     }
 
