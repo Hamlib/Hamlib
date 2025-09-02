@@ -1,5 +1,7 @@
 # HAMLIB 5.0 - Release Notes (DRAFT)                           2026-12-01(target)
 
+*This more of a list of possibilities than a true document - a strawman only*
+
 This major release includes a restructuring of HAMLIB internal storage, forcing
 changes to the Application Binary Interface(ABI).
 
