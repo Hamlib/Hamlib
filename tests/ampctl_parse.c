@@ -1584,7 +1584,7 @@ void list_models()
 
     if (status != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "amp_list_foreach: error = %s \n", rigerror(status));
+        fprintf(stderr, "amp_list_foreach: error = %s \n", rigerror2(status));
         exit(2);
     }
 
