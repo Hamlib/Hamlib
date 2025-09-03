@@ -1222,12 +1222,10 @@ static int frontend_get_conf2(RIG *rig, hamlib_token_t token, char *val,
         break;
 
     case TOK_RANGE_SELECTED:
-        SNPRINTF(val, val_len, "%d", 0); // FIXME
-        break;
+        return -RIG_ENAVAIL;
 
     case TOK_RANGE_NAME:
-        SNPRINTF(val, val_len, "%s", ""); // FIXME
-        break;
+        return -RIG_ENAVAIL;
 
     case TOK_CACHE_TIMEOUT:
         SNPRINTF(val, val_len, "%d", rig_get_cache_timeout_ms(rig, HAMLIB_CACHE_ALL));
