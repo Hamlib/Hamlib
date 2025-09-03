@@ -46,7 +46,7 @@ Along with the moves to separate storage, the definitions of these data structur
 will be moved out of hamlib/rig.h to their own include files. These `.h` files also
 define macros to get the address of said structures.
 
-Prelinary versions of these files are also part of 4.7 for pre-emptive use.
+Preliminary versions of these files are also part of 4.7 for pre-emptive use.
 
 ### The good news
 If your application only calls the Hamlib API routines, then nothing needs to change.
