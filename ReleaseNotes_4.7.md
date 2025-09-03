@@ -6,7 +6,7 @@ This release brings new equipment support, bug fixes/code cleanups, and some
 changes to ease transition to 5.0
 
 ## New equipment support
-- Yaesu FTX-1 Optima/Field - Work in progress
+- Yaesu FTX-1 Optima/Field - Work in progress; testers welcome.
 - Drake R8/R8A/R8B - new, revised backend
 - AF6SA WRC rotator
 - GUOHETEC PMR-171 & Q900 moved to separate backend
