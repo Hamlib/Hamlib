@@ -69,7 +69,7 @@ struct handle_data
 
 void *handle_socket(void *arg);
 
-void usage();
+void usage(FILE *fout);
 
 /*
  * Reminder: when adding long options,
@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
         switch (c)
         {
         case 'h':
-            usage();
+            usage(stdout);
             exit(0);
 
         case 'V':
@@ -267,7 +267,7 @@ int main(int argc, char *argv[])
             break;
 
         default:
-            usage();    /* unknown option? */
+            usage(stderr);    /* unknown option? */
             exit(1);
         }
     }
@@ -697,12 +697,12 @@ handle_exit:
 }
 
 
-void usage()
+void usage(FILE *fout)
 {
-    printf("Usage: rotctld [OPTION]... [COMMAND]...\n"
+    fprintf(fout, "Usage: rotctld [OPTION]... [COMMAND]...\n"
            "Daemon serving COMMANDs to a connected antenna rotator.\n\n");
 
-    printf(
+    fprintf(fout,
         "  -m, --model=ID                select rotator model number. See model list (-l)\n"
         "  -r, --rot-file=DEVICE         set device of the rotator to operate on\n"
         "  -R, --rot-file2=DEVICE        set device of the 2nd rotator controller to operate on\n"
@@ -721,5 +721,5 @@ void usage()
         "  -V, --version                 output version information and exit\n\n",
         portno);
 
-    usage_rot(stdout);
+    usage_rot(fout);
 }
