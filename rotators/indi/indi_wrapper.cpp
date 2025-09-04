@@ -597,9 +597,20 @@ extern "C" const char *indi_wrapper_get_info(ROT *rot)
 
 extern "C" int indi_wrapper_open(ROT *rot)
 {
+    hamlib_port_t *rotp = ROTPORT(rot);
+    char host[256];
+    char port[6];
+
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-    indi_wrapper_client->setServer("localhost", 7624);
+    if (parse_hoststr(rotp->pathname, strlen(rotp->pathname), host, port) == RIG_OK)
+    {
+        indi_wrapper_client->setServer(host, atoi(port));
+    }
+    else
+    {
+        indi_wrapper_client->setServer("localhost", 7624);
+    }
 
     if (!indi_wrapper_client->connectServer())
     {
