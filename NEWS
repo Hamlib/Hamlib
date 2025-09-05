@@ -36,6 +36,28 @@ Version 4.7.0
         * New AF6SA WRC rotator backend.  (TNX Michael Morgan)
         * New Yaesu FTX-1 model support (alpha).  (TNX Jeremy Miller).
 
+Version 4.6.5
+        * 2025-09-05
+        * Update Kenwood CW buffer max message size, fix one byte buffer
+          overrun in icom.c.  (TNX George Baltz).
+        * Fix Segmentation Fault in rigs/dummy/netrigctl.c. (TNX Daniele Forsi)
+        * Fix segfault with set_parm KEYERTYPE in rigctl_parse.c. (TNX Daniele
+          Forsi)
+
+Version 4.6.4
+        * 2025-07-18--Hamlib's 25th birthday!!!
+        * Fix handling of unprintable characters in kenwood.c that broke radios
+          such as the TM-D710/TM-V71 that use EOM_TH (\r) as the command terminator.
+          (TNX, Lars Kellogg-Stedman and George Baltz).
+        * Fixed jrc_set_chan. (TNX Mark Fine).
+        * Fix memory leak in rigctl_parse.c and use unique separator character
+          for each rigctld connection--closes GitHub #1748. (TNX George Baltz).
+        * Fix powerstat check for Icom R75 which rejects the command.  (TNX Mark Fine).
+        * Restore TS-590S/SG RIG_LEVEL_RFPOWER_METER, Fix rotctl \dump_caps output
+          (TNX, George Baltz).
+        * Add CW sending capability to Flex SmartSDR.  (TNX Michael Morgan)
+        * Handle spaces correctly for Fles SmartSDR.  (TNX Michael Morgan)
+
 Version 4.6.3
         * 2025-06-10
         * Release dedicated to the memory of Michael Black, W9MDB (SK).  Mike was a
