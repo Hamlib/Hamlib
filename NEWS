@@ -16,7 +16,7 @@ Version 4.7.0
         * 2025-12-01 (target)
 
 Version 4.6.5
-        * 2025-??-??
+        * 2025-09-05
         * Update Kenwood CW buffer max message size, fix one byte buffer
           overrun in icom.c.  (TNX George Baltz).
         * Fix Segmentation Fault in rigs/dummy/netrigctl.c. (TNX Daniele Forsi)
