@@ -28,6 +28,21 @@ Common SWIG macros
 %enddef
 
 /*
+ * Macro ROT_GENERATE_HAS_GET_SET
+ *
+ * Creates two methods rot_has_get_*() and rot_has_set_*()
+ *
+ * setting:
+ * the last part of the function name (eg. func, level, ...)
+ *
+ * example: ROT_GENERATE_HAS_GET_SET(func) creates the bindings for
+ * rot_has_get_func() and rot_has_set_func()
+ */
+%define ROT_GENERATE_HAS_GET_SET(setting)
+	GENERATE_HAS_GET_SET(rot, setting)
+%enddef
+
+/*
  * Macro GET_TOKEN
  *
  * function_prefix:
