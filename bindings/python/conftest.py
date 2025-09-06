@@ -36,6 +36,10 @@ def model(request):
     return request.config.getoption("--model")
 
 @pytest.fixture
+def amp_file(request):
+    return request.config.getoption("--amp-file")
+
+@pytest.fixture
 def rig_file(request):
     return request.config.getoption("--rig-file")
 
