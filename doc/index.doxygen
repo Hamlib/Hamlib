@@ -200,4 +200,5 @@ GNU/Linux.
  * \defgroup amp_internal Amplifier Internal API
  * \defgroup port Port data structure for accessing devices
  * \defgroup utilities Utility Routines API
+ * \defgroup lib_internal Hamlib internals
  */
