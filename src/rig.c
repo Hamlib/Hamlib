@@ -23,11 +23,6 @@
 /* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 /**
- * \addtogroup rig
- * @{
- */
-
-/**
  * \file src/rig.c
  * \brief Ham Radio Control Libraries interface
  * \author Stephane Fillod
@@ -48,6 +43,11 @@
 
 /**
  * \example ../tests/testrig.c
+ */
+
+/**
+ * \addtogroup rig
+ * @{
  */
 
 #include "hamlib/config.h"
@@ -75,21 +75,20 @@
 
 /**
  * \brief Hamlib short license name
- *
  */
 const char *hamlib_license = "LGPL";
-/**
- * \brief Hamlib release number
- *
- * The version number has the format x.y.z
- */
+
 /*
  * Careful: The hamlib 1.2 ABI implicitly specifies a size of 21 bytes for
  * the hamlib_version string.  Changing the size provokes a warning from the
  * dynamic loader.
+ *
+ * TODO: Remove and replace by hamlib_version2 for Hamlib 5.
  */
+
 //! @cond Doxygen_Suppress
 const char hamlib_version[21] = "Hamlib " PACKAGE_VERSION;
+
 #if INTPTR_MAX == INT128_MAX
 #define ARCHBITS "128-bit"
 #elif INTPTR_MAX == INT64_MAX
@@ -98,8 +97,20 @@ const char hamlib_version[21] = "Hamlib " PACKAGE_VERSION;
 #define ARCHBITS "32-bit"
 #endif
 //! @endcond
-const char *hamlib_version2 = "Hamlib " PACKAGE_VERSION " " HAMLIBDATETIME " "
-                              ARCHBITS;
+
+/**
+ * \brief Hamlib version string.
+ *
+ * The version number has the format x.y.z where:
+ * - *x* is a major version that indicates API/ABI changes from prior major versions
+ * - *y* is a minor version that indicates new device support
+ * - *z* is a point version that indicates bug fixes only
+ * - `PACKAGE_VERSION` is set in `configure.ac`.
+ * - `HAMLIBDATETIME` is generated at build time.
+ * - `ARCHBITS` is derived from tests of the build platform.
+ */
+const char *hamlib_version2 = "Hamlib " PACKAGE_VERSION " " HAMLIBDATETIME " " ARCHBITS;
+
 HAMLIB_EXPORT_VAR(int) cookie_use;
 HAMLIB_EXPORT_VAR(int) skip_init;
 HAMLIB_EXPORT_VAR(int) lock_mode; // for use by rigctld
@@ -114,9 +125,10 @@ struct rig_caps caps_test;
 const char *hamlib_copyright2 =
     "Copyright (C) 2000-2012 Stephane Fillod\n"
     "Copyright (C) 2000-2003 Frank Singleton\n"
-    "Copyright (C) 2014-2020 Michael Black W9MDB\n"
+    "Copyright (C) 2014-2025 Michael Black W9MDB\n"
     "This is free software; see the source for copying conditions.  There is NO\n"
     "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.";
+
 //! @cond Doxygen_Suppress
 const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
     "Copyright (C) 2000-2012 Stephane Fillod\n"
@@ -126,8 +138,7 @@ const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
 //! @endcond
 
 
-#ifndef DOC_HIDDEN
-
+//! @cond Doxygen_Suppress
 #if defined(WIN32) && !defined(__CYGWIN__)
 #  define DEFAULT_SERIAL_PORT "\\\\.\\COM1"
 #elif BSD
@@ -214,11 +225,25 @@ struct opened_rig_l
     struct opened_rig_l *next;
 };
 static struct opened_rig_l *opened_rig_list = { NULL };
+//! @endcond
 
 
-/*
- * Careful, the order must be the same as their RIG_E* counterpart!
- * TODO: localise the messages..
+/* My intention was to add this to the internal documentation, but Daxygen
+ * up through version 1.14 resolutely refuses to include it without doing
+ * project-wide settings like ENABLE_STATIC=yes and HIDE_UNDOC_MEMBERS=yes.
+ *
+ * Perhaps one day.  Sigh...
+ */
+//! @cond hl_static
+/**
+ * @brief Plain text desrciptions of Hamlib error codes.
+ *
+ * @ingroup lib_internal
+ *
+ * @note Careful, the order must be the same as their RIG_E* counterpart in
+ * rig_errcode_e and this structure must be kept in sync with rig_errcode_e!
+ *
+ * @todo Localise the messages.
  */
 static const char *const rigerror_table[] =
 {
@@ -246,10 +271,19 @@ static const char *const rigerror_table[] =
     "Limit exceeded",
     "Access denied"
 };
+//! @endcond
 
-
+/**
+ * @brief Convenience macro calculating `rigerror_table` size.
+ *
+ * @ingroup lib_internal
+ *
+ * Used to ensure access beyond the end of `rigerror_table` does
+ * not occur.
+ * */
 #define ERROR_TBL_SZ (sizeof(rigerror_table)/sizeof(char *))
 
+//! @cond Doxygen_Suppress
 typedef struct async_data_handler_args_s
 {
     RIG *rig;
@@ -334,6 +368,7 @@ static int remove_opened_rig(const RIG *rig)
 
     return (-RIG_EINVAL); /* Not found in list ! */
 }
+//! @endcond
 
 
 /**
@@ -370,8 +405,6 @@ int foreach_opened_rig(int (*cfunc)(RIG *, rig_ptr_t), rig_ptr_t data)
     return (RIG_OK);
 }
 
-#endif /* !DOC_HIDDEN */
-
 
 char debugmsgsave[DEBUGMSGSAVE_SIZE] = "";
 char debugmsgsave2[DEBUGMSGSAVE_SIZE] = ""; // deprecated
@@ -379,6 +412,17 @@ char debugmsgsave3[DEBUGMSGSAVE_SIZE] = ""; // deprecated
 
 MUTEX(mutex_debugmsgsave);
 
+
+/**
+ * @brief Handle stack trace messages.
+ * 
+ * @ingroup lib_internal
+ *
+ * Maintains an array of debug messages to build a stack trace of up to 20
+ * lines.
+ *
+ * @sa rigerror()
+ */
 void add2debugmsgsave(const char *s)
 {
     const char *p;
@@ -431,16 +475,19 @@ void add2debugmsgsave(const char *s)
     MUTEX_UNLOCK(mutex_debugmsgsave);
 }
 
+
 /**
- * \brief get string describing the error code
- * \param errnum    The error code
- * \return the appropriate description string, otherwise a NULL pointer
- * if the error code is unknown.
+ * \brief Get the string describing the passed error code.
  *
- * Returns a string describing the error code passed in the argument \a
- * errnum.
+ * Simple version of rigerror() as it only outputs a short predefined string.
  *
- * \todo support gettext/localization
+ * \param errnum The error code defined in #rig_errcode_e, e.g. RIG_OK.
+ *
+ * \return The matched description string from `rigerror_table`, otherwise
+ * `"ERR_OUT_OF_RANGE"` if `errnum` exceeds the number of strings defined in
+ * `rigerror_table`.
+ *
+ * \todo Support gettext/localization
  */
 const char *HAMLIB_API rigerror2(int errnum) // returns single-line message
 {
@@ -457,6 +504,19 @@ const char *HAMLIB_API rigerror2(int errnum) // returns single-line message
     return msg;
 }
 
+
+/**
+ * @brief Add error message to debug output.
+ *
+ * \param errnum The error code defined in #rig_errcode_e, e.g. RIG_OK.
+ *
+ * @return Pointer to the complete debug output otherwise `"ERR_OUT_OF_RANGE"`
+ * if `errnum` exceeds the number of strings defined in `rigerror_table`.
+ *
+ * @sa add2debugmsgsave()
+ *
+ * \todo Support gettext/localization
+ */
 const char *HAMLIB_API rigerror(int errnum)
 {
     errnum = abs(errnum);
