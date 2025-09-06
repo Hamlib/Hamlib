@@ -18,6 +18,8 @@ class TestClass:
         assert isinstance(Hamlib.cvar.hamlib_version, str)
 
         Hamlib.rig_set_debug(Hamlib.RIG_DEBUG_NONE)
+        assert Hamlib.rig_get_debug() == Hamlib.RIG_DEBUG_NONE
+        assert Hamlib.rig_set_debug_time_stamp(1) is None
 
         model = Hamlib.RIG_MODEL_DUMMY
         my_rig = Hamlib.Rig(model)

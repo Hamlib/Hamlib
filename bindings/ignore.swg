@@ -89,7 +89,9 @@
 %rename("$ignore", regexmatch$name="^rot_", %$isfunction) "";
 
 // re-add some methods
+%rename("%s") rig_get_debug;
 %rename("%s") rig_set_debug;
+%rename("%s") rig_set_debug_time_stamp;
 %rename("%s", regexmatch$name="^rig_str", %$isfunction) "";
 
 // remove typedefs
