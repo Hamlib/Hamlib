@@ -189,6 +189,8 @@
 %apply int *OUTPUT { int *degrees, double *minutes, int *sw };
 %apply double *OUTPUT { double *longitude, double *latitude };
 
+%apply unsigned int *OUTPUT { enum rig_debug_level_e * };
+
 #ifndef SWIGJAVA
 // If SWIGJAVA ever maps char * we can enable these
 %apply char *OUTPUT { char *locator_res };
