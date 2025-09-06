@@ -44,6 +44,10 @@ def rig_file(request):
     return request.config.getoption("--rig-file")
 
 @pytest.fixture
+def rot_file(request):
+    return request.config.getoption("--rot-file")
+
+@pytest.fixture
 def serial_speed(request):
     return request.config.getoption("--serial-speed")
 
