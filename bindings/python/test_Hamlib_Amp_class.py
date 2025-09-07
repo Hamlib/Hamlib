@@ -18,14 +18,19 @@ class TestClass:
         """Check that nothing was added or removed"""
         expected_callables = ['close',
 'get_conf',
+'get_ext_level',
 'get_freq',
 'get_info',
 'get_level',
 'get_powerstat',
+'has_get_level',
+'has_set_level',
 'open',
 'reset',
 'set_conf',
+'set_ext_level',
 'set_freq',
+'set_level',
 'set_powerstat',
 'token_lookup']
         assert expected_callables == self.actual_callables
