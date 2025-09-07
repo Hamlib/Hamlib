@@ -28,6 +28,21 @@ Common SWIG macros
 %enddef
 
 /*
+ * Macro AMP_GENERATE_HAS_GET_SET
+ *
+ * Creates two methods amp_has_get_*() and amp_has_set_*()
+ *
+ * setting:
+ * the last part of the function name (eg. func, level, ...)
+ *
+ * example: AMP_GENERATE_HAS_GET_SET(level) creates the bindings for
+ * amp_has_get_level() and amp_has_set_level()
+ */
+%define AMP_GENERATE_HAS_GET_SET(setting)
+	GENERATE_HAS_GET_SET(amp, setting)
+%enddef
+
+/*
  * Macro ROT_GENERATE_HAS_GET_SET
  *
  * Creates two methods rot_has_get_*() and rot_has_set_*()
@@ -105,6 +120,18 @@ PyObject * ##function_name(hamlib_token_t token)
 
 	return PyLong_FromLong(value.i);
 }
+%enddef
+
+/*
+* Macro AMP_GET_VALUE_T
+*
+* function_name:
+* the name that will be seen in the bindings when appended to get_
+* and that creates a valid Hamlib function when appended to amp_get_
+* eg. AMP_GET_VALUE_T(level) creates Rot.get_level() that calls amp_get_level()
+*/
+%define AMP_GET_VALUE_T(function_name)
+	GET_VALUE_T(amp_, get_ ##function_name, self->amp, AMP_)
 %enddef
 
 /*
