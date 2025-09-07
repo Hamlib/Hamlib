@@ -3,6 +3,31 @@ Common SWIG macros
 */
 
 /*
+ * Macro GENERATE_HAS_GET_SET
+ *
+ * Creates two methods *_has_get_*() and *_has_set_*()
+ *
+ * function_prefix:
+ * the first part of the function name (eg. one of: amp_ rig_ rot_)
+ * this is also the name of the member of the "self" object
+ *
+ * setting:
+ * the last part of the function name (eg. func, level, ...)
+ *
+ * example: GENERATE_HAS_GET_SET(rig, func) creates the bindings for
+ * rig_has_get_func() and rig_has_set_func()
+ */
+%define GENERATE_HAS_GET_SET(function_prefix, setting)
+	setting_t has_get_##setting##(setting_t setting) {
+		return function_prefix##_has_get_##setting##($self->##function_prefix##, setting);
+	}
+
+	setting_t has_set_##setting##(setting_t setting) {
+		return function_prefix##_has_set_##setting##($self->##function_prefix##, setting);
+	}
+%enddef
+
+/*
  * Macro GET_TOKEN
  *
  * function_prefix:
