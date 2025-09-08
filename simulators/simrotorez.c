@@ -6,7 +6,6 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#include "hamlib/rig.h"
 #include "misc.h"
 
 #define BUFSIZE 256

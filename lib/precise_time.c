@@ -20,7 +20,7 @@
 // along with fldigi.  If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-#include "config.h"
+#include "hamlib/config.h"
 #include <errno.h>
 #include <time.h>
 #include <sys/time.h>
@@ -53,15 +53,8 @@ double monotonic_seconds()
 
 #include <time.h>
 
-static int showme = 0;
-
 double monotonic_seconds()
 {
-    if (showme)
-    {
-        showme = 0;
-    }
-
     struct timespec time;
 
     // Note: Make sure to link with -lrt to define clock_gettime.
@@ -170,11 +163,6 @@ static void __attribute__((constructor)) init_rdtsc_per_sec()
 
 double monotonic_seconds()
 {
-    if (showme)
-    {
-        showme = false;
-    }
-
     return (double) rdtsc() / (double) rdtsc_per_sec;
 }
 

@@ -13,9 +13,9 @@ EXTRA_DIST = \
 	PLAN \
 	README.developer \
 	README.freqranges \
+	README.macos \
 	README.md \
 	README.multicast \
-	README.osx \
 	hamlib.m4 \
 	hamlib.pc.in
 

@@ -46,10 +46,6 @@
 #  include <sys/ioctl.h>
 #endif
 
-#ifdef HAVE_SYS_PARAM_H
-#  include <sys/param.h>
-#endif
-
 #ifdef HAVE_TERMIOS_H
 #  include <termios.h> /* POSIX terminal control definitions */
 #else
@@ -63,7 +59,6 @@
 #endif
 
 #include "hamlib/rig.h"
-#include "hamlib/port.h"
 
 //! @cond Doxygen_Suppress
 #if defined(WIN32) && !defined(HAVE_TERMIOS_H)

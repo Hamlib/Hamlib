@@ -72,11 +72,9 @@ extern int read_history();
 /* Hash table implementation See:  http://uthash.sourceforge.net/ */
 #include "uthash.h"
 
-#ifdef HAVE_PTHREAD
-#  include <pthread.h>
+#include <pthread.h>
 
 static pthread_mutex_t amp_mutex = PTHREAD_MUTEX_INITIALIZER;
-#endif
 
 #define STR1(S) #S
 #define STR(S) STR1(S)
@@ -1339,9 +1337,7 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
      * mutex locking needed because ampctld is multithreaded
      * and hamlib is not MT-safe
      */
-#ifdef HAVE_PTHREAD
     pthread_mutex_lock(&amp_mutex);
-#endif
 
     if (!prompt)
     {
@@ -1389,9 +1385,7 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
                                         "");
 #endif
 
-#ifdef HAVE_PTHREAD
     pthread_mutex_unlock(&amp_mutex);
-#endif
 
     if (retcode == -RIG_EIO) { return retcode; }
 
@@ -1584,7 +1578,7 @@ void list_models()
 
     if (status != RIG_OK)
     {
-        printf("amp_list_foreach: error = %s \n", rigerror(status));
+        fprintf(stderr, "amp_list_foreach: error = %s \n", rigerror2(status));
         exit(2);
     }
 

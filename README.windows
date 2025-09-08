@@ -1,16 +1,33 @@
-Win32 builds
-------------
+Windows 32 and 64 bit builds
+============================
 
-MinGW
-=====
+MinGW-w64
+---------
 
-For DLLs compatible with MSVC++ cross-compiled from Linux with MinGW, see
-the build-win32.sh script in the scripts/ directory and its companion README
-file.
+Despite the new name, MinGW-w64 will build binaries for MS Windows 32 bit (x86)
+and 64 bit (x64) architectures.  The project is hosted at
+https://sourceforge.net/projects/mingw-w64/ and the Wiki is at
+https://sourceforge.net/p/mingw-w64/wiki2/Home/
 
+For DLLs compatible with MSVC++ cross-compiled from Linux with MinGW, see the
+build-win32.sh or build-w64.sh shell scripts in the scripts/ directory and the
+companion README.build-Windows file.  The top of each script contains comments
+about dependencies and have environment variables that can be tailored to your
+system.
+
+Upon completion the scripts generate a .ZIP file suitable to be installed on an
+MS Windows system.  Besides the compiled binary files, the scripts include the
+Hamlib manual pages converted to HTML format and other files converted to cr/lf
+line endings.  Also included are the C header files, files that can be used by
+MinGW on Windows, and a .DEF file that can be used by MSVC++ to generate its
+.LIB file.  A README file is generated and included in the archive that has
+greater detail.
+
+
+The following may be outdated.  Feedback on current commands/process is welcome.
 
 Cygwin
-======
+------
 
 From: "Mark J. Fine" <mark.fine@fineware-swl.com>
 Subject: [Hamlib-developer] Building under Cygwin for Windows (Mingw32)
@@ -93,5 +110,3 @@ MSVC C/C++ projects must use the NuGet pthread package in order to compile as of
 An example C++ project is in bindings/MSVC
 If you want to do a dotnet build you will need this done from an administrative PowerShell
 npm install -g --production windows-build-tools
-
-

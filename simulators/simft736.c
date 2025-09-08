@@ -2,8 +2,6 @@
 #define _XOPEN_SOURCE 700
 // since we are POSIX here we need this
 #include <stdio.h>
-#include <string.h>
-#include <unistd.h>
 
 #include "sim.h"
 

@@ -40,10 +40,6 @@
 #  include <sys/ioctl.h>
 #endif
 
-#ifdef HAVE_SYS_PARAM_H
-#  include <sys/param.h>
-#endif
-
 #ifdef HAVE_WINDOWS_H
 #  include <windows.h>
 #  include "par_nt.h"
@@ -57,7 +53,6 @@
 #  include <winbase.h>
 #endif
 
-#include "hamlib/port.h"
 #include "parallel.h"
 
 #ifdef HAVE_LINUX_PPDEV_H

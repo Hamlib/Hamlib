@@ -20,7 +20,7 @@
  *
  */
 
-#include "config.h"
+#include "hamlib/config.h"
 // cppcheck-suppress *
 #include <stdint.h>
 // cppcheck-suppress *
@@ -428,6 +428,10 @@ static int dummy_get_conf(RIG *rig, hamlib_token_t token, char *val)
     {
     case TOK_CFG_MAGICCONF:
         strcpy(val, priv->magic_conf);
+        break;
+
+    case TOK_CFG_STATIC_DATA:
+        SNPRINTF(val, 128, "%d", priv->static_data);
         break;
 
     default:

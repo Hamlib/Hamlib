@@ -172,7 +172,7 @@ dnl If pthread support is found, this macro defines HAVE_PTHREAD and
 dnl AC_SUBST's PTHREAD_LIBS, PTHREAD_CFLAGS, and PTHREAD_CC making those
 dnl variables available in Makefiles.
 # macros/ax_pthread.m4
-AX_PTHREAD
+AX_PTHREAD([], [AC_MSG_ERROR([POSIX threads not found])])
 
 AC_SYS_POSIX_TERMIOS()
 
