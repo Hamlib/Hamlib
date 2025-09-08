@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-#include "config.h"
+#include "hamlib/config.h"
 
 #ifdef  HAVE_DLFCN_H
 #  include <dlfcn.h>

@@ -25,7 +25,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include "config.h"
+#include <hamlib/config.h>
 #if defined(HAVE_LIBUSB_H)
 #include <libusb.h>
 #elif defined(HAVE_LIBUSB_1_0_LIBUSB_H)

@@ -178,11 +178,7 @@ typedef struct
     int head;
     int tail;
     int flush;  // flush flag for stop_morse
-#ifdef _PTHREAD_H
     pthread_mutex_t mutex;
-#else
-    int mutex;
-#endif
 } FIFO_RIG;
 
 
@@ -204,43 +200,38 @@ extern HAMLIB_EXPORT_VAR(const char *) hamlib_copyright2;
 
 /**
  * \brief Hamlib error codes
+ *
  * Error code definition that can be returned by the Hamlib functions.
- * Unless stated otherwise, Hamlib functions return the negative value
- * of rig_errcode_e definitions in case of error, or 0 when successful.
+ * Unless stated otherwise, in case of error Hamlib functions return the
+ * negative value of `rig_errcode_e` definitions, or `RIG_OK` when
+ * successful.
  */
- /**
-  * @{ \name Hamlib error codes
-  */
-
 enum rig_errcode_e {
-    RIG_OK = 0,     /*!< 0 No error, operation completed successfully */
-    RIG_EINVAL,     /*!< 1 invalid parameter */
-    RIG_ECONF,      /*!< 2 invalid configuration (serial,..) */
-    RIG_ENOMEM,     /*!< 3 memory shortage */
-    RIG_ENIMPL,     /*!< 4 function not implemented, but will be */
-    RIG_ETIMEOUT,   /*!< 5 communication timed out */
-    RIG_EIO,        /*!< 6 IO error, including open failed */
-    RIG_EINTERNAL,  /*!< 7 Internal Hamlib error, huh! */
-    RIG_EPROTO,     /*!< 8 Protocol error */
-    RIG_ERJCTED,    /*!< 9 Command rejected by the rig */
-    RIG_ETRUNC,     /*!< 10 Command performed, but arg truncated */
-    RIG_ENAVAIL,    /*!< 11 Function not available */
-    RIG_ENTARGET,   /*!< 12 VFO not targetable */
-    RIG_BUSERROR,   /*!< 13 Error talking on the bus */
-    RIG_BUSBUSY,    /*!< 14 Collision on the bus */
-    RIG_EARG,       /*!< 15 NULL RIG handle or any invalid pointer parameter in get arg */
-    RIG_EVFO,       /*!< 16 Invalid VFO */
-    RIG_EDOM,       /*!< 17 Argument out of domain of func */
-    RIG_EDEPRECATED,/*!< 18 Function deprecated */
-    RIG_ESECURITY,  /*!< 19 Security error */
-    RIG_EPOWER,     /*!< 20 Rig not powered on */
-    RIG_ELIMIT,     /*!< 21 Limit exceeded */
-    RIG_EACCESS,    /*!< 22 Access denied -- e.g. port already in use */
+    RIG_OK = 0,     /*!< \c 0 No error, operation completed successfully */
+    RIG_EINVAL,     /*!< \c 1 Invalid parameter */
+    RIG_ECONF,      /*!< \c 2 Invalid configuration (serial,..) */
+    RIG_ENOMEM,     /*!< \c 3 Memory shortage */
+    RIG_ENIMPL,     /*!< \c 4 Function not implemented, but will be */
+    RIG_ETIMEOUT,   /*!< \c 5 Communication timed out */
+    RIG_EIO,        /*!< \c 6 IO error, including open failed */
+    RIG_EINTERNAL,  /*!< \c 7 Internal Hamlib error, huh! */
+    RIG_EPROTO,     /*!< \c 8 Protocol error */
+    RIG_ERJCTED,    /*!< \c 9 Command rejected by the rig */
+    RIG_ETRUNC,     /*!< \c 10 Command performed, but arg truncated */
+    RIG_ENAVAIL,    /*!< \c 11 Function not available */
+    RIG_ENTARGET,   /*!< \c 12 VFO not targetable */
+    RIG_BUSERROR,   /*!< \c 13 Error talking on the bus */
+    RIG_BUSBUSY,    /*!< \c 14 Collision on the bus */
+    RIG_EARG,       /*!< \c 15 NULL RIG handle or any invalid pointer parameter in get arg */
+    RIG_EVFO,       /*!< \c 16 Invalid VFO */
+    RIG_EDOM,       /*!< \c 17 Argument out of domain of func */
+    RIG_EDEPRECATED,/*!< \c 18 Function deprecated */
+    RIG_ESECURITY,  /*!< \c 19 Security error */
+    RIG_EPOWER,     /*!< \c 20 Rig not powered on */
+    RIG_ELIMIT,     /*!< \c 21 Limit exceeded */
+    RIG_EACCESS,    /*!< \c 22 Access denied -- e.g. port already in use */
     RIG_EEND        // MUST BE LAST ITEM IN LAST
 };
-/**
- * @}
- */
 
 /**
  * \brief Determines if the given error code indicates a "soft" error

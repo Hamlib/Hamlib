@@ -29,7 +29,6 @@
 
 #include "hamlib/config.h"
 
-#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -446,7 +445,7 @@ int HAMLIB_API rot_load_backend(const char *be_name)
             if (be_init == NULL)
             {
                 printf("Null\n");
-                return -EINVAL;
+                return -RIG_EINVAL;
             }
 
             status = (*be_init)(NULL);
@@ -454,7 +453,7 @@ int HAMLIB_API rot_load_backend(const char *be_name)
         }
     }
 
-    return -EINVAL;
+    return -RIG_EINVAL;
 
 }
 //! @endcond

@@ -88,18 +88,12 @@ static int uh_wkey_in_use;
 
 static int statusbyte = 0;
 
-#ifdef HAVE_PTHREAD
-
 #include <pthread.h>
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_t readthread;
 #define getlock()  if (pthread_mutex_lock(&mutex))   perror("GETLOCK:")
 #define freelock() if (pthread_mutex_unlock(&mutex)) perror("FREELOCK:")
-#else
-#define getlock()
-#define freelock()
-#endif
 
 #if defined(HAVE_SELECT)
 //
@@ -108,7 +102,7 @@ static pthread_t readthread;
 static time_t lastbeat = 0;
 #endif
 
-#if defined(HAVE_PTHREAD) && defined(HAVE_SOCKETPAIR) && defined(HAVE_SELECT)
+#if defined(HAVE_SOCKETPAIR) && defined(HAVE_SELECT)
 static time_t starttime;
 
 #define TIME ((int) (time(NULL) - starttime))
@@ -176,10 +170,8 @@ static void close_microham()
 
     TRACE("%10d:Closing MicroHam device\n", TIME);
     uh_is_initialized = 0;
-#ifdef HAVE_PTHREAD
     // wait for read_device thread to finish
     pthread_join(readthread, NULL);
-#endif
     close_all_files();
 }
 
@@ -717,7 +709,7 @@ static void writeControl(const unsigned char *data, int len)
 }
 
 
-#if defined(HAVE_PTHREAD) && defined(HAVE_SOCKETPAIR) && defined(HAVE_SELECT)
+#if defined(HAVE_SOCKETPAIR) && defined(HAVE_SELECT)
 //
 // send a heartbeat and record time
 // The "last heartbeat" time is recorded in a global variable
@@ -733,7 +725,7 @@ static void heartbeat()
     writeControl(seq, 2);
     lastbeat = time(NULL);
 }
-#endif /* defined(HAVE_PTHREAD) && defined(HAVE_SOCKETPAIR) && defined(HAVE_SELECT) */
+#endif /* defined(HAVE_SOCKETPAIR) && defined(HAVE_SELECT) */
 
 
 #if defined(HAVE_SELECT)
@@ -770,7 +762,7 @@ static void *read_device(void *p)
         }
 
 
-#if defined(HAVE_PTHREAD) && defined(HAVE_SOCKETPAIR) && defined(HAVE_SELECT)
+#if defined(HAVE_SOCKETPAIR) && defined(HAVE_SELECT)
 
         //
         // This is the right place to ensure that a heartbeat is sent
@@ -906,7 +898,7 @@ static void *read_device(void *p)
  */
 static void start_thread()
 {
-#if defined(HAVE_PTHREAD) && defined(HAVE_SOCKETPAIR) && defined(HAVE_SELECT)
+#if defined(HAVE_SOCKETPAIR) && defined(HAVE_SELECT)
     /*
      * Find a microHam device and open serial port to it.
      * If successful, create sockets for doing I/O from within hamlib

@@ -23,11 +23,6 @@
 /* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 /**
- * \addtogroup rig
- * @{
- */
-
-/**
  * \file src/rig.c
  * \brief Ham Radio Control Libraries interface
  * \author Stephane Fillod
@@ -50,9 +45,13 @@
  * \example ../tests/testrig.c
  */
 
+/**
+ * \addtogroup rig
+ * @{
+ */
+
 #include "hamlib/config.h"
 #include "hamlib/rig.h"
-#include "hamlib/port.h"
 #include "hamlib/rig_state.h"
 #include "fifo.h"
 
@@ -76,21 +75,20 @@
 
 /**
  * \brief Hamlib short license name
- *
  */
 const char *hamlib_license = "LGPL";
-/**
- * \brief Hamlib release number
- *
- * The version number has the format x.y.z
- */
+
 /*
  * Careful: The hamlib 1.2 ABI implicitly specifies a size of 21 bytes for
  * the hamlib_version string.  Changing the size provokes a warning from the
  * dynamic loader.
+ *
+ * TODO: Remove and replace by hamlib_version2 for Hamlib 5.
  */
+
 //! @cond Doxygen_Suppress
 const char hamlib_version[21] = "Hamlib " PACKAGE_VERSION;
+
 #if INTPTR_MAX == INT128_MAX
 #define ARCHBITS "128-bit"
 #elif INTPTR_MAX == INT64_MAX
@@ -99,8 +97,20 @@ const char hamlib_version[21] = "Hamlib " PACKAGE_VERSION;
 #define ARCHBITS "32-bit"
 #endif
 //! @endcond
-const char *hamlib_version2 = "Hamlib " PACKAGE_VERSION " " HAMLIBDATETIME " "
-                              ARCHBITS;
+
+/**
+ * \brief Hamlib version string.
+ *
+ * The version number has the format x.y.z where:
+ * - *x* is a major version that indicates API/ABI changes from prior major versions
+ * - *y* is a minor version that indicates new device support
+ * - *z* is a point version that indicates bug fixes only
+ * - `PACKAGE_VERSION` is set in `configure.ac`.
+ * - `HAMLIBDATETIME` is generated at build time.
+ * - `ARCHBITS` is derived from tests of the build platform.
+ */
+const char *hamlib_version2 = "Hamlib " PACKAGE_VERSION " " HAMLIBDATETIME " " ARCHBITS;
+
 HAMLIB_EXPORT_VAR(int) cookie_use;
 HAMLIB_EXPORT_VAR(int) skip_init;
 HAMLIB_EXPORT_VAR(int) lock_mode; // for use by rigctld
@@ -115,9 +125,10 @@ struct rig_caps caps_test;
 const char *hamlib_copyright2 =
     "Copyright (C) 2000-2012 Stephane Fillod\n"
     "Copyright (C) 2000-2003 Frank Singleton\n"
-    "Copyright (C) 2014-2020 Michael Black W9MDB\n"
+    "Copyright (C) 2014-2025 Michael Black W9MDB\n"
     "This is free software; see the source for copying conditions.  There is NO\n"
     "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.";
+
 //! @cond Doxygen_Suppress
 const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
     "Copyright (C) 2000-2012 Stephane Fillod\n"
@@ -127,8 +138,7 @@ const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
 //! @endcond
 
 
-#ifndef DOC_HIDDEN
-
+//! @cond Doxygen_Suppress
 #if defined(WIN32) && !defined(__CYGWIN__)
 #  define DEFAULT_SERIAL_PORT "\\\\.\\COM1"
 #elif BSD
@@ -192,7 +202,6 @@ const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
 
 MUTEX(morse_mutex);
 
-#ifdef HAVE_PTHREAD
 // returns true if mutex is busy
 int MUTEX_CHECK(pthread_mutex_t *m)
 {
@@ -205,9 +214,6 @@ int MUTEX_CHECK(pthread_mutex_t *m)
 
     return trylock == EBUSY;
 }
-#else
-#define MUTEX_CHECK(var) 0
-#endif
 
 
 /*
@@ -219,11 +225,25 @@ struct opened_rig_l
     struct opened_rig_l *next;
 };
 static struct opened_rig_l *opened_rig_list = { NULL };
+//! @endcond
 
 
-/*
- * Careful, the order must be the same as their RIG_E* counterpart!
- * TODO: localise the messages..
+/* My intention was to add this to the internal documentation, but Daxygen
+ * up through version 1.14 resolutely refuses to include it without doing
+ * project-wide settings like ENABLE_STATIC=yes and HIDE_UNDOC_MEMBERS=yes.
+ *
+ * Perhaps one day.  Sigh...
+ */
+//! @cond hl_static
+/**
+ * @brief Plain text desrciptions of Hamlib error codes.
+ *
+ * @ingroup lib_internal
+ *
+ * @note Careful, the order must be the same as their RIG_E* counterpart in
+ * rig_errcode_e and this structure must be kept in sync with rig_errcode_e!
+ *
+ * @todo Localise the messages.
  */
 static const char *const rigerror_table[] =
 {
@@ -251,11 +271,19 @@ static const char *const rigerror_table[] =
     "Limit exceeded",
     "Access denied"
 };
+//! @endcond
 
-
+/**
+ * @brief Convenience macro calculating `rigerror_table` size.
+ *
+ * @ingroup lib_internal
+ *
+ * Used to ensure access beyond the end of `rigerror_table` does
+ * not occur.
+ * */
 #define ERROR_TBL_SZ (sizeof(rigerror_table)/sizeof(char *))
 
-#if defined(HAVE_PTHREAD)
+//! @cond Doxygen_Suppress
 typedef struct async_data_handler_args_s
 {
     RIG *rig;
@@ -270,9 +298,7 @@ typedef struct async_data_handler_priv_data_s
 static int async_data_handler_start(RIG *rig);
 static int async_data_handler_stop(RIG *rig);
 static void *async_data_handler(void *arg);
-#endif
 
-#if defined(HAVE_PTHREAD)
 typedef struct morse_data_handler_args_s
 {
     RIG *rig;
@@ -290,7 +316,6 @@ static int morse_data_handler_start(RIG *rig);
 static int morse_data_handler_stop(RIG *rig);
 int morse_data_handler_set_keyspd(RIG *rig, int keyspd);
 static void *morse_data_handler(void *arg);
-#endif
 
 /*
  * track which rig is opened (with rig_open)
@@ -343,6 +368,7 @@ static int remove_opened_rig(const RIG *rig)
 
     return (-RIG_EINVAL); /* Not found in list ! */
 }
+//! @endcond
 
 
 /**
@@ -379,8 +405,6 @@ int foreach_opened_rig(int (*cfunc)(RIG *, rig_ptr_t), rig_ptr_t data)
     return (RIG_OK);
 }
 
-#endif /* !DOC_HIDDEN */
-
 
 char debugmsgsave[DEBUGMSGSAVE_SIZE] = "";
 char debugmsgsave2[DEBUGMSGSAVE_SIZE] = ""; // deprecated
@@ -388,6 +412,17 @@ char debugmsgsave3[DEBUGMSGSAVE_SIZE] = ""; // deprecated
 
 MUTEX(mutex_debugmsgsave);
 
+
+/**
+ * @brief Handle stack trace messages.
+ * 
+ * @ingroup lib_internal
+ *
+ * Maintains an array of debug messages to build a stack trace of up to 20
+ * lines.
+ *
+ * @sa rigerror()
+ */
 void add2debugmsgsave(const char *s)
 {
     const char *p;
@@ -440,16 +475,19 @@ void add2debugmsgsave(const char *s)
     MUTEX_UNLOCK(mutex_debugmsgsave);
 }
 
+
 /**
- * \brief get string describing the error code
- * \param errnum    The error code
- * \return the appropriate description string, otherwise a NULL pointer
- * if the error code is unknown.
+ * \brief Get the string describing the passed error code.
  *
- * Returns a string describing the error code passed in the argument \a
- * errnum.
+ * Simple version of rigerror() as it only outputs a short predefined string.
  *
- * \todo support gettext/localization
+ * \param errnum The error code defined in #rig_errcode_e, e.g. RIG_OK.
+ *
+ * \return The matched description string from `rigerror_table`, otherwise
+ * `"ERR_OUT_OF_RANGE"` if `errnum` exceeds the number of strings defined in
+ * `rigerror_table`.
+ *
+ * \todo Support gettext/localization
  */
 const char *HAMLIB_API rigerror2(int errnum) // returns single-line message
 {
@@ -466,6 +504,19 @@ const char *HAMLIB_API rigerror2(int errnum) // returns single-line message
     return msg;
 }
 
+
+/**
+ * @brief Add error message to debug output.
+ *
+ * \param errnum The error code defined in #rig_errcode_e, e.g. RIG_OK.
+ *
+ * @return Pointer to the complete debug output otherwise `"ERR_OUT_OF_RANGE"`
+ * if `errnum` exceeds the number of strings defined in `rigerror_table`.
+ *
+ * @sa add2debugmsgsave()
+ *
+ * \todo Support gettext/localization
+ */
 const char *HAMLIB_API rigerror(int errnum)
 {
     errnum = abs(errnum);
@@ -642,9 +693,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
      * TODO: read the Preferences here!
      */
     rs = STATE(rig);
-#if defined(HAVE_PTHREAD)
     pthread_mutex_init(&rs->mutex_set_transaction, NULL);
-#endif
 
     //TODO Allocate and link ports
     // For now, use the embedded ones
@@ -681,9 +730,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
               rs->comm_state);
 #endif
     rp->type.rig = caps->port_type; /* default from caps */
-#if defined(HAVE_PTHREAD)
     rp->asyncio = 0;
-#endif
 
     switch (caps->port_type)
     {
@@ -1548,8 +1595,6 @@ int HAMLIB_API rig_open(RIG *rig)
 
     if (skip_init) { RETURNFUNC2(RIG_OK); }
 
-#if defined(HAVE_PTHREAD)
-
     status = async_data_handler_start(rig);
 
     if (status < 0)
@@ -1572,8 +1617,6 @@ int HAMLIB_API rig_open(RIG *rig)
             RETURNFUNC2(status);
         }
     }
-
-#endif
 
     if (rs->auto_disable_screensaver)
     {
@@ -1646,7 +1689,6 @@ int HAMLIB_API rig_open(RIG *rig)
     rig_flush_force(rp, 1);
     rs->timeout = timesave;
 
-#if defined(HAVE_PTHREAD)
     enum multicast_item_e items = RIG_MULTICAST_POLL | RIG_MULTICAST_TRANSCEIVE
                                   | RIG_MULTICAST_SPECTRUM;
     retval = network_multicast_publisher_start(rig, rs->multicast_data_addr,
@@ -1679,8 +1721,6 @@ int HAMLIB_API rig_open(RIG *rig)
                   rigerror(retval));
         // we will consider this non-fatal for now
     }
-
-#endif
 
     rs->comm_status = RIG_COMM_STATUS_OK;
 
@@ -1733,8 +1773,6 @@ int HAMLIB_API rig_close(RIG *rig)
 
     rs->comm_status = RIG_COMM_STATUS_DISCONNECTED;
 
-#if defined(HAVE_PTHREAD)
-
     if (!skip_init)
     {
         morse_data_handler_stop(rig);
@@ -1743,8 +1781,6 @@ int HAMLIB_API rig_close(RIG *rig)
         network_multicast_receiver_stop(rig);
         network_multicast_publisher_stop(rig);
     }
-
-#endif
 
     // Let the backend say 73 to the rig.
     // and ignore the return code.
@@ -1918,7 +1954,6 @@ int HAMLIB_API rig_cleanup(RIG *rig)
  * \param seconds    The timeout to set to
  *
  * timeout seconds to stop rigctld when VFO is manually changed
- * turns on/off the radio.
  *
  * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
@@ -8395,13 +8430,12 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
     return ret;
 }
 
-#if defined(HAVE_PTHREAD)
+//TODO FIX THIS!!!! (presently unused)
+#if 0
 static pthread_mutex_t initializer = PTHREAD_MUTEX_INITIALIZER;
-#endif
 
 HAMLIB_EXPORT(void) sync_callback(int lock)
 {
-#if defined(HAVE_PTHREAD)
     pthread_mutex_t client_lock = initializer;
 
     if (lock)
@@ -8415,12 +8449,11 @@ HAMLIB_EXPORT(void) sync_callback(int lock)
         pthread_mutex_unlock(&client_lock);
     }
 
-#endif
 }
+#endif
 
 void rig_lock(RIG *rig, int lock)
 {
-#if defined(HAVE_PTHREAD)
 
     struct rig_state *rs = STATE(rig);
 
@@ -8435,8 +8468,6 @@ void rig_lock(RIG *rig, int lock)
         pthread_mutex_unlock(&rs->api_mutex);
     }
 
-#endif
-
 }
 
 
@@ -8445,7 +8476,6 @@ void rig_lock(RIG *rig, int lock)
 
 #define MAX_FRAME_LENGTH 1024
 
-#if defined(HAVE_PTHREAD)
 static int async_data_handler_start(RIG *rig)
 {
     struct rig_state *rs = STATE(rig);
@@ -8487,9 +8517,7 @@ static int async_data_handler_start(RIG *rig)
 
     RETURNFUNC(RIG_OK);
 }
-#endif
 
-#if defined(HAVE_PTHREAD)
 static int morse_data_handler_start(RIG *rig)
 {
     struct rig_state *rs = STATE(rig);
@@ -8527,10 +8555,8 @@ static int morse_data_handler_start(RIG *rig)
 
     RETURNFUNC(RIG_OK);
 }
-#endif
 
 
-#if defined(HAVE_PTHREAD)
 static int async_data_handler_stop(RIG *rig)
 {
     struct rig_state *rs = STATE(rig);
@@ -8569,9 +8595,7 @@ static int async_data_handler_stop(RIG *rig)
 
     RETURNFUNC(RIG_OK);
 }
-#endif
 
-#if defined(HAVE_PTHREAD)
 static int morse_data_handler_stop(RIG *rig)
 {
     struct rig_state *rs = STATE(rig);
@@ -8625,9 +8649,7 @@ static int morse_data_handler_stop(RIG *rig)
 
     RETURNFUNC(RIG_OK);
 }
-#endif
 
-#if defined(HAVE_PTHREAD)
 static void *async_data_handler(void *arg)
 {
     struct async_data_handler_args_s *args = (struct async_data_handler_args_s *)
@@ -8721,9 +8743,7 @@ again:
     pthread_exit(NULL);
     return NULL;
 }
-#endif
 
-#if defined(HAVE_PTHREAD)
 static void *morse_data_handler(void *arg)
 {
     struct morse_data_handler_args_s *args =
@@ -8866,7 +8886,6 @@ static void *morse_data_handler(void *arg)
     pthread_exit(NULL);
     return NULL;
 }
-#endif
 
 
 HAMLIB_EXPORT(int) rig_password(RIG *rig, const char *key1)
@@ -9065,7 +9084,6 @@ HAMLIB_EXPORT(int) rig_is_model(RIG *rig, rig_model_t model)
 }
 
 
-#if defined(HAVE_PTHREAD)
 int morse_data_handler_set_keyspd(RIG *rig, int keyspd)
 {
     struct rig_state *rs = STATE(rig);
@@ -9075,7 +9093,6 @@ int morse_data_handler_set_keyspd(RIG *rig, int keyspd)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: keyspd=%d\n", __func__, keyspd);
     return RIG_OK;
 }
-#endif
 
 /**
  * \brief Get the address of a Hamlib data structure

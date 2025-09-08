@@ -1,28 +1,35 @@
-Hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
-         (C) Stephane Fillod 2000-2011
-         (C) The Hamlib Group 2000-2022
+Hamlib
+======
+
+(C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)  
+(C) Stephane Fillod 2000-2011  
+(C) The Hamlib Group 2000-2025  
 
 
 The purpose of this project is to provide stable, flexible, shared libraries
-that enable quicker development of Amateur Radio Equipment Control
-Applications.
-The master repository is https://github.com/Hamlib/Hamlib
-Daily snapshots are available at https://n0nb.users.sourceforge.net/
-Development happens on the github master (often by
-merging feature branches) and each release has a release branch.
+that enable quicker development of amateur radio equipment control
+applications.
 
-Many Amateur Radio Transceivers come with serial interfaces that allow
-software to control the radio. This project will endeavour to provide shared
-libraries that greatly simplify the application programmer's interaction
-with radio equipment and other controllable devices such as rotators,
-switches, etc.
+The master repository is https://github.com/Hamlib/Hamlib  
+The backup repository is https://sourceforge.net/projects/hamlib/  
+
+Daily snapshots are available at https://n0nb.users.sourceforge.net/
+
+Development happens on the GitHub master (often by merging feature branches)
+and each release has a release branch.
+
+Many amateur radio transceivers come with serial (RS-232, USB, etc.) or
+Ethernet/WiFi/Bluetooth interfaces that allow software to control the radio.
+This project will endeavour to provide shared libraries that greatly simplify
+the application programmer's interaction with radio equipment and other
+controllable devices such as rotators, amplifiers, etc.
 
 Supported Radios
 ----------------
 
 The Hamlib Wiki page, Supported Radios, contains a snapshot of the supported
-radios at the time of the last Hamlib release.  Go to http://www.hamlib.org
-to reach the Wiki.
+radios at the time of the last Hamlib release.  Go to
+https://github.com/Hamlib/Hamlib/wiki to reach the Wiki.
 
 Hamlib Design
 -------------
@@ -32,22 +39,21 @@ and data retrieval for supported devices.  A number of functions useful
 for calculating distance and bearing and grid square conversion are included.
 
 libhamlib.so -  library that provides generic API for all RIG types.
-    This is what Application programmers will "see".  Will have different
-    names on other platforms, e.g. libhamlib-2.dll on MS windows.  Also
-    contains all radio, rotator and amplifier "backends" (formerly in their
-    own dlopen'ed libraries) provided by Hamlib.
+    This is what application programs will "see".  Will have different
+    names on other platforms, e.g. libhamlib-4.dll on MS windows.  Also
+    contains all radio, rotator and amplifier "backends" provided by Hamlib.
 
 Backend Examples are:
 ---------------------
 
-1. yaesu will provide connectivity to Yaesu FT 747GX Transceiver, FT 847
-   "Earth Station", etc. via a standard API.
+1. `yaesu` will provide connectivity to Yaesu FT 747GX Transceiver, FT 847
+   "Earth Station", etc. via a unified API.
 
-2. xxxx. will provide connectivity to the Wiz-bang moon-melter 101A (yikes..)
+2. `xxxx` will provide connectivity to the Wiz-bang moon-melter 101A (yikes..)
 
 Hamlib will also enable developers to develop professional looking GUI's
-towards a standard control library API, and they would not have to worry
-about the underlying connection towards physical hardware.
+towards a unified control library API, and they will not have to worry about
+the underlying connection towards physical hardware.
 
 Initially serial (RS232) connectivity will be handled, but we expect that IP
 (and other) connectivity will follow afterwards.  Connection via a USB port
@@ -77,27 +83,33 @@ Python, and TCL.  A network daemon utility is also available for any
 programming language that supports network sockets (even netcat!).
 
 
-Recompiling
------------
+Compiling
+---------
 
-Hamlib is entirely developed using GNU tools, under various Linux systems.
-The library may be recompiled by the familiar "three step":
-
-Note: if ./configure does not exist run ./bootstrap first
+Hamlib is entirely developed using GNU tools, on various operating systems.
+The library may be compiled from a source "tarball" by the familiar "three
+step":
 
         ./configure
         make
         sudo make install
 
-For debugging use this configure
+For debugging use this configure command:
+
         ./configure CFLAGS=-g -O0 -fPIC --no-create --no-recursion
 
-See the INSTALL file for more information.
+See the `INSTALL` file for more information.
+
+To recompile Hamlib, run:
+
+        make clean
+
+to remove all object files and binaries, otherwise `make` won't do anything!
 
 Contributing
 ------------
 
-Consult the README.betatester and README.developer files in this directory
+Consult the `README.betatester` and `README.developer` files in this directory
 if you feel like testing or helping with Hamlib development.
 
 Contributions of rig specifications and protocol documentation are highly
@@ -127,42 +139,36 @@ Like other software projects, Hamlib uses a version numbering scheme to help
 program authors and users understand which releases are compatible and which
 are not.  Hamlib releases now follow the format of:
 
-Major.minor.incremental
+Major.minor.point
 
 Where
 
 Major:  Currently at 4, but can be advanced when changes to the API require
-client programs to be rewritten to take advantage of new features of
-Hamlib.  This number has advanced a couple of times throughout the life of
-Hamlib.  Advancement of the major number is only for frontend API changes
-that require modification of client source.  ABI compatibility is presently
-maintained to prior releases so that a program linked to an earlier
-1.2.Y.[Z] release will work with a later 3.Y[.Z] release without
-recompiling. It is our intention to maintain such ABI compatibility as long
-as practical.
+client programs to be rewritten to take advantage of new features of Hamlib.
+This number has advanced several times throughout the life of Hamlib.
+Advancement of the major number signals frontend API changes that require
+modification of client source and Application Binary Interface changes that
+require relinking to the library (Note, the latter does not apply to
+applications using the `*ctld` daemons, but the command API may change).
 
-Minor:  This number advances when either new backend(s) or new rig
-model(s) to existing backend(s) are added.  Advancing this number informs
-client program authors (and users of those programs) that new model/backend
-support has been added.  Will also include bug fixes since the last
-Incremental release.
+Minor:  This number advances when either new backend(s) or new rig model(s) to
+existing backend(s) are added.  Advancing this number informs client program
+authors (and users of those programs) that new model/backend support has been
+added.  Will also include bug fixes since the last point release.
 
-Incremental:    May be undefined (e.g. Hamlib 3.0) and would advance to 1
-(e.g. Hamlib 3.0.1) for any bug fixes or feature additions to existing
+Point:  Formerly could be undefined (e.g. Hamlib 4.6) and would advance to 1
+(e.g.  Hamlib 4.6.1) for any bug fixes or feature additions to existing
 model(s) or backend(s), then to 2, etc.  New rig models or backends are not
-included in Incremental.  When Release is advanced, Incremental will reset
-to undefined and will not be included as part of the version number.
+included in point releases.  When *major* or *minor* is advanced, *point* will
+reset to `0`.  **Note:** All future releases beginning with 4.7.0 will include
+all values to lessen confusion.
 
 Release schedule
 ----------------
 
-Hamlib has in the past maintained a "ready when it's ready" philosophy.
-However, given that much of the Linux user base is now influenced by the
-Ubuntu distribution and its timed six month release schedule, Hamlib
-releases will be scheduled in advance of Ubuntu releases.  Planned release
-dates for Hamlib are now 1 February and 1 August of each calendar year.
-Between those dates various Incremental releases will occur as development
-warrants.
+Hamlib has a "ready when it's ready" philosophy.  There is no set schedule,
+though we'd like at least one *minor* release in a given year and a *major*
+release every several years.
 
 
 Have Fun / Frank S / Stephane F / The Hamlib Group

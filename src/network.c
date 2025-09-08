@@ -74,7 +74,6 @@
 #endif
 
 #include "hamlib/rig.h"
-#include "hamlib/port.h"
 #include "hamlib/rig_state.h"
 #include "network.h"
 #include "misc.h"
@@ -125,9 +124,7 @@ typedef struct multicast_publisher_args_s
     int data_read_fd;
 #endif
 
-#ifdef HAVE_PTHREAD
     pthread_mutex_t write_lock;
-#endif
 } multicast_publisher_args;
 
 typedef struct multicast_publisher_priv_data_s
@@ -511,9 +508,9 @@ int network_close(hamlib_port_t *rp)
 }
 //! @endcond
 
-extern void sync_callback(int lock);
+//TODO See defn in rig.c
+//extern void sync_callback(int lock);
 
-#ifdef HAVE_PTHREAD
 //! @cond Doxygen_Suppress
 
 #define MULTICAST_DATA_PIPE_TIMEOUT_MILLIS 1000
@@ -1953,5 +1950,4 @@ int network_multicast_receiver_stop(RIG *rig)
     RETURNFUNC(RIG_OK);
 }
 
-#endif
 /** @} */

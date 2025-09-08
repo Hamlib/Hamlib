@@ -23,20 +23,15 @@
 #ifndef _MISC_H
 #define _MISC_H 1
 
-#include "hamlib/rig.h"
 #include "hamlib/config.h"
+#include "hamlib/rig.h"
 
 
 /*
  */
-#ifdef HAVE_PTHREAD
 #include <pthread.h>
 #define set_transaction_active(rig) {pthread_mutex_lock(&STATE(rig)->mutex_set_transaction);STATE(rig)->transaction_active = 1;}
 #define set_transaction_inactive(rig) {STATE(rig)->transaction_active = 0;pthread_mutex_unlock(&STATE(rig)->mutex_set_transaction);}
-#else
-#define set_transaction_active(rig) {STATE(rig)->transaction_active = 1;}
-#define set_transaction_inactive(rig) {STATE(rig)->transaction_active = 0;}
-#endif
 
 __BEGIN_DECLS
 

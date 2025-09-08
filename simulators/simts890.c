@@ -34,7 +34,6 @@
 #include <ctype.h>
 #include <time.h>
 
-#include "config.h"
 //#include "hamlib/rig.h"
 
 /* Definitions */

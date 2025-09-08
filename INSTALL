@@ -16,10 +16,13 @@ main directory and do the following:
 
   1. Configure the source code by typing:
 
-        If you check out the source code from github you need this step first
+	If you clone the repository from GitHub or SourceForge you need this
+	step first:
+	
         $ ./bootstrap
 
         With the tar file or after the step above from a git clone
+
         $ ./configure
 
      If configure does not exist you can create it with ./bootstrap
@@ -44,7 +47,8 @@ main directory and do the following:
         $ make
 
      Running `make' takes a while.  Since Hamlib is a package, now is the
-     time to go get a cup of coffee.
+     time to go get a cup of coffee, or tea, or orange juice, or your favorite
+     beverage.
 
   3. Some packages are bundled with self-tests for source-code verification.
      If this package includes such tests, you can optionally run them after
@@ -66,7 +70,6 @@ main directory and do the following:
         Libraries            -> /prefix/lib
         Public header files  -> /prefix/include
         Man pages            -> /prefix/man/man?
-        Info files           -> /prefix/info
         Doc files            -> /prefix/share/doc/<prog name>
         Share files          -> /prefix/share/<prog name>
      where `prefix' is either `/usr/local' or the PATH that you specified
