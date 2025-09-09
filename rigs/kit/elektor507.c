@@ -29,7 +29,7 @@
 
 #ifdef _WIN32
 #define USE_FTDI_DLL
-#elif defined(HAVE_LIBUSB) && (defined(HAVE_LIBUSB_H) || defined(HAVE_LIBUSB_1_0_LIBUSB_H))
+#elif defined(HAVE_LIBUSB)
 #define USE_LIBUSB
 #endif
 
@@ -148,12 +148,8 @@ struct elektor507_extra_priv_data
 #elif defined(USE_LIBUSB)
 
 
-
-#ifdef HAVE_LIBUSB_H
+// LIBUSB_CFLAGS set by pkg-config should set the include path appropriately.
 # include <libusb.h>
-#elif defined HAVE_LIBUSB_1_0_LIBUSB_H
-# include <libusb-1.0/libusb.h>
-#endif
 
 
 #define USB_VID_FTDI        0x0403  /* Future Technology Devices International */
