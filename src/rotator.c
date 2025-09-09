@@ -56,6 +56,7 @@
 #include <fcntl.h>
 
 #include "hamlib/rotator.h"
+#include "hamlib/port.h"
 #include "hamlib/rot_state.h"
 #include "serial.h"
 #include "parallel.h"
@@ -63,7 +64,6 @@
 #include "usb_port.h"
 #endif
 #include "network.h"
-
 
 #ifndef DOC_HIDDEN
 

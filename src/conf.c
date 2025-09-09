@@ -38,6 +38,7 @@
 #include <strings.h>
 
 #include "hamlib/rig.h"
+#include "hamlib/port.h"
 #include "hamlib/rig_state.h"
 #include "token.h"
 
