@@ -59,6 +59,7 @@
 #endif
 
 #include "hamlib/rig.h"
+#include "hamlib/port.h"
 
 //! @cond Doxygen_Suppress
 #if defined(WIN32) && !defined(HAVE_TERMIOS_H)
