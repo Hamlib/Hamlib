@@ -1,3 +1,4 @@
+AM_CFLAGS += $(LIBUSB_CFLAGS)
 
 BUILT_SOURCES = $(builddir)/hamlibdatetime.h
 

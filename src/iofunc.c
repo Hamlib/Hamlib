@@ -335,7 +335,7 @@ int HAMLIB_API port_open(hamlib_port_t *p)
         p->fd = status;
         break;
 
-#if defined(HAVE_LIBUSB_H) || defined (HAVE_LIBUSB_1_0_LIBUSB_H)
+#if defined(HAVE_LIBUSB)
 
     case RIG_PORT_USB:
         status = usb_port_open(p);
@@ -393,7 +393,7 @@ int HAMLIB_API port_close(hamlib_port_t *p, rig_port_t port_type)
             ret = ser_close(p);
             break;
 
-#if defined(HAVE_LIBUSB_H) || defined (HAVE_LIBUSB_1_0_LIBUSB_H)
+#if defined(HAVE_LIBUSB)
 
         case RIG_PORT_USB:
             ret = usb_port_close(p);

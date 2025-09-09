@@ -26,10 +26,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <hamlib/config.h>
-#if defined(HAVE_LIBUSB_H)
+
+#ifdef HAVE_LIBUSB
+// LIBUSB_CFLAGS set by pkg-config should set the include path appropriately.
 #include <libusb.h>
-#elif defined(HAVE_LIBUSB_1_0_LIBUSB_H)
-#include <libusb-1.0/libusb.h>
 #endif
 
 #ifdef __FreeBSD__
