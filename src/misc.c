@@ -1031,11 +1031,13 @@ static const struct
 };
 
 /**
- * \brief check input to set_level
+ * \brief Check the input to rig_set_level
+ * \ingroup lib_internal
+ *
  * \param rig The rig handle
  * \param level RIG_LEVEL_* trying to set
  * \param val Raw input from the caller
- * \param gran If not NULL, set to location of level_gran data
+ * \param[out] gran If not NULL, set to location of level_gran data
  *
  * \return RIG_OK if value is in range for this level, -RIG_EINVAL if not
  */

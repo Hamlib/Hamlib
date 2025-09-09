@@ -2244,7 +2244,7 @@ struct rig_caps {
     int (*set_lock_mode)(RIG *rig, int mode);
     int (*get_lock_mode)(RIG *rig, int *mode);
     short timeout_retry;    /*!< number of retries to make in case of read timeout errors, some serial interfaces may require this, 0 to use default value, -1 to disable */
-    short morse_qsize;  /* max length of morse */
+    short morse_qsize;  /*!< max length of morse message rig can accept in one command */
 //    int (*bandwidth2rig)(RIG  *rig, enum bandwidth_t bandwidth);
 //    enum bandwidth_t (*rig2bandwidth)(RIG  *rig, int rigbandwidth);
 };
@@ -2683,10 +2683,10 @@ struct s_rig {
     struct rig_callbacks callbacks; /*!< registered event callbacks */
     // state should really be a pointer but that's a LOT of changes involved
     struct rig_state state;         /*!< Rig state */
-/* Data beyond this line is for hamlib internal use only,
+/* Data after this line is for hamlib internal use only,
  *  and should *NOT* be referenced by applications, as layout will change!
  */
-    struct rig_cache *cache_addr;
+    struct rig_cache *cache_addr;   /*!< address of rig_cache buffer */
 };
 
 
