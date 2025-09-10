@@ -5,6 +5,7 @@ Running this script directly will use the installed bindings.
 For an in-tree run use "make check", or set PYTHONPATH to point to
 the directories containing Hamlib.py and _Hamlib.so.
 """
+import pytest
 from pytest import raises
 
 import Hamlib
@@ -49,12 +50,18 @@ class TestClass:
         assert rot.token_lookup("") is None
 
 
-    def test_with_open(self, model):
+    @pytest.mark.skipif('config.getoption("model") != Hamlib.ROT_MODEL_DUMMY')
+    def test_with_open(self, model, rot_file, serial_speed):
         """Call all the methods that depend on open()"""
         rot = Hamlib.Rot(model)
         assert rot is not None
 
         assert rot.state.comm_state == 0
+        # first try a known string because rot_file is None during "make check"
+        assert rot.set_conf("rot_pathname", "foo") is None
+        assert rot.get_conf("rot_pathname") == "foo"
+        assert rot.set_conf("rot_pathname", rot_file) is None
+        assert rot.set_conf("serial_speed", str(serial_speed)) is None
         assert rot.open() is None
         assert rot.state.comm_state == 1
         info = rot.get_info()
@@ -108,6 +115,7 @@ class TestClass:
         assert info is None
 
 
+    @pytest.mark.skipif('config.getoption("model") != Hamlib.ROT_MODEL_DUMMY')
     def test_object_creation(self, model):
         """Create all objects available"""
         rot = Hamlib.Rig(model)
