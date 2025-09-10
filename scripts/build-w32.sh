@@ -214,7 +214,7 @@ correct directory to the path and allows update of "C:\Program Files" with the
 Then (in my case).
 
 cd "C:\Program Files\hamlib-w32-${RELEASE}\lib\msvc"
-lib \def:libhamlib-4.def \machine:x86
+lib /def:libhamlib-4.def /machine:x86
 
 If you use any other terminal then the full path to lib.exe is needed
 (today it is
