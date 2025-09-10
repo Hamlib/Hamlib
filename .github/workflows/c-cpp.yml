@@ -69,6 +69,7 @@ jobs:
         brew install autoconf
         brew install automake
         brew install libnova
+        brew install libusb
         brew install libtool
         brew install grep
         brew install swig
