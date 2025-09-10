@@ -80,5 +80,4 @@ jobs:
       uses: actions/upload-artifact@v4.6.2
       with:
         name: 'Hamlib build artifacts'
-      path: hamlib_artifacts
-
+        path: hamlib_artifacts
