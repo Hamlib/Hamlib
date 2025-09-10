@@ -3235,9 +3235,11 @@ rig_lookup_mem_caps HAMLIB_PARAMS((RIG *rig,
 extern HAMLIB_EXPORT(int)
 rig_mem_count HAMLIB_PARAMS((RIG *rig));
 
+HL_DEPRECATED
 extern HAMLIB_EXPORT(int)
 rig_set_trn HAMLIB_PARAMS((RIG *rig,
                            int trn));
+HL_DEPRECATED
 extern HAMLIB_EXPORT(int)
 rig_get_trn HAMLIB_PARAMS((RIG *rig,
                            int *trn));
