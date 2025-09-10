@@ -48,18 +48,16 @@ jobs:
       run: |
         pwd
         ./bootstrap
-    - name: README Debug
-      run: grep README Makefile.am
     - name: configure
       run: ./configure ${{ matrix.configure_args }}
     - name: make
       run: make -j 4 V=0 --no-print-directory
     - name: make distcheck
       run: make distcheck V=0 --no-print-directory AM_DISTCHECK_CONFIGURE_FLAGS="${{ matrix.configure_args }}"
-    - name: 'Tar files'
-      run: tar -cvf ubuntu_latest_no_features.tar .
-    - name: 'Upload Build Artifacts'
+    - name: 'tar files'
+      run: tar -cvf ubuntu_latest_no_features.tar /home/runner/work/Hamlib/Hamlib
+    - name: 'Upload Build Artifact'
       uses: actions/upload-artifact@v4.6.2
       with:
         name: 'Ubuntu_latest_no_features'
-        path: Hamlib
+        path: ubuntu_latest_no_features.tar
