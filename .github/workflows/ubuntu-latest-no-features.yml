@@ -8,7 +8,29 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: ubuntu-latest
+        configure_args:
+          - >-
+            --enable-html-matrix=no
+            --enable-parallel=no
+            --enable-pytest=no
+            --enable-shared=yes
+            --enable-silent-rules
+            --enable-static=yes
+            --enable-usrp=no
+            --enable-winradio=no
+            --with-cxx-binding=no
+            --with-indi=no
+            --with-libusb=no
+            --with-lua-binding=no
+            --with-perl-binding=no
+            --with-python-binding=no
+            --with-readline=no
+            --with-tcl-binding=no
+            --with-xml-support=no
 
     steps:
     - uses: actions/checkout@v4
@@ -22,27 +44,6 @@ jobs:
         sudo apt install grep
         sudo apt install python3-dev python3-pytest
         sudo apt install lua5.4 liblua5.4-dev libperl-dev tcl-dev
-    - name: Set configure arguments
-    - run: >-
-        --enable-html-matrix=no
-        --enable-parallel=no
-        --enable-pytest=no
-        --enable-shared=yes
-        --enable-silent-rules
-        --enable-static=yes
-        --enable-usrp=no
-        --enable-winradio=no
-        --with-cxx-binding=no
-        --with-indi=no
-        --with-libusb=no
-        --with-lua-binding=no
-        --with-perl-binding=no
-        --with-python-binding=no
-        --with-readline=no
-        --with-tcl-binding=no
-        --with-xml-support=no
-    - id: configure_args
-
     - name: bootstrap
       run: |
         pwd
@@ -50,11 +51,11 @@ jobs:
     - name: README Debug
       run: grep README Makefile.am
     - name: configure
-      run: ./configure ${{ configure_args }}
+      run: ./configure ${{ matrix.configure_args }}
     - name: make
       run: make -j 4 V=0 --no-print-directory
     - name: make distcheck
-      run: make distcheck V=0 --no-print-directory AM_DISTCHECK_CONFIGURE_FLAGS="${{ configure_args }}"
+      run: make distcheck V=0 --no-print-directory AM_DISTCHECK_CONFIGURE_FLAGS="${{ matrix.configure_args }}"
     - name: 'Tar files'
       run: tar -cvf ubuntu_latest_no_features.tar .
     - name: 'Upload Build Artifacts'
