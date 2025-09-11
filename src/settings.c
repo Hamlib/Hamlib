@@ -1059,6 +1059,7 @@ HAMLIB_EXPORT(int) rig_settings_get_path(char *path, int pathlen)
         home = "?HOME";
     }
 
+    // cppcheck-suppress nullPointerRedundantCheck
     snprintf(path, pathlen, "%s/.config", home);
 
     if (xdgpath)
@@ -1098,13 +1099,13 @@ HAMLIB_EXPORT(int) rig_settings_save(const char *setting, void *value,
     FILE *fptmp;
     char path[4096];
     char buf[4096];
-    char *cvalue = (char *)value;
-    int *ivalue = (int *)value;
+    const char *cvalue = (char *)value;
+    const int *ivalue = (int *)value;
     int n = 0;
-    long *lvalue = (long *) value;
-    float *fvalue = (float *) value;
-    double *dvalue = (double *) value;
-    char *vformat = "Unknown format??";
+    const long *lvalue = (long *) value;
+    const float *fvalue = (float *) value;
+    const double *dvalue = (double *) value;
+    const char *vformat = "Unknown format??";
     char template[64];
 
     rig_settings_get_path(path, sizeof(path));
