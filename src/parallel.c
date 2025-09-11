@@ -53,6 +53,7 @@
 #  include <winbase.h>
 #endif
 
+#include "hamlib/port.h"
 #include "parallel.h"
 
 #ifdef HAVE_LINUX_PPDEV_H
