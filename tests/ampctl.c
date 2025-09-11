@@ -70,7 +70,7 @@ extern int read_history();
 /*
  * Prototypes
  */
-void usage();
+void usage(FILE *fout);
 
 /*
  * Reminder: when adding long options,
@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
         switch (c)
         {
         case 'h':
-            usage();
+            usage(stdout);
             exit(0);
 
         case 'V':
@@ -237,7 +237,7 @@ int main(int argc, char *argv[])
             break;
 
         default:
-            usage();    /* unknown option? */
+            usage(stderr);    /* unknown option? */
             exit(1);
         }
     }
@@ -438,12 +438,12 @@ int main(int argc, char *argv[])
 }
 
 
-void usage()
+void usage(FILE *fout)
 {
-    printf("Usage: ampctl [OPTION]... [COMMAND]...\n"
+    fprintf(fout, "Usage: ampctl [OPTION]... [COMMAND]...\n"
            "Send COMMANDs to a connected amplifier.\n\n");
 
-    printf(
+    fprintf(fout,
         "  -m, --model=ID                select amplifier model number. See model list (-l)\n"
         "  -r, --amp-file=DEVICE         set device of the amplifier to operate on\n"
         "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
@@ -464,5 +464,5 @@ void usage()
         "\n"
     );
 
-    usage_amp(stdout);
+    usage_amp(fout);
 }

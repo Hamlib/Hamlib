@@ -74,7 +74,7 @@ extern int read_history();
 #define MAXNBOPT 100    /* max number of different options */
 
 
-static void usage(void);
+static void usage(FILE *fout);
 
 /*
  * Reminder: when adding long options,
@@ -269,7 +269,7 @@ int main(int argc, char *argv[])
             break;
 
         case 'h':
-            usage();
+            usage(stdout);
             exit(0);
 
         case 'V':
@@ -463,7 +463,7 @@ int main(int argc, char *argv[])
             break;
 
         default:
-            usage();    /* unknown option? */
+            usage(stderr);    /* unknown option? */
             exit(1);
         }
     }
@@ -871,13 +871,12 @@ int main(int argc, char *argv[])
 }
 
 
-void usage(void)
+void usage(FILE *fout)
 {
-    printf("Usage: rigctl [OPTION]... [COMMAND]...\n"
+    fprintf(fout, "Usage: rigctl [OPTION]... [COMMAND]...\n"
            "Send COMMANDs to a connected radio transceiver or receiver.\n\n");
 
-
-    printf(
+    fprintf(fout,
         "  -m, --model=ID                select radio model number. See model list (-l)\n"
         "  -r, --rig-file=DEVICE         set device of the radio to operate on\n"
         "  -p, --ptt-file=DEVICE         set device of the PTT device to operate on\n"
@@ -908,5 +907,5 @@ void usage(void)
         "\n"
     );
 
-    usage_rig(stdout);
+    usage_rig(fout);
 }
