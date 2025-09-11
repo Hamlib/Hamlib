@@ -22,7 +22,7 @@
 #include "indi_wrapper.hpp"
 
 #include <math.h>
-#include <limits.h>
+#include <float.h>
 
 #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
 
@@ -479,8 +479,8 @@ void RotINDIClient::newProperty(INDI::Property *property)
             connectDevice(mTelescope->getDeviceName());
         }
 
-        mDstAz = INT_MAX;
-        mDstEl = INT_MAX;
+        mDstAz = FLT_MAX;
+        mDstEl = FLT_MAX;
     }
 
     if (name == "HORIZONTAL_COORD")
