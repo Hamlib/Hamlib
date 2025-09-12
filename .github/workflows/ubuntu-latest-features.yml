@@ -1,0 +1,62 @@
+name: Ubuntu latest C/C++ (features)
+
+on:
+  push:
+    branches: [ master, feature/* ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        configure_args:
+          - >-
+            --enable-html-matrix=yes
+            --enable-parallel=yes
+            --enable-pytest=yes
+            --enable-shared=yes
+            --enable-silent-rules
+            --enable-static=yes
+            --enable-usrp=no
+            --enable-winradio=yes
+            --with-cxx-binding=yes
+            --with-indi=yes
+            --with-libusb=yes
+            --with-lua-binding=yes
+            --with-perl-binding=yes
+            --with-python-binding=yes
+            --with-readline=yes
+            --with-tcl-binding=yes
+            --with-xml-support=yes
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install dependencies on Ubuntu latest
+      run: |
+        sudo apt update
+        sudo apt -y install libusb-1.0-0-dev
+        sudo apt -y install libgd-dev
+        sudo apt -y install libgpiod-dev
+        sudo apt -y install libindi-dev libnova-dev
+        sudo apt -y install grep
+        sudo apt -y install python3-dev python3-pytest
+        sudo apt -y install lua5.4 liblua5.4-dev libperl-dev tcl-dev
+        sudo apt -y install swig
+    - name: bootstrap
+      run: |
+        pwd
+        ./bootstrap
+    - name: configure
+      run: ./configure ${{ matrix.configure_args }}
+    - name: make distcheck
+      run: make distcheck V=0 --no-print-directory AM_DISTCHECK_CONFIGURE_FLAGS="${{ matrix.configure_args }} --without-perl-binding"
+    - name: 'tar files'
+      run: tar -cvf ubuntu_latest_features.tar $(pwd)
+    - name: 'Upload Build Artifact'
+      uses: actions/upload-artifact@v4.6.2
+      with:
+        name: 'Ubuntu_latest_features'
+        path: ubuntu_latest_features.tar
