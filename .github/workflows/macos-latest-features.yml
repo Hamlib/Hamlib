@@ -1,0 +1,64 @@
+name: MacOS latest C/C++ (features)
+
+on:
+  push:
+    branches: [ master, feature/* ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest]
+        configure_args:
+          - >-
+            --enable-html-matrix=yes
+            --enable-parallel=yes
+            --enable-pytest=yes
+            --enable-shared=yes
+            --enable-silent-rules
+            --enable-static=yes
+            --enable-usrp=no
+            --enable-winradio=yes
+            --with-cxx-binding=yes
+            --with-indi=yes
+            --with-libusb=yes
+            --with-lua-binding=yes
+            --with-perl-binding=yes
+            --with-python-binding=yes
+            --with-readline=yes
+            --with-tcl-binding=yes
+            --with-xml-support=yes
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install dependencies on MacOS
+      run: |
+        brew install autoconf
+        brew install automake
+        brew install libnova
+        brew install libtool
+        brew install grep
+        brew install swig
+        brew install tcl-tk
+    - name: bootstrap
+      run: |
+        pwd
+        ./bootstrap
+    - name: Suppress -Winitializer-overrides on MacOS
+      run: |
+        export CFLAGS="$CFLAGS -Wno-initializer-overrides"
+        export CXXFLAGS="$CXXFLAGS -Wno-initializer-overrides"
+    - name: configure on MacOS
+      run: ./configure ${{ matrix.configure_args }} --with-indi=detect --without-lua-binding PYTHON=/opt/homebrew/bin/python3
+    - name: make distcheck
+      run: make distcheck V=0 --no-print-directory AM_DISTCHECK_CONFIGURE_FLAGS="${{ matrix.configure_args }} --with-indi=detect --without-perl-binding --without-lua-binding --without-tcl-binding PYTHON=/opt/homebrew/bin/python3"
+    - name: 'tar files'
+      run: tar -cvf macos_latest_features.tar $(pwd)
+    - name: 'Upload Build Artifact'
+      uses: actions/upload-artifact@v4.6.2
+      with:
+        name: 'Macos_latest_features'
+        path: macos_latest_features.tar

@@ -1,4 +1,4 @@
-name: Ubuntu latest C/C++ (no features)
+name: MacOS latest C/C++ (no features)
 
 on:
   push:
@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [macos-latest]
         configure_args:
           - >-
             --enable-html-matrix=no
@@ -34,28 +34,31 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Install dependencies on Ubuntu latest
+    - name: Install dependencies on MacOS
       run: |
-        sudo apt update
-        sudo apt -y install libusb-1.0-0-dev
-        sudo apt -y install libgd-dev
-        sudo apt -y install libgpiod-dev
-        sudo apt -y install libindi-dev libnova-dev
-        sudo apt -y install grep
-        sudo apt -y install python3-dev python3-pytest
-        sudo apt -y install lua5.4 liblua5.4-dev libperl-dev tcl-dev
+        brew install autoconf
+        brew install automake
+        brew install libnova
+        brew install libtool
+        brew install grep
+        brew install swig
+        brew install tcl-tk
     - name: bootstrap
       run: |
         pwd
         ./bootstrap
-    - name: configure
-      run: ./configure ${{ matrix.configure_args }}
+    - name: Suppress -Winitializer-overrides on MacOS
+      run: |
+        export CFLAGS="$CFLAGS -Wno-initializer-overrides"
+        export CXXFLAGS="$CXXFLAGS -Wno-initializer-overrides"
+    - name: configure on MacOS
+      run: ./configure ${{ matrix.configure_args }} --with-indi=detect --without-lua-binding PYTHON=/opt/homebrew/bin/python3
     - name: make distcheck
-      run: make distcheck V=0 --no-print-directory AM_DISTCHECK_CONFIGURE_FLAGS="${{ matrix.configure_args }} --without-perl-binding"
+      run: make distcheck V=0 --no-print-directory AM_DISTCHECK_CONFIGURE_FLAGS="${{ matrix.configure_args }} --with-indi=detect --without-perl-binding --without-lua-binding --without-tcl-binding PYTHON=/opt/homebrew/bin/python3"
     - name: 'tar files'
-      run: tar -cvf ubuntu_latest_no_features.tar $(pwd)
+      run: tar -cvf macos_latest_no_features.tar $(pwd)
     - name: 'Upload Build Artifact'
       uses: actions/upload-artifact@v4.6.2
       with:
-        name: 'Ubuntu_latest_no_features'
-        path: ubuntu_latest_no_features.tar
+        name: 'Macos_latest_no_features'
+        path: macos_latest_no_features.tar
