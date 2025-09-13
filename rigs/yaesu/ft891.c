@@ -194,6 +194,7 @@ struct rig_caps ft891_caps =
     .str_cal =            FT891_STR_CAL,
     .chan_list =          {
         {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
+        {   1,      5, RIG_MTYPE_VOICE },
         {   1,  5,  RIG_MTYPE_MORSE },
         RIG_CHAN_END,
     },
@@ -338,6 +339,7 @@ struct rig_caps ft891_caps =
     .set_clock =          newcat_set_clock,
     .get_clock =          newcat_get_clock,
     .scan =               newcat_scan,
+    .send_voice_mem =     newcat_send_voice_mem,
     .morse_qsize =        50,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
