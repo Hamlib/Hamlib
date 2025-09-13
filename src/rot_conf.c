@@ -748,7 +748,7 @@ int HAMLIB_API rot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
 {
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rot || !rot->caps)
+    if (!rot || !rot->caps || !val)
     {
         return -RIG_EINVAL;
     }

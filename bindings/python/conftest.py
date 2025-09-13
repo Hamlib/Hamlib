@@ -10,7 +10,7 @@ def pytest_addoption(parser):
                         metavar='ID', help='select amplifier model number')
         parser.addoption('--amp-file', default=None,
                         metavar='DEVICE', help='set device of the amplifier to operate on')
-    if sys.argv[1].endswith("rig.py"):
+    elif sys.argv[1].endswith("rig.py"):
         parser.addoption('--model', type=int, default=1,
                         metavar='ID', help='select radio model number')
         parser.addoption('--rig-file', default=None,
@@ -36,8 +36,16 @@ def model(request):
     return request.config.getoption("--model")
 
 @pytest.fixture
+def amp_file(request):
+    return request.config.getoption("--amp-file")
+
+@pytest.fixture
 def rig_file(request):
     return request.config.getoption("--rig-file")
+
+@pytest.fixture
+def rot_file(request):
+    return request.config.getoption("--rot-file")
 
 @pytest.fixture
 def serial_speed(request):
