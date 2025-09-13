@@ -198,6 +198,7 @@ struct rig_caps ftdx10_caps =
     .chan_list =          {
         {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
         { 501, 510, RIG_MTYPE_BAND, NEWCAT_MEM_CAP },    /* 60M Channels, 5-01 - 5-10, if available */
+        {   1,      5, RIG_MTYPE_VOICE },
         {   1,  5,  RIG_MTYPE_MORSE },
         RIG_CHAN_END,
     },
@@ -327,6 +328,7 @@ struct rig_caps ftdx10_caps =
     .set_clock =          newcat_set_clock,
     .get_clock =          newcat_get_clock,
     .scan =               newcat_scan,
+    .send_voice_mem =     newcat_send_voice_mem,
     .morse_qsize =        50,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
