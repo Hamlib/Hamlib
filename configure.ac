@@ -357,7 +357,6 @@ AC_ARG_WITH([libusb],
     )
 
 AC_MSG_RESULT([$cf_with_libusb])
-AM_CONDITIONAL([HAVE_LIBUSB], [test x"${cf_with_libusb}" = "xyes"])
 
 LIBUSB=""
 AC_ARG_VAR([LIBUSB_CFLAGS], [C compiler flags for libusb, overriding configure defaults])
@@ -376,6 +375,9 @@ AS_IF([test x"${cf_with_libusb}" = "xyes"], [
 		   [1],
 		   [Define if libusb-1.0 is available])
 	LIBUSB="libusb-1.0"])])
+
+AM_CONDITIONAL([HAVE_LIBUSB], [test x"${cf_with_libusb}" = "xyes"])
+AC_SUBST([HAVE_LIBUSB])
 
 # Only used in hamlib.pc.in
 AC_SUBST([LIBUSB])
