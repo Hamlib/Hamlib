@@ -4,8 +4,6 @@
 # AUTOMAKE_OPTIONS = dejagnu
 # DEJATOOL = testfreq testbcd testloc rigctl
 
-# For some reason this "if" is not working -- rigtestlibusb is still being included
-# Fix for now is to change rigtestlibusb.c instead
 if HAVE_LIBUSB
     TESTLIBUSB = rigtestlibusb
 else
