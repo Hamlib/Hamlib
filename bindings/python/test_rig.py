@@ -286,7 +286,7 @@ class TestClass:
         assert isinstance(rig.get_split_freq(Hamlib.RIG_VFO_CURR), float)
         assert len(rig.get_split_mode()) == 2
         assert len(rig.get_split_mode(Hamlib.RIG_VFO_CURR)) == 2
-        assert isinstance(rig.get_trn(), int)  # deprecated
+        # assert isinstance(rig.get_trn(), int)  # deprecated
         assert isinstance(rig.get_ts(), int)
         assert isinstance(rig.get_ts(Hamlib.RIG_VFO_CURR), int)
         assert len(rig.get_vfo_info()) == 5
@@ -349,7 +349,7 @@ class TestClass:
         assert rig.set_split_mode(0, 0, 0) is None
         assert rig.set_split_vfo(0, 0) is None
         assert rig.set_split_vfo(0, 0, 0) is None
-        assert rig.set_trn(0) is None  # deprecated
+        # assert rig.set_trn(0) is None  # deprecated
         assert rig.set_ts(0, 0) is None
         assert rig.set_vfo_opt(0) is None
         assert rig.token_lookup("") is None
