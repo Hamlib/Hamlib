@@ -683,7 +683,7 @@ int HAMLIB_API amp_set_conf(AMP *amp, hamlib_token_t token, const char *val)
 {
     amp_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!amp || !amp->caps)
+    if (!amp || !amp->caps || !val)
     {
         return -RIG_EINVAL;
     }
