@@ -5,6 +5,8 @@ Running this script directly will use the installed bindings.
 For an in-tree run use "make check", or set PYTHONPATH to point to
 the directories containing Hamlib.py and _Hamlib.so.
 """
+import pytest
+
 import Hamlib
 
 Hamlib.rig_set_debug(Hamlib.RIG_DEBUG_NONE)
@@ -40,12 +42,18 @@ class TestClass:
         assert amp.token_lookup("") is None
 
 
-    def test_with_open(self, model):
+    @pytest.mark.skipif('config.getoption("model") != Hamlib.AMP_MODEL_DUMMY')
+    def test_with_open(self, model, amp_file, serial_speed):
         """Call all the methods that depend on open()"""
         amp = Hamlib.Amp(model)
         assert amp is not None
 
         assert amp.state.comm_state == 0
+        # first try a known string because amp_file is None during "make check"
+        assert amp.set_conf("amp_pathname", "foo") is None
+        assert amp.get_conf("amp_pathname") == "foo"
+        assert amp.set_conf("amp_pathname", amp_file) is None
+        assert amp.set_conf("serial_speed", str(serial_speed)) is None
         assert amp.open() is None
         assert amp.state.comm_state == 1
         info = amp.get_info()
@@ -72,6 +80,7 @@ class TestClass:
         assert info is None
 
 
+    @pytest.mark.skipif('config.getoption("model") != Hamlib.AMP_MODEL_DUMMY')
     def test_object_creation(self, model):
         """Create all objects available"""
         amp = Hamlib.Rig(model)
