@@ -127,6 +127,9 @@ TESTS = $(check_SCRIPTS)
 $(top_builddir)/src/libhamlib.la:
 	$(MAKE) -C $(top_builddir)/src/ libhamlib.la
 
+$(top_builddir)/lib/libmisc.la:
+	$(MAKE) -C $(top_builddir)/lib/ libmisc.la
+
 testrig.sh:
 	echo 'LD_LIBRARY_PATH=$(top_builddir)/src/.libs:$(top_builddir)/dummy/.libs ./testrig 1' > testrig.sh
 	chmod +x ./testrig.sh
