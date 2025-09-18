@@ -447,6 +447,11 @@ dnl available.  At least pkg-config/pkgconf version 0.29.2 or newer is required
 dnl for support of these modules.  If pkg-config or pkgconf is not installed,
 dnl their support will be gracefully disabled.
 
+dnl Ensure that the PKG_PREREQ macro is defined:
+m4_ifndef([PKG_PREREQ],
+    [m4_fatal([must install pkg-config (or pkgconf) 0.29.2 or later before running bootstrap])])
+
+PKG_PREREQ([0.29.2])
 PKG_PROG_PKG_CONFIG([0.29.2])
 
 dnl Check for libusb, treat LIBUSB_LIBS and LIBUSB_CFLAGS as precious variables.
