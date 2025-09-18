@@ -245,14 +245,20 @@ http://www.hamlib.org
 END_OF_README
 
 
+echo $PKG_CONFIG_PATH
+
 # Configure and build hamlib for x86_64-w64-mingw32, with libusb-1.0
 
 ./configure --host=${HOST_ARCH} \
+ --build=$(uname -m) \
+ --target=${HOST_ARCH} \
  --prefix=${INST_DIR} \
  --without-cxx-binding \
  --disable-static \
  CPPFLAGS="-I${LIBUSB_1_0_BIN_PATH}/include" \
- LDFLAGS="-L${LIBUSB_1_0_BIN_PATH}/MinGW64/dll"
+ LDFLAGS="-L${LIBUSB_1_0_BIN_PATH}/MinGW64/dll" \
+ LIBUSB_CFLAGS="-I${LIBUSB_1_0_BIN_PATH}/include/libusb-1.0" \
+ LIBUSB_LIBS="-lusb-1.0"
 
 
 make -j 4 --no-print-directory install
