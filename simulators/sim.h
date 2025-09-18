@@ -2,8 +2,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>
-
-#include "../src/misc.h"
+#include <string.h>
 
 /* ID 0310 == 310, Must drop leading zero */
 typedef enum nc_rigid_e
@@ -44,7 +43,7 @@ int write_sim(int fd, const unsigned char *buf, int buflen, const char *func,
               int linenum)
 {
     int n;
-    dump_hex(buf, buflen);
+    dumphex(buf, buflen);
     n = write(fd, buf, buflen);
 
     if (n <= 0)
@@ -111,7 +110,7 @@ getmyline(int fd, char *buf)
         if (c == ';') { return i; }
     }
 
-    if (i == 0) { hl_usleep(10 * 1000); }
+    if (i == 0) { sleep(1); }
 
     return i;
 }
@@ -128,13 +127,16 @@ getmyline5(int fd, unsigned char *buf)
         buf[i++] = c;
     }
 
+#if 0
     if (i > 0) {
         printf("n=%d %02x %02x %02x %02x %02x\n", i,
                buf[0], buf[1], buf[2], buf[3], buf[4]);
     }
+#endif
 
     if (i == 0) {
-        hl_usleep(10 * 1000);
+        //hl_usleep(10 * 1000);
+        sleep(1);
     }
 
     return i;

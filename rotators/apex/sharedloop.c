@@ -5,7 +5,7 @@
 #include "iofunc.h"
 #include "apex.h"
 
-int apex_shared_loop_get_position(ROT *rot, float *az, float *el)
+static int apex_shared_loop_get_position(ROT *rot, float *az, float *el)
 {
     int loop = 10;
 
@@ -21,7 +21,7 @@ int apex_shared_loop_get_position(ROT *rot, float *az, float *el)
     return RIG_OK;
 }
 
-int apex_shared_loop_set_position(ROT *rot, float az, float dummy)
+static int apex_shared_loop_set_position(ROT *rot, float az, float dummy)
 {
     char cmdstr[16];
     int retval;

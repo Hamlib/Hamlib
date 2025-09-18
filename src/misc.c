@@ -1031,11 +1031,13 @@ static const struct
 };
 
 /**
- * \brief check input to set_level
+ * \brief Check the input to rig_set_level
+ * \ingroup lib_internal
+ *
  * \param rig The rig handle
  * \param level RIG_LEVEL_* trying to set
  * \param val Raw input from the caller
- * \param gran If not NULL, set to location of level_gran data
+ * \param[out] gran If not NULL, set to location of level_gran data
  *
  * \return RIG_OK if value is in range for this level, -RIG_EINVAL if not
  */
@@ -2810,6 +2812,28 @@ static struct tm *gmtime_r(const time_t *t, struct tm *r)
 #endif // gmtime_r
 #endif // _WIN32
 
+/**
+ * \brief Get a string of stars for indenting messages
+ * \ingroup lib_internal
+ *
+ * \param len number of stars (sounds kinda like a rating)
+ * \return pointer to an appropriate string
+ */
+const char *hl_stars(int len)
+{
+#define MAX_STARS 128
+    static const char s[MAX_STARS + 1] =
+        "****************************************************************"
+        "****************************************************************";
+
+    if (len < 0 || len > MAX_STARS)
+    {
+        len = 0;
+    }
+
+    return &s[MAX_STARS - len];
+}
+
 //! @cond Doxygen_Suppress
 char *date_strget(char *buf, int buflen, int localtime)
 {
@@ -2851,23 +2875,6 @@ char *date_strget(char *buf, int buflen, int localtime)
 char *rig_date_strget(char *buf, int buflen, int localtime)
 {
     return date_strget(buf, buflen, localtime);
-}
-
-#define MAX_SPACES 256
-const char *spaces(int len)
-{
-    static const char s[MAX_SPACES + 1] =
-        "****************************************************************"
-        "****************************************************************"
-        "****************************************************************"
-        "****************************************************************";
-
-    if (len < 0 || len > MAX_SPACES)
-    {
-        len = 0;
-    }
-
-    return &s[MAX_SPACES - len];
 }
 
 // if which==0 rig_band_select str will be returned
