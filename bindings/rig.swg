@@ -82,7 +82,7 @@ typedef channel_t * channel_t_p;
 typedef channel_t * const_channel_t_p;
 
 #ifdef SWIGPYTHON
-int *rig_freq_cb_python(RIG *rig, vfo_t vfo, freq_t freq, rig_ptr_t arg)
+int rig_freq_cb_python(RIG *rig, vfo_t vfo, freq_t freq, rig_ptr_t arg)
 {
     Rig *self = arg;
     PyObject *python_arguments;
@@ -99,7 +99,7 @@ int *rig_freq_cb_python(RIG *rig, vfo_t vfo, freq_t freq, rig_ptr_t arg)
     return RIG_OK;
 }
 
-int *rig_mode_cb_python(RIG *rig, vfo_t vfo, rmode_t rmode, pbwidth_t pbwidth, rig_ptr_t arg)
+int rig_mode_cb_python(RIG *rig, vfo_t vfo, rmode_t rmode, pbwidth_t pbwidth, rig_ptr_t arg)
 {
     Rig *self = arg;
     PyObject *python_arguments;
@@ -118,7 +118,7 @@ int *rig_mode_cb_python(RIG *rig, vfo_t vfo, rmode_t rmode, pbwidth_t pbwidth, r
     return RIG_OK;
 }
 
-int *rig_vfo_cb_python(RIG *rig, vfo_t vfo, rig_ptr_t arg)
+int rig_vfo_cb_python(RIG *rig, vfo_t vfo, rig_ptr_t arg)
 {
     Rig *self = arg;
     PyObject *python_arguments;
@@ -135,7 +135,7 @@ int *rig_vfo_cb_python(RIG *rig, vfo_t vfo, rig_ptr_t arg)
     return RIG_OK;
 }
 
-int *rig_ptt_cb_python(RIG *rig, vfo_t vfo, ptt_t ptt, rig_ptr_t arg)
+int rig_ptt_cb_python(RIG *rig, vfo_t vfo, ptt_t ptt, rig_ptr_t arg)
 {
     Rig *self = arg;
     PyObject *python_arguments;
@@ -153,7 +153,7 @@ int *rig_ptt_cb_python(RIG *rig, vfo_t vfo, ptt_t ptt, rig_ptr_t arg)
     return RIG_OK;
 }
 
-int *rig_dcd_cb_python(RIG *rig, vfo_t vfo, dcd_t dcd, rig_ptr_t arg)
+int rig_dcd_cb_python(RIG *rig, vfo_t vfo, dcd_t dcd, rig_ptr_t arg)
 {
     Rig *self = arg;
     PyObject *python_arguments;
@@ -171,7 +171,7 @@ int *rig_dcd_cb_python(RIG *rig, vfo_t vfo, dcd_t dcd, rig_ptr_t arg)
     return RIG_OK;
 }
 
-int *rig_pltune_cb_python(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *rmode, pbwidth_t *pbwidth, rig_ptr_t arg)
+int rig_pltune_cb_python(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *rmode, pbwidth_t *pbwidth, rig_ptr_t arg)
 {
     Rig *self = arg;
     PyObject *python_arguments;
@@ -187,7 +187,7 @@ int *rig_pltune_cb_python(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *rmode, pbw
     return RIG_OK;
 }
 
-int *rig_spectrum_cb_python(RIG *rig, struct rig_spectrum_line *rig_spectrum_line, rig_ptr_t arg)
+int rig_spectrum_cb_python(RIG *rig, struct rig_spectrum_line *rig_spectrum_line, rig_ptr_t arg)
 {
     Rig *self = arg;
     PyObject *python_arguments;
