@@ -616,20 +616,6 @@ float Rig::mW2power (unsigned int mwpower, freq_t freq, rmode_t mode)
 	return power;
 }
 
-void Rig::setTrn (int trn)
-{
-	CHECK_RIG( rig_set_trn(theRig, trn) );
-}
-
-int Rig::getTrn ()
-{
-	int trn;
-
-	CHECK_RIG( rig_get_trn(theRig, &trn) );
-
-	return trn;
-}
-
 void Rig::setBank (int bank, vfo_t vfo)
 {
 	CHECK_RIG( rig_set_ts(theRig, vfo, bank) );

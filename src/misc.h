@@ -35,12 +35,12 @@
 
 __BEGIN_DECLS
 
-// a function to return just a string of spaces for indenting rig debug lines
-HAMLIB_EXPORT (const char *) spaces(int len);
+// a function to return just a string of stars for indenting rig debug lines
+HAMLIB_EXPORT (const char *) hl_stars(int len);
+
 /*
  * Do a hex dump of the unsigned char array.
  */
-
 void dump_hex(const unsigned char ptr[], size_t size);
 
 /*
@@ -154,7 +154,7 @@ extern HAMLIB_EXPORT(char *)date_strget(char *buf, int buflen, int localtime);
 void errmsg(int err, char *s, const char *func, const char *file, int line);
 #define ERRMSG(err, s) errmsg(err,  s, __func__, __FILENAME__, __LINE__)
 #define ENTERFUNC {     ++STATE(rig)->depth;				\
-    rig_debug(RIG_DEBUG_VERBOSE, "%s%d:%s(%d):%s entered\n", spaces(STATE(rig)->depth), STATE(rig)->depth, __FILENAME__, __LINE__, __func__); \
+    rig_debug(RIG_DEBUG_VERBOSE, "%s%d:%s(%d):%s entered\n", hl_stars(STATE(rig)->depth), STATE(rig)->depth, __FILENAME__, __LINE__, __func__); \
                   }
 #define ENTERFUNC2 {    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d):%s entered\n", __FILENAME__, __LINE__, __func__); \
                    }
@@ -162,7 +162,7 @@ void errmsg(int err, char *s, const char *func, const char *file, int line);
 // could be a function call 
 #define RETURNFUNC(rc) {do { \
             int rctmp = rc; \
-            rig_debug(RIG_DEBUG_VERBOSE, "%s%d:%s(%d):%s returning(%ld) %s\n", spaces(STATE(rig)->depth), STATE(rig)->depth, __FILENAME__, __LINE__, __func__, (long int) (rctmp), rctmp<0?rigerror2(rctmp):""); \
+            rig_debug(RIG_DEBUG_VERBOSE, "%s%d:%s(%d):%s returning(%ld) %s\n", hl_stars(STATE(rig)->depth), STATE(rig)->depth, __FILENAME__, __LINE__, __func__, (long int) (rctmp), rctmp<0?rigerror2(rctmp):""); \
             --STATE(rig)->depth;					\
             return (rctmp); \
             } while(0);}

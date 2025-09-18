@@ -35,7 +35,7 @@
 // Our shared secret password 
 #define HAMLIB_SECRET_LENGTH 32
 
-#define HAMLIB_TRACE rig_debug(RIG_DEBUG_TRACE,"%s%s(%d) trace\n",spaces(STATE(rig)->depth), __FILE__, __LINE__)
+#define HAMLIB_TRACE rig_debug(RIG_DEBUG_TRACE,"%s%s(%d) trace\n",hl_stars(STATE(rig)->depth), __FILE__, __LINE__)
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 
 #include <stdio.h>
@@ -2244,7 +2244,7 @@ struct rig_caps {
     int (*set_lock_mode)(RIG *rig, int mode);
     int (*get_lock_mode)(RIG *rig, int *mode);
     short timeout_retry;    /*!< number of retries to make in case of read timeout errors, some serial interfaces may require this, 0 to use default value, -1 to disable */
-    short morse_qsize;  /* max length of morse */
+    short morse_qsize;  /*!< max length of morse message rig can accept in one command */
 //    int (*bandwidth2rig)(RIG  *rig, enum bandwidth_t bandwidth);
 //    enum bandwidth_t (*rig2bandwidth)(RIG  *rig, int rigbandwidth);
 };
@@ -2683,10 +2683,10 @@ struct s_rig {
     struct rig_callbacks callbacks; /*!< registered event callbacks */
     // state should really be a pointer but that's a LOT of changes involved
     struct rig_state state;         /*!< Rig state */
-/* Data beyond this line is for hamlib internal use only,
+/* Data after this line is for hamlib internal use only,
  *  and should *NOT* be referenced by applications, as layout will change!
  */
-    struct rig_cache *cache_addr;
+    struct rig_cache *cache_addr;   /*!< address of rig_cache buffer */
 };
 
 
@@ -3235,9 +3235,11 @@ rig_lookup_mem_caps HAMLIB_PARAMS((RIG *rig,
 extern HAMLIB_EXPORT(int)
 rig_mem_count HAMLIB_PARAMS((RIG *rig));
 
+HL_DEPRECATED
 extern HAMLIB_EXPORT(int)
 rig_set_trn HAMLIB_PARAMS((RIG *rig,
                            int trn));
+HL_DEPRECATED
 extern HAMLIB_EXPORT(int)
 rig_get_trn HAMLIB_PARAMS((RIG *rig,
                            int *trn));
@@ -3356,7 +3358,7 @@ extern HAMLIB_EXPORT_VAR(char) debugmsgsave3[DEBUGMSGSAVE_SIZE];  // last-2 debu
 
 // Measuring elapsed time -- local variable inside function when macro is used
 #define ELAPSED1 struct timespec __begin; elapsed_ms(&__begin, HAMLIB_ELAPSED_SET);
-#define ELAPSED2 rig_debug(RIG_DEBUG_VERBOSE, "%s%d:%s: elapsed=%.0lfms\n", spaces(STATE(rig)->depth), STATE(rig)->depth, __func__, elapsed_ms(&__begin, HAMLIB_ELAPSED_GET));
+#define ELAPSED2 rig_debug(RIG_DEBUG_VERBOSE, "%s%d:%s: elapsed=%.0lfms\n", hl_stars(STATE(rig)->depth), STATE(rig)->depth, __func__, elapsed_ms(&__begin, HAMLIB_ELAPSED_GET));
 
 // use this instead of snprintf for automatic detection of buffer limit
 #define SNPRINTF(s,n,...) { if (snprintf(s,n,##__VA_ARGS__) >= (n)) fprintf(stderr,"***** %s(%d): message truncated *****\n", __func__, __LINE__); }
