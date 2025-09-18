@@ -740,7 +740,7 @@ int rig_spectrum_cb_python(RIG *rig, struct rig_spectrum_line *rig_spectrum_line
 	{
 		char *send, *term;
 		PyObject *bytes_obj;
-		size_t send_len;
+		Py_ssize_t send_len;
 		int reply_len = MAX_RETURNSTR;
 		unsigned char reply_buffer[MAX_RETURNSTR];
 		int count;
