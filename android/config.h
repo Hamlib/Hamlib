@@ -82,6 +82,9 @@
 /* Define to 1 if you have the `syslog' library (-lsyslog). */
 /* #undef HAVE_LIBSYSLOG */
 
+/* Define if libusb-1.0 is available */
+//#define HAVE_LIBUSB 1
+
 /* Define to 1 if you have the <linux/ioctl.h> header file. */
 #define HAVE_LINUX_IOCTL_H 1
 
@@ -221,12 +224,6 @@
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #define HAVE_UNISTD_H 1
-
-/* Define to 1 if you have the <libusb.h> header file. */
-//#define HAVE_LIBUSB_H 1
-
-/* Define to 1 if you have the <libusb-1.0/libusb.h> header file. */
-//#define HAVE_LIBUSB_1_0_LIBUSB_H 1
 
 /* Define to 1 if you have the `usleep' function. */
 #define HAVE_USLEEP 1

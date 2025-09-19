@@ -251,9 +251,15 @@ differ).
 * automake      1.16                        # automake --version
 * libtool       2.4.6                       # libtool --version
 * Git           2.30                        # git --version
+* pkg-config    0.29.2                      # pkg-config --version (libusb)
 
 As of Hamlib 4.7.0 (commit e09007a), POSIX thread support (pthreads) is
 required to compile or run Hamlib.
+
+As of Hamlib 4.7.0 (commit d04364e), pkg-config (replaced by pkgconf for the
+most part) is required for bootstrap to install the pkg.m4 file which enables
+the pkg-config facility (bootstrap will now fail if some version of pkg-config
+is not found; its version will be checked during the autoreconf stage).
 
 Optional, but highly recommended:
 * GNU C++                           # Build C++ binding and INDI backend
@@ -269,7 +275,6 @@ Optional, but highly recommended:
 * libnova devel
 * libusb-1.0 devel                  # 1.0.24 or newer
 * libreadline devel                 # ver 5.2 or newer
-* pkg-config                        # pkg-config --version (libxml and USRP)
 * zlib1g devel                      # (rigmatrix)
 
 N.B.:  The libusb-1.0 package is required for building most of the 'kit'

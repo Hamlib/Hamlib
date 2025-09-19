@@ -569,7 +569,7 @@ int *rig_spectrum_cb_python(RIG *rig, struct rig_spectrum_line *rig_spectrum_lin
 #define _VFO_DECL
 	METHOD1(set_vfo, vfo_t)		/* particular case */
 	METHOD1(set_powerstat, powerstat_t)
-	METHOD1(set_trn, int)
+//	METHOD1(set_trn, int)
 	METHOD1(has_get_level, setting_t)
 	METHOD1(has_set_parm, setting_t)
 	METHOD1(has_set_func, setting_t)
@@ -637,7 +637,7 @@ int *rig_spectrum_cb_python(RIG *rig, struct rig_spectrum_line *rig_spectrum_lin
 	{ self->error_status = rig_get_vfo_info(self->rig, vfo, freq, mode, width, split, satmode); }
 	METHOD1VGET(get_mem, int)
 	METHOD1GET(get_powerstat, powerstat_t)
-	METHOD1GET(get_trn, int)
+//	METHOD1GET(get_trn, int)
 	METHOD1VGET(get_dcd, dcd_t)
 
 	// Handling of event callbacks

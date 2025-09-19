@@ -214,7 +214,7 @@ correct directory to the path and allows update of "C:\Program Files" with the
 Then (in my case).
 
 cd "C:\Program Files\hamlib-w32-${RELEASE}\lib\msvc"
-lib \def:libhamlib-4.def \machine:x86
+lib /def:libhamlib-4.def /machine:x86
 
 If you use any other terminal then the full path to lib.exe is needed
 (today it is
@@ -252,7 +252,10 @@ END_OF_README
  --without-cxx-binding \
  --disable-static \
  CPPFLAGS="-I${LIBUSB_1_0_BIN_PATH}/include" \
- LDFLAGS="-L${LIBUSB_1_0_BIN_PATH}/MinGW32/dll"
+ LDFLAGS="-L${LIBUSB_1_0_BIN_PATH}/MinGW32/dll" \
+ LIBUSB_CFLAGS="-I${LIBUSB_1_0_BIN_PATH}/include/libusb-1.0" \
+ LIBUSB_LIBS="-lusb-1.0"
+
 
 
 make -j 4 --no-print-directory install

@@ -8,7 +8,6 @@
 #include <unistd.h>
 #include <errno.h>
 
-#include "hamlib/rig.h"
 #include "misc.h"
 #include "sim.h"
 /* Simulators really shouldn't be using ANY of the definitions
@@ -585,7 +584,6 @@ int main(int argc, char **argv)
     unsigned char buf[BUFSIZE];
     int fd = openPort(argv[1]);
 
-    printf("%s: %s\n", argv[0], rig_version());
 #ifdef X25
     printf("x25/x26 command recognized\n");
 #else
@@ -622,7 +620,7 @@ int main(int argc, char **argv)
         }
         else
         {
-            hl_usleep(1000 * 1000);
+            sleep(1);
         }
 
         rigStatus();

@@ -23,6 +23,17 @@
 #include <sys/time.h>
 #include <errno.h>
 
+#include "hamlib/config.h"
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+
 #include "hamlib/rotator.h"
 #include "dummy_common.h"
 #include "rig.h"

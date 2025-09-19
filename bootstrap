@@ -8,6 +8,7 @@
 LIBTOOLIZE=libtoolize
 AUTORECONF=autoreconf
 AUTOMAKE=automake
+PKGCONFIG=pkg-config
 
 # Check if we compile on OSX and resolve the name conflict with
 # Apple's tool for creating Mach-O dynamic libraries.
@@ -44,6 +45,14 @@ DIE=0
 ("$LIBTOOLIZE" --version) > /dev/null 2>&1 || {
         echo
         echo "You must have libtool installed to compile $PROJECT."
+        echo "Download the appropriate package for your distribution."
+        DIE=1
+}
+
+("$PKGCONFIG" --version) > /dev/null 2>&1 || {
+        echo
+        echo "You must have pkg-config 0.29.2 or newer (replaced by pkgconf"
+        echo "for the most part) installed to compile $PROJECT."
         echo "Download the appropriate package for your distribution."
         DIE=1
 }

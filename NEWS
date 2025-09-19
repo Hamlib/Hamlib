@@ -14,16 +14,18 @@ Version 5.x -- future
 
 Version 4.7.0
         * 2025-12-01 (target)
-	* POSIX threads are required to build and run Hamlib. Note that it was
-	  actually the case for 4.6.x, but now the configuration step will
-	  fail instead of the compilation.
-	* Functions rig_get_conf, rot_get_conf, amp_get_conf deprecated;
-          use *_get_conf2() instead.
+        * libusb is now detected using the pkg-config facility.
+        * Some internal functions change names to avoid conflicts with apps.
+        * POSIX threads are required to build and run Hamlib. Note that it was
+          actually the case for 4.6.x, but now the configuration step will
+          fail instead of the compilation.
+        * Functions rig_get_conf, rot_get_conf, amp_get_conf deprecated;
+          use *_get_conf2() instead. Also rig_set_trn and rig_get_trn deprecated.
         * Fix handling of unprintable characters in kenwood.c that broke radios
           such as the TM-D710/TM-V71 that use EOM_TH (\r) as the command terminator.
           (TNX, Lars Kellogg-Stedman and George Baltz).
         * Reduce/repair excess output from cppcheck.sh - mostly cosmetic changes (WIP)
-          Output from `wc -l cppcheck.log` - 4.6.2: 981  now: 642
+          Output from `wc -l cppcheck.log` - 4.6.2: 981  now: 595
         * Remove dead getopt code.  GitHub PR #1709. (TNX Daniele Forsi)
         * Move rig_cache to separate(calloc) storage. Prepare for other moves.
           Issue #1420

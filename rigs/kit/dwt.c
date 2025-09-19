@@ -503,13 +503,12 @@ static const char *dwtdll_get_info(RIG *rig)
 }
 
 
-#elif defined(HAVE_LIBUSB) && (defined(HAVE_LIBUSB_H) || defined(HAVE_LIBUSB_1_0_LIBUSB_H))
+#elif defined(HAVE_LIBUSB)
 
 
-#ifdef HAVE_LIBUSB_H
+// LIBUSB_CFLAGS set by pkg-config should set the include path appropriately.
+#ifdef HAVE_LIBUSB
 # include <libusb.h>
-#elif defined HAVE_LIBUSB_1_0_LIBUSB_H
-# include <libusb-1.0/libusb.h>
 #endif
 
 

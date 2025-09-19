@@ -37,14 +37,11 @@
 /*
  * Compile this model only if libusb is available
  */
-#if defined(HAVE_LIBUSB) && (defined(HAVE_LIBUSB_H) || defined(HAVE_LIBUSB_1_0_LIBUSB_H))
+#if defined(HAVE_LIBUSB)
 
 
-#ifdef HAVE_LIBUSB_H
+// LIBUSB_CFLAGS set by pkg-config should set the include path appropriately.
 # include <libusb.h>
-#elif defined HAVE_LIBUSB_1_0_LIBUSB_H
-# include <libusb-1.0/libusb.h>
-#endif
 
 
 /* Selected request codes of the original AVR USB Si570 firmware */
@@ -836,4 +833,4 @@ static int fifisdr_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token,
     return ret;
 }
 
-#endif  /* defined(HAVE_LIBUSB) && defined(HAVE_LIBUSB_H) */
+#endif  /* defined(HAVE_LIBUSB) */

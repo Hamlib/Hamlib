@@ -116,6 +116,8 @@
 // others
 %rename("$ignore", regexmatch$name="python_callbacks") ""; // internal structs and methods used by bindings
 %ignore rig_state::cache; // deprecated
+%ignore rig_set_trn; // deprecated
+%ignore rig_get_trn; // deprecated
 
 #ifdef SWIGLUA
 %ignore Rig::set_level(setting_t,int,vfo_t);
