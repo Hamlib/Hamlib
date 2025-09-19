@@ -309,7 +309,6 @@ typedef struct morse_data_handler_priv_data_s
 {
     pthread_t thread_id;
     morse_data_handler_args args;
-    volatile FIFO_RIG fifo_morse;
     int keyspd;
 } morse_data_handler_priv_data;
 
@@ -7532,7 +7531,7 @@ int HAMLIB_API rig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
         retcode = caps->send_morse(rig, vfo, msg);
         LOCK(0);
 #else
-        retcode = push(rs->fifo_morse, msg);
+        retcode = hl_push(rs->fifo_morse, msg);
 #endif
         RETURNFUNC(retcode);
     }
@@ -8614,7 +8613,7 @@ static int morse_data_handler_stop(RIG *rig)
     hl_usleep(100 * 1000);
 
     //HAMLIB_TRACE;
-    while (peek(rs->fifo_morse) >= 0)
+    while (hl_peek(rs->fifo_morse) >= 0)
     {
         HAMLIB_TRACE;
         rig_debug(RIG_DEBUG_TRACE, "%s: waiting for fifo queue to flush\n", __func__);
@@ -8771,21 +8770,21 @@ static void *morse_data_handler(void *arg)
 
     c = calloc(1, qsize + 1);
 
-    while (rs->morse_data_handler_thread_run || (peek(rs->fifo_morse) >= 0))
+    while (rs->morse_data_handler_thread_run || (hl_peek(rs->fifo_morse) >= 0))
     {
         int n = 0;
         memset(c, 0, qsize);
 
         for (n = 0; n < qsize; n++)
         {
-            int d = peek(rs->fifo_morse);
+            int d = hl_peek(rs->fifo_morse);
 
             if (d < 0)
             {
                 break;
             }
 
-            d = pop(rs->fifo_morse);
+            d = hl_pop(rs->fifo_morse);
             c[n] = (char) d;
         }
 
