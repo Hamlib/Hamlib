@@ -42,6 +42,12 @@ __BEGIN_DECLS
  *  This file contains the live data structure of the rig (radio).
  */
 
+/* Forward declarations
+ *
+ * Structures pointed to by rig_state and defined elsewhere
+ */
+struct fifo_rig;  /* Defined in src/fifo.h */
+
 /**
  * \brief Rig state containing live data and customized fields.
  *
@@ -222,9 +228,9 @@ struct rig_state {
     freq_t spectrum_spans[HAMLIB_MAX_SPECTRUM_SPANS];                   /*!< Supported spectrum scope frequency spans in Hz in center mode. Last entry must be 0. */
     struct rig_spectrum_avg_mode spectrum_avg_modes[HAMLIB_MAX_SPECTRUM_AVG_MODES]; /*!< Supported spectrum scope averaging modes. Last entry must have NULL name. */
     int spectrum_attenuator[HAMLIB_MAXDBLSTSIZ];    /*!< Spectrum attenuator list in dB, 0 terminated */
-    volatile int morse_data_handler_thread_run;     /*!< Morse data handler thread flag. */
-    void *morse_data_handler_priv_data;             /*!< Morse data handler private structure. */
-    FIFO_RIG *fifo_morse;                           /*!< FIFO queue for Morse Code transmission. */
+    volatile int morse_data_handler_thread_run;   /*!< Morse data handler thread flag. */
+    void *morse_data_handler_priv_data;           /*!< Morse data handler private structure. */
+    struct fifo_rig *fifo_morse;                  /*!< FIFO queue for Morse Code transmission. */
     int doppler;         /*!< True if doppler changing detected */
     char *multicast_data_addr;  /*!< Multicast data UDP address for publishing rig data and state */
     int multicast_data_port;  /*!< Multicast data UDP port for publishing rig data and state */
