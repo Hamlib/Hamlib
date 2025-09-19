@@ -43,9 +43,9 @@ typedef struct fifo_rig
 /* Function prototypes */
 void initFIFO(FIFO_RIG *fifo);
 void resetFIFO(FIFO_RIG *fifo);
-int push(FIFO_RIG *fifo, const char *msg);
-int pop(FIFO_RIG *fifo);
-int peek(FIFO_RIG *fifo);
+int hl_push(FIFO_RIG *fifo, const char *msg);
+int hl_pop(FIFO_RIG *fifo);
+int hl_peek(FIFO_RIG *fifo);
 
 __END_DECLS
 
