@@ -32,7 +32,7 @@
 #include <cal.h>
 #include "idx_builtin.h"
 
-#define BACKEND_VER "20250718.1"
+#define BACKEND_VER "20250718.2"
 
 #define TRUE 1
 #define FALSE 0
@@ -840,6 +840,7 @@ static int gqrx_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     if (vfo == RIG_VFO_A)
     {
+        int tempi;
         switch(level)
         {
         case RIG_LEVEL_AF:
@@ -851,12 +852,17 @@ static int gqrx_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             break;
             
         case RIG_LEVEL_STRENGTH:
-            val->i = round(rig_raw2val(round(val->f), &rig->caps->str_cal));
+            // Overlapping read/write from one member of a union to another
+            //   is technically undefined behavior, according to the C
+            //   standard; use a temp to avoid cppcheck error.
+            tempi = round(rig_raw2val(round(val->f), &rig->caps->str_cal));
+            val->i = tempi;
             priv->curr_meter = val->i;
             break;
 
         case RIG_LEVEL_RAWSTR:
-            val->i = round(val->f);
+            tempi = round(val->f);
+            val->i = tempi;
             break;
             
         default :
@@ -932,7 +938,7 @@ struct rig_caps gqrx_caps =
 {
     RIG_MODEL(RIG_MODEL_GQRX),
     .model_name = "GQRX",
-    .mfg_name = "OZ9AEC",
+    .mfg_name = "GQRX",
     .version = BACKEND_VER,
     .copyright = "LGPL",
     .status = RIG_STATUS_NEW,

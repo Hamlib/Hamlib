@@ -4,7 +4,7 @@
 # AUTOMAKE_OPTIONS = dejagnu
 # DEJATOOL = testfreq testbcd testloc rigctl
 
-if HAVE_LIBUSB
+if TESTS_HAVE_LIBUSB
     TESTLIBUSB = rigtestlibusb
 else
     TESTLIBUSB =
@@ -14,7 +14,7 @@ DISTCLEANFILES = rigctl.log rigctl.sum testbcd.log testbcd.sum
 
 bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld rigctlcom rigctltcp rigctlsync ampctl ampctld rigtestmcast rigtestmcastrx $(TESTLIBUSB) rigfreqwalk
 
-check_PROGRAMS = dumpmem testrig testrigopen testrigcaps testtrn testbcd testfreq listrigs testloc rig_bench testcache cachetest cachetest2 testcookie testgrid hamlibmodels testmW2power test2038
+check_PROGRAMS = dumpmem testrig testrigopen testrigcaps testbcd testfreq listrigs testloc rig_bench testcache cachetest cachetest2 testcookie testgrid hamlibmodels testmW2power test2038
 # Document building testsecurity
 ### check_PROGRAMS += testsecurity
 
@@ -32,7 +32,7 @@ rotctld_SOURCES = rotctld.c $(ROTCOMMONSRC)
 ampctl_SOURCES = ampctl.c $(AMPCOMMONSRC)
 ampctld_SOURCES = ampctld.c $(AMPCOMMONSRC)
 rigmem_SOURCES = rigmem.c memsave.c memload.c memcsv.c
-if HAVE_LIBUSB
+if TESTS_HAVE_LIBUSB
     rigtestlibusb_SOURCES = rigtestlibusb.c
 endif
 
@@ -51,7 +51,7 @@ ampctld_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/src
 rigctlcom_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/security
 rigctltcp_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/security
 rigctlsync_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/security
-if HAVE_LIBUSB
+if TESTS_HAVE_LIBUSB
     rigtestlibusb_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) $(LIBUSB_CFLAGS)
 endif
 
@@ -68,7 +68,7 @@ rigmem_LDADD = $(LIBXML2_LIBS) $(LDADD)
 rigctlcom_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rigctltcp_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rigctlsync_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
-if HAVE_LIBUSB
+if TESTS_HAVE_LIBUSB
     rigtestlibusb_LDADD = $(LIBUSB_LIBS)
 endif
 
@@ -88,7 +88,7 @@ ampctld_LDFLAGS = $(WINEXELDFLAGS)
 rigctlcom_LDFLAGS = $(WINEXELDFLAGS)
 rigctltcp_LDFLAGS = $(WINEXELDFLAGS)
 rigctlsync_LDFLAGS = $(WINEXELDFLAGS)
-if HAVE_LIBUSB
+if TESTS_HAVE_LIBUSB
     rigtestlibusb_LDFLAGS = $(WINEXELDFLAGS)
 endif
 

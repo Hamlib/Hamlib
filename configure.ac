@@ -347,42 +347,6 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]],
 "Have you considered GCC lately?."])
 		  ])
 
-dnl Check for libusb, treat LIBUSB_LIBS and LIBUSB_CFLAGS as precious variables
-AC_MSG_CHECKING([whether to build USB dependent backends])
-AC_ARG_WITH([libusb],
-    [AS_HELP_STRING([--without-libusb],
-	[disable USB dependent backends @<:@default=yes@:>@])],
-	[cf_with_libusb=$with_libusb],
-	[cf_with_libusb=yes]
-    )
-
-AC_MSG_RESULT([$cf_with_libusb])
-
-LIBUSB=""
-AC_ARG_VAR([LIBUSB_CFLAGS], [C compiler flags for libusb, overriding configure defaults])
-AC_ARG_VAR([LIBUSB_LIBS], [linker flags for libusb, overriding configure check (useful for specifying static libusb-1.0.a (see INSTALL))])
-
-AS_IF([test x"${cf_with_libusb}" = "xyes"], [
-    AS_IF([test -z $LIBUSB_LIBS],
-	[AC_CHECK_LIB([usb-1.0], [libusb_init], [LIBUSB_LIBS="-lusb-1.0"],
-	    [AC_MSG_WARN([libusb_init was not found in libusb-1.0--USB backends will be disabled])]
-        [cf_with_libusb="no"])
-	], [cf_with_libusb="yes"])
-
-    AS_IF([test x"${cf_with_libusb}" = "xyes"],
-	[AC_CHECK_HEADERS([libusb.h libusb-1.0/libusb.h])
-	 AC_DEFINE([HAVE_LIBUSB],
-		   [1],
-		   [Define if libusb-1.0 is available])
-	LIBUSB="libusb-1.0"])])
-
-AM_CONDITIONAL([HAVE_LIBUSB], [test x"${cf_with_libusb}" = "xyes"])
-AC_SUBST([HAVE_LIBUSB])
-
-# Only used in hamlib.pc.in
-AC_SUBST([LIBUSB])
-
-
 dnl Check if readline support in rigctl/rotctl is wanted
 AC_MSG_CHECKING([whether to use readline in rigctl/rotctl])
 AC_ARG_WITH([readline],
@@ -478,10 +442,51 @@ AM_CONDITIONAL([HTML_MATRIX], [test x"${cf_enable_html_matrix}" = "xyes"])
 ## PKG Config support ##
 ## ------------------ ##
 
-dnl These features rely on the external pkg-config functionality being available.
-dnl Test for pkg-config only when these features are enabled.
+dnl These features rely on the external pkg-config/pkgconf functionality being
+dnl available.  At least pkg-config/pkgconf version 0.29.2 or newer is required
+dnl for support of these modules.  If pkg-config or pkgconf is not installed,
+dnl their support will be gracefully disabled.
 
-# libxml2 required rigmem xml support, make it user optional
+dnl Ensure that the PKG_PREREQ macro is defined:
+m4_ifndef([PKG_PREREQ],
+    [m4_fatal([must install pkg-config (or pkgconf) 0.29.2 or later before running bootstrap])])
+
+PKG_PREREQ([0.29.2])
+PKG_PROG_PKG_CONFIG([0.29.2])
+
+dnl Check for libusb, treat LIBUSB_LIBS and LIBUSB_CFLAGS as precious variables.
+AC_MSG_CHECKING([whether to build USB dependent backends])
+AC_ARG_WITH([libusb],
+    [AS_HELP_STRING([--without-libusb],
+        [disable USB dependent backends @<:@default=yes@:>@])],
+        [cf_with_libusb=$with_libusb],
+        [cf_with_libusb=yes]
+    )
+
+AC_MSG_RESULT([$cf_with_libusb])
+
+dnl Only used in hamlib.pc.in
+HAMLIB_PC_LIBUSB=""
+
+AS_IF([test x"${cf_with_libusb}" = "xyes"], [
+    PKG_CHECK_MODULES([LIBUSB],
+                      [libusb-1.0],
+                      [AC_DEFINE([HAVE_LIBUSB],
+                          [1],
+                          [Define if libusb-1.0 is available])
+                      HAMLIB_PC_LIBUSB="libusb-1.0"],
+                      [AC_MSG_WARN([libusb-1.0 or pkg_config not found, USB backend support will be disabled])
+                      cf_with_libusb=no
+                      ])
+    ])
+
+AC_SUBST([HAMLIB_PC_LIBUSB])
+
+dnl Configure the tests/Makefile.am conditional
+AM_CONDITIONAL([TESTS_HAVE_LIBUSB], [test x"${cf_with_libusb}" = "xyes"])
+
+
+dnl libxml2 required for rigmem XML support; make it build time optional.
 AC_MSG_CHECKING([whether to build rigmem XML support])
 AC_ARG_WITH([xml-support],
 	    [AS_HELP_STRING([--with-xml-support],
@@ -490,8 +495,19 @@ AC_ARG_WITH([xml-support],
 	    [cf_with_xml_support=no])
 AC_MSG_RESULT([$cf_with_xml_support])
 
+AS_IF([test x"${cf_with_xml_support}" = "xyes"], [
+      PKG_CHECK_MODULES([LIBXML2],
+			[libxml-2.0],
+			[AC_DEFINE([HAVE_XML2],
+				   [1],
+				   [Define if libxml2 is available])],
+			[AC_MSG_WARN([libxml-2.0 or pkgconf/pkg-config not found, XML support will be disabled])
+			])
+      ])
 
-# USRP needs a C++ compiler, tested for presence above.
+
+dnl USRP needs a C++ compiler, tested for presence above.
+dnl Default is to not build USRP support.
 AS_IF([test x"${cf_with_cxx}" = "xyes"], [
       AC_MSG_CHECKING([whether to build USRP backend])
       AC_ARG_ENABLE([usrp],
@@ -500,39 +516,6 @@ AS_IF([test x"${cf_with_cxx}" = "xyes"], [
 		    [cf_with_usrp=$enableval],
 		    [cf_with_usrp="no"])
       AC_MSG_RESULT([$cf_with_usrp])
-      ])
-
-dnl Only check for pkg-config when either of the dependent features are enabled.
-
-AS_IF([test x"${cf_with_xml_support}" = "xyes" || test x"${cf_with_usrp}" = "xyes"], [
-dnl Check for pkg-config presence and if not installed define a dummy macro
-dnl to disable libxml2 and USRP use.  Code borrowed from:
-dnl http://lists.gnu.org/archive/html/automake/2011-03/msg00008.html
-dnl
-dnl Check for pkg-config program, used for configuring some libraries.
-       m4_define_default([PKG_PROG_PKG_CONFIG],
-		[AC_MSG_CHECKING([pkg-config])
-		 AC_MSG_RESULT([no])])
-
-       PKG_PROG_PKG_CONFIG
-
-dnl If the pkg-config autoconf support isn't installed, define its
-dnl autoconf macro to disable any packages depending on it.
-       m4_define_default([PKG_CHECK_MODULES],
-		[AC_MSG_CHECKING([$1])
-		 AC_MSG_RESULT([no])
-		 $4])
-      ])
-
-
-AS_IF([test x"${cf_with_xml_support}" = "xyes"], [
-      PKG_CHECK_MODULES([LIBXML2],
-			[libxml-2.0],
-			[AC_DEFINE([HAVE_XML2],
-				   [1],
-				   [Define if libxml2 is available])],
-			[AC_MSG_WARN([libxml-2.0 pkg-config not found, XML support will be disabled])
-			])
       ])
 
 AC_SUBST([LIBXML2_LIBS])
@@ -990,28 +973,28 @@ echo \
 
  ${PACKAGE_NAME} Version ${PACKAGE_VERSION} configuration:
 
- Prefix 	${prefix}
- Preprocessor	${CPP} ${CPPFLAGS}
- C Compiler	${CC} ${CFLAGS}
- C++ Compiler	${CXX} ${CXXFLAGS}
+ Prefix             ${prefix}
+ Preprocessor       ${CPP} ${CPPFLAGS}
+ C Compiler         ${CC} ${CFLAGS}
+ C++ Compiler       ${CXX} ${CXXFLAGS}
 
  Package features:
-    With C++ binding		    ${cf_with_cxx_binding}
-    With Perl binding		    ${cf_with_perl_binding}
-    With Python binding 	    ${cf_with_python_binding}
-    With TCL binding		    ${build_tcl}
-    With Lua binding		    ${cf_with_lua_binding}
-    With rigmem XML support	    ${cf_with_xml_support}
-    With Readline support	    ${cf_with_readline_support}
-    With INDI support		    ${cf_with_indi_support}
+    With C++ binding                ${cf_with_cxx_binding}
+    With Perl binding               ${cf_with_perl_binding}
+    With Python binding             ${cf_with_python_binding}
+    With TCL binding                ${build_tcl}
+    With Lua binding                ${cf_with_lua_binding}
+    With rigmem XML support         ${cf_with_xml_support}
+    With Readline support           ${cf_with_readline_support}
+    With INDI support               ${cf_with_indi_support}
 
     Enable HTML rig feature matrix  ${cf_enable_html_matrix}
-    Enable WinRadio		    ${cf_with_winradio}
-    Enable Parallel		    ${cf_with_parallel}
-    Enable USRP 		    ${cf_with_usrp}
-    Enable USB backends 	    ${cf_with_libusb}
-    Enable shared libs		    ${enable_shared}
-    Enable static libs		    ${enable_static}
-    Enable Python tests		    ${enable_pytest}
+    Enable WinRadio                 ${cf_with_winradio}
+    Enable Parallel                 ${cf_with_parallel}
+    Enable USRP                     ${cf_with_usrp}
+    Enable USB backends             ${cf_with_libusb}
+    Enable shared libs              ${enable_shared}
+    Enable static libs              ${enable_static}
+    Enable Python tests             ${enable_pytest}
 
 -----------------------------------------------------------------------"

@@ -17,6 +17,7 @@ changes to ease transition to 5.0
 - Functions `rig_get_conf()`, `rot_get_conf()` and `amp_get_conf()` are deprecated and
   will be removed in 5.0. Use `..._get_conf2()` instead. See issue
   [#924](https://github.com/Hamlib/Hamlib/issues/924).
+- Functions `rig_set_trn()` & `rig_get_trn()` deprecated; operation now handled internally.
 - Documentation brought up to date.
 - (TBD)
 

@@ -144,8 +144,8 @@ struct rig_caps flrig_caps =
 {
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
-    .mfg_name = "W1HKJ",
-    .version = "20250107.1",
+    .mfg_name = "FLRig",
+    .version = "20250107.2",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,

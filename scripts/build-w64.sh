@@ -214,7 +214,7 @@ correct directory to the path and allows update of "C:\Program Files" with the
 Then (in my case).
 
 cd "C:\Program Files\hamlib-w64-${RELEASE}\lib\msvc"
-lib \def:libhamlib-4.def \machine:x64
+lib /def:libhamlib-4.def /machine:x64
 
 If you use any other terminal then the full path to lib.exe is needed
 (today it is
@@ -245,14 +245,20 @@ http://www.hamlib.org
 END_OF_README
 
 
+echo $PKG_CONFIG_PATH
+
 # Configure and build hamlib for x86_64-w64-mingw32, with libusb-1.0
 
 ./configure --host=${HOST_ARCH} \
+ --build=$(uname -m) \
+ --target=${HOST_ARCH} \
  --prefix=${INST_DIR} \
  --without-cxx-binding \
  --disable-static \
  CPPFLAGS="-I${LIBUSB_1_0_BIN_PATH}/include" \
- LDFLAGS="-L${LIBUSB_1_0_BIN_PATH}/MinGW64/dll"
+ LDFLAGS="-L${LIBUSB_1_0_BIN_PATH}/MinGW64/dll" \
+ LIBUSB_CFLAGS="-I${LIBUSB_1_0_BIN_PATH}/include/libusb-1.0" \
+ LIBUSB_LIBS="-lusb-1.0"
 
 
 make -j 4 --no-print-directory install

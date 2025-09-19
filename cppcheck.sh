@@ -1,5 +1,5 @@
 #!/bin/sh
-set -x
+# set -x
 # Author Michael Black W9MDB
 # This SUPPRESS setting results in no warnings as of 2020-01-14
 # There are things that could still be done...especially in the C++ area
@@ -63,7 +63,7 @@ CHECK="\
 -D DECLARE_INITRIG_BACKEND \
 -D DECLARE_INITROT_BACKEND \
 -D DECLARE_INITAMP_BACKEND \
--D B230400
+-D B230400 \
 -U RIG_LEVEL_LINEOUT \
 -U O_ASYNC \
 -U F_SETSIG \
