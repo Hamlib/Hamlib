@@ -169,19 +169,6 @@
 
 __BEGIN_DECLS
 
-// FIFO currently used for send_morse queue
-#define HAMLIB_FIFO_SIZE 1024
-
-typedef struct
-{
-    char data[HAMLIB_FIFO_SIZE];
-    int head;
-    int tail;
-    int flush;  // flush flag for stop_morse
-    pthread_mutex_t mutex;
-} FIFO_RIG;
-
-
 /**
  * \brief size of cookie request buffer
  * Minimum size of cookie buffer to pass to rig_cookie
