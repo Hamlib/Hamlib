@@ -16,4 +16,7 @@ TESTS = $(check_PROGRAMS)
 $(top_builddir)/src/libhamlib.la:
 	$(MAKE) -C $(top_builddir)/src/ libhamlib.la
 
+$(top_builddir)/lib/libmisc.la:
+	$(MAKE) -C $(top_builddir)/lib/ libmisc.la
+
 endif
