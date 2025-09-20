@@ -742,7 +742,7 @@ int rig_spectrum_cb_python(RIG *rig, struct rig_spectrum_line *rig_spectrum_line
 		PyObject *bytes_obj;
 		Py_ssize_t send_len;
 		int reply_len = MAX_RETURNSTR;
-		unsigned char reply_buffer[MAX_RETURNSTR];
+		char reply_buffer[MAX_RETURNSTR];
 		int count;
 
 		if (PyUnicode_Check(send_obj)) {
@@ -771,7 +771,7 @@ int rig_spectrum_cb_python(RIG *rig, struct rig_spectrum_line *rig_spectrum_line
 			return NULL;
 		}
 
-		count = rig_send_raw(self->rig, send, send_len, reply_buffer, reply_len, term);
+		count = rig_send_raw(self->rig, (unsigned char *)send, send_len, (unsigned char *)reply_buffer, reply_len, (unsigned char *)term);
 		self->error_status = count < 0 ? count : RIG_OK;
 
 		if (PyUnicode_Check(send_obj)) {
