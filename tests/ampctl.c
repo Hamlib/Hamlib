@@ -70,8 +70,8 @@ extern int read_history();
 /*
  * Prototypes
  */
-void usage(FILE *fout);
-void short_usage(FILE *fout);
+static void usage(FILE *fout);
+static void short_usage(FILE *fout);
 
 /*
  * Reminder: when adding long options,
@@ -440,7 +440,7 @@ int main(int argc, char *argv[])
 }
 
 
-void usage(FILE *fout)
+static void usage(FILE *fout)
 {
     fprintf(fout, "Usage: ampctl [OPTION]... [COMMAND]...\n"
            "Send COMMANDs to a connected amplifier.\n\n");
@@ -470,7 +470,7 @@ void usage(FILE *fout)
 }
 
 
-void short_usage(FILE *fout)
+static void short_usage(FILE *fout)
 {
     fprintf(fout, "Usage: ampctl [OPTION]... [-m ID] [-r DEVICE] [-s BAUD] [COMMAND...|-]\n");
     fprintf(fout, "Send COMMANDs to a connected amplifier.\n\n");

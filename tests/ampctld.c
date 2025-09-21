@@ -70,9 +70,14 @@ struct handle_data
     socklen_t clilen;
 };
 
-void *handle_socket(void *arg);
 
-void usage(FILE *fout);
+/*
+ * Prototypes
+ */
+void *handle_socket(void *arg);
+static void usage(FILE *fout);
+static void short_usage(FILE *fout);
+
 
 /*
  * Reminder: when adding long options,
@@ -674,7 +679,7 @@ handle_exit:
 }
 
 
-void usage(FILE *fout)
+static void usage(FILE *fout)
 {
     fprintf(fout, "Usage: ampctld [OPTION]... [COMMAND]...\n"
            "Daemon serving COMMANDs to a connected amplifier.\n\n");
@@ -699,7 +704,7 @@ void usage(FILE *fout)
 }
 
 
-void short_usage(FILE *fout)
+static void short_usage(FILE *fout)
 {
     fprintf(fout, "Usage: ampctld [OPTION]... [-m ID] [-r DEVICE] [-s BAUD]\n");
     fprintf(fout, "Daemon serving COMMANDs to a connected amplifier.\n\n");

@@ -310,7 +310,7 @@ void version()
 }
 
 
-void usage(FILE *fout)
+static void usage(FILE *fout)
 {
     fprintf(fout, "Usage: rigswr [OPTION]... start_freq stop_freq [freq_step]\n"
            "Output SWR vs Frequency.\n\n");

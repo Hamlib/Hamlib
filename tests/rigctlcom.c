@@ -114,7 +114,7 @@ static struct option long_options[] =
     {0, 0, 0, 0}
 };
 
-void usage(FILE *fout);
+static void usage(FILE *fout);
 static int handle_ts2000(void *arg);
 
 static RIG *my_rig;             /* handle to rig */
@@ -1690,7 +1690,7 @@ static int handle_ts2000(void *arg)
 }
 
 
-void usage(FILE *fout)
+static void usage(FILE *fout)
 {
     char *name = "rigctlcom";
 

@@ -73,8 +73,11 @@ extern int read_history();
 #define MAXNAMSIZ 32
 #define MAXNBOPT 100    /* max number of different options */
 
-
+/*
+ * Prototypes
+ */
 static void usage(FILE *fout);
+static void short_usage(FILE *fout);
 
 /*
  * Reminder: when adding long options,
@@ -872,7 +875,7 @@ int main(int argc, char *argv[])
 }
 
 
-void usage(FILE *fout)
+static void usage(FILE *fout)
 {
     fprintf(fout, "Usage: rigctl [OPTION]... [COMMAND]...\n"
            "Send COMMANDs to a connected radio transceiver or receiver.\n\n");
@@ -912,7 +915,7 @@ void usage(FILE *fout)
 }
 
 
-void short_usage(FILE *fout)
+static void short_usage(FILE *fout)
 {
     fprintf(fout, "Usage: rigctl [OPTION]... [-m ID] [-r DEVICE] [-s BAUD] [COMMAND...|-]\n");
     fprintf(fout, "Send COMMANDs to a connected radio transceiver or receiver.\n\n");
