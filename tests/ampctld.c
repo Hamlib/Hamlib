@@ -262,7 +262,8 @@ int main(int argc, char *argv[])
             break;
 
         default:
-            usage(stderr);    /* unknown option? */
+            /* unknown getopt option */
+            short_usage(stderr);
             exit(1);
         }
     }
@@ -695,4 +696,12 @@ void usage(FILE *fout)
         portno);
 
     usage_amp(fout);
+}
+
+
+void short_usage(FILE *fout)
+{
+    fprintf(fout, "Usage: ampctld [OPTION]... [-m ID] [-r DEVICE] [-s BAUD]\n");
+    fprintf(fout, "Daemon serving COMMANDs to a connected amplifier.\n\n");
+    fprintf(fout, "Type: ampctld --help for extended usage.\n");
 }
