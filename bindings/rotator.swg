@@ -68,7 +68,7 @@ typedef struct Rot {
 		}
 		/* install shortcuts */
 		r->caps = r->rot->caps;
-		r->state = &r->rot->state;
+		r->state = &r->rot->state; rot_data_pointer(r->rot, RIG_PTRX_ROTSTATE);
 		r->do_exception = 0;    /* default is disabled */
 		r->error_status = RIG_OK;
 		return r;

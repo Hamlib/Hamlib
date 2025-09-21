@@ -485,7 +485,7 @@ int *rig_spectrum_cb_python(RIG *rig, struct rig_spectrum_line *rig_spectrum_lin
 #endif
 		/* install shortcuts */
 		r->caps = r->rig->caps;
-		r->state = &r->rig->state;
+		r->state = rig_data_pointer(r->rig, RIG_PTRX_STATE);
 		r->do_exception = 0;	/* default is disabled */
 		r->error_status = RIG_OK;
 
