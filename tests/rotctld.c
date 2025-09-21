@@ -705,7 +705,7 @@ handle_exit:
 
 static void usage(FILE *fout)
 {
-    fprintf(fout, "Usage: rotctld [OPTION]... [COMMAND]...\n"
+    fprintf(fout, "Usage: rotctld [OPTION]...\n"
            "Daemon serving COMMANDs to a connected antenna rotator.\n\n");
 
     fprintf(fout,
