@@ -524,7 +524,8 @@ int main(int argc, char *argv[])
             break;
 
         default:
-            usage(stderr);    /* unknown option? */
+            /* unknown getopt option */
+            short_usage(stderr);
             exit(1);
         }
     }
@@ -1399,4 +1400,12 @@ void usage(FILE *fout)
         portno);
 
     usage_rig(fout);
+}
+
+
+void short_usage(FILE *fout)
+{
+    fprintf(fout, "Usage: rigctld [OPTION]... [-m ID] [-r DEVICE] [-s BAUD]\n");
+    fprintf(fout, "Daemon serving COMMANDs to a connected radio transceiver or receiver.\n\n");
+    fprintf(fout, "Type: rigctld --help for extended usage.\n");
 }

@@ -71,6 +71,7 @@ extern int read_history();
  * Prototypes
  */
 void usage(FILE *fout);
+void short_usage(FILE *fout);
 
 /*
  * Reminder: when adding long options,
@@ -237,7 +238,8 @@ int main(int argc, char *argv[])
             break;
 
         default:
-            usage(stderr);    /* unknown option? */
+            /* unknown getopt option */
+            short_usage(stderr);
             exit(1);
         }
     }
@@ -465,4 +467,12 @@ void usage(FILE *fout)
     );
 
     usage_amp(fout);
+}
+
+
+void short_usage(FILE *fout)
+{
+    fprintf(fout, "Usage: ampctl [OPTION]... [-m ID] [-r DEVICE] [-s BAUD] [COMMAND...|-]\n");
+    fprintf(fout, "Send COMMANDs to a connected amplifier.\n\n");
+    fprintf(fout, "Type: ampctl --help for extended usage.\n");
 }

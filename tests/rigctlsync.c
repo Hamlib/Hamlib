@@ -409,7 +409,7 @@ int main(int argc, char *argv[])
             break;
 
         default:
-            usage(stderr);            /* unknown option? */
+            usage(stderr);        
             exit(1);
         }
     }

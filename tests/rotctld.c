@@ -267,7 +267,8 @@ int main(int argc, char *argv[])
             break;
 
         default:
-            usage(stderr);    /* unknown option? */
+            /* unknown getopt option */
+            short_usage(stderr);
             exit(1);
         }
     }
@@ -722,4 +723,12 @@ void usage(FILE *fout)
         portno);
 
     usage_rot(fout);
+}
+
+
+void short_usage(FILE *fout)
+{
+    fprintf(fout, "Usage: rotctld [OPTION]... [-m ID] [-r DEVICE] [-s BAUD]\n");
+    fprintf(fout, "Daemon serving COMMANDs to a connected antenna rotator.\n\n");
+    fprintf(fout, "Type: rotctld --help for extended usage.\n");
 }
