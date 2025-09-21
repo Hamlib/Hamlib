@@ -681,7 +681,7 @@ handle_exit:
 
 static void usage(FILE *fout)
 {
-    fprintf(fout, "Usage: ampctld [OPTION]... [COMMAND]...\n"
+    fprintf(fout, "Usage: ampctld [OPTION]...\n"
            "Daemon serving COMMANDs to a connected amplifier.\n\n");
 
     fprintf(fout,
