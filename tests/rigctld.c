@@ -123,9 +123,12 @@ struct handle_data
 };
 
 
+/*
+ * Prototypes
+ */
 void *handle_socket(void *arg);
-void usage(FILE *fout);
-
+static void usage(FILE *fout);
+static void short_usage(FILE *fout);
 
 static unsigned client_count;
 
@@ -1364,7 +1367,7 @@ handle_exit:
 }
 
 
-void usage(FILE *fout)
+static void usage(FILE *fout)
 {
     fprintf(fout, "Usage: rigctld [OPTION]...\n"
            "Daemon serving COMMANDs to a connected radio transceiver or receiver.\n\n");
@@ -1403,7 +1406,7 @@ void usage(FILE *fout)
 }
 
 
-void short_usage(FILE *fout)
+static void short_usage(FILE *fout)
 {
     fprintf(fout, "Usage: rigctld [OPTION]... [-m ID] [-r DEVICE] [-s BAUD]\n");
     fprintf(fout, "Daemon serving COMMANDs to a connected radio transceiver or receiver.\n\n");

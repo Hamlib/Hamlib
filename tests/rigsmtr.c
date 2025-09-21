@@ -356,7 +356,7 @@ void version()
 }
 
 
-void usage(FILE *fout)
+static void usage(FILE *fout)
 {
     fprintf(fout, "Usage: rigsmtr [OPTION]... [time]\n"
            "Input S-Meter vs Azimuth.\n\n");

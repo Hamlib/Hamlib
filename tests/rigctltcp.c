@@ -128,7 +128,7 @@ struct handle_data
 
 
 void *handle_socket(void *arg);
-void usage(FILE *fout);
+static void usage(FILE *fout);
 
 static unsigned client_count;
 
@@ -1364,7 +1364,7 @@ handle_exit:
 }
 
 
-void usage(FILE *fout)
+static void usage(FILE *fout)
 {
     fprintf(fout, "Usage: rigctltcp [OPTION]...\n"
            "Daemon serving COMMANDs to a connected radio transceiver or receiver.\n\n");

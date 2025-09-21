@@ -54,7 +54,7 @@ extern int csv_parm_load(RIG *rig, const char *infilename);
 /*
  * Prototypes
  */
-void usage(FILE *fout);
+static void usage(FILE *fout);
 void version();
 static int set_conf(RIG *rig, char *conf_parms);
 
@@ -372,7 +372,7 @@ void version()
 }
 
 
-void usage(FILE *fout)
+static void usage(FILE *fout)
 {
     fprintf(fout, "Usage: rigmem [OPTION]... COMMAND... FILE\n"
            "Backup/restore COMMANDs to a connected radio transceiver or receiver.\n\n");

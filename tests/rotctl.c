@@ -67,10 +67,13 @@ extern int read_history();
 #include "rotctl_parse.h"
 #include "rotlist.h"
 
+
 /*
  * Prototypes
  */
-void usage(FILE *fout);
+static void usage(FILE *fout);
+static void short_usage(FILE *fout);
+
 
 /*
  * Reminder: when adding long options,
@@ -479,7 +482,7 @@ int main(int argc, char *argv[])
 }
 
 
-void usage(FILE *fout)
+static void usage(FILE *fout)
 {
     fprintf(fout, "Usage: rotctl [OPTION]... [COMMAND]...\n"
            "Send COMMANDs to a connected antenna rotator.\n\n");
@@ -512,7 +515,7 @@ void usage(FILE *fout)
 }
 
 
-void short_usage(FILE *fout)
+static void short_usage(FILE *fout)
 {
     fprintf(fout, "Usage: rotctl [OPTION]... [-m ID] [-r DEVICE] [-s BAUD] [COMMAND...|-]\n");
     fprintf(fout, "Send COMMANDs to a connected antenna rotator.\n\n");

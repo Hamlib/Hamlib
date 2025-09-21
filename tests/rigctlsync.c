@@ -105,7 +105,7 @@ static struct option long_options[] =
     {0, 0, 0, 0}
 };
 
-void usage(FILE *fout);
+static void usage(FILE *fout);
 static RIG *my_rig;             /* handle to rig */
 static RIG
 *my_rig_sync;        /* rig the gets synchronized -- freq only for now */
@@ -591,7 +591,7 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-void usage(FILE *fout)
+static void usage(FILE *fout)
 {
     const char *name = "rigctlsync";
 
