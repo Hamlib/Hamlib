@@ -1963,6 +1963,7 @@ void usage_rig(FILE *fout)
 {
     int i;
     int column = 1;
+    int wrapped = 0;
 
     fprintf(fout, "Commands (some may not be available for this rig):\n");
 
@@ -1990,9 +1991,10 @@ void usage_rig(FILE *fout)
             nbspaces -= fprintf(fout, ",%s", test_list[i].arg3);
         }
 
-        if ((nbspaces < 1) || (column == 2))
+        if ((nbspaces < 1) || (column == 2) || wrapped)
         {
             fprintf(fout, ")\n");
+            wrapped = (nbspaces < 1) && (column == 1);
             column = 1;
         }
         else
