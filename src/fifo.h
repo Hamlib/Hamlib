@@ -31,7 +31,7 @@ __BEGIN_DECLS
 // FIFO currently used for send_morse queue
 #define HAMLIB_FIFO_SIZE 1024
 
-typedef struct fifo_rig
+typedef struct FIFO_RIG_s
 {
     char data[HAMLIB_FIFO_SIZE];
     int head;

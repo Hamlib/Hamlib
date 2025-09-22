@@ -46,7 +46,7 @@ __BEGIN_DECLS
  *
  * Structures pointed to by rig_state and defined elsewhere
  */
-struct fifo_rig;  /* Defined in src/fifo.h */
+struct FIFO_RIG_s;  /* Defined in src/fifo.h */
 
 /**
  * \brief Rig state containing live data and customized fields.
@@ -230,7 +230,7 @@ struct rig_state {
     int spectrum_attenuator[HAMLIB_MAXDBLSTSIZ];    /*!< Spectrum attenuator list in dB, 0 terminated */
     volatile int morse_data_handler_thread_run;   /*!< Morse data handler thread flag. */
     void *morse_data_handler_priv_data;           /*!< Morse data handler private structure. */
-    struct fifo_rig *fifo_morse;                  /*!< FIFO queue for Morse Code transmission. */
+    struct FIFO_RIG_s *fifo_morse;                /*!< FIFO queue for Morse Code transmission. */
     int doppler;         /*!< True if doppler changing detected */
     char *multicast_data_addr;  /*!< Multicast data UDP address for publishing rig data and state */
     int multicast_data_port;  /*!< Multicast data UDP port for publishing rig data and state */
