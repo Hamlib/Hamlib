@@ -100,6 +100,8 @@ class TestClass:
         assert rot.get_ext_parm(self.TOK_EP_ROT_MAGICPARM) == 7
 
         # Dummy rotator doesn't support functions
+        assert rot.has_set_func(Hamlib.ROT_FUNC_NONE) == Hamlib.ROT_FUNC_NONE
+        assert rot.has_get_func(Hamlib.ROT_FUNC_NONE) == Hamlib.ROT_FUNC_NONE
         status = 0
         assert rot.set_func(Hamlib.ROT_FUNC_NONE, status) is None
         assert rot.get_func(Hamlib.ROT_FUNC_NONE) is None

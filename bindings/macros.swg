@@ -3,6 +3,61 @@ Common SWIG macros
 */
 
 /*
+ * Macro GENERATE_HAS_GET_SET
+ *
+ * Creates two methods *_has_get_*() and *_has_set_*()
+ *
+ * function_prefix:
+ * the first part of the function name (eg. one of: amp_ rig_ rot_)
+ * this is also the name of the member of the "self" object
+ *
+ * setting:
+ * the last part of the function name (eg. func, level, ...)
+ *
+ * example: GENERATE_HAS_GET_SET(rig, func) creates the bindings for
+ * rig_has_get_func() and rig_has_set_func()
+ */
+%define GENERATE_HAS_GET_SET(function_prefix, setting)
+	setting_t has_get_##setting##(setting_t setting) {
+		return function_prefix##_has_get_##setting##($self->##function_prefix##, setting);
+	}
+
+	setting_t has_set_##setting##(setting_t setting) {
+		return function_prefix##_has_set_##setting##($self->##function_prefix##, setting);
+	}
+%enddef
+
+/*
+ * Macro AMP_GENERATE_HAS_GET_SET
+ *
+ * Creates two methods amp_has_get_*() and amp_has_set_*()
+ *
+ * setting:
+ * the last part of the function name (eg. func, level, ...)
+ *
+ * example: AMP_GENERATE_HAS_GET_SET(level) creates the bindings for
+ * amp_has_get_level() and amp_has_set_level()
+ */
+%define AMP_GENERATE_HAS_GET_SET(setting)
+	GENERATE_HAS_GET_SET(amp, setting)
+%enddef
+
+/*
+ * Macro ROT_GENERATE_HAS_GET_SET
+ *
+ * Creates two methods rot_has_get_*() and rot_has_set_*()
+ *
+ * setting:
+ * the last part of the function name (eg. func, level, ...)
+ *
+ * example: ROT_GENERATE_HAS_GET_SET(func) creates the bindings for
+ * rot_has_get_func() and rot_has_set_func()
+ */
+%define ROT_GENERATE_HAS_GET_SET(setting)
+	GENERATE_HAS_GET_SET(rot, setting)
+%enddef
+
+/*
  * Macro GET_TOKEN
  *
  * function_prefix:
@@ -65,6 +120,18 @@ PyObject * ##function_name(hamlib_token_t token)
 
 	return PyLong_FromLong(value.i);
 }
+%enddef
+
+/*
+* Macro AMP_GET_VALUE_T
+*
+* function_name:
+* the name that will be seen in the bindings when appended to get_
+* and that creates a valid Hamlib function when appended to amp_get_
+* eg. AMP_GET_VALUE_T(level) creates Rot.get_level() that calls amp_get_level()
+*/
+%define AMP_GET_VALUE_T(function_name)
+	GET_VALUE_T(amp_, get_ ##function_name, self->amp, AMP_)
 %enddef
 
 /*

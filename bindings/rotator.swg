@@ -120,6 +120,10 @@ typedef struct Rot {
 
 	ROTMETHOD2(set_conf, hamlib_token_t, const_char_string)
 
+	ROT_GENERATE_HAS_GET_SET(func)
+	ROT_GENERATE_HAS_GET_SET(level)
+	ROT_GENERATE_HAS_GET_SET(parm)
+
 #ifdef SWIGPYTHON
 	ROT_GET_LONG(func)
 	ROT_GET_LONG(ext_func)
