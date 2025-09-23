@@ -67,9 +67,14 @@ struct handle_data
     socklen_t clilen;
 };
 
-void *handle_socket(void *arg);
 
-void usage();
+/*
+ * Prototypes
+ */
+void *handle_socket(void *arg);
+static void usage(FILE *fout);
+static void short_usage(FILE *fout);
+
 
 /*
  * Reminder: when adding long options,
@@ -185,7 +190,7 @@ int main(int argc, char *argv[])
         switch (c)
         {
         case 'h':
-            usage();
+            usage(stdout);
             exit(0);
 
         case 'V':
@@ -267,7 +272,8 @@ int main(int argc, char *argv[])
             break;
 
         default:
-            usage();    /* unknown option? */
+            /* unknown getopt option */
+            short_usage(stderr);
             exit(1);
         }
     }
@@ -697,12 +703,12 @@ handle_exit:
 }
 
 
-void usage()
+static void usage(FILE *fout)
 {
-    printf("Usage: rotctld [OPTION]... [COMMAND]...\n"
+    fprintf(fout, "Usage: rotctld [OPTION]...\n"
            "Daemon serving COMMANDs to a connected antenna rotator.\n\n");
 
-    printf(
+    fprintf(fout,
         "  -m, --model=ID                select rotator model number. See model list (-l)\n"
         "  -r, --rot-file=DEVICE         set device of the rotator to operate on\n"
         "  -R, --rot-file2=DEVICE        set device of the 2nd rotator controller to operate on\n"
@@ -721,5 +727,13 @@ void usage()
         "  -V, --version                 output version information and exit\n\n",
         portno);
 
-    usage_rot(stdout);
+    usage_rot(fout);
+}
+
+
+static void short_usage(FILE *fout)
+{
+    fprintf(fout, "Usage: rotctld [OPTION]... [-m ID] [-r DEVICE] [-s BAUD]\n");
+    fprintf(fout, "Daemon serving COMMANDs to a connected antenna rotator.\n\n");
+    fprintf(fout, "Type: rotctld --help for extended usage.\n");
 }

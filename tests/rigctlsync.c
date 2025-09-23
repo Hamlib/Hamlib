@@ -105,7 +105,7 @@ static struct option long_options[] =
     {0, 0, 0, 0}
 };
 
-void usage();
+static void usage(FILE *fout);
 static RIG *my_rig;             /* handle to rig */
 static RIG
 *my_rig_sync;        /* rig the gets synchronized -- freq only for now */
@@ -236,7 +236,7 @@ int main(int argc, char *argv[])
         switch (c)
         {
         case 'h':
-            usage();
+            usage(stdout);
             exit(0);
 
         case 'V':
@@ -409,7 +409,7 @@ int main(int argc, char *argv[])
             break;
 
         default:
-            usage();            /* unknown option? */
+            usage(stderr);        
             exit(1);
         }
     }
@@ -420,7 +420,7 @@ int main(int argc, char *argv[])
 
     if (argc < 3)
     {
-        usage();
+        usage(stderr);
         exit(1);
     }
 
@@ -591,19 +591,20 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-void usage()
+static void usage(FILE *fout)
 {
     const char *name = "rigctlsync";
-    printf("Usage: %s -m rignumber -r comport -s baud -M rignumber -R comport [OPTIONS]...\n\n"
+
+    fprintf(fout, "Usage: %s -m rignumber -r comport -s baud -M rignumber -R comport [OPTIONS]...\n\n"
            "Will copy frequency from -m rig to -M rig\n"
            "e.g. will keep SDR# synchronized to a rig.\n\n",
            name);
 
-    printf("Example: Sync freq from rigctld to SDR#\n");
-    printf("\t%s -m 2 -M 9 -R 127.0.0.1:4532\n\n", name);
-    printf("See the %s.1 manual page for complete details.\n\n", name);
+    fprintf(fout, "Example: Sync freq from rigctld to SDR#\n");
+    fprintf(fout, "\t%s -m 2 -M 9 -R 127.0.0.1:4532\n\n", name);
+    fprintf(fout, "See the %s.1 manual page for complete details.\n\n", name);
 
-    printf(
+    fprintf(fout,
         "  -m, --model=ID                select radio model number. See model list (-l)\n"
         "  -r, --rig-file=DEVICE         set device of the radio to operate on\n"
         "  -R, --rig-file2=DEVICE        set device of the virtual com port to operate on\n"
@@ -620,6 +621,5 @@ void usage()
         "  -V, --version                 output version information and exit\n\n"
     );
 
-    printf("\nReport bugs to <hamlib-developer@lists.sourceforge.net>.\n");
-
+    fprintf(fout, "\nReport bugs to <hamlib-developer@lists.sourceforge.net>.\n");
 }

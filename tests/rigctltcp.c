@@ -128,7 +128,7 @@ struct handle_data
 
 
 void *handle_socket(void *arg);
-void usage(void);
+static void usage(FILE *fout);
 
 static unsigned client_count;
 
@@ -301,7 +301,7 @@ int main(int argc, char *argv[])
         switch (c)
         {
         case 'h':
-            usage();
+            usage(stdout);
             exit(0);
 
         case 'V':
@@ -525,7 +525,7 @@ int main(int argc, char *argv[])
             break;
 
         default:
-            usage();    /* unknown option? */
+            usage(stderr);
             exit(1);
         }
     }
@@ -1364,13 +1364,12 @@ handle_exit:
 }
 
 
-void usage(void)
+static void usage(FILE *fout)
 {
-    printf("Usage: rigctltcp [OPTION]...\n"
+    fprintf(fout, "Usage: rigctltcp [OPTION]...\n"
            "Daemon serving COMMANDs to a connected radio transceiver or receiver.\n\n");
 
-
-    printf(
+    fprintf(fout,
         "  -m, --model=ID                select radio model number. See model list (-l)\n"
         "  -r, --rig-file=DEVICE         set device of the radio to operate on\n"
         "  -p, --ptt-file=DEVICE         set device of the PTT device to operate on\n"
@@ -1400,5 +1399,5 @@ void usage(void)
         "  -V, --version                 output version information and exit\n\n",
         portno);
 
-    usage_rig(stdout);
+    usage_rig(fout);
 }

@@ -114,7 +114,7 @@ static struct option long_options[] =
     {0, 0, 0, 0}
 };
 
-void usage();
+static void usage(FILE *fout);
 static int handle_ts2000(void *arg);
 
 static RIG *my_rig;             /* handle to rig */
@@ -248,7 +248,7 @@ int main(int argc, char *argv[])
         switch (c)
         {
         case 'h':
-            usage();
+            usage(stdout);
             exit(0);
 
         case 'V':
@@ -400,7 +400,7 @@ int main(int argc, char *argv[])
             break;
 
         default:
-            usage();            /* unknown option? */
+            usage(stderr);        
             exit(1);
         }
     }
@@ -411,7 +411,7 @@ int main(int argc, char *argv[])
 
     if (argc == 1)
     {
-        usage();
+        usage(stderr);
         exit(1);
     }
 
@@ -1690,20 +1690,21 @@ static int handle_ts2000(void *arg)
 }
 
 
-void usage()
+static void usage(FILE *fout)
 {
     char *name = "rigctlcom";
-    printf("Usage: %s -m rignumber -r comport -s baud -R comport [OPTIONS]...\n\n"
+
+    fprintf(fout, "Usage: %s -m rignumber -r comport -s baud -R comport [OPTIONS]...\n\n"
            "A TS-2000 emulator for rig sharing with programs that don't support Hamlib or FLRig to be able\n"
            "to use a connected radio transceiver or receiver with FLRig or rigctld via Hamlib.\n\n",
            name);
 
-    printf("Example: Using FLRig with virtual COM5/COM6 and other program:\n");
-    printf("\t%s -m 4 -R COM5 -S 115200\n\n", name);
-    printf("Other program would connect to COM6 and use TS-2000 115200 8N1\n\n");
-    printf("See the %s.1 manual page for complete details.\n\n", name);
+    fprintf(fout, "Example: Using FLRig with virtual COM5/COM6 and other program:\n");
+    fprintf(fout, "\t%s -m 4 -R COM5 -S 115200\n\n", name);
+    fprintf(fout, "Other program would connect to COM6 and use TS-2000 115200 8N1\n\n");
+    fprintf(fout, "See the %s.1 manual page for complete details.\n\n", name);
 
-    printf(
+    fprintf(fout,
         "  -m, --model=ID                select radio model number. See model list (-l)\n"
         "  -r, --rig-file=DEVICE         set device of the radio to operate on\n"
         "  -R, --rig-file2=DEVICE        set device of the virtual com port to operate on\n"
@@ -1725,6 +1726,5 @@ void usage()
         "  -V, --version                 output version information and exit\n\n"
     );
 
-    printf("\nReport bugs to <hamlib-developer@lists.sourceforge.net>.\n");
-
+    fprintf(fout, "\nReport bugs to <hamlib-developer@lists.sourceforge.net>.\n");
 }

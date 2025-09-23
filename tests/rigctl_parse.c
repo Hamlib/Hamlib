@@ -1962,14 +1962,16 @@ declare_proto_rig(client_version)
 void usage_rig(FILE *fout)
 {
     int i;
+    int column = 1;
+    int wrapped = 0;
 
     fprintf(fout, "Commands (some may not be available for this rig):\n");
 
     for (i = 0; test_list[i].cmd != 0; i++)
     {
-        int nbspaces = 18;
+        int nbspaces = 20; // longest arguments are 32 chars: "TX Frequency,TX Mode,TX Passband"
         fprintf(fout,
-                "%c: %-16s(",
+                "%c: %-19s(", // longest commands are 19 chars, eg. "set_split_freq_mode"
                 isprint(test_list[i].cmd) ? test_list[i].cmd : '?',
                 test_list[i].name);
 
@@ -1989,13 +1991,16 @@ void usage_rig(FILE *fout)
             nbspaces -= fprintf(fout, ",%s", test_list[i].arg3);
         }
 
-        if (i % 2)
+        if ((nbspaces < 1) || (column == 2) || wrapped)
         {
             fprintf(fout, ")\n");
+            wrapped = (nbspaces < 1) && (column == 1);
+            column = 1;
         }
         else
         {
             fprintf(fout, ")%*s", nbspaces, " ");
+            column++;
         }
     }
 
