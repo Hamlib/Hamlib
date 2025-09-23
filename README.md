@@ -13,7 +13,7 @@ applications.
 The master repository is https://github.com/Hamlib/Hamlib  
 The backup repository is https://sourceforge.net/projects/hamlib/  
 
-Daily snapshots are available at https://n0nb.users.sourceforge.net/
+Daily snapshots are available at https://hamlib.sourceforge.net/snapshots/
 
 Development happens on the GitHub master (often by merging feature branches)
 and each release has a release branch.
