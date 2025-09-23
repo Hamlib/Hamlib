@@ -99,9 +99,17 @@ typedef struct Amp {
 
 	AMPMETHOD1(token_lookup, const_char_string)	/* conf */
 
-  /* set functions */
+	/* get and set functions */
+	AMP_GENERATE_HAS_GET_SET(level)
+
+#ifdef SWIGPYTHON
+	AMP_GET_VALUE_T(ext_level)
+#endif
+
   AMPMETHOD1(set_freq, freq_t)
   AMPMETHOD1(set_powerstat, powerstat_t)
+	AMPMETHOD2(set_level, setting_t, value_t)
+	AMPMETHOD2(set_ext_level, hamlib_token_t, value_t)
 
 	void set_conf(const char *name, const char *val) {
 		hamlib_token_t tok = amp_token_lookup(self->amp, name);
