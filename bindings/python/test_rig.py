@@ -262,8 +262,8 @@ class TestClass:
         assert rig.get_ext_level(0) is None
         assert rig.get_ext_level(0, 0) is None
         assert rig.get_ext_parm(0) is None
-        assert isinstance(rig.get_func(0), int)
-        assert isinstance(rig.get_func(0, 0), int)
+        assert isinstance(rig.get_func(Hamlib.RIG_FUNC_BIT63), int)
+        assert isinstance(rig.get_func(Hamlib.RIG_FUNC_BIT63, 0), int)
         assert rig.get_info() is None
         assert rig.get_level(0) is None
         assert isinstance(rig.get_level_f(0), float)
@@ -291,9 +291,9 @@ class TestClass:
         assert isinstance(rig.get_ts(Hamlib.RIG_VFO_CURR), int)
         assert len(rig.get_vfo_info()) == 5
         assert len(rig.get_vfo_info(Hamlib.RIG_VFO_CURR)) == 5
-        # assert rig_has_get_func(0)  FIXME not defined
+        assert rig.has_get_func(Hamlib.RIG_FUNC_BIT63) is None
         assert rig.has_get_level(0) is None  # FIXME should return setting_t
-        # assert rig_has_get_parm(0)  FIXME not defined
+        assert rig.has_get_parm(0) is None  # FIXME should return setting_t
         assert rig.has_scan(0) is None  # FIXME should return scan_t
         assert rig.has_set_func(0) is None  # FIXME should return setting_t
         # assert rig_has_set_level(0)  FIXME not defined
@@ -329,7 +329,7 @@ class TestClass:
         assert rig.set_ext_level(level, value, Hamlib.RIG_VFO_CURR) is None
         value = Hamlib.value_t()
         assert rig.set_ext_parm(0, value) is None
-        assert rig.set_func(0, 0, 0) is None
+        assert rig.set_func(Hamlib.RIG_FUNC_BIT63, 0, 0) is None
         assert rig.set_level(0, 0, 0) is None
         assert rig.set_mem(0, 0) is None
         assert rig.set_mode(0) is None

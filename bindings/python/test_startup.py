@@ -18,6 +18,8 @@ class TestClass:
         assert isinstance(Hamlib.cvar.hamlib_version, str)
 
         Hamlib.rig_set_debug(Hamlib.RIG_DEBUG_NONE)
+        assert Hamlib.rig_get_debug() == Hamlib.RIG_DEBUG_NONE
+        assert Hamlib.rig_set_debug_time_stamp(1) is None
 
         model = Hamlib.RIG_MODEL_DUMMY
         my_rig = Hamlib.Rig(model)
@@ -127,5 +129,14 @@ class TestClass:
         lat3 = Hamlib.dms2dec(deg2, mins2, sec2, sw2)
         assert lon3 == approx(-0.0414, abs=1.0e-04)  # FIXME why need to override tolerance?
         assert lat3 == approx(48.1042)
+
+        assert Hamlib.dmmm2dec(48, 60.0 * 0.1042, 0) == approx(-Hamlib.dmmm2dec(-48, 60.0 * -0.1042, 1))
+        assert Hamlib.dec2dmmm(48.1042) == [0, 48, 6, 0]
+
+        assert Hamlib.azimuth_long_path(0.0) == 180.0
+        assert Hamlib.azimuth_long_path(360.0) == 180.0
+        assert Hamlib.azimuth_long_path(92.6) == approx(272.6)
+        assert Hamlib.azimuth_long_path(180.0) == 0.0
+        assert Hamlib.azimuth_long_path(285.7) == approx(105.7)
 
         assert my_rig.set_vfo_opt(0) is None
