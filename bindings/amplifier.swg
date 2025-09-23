@@ -72,7 +72,7 @@ typedef struct Amp {
 		}
 		/* install shortcuts */
 		r->caps = r->amp->caps;
-		r->state = &r->amp->state;
+		r->state = amp_data_pointer(r->amp, RIG_PTRX_AMPSTATE);
 		r->do_exception = 0;    /* default is disabled */
 		r->error_status = RIG_OK;
 		return r;

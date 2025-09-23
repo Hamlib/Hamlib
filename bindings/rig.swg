@@ -485,7 +485,7 @@ int rig_spectrum_cb_python(RIG *rig, struct rig_spectrum_line *rig_spectrum_line
 #endif
 		/* install shortcuts */
 		r->caps = r->rig->caps;
-		r->state = &r->rig->state;
+		r->state = rig_data_pointer(r->rig, RIG_PTRX_STATE);
 		r->do_exception = 0;	/* default is disabled */
 		r->error_status = RIG_OK;
 
@@ -571,7 +571,9 @@ int rig_spectrum_cb_python(RIG *rig, struct rig_spectrum_line *rig_spectrum_line
 	METHOD1(set_powerstat, powerstat_t)
 //	METHOD1(set_trn, int)
 	METHOD1(has_get_level, setting_t)
+	METHOD1(has_get_parm, setting_t)
 	METHOD1(has_set_parm, setting_t)
+	METHOD1(has_get_func, setting_t)
 	METHOD1(has_set_func, setting_t)
 	METHOD1(reset, reset_t)
 	METHOD1(has_scan, scan_t)
