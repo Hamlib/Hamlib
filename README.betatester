@@ -52,7 +52,7 @@ Daily Git master branch snapshots:
 
 Download the latest Git master branch snapshot from:
 
-http://n0nb.users.sourceforge.net
+https://hamlib.sourceforge.net/snapshots/
 
 You'll find a tarball with a name like
 hamlib-4.7~git-20250624-dc12b01ae.tar.gz, i.e. a check out made 24 Jun 2025
