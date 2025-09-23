@@ -34,7 +34,7 @@
 /*
  * Prototypes
  */
-static void usage();
+static void usage(FILE *fout);
 static void version();
 static int set_conf(RIG *rig, char *conf_parms);
 
@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
         switch (c)
         {
         case 'h':
-            usage();
+            usage(stdout);
             exit(0);
 
         case 'V':
@@ -178,7 +178,7 @@ int main(int argc, char *argv[])
             break;
 
         default:
-            usage();    /* unknown option? */
+            usage(stderr);
             exit(1);
         }
     }
@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
 
     if (optind + 1 >= argc)
     {
-        usage();
+        usage(stderr);
         exit(1);
     }
 
@@ -310,13 +310,13 @@ void version()
 }
 
 
-void usage()
+static void usage(FILE *fout)
 {
-    printf("Usage: rigswr [OPTION]... start_freq stop_freq [freq_step]\n"
+    fprintf(fout, "Usage: rigswr [OPTION]... start_freq stop_freq [freq_step]\n"
            "Output SWR vs Frequency.\n\n");
 
 
-    printf(
+    fprintf(fout,
         "  -m, --model=ID                select radio model number. See model list (rigctl -l)\n"
         "  -r, --rig-file=DEVICE         set device of the radio to operate on\n"
         "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
@@ -329,8 +329,7 @@ void usage()
         "  -V, --version                 output version information and exit\n\n"
     );
 
-    printf("\nReport bugs to <hamlib-developer@lists.sourceforge.net>.\n");
-
+    fprintf(fout, "\nReport bugs to <hamlib-developer@lists.sourceforge.net>.\n");
 }
 
 

@@ -67,10 +67,13 @@ extern int read_history();
 #include "rotctl_parse.h"
 #include "rotlist.h"
 
+
 /*
  * Prototypes
  */
-void usage();
+static void usage(FILE *fout);
+static void short_usage(FILE *fout);
+
 
 /*
  * Reminder: when adding long options,
@@ -161,7 +164,7 @@ int main(int argc, char *argv[])
         switch (c)
         {
         case 'h':
-            usage();
+            usage(stdout);
             exit(0);
 
         case 'V':
@@ -258,7 +261,8 @@ int main(int argc, char *argv[])
             break;
 
         default:
-            usage();    /* unknown option? */
+            /* unknown getopt option */
+            short_usage(stderr);
             exit(1);
         }
     }
@@ -478,12 +482,12 @@ int main(int argc, char *argv[])
 }
 
 
-void usage()
+static void usage(FILE *fout)
 {
-    printf("Usage: rotctl [OPTION]... [COMMAND]...\n"
+    fprintf(fout, "Usage: rotctl [OPTION]... [COMMAND]...\n"
            "Send COMMANDs to a connected antenna rotator.\n\n");
 
-    printf(
+    fprintf(fout,
         "  -m, --model=ID                select rotator model number. See model list (-l)\n"
         "  -r, --rot-file=DEVICE         set device of the rotator to operate on\n"
         "  -R, --rot-file2=DEVICE        set device of the 2nd rotator controller to operate on\n"
@@ -507,5 +511,13 @@ void usage()
         "\n"
     );
 
-    usage_rot(stdout);
+    usage_rot(fout);
+}
+
+
+static void short_usage(FILE *fout)
+{
+    fprintf(fout, "Usage: rotctl [OPTION]... [-m ID] [-r DEVICE] [-s BAUD] [COMMAND...|-]\n");
+    fprintf(fout, "Send COMMANDs to a connected antenna rotator.\n\n");
+    fprintf(fout, "Type: rotctl --help for extended usage.\n");
 }
