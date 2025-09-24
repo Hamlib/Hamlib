@@ -1,6 +1,6 @@
 AM_CFLAGS += $(LIBUSB_CFLAGS)
 
-BUILT_SOURCES = $(builddir)/hamlibdatetime.h
+BUILT_SOURCES = hamlibdatetime.h
 
 DISTCLEANFILES = hamlibdatetime.h
 
