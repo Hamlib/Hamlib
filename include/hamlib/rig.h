@@ -1437,8 +1437,8 @@ typedef uint64_t rmode_t;
 #define    RIG_MODE_USBD2     CONSTANT_64BIT_FLAG (41)  /*!< \c USB-D2 for some rigs */
 #define    RIG_MODE_USBD3     CONSTANT_64BIT_FLAG (42)  /*!< \c USB-D3 for some rigs */
 #define    RIG_MODE_LSBD1     CONSTANT_64BIT_FLAG (43)  /*!< \c LSB-D1 for some rigs */
-#define    RIG_MODE_LSBD2     CONSTANT_64BIT_FLAG (44)  /*!< \c LSB-D1 for some rigs */
-#define    RIG_MODE_LSBD3     CONSTANT_64BIT_FLAG (45)  /*!< \c LSB-D1 for some rigs */
+#define    RIG_MODE_LSBD2     CONSTANT_64BIT_FLAG (44)  /*!< \c LSB-D2 for some rigs */
+#define    RIG_MODE_LSBD3     CONSTANT_64BIT_FLAG (45)  /*!< \c LSB-D3 for some rigs */
 #define    RIG_MODE_WFMS      CONSTANT_64BIT_FLAG (46)  /*!< \c broadcast wide FM stereo for some rigs */
 #define    RIG_MODE_BIT47     CONSTANT_64BIT_FLAG (47)  /*!< \c reserved for future expansion */
 #define    RIG_MODE_BIT48     CONSTANT_64BIT_FLAG (48)  /*!< \c reserved for future expansion */
