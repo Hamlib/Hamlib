@@ -7,12 +7,12 @@ DISTCLEANFILES = hamlibdatetime.h
 RIGSRC = hamlibdatetime.h rig.c serial.c serial.h misc.c misc.h register.c register.h event.c \
 	event.h cal.c cal.h conf.c tones.c tones.h rotator.c locator.c rot_reg.c \
 	rot_conf.c rot_conf.h rot_settings.c rot_ext.c iofunc.c iofunc.h ext.c \
-   	mem.c settings.c parallel.c parallel.h usb_port.c usb_port.h debug.c \
-   	network.c network.h cm108.c cm108.h gpio.c gpio.h idx_builtin.h token.h \
-   	par_nt.h microham.c microham.h amplifier.c amp_reg.c amp_conf.c \
-   	amp_conf.h amp_settings.c extamp.c sleep.c sleep.h sprintflst.c \
-   	sprintflst.h cache.c cache.h snapshot_data.c snapshot_data.h fifo.c fifo.h \
-    serial_cfg_params.h mutex.h
+	mem.c settings.c parallel.c parallel.h usb_port.c usb_port.h debug.c \
+	network.c network.h cm108.c cm108.h gpio.c gpio.h idx_builtin.h token.h \
+	par_nt.h microham.c microham.h amplifier.c amp_reg.c amp_conf.c \
+	amp_conf.h amp_settings.c extamp.c sleep.c sleep.h sprintflst.c \
+	sprintflst.h cache.c cache.h snapshot_data.c snapshot_data.h fifo.c fifo.h \
+	serial_cfg_params.h mutex.h
 
 if VERSIONDLL
 RIGSRC +=	\
@@ -43,7 +43,7 @@ hamlibdatetime.h: FORCE
 	${AM_V_at}if test -x $(top_srcdir)/.git ; then \
 		echo "/* This date time is from the last non-merge commit to Hamlib. */" > $(builddir)/$(@F).tmp ;\
 		echo "#define HAMLIBDATETIME "\"$$(TZ=UTC git --git-dir=$(top_srcdir)/.git log --no-merges --date='format-local:%Y-%m-%dT%H:%M:%SZ SHA=' --format='%cd' -n 1)$$(git --git-dir=$(top_srcdir)/.git log --no-merges -n 1 --format='%h')\" >> $(builddir)/$(@F).tmp ;\
-		if ! diff -qN $(builddir)/$(@F).tmp $(builddir)/$(@F)> /dev/null ; then { echo "Generating SCS header \"$(builddir)/$(@F)\"" ; mv -f $(builddir)/$(@F).tmp $(builddir)/$(@F) ; } fi ;\
+		if ! diff -qN $(builddir)/$(@F).tmp $(builddir)/$(@F) ; then { echo "Generating SCS header \"$(builddir)/$(@F)\"" ; mv -f $(builddir)/$(@F).tmp $(builddir)/$(@F) ; } fi ;\
 		rm -f $(builddir)/$(@F).tmp ;\
 		touch -c $(top_srcdir)/src/version_dll.rc ;\
 	else \
