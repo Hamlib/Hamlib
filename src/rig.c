@@ -1593,7 +1593,11 @@ int HAMLIB_API rig_open(RIG *rig)
         }
     }
 
-    if (skip_init) { RETURNFUNC2(RIG_OK); }
+    if (skip_init)
+    {
+        add_opened_rig(rig);
+        RETURNFUNC2(RIG_OK);
+    }
 
     status = async_data_handler_start(rig);
 
