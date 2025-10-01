@@ -427,32 +427,32 @@ static int dummy_rot_move(ROT *rot, int direction, int speed)
     switch (direction)
     {
     case ROT_MOVE_UP:
-        return dummy_rot_set_position(rot, priv->target_az, 90);
+        return dummy_rot_set_position(rot, priv->target_az, rot->caps->max_el);
 
     case ROT_MOVE_DOWN:
-        return dummy_rot_set_position(rot, priv->target_az, 0);
+        return dummy_rot_set_position(rot, priv->target_az, rot->caps->min_el);
 
     case ROT_MOVE_CCW:
-        return dummy_rot_set_position(rot, -180, priv->target_el);
+        return dummy_rot_set_position(rot, rot->caps->min_az, priv->target_el);
 
     case ROT_MOVE_CW:
-        return dummy_rot_set_position(rot, 180, priv->target_el);
+        return dummy_rot_set_position(rot, rot->caps->max_az, priv->target_el);
 
     case ROT_MOVE_UP_LEFT:
-        dummy_rot_set_position(rot, priv->target_az, 90);
-        return dummy_rot_set_position(rot, -180, priv->target_el);
+        dummy_rot_set_position(rot, priv->target_az, rot->caps->max_el);
+        return dummy_rot_set_position(rot, rot->caps->min_az, priv->target_el);
 
     case ROT_MOVE_UP_RIGHT:
-        dummy_rot_set_position(rot, priv->target_az, 90);
-        return dummy_rot_set_position(rot, 180, priv->target_el);
+        dummy_rot_set_position(rot, priv->target_az, rot->caps->max_el);
+        return dummy_rot_set_position(rot, rot->caps->max_az, priv->target_el);
 
     case ROT_MOVE_DOWN_LEFT:
-        dummy_rot_set_position(rot, priv->target_az, 0);
-        return dummy_rot_set_position(rot, -180, priv->target_el);
+        dummy_rot_set_position(rot, priv->target_az, rot->caps->min_el);
+        return dummy_rot_set_position(rot, rot->caps->min_az, priv->target_el);
 
     case ROT_MOVE_DOWN_RIGHT:
-        dummy_rot_set_position(rot, priv->target_az, 0);
-        return dummy_rot_set_position(rot, 180, priv->target_el);
+        dummy_rot_set_position(rot, priv->target_az, rot->caps->min_el);
+        return dummy_rot_set_position(rot, rot->caps->max_az, priv->target_el);
 
     default:
         return -RIG_EINVAL;
