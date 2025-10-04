@@ -276,11 +276,7 @@ declare_proto_rig(get_conf);
 /*
  * convention: upper case cmd is set, lowercase is get
  *
- * TODO: add missing rig_set_/rig_get_: sql, dcd, etc.
  * NB: 'q' 'Q' '?' are reserved by interactive mode interface
- *      do NOT use -W since it's reserved by POSIX.
- *
- *  Available alphabetic letters: -.--------------*-----W-Y-
  */
 static struct test_table test_list[] =
 {
