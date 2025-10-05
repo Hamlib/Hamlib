@@ -574,7 +574,7 @@ int kpa_set_powerstat(AMP *amp, powerstat_t status)
 
     switch (status)
     {
-    case RIG_POWER_UNKNOWN: break;
+    //case RIG_POWER_UNKNOWN: break;
 
     case RIG_POWER_OFF: cmd = "^ON0;"; break;
 
@@ -584,17 +584,15 @@ int kpa_set_powerstat(AMP *amp, powerstat_t status)
 
     case RIG_POWER_STANDBY: cmd = "^OS0;"; break;
 
-
     default:
         rig_debug(RIG_DEBUG_ERR, "%s invalid status=%d\n", __func__, status);
+	return -RIG_EINVAL;
 
     }
 
     retval = kpa_transaction(amp, cmd, NULL, 0);
 
-    if (retval != RIG_OK) { return retval; }
-
-    return RIG_OK;
+    return retval;
 }
 
 int kpa_reset(AMP *amp, amp_reset_t reset)
