@@ -2996,12 +2996,6 @@ static int k3_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
     const char *cmd;
     int retval;
 
-    if (ch < 1 || ch > 4)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: expected 1<=ch<=4, got %d\n", __func__, ch);
-        return (-RIG_EINVAL);
-    }
-
     switch (ch)
     {
     case 1: cmd = "SWT21;"; break;
@@ -3011,6 +3005,10 @@ static int k3_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
     case 3: cmd = "SWT35;"; break;
 
     case 4: cmd = "SWT39;"; break;
+
+    default:      
+        rig_debug(RIG_DEBUG_ERR, "%s: expected 1<=ch<=4, got %d\n", __func__, ch);
+        return (-RIG_EINVAL);
     }
 
     retval = kenwood_transaction(rig, cmd, NULL, 0);
