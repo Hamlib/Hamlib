@@ -352,7 +352,7 @@ static struct test_table test_list[] =
     { 0x94, "send_voice_mem",   ACTION(send_voice_mem), ARG_NOVFO | ARG_IN, "Voice Mem#" },
     { 0xab, "stop_voice_mem",   ACTION(stop_voice_mem), ARG_NOVFO},
     { 0x8b, "get_dcd",          ACTION(get_dcd),        ARG_OUT | ARG_NOVFO, "DCD" },
-    { 0x97, "uplink",           ACTION(set_uplink),     ARG_IN | ARG_NOVFO, "1=Sub, 2=Main" },
+    { 0x97, "uplink",           ACTION(set_uplink),     ARG_IN | ARG_NOVFO, "1=Sub,2=Main" },
     { 0x8d, "set_twiddle",      ACTION(set_twiddle),    ARG_IN  | ARG_NOVFO, "Timeout (secs)" },
     { 0x8e, "get_twiddle",      ACTION(get_twiddle),    ARG_OUT | ARG_NOVFO, "Timeout (secs)" },
     { 0x95, "set_cache",        ACTION(set_cache),      ARG_IN | ARG_NOVFO, "Timeout (msecs)" },
