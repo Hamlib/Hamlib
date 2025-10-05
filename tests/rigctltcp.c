@@ -1121,7 +1121,7 @@ void *handle_socket(void *arg)
             powerstat_t powerstat;
             unsigned char cmd[64];
             unsigned char reply[64];
-            unsigned char *term = (unsigned char *)";";
+            unsigned char term[2] = ";";
             rig_debug(RIG_DEBUG_TRACE, "%s: doing rigctl_parse vfo_mode=%d, secure=%d\n",
                       __func__,
                       handle_data_arg->vfo_mode, handle_data_arg->use_password);
