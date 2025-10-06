@@ -18,12 +18,13 @@
  *
  */
 
+#include "hamlib/config.h"
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
 #include <sys/time.h>
 #include <errno.h>
+#include <unistd.h>
 
-#include "hamlib/config.h"
 #ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
 #endif
@@ -277,6 +278,7 @@ static int pstrotator_rot_init(ROT *rot)
     priv->az = priv->el = 0;
 
     priv->target_az = priv->target_el = 0;
+    priv->sockfd2 = -1;
 
     strcpy(ROTPORT(rot)->pathname, "192.168.56.1:12000");
 
@@ -335,6 +337,7 @@ static int pstrotator_rot_open(ROT *rot)
     if (bind(sockfd, (const struct sockaddr *)&clientAddr, sizeof(clientAddr)) < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: bind failed: %s\n", __func__, strerror(errno));
+	close(sockfd);
         return -RIG_EINTERNAL;
     }
 
@@ -370,6 +373,11 @@ static int pstrotator_rot_close(ROT *rot)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: thread stopped\n", __func__);
     priv->threadid = 0;
 
+    if (priv->sockfd2 != -1)
+    {
+        close(priv->sockfd2);
+        priv->sockfd2 = -1;
+    }
     return RIG_OK;
 }
 
