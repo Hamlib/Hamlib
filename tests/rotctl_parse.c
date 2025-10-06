@@ -222,6 +222,7 @@ struct test_table test_list[] =
     { 'X',  "set_parm",     ACTION(set_parm),           ARG_IN, "Parm", "Parm Value" },
     { 'x',  "get_parm",     ACTION(get_parm),           ARG_IN1 | ARG_OUT2, "Parm", "Parm Value" },
     { 'C', "set_conf",      ACTION(set_conf),           ARG_IN, "Token", "Value" },
+    { 0xad, "get_conf",     ACTION(get_conf), ARG_IN1 | ARG_OUT2, "Token", "Value"},
     { '_', "get_info",      ACTION(get_info),           ARG_OUT, "Info" },
     { 's', "get_status",    ACTION(get_status),         ARG_OUT, "Status flags" },
     { 'w', "send_cmd",      ACTION(send_cmd),           ARG_IN1 | ARG_IN_LINE | ARG_OUT2, "Cmd", "Reply" },
@@ -238,7 +239,6 @@ struct test_table test_list[] =
     { 'A', "a_sp2a_lp",     ACTION(az_sp2az_lp),        ARG_IN1 | ARG_OUT1, "Short Path Deg", "Long Path Deg" },
     { 'a', "d_sp2d_lp",     ACTION(dist_sp2dist_lp),    ARG_IN1 | ARG_OUT1, "Short Path km", "Long Path km" },
     { 0x8c, "pause",        ACTION(pause),              ARG_IN, "Seconds" },
-    { 0xad, "get_conf",     ACTION(get_conf), ARG_IN1 | ARG_OUT2, "Token", "Value"},
     { 0x00, "", NULL },
 
 };
