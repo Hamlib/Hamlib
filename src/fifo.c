@@ -1,3 +1,25 @@
+/*
+ *  Hamlib Interface - FIFO routines
+ *  Copyright (c) 2023-2025 by the Hamlib group
+ *
+ *
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
+ *
+ *   This library is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Lesser General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
+
 #include "hamlib/config.h"
 
 #include <stdio.h>
@@ -23,7 +45,7 @@ void resetFIFO(FIFO_RIG *fifo)
 
 // returns RIG_OK if added
 // return -RIG error if overflow
-int push(FIFO_RIG *fifo, const char *msg)
+int hl_push(FIFO_RIG *fifo, const char *msg)
 {
     pthread_mutex_lock(&fifo->mutex);
     int len = strlen(msg);
@@ -59,7 +81,7 @@ int push(FIFO_RIG *fifo, const char *msg)
     return RIG_OK;
 }
 
-int peek(FIFO_RIG *fifo)
+int hl_peek(FIFO_RIG *fifo)
 {
     if (fifo == NULL) { return -1; }
 
@@ -87,7 +109,7 @@ int peek(FIFO_RIG *fifo)
     return c;
 }
 
-int pop(FIFO_RIG *fifo)
+int hl_pop(FIFO_RIG *fifo)
 {
     if (fifo->tail == fifo->head) { return -1; }
 
@@ -118,12 +140,12 @@ int main()
     const char *str = "Hello, World!\n";
 
     // Pushing the string onto the FIFO
-    push(&fifo, str);
+    hl_push(&fifo, str);
 
     // Popping and printing one character at a time
     int c;
 
-    while ((c = pop(&fifo)) != -1)
+    while ((c = hl_pop(&fifo)) != -1)
     {
         printf("%c", c);
     }
