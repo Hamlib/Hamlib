@@ -284,6 +284,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
     int retval = -RIG_EINTERNAL;
     char *cmd;
     int len;
+    int resp_len;  // Response length
     int retry_read = 0;
     struct kenwood_priv_data *priv = STATE(rig)->priv;
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
@@ -449,14 +450,7 @@ transaction_read:
     rig_debug(RIG_DEBUG_TRACE, "%s: read_string len=%d '%s'\n", __func__,
               (int)strlen(buffer), buffer);
 
-    // This fixes the case when some corrupt data is returned; it lets us be a
-    // little more robust about funky serial data. If the terminator is
-    // printable(usually ';'), then there should be no nonprintables in the
-    // message; if it isn't (usually '\r') then don't touch the message.
-    if (isprint(caps->cmdtrm))
-    {
-        remove_nonprint(buffer);
-    }
+    resp_len = retval;
 
     if (retval < 0)
     {
@@ -490,10 +484,20 @@ transaction_read:
         goto transaction_quit;
     }
 
-    /* Check that command termination is correct */
-    if (strchr(cmdtrm_str, buffer[strlen(buffer) - 1]) == NULL)
+    // This fixes the case when some corrupt data is returned; it lets us be a
+    // little more robust about funky serial data. If the terminator is
+    // printable(usually ';'), then there should be no nonprintables in the
+    // message; if it isn't (usually '\r') then don't touch the message.
+    if (isprint(caps->cmdtrm))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n",
+        remove_nonprint(buffer);
+        resp_len = strlen(buffer);
+    }
+
+    /* Check that command termination is correct */
+    if (resp_len < 1 || strchr(cmdtrm_str, buffer[resp_len - 1]) == NULL)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: Response is not correctly terminated '%s'\n",
                   __func__, buffer);
 
         if (retry_read++ < rp->retry)
@@ -505,7 +509,7 @@ transaction_read:
         goto transaction_quit;
     }
 
-    if (strlen(buffer) == 2)
+    if (resp_len == 2)
     {
         switch (buffer[0])
         {
@@ -556,12 +560,13 @@ transaction_read:
         case '?':
 
             /* The ? response is an ambiguous response, but for get commands it seems to
-             * indicate that the rig rejected the command because the state of the rig is not valid for the command
-             * or that the command parameter is invalid. Retrying the command does not fix the issue,
-             * as the error is caused by the an invalid combination of rig state.
+             * indicate that the rig rejected the command because the state of the rig is
+             * not valid for the command or that the command parameter is invalid.
+             * Retrying the command does not fix the issue, as the error is caused by
+             * the invalid combination of command and rig state.
              *
              * For example, the following cases have been observed:
-             * - NL (NB level) and RL (NR level) commands fail if NB / NR are not enabled on TS-590SG
+             * - NL(NB level) and RL(NR level) commands fail if NB/NR are not enabled on TS-590SG
              * - SH and SL (filter width) fail in CW mode on TS-590SG
              * - GT (AGC) fails in FM mode on TS-590SG
              *
@@ -701,9 +706,9 @@ transaction_read:
         }
     }
 
-    retval = RIG_OK;
     rig_debug(RIG_DEBUG_TRACE, "%s: returning RIG_OK, retval=%d\n", __func__,
               retval);
+    retval = RIG_OK;
 
 transaction_quit:
 
