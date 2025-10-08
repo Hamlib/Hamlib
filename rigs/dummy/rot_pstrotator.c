@@ -337,7 +337,7 @@ static int pstrotator_rot_open(ROT *rot)
     if (bind(sockfd, (const struct sockaddr *)&clientAddr, sizeof(clientAddr)) < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: bind failed: %s\n", __func__, strerror(errno));
-	close(sockfd);
+        close(sockfd);
         return -RIG_EINTERNAL;
     }
 
