@@ -650,7 +650,7 @@ transaction_read:
         {
             /* move the result excluding the command terminator into the
                caller buffer */
-            len = min(datasize, retval) - 1;
+            len = min(datasize, resp_len) - 1;
             strncpy(data, buffer, len);
             data[len] = '\0';
         }
@@ -706,7 +706,7 @@ transaction_read:
         }
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: returning RIG_OK, retval=%d\n", __func__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: returning RIG_OK, retval was %d\n", __func__,
               retval);
     retval = RIG_OK;
 
