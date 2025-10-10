@@ -348,7 +348,7 @@ int gemini_set_powerstat(AMP *amp, powerstat_t status)
 
     switch (status)
     {
-    case RIG_POWER_UNKNOWN: break;
+    //case RIG_POWER_UNKNOWN: break;
 
     case RIG_POWER_OFF: cmd = "R0\n"; break;
 
@@ -358,17 +358,15 @@ int gemini_set_powerstat(AMP *amp, powerstat_t status)
 
     case RIG_POWER_STANDBY: cmd = "R0\n"; break;
 
-
     default:
         rig_debug(RIG_DEBUG_ERR, "%s invalid status=%d\n", __func__, status);
+        return -RIG_EINVAL;
 
     }
 
     retval = gemini_transaction(amp, cmd, NULL, 0);
 
-    if (retval != RIG_OK) { return retval; }
-
-    return RIG_OK;
+    return retval;
 }
 
 int gemini_reset(AMP *amp, amp_reset_t reset)
