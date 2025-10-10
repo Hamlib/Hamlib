@@ -490,8 +490,7 @@ transaction_read:
     // message; if it isn't (usually '\r') then don't touch the message.
     if (isprint(caps->cmdtrm))
     {
-        remove_nonprint(buffer);
-        resp_len = strlen(buffer);
+        resp_len = remove_nonprint(buffer);
     }
 
     /* Check that command termination is correct */
