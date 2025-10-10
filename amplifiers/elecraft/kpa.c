@@ -586,7 +586,7 @@ int kpa_set_powerstat(AMP *amp, powerstat_t status)
 
     default:
         rig_debug(RIG_DEBUG_ERR, "%s invalid status=%d\n", __func__, status);
-	return -RIG_EINVAL;
+        return -RIG_EINVAL;
 
     }
 
