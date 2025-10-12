@@ -25,6 +25,7 @@
 #include <math.h>
 
 #include "hamlib/rig.h"
+#include "hamlib/rig_state.h"
 #include "kenwood.h"
 #include "th.h"
 #include "misc.h"
@@ -150,6 +151,7 @@ int thd72_open(RIG *rig)
     int ret;
     struct kenwood_priv_data *priv = STATE(rig)->priv;
     strcpy(priv->verify_cmd, "ID\r");
+    priv->verify_cmd_len = 3;
 
     //ret = kenwood_transaction(rig, "", NULL, 0);
     //DELAY;

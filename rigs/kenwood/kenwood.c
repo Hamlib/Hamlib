@@ -30,6 +30,8 @@
 #include <ctype.h>
 
 #include "hamlib/rig.h"
+#include "hamlib/port.h"
+#include "hamlib/rig_state.h"
 #include "serial.h"
 #include "register.h"
 #include "cal.h"
@@ -431,8 +433,8 @@ transaction_write:
         /* no reply expected so we need to write a command that always
            gives a reply so we can read any error replies from the actual
            command being sent without blocking */
-        if (RIG_OK != (retval = write_block(rp,
-                                            (unsigned char *) priv->verify_cmd, strlen(priv->verify_cmd))))
+        if (RIG_OK != (retval = write_block(rp, (unsigned char *)priv->verify_cmd,
+                                            priv->verify_cmd_len)))
         {
             goto transaction_quit;
         }
@@ -443,7 +445,7 @@ transaction_read:
     // this len/expected stuff is confusing -- logic in some places includes the semicolon
     // so we add 1 to our read_string length to cover these cases
     // eventually we should be able to get rid of this but requires testing all Kenwood rigs
-    len = min(datasize ? datasize + 1 : strlen(priv->verify_cmd) + 48,
+    len = min(datasize ? datasize + 1 : priv->verify_cmd_len + 48,
               KENWOOD_MAX_BUF_LEN);
     retval = read_string(rp, (unsigned char *) buffer, len,
                          cmdtrm_str, strlen(cmdtrm_str), 0, 1);
@@ -851,12 +853,11 @@ int kenwood_init(RIG *rig)
 
     priv = STATE(rig)->priv;
 
-    memset(priv, 0x00, sizeof(struct kenwood_priv_data));
-
     if (RIG_IS_XG3)
     {
         priv->verify_cmd[0] = caps->cmdtrm;
         priv->verify_cmd[1] = '\0';
+        priv->verify_cmd_len = 1;
     }
     else
     {
@@ -864,6 +865,7 @@ int kenwood_init(RIG *rig)
         priv->verify_cmd[1] = 'D';
         priv->verify_cmd[2] = caps->cmdtrm;
         priv->verify_cmd[3] = '\0';
+        priv->verify_cmd_len = 3;
     }
 
     priv->split = RIG_SPLIT_OFF;
@@ -1049,6 +1051,7 @@ int kenwood_open(RIG *rig)
         priv->verify_cmd[1] = 'A';
         priv->verify_cmd[2] = caps->cmdtrm;
         priv->verify_cmd[3] = '\0';
+        priv->verify_cmd_len = 3;
         strcpy(id, "ID019");      /* fake a TS-2000 */
     }
     else
