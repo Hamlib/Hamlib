@@ -155,6 +155,7 @@ struct kenwood_priv_data
     int trn_state;    /* AI state discovered at startup */
     unsigned fw_rev_uint; /* firmware revision as a number 1.07 -> 107 */
     char verify_cmd[4];   /* command used to verify set commands */
+    int verify_cmd_len;   /* length of above command - set when cmd built */
     int is_emulation;     /* flag for TS-2000 emulations */
     void *data;           /* model specific data */
     rmode_t curr_mode;    /* used for is_emulation to avoid get_mode on VFOB */

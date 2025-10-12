@@ -28,6 +28,8 @@
 #include <ctype.h>   /* character class tests */
 
 #include "hamlib/rig.h"
+#include "hamlib/port.h"
+#include "hamlib/rig_state.h"
 #include "iofunc.h"
 #include "misc.h"
 
@@ -101,8 +103,8 @@ transaction:
         char buffer[50];
         const struct kenwood_priv_data *priv = STATE(rig)->priv;
 
-        if (RIG_OK != (retval = write_block(rp,
-                                            (unsigned char *) priv->verify_cmd, strlen(priv->verify_cmd))))
+        if (RIG_OK != (retval = write_block(rp, (unsigned char *)priv->verify_cmd,
+                                            priv->verify_cmd_len)))
         {
             return retval;
         }
