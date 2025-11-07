@@ -134,7 +134,7 @@ static int barrett4100_close(RIG *rig)
         rig_debug(RIG_DEBUG_ERR, "%s(%d): result=%s\n", __func__, __LINE__, response);
     }
 
-    return rig_close(rig);
+    return retval;
 }
 
 int barrett4100_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
