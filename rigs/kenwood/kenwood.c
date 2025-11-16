@@ -5648,10 +5648,11 @@ int kenwood_send_voice_mem(RIG *rig, vfo_t vfo, int bank)
     struct kenwood_priv_data *priv = STATE(rig)->priv;
     ENTERFUNC;
 
-#if 0 // don't really need to turn on the list
-    SNPRINTF(cmd, sizeof(cmd), "PB01");
-    kenwood_transaction(rig, cmd, NULL, 0);
-#endif
+    if (RIG_IS_TS890S || RIG_IS_TS990S)
+    {
+        kenwood_transaction(rig, "PB01", NULL, 0);
+    }
+
 
     if ((bank < 1 || bank > 3) &&
             (rig->caps->rig_model == RIG_MODEL_TS2000
@@ -5679,13 +5680,12 @@ int kenwood_send_voice_mem(RIG *rig, vfo_t vfo, int bank)
     }
     else
     {
-        SNPRINTF(cmd, sizeof(cmd), "PB1%d1", bank);
+        SNPRINTF(cmd, sizeof(cmd), "PB1%d5", bank);
     }
 
     priv->voice_bank = bank;
     RETURNFUNC(kenwood_transaction(rig, cmd, NULL, 0));
 }
-
 int kenwood_stop_voice_mem(RIG *rig, vfo_t vfo)
 {
     char cmd[16];
