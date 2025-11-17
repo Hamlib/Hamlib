@@ -1753,6 +1753,7 @@ struct rig_caps ts2000_caps =
     .chan_list =  {
         { 0, 299, RIG_MTYPE_MEM, TS2000_MEM_CAP  },
         { 1,   3, RIG_MTYPE_MORSE },
+        { 1,   3, RIG_MTYPE_VOICE }, // Only if DRU-3A installed
         RIG_CHAN_END,
     },
 
@@ -2011,6 +2012,7 @@ struct rig_caps sdrconsole_caps =
     .chan_list =  {
         { 0, 299, RIG_MTYPE_MEM, TS2000_MEM_CAP  },
         { 1,   3, RIG_MTYPE_MORSE },
+        //{ 1,   3, RIG_MTYPE_VOICE }, // ??? Standard or optional ???
         RIG_CHAN_END,
     },
 

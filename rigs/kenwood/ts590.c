@@ -1748,6 +1748,7 @@ struct rig_caps ts590_caps =
     .chan_list =  { /* TBC */
         {  0, 89, RIG_MTYPE_MEM,  TS590_CHANNEL_CAPS },
         { 90, 99, RIG_MTYPE_EDGE, TS590_CHANNEL_CAPS },
+        {  1,  4, RIG_MTYPE_VOICE },
         RIG_CHAN_END,
     },
 
@@ -1919,6 +1920,8 @@ struct rig_caps ts590_caps =
     .send_morse =  kenwood_send_morse,
     .stop_morse =  kenwood_stop_morse,
     .wait_morse =  rig_wait_morse,
+    .send_voice_mem = kenwood_send_voice_mem,
+    .stop_voice_mem = kenwood_stop_voice_mem,
     .set_mem =  kenwood_set_mem,
     .get_mem =  kenwood_get_mem,
     .vfo_ops = TS590_VFO_OPS,
@@ -1969,6 +1972,7 @@ struct rig_caps fx4_caps =
     .chan_list =  { /* TBC */
         {  0, 89, RIG_MTYPE_MEM,  TS590_CHANNEL_CAPS },
         { 90, 99, RIG_MTYPE_EDGE, TS590_CHANNEL_CAPS },
+        {  1,  4, RIG_MTYPE_VOICE }, //??? Standard ???
         RIG_CHAN_END,
     },
 
@@ -2180,6 +2184,7 @@ struct rig_caps ts590sg_caps =
         {  0, 89, RIG_MTYPE_MEM,  TS590_CHANNEL_CAPS },
         { 90, 99, RIG_MTYPE_EDGE, TS590_CHANNEL_CAPS },
         {  1,  3, RIG_MTYPE_MORSE },
+        {  1,  4, RIG_MTYPE_VOICE },
         RIG_CHAN_END,
     },
 
@@ -2350,6 +2355,8 @@ struct rig_caps ts590sg_caps =
     .send_morse =  kenwood_send_morse,
     .stop_morse =  kenwood_stop_morse,
     .wait_morse =  rig_wait_morse,
+    .send_voice_mem = kenwood_send_voice_mem,
+    .stop_voice_mem = kenwood_stop_voice_mem,
     .set_mem =  kenwood_set_mem,
     .get_mem =  kenwood_get_mem,
     .vfo_ops = TS590_VFO_OPS,
