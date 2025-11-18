@@ -840,18 +840,20 @@ int kenwood_init(RIG *rig)
 {
     struct kenwood_priv_data *priv;
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
+    struct rig_state *rs = STATE(rig);
+    int i;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, version %s/%s\n", __func__,
               BACKEND_VER, rig->caps->version);
 
-    STATE(rig)->priv = calloc(1, sizeof(struct kenwood_priv_data));
+    rs->priv = calloc(1, sizeof(struct kenwood_priv_data));
 
-    if (STATE(rig)->priv == NULL)
+    if (rs->priv == NULL)
     {
         RETURNFUNC2(-RIG_ENOMEM);
     }
 
-    priv = STATE(rig)->priv;
+    priv = rs->priv;
 
     if (RIG_IS_XG3)
     {
@@ -905,6 +907,39 @@ int kenwood_init(RIG *rig)
     if (rig->caps->rig_model == RIG_MODEL_SDRUNO)
     {
         kenwood_mode_table[8] = RIG_MODE_PKTUSB;
+    }
+
+    /* Set up voice memory parameters */
+    priv->voice_mem_max = -1;
+    for (i = 0; i < HAMLIB_CHANLSTSIZ && !RIG_IS_CHAN_END(rs->chan_list[i]); i++)
+    {
+        if (rs->chan_list[i].type == RIG_MTYPE_VOICE)
+        {
+            priv->voice_mem_min = rs->chan_list[i].startc;
+            priv->voice_mem_max = rs->chan_list[i].endc;
+        }
+        /* Do morse mem here */
+    }
+    if (priv->voice_mem_max > 0)
+    {
+        if (RIG_IS_TS890S || RIG_IS_TS990S)
+        {
+            /* The PB01 command displays the 'Voice Message List', and we don't turn it off;
+               turning it off also cancels the message(stupid firmware!), so it has to be on
+               for the duration.
+               Maybe someday there'll be a better way, but for now, if it bothers you just hit
+               the ESC button(bottom left)
+             */
+            priv->voice_mem_enable = "PB01";
+            priv->voice_mem_start = "PB1%d5";
+            priv->voice_mem_stop = "PB1%d0";
+        }
+        else
+        {
+            //priv->voice_mem_enable = NULL;
+            priv->voice_mem_start = "PB%d";
+            priv->voice_mem_stop = "PB0";
+        }
     }
 
     RETURNFUNC2(RIG_OK);
@@ -5648,40 +5683,19 @@ int kenwood_send_voice_mem(RIG *rig, vfo_t vfo, int bank)
     struct kenwood_priv_data *priv = STATE(rig)->priv;
     ENTERFUNC;
 
-    if (RIG_IS_TS890S || RIG_IS_TS990S)
+    if (bank < priv->voice_mem_min || bank > priv->voice_mem_max)
     {
-        kenwood_transaction(rig, "PB01", NULL, 0);
-    }
-
-
-    if ((bank < 1 || bank > 3) &&
-            (rig->caps->rig_model == RIG_MODEL_TS2000
-             || rig->caps->rig_model == RIG_MODEL_TS480))
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: TS2000/TS480 channel is from 1 to 3\n", __func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: Voice channels from %d to %d, %d out of range\n", __func__,
+                  (int)priv->voice_mem_min, (int)priv->voice_mem_max, bank);
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    // some rigs have 5 channels -- newew ones  have 10 channels
-    if ((bank  < 1 || bank > 5)
-            && (rig->caps->rig_model == RIG_MODEL_TS590SG
-                || rig->caps->rig_model == RIG_MODEL_TS590S))
+    if (priv->voice_mem_enable)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: TS590S/SG channel is from 1 to 5\n", __func__);
-        RETURNFUNC(-RIG_EINVAL);
+        kenwood_transaction(rig, priv->voice_mem_enable, NULL, 0);
     }
 
-    if (rig->caps->rig_model == RIG_MODEL_TS2000
-            || (rig->caps->rig_model == RIG_MODEL_TS480
-                || (rig->caps->rig_model == RIG_MODEL_TS590SG
-                    || rig->caps->rig_model == RIG_MODEL_TS590S)))
-    {
-        SNPRINTF(cmd, sizeof(cmd), "PB%d", bank);
-    }
-    else
-    {
-        SNPRINTF(cmd, sizeof(cmd), "PB1%d5", bank);
-    }
+    SNPRINTF(cmd, sizeof(cmd), priv->voice_mem_start, bank);
 
     priv->voice_bank = bank;
     RETURNFUNC(kenwood_transaction(rig, cmd, NULL, 0));
@@ -5692,17 +5706,10 @@ int kenwood_stop_voice_mem(RIG *rig, vfo_t vfo)
     struct kenwood_priv_data *priv = STATE(rig)->priv;
     ENTERFUNC;
 
-    if (rig->caps->rig_model == RIG_MODEL_TS2000
-            || (rig->caps->rig_model == RIG_MODEL_TS480
-                || (rig->caps->rig_model == RIG_MODEL_TS590SG
-                    || rig->caps->rig_model == RIG_MODEL_TS590S)))
-    {
-        SNPRINTF(cmd, sizeof(cmd), "PB0");
-    }
-    else
-    {
-        SNPRINTF(cmd, sizeof(cmd), "PB1%d0", priv->voice_bank);
-    }
+    if (!priv->voice_mem_stop) { RETURNFUNC(-RIG_EINTERNAL); }
+
+    // priv->voice_bank may be unused
+    SNPRINTF(cmd, sizeof(cmd), priv->voice_mem_stop, priv->voice_bank);
 
     RETURNFUNC(kenwood_transaction(rig, cmd, NULL, 0));
 }
