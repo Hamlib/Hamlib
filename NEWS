@@ -14,6 +14,7 @@ Version 5.x -- future
 
 Version 4.7.0
         * 2025-12-01 (target)
+        * Revamp Kenwood voice memory handler - Fixes TS-890S & TS-990S (n3gb)
         * libusb is now detected using the pkg-config facility.
         * Some internal functions change names to avoid conflicts with apps.
         * POSIX threads are required to build and run Hamlib. Note that it was
