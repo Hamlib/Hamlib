@@ -1085,39 +1085,12 @@ int HAMLIB_API rig_open(RIG *rig)
     pttp = PTTPORT(rig);
     dcdp = DCDPORT(rig);
     rp->rig = rig;
-    rs->rigport_deprecated.rig = rig;
 
     if (strcmp(rp->pathname, "USB") == 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: 'USB' is not a valid COM port name\n", __func__);
         errno = 2;
         RETURNFUNC2(-RIG_EINVAL);
-    }
-
-    // rigctl/rigctld may have deprecated values -- backwards compatibility
-    if (rs->rigport_deprecated.pathname[0] != 0)
-    {
-        strcpy(rp->pathname, rs->rigport_deprecated.pathname);
-    }
-
-    if (rs->pttport_deprecated.type.ptt != RIG_PTT_NONE)
-    {
-        pttp->type.ptt = rs->pttport_deprecated.type.ptt;
-    }
-
-    if (rs->dcdport_deprecated.type.dcd != RIG_DCD_NONE)
-    {
-        dcdp->type.dcd = rs->dcdport_deprecated.type.dcd;
-    }
-
-    if (rs->pttport_deprecated.pathname[0] != 0)
-    {
-        strcpy(pttp->pathname, rs->pttport_deprecated.pathname);
-    }
-
-    if (rs->dcdport_deprecated.pathname[0] != 0)
-    {
-        strcpy(dcdp->pathname, rs->dcdport_deprecated.pathname);
     }
 
     rig_settings_load_all(NULL); // load default .hamlib_settings
@@ -1578,7 +1551,6 @@ int HAMLIB_API rig_open(RIG *rig)
         {
             remove_opened_rig(rig);
             port_close(rp, rp->type.rig);
-            memcpy(&rs->rigport_deprecated, rp, sizeof(hamlib_port_t_deprecated));
             rs->comm_state = 0;
             rs->comm_status = RIG_COMM_STATUS_ERROR;
             RETURNFUNC2(status);
@@ -1710,9 +1682,6 @@ int HAMLIB_API rig_open(RIG *rig)
 
     rp->retry = retry_save;
 
-    memcpy(&rs->rigport_deprecated, rp, sizeof(hamlib_port_t_deprecated));
-    memcpy(&rs->pttport_deprecated, pttp, sizeof(hamlib_port_t_deprecated));
-    memcpy(&rs->dcdport_deprecated, dcdp, sizeof(hamlib_port_t_deprecated));
     int timesave = rs->timeout;
     rs->timeout = 0;
     rig_flush_force(rp, 1);
@@ -1840,7 +1809,6 @@ int HAMLIB_API rig_close(RIG *rig)
             if (pttp->fd != rp->fd)
             {
                 port_close(pttp, RIG_PORT_SERIAL);
-                memcpy(&rs->rigport_deprecated, rp, sizeof(hamlib_port_t_deprecated));
             }
         }
 
@@ -1856,7 +1824,6 @@ int HAMLIB_API rig_close(RIG *rig)
             if (pttp->fd != rp->fd)
             {
                 port_close(pttp, RIG_PORT_SERIAL);
-                memcpy(&rs->rigport_deprecated, rp, sizeof(hamlib_port_t_deprecated));
             }
         }
 
@@ -1897,7 +1864,6 @@ int HAMLIB_API rig_close(RIG *rig)
         if (dcdp->fd != rp->fd)
         {
             port_close(dcdp, RIG_PORT_SERIAL);
-            memcpy(&rs->rigport_deprecated, rp, sizeof(hamlib_port_t_deprecated));
         }
 
         break;
@@ -3954,9 +3920,6 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     if (retcode != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s: Return code=%d\n", __func__, retcode); }
 
-    memcpy(&rs->pttport_deprecated, pttp,
-           sizeof(rs->pttport_deprecated));
-
     if (rs->post_ptt_delay > 0) { hl_usleep(rs->post_ptt_delay * 1000); }
 
     ELAPSED2;
@@ -4383,24 +4346,18 @@ int HAMLIB_API rig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 
     case RIG_DCD_SERIAL_CTS:
         retcode = ser_get_cts(dcdp, &status);
-        memcpy(&rs->dcdport_deprecated, dcdp,
-               sizeof(rs->dcdport_deprecated));
         *dcd = status ? RIG_DCD_ON : RIG_DCD_OFF;
         ELAPSED2;
         RETURNFUNC(retcode);
 
     case RIG_DCD_SERIAL_DSR:
         retcode = ser_get_dsr(dcdp, &status);
-        memcpy(&rs->dcdport_deprecated, dcdp,
-               sizeof(rs->dcdport_deprecated));
         *dcd = status ? RIG_DCD_ON : RIG_DCD_OFF;
         ELAPSED2;
         RETURNFUNC(retcode);
 
     case RIG_DCD_SERIAL_CAR:
         retcode = ser_get_car(dcdp, &status);
-        memcpy(&rs->dcdport_deprecated, dcdp,
-               sizeof(rs->dcdport_deprecated));
         *dcd = status ? RIG_DCD_ON : RIG_DCD_OFF;
         ELAPSED2;
         RETURNFUNC(retcode);
@@ -4408,16 +4365,12 @@ int HAMLIB_API rig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 
     case RIG_DCD_PARALLEL:
         retcode = par_dcd_get(dcdp, dcd);
-        memcpy(&rs->dcdport_deprecated, dcdp,
-               sizeof(rs->dcdport_deprecated));
         ELAPSED2;
         RETURNFUNC(retcode);
 
     case RIG_DCD_GPIO:
     case RIG_DCD_GPION:
         retcode = gpio_dcd_get(dcdp, dcd);
-        memcpy(&rs->dcdport_deprecated, dcdp,
-               sizeof(rs->dcdport_deprecated));
         ELAPSED2;
         RETURNFUNC(retcode);
 

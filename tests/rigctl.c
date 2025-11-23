@@ -580,7 +580,6 @@ int main(int argc, char *argv[])
     if (serial_rate != 0)
     {
         RIGPORT(my_rig)->parm.serial.rate = serial_rate;
-        rs->rigport_deprecated.parm.serial.rate = serial_rate;
     }
 
     if (civaddr)

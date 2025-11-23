@@ -591,7 +591,6 @@ int main(int argc, char *argv[])
     if (ptt_type != RIG_PTT_NONE)
     {
         PTTPORT(my_rig)->type.ptt = ptt_type;
-        rs->pttport_deprecated.type.ptt = ptt_type;
         // This causes segfault since backend rig_caps are const
         // rigctld will use the STATE(rig) version of this for clients
         //my_rig->caps->ptt_type = ptt_type;
@@ -600,28 +599,22 @@ int main(int argc, char *argv[])
     if (dcd_type != RIG_DCD_NONE)
     {
         DCDPORT(my_rig)->type.dcd = dcd_type;
-        rs->dcdport_deprecated.type.dcd = dcd_type;
     }
 
     if (ptt_file)
     {
         strncpy(PTTPORT(my_rig)->pathname, ptt_file, HAMLIB_FILPATHLEN - 1);
-        strncpy(rs->pttport_deprecated.pathname, ptt_file,
-                HAMLIB_FILPATHLEN - 1);
     }
 
     if (dcd_file)
     {
         strncpy(DCDPORT(my_rig)->pathname, dcd_file, HAMLIB_FILPATHLEN - 1);
-        strncpy(rs->dcdport_deprecated.pathname, dcd_file,
-                HAMLIB_FILPATHLEN - 1);
     }
 
     /* FIXME: bound checking and port type == serial */
     if (serial_rate != 0)
     {
         RIGPORT(my_rig)->parm.serial.rate = serial_rate;
-        rs->rigport_deprecated.parm.serial.rate = serial_rate;
     }
 
     if (civaddr)
