@@ -593,6 +593,22 @@ static void vaporize(RIG *rig)
         CACHE(rig) = NULL;
     }
 
+    if (RIGPORT(rig))
+    {
+        free(RIGPORT(rig));
+        RIGPORT(rig) = NULL;
+    }
+    if (PTTPORT(rig))
+    {
+        free(PTTPORT(rig));
+        PTTPORT(rig) = NULL;
+    }
+    if (DCDPORT(rig))
+    {
+        free(DCDPORT(rig));
+        DCDPORT(rig) = NULL;
+    }
+
     /* Other buffers go here, as they are converted
      *  to pointers/calloc - WIP
      */
@@ -692,14 +708,23 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
      * populate the rig->state
      * TODO: read the Preferences here!
      */
+    //TODO Allocate and link rig_state
     rs = STATE(rig);
     pthread_mutex_init(&rs->mutex_set_transaction, NULL);
 
-    //TODO Allocate and link ports
-    // For now, use the embedded ones
-    rp = RIGPORT(rig);
-    pttp = PTTPORT(rig);
-    dcdp = DCDPORT(rig);
+    // Allocate and link ports
+    needed = sizeof(hamlib_port_t);
+    rig_debug(RIG_DEBUG_TRACE, "Requesting %zu bytes for each port\n", needed);
+    //TODO: Do we always need all three?
+    rp = RIGPORT(rig) = calloc(1, needed);
+    pttp = PTTPORT(rig) = calloc(1, needed);
+    dcdp = DCDPORT(rig) = calloc(1, needed);
+    if (!rp || !pttp || !dcdp)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: Port calloc failed\n", __func__);
+        vaporize(rig);
+        return NULL;
+    }
 
     // Allocate space for cached data
     needed = sizeof(struct rig_cache);
