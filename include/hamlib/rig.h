@@ -2394,9 +2394,9 @@ __BEGIN_DECLS
 //       Conversion to calloc() use is underway
 #if defined(IN_HAMLIB)
 /* These are for internal use only */
-#define RIGPORT(r) (&(r)->state.rigport)
-#define PTTPORT(r) (&(r)->state.pttport)
-#define DCDPORT(r) (&(r)->state.dcdport)
+#define RIGPORT(r) ((r)->rigport_addr)
+#define PTTPORT(r) ((r)->pttport_addr)
+#define DCDPORT(r) ((r)->dcdport_addr)
 //Moved to src/cache.h #define CACHE(r) ((r)->cache_addr)
 #define AMPPORT(a) (&(a)->state.ampport)
 #define ROTPORT(r) (&(r)->state.rotport)
@@ -2666,6 +2666,9 @@ struct s_rig {
  *  and should *NOT* be referenced by applications, as layout will change!
  */
     struct rig_cache *cache_addr;   /*!< address of rig_cache buffer */
+    hamlib_port_t *rigport_addr;    /*!< address of rig control (CAT) port struct */
+    hamlib_port_t *pttport_addr;    /*!< address of PTT control port struct */
+    hamlib_port_t *dcdport_addr;    /*!< address of DCD control port struct */
 };
 
 
