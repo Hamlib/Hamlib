@@ -237,7 +237,7 @@ static struct opened_rig_l *opened_rig_list = { NULL };
  */
 //! @cond hl_static
 /**
- * @brief Plain text desrciptions of Hamlib error codes.
+ * @brief Plain text descriptions of Hamlib error codes.
  *
  * @ingroup lib_internal
  *
