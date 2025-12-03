@@ -67,8 +67,11 @@ struct rig_state {
     // this should allow changes to hamlib_port_t without breaking shared libraries
     // these will maintain a copy of the new port_t for backwards compatibility
     // to these offsets -- note these must stay until a major version update is done like 5.0
+    HL_DEPRECATED
     hamlib_port_t_deprecated rigport_deprecated;  /*!< \deprecated Rig port (internal use). */
+    HL_DEPRECATED
     hamlib_port_t_deprecated pttport_deprecated;  /*!< \deprecated PTT port (internal use). */
+    HL_DEPRECATED
     hamlib_port_t_deprecated dcdport_deprecated;  /*!< \deprecated DCD port (internal use). */
 
     double vfo_comp;        /*!< VFO compensation in PPM, 0.0 to disable */
@@ -162,8 +165,12 @@ struct rig_state {
     volatile int poll_routine_thread_run;           /*!< Poll routine thread run flag. */
     void *poll_routine_priv_data;                   /*!< Pointer to rig_poll_routine_priv_data. */
     pthread_mutex_t mutex_set_transaction;          /*!< Thread mutex flag. */
+    // No longer read, written or referenced in Hamlib code.
+    HL_DEPRECATED
     hamlib_port_t rigport;  /*!< Rig port (internal use). */
+    HL_DEPRECATED
     hamlib_port_t pttport;  /*!< PTT port (internal use). */
+    HL_DEPRECATED
     hamlib_port_t dcdport;  /*!< DCD port (internal use). */
     /********* DO NOT ADD or CHANGE anything (or than to rename) ABOVE THIS LINE *********/
     /********* ENSURE ANY NEW ITEMS ARE ADDED AFTER HERE *********/

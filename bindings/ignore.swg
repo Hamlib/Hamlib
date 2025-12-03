@@ -120,6 +120,10 @@
 %ignore rig_state::cache; // deprecated
 %ignore rig_set_trn; // deprecated
 %ignore rig_get_trn; // deprecated
+// Going away RSN
+%ignore rigport;
+%ignore pttport;
+%ignore dcdport;
 
 #ifdef SWIGLUA
 %ignore Rig::set_level(setting_t,int,vfo_t);
