@@ -598,262 +598,254 @@ struct s_rot {
 /* --------------- API function prototypes -----------------*/
 
 extern HAMLIB_EXPORT(ROT *)
-rot_init HAMLIB_PARAMS((rot_model_t rot_model));
+rot_init(rot_model_t rot_model);
 
 extern HAMLIB_EXPORT(int)
-rot_open HAMLIB_PARAMS((ROT *rot));
+rot_open(ROT *rot);
 
 extern HAMLIB_EXPORT(int)
-rot_close HAMLIB_PARAMS((ROT *rot));
+rot_close(ROT *rot);
 
 extern HAMLIB_EXPORT(int)
-rot_cleanup HAMLIB_PARAMS((ROT *rot));
+rot_cleanup(ROT *rot);
 
 extern HAMLIB_EXPORT(int)
-rot_set_conf HAMLIB_PARAMS((ROT *rot,
-                            hamlib_token_t token,
-                            const char *val));
+rot_set_conf(ROT *rot,
+             hamlib_token_t token,
+             const char *val);
 HL_DEPRECATED extern HAMLIB_EXPORT(int)
-rot_get_conf HAMLIB_PARAMS((ROT *rot,
-                            hamlib_token_t token,
-                            char *val));
+rot_get_conf(ROT *rot,
+             hamlib_token_t token,
+             char *val);
 
 extern HAMLIB_EXPORT(int)
-rot_get_conf2 HAMLIB_PARAMS((ROT *rot,
-                            hamlib_token_t token,
-                            char *val,
-                            int val_len));
+rot_get_conf2(ROT *rot,
+              hamlib_token_t token,
+              char *val,
+              int val_len);
 
 /*
  *  General API commands, from most primitive to least.. )
  *  List Set/Get functions pairs
  */
 extern HAMLIB_EXPORT(int)
-rot_set_position HAMLIB_PARAMS((ROT *rot,
-                                azimuth_t azimuth,
-                                elevation_t elevation));
+rot_set_position(ROT *rot,
+                 azimuth_t azimuth,
+                 elevation_t elevation);
 extern HAMLIB_EXPORT(int)
-rot_get_position HAMLIB_PARAMS((ROT *rot,
-                                azimuth_t *azimuth,
-                                elevation_t *elevation));
+rot_get_position(ROT *rot,
+                 azimuth_t *azimuth,
+                 elevation_t *elevation);
 
 extern HAMLIB_EXPORT(int)
-rot_stop HAMLIB_PARAMS((ROT *rot));
+rot_stop(ROT *rot);
 
 extern HAMLIB_EXPORT(int)
-rot_park HAMLIB_PARAMS((ROT *rot));
+rot_park(ROT *rot);
 
 extern HAMLIB_EXPORT(int)
-rot_reset HAMLIB_PARAMS((ROT *rot,
-                         rot_reset_t reset));
+rot_reset(ROT *rot,
+          rot_reset_t reset);
 
 extern HAMLIB_EXPORT(int)
-rot_move HAMLIB_PARAMS((ROT *rot,
-                        int direction,
-                        int speed));
-
-extern HAMLIB_EXPORT(setting_t)
-rot_has_get_level HAMLIB_PARAMS((ROT *rot,
-                                 setting_t level));
-extern HAMLIB_EXPORT(setting_t)
-rot_has_set_level HAMLIB_PARAMS((ROT *rot,
-                                 setting_t level));
+rot_move(ROT *rot,
+         int direction,
+         int speed);
 
 extern HAMLIB_EXPORT(setting_t)
-rot_has_get_parm HAMLIB_PARAMS((ROT *rot,
-                                setting_t parm));
+rot_has_get_level(ROT *rot,
+                  setting_t level);
 extern HAMLIB_EXPORT(setting_t)
-rot_has_set_parm HAMLIB_PARAMS((ROT *rot,
-                                setting_t parm));
+rot_has_set_level(ROT *rot,
+                  setting_t level);
 
 extern HAMLIB_EXPORT(setting_t)
-rot_has_get_func HAMLIB_PARAMS((ROT *rot,
-                                setting_t func));
+rot_has_get_parm(ROT *rot,
+                 setting_t parm);
 extern HAMLIB_EXPORT(setting_t)
-rot_has_set_func HAMLIB_PARAMS((ROT *rot,
-                                setting_t func));
+rot_has_set_parm(ROT *rot,
+                 setting_t parm);
+
+extern HAMLIB_EXPORT(setting_t)
+rot_has_get_func(ROT *rot,
+                 setting_t func);
+extern HAMLIB_EXPORT(setting_t)
+rot_has_set_func(ROT *rot,
+                 setting_t func);
 
 extern HAMLIB_EXPORT(int)
-rot_set_func HAMLIB_PARAMS((ROT *rot,
-                            setting_t func,
-                            int status));
+rot_set_func(ROT *rot,
+             setting_t func,
+             int status);
 extern HAMLIB_EXPORT(int)
-rot_get_func HAMLIB_PARAMS((ROT *rot,
-                            setting_t func,
-                            int *status));
+rot_get_func(ROT *rot,
+             setting_t func,
+             int *status);
 
 extern HAMLIB_EXPORT(int)
-rot_set_level HAMLIB_PARAMS((ROT *rig,
-                             setting_t level,
-                             value_t val));
+rot_set_level(ROT *rig,
+              setting_t level,
+              value_t val);
 extern HAMLIB_EXPORT(int)
-rot_get_level HAMLIB_PARAMS((ROT *rig,
-                             setting_t level,
-                             value_t *val));
+rot_get_level(ROT *rig,
+              setting_t level,
+              value_t *val);
 
 extern HAMLIB_EXPORT(int)
-rot_set_parm HAMLIB_PARAMS((ROT *rig,
-                            setting_t parm,
-                            value_t val));
+rot_set_parm(ROT *rig,
+             setting_t parm,
+             value_t val);
 extern HAMLIB_EXPORT(int)
-rot_get_parm HAMLIB_PARAMS((ROT *rig,
-                            setting_t parm,
-                            value_t *val));
+rot_get_parm(ROT *rig,
+             setting_t parm,
+             value_t *val);
 
 extern HAMLIB_EXPORT(int)
-rot_set_ext_level HAMLIB_PARAMS((ROT *rig,
-                                 hamlib_token_t token,
-                                 value_t val));
+rot_set_ext_level(ROT *rig,
+                  hamlib_token_t token,
+                  value_t val);
 extern HAMLIB_EXPORT(int)
-rot_get_ext_level HAMLIB_PARAMS((ROT *rig,
-                                 hamlib_token_t token,
-                                 value_t *val));
+rot_get_ext_level(ROT *rig,
+                  hamlib_token_t token,
+                  value_t *val);
 
 extern HAMLIB_EXPORT(int)
-rot_set_ext_func HAMLIB_PARAMS((ROT *rig,
-                                 hamlib_token_t token,
-                                 int status));
+rot_set_ext_func(ROT *rig,
+                 hamlib_token_t token,
+                 int status);
 extern HAMLIB_EXPORT(int)
-rot_get_ext_func HAMLIB_PARAMS((ROT *rig,
-                                 hamlib_token_t token,
-                                 int *status));
+rot_get_ext_func(ROT *rig,
+                 hamlib_token_t token,
+                 int *status);
 
 extern HAMLIB_EXPORT(int)
-rot_set_ext_parm HAMLIB_PARAMS((ROT *rig,
-                                hamlib_token_t token,
-                                value_t val));
+rot_set_ext_parm(ROT *rig,
+                 hamlib_token_t token,
+                 value_t val);
 extern HAMLIB_EXPORT(int)
-rot_get_ext_parm HAMLIB_PARAMS((ROT *rig,
-                                hamlib_token_t token,
-                                value_t *val));
+rot_get_ext_parm(ROT *rig,
+                 hamlib_token_t token,
+                 value_t *val);
 
 extern HAMLIB_EXPORT(const char *)
-rot_get_info HAMLIB_PARAMS((ROT *rot));
+rot_get_info(ROT *rot);
 
 extern HAMLIB_EXPORT(int)
-rot_get_status HAMLIB_PARAMS((ROT *rot,
-        rot_status_t *status));
+rot_get_status(ROT *rot,
+               rot_status_t *status);
 
 extern HAMLIB_EXPORT(int)
-rot_register HAMLIB_PARAMS((const struct rot_caps *caps));
+rot_register(const struct rot_caps *caps);
 
 extern HAMLIB_EXPORT(int)
-rot_unregister HAMLIB_PARAMS((rot_model_t rot_model));
+rot_unregister(rot_model_t rot_model);
 
 extern HAMLIB_EXPORT(int)
-rot_list_foreach HAMLIB_PARAMS((int (*cfunc)(const struct rot_caps *,
-                                             rig_ptr_t),
-                                rig_ptr_t data));
+rot_list_foreach(int (*cfunc)(const struct rot_caps *, rig_ptr_t),
+                 rig_ptr_t data);
 
 extern HAMLIB_EXPORT(int)
-rot_load_backend HAMLIB_PARAMS((const char *be_name));
+rot_load_backend(const char *be_name);
 
 extern HAMLIB_EXPORT(int)
-rot_check_backend HAMLIB_PARAMS((rot_model_t rot_model));
+rot_check_backend(rot_model_t rot_model);
 
 extern HAMLIB_EXPORT(int)
-rot_load_all_backends HAMLIB_PARAMS((void));
+rot_load_all_backends(void);
 
 extern HAMLIB_EXPORT(rot_model_t)
-rot_probe_all HAMLIB_PARAMS((hamlib_port_t *p));
+rot_probe_all(hamlib_port_t *p);
 
 extern HAMLIB_EXPORT(int)
-rot_token_foreach HAMLIB_PARAMS((ROT *rot,
-                                 int (*cfunc)(const struct confparams *,
-                                              rig_ptr_t),
-                                 rig_ptr_t data));
+rot_token_foreach(ROT *rot,
+                  int (*cfunc)(const struct confparams *, rig_ptr_t),
+                  rig_ptr_t data);
 
 extern HAMLIB_EXPORT(const struct confparams *)
-rot_confparam_lookup HAMLIB_PARAMS((ROT *rot,
-                                   const char *name));
+rot_confparam_lookup(ROT *rot,
+                     const char *name);
 
 extern HAMLIB_EXPORT(hamlib_token_t)
-rot_token_lookup HAMLIB_PARAMS((ROT *rot,
-                                const char *name));
+rot_token_lookup(ROT *rot,
+                 const char *name);
 
 extern HAMLIB_EXPORT(int)
-rot_ext_func_foreach HAMLIB_PARAMS((ROT *rot,
-                                     int (*cfunc)(ROT *,
-                                                  const struct confparams *,
-                                                  rig_ptr_t),
-                                     rig_ptr_t data));
+rot_ext_func_foreach(ROT *rot,
+                     int (*cfunc)(ROT *, const struct confparams *, rig_ptr_t),
+                     rig_ptr_t data);
 extern HAMLIB_EXPORT(int)
-rot_ext_level_foreach HAMLIB_PARAMS((ROT *rot,
-                                     int (*cfunc)(ROT *,
-                                                  const struct confparams *,
-                                                  rig_ptr_t),
-                                     rig_ptr_t data));
+rot_ext_level_foreach(ROT *rot,
+                      int (*cfunc)(ROT *, const struct confparams *, rig_ptr_t),
+                      rig_ptr_t data);
 extern HAMLIB_EXPORT(int)
-rot_ext_parm_foreach HAMLIB_PARAMS((ROT *rot,
-                                    int (*cfunc)(ROT *,
-                                                 const struct confparams *,
-                                                 rig_ptr_t),
-                                    rig_ptr_t data));
+rot_ext_parm_foreach(ROT *rot,
+                     int (*cfunc)(ROT *, const struct confparams *, rig_ptr_t),
+                     rig_ptr_t data);
 
 extern HAMLIB_EXPORT(const struct confparams *)
-rot_ext_lookup HAMLIB_PARAMS((ROT *rot,
-                              const char *name));
+rot_ext_lookup(ROT *rot,
+               const char *name);
 
 extern HAMLIB_EXPORT(const struct confparams *)
-rot_ext_lookup_tok HAMLIB_PARAMS((ROT *rot,
-                                  hamlib_token_t token));
+rot_ext_lookup_tok(ROT *rot,
+                   hamlib_token_t token);
 extern HAMLIB_EXPORT(hamlib_token_t)
-rot_ext_token_lookup HAMLIB_PARAMS((ROT *rot,
-                                    const char *name));
+rot_ext_token_lookup(ROT *rot,
+                     const char *name);
 
 extern HAMLIB_EXPORT(const struct rot_caps *)
-rot_get_caps HAMLIB_PARAMS((rot_model_t rot_model));
+rot_get_caps(rot_model_t rot_model);
 
 extern HAMLIB_EXPORT(int)
-qrb HAMLIB_PARAMS((double lon1,
-                   double lat1,
-                   double lon2,
-                   double lat2,
-                   double *distance,
-                   double *azimuth));
+qrb(double lon1,
+    double lat1,
+    double lon2,
+    double lat2,
+    double *distance,
+    double *azimuth);
 
 extern HAMLIB_EXPORT(double)
-distance_long_path HAMLIB_PARAMS((double distance));
+distance_long_path(double distance);
 
 extern HAMLIB_EXPORT(double)
-azimuth_long_path HAMLIB_PARAMS((double azimuth));
+azimuth_long_path(double azimuth);
 
 #if 0
 extern HAMLIB_EXPORT(int)
-longlat2locator HAMLIB_PARAMS((double longitude,
-                               double latitude,
-                               char *locator_res,
-                               int pair_count));
+longlat2locator(double longitude,
+                double latitude,
+                char *locator_res,
+                int pair_count);
 
 extern HAMLIB_EXPORT(int)
-locator2longlat HAMLIB_PARAMS((double *longitude,
-                               double *latitude,
-                               const char *locator));
+locator2longlat(double *longitude,
+                double *latitude,
+                const char *locator);
 #endif
 
 extern HAMLIB_EXPORT(double)
-dms2dec HAMLIB_PARAMS((int degrees,
-                       int minutes,
-                       double seconds,
-                       int sw));
+dms2dec(int degrees,
+        int minutes,
+        double seconds,
+        int sw);
 
 extern HAMLIB_EXPORT(int)
-dec2dms HAMLIB_PARAMS((double dec,
-                       int *degrees,
-                       int *minutes,
-                       double *seconds,
-                       int *sw));
+dec2dms(double dec,
+        int *degrees,
+        int *minutes,
+        double *seconds,
+        int *sw);
 
 extern HAMLIB_EXPORT(int)
-dec2dmmm HAMLIB_PARAMS((double dec,
-                        int *degrees,
-                        double *minutes,
-                        int *sw));
+dec2dmmm(double dec,
+         int *degrees,
+         double *minutes,
+         int *sw);
 
 extern HAMLIB_EXPORT(double)
-dmmm2dec HAMLIB_PARAMS((int degrees,
-                        double minutes,
-                        int sw));
+dmmm2dec(int degrees,
+         double minutes,
+         int sw);
 
 extern HAMLIB_EXPORT(setting_t) rot_parse_func(const char *s);
 extern HAMLIB_EXPORT(setting_t) rot_parse_level(const char *s);
