@@ -126,14 +126,10 @@
 #endif
 //! @endcond
 
-/* HAMLIB_PARAMS is a macro used to wrap function prototypes, so that compilers
- * that don't understand ANSI C prototypes still work, and ANSI C
- * compilers can issue warnings about type mismatches. */
 //! @cond Doxygen_Suppress
-#undef HAMLIB_PARAMS
-#  define HAMLIB_PARAMS(protos) protos
-#  define rig_ptr_t     void *
-#  define amp_ptr_t     void *
+// Relics from the days of char * as generic pointer
+#define rig_ptr_t     void *
+#define amp_ptr_t     void *
 //! @endcond
 
 #include <hamlib/rig_dll.h>
