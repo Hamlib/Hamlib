@@ -1190,6 +1190,7 @@ enum cookie_e {
  * \brief Multicast data items
  * 3 different data item can be included in the multicast JSON
  */
+//TODO:  Shouldn't this be a mask{1, 2, 4}, not integers{1, 2, 3}???
 enum multicast_item_e {
     RIG_MULTICAST_POLL,         // hamlib will be polling the rig for all rig items
     RIG_MULTICAST_TRANSCEIVE,   // transceive will be turned on and processed
@@ -2446,30 +2447,6 @@ typedef enum {
     TWIDDLE_ON
 } twiddle_state_t;
 
-
-/**
- * \brief Multicast data items the are unique per rig instantiation
- * This is meant for internal Hamlib use only
- */
-#include <hamlib/multicast.h>
-struct multicast_s
-{
-    int multicast_running;
-    int sock;
-    int seqnumber;
-    volatile int runflag; // = 0;
-    pthread_t threadid;
-    // this mutex is needed to control serial access
-    // as of 2023-05-13 we have main thread and multicast thread needing it
-    // eventually we should be able to use cached info only in the main thread to avoid contention
-    pthread_mutex_t mutex;
-    int mutex_initialized;
-//#ifdef HAVE_ARPA_INET_H
-    //struct ip_mreq mreq; // = {0};
-    struct sockaddr_in dest_addr; // = {0};
-    int port;
-//#endif
-};
 
 typedef unsigned int rig_comm_status_t;
 
