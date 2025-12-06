@@ -50,7 +50,6 @@ class TestClass:
 'hl_usleep',
 'locator2longlat',
 'longlat2locator',
-'multicast_s',
 'netrigctl_get_vfo_mode',
 'qrb',
 'rig_callbacks',

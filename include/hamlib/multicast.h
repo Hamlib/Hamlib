@@ -61,6 +61,29 @@ struct multicast_broadcast
     struct multicast_vfo **vfo;
 };
 
+/**
+ * \brief Multicast data items the are unique per rig instantiation
+ * This is meant for internal Hamlib use only
+ */
+struct multicast_s
+{
+    int multicast_running;
+    int sock;
+    int seqnumber;
+    volatile int runflag; // = 0;
+    pthread_t threadid;
+    // this mutex is needed to control serial access
+    // as of 2023-05-13 we have main thread and multicast thread needing it
+    // eventually we should be able to use cached info only in the main thread to avoid contention
+    pthread_mutex_t mutex;
+    int mutex_initialized;
+//#ifdef HAVE_ARPA_INET_H
+    //struct ip_mreq mreq; // = {0};
+    struct sockaddr_in dest_addr; // = {0};
+    int port;
+//#endif
+};
+
 // returns # of bytes sent
 extern HAMLIB_EXPORT (int) multicast_init(RIG *rig, char *addr, int port);
 extern HAMLIB_EXPORT (int) multicast_send(RIG *rig, const char *msg, int msglen);
