@@ -69,17 +69,31 @@ static int icf8101_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s, mode=%s, width=%d\n", __func__,
               rig_strvfo(vfo), rig_strrmode(mode), (int)width);
 
+    modebuf[0] = 0;
     switch (mode)
     {
-    case RIG_MODE_LSB:  modebuf[0] = 0x00; modebuf[1] = 0x00; break;
+    case RIG_MODE_LSB:   modebuf[1] = 0x00; break;
 
-    case RIG_MODE_USB:  modebuf[0] = 0x00; modebuf[1] = 0x01; break;
+    case RIG_MODE_USB:   modebuf[1] = 0x01; break;
 
-    case RIG_MODE_AM:   modebuf[0] = 0x00; modebuf[1] = 0x02; break;
+    case RIG_MODE_AM:    modebuf[1] = 0x02; break;
 
-    case RIG_MODE_CW:   modebuf[0] = 0x00; modebuf[1] = 0x03; break;
+    case RIG_MODE_CW:    modebuf[1] = 0x03; break;
 
-    case RIG_MODE_RTTY: modebuf[0] = 0x00; modebuf[1] = 0x04; break;
+    case RIG_MODE_RTTY:  modebuf[1] = 0x04; break;
+
+ // AB4MW added the 6 "D" modes for digital operation below
+    case RIG_MODE_LSBD1: modebuf[1] = 0x18; break;
+
+    case RIG_MODE_LSBD2: modebuf[1] = 0x20; break;
+
+    case RIG_MODE_LSBD3: modebuf[1] = 0x22; break;
+
+    case RIG_MODE_USBD1: modebuf[1] = 0x19; break;
+
+    case RIG_MODE_USBD2: modebuf[1] = 0x21; break;
+
+    case RIG_MODE_USBD3: modebuf[1] = 0x23; break;
 
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unknown mode of '%s\n", __func__,
@@ -94,16 +108,11 @@ static int icf8101_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 static int icf8101_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
                             pbwidth_t *width)
 {
-    int retval = icom_get_mode(rig, vfo, mode, width);
+    int retval;
     unsigned char modebuf[MAXFRAMELEN];
     int modebuf_len;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
-
-    if (retval != RIG_OK)
-    {
-        return retval;
-    }
 
     retval = icom_transaction(rig, 0x1A, 0x34, NULL, 0, modebuf, &modebuf_len);
 
@@ -112,9 +121,9 @@ static int icf8101_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
         return retval;
     }
 
-    dump_hex(modebuf, modebuf_len);
+    //dump_hex(modebuf, modebuf_len);
 
-    switch (modebuf[1])
+    switch (modebuf[3])
     {
     case 0x00: *mode = RIG_MODE_LSB; break;
 
@@ -125,6 +134,19 @@ static int icf8101_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
     case 0x03: *mode = RIG_MODE_CW; break;
 
     case 0x04: *mode = RIG_MODE_RTTY; break;
+
+// AB4MW added the 6 "D" modes for digital operation below
+    case 0x18: *mode = RIG_MODE_LSBD1; break;
+
+    case 0x20: *mode = RIG_MODE_LSBD2; break;
+
+    case 0x22: *mode = RIG_MODE_LSBD3; break;
+
+    case 0x19: *mode = RIG_MODE_USBD1; break;
+
+    case 0x21: *mode = RIG_MODE_USBD2; break;
+
+    case 0x23: *mode = RIG_MODE_USBD3; break;
 
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unknown mode response=0x%02x\n", __func__,
@@ -153,8 +175,10 @@ static int icf8101_r2i_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width,
     return err;
 }
 
-
-#define ICF8101_MODES (RIG_MODE_LSB|RIG_MODE_USB|RIG_MODE_CW|RIG_MODE_AM|RIG_MODE_RTTY)
+// AB4MW added the 6 "D" modes for digital ops
+#define ICF8101_MODES (RIG_MODE_LSB|RIG_MODE_USB|RIG_MODE_CW|RIG_MODE_AM|RIG_MODE_RTTY|\
+		       RIG_MODE_USBD1|RIG_MODE_USBD2|RIG_MODE_USBD3|RIG_MODE_LSBD1|\
+		       RIG_MODE_LSBD2|RIG_MODE_LSBD3)
 
 #define ICF8101_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
 
@@ -397,7 +421,9 @@ struct rig_caps icf8101_caps =
     .dcd_type =   RIG_DCD_RIG,
     .port_type =    RIG_PORT_SERIAL,
     .serial_rate_min =  300,
-    .serial_rate_max =  19200,
+// AB4MW set serial_rate_max to 38400 for this radio, which is IMPORTANT
+//    if also using the log stream on the same serial port.
+    .serial_rate_max =  38400,
     .serial_data_bits = 8,
     .serial_stop_bits = 1,
     .serial_parity =  RIG_PARITY_NONE,
