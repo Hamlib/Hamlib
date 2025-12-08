@@ -6,7 +6,7 @@ ICOMSRC = icom.c icom.h icom_defs.h icom_alt_agc.c icom_alt_agc.h frame.c frame.
 	ic736.c ic738.c ic7410.c ic746.c ic703.c ic726.c ic271.c \
 	ic765.c ic781.c ic471.c icr9000.c icr9500.c \
 	icr10.c icr20.c icr30.c icr6.c icr71.c icr72.c icr75.c icrx7.c icr8600.c \
-	id1.c id31.c id51.c id4100.c id5100.c perseus.c ic2730.c \
+	id1.c id31.c id51.c id52plus.c id4100.c id5100.c perseus.c ic2730.c \
 	ic707.c ic728.c ic751.c ic761.c \
 	ic78.c ic7800.c ic785x.c \
 	ic7000.c ic7100.c ic7200.c ic7300.c ic7600.c ic7610.c ic7700.c ic7760.c icf8101.c \
