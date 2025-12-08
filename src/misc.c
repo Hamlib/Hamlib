@@ -500,6 +500,13 @@ static const struct
     { RIG_MODE_IQ, "IQ"},
     { RIG_MODE_ISBUSB, "ISBUSB"},
     { RIG_MODE_ISBLSB, "ISBLSB"},
+// AB4MW last six rig modes added for Icom IC-F8101 data modes
+    { RIG_MODE_LSBD1, "LSBD1"},
+    { RIG_MODE_LSBD2, "LSBD2"},
+    { RIG_MODE_LSBD3, "LSBD3"},
+    { RIG_MODE_USBD1, "USBD1"},
+    { RIG_MODE_USBD2, "USBD2"},
+    { RIG_MODE_USBD3, "USBD3"},
     { RIG_MODE_NONE, "None" }, // so we can return None when NONE is requested
     { -1, "" }, // need to end list
 };
