@@ -13,7 +13,7 @@ Version 5.x -- future
         * Change FT1000MP Mark V model names to align with FT1000MP
 
 Version 4.7.0
-        * 2025-12-01 (target)
+        * 2025-12-21 (target)
         * Revamp Kenwood voice memory handler - Fixes TS-890S & TS-990S (n3gb)
         * libusb is now detected using the pkg-config facility.
         * Some internal functions change names to avoid conflicts with apps.
@@ -38,6 +38,8 @@ Version 4.7.0
         * New Drake R8 backend.  (TNX Mark Fine)
         * New AF6SA WRC rotator backend.  (TNX Michael Morgan)
         * New Yaesu FTX-1 model support (alpha).  (TNX Jeremy Miller).
+        * Update QRPLabs QMX backend for max serial rate of 230400 bps.  (TNX Mooneer Salem)
+        * Updates to Icom IC-F8101.  (TNX Mitchell Winkle and George Baltz)
 
 Version 4.6.5
         * 2025-09-05
