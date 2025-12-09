@@ -229,7 +229,8 @@ int ftx1_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
         break;
 
     case RIG_OP_TUNE:
-        /* AC102: Tuner start (turns on tuner and starts tune) */
+        /* AC110: Tuner start (turns on tuner and starts tune) */
+        /* Format: AC P1 P2 P3; P1=1 (on), P2=1 (start tune), P3=0 (MAIN) */
         /* Note: This causes transmission! */
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AC110;");
         break;

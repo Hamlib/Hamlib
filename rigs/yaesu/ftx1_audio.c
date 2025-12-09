@@ -234,40 +234,72 @@ int ftx1_get_meter(RIG *rig, int meter_type, int *val)
 /*
  * ftx1_set_power - Set Power Control
  *
- * CAT command: PC P1 P2P2P2;
+ * CAT command: PC P1 P2...;
  *   P1 = 1 for field head (0.5-10W)
  *   P1 = 2 for SPA-1 (5-100W)
  *
- * For field head, firmware accepts:
- *   - Whole watts: PC1001, PC1005, PC1010 (3-digit zero-padded)
- *   - Fractional: PC10.5, PC11.5 (decimal format NOT zero-padded)
+ * PC1 (field head) format:
+ *   - Fractional watts: PC10.5; PC11.1; PC11.5; etc. (decimal, NOT zero-padded)
+ *   - Whole watts: PC1001; PC1002; ... PC1010; (3-digit zero-padded)
  *
- * NOTE: Always use P1=1 (field head) since we don't have SPA-1 detection.
- *       User can configure SPA-1 via extended settings if needed.
+ * PC2 (SPA-1) format:
+ *   - Always whole watts: PC2005; PC2010; ... PC2100; (3-digit zero-padded)
+ *   - Never uses decimal format
+ *
+ * Auto-detects head type by querying current PC setting first.
  */
 int ftx1_set_power(RIG *rig, float val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    int head_type = 1;  /* Default to field head */
     float watts;
+    int watts_int;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: val=%f\n", __func__, val);
 
-    /* Convert 0.0-1.0 to watts (field head: 0.5-10W) */
-    watts = val * FTX1_POWER_MAX_FIELD;
-
-    if (watts < FTX1_POWER_MIN_FIELD) watts = FTX1_POWER_MIN_FIELD;
-    if (watts > FTX1_POWER_MAX_FIELD) watts = FTX1_POWER_MAX_FIELD;
-
-    /* For field head (P1=1), format depends on whether it's fractional */
-    if (watts == (float)(int)watts)
+    /* Query current PC to detect head type */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC;");
+    ret = newcat_get_cmd(rig);
+    if (ret == RIG_OK && strlen(priv->ret_data) >= 3)
     {
-        /* Whole watts: use 3-digit zero-padded format */
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC1%03d;", (int)watts);
+        /* Parse P1 from response (PC1xxx or PC2xxx) */
+        if (sscanf(priv->ret_data + 2, "%1d", &head_type) != 1)
+        {
+            head_type = 1;  /* Default to field head on parse error */
+        }
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: detected head_type=%d\n", __func__, head_type);
+
+    /* Small delay after query before set to avoid serial port contention */
+    hl_usleep(50 * 1000);  /* 50ms */
+
+    if (head_type == 2)
+    {
+        /* SPA-1: 5-100W, always 3-digit zero-padded whole watts */
+        watts_int = (int)(val * FTX1_POWER_MAX_SPA1);
+        if (watts_int < FTX1_POWER_MIN_SPA1) watts_int = FTX1_POWER_MIN_SPA1;
+        if (watts_int > FTX1_POWER_MAX_SPA1) watts_int = FTX1_POWER_MAX_SPA1;
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC2%03d;", watts_int);
     }
     else
     {
-        /* Fractional watts: use decimal format */
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC1%.1f;", watts);
+        /* Field head: 0.5-10W */
+        watts = val * FTX1_POWER_MAX_FIELD;
+        if (watts < FTX1_POWER_MIN_FIELD) watts = FTX1_POWER_MIN_FIELD;
+        if (watts > FTX1_POWER_MAX_FIELD) watts = FTX1_POWER_MAX_FIELD;
+
+        if (watts == (float)(int)watts)
+        {
+            /* Whole watts: use 3-digit zero-padded format */
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC1%03d;", (int)watts);
+        }
+        else
+        {
+            /* Fractional watts: use decimal format */
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC1%.1f;", watts);
+        }
     }
 
     return newcat_set_cmd(rig);
@@ -276,9 +308,12 @@ int ftx1_set_power(RIG *rig, float val)
 /*
  * ftx1_get_power - Get Power Control
  *
- * Response formats for field head (P1=1):
- *   - Whole watts: PC1001, PC1005, PC1010 (3-digit zero-padded)
- *   - Fractional: PC10.5, PC11.5, PC15.1 (decimal format)
+ * Response formats:
+ *   PC1 (field head, 0.5-10W):
+ *     - Whole watts: PC1001; PC1002; ... PC1010; (3-digit zero-padded)
+ *     - Fractional: PC10.5; PC11.1; PC11.5; etc. (decimal format)
+ *   PC2 (SPA-1, 5-100W):
+ *     - Always whole watts: PC2005; PC2010; ... PC2100; (3-digit zero-padded)
  */
 int ftx1_get_power(RIG *rig, float *val)
 {
