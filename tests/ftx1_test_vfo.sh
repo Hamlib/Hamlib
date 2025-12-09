@@ -243,6 +243,100 @@ test_SV() {
     log_pass "SV (Swap VFO/Memory)"
 }
 
+test_BS() {
+    echo "Testing BS (Band Select)..."
+    # BS: Band Select (set-only, no read capability)
+    # Format: BS P1 P2P2 where P1=VFO (0/1), P2P2=band code (00-10)
+    # Verified working 2025-12-09
+
+    # Save current frequency to restore band later
+    local orig_freq=$(raw_cmd "FA")
+    if [ -z "$orig_freq" ] || [ "$orig_freq" = "?" ]; then
+        log_skip "BS (Band Select) - cannot read frequency"
+        return
+    fi
+
+    # Test BS to 20m (band 05)
+    local resp=$(raw_cmd "BS005")
+    if [ "$resp" = "?" ]; then
+        log_fail "BS: command rejected"
+        return
+    fi
+
+    # Verify band changed
+    sleep 0.3
+    local new_freq=$(raw_cmd "FA")
+    local freq_hz="${new_freq:2}"
+
+    # Check if in 20m band (14.000-14.350 MHz)
+    if [ "$freq_hz" -ge 14000000 ] && [ "$freq_hz" -le 14350000 ] 2>/dev/null; then
+        # Test BS to 40m (band 03)
+        raw_cmd "BS003"
+        sleep 0.3
+        new_freq=$(raw_cmd "FA")
+        freq_hz="${new_freq:2}"
+
+        # Check if in 40m band (7.000-7.300 MHz)
+        if [ "$freq_hz" -ge 7000000 ] && [ "$freq_hz" -le 7300000 ] 2>/dev/null; then
+            # Restore original frequency
+            raw_cmd "FA${orig_freq:2}"
+            log_pass "BS (Band Select) - set-only, verified band changes"
+        else
+            log_fail "BS: 40m band change failed, freq=$freq_hz"
+            raw_cmd "FA${orig_freq:2}"
+        fi
+    else
+        log_fail "BS: 20m band change failed, freq=$freq_hz"
+        raw_cmd "FA${orig_freq:2}"
+    fi
+}
+
+test_GP() {
+    echo "Testing GP (GP OUT)..."
+    # GP: GP OUT control (read/write)
+    # Format: GP P1 P2 P3 P4 where each controls GP OUT A/B/C/D (0=LOW, 1=HIGH)
+    # REQUIRES: Menu [OPERATION SETTING] → [GENERAL] → [TUN/LIN PORT SELECT] = "GPO"
+    # Verified working 2025-12-09
+
+    local orig=$(raw_cmd "GP")
+    if [ "$orig" = "?" ] || [ -z "$orig" ]; then
+        log_skip "GP (GP OUT) - check TUN/LIN PORT SELECT menu setting"
+        return
+    fi
+
+    if [[ ! "$orig" =~ ^GP[01]{4}$ ]]; then
+        log_fail "GP: invalid read format '$orig'"
+        return
+    fi
+
+    # Test setting all HIGH
+    raw_cmd "GP1111"
+    local after=$(raw_cmd "GP")
+    if [ "$after" != "GP1111" ]; then
+        log_fail "GP: set all HIGH failed, got $after"
+        raw_cmd "GP${orig:2}"
+        return
+    fi
+
+    # Test mixed pattern
+    raw_cmd "GP1010"
+    after=$(raw_cmd "GP")
+    if [ "$after" != "GP1010" ]; then
+        log_fail "GP: set mixed pattern failed, got $after"
+        raw_cmd "GP${orig:2}"
+        return
+    fi
+
+    # Restore original
+    raw_cmd "GP${orig:2}"
+    local restored=$(raw_cmd "GP")
+    if [ "$restored" = "$orig" ]; then
+        log_pass "GP (GP OUT) - read/write verified"
+    else
+        log_fail "GP: restore failed, expected $orig got $restored"
+    fi
+}
+
 run_vfo_tests() {
     echo "=== VFO Tests ==="
     test_VS
@@ -253,5 +347,7 @@ run_vfo_tests() {
     test_AB
     test_BA
     test_SV
+    test_BS
+    test_GP
     echo ""
 }

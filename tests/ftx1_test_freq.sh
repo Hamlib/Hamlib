@@ -209,6 +209,73 @@ test_RIT_raw() {
     fi
 }
 
+test_CF() {
+    echo "Testing CF (Clarifier offset)..."
+    # CF sets clarifier offset value only (does not enable clarifier)
+    # Format: CF P1 P2 P3 [+/-] PPPP where P3 must be 1
+    # Verified working 2025-12-09
+
+    # Get current offset from IF command
+    local if_resp=$(raw_cmd "IF")
+    if [ -z "$if_resp" ] || [ "$if_resp" = "?" ]; then
+        log_skip "CF (Clarifier) - cannot read IF response"
+        return
+    fi
+
+    # Extract offset from IF (positions 16-20, e.g., +0500 or -0300)
+    local orig_offset="${if_resp:16:5}"
+
+    # Test setting positive offset
+    local test_val="+0500"
+    [ "$orig_offset" = "+0500" ] && test_val="+0300"
+
+    local resp=$(raw_cmd "CF001$test_val")
+    if [ "$resp" = "?" ]; then
+        log_fail "CF: command rejected"
+        return
+    fi
+
+    # Verify via IF
+    sleep 0.2
+    local after_if=$(raw_cmd "IF")
+    local after_offset="${after_if:16:5}"
+
+    if [ "$after_offset" = "$test_val" ]; then
+        # Test negative offset
+        raw_cmd "CF001-0250"
+        sleep 0.2
+        local neg_if=$(raw_cmd "IF")
+        local neg_offset="${neg_if:16:5}"
+
+        if [ "$neg_offset" = "-0250" ]; then
+            # Restore original
+            raw_cmd "CF001$orig_offset"
+            log_pass "CF (Clarifier offset) - set-only, value changes verified"
+        else
+            log_fail "CF: negative offset failed, expected -0250 got $neg_offset"
+        fi
+    else
+        log_fail "CF: set failed, expected $test_val got $after_offset"
+    fi
+}
+
+test_CF_format() {
+    echo "Testing CF format requirements..."
+    # P3=0 (RIT only) should return '?'
+    local resp=$(raw_cmd "CF010+0100")
+    if [ "$resp" = "?" ]; then
+        # P3=1 should work
+        resp=$(raw_cmd "CF001+0100")
+        if [ "$resp" != "?" ]; then
+            log_pass "CF format - P3=1 required (P3=0 rejected as expected)"
+        else
+            log_fail "CF format: P3=1 also rejected"
+        fi
+    else
+        log_fail "CF format: P3=0 should return '?' but was accepted"
+    fi
+}
+
 run_freq_tests() {
     echo "=== Frequency Tests ==="
     test_FA
@@ -218,5 +285,7 @@ run_freq_tests() {
     test_RIT
     test_XIT
     test_RIT_raw
+    test_CF
+    test_CF_format
     echo ""
 }

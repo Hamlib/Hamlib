@@ -167,8 +167,8 @@ int ftx1_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: tone=%u tone_num=%d\n", __func__, tone,
               tone_num);
 
-    /* P1=0 for TX tone */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN0%02d;", tone_num);
+    /* P1=0 for TX tone, P2P3P4 is 3-digit tone number */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN00%03d;", tone_num);
     return newcat_set_cmd(rig);
 }
 
@@ -182,13 +182,14 @@ int ftx1_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
-    /* P1=0 for TX tone */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN0;");
+    /* P1=0 for TX tone, need CN00; to query */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN00;");
 
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    if (sscanf(priv->ret_data + 2, "%1d%2d", &p1, &tone_num) != 2)
+    /* Response format: CN P1 P2P3P4 (e.g., CN00012 for TX tone 12) */
+    if (sscanf(priv->ret_data + 2, "%2d%3d", &p1, &tone_num) != 2)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
                   priv->ret_data);
@@ -203,7 +204,7 @@ int ftx1_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
     return RIG_OK;
 }
 
-/* Set CTCSS Squelch Tone (CN P1 P2P3; with P1=1 for RX) */
+/* Set CTCSS Squelch Tone (CN P1 P2P3P4; with P1=1 for RX) */
 int ftx1_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -223,8 +224,8 @@ int ftx1_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: tone=%u tone_num=%d\n", __func__, tone,
               tone_num);
 
-    /* P1=1 for RX tone */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN1%02d;", tone_num);
+    /* P1=1 for RX tone, P2P3P4 is 3-digit tone number */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN10%03d;", tone_num);
     return newcat_set_cmd(rig);
 }
 
@@ -238,13 +239,14 @@ int ftx1_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
-    /* P1=1 for RX tone */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN1;");
+    /* P1=1 for RX tone, need CN10; to query */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN10;");
 
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    if (sscanf(priv->ret_data + 2, "%1d%2d", &p1, &tone_num) != 2)
+    /* Response format: CN P1 P2P3P4 (e.g., CN10012 for RX tone 12) */
+    if (sscanf(priv->ret_data + 2, "%2d%3d", &p1, &tone_num) != 2)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
                   priv->ret_data);

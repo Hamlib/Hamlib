@@ -1,9 +1,36 @@
 #!/bin/bash
 #
 # FTX-1 Miscellaneous Command Tests
-# Tests: CT, SC, SF, TS, CS, FR, KR, OS, PB, PL, PR, EO, QI, QR, VM, ZI, DN, UP
+# Tests: CN, CT, SC, SF, TS, CS, FR, KR, OS, PB, PL, PR, EO, QI, QR, VM, ZI, DN, UP
 #
 # Source this file from ftx1_test.sh main harness
+
+test_CN() {
+    echo "Testing CN (CTCSS Number)..."
+    # CN: CTCSS Number - format CN P1 P2P3P4 (P1=00 TX/10 RX, P2P3P4=001-050)
+    # Verified working 2025-12-09 - Query: CN00; returns CN00nnn
+    local orig=$(raw_cmd "CN00")
+    if [ -z "$orig" ] || [ "$orig" = "?" ]; then
+        log_skip "CN (CTCSS Number) - command not available"
+        return
+    fi
+    if [[ ! "$orig" =~ ^CN00[0-9]{3}$ ]]; then
+        log_fail "CN: invalid format '$orig'"
+        return
+    fi
+    local orig_val="${orig: -3}"
+    local test_val="013"
+    [ "$orig_val" = "013" ] && test_val="012"
+    raw_cmd "CN00$test_val"
+    local after=$(raw_cmd "CN00")
+    if [ "$after" = "CN00$test_val" ]; then
+        raw_cmd "CN00$orig_val"
+        log_pass "CN (CTCSS Number)"
+    else
+        log_fail "CN: set failed, expected CN00$test_val got $after"
+        raw_cmd "CN00$orig_val"
+    fi
+}
 
 test_CT() {
     echo "Testing CT (CTCSS Mode)..."
@@ -180,9 +207,12 @@ test_PR() {
 
 test_EO() {
     echo "Testing EO (Encoder Offset)..."
-    local resp=$(raw_cmd "EO0+000")
+    # EO: Encoder offset - set-only, format: EO P1 P2 P3 P4 P5 P5 P5;
+    # P1=VFO (0=MAIN, 1=SUB), P2=encoder (0=MAIN dial, 1=FUNC knob)
+    # P3=direction (+/-), P4=unit (0=Hz, 1=kHz, 2=MHz), P5=value (000-999)
+    local resp=$(raw_cmd "EO00+0100")
     if [ "$resp" = "?" ]; then
-        log_skip "EO (Encoder Offset) - firmware returns '?'"
+        log_fail "EO (Encoder Offset) - command returned error"
     else
         log_pass "EO (Encoder Offset) - set-only command accepted"
     fi
@@ -190,21 +220,25 @@ test_EO() {
 
 test_QI() {
     echo "Testing QI (Quick In)..."
+    # NOTE: QI command is ACCEPTED but NON-FUNCTIONAL in firmware v1.08+
+    # Command is parsed (returns empty) but has no actual effect
     local resp=$(raw_cmd "QI")
     if [ "$resp" = "?" ]; then
         log_fail "QI: command returned error"
     else
-        log_pass "QI (Quick In) - set-only command accepted"
+        log_pass "QI (Quick In) - set-only command accepted (non-functional in firmware)"
     fi
 }
 
 test_QR() {
     echo "Testing QR (Quick Recall)..."
+    # NOTE: QR command is ACCEPTED but NON-FUNCTIONAL in firmware v1.08+
+    # Command is parsed (returns empty) but has no actual effect
     local resp=$(raw_cmd "QR")
     if [ "$resp" = "?" ]; then
         log_fail "QR: command returned error"
     else
-        log_pass "QR (Quick Recall) - set-only command accepted"
+        log_pass "QR (Quick Recall) - set-only command accepted (non-functional in firmware)"
     fi
 }
 
@@ -220,12 +254,28 @@ test_VM() {
 
 test_ZI() {
     echo "Testing ZI (Zero In)..."
+    # ZI only works in CW mode - it's the CW AUTO ZERO IN function
+    # Save current mode, switch to CW, test ZI, restore mode
+    local orig_mode=$(raw_cmd "MD0")
+    if [ -z "$orig_mode" ] || [ "$orig_mode" = "?" ]; then
+        log_skip "ZI (Zero In) - cannot read mode"
+        return
+    fi
+    local orig_mode_val="${orig_mode: -1}"
+
+    # Switch to CW-U mode (03)
+    raw_cmd "MD03"
+    sleep 0.2
+
     local resp=$(raw_cmd "ZI0")
     if [ "$resp" = "?" ]; then
-        log_skip "ZI (Zero In) - firmware returns '?'"
+        log_fail "ZI: command returned error even in CW mode"
     else
-        log_pass "ZI (Zero In) - set-only command accepted"
+        log_pass "ZI (Zero In) - set-only, CW mode only"
     fi
+
+    # Restore original mode
+    raw_cmd "MD0$orig_mode_val"
 }
 
 test_DN() {
@@ -302,6 +352,7 @@ test_DCS() {
 
 run_misc_tests() {
     echo "=== Miscellaneous Tests ==="
+    test_CN
     test_CT
     test_SC
     test_SF

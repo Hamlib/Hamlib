@@ -4,22 +4,41 @@
  *
  * This file implements CAT commands for memory channel operations.
  *
- * CAT Commands in this file:
- *   MC P1P2P3;       - Memory Channel Select (001-117)
- *   MR;              - Memory Read (reads current channel data)
- *   MW;              - Memory Write (writes VFO data to current channel)
- *   MT P1P2P3;       - Memory Channel Tag/Name (read name)
- *   MA;              - Memory to VFO-A
- *   MB;              - Memory to VFO-B
- *   AM;              - VFO-A to Memory (store current VFO-A to memory)
- *   BM;              - VFO-B to Memory (store current VFO-B to memory)
- *   MZ P1 P2 P3;     - Memory Zone (lower/upper band limits)
- *   QR P1;           - Quick Memory Recall (P1=0-9)
- *   QS;              - Quick Memory Store
+ * FIRMWARE FORMAT NOTES (verified 2025-12-09):
+ * All memory commands use DIFFERENT FORMATS than documented in the spec!
+ *
+ * MC (Memory Channel Select):
+ *   Query: MC0 (MAIN VFO) or MC1 (SUB VFO)
+ *   Response: MCNNNNNN (6-digit channel, e.g., MC000001)
+ *   Set: MCNNNNNN (6-digit channel)
+ *   Returns '?' if channel doesn't exist (not programmed)
+ *
+ * MR (Memory Read): 5-digit format
+ *   Query: MR00001 (not MR001 or MR0001)
+ *   Response: MR00001FFFFFFFFF+OOOOOPPMMxxxx
+ *
+ * MT (Memory Tag): 5-digit format, FULL READ/WRITE
+ *   Read: MT00001 returns MT00001[12-char name, space padded]
+ *   Set: MT00001NAMEHERE (12 chars, space padded)
+ *
+ * MZ (Memory Zone): 5-digit format, FULL READ/WRITE
+ *   Read: MZ00001 returns MZ00001[10-digit zone data]
+ *   Set: MZ00001NNNNNNNNNN (10-digit zone data)
+ *
+ * VM (VFO/Memory Mode):
+ *   Mode codes DIFFER FROM SPEC: 00=VFO, 11=Memory (not 01!)
+ *   Only VM000 set works; use SV to toggle to memory mode
+ *
+ * CH (Memory Channel Up/Down):
+ *   CH0 = next memory channel, CH1 = previous memory channel
+ *   Cycles through ALL channels across groups: PMG (00xxxx) → QMB (05xxxx)
+ *   CH; CH00; CH01; etc. return '?' - only CH0 and CH1 work
+ *   MC response reflects group: MCGGnnnn where GG=group (00-05), nnnn=channel
  *
  * Memory Channel Ranges:
- *   001-099 = Regular memory channels
- *   100-117 = Special channels (P1-P9, PMS, etc.)
+ *   000001-000099 = Regular memory channels (6-digit for MC)
+ *   000100-000117 = Special channels
+ *   00001-00099 = Regular memory channels (5-digit for MR/MT/MZ)
  */
 
 #include <stdlib.h>
@@ -33,12 +52,22 @@
 #define FTX1_MEM_MAX 117
 #define FTX1_MEM_REGULAR_MAX 99
 
-/* Set Memory Channel (MC P1P2P3;) */
+/* Forward declaration - needed for ftx1_set_vfo_mem_mode */
+static int ftx1_get_vfo_mem_mode_internal(RIG *rig, vfo_t *vfo);
+
+/*
+ * Set Memory Channel (MC)
+ * FIRMWARE FORMAT: MCNNNNNN (6-digit channel number)
+ *   Set: MC000001 for channel 1
+ *   Returns '?' if channel doesn't exist (not programmed)
+ *
+ * Note: VFO parameter is ignored - FTX-1 uses single memory channel format
+ */
 int ftx1_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
 
-    (void)vfo;
+    (void)vfo;  /* VFO not used in MC command */
 
     if (ch < FTX1_MEM_MIN || ch > FTX1_MEM_MAX) {
         rig_debug(RIG_DEBUG_ERR, "%s: channel %d out of range %d-%d\n",
@@ -48,26 +77,47 @@ int ftx1_set_mem(RIG *rig, vfo_t vfo, int ch)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: ch=%d\n", __func__, ch);
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MC%03d;", ch);
+    /* Format: MCNNNNNN (6-digit channel) */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MC%06d;", ch);
     return newcat_set_cmd(rig);
 }
 
-/* Get Memory Channel */
+/*
+ * Get Memory Channel (MC)
+ * FIRMWARE FORMAT: MC0 or MC1 query returns MCNNNNNN (6-digit channel)
+ *   Query: MC0 (MAIN VFO) or MC1 (SUB VFO)
+ *   Response: MC000001 for channel 1
+ *
+ * Note: The VFO number in query selects which VFO to read,
+ *       but response format is the same (MC + 6-digit channel)
+ */
 int ftx1_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
     int ret, channel;
     struct newcat_priv_data *priv = STATE(rig)->priv;
+    int vfo_num = 0;
 
-    (void)vfo;
+    /* Determine VFO number: 0=MAIN, 1=SUB */
+    if (vfo == RIG_VFO_SUB || vfo == RIG_VFO_B) {
+        vfo_num = 1;
+    }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%d\n", __func__, vfo_num);
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MC;");
+    /* Format: MCx where x=VFO (0 or 1) */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MC%d;", vfo_num);
 
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    if (sscanf(priv->ret_data + 2, "%03d", &channel) != 1) {
+    /* Response: MCNNNNNN (MC + 6-digit channel) */
+    /* Skip "MC" (2 chars) and parse 6-digit channel */
+    if (strlen(priv->ret_data) < 8) {
+        rig_debug(RIG_DEBUG_ERR, "%s: response too short '%s'\n", __func__, priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    if (sscanf(priv->ret_data + 2, "%6d", &channel) != 1) {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__, priv->ret_data);
         return -RIG_EPROTO;
     }
@@ -79,60 +129,171 @@ int ftx1_get_mem(RIG *rig, vfo_t vfo, int *ch)
     return RIG_OK;
 }
 
-/* Memory Write (MW;) - write VFO to current memory channel */
+/*
+ * Memory Write (MW) - write channel data to memory
+ * CAT Format: MW P1P1P1P1P1 P2P2P2P2P2P2P2P2P2 P3P3P3P3P3 P4 P5 P6 P7 P8 P9P9 P10;
+ *   P1 (5 bytes): Channel number (00001-00999 or P-01L-P-50U for PMS)
+ *   P2 (9 bytes): VFO Frequency in Hz
+ *   P3 (5 bytes): Clarifier direction (+/-) + offset (0000-9990 Hz)
+ *   P4 (1 byte): RX CLAR (0=OFF, 1=ON)
+ *   P5 (1 byte): TX CLAR (0=OFF, 1=ON)
+ *   P6 (1 byte): Mode code (1=LSB, 2=USB, 3=CW-U, 4=FM, 5=AM, 6=RTTY-L,
+ *                          7=CW-L, 8=DATA-L, 9=RTTY-U, A=DATA-FM, B=FM-N,
+ *                          C=DATA-U, D=AM-N, E=PSK, F=DATA-FM-N)
+ *   P7 (1 byte): VFO/Memory mode (0=VFO, 1=Memory, 2=Memory Tune, 3=QMB, 5=PMS)
+ *   P8 (1 byte): CTCSS mode (0=OFF, 1=ENC/DEC, 2=ENC, 3=DCS, 4=PR FREQ, 5=REV TONE)
+ *   P9 (2 bytes): Fixed "00"
+ *   P10 (1 byte): Shift (0=Simplex, 1=Plus, 2=Minus)
+ */
 int ftx1_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret;
+    char mode_char;
+    char clar_dir;
+    int clar_offset;
+    int p7_vfo_mem;
+    int p8_ctcss;
+    int p10_shift;
 
     (void)vfo;
 
-    /* First select the channel */
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: ch=%d freq=%.0f mode=%d\n", __func__,
+              chan->channel_num, chan->freq, (int)chan->mode);
+
+    /* Validate channel number */
     if (chan->channel_num < FTX1_MEM_MIN || chan->channel_num > FTX1_MEM_MAX) {
+        rig_debug(RIG_DEBUG_ERR, "%s: channel %d out of range %d-%d\n",
+                  __func__, chan->channel_num, FTX1_MEM_MIN, FTX1_MEM_MAX);
         return -RIG_EINVAL;
     }
 
-    ret = ftx1_set_mem(rig, vfo, chan->channel_num);
-    if (ret != RIG_OK) return ret;
+    /* Convert Hamlib mode to FTX-1 mode code */
+    switch (chan->mode) {
+    case RIG_MODE_LSB:      mode_char = '1'; break;
+    case RIG_MODE_USB:      mode_char = '2'; break;
+    case RIG_MODE_CW:       mode_char = '3'; break;  /* CW-U */
+    case RIG_MODE_FM:       mode_char = '4'; break;
+    case RIG_MODE_AM:       mode_char = '5'; break;
+    case RIG_MODE_RTTYR:    mode_char = '6'; break;  /* RTTY-L */
+    case RIG_MODE_CWR:      mode_char = '7'; break;  /* CW-L */
+    case RIG_MODE_PKTLSB:   mode_char = '8'; break;  /* DATA-L */
+    case RIG_MODE_RTTY:     mode_char = '9'; break;  /* RTTY-U */
+    case RIG_MODE_PKTFM:    mode_char = 'A'; break;  /* DATA-FM */
+    case RIG_MODE_FMN:      mode_char = 'B'; break;  /* FM-N */
+    case RIG_MODE_PKTUSB:   mode_char = 'C'; break;  /* DATA-U */
+    case RIG_MODE_AMN:      mode_char = 'D'; break;  /* AM-N */
+    case RIG_MODE_PSK:      mode_char = 'E'; break;  /* PSK */
+    default:                mode_char = '2'; break;  /* Default to USB */
+    }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: writing to channel %d\n", __func__,
-              chan->channel_num);
+    /* Clarifier direction and offset */
+    if (chan->rit != 0) {
+        clar_dir = (chan->rit >= 0) ? '+' : '-';
+        clar_offset = abs(chan->rit);
+        if (clar_offset > 9990) clar_offset = 9990;
+    } else if (chan->xit != 0) {
+        clar_dir = (chan->xit >= 0) ? '+' : '-';
+        clar_offset = abs(chan->xit);
+        if (clar_offset > 9990) clar_offset = 9990;
+    } else {
+        clar_dir = '+';
+        clar_offset = 0;
+    }
 
-    /* Then write current VFO to it */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MW;");
+    /* P7: VFO/Memory mode - default to Memory (1) when writing to channel */
+    p7_vfo_mem = 1;
+
+    /* P8: CTCSS mode from channel flags */
+    p8_ctcss = 0;  /* Default OFF */
+    if (chan->flags & RIG_CHFLAG_SKIP) {
+        /* Use flags for tone squelch indication if available */
+    }
+    /* Check tone settings */
+    if (chan->ctcss_tone != 0 && chan->ctcss_sql != 0) {
+        p8_ctcss = 1;  /* CTCSS ENC/DEC */
+    } else if (chan->ctcss_tone != 0) {
+        p8_ctcss = 2;  /* CTCSS ENC only */
+    } else if (chan->dcs_code != 0) {
+        p8_ctcss = 3;  /* DCS */
+    }
+
+    /* P10: Repeater shift */
+    switch (chan->rptr_shift) {
+    case RIG_RPT_SHIFT_PLUS:  p10_shift = 1; break;
+    case RIG_RPT_SHIFT_MINUS: p10_shift = 2; break;
+    default:                  p10_shift = 0; break;  /* Simplex */
+    }
+
+    /* Build MW command string:
+     * MW P1P1P1P1P1 P2P2P2P2P2P2P2P2P2 P3P3P3P3P3 P4 P5 P6 P7 P8 P9P9 P10;
+     * Total: 2 + 5 + 9 + 5 + 1 + 1 + 1 + 1 + 1 + 2 + 1 + 1 = 30 chars
+     */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str),
+             "MW%05d%09.0f%c%04d%d%d%c%d%d00%d;",
+             chan->channel_num,          /* P1: 5-digit channel */
+             chan->freq,                 /* P2: 9-digit frequency in Hz */
+             clar_dir,                   /* P3: clarifier direction */
+             clar_offset,                /* P3: clarifier offset */
+             (chan->rit != 0) ? 1 : 0,   /* P4: RX CLAR on/off */
+             (chan->xit != 0) ? 1 : 0,   /* P5: TX CLAR on/off */
+             mode_char,                  /* P6: mode code */
+             p7_vfo_mem,                 /* P7: VFO/Memory mode */
+             p8_ctcss,                   /* P8: CTCSS mode */
+                                         /* P9: "00" (fixed) */
+             p10_shift);                 /* P10: shift */
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd='%s'\n", __func__, priv->cmd_str);
+
     return newcat_set_cmd(rig);
 }
 
-/* Memory Read (MR;) - read current memory channel to VFO */
+/*
+ * Memory Read (MR) - read memory channel data
+ * FIRMWARE FORMAT: MR P1P2P2P2P2 (5-digit: bank + 4-digit channel)
+ *   Query: MR00001 for channel 1
+ *   Response: MR00001FFFFFFFFF+OOOOOPPMMxxxx
+ *   Returns '?' if channel doesn't exist (not programmed)
+ */
 int ftx1_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 {
     int ret;
     struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ch;
 
     (void)vfo;
     (void)read_only;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+    ch = chan->channel_num;
 
-    /* First get current channel number */
-    ret = ftx1_get_mem(rig, vfo, &chan->channel_num);
-    if (ret != RIG_OK) return ret;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: ch=%d\n", __func__, ch);
 
-    /* Then read memory data */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MR;");
+    if (ch < FTX1_MEM_MIN || ch > FTX1_MEM_MAX) {
+        rig_debug(RIG_DEBUG_ERR, "%s: channel %d out of range %d-%d\n",
+                  __func__, ch, FTX1_MEM_MIN, FTX1_MEM_MAX);
+        return -RIG_EINVAL;
+    }
+
+    /* Format: MR P1P2P2P2P2 (bank 0 + 4-digit channel) */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MR%05d;", ch);
 
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    /* Parse MR response - format depends on radio firmware */
-    /* MR returns frequency, mode, and other data */
-    /* Basic parsing - extract frequency if present */
-    if (strlen(priv->ret_data) > 10) {
-        freq_t freq;
-        if (sscanf(priv->ret_data + 2, "%9lf", &freq) == 1) {
-            chan->freq = freq;
-        }
+    /* Response: MR00001FFFFFFFFF+OOOOOPPMMxxxx */
+    /* Skip "MR" + 5-digit channel (7 chars), then 9-digit frequency */
+    if (strlen(priv->ret_data) < 16) {
+        rig_debug(RIG_DEBUG_ERR, "%s: response too short '%s'\n",
+                  __func__, priv->ret_data);
+        return -RIG_EPROTO;
     }
+
+    /* Parse frequency (9 digits starting at position 7) */
+    freq_t freq;
+    if (sscanf(priv->ret_data + 7, "%9lf", &freq) == 1) {
+        chan->freq = freq;
+    }
+
+    /* TODO: Parse mode, offset, and other parameters from response */
 
     return RIG_OK;
 }
@@ -148,7 +309,13 @@ int ftx1_mem_to_vfo(RIG *rig)
     return newcat_set_cmd(rig);
 }
 
-/* Get Memory Tag/Name (MT P1P2P3;) */
+/*
+ * Get Memory Tag/Name (MT)
+ * FIRMWARE FORMAT: MT P1P2P2P2P2 (5-digit: bank + 4-digit channel)
+ *   Query: MT00001 for channel 1
+ *   Response: MT00001[12-char name, space padded]
+ *   Returns '?' if channel doesn't exist (not programmed)
+ */
 int ftx1_get_mem_name(RIG *rig, int ch, char *name, size_t name_len)
 {
     int ret;
@@ -160,97 +327,182 @@ int ftx1_get_mem_name(RIG *rig, int ch, char *name, size_t name_len)
         return -RIG_EINVAL;
     }
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MT%03d;", ch);
+    /* Format: MT P1P2P2P2P2 (bank 0 + 4-digit channel) */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MT%05d;", ch);
 
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    /* Response: MT P1P2P3 name; - extract name after channel number */
-    if (strlen(priv->ret_data) > 5) {
-        strncpy(name, priv->ret_data + 5, name_len - 1);
-        name[name_len - 1] = '\0';
-        /* Remove trailing semicolon if present */
-        size_t len = strlen(name);
-        if (len > 0 && name[len - 1] == ';') {
-            name[len - 1] = '\0';
-        }
-    } else {
-        name[0] = '\0';
+    /* Response: MT00001[12-char name] */
+    /* Skip "MT" + 5-digit channel (7 chars), then 12-char name */
+    if (strlen(priv->ret_data) < 7) {
+        rig_debug(RIG_DEBUG_ERR, "%s: response too short '%s'\n",
+                  __func__, priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    /* Extract name (12 chars starting at position 7) */
+    size_t copy_len = (name_len - 1 < 12) ? name_len - 1 : 12;
+    strncpy(name, priv->ret_data + 7, copy_len);
+    name[copy_len] = '\0';
+
+    /* Trim trailing spaces */
+    size_t len = strlen(name);
+    while (len > 0 && name[len - 1] == ' ') {
+        name[--len] = '\0';
     }
 
     return RIG_OK;
 }
 
-/* Quick Memory Store (QS;) */
+/*
+ * Set Memory Tag/Name (MT)
+ * FIRMWARE FORMAT: MT P1P2P2P2P2 NAME (5-digit channel + 12-char name)
+ *   Set: MT00001NAMEHERE (12 chars, space padded)
+ *   Returns '?' if channel doesn't exist (not programmed)
+ */
+int ftx1_set_mem_name(RIG *rig, int ch, const char *name)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    char padded_name[13];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: ch=%d name='%s'\n", __func__, ch, name);
+
+    if (ch < FTX1_MEM_MIN || ch > FTX1_MEM_MAX) {
+        return -RIG_EINVAL;
+    }
+
+    /* Pad name to 12 chars with spaces */
+    memset(padded_name, ' ', 12);
+    padded_name[12] = '\0';
+    size_t name_len = strlen(name);
+    if (name_len > 12) name_len = 12;
+    memcpy(padded_name, name, name_len);
+
+    /* Format: MT P1P2P2P2P2 NAME (bank 0 + 4-digit channel + 12-char name) */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MT%05d%s;", ch, padded_name);
+
+    return newcat_set_cmd(rig);
+}
+
+/*
+ * QMB Store (QI;)
+ * NOTE: QI command is ACCEPTED but NON-FUNCTIONAL in firmware v1.08+
+ * The command is parsed (returns empty, not '?') but has no effect.
+ * Kept for compatibility in case future firmware fixes this.
+ */
 int ftx1_quick_mem_store(RIG *rig)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s (NOTE: QI is non-functional in firmware)\n", __func__);
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "QS;");
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "QI;");
     return newcat_set_cmd(rig);
 }
 
-/* Quick Memory Recall (QR P1;) */
+/*
+ * Quick Memory Recall (QR;)
+ * NOTE: QR command is ACCEPTED but NON-FUNCTIONAL in firmware v1.08+
+ * The command is parsed (returns empty, not '?') but has no effect.
+ * CAT manual shows QR with no parameters, not QR P1 as originally coded.
+ * Kept for compatibility in case future firmware fixes this.
+ */
 int ftx1_quick_mem_recall(RIG *rig, int slot)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: slot=%d\n", __func__, slot);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: slot=%d (NOTE: QR is non-functional in firmware)\n", __func__, slot);
 
-    if (slot < 0 || slot > 9) {
-        return -RIG_EINVAL;
-    }
+    /* CAT manual shows QR; with no parameters, but we accept slot for API compatibility */
+    (void)slot;  /* unused - firmware ignores parameters anyway */
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "QR%1d;", slot);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "QR;");
     return newcat_set_cmd(rig);
 }
 
-/* VFO/Memory mode selection helper */
+/*
+ * Set VFO/Memory mode (VM)
+ * FIRMWARE FORMAT: VMxPP where x=VFO (0=MAIN, 1=SUB), PP=mode
+ *   Mode codes DIFFER FROM SPEC: 00=VFO, 11=Memory (not 01!)
+ *   IMPORTANT: Only VM000 (VFO mode) set works!
+ *   To switch to memory mode, use SV command to toggle
+ */
 int ftx1_set_vfo_mem_mode(RIG *rig, vfo_t vfo)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1;
 
-    /* VM P1; - P1: 0=VFO mode, 1=Memory mode, 2=Memory Tune mode */
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
+
     if (vfo == RIG_VFO_MEM) {
-        p1 = 1;
+        /*
+         * Memory mode requested - use SV toggle
+         * First check current mode, then toggle if needed
+         */
+        int ret;
+        vfo_t current_vfo;
+
+        ret = ftx1_get_vfo_mem_mode_internal(rig, &current_vfo);
+        if (ret != RIG_OK) return ret;
+
+        if (current_vfo != RIG_VFO_MEM) {
+            /* Toggle to memory mode using SV */
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SV;");
+            return newcat_set_cmd(rig);
+        }
+        return RIG_OK;  /* Already in memory mode */
     } else {
-        p1 = 0;
+        /* VFO mode requested - VM000 works */
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VM000;");
+        return newcat_set_cmd(rig);
     }
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
-              rig_strvfo(vfo), p1);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VM%1d;", p1);
-    return newcat_set_cmd(rig);
 }
 
-/* Get VFO/Memory mode */
-int ftx1_get_vfo_mem_mode(RIG *rig, vfo_t *vfo)
+/*
+ * Get VFO/Memory mode (VM) - internal implementation
+ * FIRMWARE FORMAT: VMx (x=VFO) returns VMxPP
+ *   Mode codes DIFFER FROM SPEC: 00=VFO, 11=Memory (not 01!)
+ */
+static int ftx1_get_vfo_mem_mode_internal(RIG *rig, vfo_t *vfo)
 {
-    int ret, p1;
+    int ret, mode;
     struct newcat_priv_data *priv = STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VM;");
+    /* Query MAIN VFO mode: VM0 returns VM0PP */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VM0;");
 
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1) {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__, priv->ret_data);
+    /* Response: VM0PP where PP is 2-digit mode code */
+    if (strlen(priv->ret_data) < 5) {
+        rig_debug(RIG_DEBUG_ERR, "%s: response too short '%s'\n",
+                  __func__, priv->ret_data);
         return -RIG_EPROTO;
     }
 
-    *vfo = (p1 == 1) ? RIG_VFO_MEM : RIG_VFO_CURR;
+    /* Parse 2-digit mode code at position 3 */
+    if (sscanf(priv->ret_data + 3, "%2d", &mode) != 1) {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n",
+                  __func__, priv->ret_data);
+        return -RIG_EPROTO;
+    }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: p1=%d vfo=%s\n", __func__, p1,
+    /* Mode codes: 00=VFO, 11=Memory (firmware differs from spec) */
+    *vfo = (mode == 11) ? RIG_VFO_MEM : RIG_VFO_CURR;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: mode=%d vfo=%s\n", __func__, mode,
               rig_strvfo(*vfo));
 
     return RIG_OK;
+}
+
+/* Public wrapper for ftx1_get_vfo_mem_mode */
+int ftx1_get_vfo_mem_mode(RIG *rig, vfo_t *vfo)
+{
+    return ftx1_get_vfo_mem_mode_internal(rig, vfo);
 }
 
 /*
@@ -296,68 +548,148 @@ int ftx1_mem_to_vfo_b(RIG *rig)
 }
 
 /*
- * ftx1_set_mem_zone - Set Memory Zone limits (MZ)
- * CAT command: MZ P1P1P1P1P1 P2 P3P3P3P3P3P3P3P3P3;
- *   P1 = Channel number (5 digits, 00001-00999)
- *   P2 = Limit type (0=lower, 1=upper)
- *   P3 = Frequency (9 digits in Hz)
+ * Set Memory Zone data (MZ)
+ * FIRMWARE FORMAT: MZ P1P2P2P2P2 DATA (5-digit channel + 10-digit zone data)
+ *   Set: MZ00001NNNNNNNNNN (10-digit zone data)
+ *   Returns '?' if channel doesn't exist (not programmed)
+ *
+ * Note: Actual zone data format is firmware-specific (10 digits).
+ * This function takes raw zone data string for maximum flexibility.
  */
-int ftx1_set_mem_zone(RIG *rig, int channel, int limit_type, freq_t freq)
+int ftx1_set_mem_zone(RIG *rig, int channel, const char *zone_data)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
+    char padded_data[11];
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: ch=%d limit=%d freq=%.0f\n", __func__,
-              channel, limit_type, freq);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: ch=%d data='%s'\n", __func__,
+              channel, zone_data);
 
-    if (channel < 1 || channel > 999) {
+    if (channel < FTX1_MEM_MIN || channel > FTX1_MEM_MAX) {
         return -RIG_EINVAL;
     }
 
-    if (limit_type < 0 || limit_type > 1) {
-        return -RIG_EINVAL;
-    }
+    /* Pad/truncate zone data to 10 chars */
+    memset(padded_data, '0', 10);
+    padded_data[10] = '\0';
+    size_t data_len = strlen(zone_data);
+    if (data_len > 10) data_len = 10;
+    memcpy(padded_data, zone_data, data_len);
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MZ%05d%d%09.0f;",
-             channel, limit_type, freq);
+    /* Format: MZ P1P2P2P2P2 DATA (bank 0 + 4-digit channel + 10-digit data) */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MZ%05d%s;",
+             channel, padded_data);
 
     return newcat_set_cmd(rig);
 }
 
 /*
- * ftx1_get_mem_zone - Get Memory Zone limits (MZ)
- * CAT command: MZ P1P1P1P1P1; Response: MZ P1P1P1P1P1 P2 P3P3P3P3P3P3P3P3P3;
+ * Get Memory Zone data (MZ)
+ * FIRMWARE FORMAT: MZ P1P2P2P2P2 (5-digit: bank + 4-digit channel)
+ *   Query: MZ00001 for channel 1
+ *   Response: MZ00001[10-digit zone data]
+ *   Returns '?' if channel doesn't exist (not programmed)
  */
-int ftx1_get_mem_zone(RIG *rig, int channel, int *limit_type, freq_t *freq)
+int ftx1_get_mem_zone(RIG *rig, int channel, char *zone_data, size_t data_len)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
-    int ch_resp, lim;
-    double f;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: ch=%d\n", __func__, channel);
 
-    if (channel < 1 || channel > 999) {
+    if (channel < FTX1_MEM_MIN || channel > FTX1_MEM_MAX) {
         return -RIG_EINVAL;
     }
 
+    /* Format: MZ P1P2P2P2P2 (bank 0 + 4-digit channel) */
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MZ%05d;", channel);
 
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    /* Response: MZ P1P1P1P1P1 P2 P3P3P3P3P3P3P3P3P3; */
-    if (sscanf(priv->ret_data + 2, "%5d%1d%9lf", &ch_resp, &lim, &f) != 3)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
+    /* Response: MZ00001[10-digit zone data] */
+    /* Skip "MZ" + 5-digit channel (7 chars), then 10-digit data */
+    if (strlen(priv->ret_data) < 17) {
+        rig_debug(RIG_DEBUG_ERR, "%s: response too short '%s'\n",
+                  __func__, priv->ret_data);
         return -RIG_EPROTO;
     }
 
-    *limit_type = lim;
-    *freq = f;
+    /* Extract zone data (10 chars starting at position 7) */
+    size_t copy_len = (data_len - 1 < 10) ? data_len - 1 : 10;
+    strncpy(zone_data, priv->ret_data + 7, copy_len);
+    zone_data[copy_len] = '\0';
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: limit=%d freq=%.0f\n", __func__,
-              *limit_type, *freq);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: zone_data='%s'\n", __func__, zone_data);
+
+    return RIG_OK;
+}
+
+/*
+ * ftx1_mem_ch_up - Select next memory channel (CH0)
+ * CAT command: CH0; (set-only)
+ * Cycles through ALL memory channels across groups:
+ *   PMG ch1 → ch2 → ... → QMB ch1 → ch2 → ... → PMG ch1 (wraps)
+ * Display shows "M-ALL X-NN" where X=group, NN=channel
+ */
+int ftx1_mem_ch_up(RIG *rig)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CH0;");
+    return newcat_set_cmd(rig);
+}
+
+/*
+ * ftx1_mem_ch_down - Select previous memory channel (CH1)
+ * CAT command: CH1; (set-only)
+ * Cycles through ALL memory channels in reverse order
+ */
+int ftx1_mem_ch_down(RIG *rig)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CH1;");
+    return newcat_set_cmd(rig);
+}
+
+/*
+ * ftx1_get_mem_group - Get current memory group from MC response
+ * Returns group number (0-5 observed) extracted from MCGGNNNN format
+ * Group 00 = PMG (Primary Memory Group)
+ * Group 05 = QMB (Quick Memory Bank)
+ */
+int ftx1_get_mem_group(RIG *rig, int *group)
+{
+    int ret, ch;
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    /* Use MC0 to get current memory channel */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MC0;");
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK) return ret;
+
+    /* Response: MCGGNNNN where GG=group (00-05), NNNN=channel */
+    if (strlen(priv->ret_data) < 8) {
+        rig_debug(RIG_DEBUG_ERR, "%s: response too short '%s'\n",
+                  __func__, priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    /* Parse group (2 digits at position 2) and channel (4 digits at position 4) */
+    if (sscanf(priv->ret_data + 2, "%2d%4d", group, &ch) != 2) {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n",
+                  __func__, priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: group=%d channel=%d\n", __func__, *group, ch);
 
     return RIG_OK;
 }

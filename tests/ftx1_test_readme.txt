@@ -25,7 +25,7 @@ Test modules (Python .py and Bash .sh versions):
   ftx1_test_tx        - PTT, VOX, tuner, MOX
   ftx1_test_memory    - Memory read/write, memory zones
   ftx1_test_info      - Radio ID, IF info, meters (read-only)
-  ftx1_test_misc      - CTCSS, scan, date/time, misc commands
+  ftx1_test_misc      - CTCSS/DCS (CN, CT, DC), scan, date/time, misc commands
   ftx1_test_power     - RF power, SPA-1 power settings
 
 Legacy monolithic harnesses (still functional):
@@ -112,9 +112,9 @@ Groups can be specified with --group/-g option (comma-separated):
   preamp    Preamp, RF attenuator (PA)
   cw        Key speed, break-in, keyer memory (KP, KR, KS, KY, SD, KM, LM)
   tx        PTT, VOX, tuner, MOX (AC, MX, TX, VX, VE) - requires --tx-tests
-  memory    Memory read/write, memory zones (AM, BM, MA, MB, MR, MT, MW, MZ)
+  memory    Memory read/write, channel up/down (AM, BM, CH, MA, MB, MC, MR, MT, MW, MZ, VM)
   info      Radio ID, IF info, meters (DA, DT, ID, IF, OI, PS, RI, RM)
-  misc      CTCSS, scan, date/time, misc (CT, SC, SF, TS, CS, etc.)
+  misc      CTCSS/DCS tones, scan, date/time, misc (CN, CT, DC, SC, SF, TS, CS, etc.)
   power     RF power, SPA-1 settings (PC, EX030104, EX0307xx) - SPA-1 requires --optima
 
 Examples:
@@ -191,16 +191,57 @@ Firmware version: MAIN Ver. 1.08+
 Radio ID: Firmware returns ID0763; (not ID0840; as documented in manual)
 
 Commands Not Implemented in Firmware (return '?'):
-  BS (Band Select), CF (Clarifier), CH (Channel Up/Down),
-  CN (CTCSS Number), EX (Extended Menu - partially), FC (Sub VFO Freq),
-  GP (GP OUT), MC (Memory Channel), SS (Spectrum Scope)
+  SL (Low Cut) - NOT IN FTX-1 CAT SPEC (use EX menu or SH for filter settings)
+
+Commands NOW WORKING (previously thought broken):
+  EO (Encoder Offset) - Set-only, format: EO00+0100; (returns empty)
+  SS (Spectrum Scope) - Read: SS0X; where X=0-7 selects parameter type
+
+Commands Accepted but Non-Functional:
+  QI (QMB Store), QR (QMB Recall) - Commands accepted but have no effect
+
+Commands NOW WORKING (verified 2025-12-09):
+  BS (Band Select) - Set-only, format BS P1 P2P2 (P1=VFO, P2P2=band 00-10)
+  CF (Clarifier) - Set-only, sets offset value only (CF001+0500), doesn't enable
+  CH (Memory Channel Up/Down) - CH0/CH1 cycle through ALL memory channels
+                      Cycles: PMG ch1 → ch2 → ... → QMB ch1 → ... → PMG ch1
+                      CH; CH00; CH01; etc. return '?' - only CH0 and CH1 work
+                      Display shows "M-ALL X-NN" where X=group, NN=channel
+  CN (CTCSS Number) - Works with format CN P1 P2P3P4 (P1=00/10, P2P3P4=001-050)
+  EX (Extended Menu) - Works when SPA-1 is connected
+  GP (GP OUT) - Full R/W, format GP P1P2P3P4 (each controls A/B/C/D, 0=LOW/1=HIGH)
+               REQUIRES: Menu [OPERATION SETTING] → [GENERAL] → [TUN/LIN PORT SELECT] = "GPO"
+               Factory default is "OPTION" - GP returns '?' until menu changed
+  MC (Memory Channel) - DIFFERENT FORMAT than documented!
+                        Read: MC0 (MAIN) or MC1 (SUB) returns MCNNNNNN (6-digit)
+                        Set: MCNNNNNN (6-digit channel, no VFO prefix)
+                        Returns '?' if channel doesn't exist (not programmed)
+  MR (Memory Read) - 5-digit format! MR00001 (not MR0001) for channel 1
+                     Returns '?' for empty/unprogrammed channels
+  MT (Memory Tag) - FULL R/W! MT00001NAME sets 12-char name for channel
+  MZ (Memory Zone) - FULL R/W! MZ00001DATA sets 10-digit zone data
+  VM (VFO/Memory) - Mode codes DIFFER FROM SPEC: 00=VFO, 11=Memory (not 01!)
+                    Only VM000 set works; use SV command to toggle to memory mode
+  ZI (Zero In) - Set-only, CW mode only (P1=0 MAIN/1 SUB) - activates CW AUTO ZERO IN
 
 Commands with Firmware Limitations:
   KM (Keyer Message) - Read returns empty (no message content)
 
+Memory Command Format (IMPORTANT - different from spec!):
+  MR, MT, MZ all use 5-digit format: P1 P2P2P2P2 (1+4 digits)
+  - P1 = bank (always 0)
+  - P2P2P2P2 = 4-digit channel number (0001-0099, 0100-0117 for special)
+  Example: MR00001 reads channel 1, MT00010 reads name of channel 10
+
 PC (Power Control) Format:
   - Field head (P1=1): Uses decimal for fractional watts (PC10.5, PC11.5)
   - SPA-1 (P1=2): Uses 3-digit integers (PC2005 to PC2100)
+
+CN (CTCSS Number) Format:
+  - Query TX tone: CN00; returns CN00nnn (nnn=tone number 001-050)
+  - Query RX tone: CN10; returns CN10nnn
+  - Set TX tone: CN00nnn; (e.g., CN00012 for tone 12 = 97.4 Hz)
+  - Set RX tone: CN10nnn;
 
 
 Notes
