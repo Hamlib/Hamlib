@@ -807,7 +807,13 @@ int newcat_set_conf(RIG *rig, hamlib_token_t token, const char *val)
  * rig_get_config
  *
  * Get Configuration Token for Yaesu Radios
+ * 
+ * HACK: Wrapper is because the header file declarations don't match the implementation.
  */
+int newcat_get_conf(RIG *rig, hamlib_token_t token, char *val)
+{
+    return newcat_get_conf2(rig, token, val, 128);
+}
 
 int newcat_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 {
