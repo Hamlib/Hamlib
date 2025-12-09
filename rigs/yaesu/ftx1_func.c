@@ -137,9 +137,6 @@ extern int ftx1_get_cw_delay(RIG *rig, int *ms);
 extern int ftx1_send_morse(RIG *rig, vfo_t vfo, const char *msg);
 extern int ftx1_stop_morse(RIG *rig, vfo_t vfo);
 
-/* Extern helpers from ftx1_freq.c */
-extern int ftx1_get_rit_info(RIG *rig, vfo_t vfo, int *rit_on, int *xit_on, int *offset_hz);
-
 /* Extern helpers from ftx1_tx.c */
 extern int ftx1_set_breakin(RIG *rig, int mode);
 extern int ftx1_get_breakin(RIG *rig, int *mode);

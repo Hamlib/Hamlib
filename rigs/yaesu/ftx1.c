@@ -26,8 +26,8 @@
 #include "yaesu.h"
 #include "newcat.h"
 
-// Define FTX-1 rig ID from manual (ID; returns ID0840;)
-#define NC_RIGID_FTX1 0x840
+// Define FTX-1 rig ID (firmware returns ID0763;, not ID0840; as documented in manual)
+#define NC_RIGID_FTX1 0x763
 
 // Private caps for newcat framework
 static const struct newcat_priv_caps ftx1_priv_caps = {
@@ -92,7 +92,7 @@ struct rig_caps ftx1_caps = {
     .rig_model = RIG_MODEL_FTX1,
     .model_name = "FTX-1",
     .mfg_name = "Yaesu",
-    .version = "20251208.0",  // Use date-based version for dev
+    .version = "20251209.0",  // Use date-based version for dev
     .copyright = "LGPL",
     .status = RIG_STATUS_BETA,  // Update to stable once complete
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -130,9 +130,9 @@ struct rig_caps ftx1_caps = {
         /* CW pitch: FTX-1 does NOT support CWPITCH via CAT (KP is paddle ratio) */
         /* Key speed: FTX-1 uses 4-60 WPM */
         [LVL_KEYSPD] = { .min = { .i = 4 }, .max = { .i = 60 }, .step = { .i = 1 } },
-        /* Break-in delay: FTX-1 uses 30-3000ms */
-        [LVL_BKINDL] = { .min = { .i = 30 }, .max = { .i = 3000 }, .step = { .i = 1 } },
-        /* VOX delay: FTX-1 uses 30-3000ms, Hamlib expects tenths of seconds as int */
+        /* Break-in delay: FTX-1 SD command uses 00-30 (tenths of seconds, 0-3000ms) */
+        [LVL_BKINDL] = { .min = { .i = 0 }, .max = { .i = 30 }, .step = { .i = 1 } },
+        /* VOX delay: FTX-1 VD command uses 00-30 (tenths of seconds, 0-3000ms) */
         [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 30 }, .step = { .i = 1 } },
         /* Notch frequency: FTX-1 uses 1-3200 Hz */
         [LVL_NOTCHF] = { .min = { .i = 1 }, .max = { .i = 3200 }, .step = { .i = 10 } },
