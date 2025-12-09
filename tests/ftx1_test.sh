@@ -2768,6 +2768,75 @@ test_AC() {
     fi
 }
 
+test_EX_TUNER_SELECT() {
+    echo "Testing EX030104 (TUNER SELECT)..."
+    # EX030104: TUNER SELECT - controls internal antenna tuner type
+    # Values: 0=INT, 1=INT(FAST), 2=EXT, 3=ATAS
+    # GUARDRAIL: Values 0 (INT) and 1 (INT FAST) require SPA-1 amplifier
+    # Without SPA-1, only values 2 (EXT) and 3 (ATAS) are valid
+    # Per FTX-1 CAT spec page 10-11
+    if [ "$OPTIMA_ENABLED" -eq 0 ]; then
+        log_skip "EX030104 (TUNER SELECT) - Optima tests disabled (use --optima for SPA-1)"
+        return
+    fi
+    local orig=$(raw_cmd "EX030104")
+    if [ "$orig" = "?" ]; then
+        log_skip "EX030104 (TUNER SELECT) - not available in firmware"
+        return
+    fi
+    if [[ ! "$orig" =~ ^EX030104[0-3]$ ]]; then
+        log_fail "EX030104: read failed, got: $orig"
+        return
+    fi
+    local orig_val="${orig: -1}"
+    # With SPA-1, test setting INT (0) - this requires SPA-1
+    raw_cmd "EX0301040"
+    local after=$(raw_cmd "EX030104")
+    if [ "$after" = "EX0301040" ]; then
+        # Restore original
+        raw_cmd "EX030104$orig_val"
+        log_pass "EX030104 (TUNER SELECT INT) - set/read/restore with SPA-1"
+    else
+        log_fail "EX030104: set to INT failed with SPA-1, got: $after"
+        raw_cmd "EX030104$orig_val"
+    fi
+}
+
+test_EX_OPTION_POWER() {
+    echo "Testing EX030705 (OPTION 160m Power)..."
+    # EX0307xx: OPTION section - SPA-1 max power settings per band
+    # GUARDRAIL: These settings require SPA-1 amplifier
+    # Items: 05=160m, 06=80m, 07=60m, 08=40m, 09=30m, 10=20m, 11=17m
+    # Per FTX-1 CAT spec page 12-13
+    if [ "$OPTIMA_ENABLED" -eq 0 ]; then
+        log_skip "EX030705 (OPTION Power) - Optima tests disabled (use --optima for SPA-1)"
+        return
+    fi
+    local orig=$(raw_cmd "EX030705")
+    if [ "$orig" = "?" ]; then
+        log_skip "EX030705 (OPTION 160m power) - not available in firmware"
+        return
+    fi
+    if [[ ! "$orig" =~ ^EX030705[0-9]{3}$ ]]; then
+        log_fail "EX030705: read failed, got: $orig"
+        return
+    fi
+    local orig_val="${orig: -3}"
+    # Test setting a valid power level (100W is max for SPA-1)
+    local test_val="050"
+    [ "$orig_val" = "050" ] && test_val="100"
+    raw_cmd "EX030705$test_val"
+    local after=$(raw_cmd "EX030705")
+    if [ "$after" = "EX030705$test_val" ]; then
+        # Restore original
+        raw_cmd "EX030705$orig_val"
+        log_pass "EX030705 (OPTION Power) - set/read/restore with SPA-1"
+    else
+        log_fail "EX030705: set failed with SPA-1, got: $after"
+        raw_cmd "EX030705$orig_val"
+    fi
+}
+
 # ============================================================
 # Destructive Tests (skipped by default for safety)
 # ============================================================
@@ -3127,6 +3196,11 @@ test_VX
 test_MX_cmd
 test_KY
 test_AC
+echo ""
+
+echo "=== SPA-1/Optima EX Menu Tests ==="
+test_EX_TUNER_SELECT
+test_EX_OPTION_POWER
 echo ""
 
 echo "=== Destructive Command Tests ==="

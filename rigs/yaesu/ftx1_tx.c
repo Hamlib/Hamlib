@@ -22,6 +22,10 @@
 #include "yaesu.h"
 #include "newcat.h"
 
+/* Extern from ftx1.c for SPA-1 detection */
+extern int ftx1_has_spa1(void);
+extern int ftx1_get_head_type(void);
+
 /* Set PTT (TX P1;) */
 int ftx1_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
@@ -188,15 +192,31 @@ int ftx1_get_monitor(RIG *rig, int *status)
  * Response format: AC P1 P2 P3; (3 digits)
  * Set format for tuner on/off: AC P1 0 0; (turn on/off without starting tune)
  * Set format for tune: AC 1 1 0; (turn on and start tune)
+ *
+ * IMPORTANT: The internal antenna tuner is ONLY available when the SPA-1
+ * amplifier is connected (FTX-1 Optima configuration). When using the field
+ * head only, this command will return an error from the radio.
  */
 
-/* Set Antenna Tuner (AC P1 P2 P3;) */
+/* Set Antenna Tuner (AC P1 P2 P3;) - SPA-1 REQUIRED */
 int ftx1_set_tuner(RIG *rig, int mode)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int p1, p2;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: mode=%d\n", __func__, mode);
+
+    /*
+     * GUARDRAIL: Internal tuner requires SPA-1 amplifier
+     * Without SPA-1, the AC command will fail or produce undefined behavior.
+     */
+    if (!ftx1_has_spa1())
+    {
+        rig_debug(RIG_DEBUG_WARN,
+                  "%s: internal tuner requires SPA-1 amplifier (not detected)\n",
+                  __func__);
+        return -RIG_ENAVAIL;  /* Feature not available */
+    }
 
     /* mode: 0=off, 1=on, 2=tune */
     switch (mode)
@@ -224,13 +244,25 @@ int ftx1_set_tuner(RIG *rig, int mode)
     return newcat_set_cmd(rig);
 }
 
-/* Get Antenna Tuner status */
+/* Get Antenna Tuner status - SPA-1 REQUIRED */
 int ftx1_get_tuner(RIG *rig, int *mode)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret, p1;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    /*
+     * GUARDRAIL: Internal tuner requires SPA-1 amplifier
+     * Without SPA-1, report tuner as off rather than querying.
+     */
+    if (!ftx1_has_spa1())
+    {
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: no SPA-1 detected, tuner not available\n", __func__);
+        *mode = 0;  /* Report tuner as off */
+        return RIG_OK;
+    }
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AC;");
 
