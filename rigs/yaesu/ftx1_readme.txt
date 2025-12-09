@@ -23,21 +23,26 @@ VFO Commands (ftx1_vfo.c):
   SV;              - Swap VFO (exchanges A and B) [WORKING]
   AB;              - VFO-A to VFO-B copy [WORKING]
   BA;              - VFO-B to VFO-A copy (read-only query) [WORKING]
-  BS P1 P2P2;      - Band Select (P1=VFO, P2P2=band code 00-14) [FIRMWARE BUG: returns ?]
+  BS P1 P2P2;      - Band Select (P1=VFO, P2P2=band code 00-10) [WORKING - set-only]
   UP;              - Frequency/Channel Up [WORKING - context-dependent]
   DN;              - Frequency/Channel Down [WORKING - context-dependent]
 
 Frequency Commands (ftx1_freq.c):
   FA P1...P9;      - VFO-A Frequency (9-digit Hz, e.g., FA014250000;) [WORKING]
   FB P1...P9;      - VFO-B Frequency (9-digit Hz) [WORKING]
-  FC;              - Sub VFO Frequency [FIRMWARE BUG: returns ?]
-  CF P1 P2 P3 P4 P5...P8; - Clarifier (RIT/XIT) [FIRMWARE BUG: returns ?]
+  CF P1 P2 P3 P4 P5...P8; - Clarifier (RIT/XIT) [WORKING - set offset only]
                      P1=VFO (0/1), P2=RIT on/off, P3=XIT on/off
-                     P4=direction (0=minus, 1=plus), P5-P8=offset (0000-9999 Hz)
+                     P4=+/- direction, P5-P8=offset (0000-9999 Hz)
 
 Notes:
   - Frequency format: 9 digits, leading zeros required
-  - CF command not implemented in firmware v1.08+ - use RI for RIT info
+  - CF sets clarifier offset value only (does not enable clarifier)
+  - Format: CF P1 P2 P3 [+/-] PPPP (9 chars after CF)
+  - Example: CF001+0500 sets offset to +500Hz
+  - P3 must be 1 for command to be accepted; CF010+0500 returns '?'
+  - P2 can be 0 or 1 (both work: CF001 and CF011)
+  - No CAT command found to enable/disable clarifier (RT, XT, CL all return '?')
+  - Use RI for RIT info read
 
 ================================================================================
 GROUP 2: Mode and Bandwidth (ftx1_mode.c)
@@ -142,7 +147,8 @@ Commands:
   VX P1;           - VOX on/off (0=off, 1=on) [WORKING - TX test]
   AC P1P2P3;       - Antenna Tuner Control (P1: 0=off, 1=on, 2=tune) [OPTIMA ONLY]
   BI P1;           - Break-In (QSK) (0=off, 1=semi, 2=full) [WORKING]
-  PS P1;           - Power Switch (0=off, 1=on) - USE WITH CAUTION [SKIP - safety]
+  PS P1;           - Power Switch (0=off) [WORKING - read/write, USE WITH CAUTION]
+                     NOTE: Only PS0 (power off) works for set. Read returns PS0/PS1.
   KY P1 P2...;     - CW Message Send (causes TX) [WORKING - TX test]
 
 TX Test Safety Notes:
@@ -155,21 +161,106 @@ TX Test Safety Notes:
 GROUP 7: Memory Operations (ftx1_mem.c)
 ================================================================================
 Commands:
-  MC P1P2P3;       - Memory Channel Select (001-117) [FIRMWARE BUG: returns ?]
-  MR P1 P2P3P4;    - Memory Read (P1=zone, P2-P4=channel) [WORKING - read-only]
-  MW P1 P2P3P4...  - Memory Write (writes data to channel) [SKIP - destructive]
-  MT P1 P2P3P4;    - Memory Channel Tag/Name (read name) [WORKING - read-only]
-  MZ P1 P2P3P4;    - Memory Zone (P1=zone, P2-P4=channel) [WORKING]
-  MA;              - Memory to VFO-A [SKIP - destructive]
-  MB;              - Memory to VFO-B [SKIP - destructive]
+  MC P1;           - Memory Channel Select [WORKING - different format than spec]
+  MR P1P2P3P4P5;   - Memory Read (5-digit format!) [WORKING - read-only]
+  MW P1P2P3P4P5... - Memory Write (writes data to channel) [WORKING - full implementation]
+  MT P1P2P3P4P5;   - Memory Channel Tag/Name (5-digit format) [WORKING - read-only]
+  MZ P1P2P3P4P5;   - Memory Zone (5-digit format) [WORKING]
+  MA;              - Memory to VFO-A [WORKING - set-only]
+  MB;              - Memory to VFO-B [WORKING - set-only]
   AM;              - VFO-A to Memory [WORKING - set-only]
   BM;              - VFO-B to Memory [WORKING - set-only]
-  QR P1;           - Quick Memory Recall (P1=0-9) [WORKING - set-only]
-  QI;              - Quick In [WORKING - set-only]
+  QI;              - QMB Store [ACCEPTED but NON-FUNCTIONAL - see notes]
+  QR;              - QMB Recall [ACCEPTED but NON-FUNCTIONAL - see notes]
+  VM P1;           - VFO/Memory mode (P1=0/1 for VFO A/B) [WORKING - partial]
+  CH P1;           - Memory Channel Up/Down (P1=0/1) [WORKING - see notes below]
+
+Memory Command Format Notes (verified 2025-12-09):
+  IMPORTANT: Memory commands use different formats than documented!
+
+  MC format (Memory Channel Select) - DIFFERENT FROM SPEC:
+    Read: MC0 (MAIN) or MC1 (SUB)
+    Response: MCNNNNNN (6-digit channel number, no VFO in response)
+    Example: MC0 returns MC000001 (channel 1)
+
+    Set: MCNNNNNN (6-digit channel, no VFO prefix)
+    Example: MC000001 sets to channel 1
+    Returns empty on success, '?' if channel doesn't exist
+
+  MR format: MR P1 P2P2P2P2 (5-digit, not 4-digit as documented)
+    Example: MR00001 reads channel 1
+    Response: MR00001FFFFFFFFF+OOOOOPPMMxxxx
+      FFFFFFFFF = 9-digit frequency in Hz
+      +/-OOOOO = clarifier offset
+      PP = parameters
+      MM = mode
+    Returns '?' for empty/unprogrammed channels
+
+  MW format (Memory Write) - SET ONLY (verified 2025-12-09):
+    Format: MW P1P1P1P1P1 P2P2P2P2P2P2P2P2P2 P3P3P3P3P3 P4 P5 P6 P7 P8 P9P9 P10;
+    Total: 29 bytes (command + parameters) + semicolon
+
+    Parameters:
+      P1 (5 bytes): Channel number (00001-00999, or P-01L to P-50U for PMS)
+      P2 (9 bytes): Frequency in Hz (e.g., 014250000 for 14.250 MHz)
+      P3 (5 bytes): Clarifier direction (+/-) + offset (0000-9990 Hz)
+      P4 (1 byte): RX CLAR (0=OFF, 1=ON)
+      P5 (1 byte): TX CLAR (0=OFF, 1=ON)
+      P6 (1 byte): Mode code (1=LSB, 2=USB, 3=CW-U, 4=FM, 5=AM, etc.)
+      P7 (1 byte): VFO/Memory mode (0=VFO, 1=Memory, 2=MT, 3=QMB, 5=PMS)
+      P8 (1 byte): CTCSS mode (0=OFF, 1=ENC/DEC, 2=ENC, 3=DCS)
+      P9 (2 bytes): Fixed "00"
+      P10 (1 byte): Shift (0=Simplex, 1=Plus, 2=Minus)
+
+    Examples:
+      MW00005014250000+000000210000; = Ch 5, 14.250 MHz USB, no shift
+      MW00010007030000+000000310000; = Ch 10, 7.030 MHz CW-U
+      MW00017146520000+000000410000; = Ch 17, 146.520 MHz FM
+
+    Mode codes for P6:
+      1=LSB, 2=USB, 3=CW-U, 4=FM, 5=AM, 6=RTTY-L, 7=CW-L,
+      8=DATA-L, 9=RTTY-U, A=DATA-FM, B=FM-N, C=DATA-U, D=AM-N, E=PSK
+
+  MT format (Memory Tag/Name) - READ/WRITE:
+    Read: MT00001 returns MT00001[12-char name, space padded]
+    Set: MT00001NAMEHERE sets name (12 chars, space padded)
+    Example: MT00001MYSTATION   sets channel 1 name to "MYSTATION"
+    Verified read/write working 2025-12-09
+
+  MZ format (Memory Zone) - READ/WRITE:
+    Read: MZ00001 returns MZ00001[10-digit zone data]
+    Set: MZ00001NNNNNNNNNN sets zone data
+    Example: MZ000010000000000 sets channel 1 zone data
+    Verified read/write working 2025-12-09
+
+  VM format (VFO/Memory Mode) - PARTIAL:
+    Read: VM0 (MAIN) or VM1 (SUB) returns VMxPP
+    Mode codes (DIFFERENT FROM SPEC!):
+      00 = VFO mode
+      11 = Memory mode (spec says 01, but firmware uses 11)
+      10 = Memory Tune mode (not verified)
+    Set: Only VM000 works (sets to VFO mode)
+    To enter Memory mode: Use SV command to toggle
+    Verified 2025-12-09
+
+CH format (Memory Channel Up/Down) - WORKING (verified 2025-12-09):
+    CH0; = Next memory channel (cycles through ALL channels across groups)
+    CH1; = Previous memory channel
+    Cycles: PMG ch1 → ch2 → ... → QMB ch1 → ch2 → ... → wraps to PMG ch1
+    Note: CH; CH00; CH01; etc. return '?' - only CH0 and CH1 work
+
+    Display shows group indicator:
+      Red box with "5" = QMB (Quick Memory Bank)
+      "M-ALL NNN" = PMG (Primary Memory Group) channel NNN
+
+    MC response format reflects group: MCGGnnnn where GG=group, nnnn=channel
+      MC000001 = Group 0, Channel 1 (PMG - Primary Memory Group)
+      MC050001 = Group 5, Channel 1 (QMB - Quick Memory Bank)
 
 Memory Channel Ranges:
-  001-099 = Regular memory channels
-  100-117 = Special channels (P1-P9, PMS, etc.)
+  000001-000099 = Regular memory channels (6-digit format for MC)
+  000100-000117 = Special channels (P1-P9, PMS, etc.)
+  00001-00099 = Regular memory channels (5-digit format for MR/MT/MZ)
 
 ================================================================================
 GROUP 8: CW Operations (ftx1_cw.c)
@@ -181,7 +272,7 @@ Commands:
   KY P1 P2...;     - CW Message Send (P1=0, P2=message up to 24 chars) [TX test]
   SD P1P2P3P4;     - CW Break-in Delay (0030-3000ms) [WORKING]
   BI P1;           - Break-in (0=off, 1=semi, 2=full) [WORKING]
-  KM P1 P2P3;      - Keyer Memory (read message slot) [FIRMWARE: returns empty]
+  KM P1 P2...;     - Keyer Memory Read/Write (P1=1-5 slot, P2=msg up to 50 chars) [WORKING]
   LM P1 P2P3;      - Load Message to slot [WORKING - set-only]
 
 CW Message Characters:
@@ -193,10 +284,12 @@ CW Message Characters:
 GROUP 9: CTCSS/DCS Encode/Decode (ftx1_ctcss.c)
 ================================================================================
 Commands:
-  CN P1 P2P3;      - CTCSS Tone Number (P1=0 TX/1 RX, P2P3=01-50) [FIRMWARE BUG: returns ?]
+  CN P1 P2P3P4;    - CTCSS Tone Number (P1=00 TX/10 RX, P2P3P4=001-050) [WORKING]
+                     Query: CN00; or CN10; returns CNppnnn; (pp=00/10, nnn=tone#)
+                     Set: CN00nnn; (TX) or CN10nnn; (RX) where nnn=001-050
   CT P1;           - CTCSS Mode (0=off, 1=ENC, 2=TSQ, 3=DCS) [WORKING]
   TS P1;           - Tone Status Query (composite) [WORKING]
-  DC P1 P2P3P4;    - DCS Code (P1=0 TX/1 RX, P2-P4=code number) [not tested]
+  DC P1 P2P3P4;    - DCS Code (P1=0 TX/1 RX, P2-P4=code number) [WORKING]
 
 CTCSS Tone Table (01-50):
   01=67.0   11=94.8   21=131.8  31=177.3  41=225.7
@@ -215,19 +308,19 @@ GROUP 10: Scan and Band Operations (ftx1_scan.c)
 ================================================================================
 Commands:
   SC P1;           - Scan Control (0=stop, 1=up, 2=down) [WORKING]
-  BS P1P2;         - Band Select (P1P2=band code) [FIRMWARE BUG: returns ?]
+  BS P1 P2P2;      - Band Select (P1=VFO, P2P2=band code) [WORKING - set-only]
   UP;              - Frequency/Channel Up [WORKING - context-dependent]
   DN;              - Frequency/Channel Down [WORKING - context-dependent]
 
-Band Codes (BS command - not implemented in firmware):
-  00 = 160m (1.8MHz)     08 = 15m (21MHz)
-  01 = 80m (3.5MHz)      09 = 12m (24MHz)
-  02 = 60m (5MHz)        10 = 10m (28MHz)
-  03 = 40m (7MHz)        11 = 6m (50MHz)
-  04 = 30m (10MHz)       12 = GEN (general coverage)
-  05 = 20m (14MHz)       13 = MW (AM broadcast)
-  06 = 17m (18MHz)       14 = AIR (airband)
-  07 = (reserved)
+Band Codes (BS command - verified 2025-12-09):
+  00 = 160m (1.8MHz)     06 = 17m (18MHz)
+  01 = 80m (3.5MHz)      07 = 15m (21MHz)
+  02 = 60m (5MHz)        08 = 12m (24MHz)
+  03 = 40m (7MHz)        09 = 10m (28MHz)
+  04 = 30m (10MHz)       10 = 6m (50MHz)
+  05 = 20m (14MHz)
+
+Note: BS is set-only (no read/query). Bands 11+ map to GEN/MW/AIR modes.
 
 ================================================================================
 GROUP 11: Display and Information (ftx1_info.c)
@@ -261,15 +354,32 @@ IF Command Response Format (27+ characters):
 GROUP 12: Extended Menu and Setup (ftx1_ext.c)
 ================================================================================
 Commands:
-  EX P1 P2...;     - Extended Menu Read/Write [FIRMWARE BUG: returns ?]
+  EX P1 P2...;     - Extended Menu Read/Write [WORKING - verified with SPA-1]
   MN P1P2P3;       - Menu Number Select (for menu navigation) [not fully tested]
 
 Extended Menu Numbers:
   The FTX-1 has extensive menu settings accessible via EX command.
-  Format: EX MMNN PPPP; where MM=menu, NN=submenu, PPPP=parameter
+  Format: EX GGSSII V; where GG=group, SS=section, II=item, V=value
 
-  NOTE: EX command returns '?' in firmware v1.08+ - menu access via CAT not
-  implemented. Use front panel for menu configuration.
+  Example: EX030104; queries TUNER SELECT (group 03, section 01, item 04)
+  Response: EX0301040; means value is 0 (INT)
+
+  SPA-1 Specific EX Commands (verified 2025-12-09):
+    EX030104  - TUNER SELECT (0=INT, 1=INT FAST, 2=EXT, 3=ATAS)
+    EX030705  - OPTION 160m Power (005-100)
+    EX030706  - OPTION 80m Power (005-100)
+    EX030707  - OPTION 60m Power (005-100)
+    EX030708  - OPTION 40m Power (005-100)
+    EX030709  - OPTION 30m Power (005-100)
+    EX030710  - OPTION 20m Power (005-100)
+    EX030711  - OPTION 17m Power (005-100)
+    EX030712  - OPTION 15m Power (005-100)
+    EX030713  - OPTION 12m Power (005-100)
+    EX030714  - OPTION 10m Power (005-100)
+    EX030715  - OPTION 6m Power (005-100)
+
+  NOTE: EX commands require SPA-1 amplifier to be connected for full access.
+  Without SPA-1, some EX commands may return '?'.
 
 ================================================================================
 GROUP 13: Miscellaneous Commands
@@ -279,7 +389,7 @@ Commands:
   BD P1;           - Band Down (P1=0) [WORKING - set-only]
   BU P1;           - Band Up (P1=0) [WORKING - set-only]
   FR P1;           - Function RX (shows RX VFO) [WORKING - read-only]
-  GP P1P2;         - GP OUT [FIRMWARE BUG: returns ?]
+  GP P1P2P3P4;     - GP OUT A/B/C/D (0=LOW, 1=HIGH) [WORKING - see menu note]
   MS P1;           - Meter Switch (select meter type) [WORKING]
   OS P1;           - Offset Shift (repeater offset) [WORKING - read-only]
   PB P1;           - Playback [WORKING - read-only]
@@ -287,12 +397,12 @@ Commands:
   PR P1;           - Processor on/off [WORKING - read-only]
   RI P1;           - RIT Information [WORKING - read-only]
   SF P1;           - Scope Fix [WORKING - read-only]
-  SS P1;           - Spectrum Scope [FIRMWARE BUG: returns ?]
+  SS P1 P2;        - Spectrum Scope [WORKING - P2=0-7 selects parameter]
   SV;              - Swap VFO/Memory [WORKING - set-only]
   VE P1;           - VOX Enable [WORKING - read-only]
   VM P1;           - Voice Memory [FIRMWARE BUG: returns ?]
-  EO P1;           - Encoder Offset [FIRMWARE BUG: returns ?]
-  ZI;              - Zero In [FIRMWARE BUG: returns ?]
+  EO P1 P2 P3 P4 P5; - Encoder Offset [WORKING - set-only, e.g. EO00+0100]
+  ZI P1;           - Zero In (CW mode only, P1=0 MAIN/1 SUB) [WORKING - set-only]
 
 ================================================================================
 IMPLEMENTATION STATUS (Verified 2025-12-08)
@@ -343,20 +453,25 @@ These commands are fully documented in the spec but return '?' on firmware v1.08
 
 | Command | Spec Page | Function              | Status                      |
 |---------|-----------|----------------------|------------------------------|
-| BS      | 7         | Band Select          | Read/Answer documented, returns '?' |
-| CF      | 8         | Clarifier (RIT/XIT)  | Full R/W documented, returns '?' |
-| CH      | 8         | Channel Up/Down      | Set documented, returns '?'  |
-| CN      | 8         | CTCSS Tone Number    | Full R/W documented, returns '?' |
-| EX      | 9-16      | Extended Menu        | 7 pages of docs!, returns '?' |
-| GP      | 17        | GP OUT A/B/C/D       | Full R/W documented, returns '?' |
+| BS      | 7         | Band Select          | Set-only, works (no read capability) |
+| CF      | 8         | Clarifier (RIT/XIT)  | Set-only, sets offset (P3=1 required) |
+| CH      | 8         | Memory Channel Up/Dn | WORKING - CH0/CH1 only (see notes)    |
+| GP      | 17        | GP OUT A/B/C/D       | WORKING - requires menu config   |
 | MC      | 19        | Memory Channel       | Full R/W documented, returns '?' |
-| SS      | 25        | Spectrum Scope       | Extensive docs, returns '?'  |
+| SS      | 25        | Spectrum Scope       | WORKING - read SS0X; (X=0-7) |
+
+### Commands Previously Thought Broken But Now Working
+
+| Command | Spec Page | Function              | Status                              |
+|---------|-----------|----------------------|--------------------------------------|
+| CN      | 8         | CTCSS Tone Number    | WORKING - returns tone number        |
+| EX      | 9-16      | Extended Menu        | WORKING with SPA-1 connected         |
+| GP      | 17        | GP OUT               | WORKING - requires TUN/LIN PORT menu |
 
 ### 3. Commands Missing from Spec Command List (Page 5)
 
 The spec's command list on page 5 is missing some commands that appear later:
-- EO (Encoder Offset) - documented on page 9 but missing from list
-- FC (Sub VFO Frequency) - not documented at all, firmware returns '?'
+- EO (Encoder Offset) - documented on page 9, WORKS as set-only
 - NB (Noise Blanker on/off) - not in list, but NL (level) is
 - NR (Noise Reduction on/off) - not in list, but RL (level) is
 - AF (AF Gain alias) - not documented (Hamlib uses this)
@@ -398,24 +513,50 @@ Commands that return '?' (not implemented in firmware v1.08+):
 
 | Command | Description           | Notes                              |
 |---------|-----------------------|------------------------------------|
-| BS      | Band Select           | Read returns '?'                   |
-| CF      | Clarifier (RIT/XIT)   | Read returns '?' - use RI instead  |
-| CH      | Channel Up/Down       | Returns '?'                        |
-| CN      | CTCSS Number          | Read returns '?'                   |
-| EO      | Encoder Offset        | Returns '?'                        |
-| EX      | Extended Menu         | Read returns '?' (7 pages in spec!)|
-| FC      | Sub VFO Freq          | Read returns '?'                   |
-| GP      | GP OUT                | Read returns '?'                   |
-| KM      | Keyer Memory          | Returns empty (no message content) |
-| MC      | Memory Channel        | Read returns '?'                   |
-| SL      | Low Cut filter        | Returns '?' (use SH instead)       |
-| SS      | Spectrum Scope        | Read returns '?'                   |
-| VM      | Voice Memory (set)    | Returns '?'                        |
-| ZI      | Zero In               | Returns '?'                        |
+| QI      | QMB Store             | Accepted but non-functional        |
+| QR      | QMB Recall            | Accepted but non-functional        |
+| SL      | Low Cut filter        | NOT IN SPEC - use EX menu or SH    |
 
-These limitations should be reported to Yaesu for potential firmware updates.
-The EX command alone has 7 pages of documentation in the spec (pages 9-16)
-covering extensive menu access that is completely non-functional.
+Commands NOW WORKING (previously thought broken):
+
+| Command | Description           | Notes                              |
+|---------|-----------------------|------------------------------------|
+| EO      | Encoder Offset        | Set-only: EO00+0100; (returns empty)|
+| KM      | Keyer Memory          | Full R/W: KMn reads, KMnMSG writes slot n (1-5) |
+| SS      | Spectrum Scope        | Read: SS0X; where X=0-7 for params |
+
+Commands NOW WORKING (verified 2025-12-09):
+
+| Command | Description           | Notes                              |
+|---------|-----------------------|------------------------------------|
+| BS      | Band Select           | Set-only (BS P1 P2P2), no read     |
+| CF      | Clarifier (RIT/XIT)   | Set-only, sets offset value (not enable) |
+| CH      | Memory Channel Up/Dn  | CH0/CH1 cycle through ALL channels  |
+| CN      | CTCSS Number          | Returns tone number (e.g., CN00012)|
+| EX      | Extended Menu         | Full R/W access with SPA-1         |
+| GP      | GP OUT                | Full R/W, requires menu config (see below) |
+| MC      | Memory Channel        | Different format: MC0/MC1 read, MCNNNNNN set  |
+| MR      | Memory Read           | 5-digit format (MR00001 not MR0001)|
+| MT      | Memory Tag            | Full R/W! MT00001NAME sets 12-char name |
+| MZ      | Memory Zone           | Full R/W! MZ00001DATA sets 10-digit data |
+| VM      | VFO/Memory mode       | Read works; mode 11=Mem (not 01); use SV to toggle |
+| ZI      | Zero In               | Set-only, CW mode only (activates CW AUTO ZERO IN) |
+
+Note: BS, CF, CH, CN, EX, GP, MC, MR, MT, MZ, VM, and ZI were previously thought to be broken.
+- BS is set-only (no read capability)
+- CF sets clarifier offset (requires P3=1 in format)
+- CH cycles through ALL channels: CH0=next, CH1=previous; CH; CH00; etc. return '?'
+- MC uses different format: read with MC0/MC1, set with MCNNNNNN (returns '?' if channel empty)
+- CN works directly with 3-digit tone number
+- EX requires SPA-1 connected for full access
+- GP requires menu: [OPERATION SETTING] → [GENERAL] → [TUN/LIN PORT SELECT] = "GPO"
+  Factory default is "OPTION" which causes GP to return '?'
+- MR, MT, MZ use 5-digit format (MR00001) not 4-digit (MR0001) as documented
+- MT is full read/write: MT00001NAME sets 12-char name for channel
+- MZ is full read/write: MZ00001DATA sets 10-digit zone data
+- VM mode codes differ from spec: 00=VFO, 11=Memory (not 01)
+- VM set only works for VM000 (VFO mode); use SV to toggle to memory mode
+- ZI only works in CW mode (MD03 or MD07)
 
 ================================================================================
 HAMLIB BACKEND NOTES
@@ -524,10 +665,20 @@ See tests/ftx1_test_readme.txt for full test harness documentation.
 ================================================================================
 REVISION HISTORY
 ================================================================================
+2025-12-09  Added KM (Keyer Memory) read/write support
+            - KM command verified working with full read/write (slots 1-5, 50 chars)
+            - Added ftx1_set_keyer_memory() function
+            - Updated tests (shell and Python) with read/write verification
+2025-12-09  Verified CN (CTCSS) and EX (Extended Menu) commands working
+            - CN command confirmed working with 3-digit tone number format
+            - EX commands verified with SPA-1 connected
+            - Added SPA-1 specific EX commands list (TUNER SELECT, OPTION Power)
+            - Marked DC (DCS) command as working
+            - Fixed ftx1_ctcss.c CN command format (was 2-digit, now 3-digit)
 2025-12-09  Added comprehensive SPEC VS FIRMWARE DISCREPANCIES section
             - Documented Radio ID mismatch (spec says 0840, firmware returns 0763)
             - Listed 8 commands fully documented but return '?' in firmware
-            - Noted commands missing from spec command list (EO, FC, NB, NR, SL)
+            - Noted commands missing from spec command list (EO, NB, NR, SL)
             - Documented PC command decimal format for fractional watts
             - Noted VM command dual definition confusion
             - Listed commands that work despite spec implying read-only
