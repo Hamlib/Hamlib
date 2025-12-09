@@ -395,12 +395,21 @@ class FTX1CATTestSuite(unittest.TestCase):
         self.assertEqual(resp, '', "CH set should have no response")
 
     def test_CN(self):
-        # CN: CTCSS/DCS number (P1=0/1 MAIN/SUB, P2=CTCSS/DCS, P3=tone code)
-        # FIRMWARE BUG: CN read returns '?' - not implemented in firmware 1.08+
-        # Per 2508-C spec page 8, this should return CN0P2P3P3P3
-        resp = self.send_command('CN0', is_read=True)
-        if resp == '?':
+        # CN: CTCSS Number - format CN P1 P2P3P4 (P1=00 TX/10 RX, P2P3P4=001-050)
+        # Verified working 2025-12-09 - Query: CN00; returns CN00nnn
+        orig = self.send_command('CN00', is_read=True)
+        if orig == '?':
             self.skipTest("CN read not implemented in firmware (returns '?')")
+        self.assertRegex(orig, r'CN00\d{3}', "CN read response invalid")
+        orig_val = orig[-3:]
+        # Test set/get/restore
+        test_val = '013' if orig_val != '013' else '012'  # Tone 13 = 100.0 Hz
+        self.send_command(f'CN00{test_val}')
+        after_set = self.send_command('CN00', is_read=True)
+        self.assertEqual(after_set, f'CN00{test_val}', "CN after set mismatch")
+        self.send_command(f'CN00{orig_val}')
+        restored = self.send_command('CN00', is_read=True)
+        self.assertEqual(restored, orig, "CN restore mismatch")
 
     def test_CO(self):
         # CO: Contour (P1=0/1 MAIN/SUB, P2=0-4 param, P3=value)
@@ -464,17 +473,19 @@ class FTX1CATTestSuite(unittest.TestCase):
         self.assertEqual(restored, orig, "DT restore mismatch")
 
     def test_EO(self):
-        # EO: Encoder offset (P1=0-3 encoder, P2= +/ -, P3=000-999)
-        self.send_command('EO0000100')  # Example set
-        # No read, skip full test
+        # EO: Encoder offset - set-only, format: EO P1 P2 P3 P4 P5;
+        # P1=VFO (0/1), P2=encoder (0=MAIN/1=FUNC), P3=dir (+/-), P4=unit, P5=value
+        # Correct format: EO00+0100 (VFO=0, encoder=0, dir=+, unit=0=Hz, value=100)
+        self.send_command('EO00+0100')  # Set-only, returns empty on success
 
     def test_EX(self):
         # EX: Menu (EXnnnn read, EXnnnn[value] set)
-        # FIRMWARE BUG: EX read returns '?' - not implemented in firmware 1.08+
-        # Per 2508-C spec page 9, this should return EX0101P4P4P4 for menu item 0101
+        # Note: EX commands work when SPA-1 is connected (verified 2025-12-09)
+        # Some EX items may still return '?' depending on configuration
+        # Per 2508-C spec page 9, format is EX GGSSII V (group, section, item, value)
         resp = self.send_command('EX0101', is_read=True)
         if resp == '?':
-            self.skipTest("EX read not implemented in firmware (returns '?')")
+            self.skipTest("EX0101 read not available (may require SPA-1 or specific config)")
 
     def test_EX_TUNER_SELECT(self):
         # EX030104: TUNER SELECT - controls internal antenna tuner type
@@ -961,11 +972,13 @@ class FTX1CATTestSuite(unittest.TestCase):
         self.skipTest("PS set may power off; read tested")
 
     def test_QI(self):
-        # QI: Quick in (set-only)
+        # QI: Quick in (set-only) - ACCEPTED but NON-FUNCTIONAL in firmware v1.08+
+        # Command is parsed (returns empty) but has no actual effect
         self.send_command('QI')
 
     def test_QR(self):
-        # QR: Quick recall (set-only)
+        # QR: Quick recall (set-only) - ACCEPTED but NON-FUNCTIONAL in firmware v1.08+
+        # Command is parsed (returns empty) but has no actual effect
         self.send_command('QR')
 
     def test_RA(self):
@@ -1108,12 +1121,10 @@ class FTX1CATTestSuite(unittest.TestCase):
         self.assertEqual(restored, orig, "SQ restore mismatch")
 
     def test_SS(self):
-        # SS: Spectrum scope data
-        # FIRMWARE BUG: SS read returns '?' - not implemented in firmware 1.08+
-        # Per 2508-C spec page 25, this should return spectrum data
-        resp = self.send_command('SS0', is_read=True)
-        if resp == '?':
-            self.skipTest("SS read not implemented in firmware (returns '?')")
+        # SS: Spectrum scope settings - WORKING with format SS0X; where X=0-7
+        # P2: 0=SPEED, 1=PEAK, 2=MARKER, 3=COLOR, 4=LEVEL, 5=SPAN, 6=MODE, 7=AF-FFT
+        resp = self.send_command('SS00', is_read=True)  # Read SPEED setting
+        self.assertRegex(resp, r'SS00\d0000', "SS00 (SPEED) read failed")
 
     def test_ST(self):
         # ST: Split toggle (0/1 off/on)

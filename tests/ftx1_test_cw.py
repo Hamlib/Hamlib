@@ -82,10 +82,33 @@ class CWTests(unittest.TestCase):
         self.assertEqual(restored, orig, "SD restore mismatch")
 
     def test_KM(self):
-        """KM: Keyer memory (P1=1-5 message slot)"""
-        resp = self.send('KM1', is_read=True)
-        if resp == 'KM' or resp == 'KM1':
-            self.skipTest("KM read returns empty message (firmware limitation)")
+        """KM: Keyer memory (P1=1-5 slot, P2=message up to 50 chars)
+        Verified working 2025-12-09 - both read and write work.
+        """
+        # Read slot 3 (less likely to be in use)
+        orig = self.send('KM3', is_read=True)
+        if orig == '?':
+            self.skipTest("KM read not implemented in firmware (returns '?')")
+
+        # Extract original message (after "KM3" prefix, or empty if just "KM")
+        orig_msg = ""
+        if orig.startswith('KM3') and len(orig) > 3:
+            orig_msg = orig[3:]
+
+        # Write test message to slot 3
+        test_msg = "TEST KM"
+        self.send(f'KM3{test_msg}')
+
+        # Read back and verify
+        after = self.send('KM3', is_read=True)
+        self.assertTrue(after.startswith(f'KM3{test_msg}'),
+                        f"KM set/read mismatch, expected 'KM3{test_msg}', got '{after}'")
+
+        # Restore original (or clear if was empty)
+        if orig_msg:
+            self.send(f'KM3{orig_msg}')
+        else:
+            self.send('KM3')  # Clear slot
 
     def test_LM(self):
         """LM: Load message (P1=0/1 start/stop, set-only)"""

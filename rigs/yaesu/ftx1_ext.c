@@ -7,7 +7,7 @@
  * CAT Commands in this file:
  *   EX P1 P2...;     - Extended Menu Read/Write
  *   MN P1P2P3;       - Menu Number Select (for menu navigation)
- *   QI;              - Quick Command for menu
+ *   QI;              - QMB Store [ACCEPTED but NON-FUNCTIONAL in firmware]
  *
  * Extended Menu Numbers (FTX-1 CAT spec page 10-13):
  *   Format: EX P1 P2 P3 P4; where P1=group, P2=section, P3=item, P4=value
@@ -369,29 +369,24 @@ int ftx1_get_menu(RIG *rig, int *menu_num)
     return RIG_OK;
 }
 
-/* Quick Info Command (QI;) - query current menu/state info */
+/*
+ * QMB Store (QI;)
+ * NOTE: This function was originally misnamed "quick_info" but QI; is actually
+ * the QMB Store command per the CAT manual. However, QI is ACCEPTED but
+ * NON-FUNCTIONAL in firmware v1.08+ - the command is parsed but has no effect.
+ * Kept for compatibility in case future firmware fixes this.
+ */
 int ftx1_quick_info(RIG *rig, char *info, size_t info_len)
 {
-    int ret;
     struct newcat_priv_data *priv = STATE(rig)->priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s (NOTE: QI is non-functional in firmware)\n", __func__);
 
+    /* QI; is QMB Store - a set-only command that returns empty, not data */
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "QI;");
 
-    ret = newcat_get_cmd(rig);
-    if (ret != RIG_OK) return ret;
-
-    /* Response: QI data; - extract info after "QI" */
-    if (strlen(priv->ret_data) > 2) {
-        strncpy(info, priv->ret_data + 2, info_len - 1);
-        info[info_len - 1] = '\0';
-        /* Remove trailing semicolon if present */
-        size_t len = strlen(info);
-        if (len > 0 && info[len - 1] == ';') {
-            info[len - 1] = '\0';
-        }
-    } else {
+    /* Since QI is non-functional and returns empty, just return empty info */
+    if (info && info_len > 0) {
         info[0] = '\0';
     }
 
@@ -509,4 +504,357 @@ int ftx1_dump_ext_menu(RIG *rig, char *buf, size_t buf_len)
     }
 
     return offset;
+}
+
+/*
+ * =============================================================================
+ * SS Command: Spectrum Scope Settings
+ * =============================================================================
+ * CAT format: SS P1 P2 [value];
+ *   P1 = 0 (fixed)
+ *   P2 = parameter type (0-7)
+ *
+ * P2 Parameter Types:
+ *   0 = SPEED    - Scope update speed
+ *   1 = PEAK     - Peak hold
+ *   2 = MARKER   - Marker display
+ *   3 = COLOR    - Display color
+ *   4 = LEVEL    - Reference level (returns format like -05.0)
+ *   5 = SPAN     - Frequency span
+ *   6 = MODE     - Scope mode
+ *   7 = AF-FFT   - Audio FFT display
+ *
+ * Read: SS0X; returns SS0Xvalue; (value format varies by parameter)
+ * Set: SS0Xvalue; (set-only for some parameters)
+ *
+ * Verified working 2025-12-09 via direct serial testing
+ */
+
+/* Spectrum scope parameter types */
+#define FTX1_SS_SPEED   0
+#define FTX1_SS_PEAK    1
+#define FTX1_SS_MARKER  2
+#define FTX1_SS_COLOR   3
+#define FTX1_SS_LEVEL   4
+#define FTX1_SS_SPAN    5
+#define FTX1_SS_MODE    6
+#define FTX1_SS_AFFFT   7
+
+/*
+ * ftx1_get_spectrum_scope - Get spectrum scope parameter
+ *
+ * Parameters:
+ *   param - parameter type (0-7, use FTX1_SS_* constants)
+ *   value - pointer to store value (format depends on param type)
+ *
+ * Returns: RIG_OK on success, negative on error
+ */
+int ftx1_get_spectrum_scope(RIG *rig, int param, char *value, size_t value_len)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: param=%d\n", __func__, param);
+
+    if (param < 0 || param > 7)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid param %d (must be 0-7)\n",
+                  __func__, param);
+        return -RIG_EINVAL;
+    }
+
+    /* Query format: SS0X; where X is param type */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SS0%d;", param);
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    /*
+     * Response format: SS0Xvalue;
+     * Value starts at position 3 (after SS0X prefix)
+     * Examples:
+     *   SS00 -> SS0020000 (SPEED)
+     *   SS01 -> SS0100000 (PEAK)
+     *   SS04 -> SS04-05.0 (LEVEL, note signed decimal)
+     */
+    if (strlen(priv->ret_data) > 3)
+    {
+        const char *val_start = priv->ret_data + 3;
+        size_t val_len = strlen(val_start);
+
+        /* Remove trailing semicolon */
+        if (val_len > 0 && val_start[val_len - 1] == ';')
+        {
+            val_len--;
+        }
+
+        if (val_len >= value_len)
+        {
+            val_len = value_len - 1;
+        }
+
+        strncpy(value, val_start, val_len);
+        value[val_len] = '\0';
+
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: param=%d value='%s'\n",
+                  __func__, param, value);
+    }
+    else
+    {
+        value[0] = '\0';
+        rig_debug(RIG_DEBUG_ERR, "%s: response too short '%s'\n",
+                  __func__, priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    return RIG_OK;
+}
+
+/*
+ * ftx1_set_spectrum_scope - Set spectrum scope parameter
+ *
+ * Parameters:
+ *   param - parameter type (0-7, use FTX1_SS_* constants)
+ *   value - value to set (format depends on param type)
+ *
+ * Returns: RIG_OK on success, negative on error
+ */
+int ftx1_set_spectrum_scope(RIG *rig, int param, const char *value)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: param=%d value='%s'\n",
+              __func__, param, value);
+
+    if (param < 0 || param > 7)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid param %d (must be 0-7)\n",
+                  __func__, param);
+        return -RIG_EINVAL;
+    }
+
+    /* Set format: SS0Xvalue; where X is param type */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SS0%d%s;", param, value);
+
+    return newcat_set_cmd(rig);
+}
+
+/*
+ * ftx1_get_scope_speed - Get spectrum scope update speed
+ *
+ * Returns speed value (typically 5-digit format like 20000)
+ */
+int ftx1_get_scope_speed(RIG *rig, int *speed)
+{
+    char value[16];
+    int ret;
+
+    ret = ftx1_get_spectrum_scope(rig, FTX1_SS_SPEED, value, sizeof(value));
+    if (ret == RIG_OK)
+    {
+        *speed = atoi(value);
+    }
+    return ret;
+}
+
+/*
+ * ftx1_get_scope_level - Get spectrum scope reference level
+ *
+ * Returns level value (can be negative, like -5.0 dB)
+ */
+int ftx1_get_scope_level(RIG *rig, float *level)
+{
+    char value[16];
+    int ret;
+
+    ret = ftx1_get_spectrum_scope(rig, FTX1_SS_LEVEL, value, sizeof(value));
+    if (ret == RIG_OK)
+    {
+        *level = atof(value);
+    }
+    return ret;
+}
+
+/*
+ * ftx1_get_scope_span - Get spectrum scope frequency span
+ *
+ * Returns span value
+ */
+int ftx1_get_scope_span(RIG *rig, int *span)
+{
+    char value[16];
+    int ret;
+
+    ret = ftx1_get_spectrum_scope(rig, FTX1_SS_SPAN, value, sizeof(value));
+    if (ret == RIG_OK)
+    {
+        *span = atoi(value);
+    }
+    return ret;
+}
+
+/*
+ * =============================================================================
+ * EO Command: Encoder Offset (Dial Step)
+ * =============================================================================
+ * CAT format: EO P1 P2 P3 P4 P5;
+ *   P1 = VFO (0=MAIN, 1=SUB)
+ *   P2 = Encoder (0=MAIN dial, 1=FUNC knob)
+ *   P3 = Direction (+/-)
+ *   P4 = Unit (0=Hz, 1=kHz, 2=MHz)
+ *   P5 = Value (000-999)
+ *
+ * This is a SET-ONLY command (returns empty on success)
+ * Used for programmatic frequency stepping without physical dial rotation
+ *
+ * Example: EO00+0100; = VFO MAIN, MAIN dial, +, Hz, 100 = step up 100 Hz
+ *
+ * Verified working 2025-12-09 via direct serial testing
+ */
+
+/* Encoder offset VFO selection */
+#define FTX1_EO_VFO_MAIN    0
+#define FTX1_EO_VFO_SUB     1
+
+/* Encoder offset encoder selection */
+#define FTX1_EO_ENC_MAIN    0   /* Main dial (frequency) */
+#define FTX1_EO_ENC_FUNC    1   /* Function knob */
+
+/* Encoder offset unit selection */
+#define FTX1_EO_UNIT_HZ     0
+#define FTX1_EO_UNIT_KHZ    1
+#define FTX1_EO_UNIT_MHZ    2
+
+/*
+ * ftx1_set_encoder_offset - Send encoder offset command
+ *
+ * This simulates turning the dial by a specified amount.
+ * Useful for programmatic frequency stepping.
+ *
+ * Parameters:
+ *   vfo_select - 0=MAIN, 1=SUB
+ *   encoder    - 0=MAIN dial, 1=FUNC knob
+ *   direction  - +1 for up, -1 for down
+ *   unit       - 0=Hz, 1=kHz, 2=MHz
+ *   value      - step amount (0-999)
+ *
+ * Returns: RIG_OK on success, negative on error
+ */
+int ftx1_set_encoder_offset(RIG *rig, int vfo_select, int encoder,
+                            int direction, int unit, int value)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    char dir_char;
+
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "%s: vfo=%d encoder=%d dir=%d unit=%d value=%d\n",
+              __func__, vfo_select, encoder, direction, unit, value);
+
+    /* Validate parameters */
+    if (vfo_select < 0 || vfo_select > 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid vfo_select %d\n",
+                  __func__, vfo_select);
+        return -RIG_EINVAL;
+    }
+
+    if (encoder < 0 || encoder > 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid encoder %d\n",
+                  __func__, encoder);
+        return -RIG_EINVAL;
+    }
+
+    if (unit < 0 || unit > 2)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid unit %d\n", __func__, unit);
+        return -RIG_EINVAL;
+    }
+
+    if (value < 0 || value > 999)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid value %d (must be 0-999)\n",
+                  __func__, value);
+        return -RIG_EINVAL;
+    }
+
+    dir_char = (direction >= 0) ? '+' : '-';
+
+    /* Format: EO P1 P2 P3 P4 P5P5P5; */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EO%d%d%c%d%03d;",
+             vfo_select, encoder, dir_char, unit, value);
+
+    return newcat_set_cmd(rig);
+}
+
+/*
+ * ftx1_step_frequency - Step frequency up or down by specified amount
+ *
+ * Convenience wrapper for ftx1_set_encoder_offset() that steps the
+ * main VFO dial by a specified Hz value.
+ *
+ * Parameters:
+ *   vfo   - RIG_VFO_MAIN, RIG_VFO_A, etc. (or RIG_VFO_CURR for main)
+ *   hz    - step amount in Hz (positive=up, negative=down)
+ *
+ * Note: Large steps are automatically converted to kHz or MHz units
+ *       for efficiency. Maximum single step is 999 MHz.
+ *
+ * Returns: RIG_OK on success, negative on error
+ */
+int ftx1_step_frequency(RIG *rig, vfo_t vfo, int hz)
+{
+    int vfo_select;
+    int direction;
+    int unit;
+    int value;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s hz=%d\n",
+              __func__, rig_strvfo(vfo), hz);
+
+    /* Determine VFO */
+    if (vfo == RIG_VFO_SUB || vfo == RIG_VFO_B)
+    {
+        vfo_select = FTX1_EO_VFO_SUB;
+    }
+    else
+    {
+        vfo_select = FTX1_EO_VFO_MAIN;
+    }
+
+    /* Handle direction */
+    direction = (hz >= 0) ? 1 : -1;
+    if (hz < 0) hz = -hz;
+
+    /* Determine best unit for the step */
+    if (hz >= 1000000 && (hz % 1000000) == 0)
+    {
+        unit = FTX1_EO_UNIT_MHZ;
+        value = hz / 1000000;
+    }
+    else if (hz >= 1000 && (hz % 1000) == 0)
+    {
+        unit = FTX1_EO_UNIT_KHZ;
+        value = hz / 1000;
+    }
+    else
+    {
+        unit = FTX1_EO_UNIT_HZ;
+        value = hz;
+    }
+
+    /* Clamp to max 999 */
+    if (value > 999)
+    {
+        rig_debug(RIG_DEBUG_WARN,
+                  "%s: value %d exceeds max 999, clamping\n",
+                  __func__, value);
+        value = 999;
+    }
+
+    return ftx1_set_encoder_offset(rig, vfo_select, FTX1_EO_ENC_MAIN,
+                                   direction, unit, value);
 }

@@ -16,6 +16,29 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
+ * FIRMWARE NOTES (v1.08+):
+ * - RT (RIT on/off) and XT (XIT on/off) commands return '?' - not implemented
+ * - CF (Clarifier) sets offset value only, does not enable/disable clarifier
+ *   Format: CF P1 P2 P3 [+/-] PPPP where P3 must be 1
+ *   Example: CF001+0500 sets clarifier offset to +500Hz
+ * - ZI (Zero In) only works in CW mode (MD03 or MD07)
+ * - BS (Band Select) is set-only - no read/query capability
+ * - GP (GP OUT) requires menu: [OPERATION SETTING] → [GENERAL] → [TUN/LIN PORT SELECT] = "GPO"
+ *   Format: GP P1 P2 P3 P4 where each controls GP OUT A/B/C/D (0=LOW, 1=HIGH)
+ * - MR/MT/MZ (Memory) use 5-digit format, not 4-digit as documented
+ *   Example: MR00001 (not MR0001) for channel 1
+ * - MT (Memory Tag) is read/write: MT00001NAME sets 12-char name
+ * - MZ (Memory Zone) is read/write: MZ00001DATA sets 10-digit zone data
+ * - MC (Memory Channel) uses different format than documented:
+ *   Read: MC0 (MAIN) or MC1 (SUB) returns MCNNNNNN (6-digit channel)
+ *   Set: MCNNNNNN (6-digit channel, no VFO prefix)
+ *   Returns '?' if channel doesn't exist (not programmed)
+ * - CH (Memory Channel Up/Down) works with CH0/CH1 only:
+ *   CH0 = next channel, CH1 = previous channel (cycles through all groups)
+ *   Cycles: PMG (00xxxx) → QMB (05xxxx) → PMG (wraps around)
+ *   CH; CH00; CH01; etc. return '?' - only CH0 and CH1 work
+ * - VM mode codes differ from spec: 00=VFO, 11=Memory (not 01 as documented)
+ *   Only VM000 set works; use SV command to toggle to memory mode
  */
 
 #include <stdlib.h>

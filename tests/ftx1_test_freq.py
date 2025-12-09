@@ -70,6 +70,53 @@ class FrequencyTests(unittest.TestCase):
         restored = self.send('FA', is_read=True)
         self.assertEqual(restored, orig_freq, "Frequency restore after BD")
 
+    def test_CF(self):
+        """CF: Clarifier offset (set-only, does not enable clarifier)
+        Format: CF P1 P2 P3 [+/-] PPPP (9 chars after CF)
+        P1=VFO, P2=RIT, P3=XIT (P3 must be 1 for command to work)
+        Verified working 2025-12-09 - sets offset value only.
+        """
+        # Read current offset from IF command
+        if_resp = self.send('IF', is_read=True)
+        if not if_resp.startswith('IF') or len(if_resp) < 21:
+            self.skipTest("Cannot read IF response for CF test")
+
+        # Extract current offset from IF (positions 16-20)
+        orig_offset = if_resp[16:21] if len(if_resp) >= 21 else '+0000'
+
+        # Test set with different values
+        test_val = '+0500' if orig_offset != '+0500' else '+0300'
+        resp = self.send(f'CF001{test_val}')
+        self.assertNotEqual(resp, '?', "CF command should be accepted")
+
+        # Verify via IF command
+        time.sleep(0.2)
+        after_if = self.send('IF', is_read=True)
+        after_offset = after_if[16:21] if len(after_if) >= 21 else ''
+        self.assertEqual(after_offset, test_val, f"CF offset should be {test_val}")
+
+        # Test negative offset
+        resp = self.send('CF001-0250')
+        self.assertNotEqual(resp, '?', "CF negative offset should be accepted")
+        time.sleep(0.2)
+        neg_if = self.send('IF', is_read=True)
+        neg_offset = neg_if[16:21] if len(neg_if) >= 21 else ''
+        self.assertEqual(neg_offset, '-0250', "CF offset should be -0250")
+
+        # Note: Cannot restore - CF only sets value, doesn't clear
+        # Set back to something close to original
+        self.send(f'CF001{orig_offset}')
+
+    def test_CF_format(self):
+        """CF: Test that P3=0 (RIT only) format is rejected"""
+        # P3=0 should return '?' - only P3=1 works
+        resp = self.send('CF010+0100', is_read=True)
+        self.assertEqual(resp, '?', "CF with P3=0 should return '?'")
+
+        # P3=1 should work
+        resp = self.send('CF001+0100', is_read=True)
+        self.assertNotEqual(resp, '?', "CF with P3=1 should be accepted")
+
 
 def get_test_suite(ser, send_command_func):
     """Return test suite for frequency commands."""

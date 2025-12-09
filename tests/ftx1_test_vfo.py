@@ -130,6 +130,83 @@ class VFOTests(unittest.TestCase):
         self.send('SV')
         self.send('SV')  # Double to restore
 
+    def test_BS(self):
+        """BS: Band Select (set-only, no read capability)
+        Format: BS P1 P2P2 where P1=VFO (0/1), P2P2=band code (00-10)
+        Band codes: 00=160m, 01=80m, 02=60m, 03=40m, 04=30m, 05=20m,
+                   06=17m, 07=15m, 08=12m, 09=10m, 10=6m
+        Verified working 2025-12-09.
+        """
+        # SAFETY: Ensure no TX state before band change
+        self.send('MX0')
+        self.send('TX0')
+        self.send('VX0')
+        self.send('FT0')
+        self.send('VS0')
+
+        # Save current frequency to restore band later
+        orig_freq = self.send('FA', is_read=True)
+        self.assertRegex(orig_freq, r'FA\d{9}', "Original FA read invalid")
+
+        # Test BS to 20m (band 05)
+        resp = self.send('BS005')
+        # BS is set-only, empty response or no '?' means success
+        self.assertNotEqual(resp, '?', "BS command should be accepted")
+
+        # Verify band changed by checking frequency is in 20m range
+        import time
+        time.sleep(0.3)
+        new_freq = self.send('FA', is_read=True)
+        freq_hz = int(new_freq[2:]) if new_freq.startswith('FA') else 0
+        # 20m is 14.000-14.350 MHz
+        self.assertTrue(14000000 <= freq_hz <= 14350000,
+                       f"After BS005, freq should be in 20m band, got {freq_hz}")
+
+        # Test BS to 40m (band 03)
+        self.send('BS003')
+        time.sleep(0.3)
+        new_freq = self.send('FA', is_read=True)
+        freq_hz = int(new_freq[2:]) if new_freq.startswith('FA') else 0
+        # 40m is 7.000-7.300 MHz
+        self.assertTrue(7000000 <= freq_hz <= 7300000,
+                       f"After BS003, freq should be in 40m band, got {freq_hz}")
+
+        # Restore original frequency (which restores band)
+        self.send(f'FA{orig_freq[2:]}')
+
+    def test_GP(self):
+        """GP: GP OUT control (read/write)
+        Format: GP P1 P2 P3 P4 where each controls GP OUT A/B/C/D (0=LOW, 1=HIGH)
+        REQUIRES: Menu [OPERATION SETTING] → [GENERAL] → [TUN/LIN PORT SELECT] = "GPO"
+        If menu not configured, command returns '?' - test will be skipped.
+        Verified working 2025-12-09.
+        """
+        # SAFETY: Ensure no TX state
+        self.send('MX0')
+        self.send('TX0')
+
+        # Read current state
+        orig = self.send('GP', is_read=True)
+        if orig == '?' or not orig.startswith('GP'):
+            self.skipTest("GP command not available - check TUN/LIN PORT SELECT menu setting")
+
+        self.assertRegex(orig, r'GP[01]{4}', "GP read response invalid")
+
+        # Test setting all HIGH
+        self.send('GP1111')
+        after = self.send('GP', is_read=True)
+        self.assertEqual(after, 'GP1111', "GP set all HIGH failed")
+
+        # Test mixed pattern
+        self.send('GP1010')
+        after = self.send('GP', is_read=True)
+        self.assertEqual(after, 'GP1010', "GP set mixed pattern failed")
+
+        # Restore original state
+        self.send(f'GP{orig[2:]}')
+        restored = self.send('GP', is_read=True)
+        self.assertEqual(restored, orig, "GP restore failed")
+
 
 def get_test_suite(ser, send_command_func, tx_tests=False):
     """Return test suite for VFO commands."""

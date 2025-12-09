@@ -145,13 +145,42 @@ test_KP() {
 
 test_KM() {
     echo "Testing KM (Keyer Memory)..."
-    local resp=$(raw_cmd "KM1")
-    if [ "$resp" = "?" ]; then
+    # KM: Keyer Memory - Read/Write CW messages to slots 1-5 (up to 50 chars)
+    # Verified working 2025-12-09 - both read and write work
+
+    # First read slot 3 to get original value (less likely to be in use)
+    local orig=$(raw_cmd "KM3")
+    if [ "$orig" = "?" ]; then
         log_skip "KM (Keyer Memory) - firmware returns '?'"
-    elif [ "$resp" = "KM" ] || [ "$resp" = "KM1" ]; then
-        log_skip "KM (Keyer Memory) - firmware returns empty message (limitation)"
+        return
+    fi
+
+    # Extract original message (after "KM3" prefix, or empty if just "KM")
+    local orig_msg=""
+    if [ "${#orig}" -gt 3 ]; then
+        orig_msg="${orig:3}"
+    fi
+
+    # Write test message to slot 3
+    local test_msg="TEST KM"
+    raw_cmd "KM3$test_msg"
+
+    # Read back and verify
+    local after=$(raw_cmd "KM3")
+    if [[ "$after" == "KM3$test_msg"* ]]; then
+        # Restore original (or clear if was empty)
+        if [ -n "$orig_msg" ]; then
+            raw_cmd "KM3$orig_msg"
+        else
+            raw_cmd "KM3"  # Clear slot
+        fi
+        log_pass "KM (Keyer Memory) - read/write verified"
     else
-        log_pass "KM (Keyer Memory) - value: $resp"
+        log_fail "KM: set/read mismatch, expected 'KM3$test_msg', got '$after'"
+        # Still try to restore
+        if [ -n "$orig_msg" ]; then
+            raw_cmd "KM3$orig_msg"
+        fi
     fi
 }
 

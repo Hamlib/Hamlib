@@ -9,7 +9,7 @@
  *   KR P1;           - Keyer Reverse (0=normal, 1=reverse)
  *   KS P1P2P3;       - Keyer Speed (004-060 WPM)
  *   KY P1 P2...;     - CW Message Send (P1=0, P2=message up to 24 chars)
- *   KM P1;           - Keyer Memory Read (P1=1-5 message slot)
+ *   KM P1 P2...;     - Keyer Memory Read/Write (P1=1-5 slot, P2=message up to 50 chars)
  *   SD P1P2P3P4;     - CW Break-in Delay (0030-3000ms)
  *   BK P1;           - Break-in mode (0=off, 1=semi, 2=full)
  *   CT P1;           - CW Tuning/Sidetone (0=off, 1=on)
@@ -350,7 +350,7 @@ int ftx1_load_message(RIG *rig, int start)
  * ftx1_get_keyer_memory - Get Keyer Memory contents (KM P1;)
  * CAT command: KM P1; Response: KM P1 <text>;
  * P1 = message slot (1-5)
- * Note: Firmware may return empty message (firmware limitation)
+ * Returns empty string if slot is empty (response is just "KM")
  */
 int ftx1_get_keyer_memory(RIG *rig, int slot, char *msg, size_t msg_len)
 {
@@ -384,10 +384,53 @@ int ftx1_get_keyer_memory(RIG *rig, int slot, char *msg, size_t msg_len)
     }
     else
     {
-        msg[0] = '\0';  /* Empty message (firmware limitation) */
+        msg[0] = '\0';  /* Empty slot (response is just "KM") */
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: msg='%s'\n", __func__, msg);
 
     return RIG_OK;
+}
+
+/*
+ * ftx1_set_keyer_memory - Set Keyer Memory contents (KM P1 P2...;)
+ * CAT command: KM P1 P2...; (P1=slot 1-5, P2=message up to 50 chars)
+ * Stores CW message in specified keyer memory slot.
+ * Verified working 2025-12-09 - empty response on success.
+ */
+int ftx1_set_keyer_memory(RIG *rig, int slot, const char *msg)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    char safe_msg[51];  /* Max 50 chars per spec */
+    size_t len;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: slot=%d msg='%s'\n", __func__, slot, msg);
+
+    if (slot < 1 || slot > 5)
+    {
+        return -RIG_EINVAL;
+    }
+
+    if (msg == NULL)
+    {
+        msg = "";  /* Allow clearing slot with empty message */
+    }
+
+    /* Copy and truncate message to 50 chars max */
+    strncpy(safe_msg, msg, 50);
+    safe_msg[50] = '\0';
+
+    /* Convert to uppercase (CW convention) */
+    len = strlen(safe_msg);
+    for (size_t i = 0; i < len; i++)
+    {
+        if (safe_msg[i] >= 'a' && safe_msg[i] <= 'z')
+        {
+            safe_msg[i] = safe_msg[i] - 'a' + 'A';
+        }
+    }
+
+    /* KM P1 msg; - slot number followed by message */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "KM%d%s;", slot, safe_msg);
+    return newcat_set_cmd(rig);
 }

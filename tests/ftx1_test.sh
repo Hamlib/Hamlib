@@ -2585,10 +2585,12 @@ test_BM() {
 
 test_EO() {
     echo "Testing EO (Encoder Offset)..."
-    # EO: Encoder offset - set-only (P1=encoder, P2=dir, P3=value)
-    local resp=$(raw_cmd "EO0+000")
+    # EO: Encoder offset - set-only, format: EO P1 P2 P3 P4 P5 P5 P5;
+    # P1=VFO (0=MAIN, 1=SUB), P2=encoder (0=MAIN dial, 1=FUNC knob)
+    # P3=direction (+/-), P4=unit (0=Hz, 1=kHz, 2=MHz), P5=value (000-999)
+    local resp=$(raw_cmd "EO00+0100")
     if [ "$resp" = "?" ]; then
-        log_skip "EO (Encoder Offset) - firmware returns '?'"
+        log_fail "EO (Encoder Offset) - command returned error"
     else
         log_pass "EO (Encoder Offset) - set-only command accepted"
     fi
@@ -2597,22 +2599,26 @@ test_EO() {
 test_QI() {
     echo "Testing QI (Quick In)..."
     # QI: Quick in - set-only
+    # NOTE: QI command is ACCEPTED but NON-FUNCTIONAL in firmware v1.08+
+    # Command is parsed (returns empty) but has no actual effect
     local resp=$(raw_cmd "QI")
     if [ "$resp" = "?" ]; then
         log_fail "QI: command returned error"
     else
-        log_pass "QI (Quick In) - set-only command accepted"
+        log_pass "QI (Quick In) - set-only command accepted (non-functional in firmware)"
     fi
 }
 
 test_QR() {
     echo "Testing QR (Quick Recall)..."
     # QR: Quick recall - set-only
+    # NOTE: QR command is ACCEPTED but NON-FUNCTIONAL in firmware v1.08+
+    # Command is parsed (returns empty) but has no actual effect
     local resp=$(raw_cmd "QR")
     if [ "$resp" = "?" ]; then
         log_fail "QR: command returned error"
     else
-        log_pass "QR (Quick Recall) - set-only command accepted"
+        log_pass "QR (Quick Recall) - set-only command accepted (non-functional in firmware)"
     fi
 }
 
@@ -2955,10 +2961,9 @@ skip_not_implemented() {
     log_skip "CH (Channel Up/Down) - firmware returns '?'"
     log_skip "CN (CTCSS Number) - firmware returns '?'"
     log_skip "EX (Extended Menu) - firmware returns '?'"
-    log_skip "FC (Sub VFO Freq) - firmware returns '?'"
     log_skip "GP (GP OUT) - firmware returns '?'"
     log_skip "MC (Memory Channel) - firmware returns '?'"
-    log_skip "SS (Spectrum Scope) - firmware returns '?'"
+    # SS (Spectrum Scope) - NOW WORKING with format SS0X; where X=0-7
 
     # Note: TX tests (AC, KY, MX, TX_cmd, VX) now have their own test functions
     # that handle the TX_TESTS check internally
