@@ -476,6 +476,64 @@ class FTX1CATTestSuite(unittest.TestCase):
         if resp == '?':
             self.skipTest("EX read not implemented in firmware (returns '?')")
 
+    def test_EX_TUNER_SELECT(self):
+        # EX030104: TUNER SELECT - controls internal antenna tuner type
+        # Values: 0=INT, 1=INT(FAST), 2=EXT, 3=ATAS
+        # GUARDRAIL: Values 0 (INT) and 1 (INT FAST) require SPA-1 amplifier
+        # Without SPA-1, only values 2 (EXT) and 3 (ATAS) are valid
+        # Per FTX-1 CAT spec page 10-11
+        # Format: EX P1 P2 P3 P4; where P1P2P3=030104 and P4=value (1 digit)
+        if not OPTIMA_ENABLED:
+            self.skipTest("Optima tests disabled (use --optima to enable for SPA-1 configurations)")
+
+        # Read current TUNER SELECT value
+        resp = self.send_command('EX030104', is_read=True)
+        if resp == '?':
+            self.skipTest("EX030104 (TUNER SELECT) not available in firmware")
+
+        self.assertRegex(resp, r'EX030104[0-3]', "EX030104 read response invalid")
+        orig_val = resp[-1]
+
+        # With SPA-1, test setting INT (0) - this requires SPA-1
+        self.send_command('EX0301040')  # Set to INT
+        after = self.send_command('EX030104', is_read=True)
+        self.assertEqual(after, 'EX0301040', "EX030104 set to INT (0) failed with SPA-1")
+
+        # Restore original
+        self.send_command(f'EX030104{orig_val}')
+        restored = self.send_command('EX030104', is_read=True)
+        self.assertEqual(restored, f'EX030104{orig_val}', "EX030104 restore mismatch")
+
+    def test_EX_OPTION_POWER(self):
+        # EX0307xx: OPTION section - SPA-1 max power settings per band
+        # These settings control maximum power limits when SPA-1 is attached
+        # GUARDRAIL: These settings require SPA-1 amplifier
+        # Without SPA-1, attempting to access these should fail or return error
+        # Per FTX-1 CAT spec page 12-13
+        # Items: 05=160m, 06=80m, 07=60m, 08=40m, 09=30m, 10=20m, 11=17m
+        if not OPTIMA_ENABLED:
+            self.skipTest("Optima tests disabled (use --optima to enable for SPA-1 configurations)")
+
+        # Try reading EX030705 (160m max power for SPA-1 OPTION section)
+        # Format: EX030705 read, EX030705xxx set (3 digit power value)
+        resp = self.send_command('EX030705', is_read=True)
+        if resp == '?':
+            self.skipTest("EX030705 (OPTION 160m power) not available in firmware")
+
+        self.assertRegex(resp, r'EX030705\d{3}', "EX030705 read response invalid")
+        orig_val = resp[-3:]
+
+        # Test setting a valid power level (100W is max for SPA-1)
+        test_val = '050' if orig_val != '050' else '100'
+        self.send_command(f'EX030705{test_val}')
+        after = self.send_command('EX030705', is_read=True)
+        self.assertEqual(after, f'EX030705{test_val}', "EX030705 set failed with SPA-1")
+
+        # Restore original
+        self.send_command(f'EX030705{orig_val}')
+        restored = self.send_command('EX030705', is_read=True)
+        self.assertEqual(restored, f'EX030705{orig_val}', "EX030705 restore mismatch")
+
     def test_FA(self):
         # FA: VFO A freq (9 digits Hz)
         orig = self.send_command('FA', is_read=True)

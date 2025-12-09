@@ -433,23 +433,93 @@ workarounds using raw CAT command passthrough (`rigctl w "CMD;"`):
 These are worked around in the test harness using raw CAT commands.
 
 ================================================================================
+HAMLIB BACKEND OVERVIEW
+================================================================================
+Backend: ftx1 (Model 1051)
+Author: Terrell Deppe (KJ5HST)
+Status: Beta
+
+The FTX-1 is a portable HF/VHF/UHF transceiver with modular head design.
+It supports two configurations:
+
+  Field Head: 0.5-10W portable configuration
+  SPA-1 (Optima): 5-100W amplifier with internal antenna tuner
+
+The backend uses the newcat framework and implements FTX-1 specific
+CAT commands documented in the FTX-1 CAT Operation Reference Manual.
+
+Serial Configuration:
+  Default: 38400 baud, 8N1
+  Supported rates: 4800, 9600, 19200, 38400, 57600, 115200
+
+SPA-1 Auto-Detection
+--------------------
+On rig open, the backend auto-detects the head configuration:
+
+1. PC command (power control) - P1 value indicates head type:
+   - PC1xxx = Field head
+   - PC2xxx = SPA-1
+
+2. VE4 command - queries SPA-1 firmware version:
+   - Returns version string if SPA-1 present
+   - Returns '?' if no SPA-1
+
+This detection enables guardrails for amplifier-specific commands.
+
+SPA-1 Guardrails
+----------------
+Certain EX menu commands require SPA-1 hardware:
+
+EX030104 (TUNER SELECT):
+  Values 0 (INT) and 1 (INT FAST) require SPA-1's internal tuner.
+  Setting these without SPA-1 would fail or cause undefined behavior.
+  The backend blocks these values when SPA-1 is not detected.
+
+EX0307xx (OPTION Power Settings):
+  These set maximum power per band for the SPA-1 amplifier.
+  Only accessible when SPA-1 is present.
+
+Supported Features
+------------------
+- Dual VFO (Main/Sub) with split operation
+- All amateur HF bands (160m-10m) plus 6m, 2m, 70cm
+- 60m band channels (500-503)
+- Modes: LSB, USB, CW, CW-R, AM, FM, FM-N, DATA, DATA-R
+- CTCSS/DCS encode and decode
+- RIT/XIT with +/-9999 Hz range
+- Noise blanker and noise reduction
+- Manual/auto notch filter
+- Beat cancel and contour controls
+- CW keyer with memories (1-5)
+- VOX with adjustable gain and delay
+- Memory channels (1-99) plus PMS (100-117)
+- Antenna tuner control
+- S-meter, SWR, ALC, power meter readings
+
+Tuner Control
+-------------
+The AC (Antenna Tuner Control) command supports:
+- AC000 = Tuner off
+- AC001 = Tuner on (hold from previous tune)
+- AC002 = Start tune cycle
+
+Notes:
+- AC003 (forced tune) not implemented (radio does not support it)
+- Tune start (AC002) automatically enables the tuner
+- Internal tuner (INT, INT FAST) requires SPA-1
+
+Known Quirks
+------------
+1. Rig ID mismatch: Firmware returns ID0763 instead of ID0840
+2. The FTX-1 does not support transceive mode (AI must be queried)
+3. Some EX menu items (ARO, FAGC, DUAL_WATCH, DIVERSITY) return '?'
+4. CW pitch (KP command) is paddle ratio on FTX-1, not pitch frequency
+5. Power level display changes with head type (field vs SPA-1)
+
+================================================================================
 TEST SCRIPTS
 ================================================================================
-Location: tests/ftx1_test.py (Python) and tests/ftx1_test.sh (Bash/Hamlib)
-
-Python test (direct serial):
-  python3 ftx1_test.py <port> [baud] [--tx-tests] [--optima] [-c CMD1,CMD2]
-
-Bash/Hamlib test:
-  ./ftx1_test.sh <port> [baud] [-t] [-o] [-c CMD1,CMD2] [-v]
-
-Options:
-  --tx-tests / -t   Enable TX tests (PTT, tuner, keyer)
-  --optima / -o     Enable SPA-1 amplifier tests (AC tuner)
-  --commands / -c   Test specific commands only
-  --verbose / -v    Verbose output
-
-See tests/ftx1_test_readme.txt for full documentation.
+See tests/ftx1_test_readme.txt for full test harness documentation.
 
 ================================================================================
 REVISION HISTORY

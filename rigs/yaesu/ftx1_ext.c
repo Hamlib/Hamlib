@@ -9,18 +9,16 @@
  *   MN P1P2P3;       - Menu Number Select (for menu navigation)
  *   QI;              - Quick Command for menu
  *
- * Extended Menu Numbers:
- *   The FTX-1 has extensive menu settings accessible via EX command.
- *   Format: EX MMNN PPPP; where MM=menu, NN=submenu, PPPP=parameter
+ * Extended Menu Numbers (FTX-1 CAT spec page 10-13):
+ *   Format: EX P1 P2 P3 P4; where P1=group, P2=section, P3=item, P4=value
  *
- * Common menu areas:
- *   - Audio settings (01xx)
- *   - TX settings (02xx)
- *   - Display settings (03xx)
- *   - CW settings (04xx)
- *   - Data mode settings (05xx)
- *   - RTTY settings (06xx)
- *   - Band settings (07xx)
+ * SPA-1 Specific Settings:
+ *   EX030104 TUNER SELECT: 0=INT, 1=INT(FAST), 2=EXT, 3=ATAS
+ *            - INT and INT(FAST) require SPA-1 amplifier
+ *   EX030503-09 TX GENERAL (field head power limits):
+ *            - HF/50M: 5-10W, V/U: 5-100W (field head only)
+ *   EX030705-11 OPTION (SPA-1 power limits):
+ *            - HF/50M: 5-100W, V/U: 5-50W (SPA-1 only)
  *
  * NOTE: Extended menu structure is radio-specific and may vary by firmware.
  *       Refer to CAT manual for exact menu numbers and parameter ranges.
@@ -33,13 +31,90 @@
 #include "yaesu.h"
 #include "newcat.h"
 
+/* Extern from ftx1.c for SPA-1 detection */
+extern int ftx1_has_spa1(void);
+extern int ftx1_get_head_type(void);
+
+/* Head type constants (must match ftx1.c) */
+#define FTX1_HEAD_UNKNOWN   0
+#define FTX1_HEAD_FIELD     1
+#define FTX1_HEAD_SPA1      2
+
+/*
+ * SPA-1 specific EX menu item definitions
+ * Format: EX P1 P2 P3 P4; (group, section, item, value)
+ */
+
+/* TUNER SELECT: EX030104 - values 0 (INT) and 1 (INT FAST) require SPA-1 */
+#define FTX1_EX_TUNER_SELECT_GROUP    3
+#define FTX1_EX_TUNER_SELECT_SECTION  1
+#define FTX1_EX_TUNER_SELECT_ITEM     4
+
+/* TX GENERAL power limits (field head): EX0305xx */
+#define FTX1_EX_TX_GENERAL_GROUP      3
+#define FTX1_EX_TX_GENERAL_SECTION    5
+
+/* OPTION power limits (SPA-1): EX0307xx */
+#define FTX1_EX_OPTION_GROUP          3
+#define FTX1_EX_OPTION_SECTION        7
+
+/*
+ * ftx1_check_ex_spa1_guardrail - Check if EX menu setting requires SPA-1
+ *
+ * Returns: RIG_OK if allowed, -RIG_ENAVAIL if SPA-1 required but not present
+ */
+static int ftx1_check_ex_spa1_guardrail(int group, int section, int item, int value)
+{
+    /*
+     * TUNER SELECT (EX030104): Values 0 (INT) and 1 (INT FAST) require SPA-1
+     * Internal tuner is only available in SPA-1 amplifier
+     */
+    if (group == FTX1_EX_TUNER_SELECT_GROUP &&
+        section == FTX1_EX_TUNER_SELECT_SECTION &&
+        item == FTX1_EX_TUNER_SELECT_ITEM)
+    {
+        if ((value == 0 || value == 1) && !ftx1_has_spa1())
+        {
+            rig_debug(RIG_DEBUG_WARN,
+                      "%s: TUNER SELECT INT/INT(FAST) requires SPA-1 amplifier\n",
+                      __func__);
+            return -RIG_ENAVAIL;
+        }
+    }
+
+    /*
+     * OPTION section (EX0307xx): SPA-1 max power settings
+     * These settings only apply when SPA-1 is connected
+     */
+    if (group == FTX1_EX_OPTION_GROUP && section == FTX1_EX_OPTION_SECTION)
+    {
+        if (!ftx1_has_spa1())
+        {
+            rig_debug(RIG_DEBUG_WARN,
+                      "%s: OPTION power settings (EX0307%02d) require SPA-1\n",
+                      __func__, item);
+            return -RIG_ENAVAIL;
+        }
+    }
+
+    return RIG_OK;
+}
+
 /* Set Extended Menu parameter (EX MMNN PPPP;) */
 int ftx1_set_ext_parm(RIG *rig, int menu, int submenu, int value)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: menu=%d submenu=%d value=%d\n", __func__,
               menu, submenu, value);
+
+    /* Check SPA-1 guardrails for specific menu items */
+    ret = ftx1_check_ex_spa1_guardrail(menu / 100, (menu % 100), submenu, value);
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
 
     /* Format: EX MM NN PPPP; */
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX%02d%02d%04d;",
@@ -73,6 +148,189 @@ int ftx1_get_ext_parm(RIG *rig, int menu, int submenu, int *value)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: value=%d\n", __func__, *value);
 
     return RIG_OK;
+}
+
+/*
+ * FTX-1 Specific EX Command Functions
+ *
+ * The FTX-1 uses 6-digit EX command format: EX P1 P2 P3 P4;
+ *   P1 = group (01-07)
+ *   P2 = section (01-07)
+ *   P3 = item (01-26)
+ *   P4 = value (variable digits)
+ */
+
+/*
+ * ftx1_set_ex_menu - Set FTX-1 extended menu parameter with SPA-1 guardrails
+ *
+ * Format: EX P1P2P3 value; (e.g., EX030104 for TUNER SELECT)
+ *
+ * Parameters:
+ *   group   - P1: 1-7 (menu group)
+ *   section - P2: 1-7 (section within group)
+ *   item    - P3: 1-26 (item within section)
+ *   value   - P4: value to set
+ *   digits  - number of digits for value (from CAT spec)
+ */
+int ftx1_set_ex_menu(RIG *rig, int group, int section, int item, int value, int digits)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    char fmt[32];
+
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "%s: group=%d section=%d item=%d value=%d digits=%d\n",
+              __func__, group, section, item, value, digits);
+
+    /* Check SPA-1 guardrails */
+    ret = ftx1_check_ex_spa1_guardrail(group, section, item, value);
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    /* Build format string based on value digits */
+    SNPRINTF(fmt, sizeof(fmt), "EX%%02d%%02d%%02d%%0%dd;", digits);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), fmt, group, section, item, value);
+
+    return newcat_set_cmd(rig);
+}
+
+/*
+ * ftx1_get_ex_menu - Get FTX-1 extended menu parameter
+ */
+int ftx1_get_ex_menu(RIG *rig, int group, int section, int item, int *value)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: group=%d section=%d item=%d\n",
+              __func__, group, section, item);
+
+    /* Query format: EX P1 P2 P3; */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX%02d%02d%02d;",
+             group, section, item);
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    /* Response: EX P1 P2 P3 P4; - parse value after 8 chars (EX + 6 digits) */
+    if (strlen(priv->ret_data) > 8)
+    {
+        char *valstr = priv->ret_data + 8;
+        /* Remove trailing semicolon */
+        char *semi = strchr(valstr, ';');
+        if (semi) *semi = '\0';
+
+        *value = atoi(valstr);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: value=%d\n", __func__, *value);
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: response too short '%s'\n",
+                  __func__, priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    return RIG_OK;
+}
+
+/*
+ * ftx1_set_tuner_select - Set antenna tuner type with SPA-1 guardrail
+ *
+ * Values: 0=INT, 1=INT(FAST), 2=EXT, 3=ATAS
+ * INT and INT(FAST) require SPA-1 amplifier
+ */
+int ftx1_set_tuner_select(RIG *rig, int tuner_type)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: tuner_type=%d\n", __func__, tuner_type);
+
+    if (tuner_type < 0 || tuner_type > 3)
+    {
+        return -RIG_EINVAL;
+    }
+
+    /*
+     * GUARDRAIL: INT (0) and INT(FAST) (1) tuner types require SPA-1
+     */
+    if ((tuner_type == 0 || tuner_type == 1) && !ftx1_has_spa1())
+    {
+        rig_debug(RIG_DEBUG_WARN,
+                  "%s: internal tuner (INT/INT FAST) requires SPA-1 amplifier\n",
+                  __func__);
+        return -RIG_ENAVAIL;
+    }
+
+    /* EX030104 = group 3, section 1, item 4, 1 digit */
+    return ftx1_set_ex_menu(rig, 3, 1, 4, tuner_type, 1);
+}
+
+/*
+ * ftx1_get_tuner_select - Get antenna tuner type setting
+ */
+int ftx1_get_tuner_select(RIG *rig, int *tuner_type)
+{
+    return ftx1_get_ex_menu(rig, 3, 1, 4, tuner_type);
+}
+
+/*
+ * ftx1_set_max_power - Set max power limit with head type awareness
+ *
+ * TX GENERAL (field head) EX0305xx:
+ *   03: HF MAX POWER      5-10W
+ *   04: 50M MAX POWER     5-10W
+ *   05: 70M MAX POWER     5-60W
+ *   06: 144M MAX POWER    5-100W
+ *   07: 430M MAX POWER    5-100W
+ *   08: AM HF/50 MAX PWR  5-25W
+ *   09: AM V/U MAX POWER  5-25W
+ *
+ * OPTION (SPA-1) EX0307xx:
+ *   05: HF MAX POWER      5-100W
+ *   06: 50M MAX POWER     5-100W
+ *   07: 70M MAX POWER     5-50W
+ *   08: 144M MAX POWER    5-50W
+ *   09: 430M MAX POWER    5-50W
+ *   10: AM MAX POWER      5-25W
+ *   11: AM V/U MAX POWER  5-13W
+ */
+int ftx1_set_max_power(RIG *rig, int band_item, int watts)
+{
+    int head_type = ftx1_get_head_type();
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: band_item=%d watts=%d head_type=%d\n",
+              __func__, band_item, watts, head_type);
+
+    if (head_type == FTX1_HEAD_SPA1)
+    {
+        /* Use OPTION section (EX0307xx) for SPA-1 */
+        return ftx1_set_ex_menu(rig, 3, 7, band_item, watts, 3);
+    }
+    else
+    {
+        /* Use TX GENERAL section (EX0305xx) for field head */
+        return ftx1_set_ex_menu(rig, 3, 5, band_item, watts, 3);
+    }
+}
+
+/*
+ * ftx1_get_max_power - Get max power limit based on head type
+ */
+int ftx1_get_max_power(RIG *rig, int band_item, int *watts)
+{
+    int head_type = ftx1_get_head_type();
+
+    if (head_type == FTX1_HEAD_SPA1)
+    {
+        return ftx1_get_ex_menu(rig, 3, 7, band_item, watts);
+    }
+    else
+    {
+        return ftx1_get_ex_menu(rig, 3, 5, band_item, watts);
+    }
 }
 
 /* Set Menu Number (MN P1P2P3;) */

@@ -29,6 +29,30 @@
 // Define FTX-1 rig ID (firmware returns ID0763;, not ID0840; as documented in manual)
 #define NC_RIGID_FTX1 0x763
 
+/*
+ * FTX-1 head type constants (detected via PC command response P1 value)
+ * Field head: 0.5-10W portable configuration
+ * SPA-1: 5-100W amplifier with internal tuner (Optima configuration)
+ */
+#define FTX1_HEAD_UNKNOWN   0
+#define FTX1_HEAD_FIELD     1
+#define FTX1_HEAD_SPA1      2
+
+/*
+ * FTX-1 specific private data structure
+ * Tracks SPA-1 amplifier detection for command guardrails
+ */
+static struct
+{
+    int head_type;          /* FTX1_HEAD_FIELD or FTX1_HEAD_SPA1 */
+    int spa1_detected;      /* 1 if SPA-1 confirmed via VE4 command */
+    int detection_done;     /* 1 if auto-detection has been performed */
+} ftx1_priv = {
+    .head_type = FTX1_HEAD_UNKNOWN,
+    .spa1_detected = 0,
+    .detection_done = 0,
+};
+
 // Private caps for newcat framework
 static const struct newcat_priv_caps ftx1_priv_caps = {
     .roofing_filter_count = 0,
@@ -86,6 +110,152 @@ extern int ftx1_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 
 // Externs from ftx1_vfo.c
 extern int ftx1_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
+
+/*
+ * ftx1_detect_spa1 - Detect SPA-1 amplifier via VE4 command
+ *
+ * The VE4; command returns the SPA-1 firmware version if connected.
+ * If no SPA-1 is present, the command typically returns '?' or an error.
+ *
+ * Returns: 1 if SPA-1 detected, 0 otherwise
+ */
+static int ftx1_detect_spa1(RIG *rig)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: checking for SPA-1\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VE4;");
+    ret = newcat_get_cmd(rig);
+
+    if (ret != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: VE4 command failed (no SPA-1)\n", __func__);
+        return 0;
+    }
+
+    /* VE4 returns version string like "VE4xxx;" if SPA-1 is present */
+    if (strlen(priv->ret_data) >= 4 && priv->ret_data[0] == 'V' &&
+        priv->ret_data[1] == 'E' && priv->ret_data[2] == '4')
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: SPA-1 detected, firmware: %s\n",
+                  __func__, priv->ret_data);
+        return 1;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: no SPA-1 detected\n", __func__);
+    return 0;
+}
+
+/*
+ * ftx1_detect_head_type - Detect head type from PC command
+ *
+ * PC command response format:
+ *   PC1xxx; = Field head (P1=1)
+ *   PC2xxx; = SPA-1 (P1=2)
+ *
+ * Returns: FTX1_HEAD_FIELD, FTX1_HEAD_SPA1, or FTX1_HEAD_UNKNOWN
+ */
+static int ftx1_detect_head_type(RIG *rig)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret, p1;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: detecting head type via PC command\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC;");
+    ret = newcat_get_cmd(rig);
+
+    if (ret != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: PC query failed\n", __func__);
+        return FTX1_HEAD_UNKNOWN;
+    }
+
+    /* Parse P1 from response: PC P1 xxx; */
+    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse PC response '%s'\n",
+                  __func__, priv->ret_data);
+        return FTX1_HEAD_UNKNOWN;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: head type P1=%d\n", __func__, p1);
+
+    if (p1 == 1)
+    {
+        return FTX1_HEAD_FIELD;
+    }
+    else if (p1 == 2)
+    {
+        return FTX1_HEAD_SPA1;
+    }
+
+    return FTX1_HEAD_UNKNOWN;
+}
+
+/*
+ * ftx1_open - FTX-1 specific rig open with SPA-1 detection
+ *
+ * Calls newcat_open, then auto-detects the head configuration:
+ *   - Queries PC command to determine field head vs SPA-1
+ *   - Queries VE4 to confirm SPA-1 presence
+ *   - Stores results for use by tuner and power control functions
+ */
+static int ftx1_open(RIG *rig)
+{
+    int ret;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    /* Call the standard newcat open first */
+    ret = newcat_open(rig);
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    /* Auto-detect head type and SPA-1 presence */
+    ftx1_priv.head_type = ftx1_detect_head_type(rig);
+    ftx1_priv.spa1_detected = ftx1_detect_spa1(rig);
+    ftx1_priv.detection_done = 1;
+
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "%s: detection complete - head_type=%d spa1_detected=%d\n",
+              __func__, ftx1_priv.head_type, ftx1_priv.spa1_detected);
+
+    /* Cross-check: if head_type is SPA-1, spa1_detected should also be true */
+    if (ftx1_priv.head_type == FTX1_HEAD_SPA1 && !ftx1_priv.spa1_detected)
+    {
+        rig_debug(RIG_DEBUG_WARN,
+                  "%s: PC reports SPA-1 but VE4 detection failed\n", __func__);
+    }
+
+    return RIG_OK;
+}
+
+/*
+ * ftx1_has_spa1 - Check if SPA-1 amplifier is present
+ *
+ * Returns 1 if SPA-1 detected, 0 otherwise.
+ * Used by tuner and power control functions for guardrails.
+ */
+int ftx1_has_spa1(void)
+{
+    return ftx1_priv.spa1_detected ||
+           ftx1_priv.head_type == FTX1_HEAD_SPA1;
+}
+
+/*
+ * ftx1_get_head_type - Get detected head type
+ *
+ * Returns FTX1_HEAD_FIELD, FTX1_HEAD_SPA1, or FTX1_HEAD_UNKNOWN
+ */
+int ftx1_get_head_type(void)
+{
+    return ftx1_priv.head_type;
+}
 
 // Rig caps structure
 struct rig_caps ftx1_caps = {
@@ -211,7 +381,7 @@ struct rig_caps ftx1_caps = {
     .priv = (void *)&ftx1_priv_caps,  // Reuse newcat priv
     .rig_init = newcat_init,
     .rig_cleanup = newcat_cleanup,
-    .rig_open = newcat_open,
+    .rig_open = ftx1_open,  // FTX-1 specific open with SPA-1 detection
     .rig_close = newcat_close,
     // Pointers to group-specific overrides or newcat defaults
     .set_freq = ftx1_set_freq,  // Override from ftx1_freq.c

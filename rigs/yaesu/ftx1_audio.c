@@ -27,6 +27,15 @@
 #include "yaesu.h"
 #include "newcat.h"
 
+/* Extern from ftx1.c for SPA-1 detection */
+extern int ftx1_has_spa1(void);
+extern int ftx1_get_head_type(void);
+
+/* Head type constants (must match ftx1.c) */
+#define FTX1_HEAD_UNKNOWN   0
+#define FTX1_HEAD_FIELD     1
+#define FTX1_HEAD_SPA1      2
+
 /* Helper macro to convert VFO to P1 parameter (0=MAIN, 1=SUB) */
 #define FTX1_VFO_TO_P1(vfo) \
     ((vfo == RIG_VFO_CURR || vfo == RIG_VFO_MAIN || vfo == RIG_VFO_A) ? 0 : 1)
@@ -246,36 +255,50 @@ int ftx1_get_meter(RIG *rig, int meter_type, int *val)
  *   - Always whole watts: PC2005; PC2010; ... PC2100; (3-digit zero-padded)
  *   - Never uses decimal format
  *
- * Auto-detects head type by querying current PC setting first.
+ * Uses pre-detected head type from ftx1_open() for efficiency and safety.
+ * Falls back to PC query if detection hasn't been done yet.
  */
 int ftx1_set_power(RIG *rig, float val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
-    int head_type = 1;  /* Default to field head */
+    int head_type;
     float watts;
     int watts_int;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: val=%f\n", __func__, val);
 
-    /* Query current PC to detect head type */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC;");
-    ret = newcat_get_cmd(rig);
-    if (ret == RIG_OK && strlen(priv->ret_data) >= 3)
+    /*
+     * Use pre-detected head type from ftx1_open() for better performance
+     * and to ensure consistency with SPA-1 guardrails.
+     */
+    head_type = ftx1_get_head_type();
+
+    if (head_type == FTX1_HEAD_UNKNOWN)
     {
-        /* Parse P1 from response (PC1xxx or PC2xxx) */
-        if (sscanf(priv->ret_data + 2, "%1d", &head_type) != 1)
+        /* Fallback: Query current PC to detect head type if not already known */
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: head type unknown, querying PC\n", __func__);
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC;");
+        ret = newcat_get_cmd(rig);
+        if (ret == RIG_OK && strlen(priv->ret_data) >= 3)
         {
-            head_type = 1;  /* Default to field head on parse error */
+            int p1;
+            if (sscanf(priv->ret_data + 2, "%1d", &p1) == 1)
+            {
+                head_type = p1;
+            }
         }
+        if (head_type == FTX1_HEAD_UNKNOWN)
+        {
+            head_type = FTX1_HEAD_FIELD;  /* Default to field head */
+        }
+        /* Small delay after query */
+        hl_usleep(50 * 1000);
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: detected head_type=%d\n", __func__, head_type);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: using head_type=%d\n", __func__, head_type);
 
-    /* Small delay after query before set to avoid serial port contention */
-    hl_usleep(50 * 1000);  /* 50ms */
-
-    if (head_type == 2)
+    if (head_type == FTX1_HEAD_SPA1)
     {
         /* SPA-1: 5-100W, always 3-digit zero-padded whole watts */
         watts_int = (int)(val * FTX1_POWER_MAX_SPA1);
