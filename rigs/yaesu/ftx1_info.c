@@ -37,6 +37,7 @@
 #include "misc.h"
 #include "yaesu.h"
 #include "newcat.h"
+#include "ftx1.h"
 
 #define FTX1_ID "0763"  /* Radio ID for FTX-1 */
 
@@ -552,10 +553,6 @@ int ftx1_get_time(RIG *rig, int *hour, int *min, int *sec)
 
     return RIG_OK;
 }
-
-/* Helper macro for VFO conversion */
-#define FTX1_VFO_TO_P1(vfo) \
-    ((vfo == RIG_VFO_CURR || vfo == RIG_VFO_MAIN || vfo == RIG_VFO_A) ? 0 : 1)
 
 /*
  * ftx1_set_if_shift - Set IF Shift

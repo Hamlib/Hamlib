@@ -663,8 +663,44 @@ TEST SCRIPTS
 See tests/ftx1_test_readme.txt for full test harness documentation.
 
 ================================================================================
+SOURCE FILE ORGANIZATION
+================================================================================
+The FTX-1 backend is organized into modular source files by function group.
+All files share common definitions via ftx1.h header.
+
+Header File:
+  ftx1.h            - Shared definitions (macros, constants, extern declarations)
+                      Defines: NC_RIGID_FTX1, FTX1_HEAD_*, FTX1_VFO_TO_P1,
+                               FTX1_CTCSS_MODE_*, ftx1_has_spa1(), ftx1_get_head_type()
+
+Source Files:
+  ftx1.c            - Main driver, rig_caps, open/close, SPA-1 detection
+  ftx1_vfo.c        - VFO select (VS), split (ST/FT), VFO operations (AB/BA/SV)
+  ftx1_freq.c       - Frequency get/set (FA/FB)
+  ftx1_mode.c       - Mode documentation (delegates to newcat)
+  ftx1_audio.c      - AF/RF/Mic gain (AG/RG/MG), power (PC), meters (SM/RM), AGC (GT)
+  ftx1_func.c       - Central dispatcher for func/level operations
+  ftx1_info.c       - Radio info (ID/IF/OI), AI mode, IF shift (IS), date/time (DT)
+  ftx1_mem.c        - Memory operations (MC/MR/MW/MT/MZ/MA/MB/AM/BM/VM/CH)
+  ftx1_tx.c         - PTT (TX), VOX (VX), tuner (AC), break-in (BI), power (PS)
+  ftx1_cw.c         - CW keyer (KS/KP/KR/KY/KM/SD)
+  ftx1_ctcss.c      - CTCSS/DCS tone control (CN/CT/DC)
+  ftx1_noise.c      - Noise blanker (NL), noise reduction (RL)
+  ftx1_filter.c     - Notch (BP), contour/APF (CO), beat cancel (BC)
+  ftx1_preamp.c     - Preamp (PA), attenuator (RA)
+  ftx1_scan.c       - Scan (SC), band select (BS), tuning step (TS), zero-in (ZI)
+  ftx1_ext.c        - Extended menu (EX), spectrum scope (SS)
+
+================================================================================
 REVISION HISTORY
 ================================================================================
+2025-12-09  Code cleanup and consolidation
+            - Created ftx1.h header with shared definitions
+            - Consolidated FTX1_VFO_TO_P1 macro (was duplicated in 5 files)
+            - Added FTX1_CTCSS_MODE_* constants for proper CTCSS mode handling
+            - Fixed ftx1_ctcss.c to use proper mode values instead of RIG_FUNC_* flags
+            - Added debug logging in ftx1_preamp.c for band detection failures
+            - Moved NC_RIGID_FTX1 and FTX1_HEAD_* constants to shared header
 2025-12-09  Added KM (Keyer Memory) read/write support
             - KM command verified working with full read/write (slots 1-5, 50 chars)
             - Added ftx1_set_keyer_memory() function

@@ -29,6 +29,7 @@
 #include "misc.h"
 #include "yaesu.h"
 #include "newcat.h"
+#include "ftx1.h"
 
 #define FTX1_CTCSS_MIN 1
 #define FTX1_CTCSS_MAX 50
@@ -69,31 +70,33 @@ static unsigned int ftx1_tone_num_to_freq(int num)
     return ftx1_ctcss_tones[num - 1];
 }
 
-/* Set CTCSS Mode (CT P1;) */
+/*
+ * ftx1_set_ctcss_mode - Set CTCSS Mode (CT P1;)
+ *
+ * Parameter 'mode' is the FTX-1 CT command value:
+ *   0 = Off
+ *   1 = CTCSS Encode only (TX tone)
+ *   2 = Tone Squelch (TX+RX tone)
+ *   3 = DCS mode
+ *
+ * Note: This function expects FTX1_CTCSS_MODE_* values, not Hamlib
+ * RIG_FUNC_* flags. The caller is responsible for mapping Hamlib
+ * function flags to FTX-1 mode values if needed.
+ */
 int ftx1_set_ctcss_mode(RIG *rig, tone_t mode)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int p1;
 
-    /* Map Hamlib tone mode to FTX-1 CT command */
-    switch (mode)
+    /* Validate and use FTX-1 CT command values directly */
+    if (mode > FTX1_CTCSS_MODE_DCS)
     {
-    case 0:                   /* Off */
-        p1 = 0;
-        break;
-
-    case RIG_FUNC_TONE:       /* CTCSS Encode only */
-        p1 = 1;
-        break;
-
-    case RIG_FUNC_TSQL:       /* Tone Squelch (encode + decode) */
-        p1 = 2;
-        break;
-
-    default:
-        p1 = 3;               /* DCS */
-        break;
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid mode %u (must be 0-3)\n",
+                  __func__, mode);
+        return -RIG_EINVAL;
     }
+
+    p1 = (int)mode;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: mode=%u p1=%d\n", __func__, mode, p1);
 
@@ -101,7 +104,15 @@ int ftx1_set_ctcss_mode(RIG *rig, tone_t mode)
     return newcat_set_cmd(rig);
 }
 
-/* Get CTCSS Mode */
+/*
+ * ftx1_get_ctcss_mode - Get CTCSS Mode (CT;)
+ *
+ * Returns the FTX-1 CT command value in *mode:
+ *   0 = Off (FTX1_CTCSS_MODE_OFF)
+ *   1 = CTCSS Encode only (FTX1_CTCSS_MODE_ENC)
+ *   2 = Tone Squelch (FTX1_CTCSS_MODE_TSQ)
+ *   3 = DCS mode (FTX1_CTCSS_MODE_DCS)
+ */
 int ftx1_get_ctcss_mode(RIG *rig, tone_t *mode)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -121,25 +132,8 @@ int ftx1_get_ctcss_mode(RIG *rig, tone_t *mode)
         return -RIG_EPROTO;
     }
 
-    /* Map FTX-1 mode to Hamlib */
-    switch (p1)
-    {
-    case 0:
-        *mode = 0;
-        break;
-
-    case 1:
-        *mode = RIG_FUNC_TONE;
-        break;
-
-    case 2:
-        *mode = RIG_FUNC_TSQL;
-        break;
-
-    default:
-        *mode = 0;  /* DCS not directly mapped */
-        break;
-    }
+    /* Return FTX-1 mode value directly (0-3) */
+    *mode = (tone_t)p1;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: p1=%d mode=%u\n", __func__, p1, *mode);
 

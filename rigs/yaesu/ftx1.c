@@ -48,18 +48,7 @@
 #include "sprintflst.h"
 #include "yaesu.h"
 #include "newcat.h"
-
-// Define FTX-1 rig ID (firmware returns ID0763;, not ID0840; as documented in manual)
-#define NC_RIGID_FTX1 0x763
-
-/*
- * FTX-1 head type constants (detected via PC command response P1 value)
- * Field head: 0.5-10W portable configuration
- * SPA-1: 5-100W amplifier with internal tuner (Optima configuration)
- */
-#define FTX1_HEAD_UNKNOWN   0
-#define FTX1_HEAD_FIELD     1
-#define FTX1_HEAD_SPA1      2
+#include "ftx1.h"
 
 /*
  * FTX-1 specific private data structure
