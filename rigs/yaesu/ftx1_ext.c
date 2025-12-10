@@ -30,15 +30,7 @@
 #include "misc.h"
 #include "yaesu.h"
 #include "newcat.h"
-
-/* Extern from ftx1.c for SPA-1 detection */
-extern int ftx1_has_spa1(void);
-extern int ftx1_get_head_type(void);
-
-/* Head type constants (must match ftx1.c) */
-#define FTX1_HEAD_UNKNOWN   0
-#define FTX1_HEAD_FIELD     1
-#define FTX1_HEAD_SPA1      2
+#include "ftx1.h"
 
 /*
  * SPA-1 specific EX menu item definitions
