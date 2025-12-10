@@ -40,6 +40,7 @@ Version 4.7.0
         * New Yaesu FTX-1 model support (alpha).  (TNX Jeremy Miller).
         * Update QRPLabs QMX backend for max serial rate of 230400 bps.  (TNX Mooneer Salem)
         * Updates to Icom IC-F8101.  (TNX Mitchell Winkle and George Baltz)
+        * New rig model Icom ID-52A/W Plus.  (TNX Martin Andrich)
 
 Version 4.6.5
         * 2025-09-05
