@@ -13,18 +13,18 @@ Main harnesses:
   ftx1_test_main.sh   - Bash main harness (rigctl-based)
 
 Test modules (Python .py and Bash .sh versions):
-  ftx1_test_vfo       - VFO select, split, TX VFO, A/B copy
-  ftx1_test_freq      - Frequency control, band up/down, RIT/XIT
+  ftx1_test_vfo       - VFO select, split, TX VFO, A/B copy, FR (dual receive), GP (GP OUT)
+  ftx1_test_freq      - Frequency control, band up/down, RIT/XIT, OS (repeater shift)
   ftx1_test_mode      - Operating mode, filter number
   ftx1_test_filter    - Beat cancel, contour, notch, width
-  ftx1_test_audio     - AF/RF gain, mic gain, AGC, squelch, meters
+  ftx1_test_audio     - AF/RF gain, mic gain, AGC, squelch, meters, PB (voice playback)
   ftx1_test_function  - Compressor, monitor, lock, tone, TSQL
   ftx1_test_noise     - Noise blanker, noise reduction, attenuator
   ftx1_test_preamp    - Preamp, RF attenuator
   ftx1_test_cw        - Key speed, break-in, keyer memory
-  ftx1_test_tx        - PTT, VOX, tuner, MOX
+  ftx1_test_tx        - PTT, VOX, tuner, MOX, TS (TX watch)
   ftx1_test_memory    - Memory read/write, memory zones
-  ftx1_test_info      - Radio ID, IF info, meters (read-only)
+  ftx1_test_info      - Radio ID, IF info, meters (read-only), SF (FUNC knob)
   ftx1_test_misc      - CTCSS/DCS (CN, CT, DC), scan, date/time, misc commands
   ftx1_test_power     - RF power, SPA-1 power settings
 
@@ -42,7 +42,7 @@ Files are OVERWRITTEN each run to provide fresh results.
 Python Test Harness (ftx1_test_main.py)
 ---------------------------------------
 Uses direct serial communication to send CAT commands to the radio.
-Tests all 80+ CAT commands with set/get/restore pattern.
+Tests all 91 CAT commands with set/get/restore pattern.
 
 Requirements:
   - Python 3
@@ -102,19 +102,19 @@ Test Groups
 -----------
 Groups can be specified with --group/-g option (comma-separated):
 
-  vfo       VFO select, split, TX VFO, A/B copy (VS, ST, FT, AB, BA, SV)
-  freq      Frequency control, band up/down, RIT/XIT (FA, FB, BD, BU)
+  vfo       VFO select, split, TX VFO, A/B copy, dual receive, GP OUT (VS, ST, FT, AB, BA, SV, FR, GP)
+  freq      Frequency control, band up/down, RIT/XIT, repeater shift (FA, FB, BD, BU, OS)
   mode      Operating mode, filter number (MD, FN)
   filter    Beat cancel, contour, notch, width (BC, BP, CO, SH)
-  audio     AF/RF gain, mic gain, AGC, squelch, meters (AG, RG, MG, etc.)
+  audio     AF/RF gain, mic gain, AGC, squelch, meters, voice playback (AG, RG, MG, PB, etc.)
   function  Compressor, monitor, lock, tone, TSQL (AI, BI, CT, LK, etc.)
   noise     Noise blanker, noise reduction, attenuator (NA, NL, RL, RA)
   preamp    Preamp, RF attenuator (PA)
   cw        Key speed, break-in, keyer memory (KP, KR, KS, KY, SD, KM, LM)
-  tx        PTT, VOX, tuner, MOX (AC, MX, TX, VX, VE) - requires --tx-tests
+  tx        PTT, VOX, tuner, MOX, TX watch (AC, MX, TX, VX, VE, TS) - requires --tx-tests
   memory    Memory read/write, channel up/down (AM, BM, CH, MA, MB, MC, MR, MT, MW, MZ, VM)
-  info      Radio ID, IF info, meters (DA, DT, ID, IF, OI, PS, RI, RM)
-  misc      CTCSS/DCS tones, scan, date/time, misc (CN, CT, DC, SC, SF, TS, CS, etc.)
+  info      Radio ID, IF info, meters, FUNC knob (DA, DT, ID, IF, OI, PS, RI, RM, SF)
+  misc      CTCSS/DCS tones, scan, date/time, misc (CN, CT, DC, SC, CS, etc.)
   power     RF power, SPA-1 settings (PC, EX030104, EX0307xx) - SPA-1 requires --optima
 
 Examples:
@@ -188,41 +188,38 @@ they cause transmission.
 Firmware Implementation Notes
 -----------------------------
 Firmware version: MAIN Ver. 1.08+
-Radio ID: Firmware returns ID0763; (not ID0840; as documented in manual)
+Radio ID: Firmware returns ID0840; (Hamlib model 1051)
 
 Commands Not Implemented in Firmware (return '?'):
   SL (Low Cut) - NOT IN FTX-1 CAT SPEC (use EX menu or SH for filter settings)
 
-Commands NOW WORKING (previously thought broken):
-  EO (Encoder Offset) - Set-only, format: EO00+0100; (returns empty)
-  SS (Spectrum Scope) - Read: SS0X; where X=0-7 selects parameter type
+All 91 official FTX-1 CAT commands are tested and documented.
 
-Commands Accepted but Non-Functional:
-  QI (QMB Store), QR (QMB Recall) - Commands accepted but have no effect
+  Set-only commands (no read/query):
+    BS (Band Select) - Format: BS P1 P2P2 (P1=VFO, P2P2=band 00-10)
+    QI (QMB Store) - Stores current VFO to Quick Memory Bank
+    QR (QMB Recall) - Recalls QMB to current VFO
+    CF (Clarifier) - Sets offset value only (CF001+0500), doesn't enable
+    EO (Encoder Offset) - Format: EO00+0100; (returns empty)
+    ZI (Zero In) - CW mode only (P1=0 MAIN/1 SUB) - activates CW AUTO ZERO IN
 
-Commands NOW WORKING (verified 2025-12-09):
-  BS (Band Select) - Set-only, format BS P1 P2P2 (P1=VFO, P2P2=band 00-10)
-  CF (Clarifier) - Set-only, sets offset value only (CF001+0500), doesn't enable
-  CH (Memory Channel Up/Down) - CH0/CH1 cycle through ALL memory channels
+  Commands with special format requirements:
+    CH (Memory Channel Up/Down) - CH0/CH1 cycle through ALL memory channels
                       Cycles: PMG ch1 → ch2 → ... → QMB ch1 → ... → PMG ch1
                       CH; CH00; CH01; etc. return '?' - only CH0 and CH1 work
-                      Display shows "M-ALL X-NN" where X=group, NN=channel
-  CN (CTCSS Number) - Works with format CN P1 P2P3P4 (P1=00/10, P2P3P4=001-050)
-  EX (Extended Menu) - Works when SPA-1 is connected
-  GP (GP OUT) - Full R/W, format GP P1P2P3P4 (each controls A/B/C/D, 0=LOW/1=HIGH)
+    CN (CTCSS Number) - Format: CN P1 P2P3P4 (P1=00/10, P2P3P4=001-050)
+    GP (GP OUT) - Full R/W, format GP P1P2P3P4 (each controls A/B/C/D, 0=LOW/1=HIGH)
                REQUIRES: Menu [OPERATION SETTING] → [GENERAL] → [TUN/LIN PORT SELECT] = "GPO"
-               Factory default is "OPTION" - GP returns '?' until menu changed
-  MC (Memory Channel) - DIFFERENT FORMAT than documented!
-                        Read: MC0 (MAIN) or MC1 (SUB) returns MCNNNNNN (6-digit)
-                        Set: MCNNNNNN (6-digit channel, no VFO prefix)
-                        Returns '?' if channel doesn't exist (not programmed)
-  MR (Memory Read) - 5-digit format! MR00001 (not MR0001) for channel 1
-                     Returns '?' for empty/unprogrammed channels
-  MT (Memory Tag) - FULL R/W! MT00001NAME sets 12-char name for channel
-  MZ (Memory Zone) - FULL R/W! MZ00001DATA sets 10-digit zone data
-  VM (VFO/Memory) - Mode codes DIFFER FROM SPEC: 00=VFO, 11=Memory (not 01!)
-                    Only VM000 set works; use SV command to toggle to memory mode
-  ZI (Zero In) - Set-only, CW mode only (P1=0 MAIN/1 SUB) - activates CW AUTO ZERO IN
+    MC (Memory Channel) - Read: MC0/MC1, Set: MCNNNNNN (6-digit channel)
+    MR (Memory Read) - 5-digit format! MR00001 (not MR0001) for channel 1
+    MT (Memory Tag) - Full R/W: MT00001NAME sets 12-char name
+    MZ (Memory Zone) - Full R/W: MZ00001DATA sets 10-digit zone data
+    VM (VFO/Memory) - Mode codes: 00=VFO, 11=Memory; use SV to toggle
+
+  SPA-1 specific commands (require --optima flag):
+    AC (Antenna Tuner) - Internal tuner only available with SPA-1
+    EX (Extended Menu) - Full access with SPA-1 connected
+    EX030104 (TUNER SELECT), EX0307xx (OPTION Power)
 
 Commands with Firmware Limitations:
   KM (Keyer Message) - Read returns empty (no message content)

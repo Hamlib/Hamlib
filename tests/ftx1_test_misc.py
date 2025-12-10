@@ -87,13 +87,11 @@ class MiscTests(unittest.TestCase):
         # Skip set test - firmware doesn't persist the value
 
     def test_QI(self):
-        """QI: Quick in (set-only) - ACCEPTED but NON-FUNCTIONAL in firmware"""
-        # NOTE: QI command is parsed (returns empty) but has no actual effect
+        """QI: Quick in (set-only) - stores current VFO to QMB"""
         self.send('QI')
 
     def test_QR(self):
-        """QR: Quick recall (set-only) - ACCEPTED but NON-FUNCTIONAL in firmware"""
-        # NOTE: QR command is parsed (returns empty) but has no actual effect
+        """QR: Quick recall (set-only) - recalls QMB to current VFO"""
         self.send('QR')
 
     def test_SC(self):
@@ -124,8 +122,11 @@ class MiscTests(unittest.TestCase):
         self.skipTest("UP is context-dependent; manual test required")
 
     def test_VM(self):
-        """VM: Voice memory (P1=0/1 start/stop, set-only)"""
-        self.send('VM00')  # Example start
+        """VM: VFO/Memory mode - Format differs from spec!
+        VM000 = VFO mode, VM011 = Memory mode (not VM001!)
+        Set-only for VM000; use SV command to toggle to memory mode
+        """
+        self.send('VM000')
 
     def test_ZI(self):
         """ZI: Zero in (P1=0/1 MAIN/SUB, set-only) - CW mode only
