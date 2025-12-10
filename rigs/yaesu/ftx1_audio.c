@@ -26,19 +26,7 @@
 #include "misc.h"
 #include "yaesu.h"
 #include "newcat.h"
-
-/* Extern from ftx1.c for SPA-1 detection */
-extern int ftx1_has_spa1(void);
-extern int ftx1_get_head_type(void);
-
-/* Head type constants (must match ftx1.c) */
-#define FTX1_HEAD_UNKNOWN   0
-#define FTX1_HEAD_FIELD     1
-#define FTX1_HEAD_SPA1      2
-
-/* Helper macro to convert VFO to P1 parameter (0=MAIN, 1=SUB) */
-#define FTX1_VFO_TO_P1(vfo) \
-    ((vfo == RIG_VFO_CURR || vfo == RIG_VFO_MAIN || vfo == RIG_VFO_A) ? 0 : 1)
+#include "ftx1.h"
 
 /* Level ranges */
 #define FTX1_AF_GAIN_MIN 0

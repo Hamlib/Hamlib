@@ -44,11 +44,25 @@
 static int ftx1_get_band_type(RIG *rig, vfo_t vfo)
 {
     freq_t freq = 0;
+    int ret;
 
     /* Try to get current frequency to determine band type */
     if (rig->caps->get_freq)
     {
-        rig->caps->get_freq(rig, vfo, &freq);
+        ret = rig->caps->get_freq(rig, vfo, &freq);
+        if (ret != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_WARN,
+                      "%s: get_freq failed (%s), defaulting to HF/50MHz band\n",
+                      __func__, rigerror(ret));
+            return FTX1_BAND_HF50;
+        }
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_WARN,
+                  "%s: no get_freq capability, defaulting to HF/50MHz band\n",
+                  __func__);
     }
 
     if (freq >= 420000000) return FTX1_BAND_UHF;   /* 430 MHz band */

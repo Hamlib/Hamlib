@@ -23,10 +23,7 @@
 #include "misc.h"
 #include "yaesu.h"
 #include "newcat.h"
-
-/* Helper macro to convert VFO to P1 parameter (0=MAIN, 1=SUB) */
-#define FTX1_VFO_TO_P1(vfo) \
-    ((vfo == RIG_VFO_CURR || vfo == RIG_VFO_MAIN || vfo == RIG_VFO_A) ? 0 : 1)
+#include "ftx1.h"
 
 /*
  * ftx1_set_anf_helper - Set Auto Notch Filter (Beat Cancel) on/off

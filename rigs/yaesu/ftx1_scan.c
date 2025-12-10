@@ -34,6 +34,7 @@
 #include "misc.h"
 #include "yaesu.h"
 #include "newcat.h"
+#include "ftx1.h"
 
 /* Band codes */
 #define FTX1_BAND_160M   0
@@ -288,10 +289,6 @@ int ftx1_vfo_op_scan(RIG *rig, vfo_t vfo, vfo_op_t op)
             return -RIG_EINVAL;
     }
 }
-
-/* Helper macro for VFO conversion */
-#define FTX1_VFO_TO_P1(vfo) \
-    ((vfo == RIG_VFO_CURR || vfo == RIG_VFO_MAIN || vfo == RIG_VFO_A) ? 0 : 1)
 
 /*
  * ftx1_zero_in - Zero In (ZI P1;)
