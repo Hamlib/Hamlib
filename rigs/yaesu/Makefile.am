@@ -15,6 +15,8 @@ NEWCATSRC = newcat.c newcat.h ft450.c ft450.h ft950.c ft950.h ft991.c ft991.h \
 	ftx1.c ftx1_vfo.c ftx1_freq.c ftx1_mode.c ftx1_filter.c ftx1_noise.c \
 	ftx1_func.c ftx1_preamp.c ftx1_audio.c ftx1_tx.c ftx1_mem.c ftx1_cw.c \
 	ftx1_ctcss.c ftx1_scan.c ftx1_info.c ftx1_ext.c
+## FTX-1 monolithic version (comment out multi-file list above to use):
+#	ftx1_mono.c
 
 noinst_LTLIBRARIES = libhamlib-yaesu.la
 libhamlib_yaesu_la_SOURCES = yaesu.c yaesu.h level_gran_yaesu.h $(YAESUSRC) $(NEWCATSRC)
