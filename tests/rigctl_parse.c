@@ -707,7 +707,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
     struct test_table *cmd_entry = NULL;
     struct rig_state *rs = STATE(my_rig);
 
-    char command[MAXARGSZ + 1];
+    char command[MAXARGSZ + 1] = "";
     char arg1[MAXARGSZ + 1], *p1 = NULL;
     char arg2[MAXARGSZ + 1], *p2 = NULL;
     char arg3[MAXARGSZ + 1], *p3 = NULL;
