@@ -35,10 +35,18 @@
 #define FTX1_RF_GAIN_MAX 255
 #define FTX1_MIC_GAIN_MIN 0
 #define FTX1_MIC_GAIN_MAX 100
-#define FTX1_POWER_MIN_FIELD 0.5f   /* Field head minimum */
-#define FTX1_POWER_MAX_FIELD 10.0f  /* Field head maximum */
-#define FTX1_POWER_MIN_SPA1 5       /* SPA-1 minimum */
-#define FTX1_POWER_MAX_SPA1 100     /* SPA-1 maximum */
+
+/*
+ * Power ranges by head type:
+ *   FIELD_BATTERY: 0.5W - 6W (0.5W increments)
+ *   FIELD_12V:     0.5W - 10W (0.5W increments)
+ *   SPA1:          5W - 100W (1W increments)
+ */
+#define FTX1_POWER_MIN_FIELD 0.5f         /* Field head minimum (both modes) */
+#define FTX1_POWER_MAX_FIELD_BATTERY 6.0f /* Field head on battery maximum */
+#define FTX1_POWER_MAX_FIELD_12V 10.0f    /* Field head on 12V maximum */
+#define FTX1_POWER_MIN_SPA1 5             /* SPA-1 minimum */
+#define FTX1_POWER_MAX_SPA1 100           /* SPA-1 maximum */
 
 /* Set AF Gain (AG P1 P2P3P4;) */
 int ftx1_set_af_gain(RIG *rig, vfo_t vfo, float val)
@@ -232,7 +240,7 @@ int ftx1_get_meter(RIG *rig, int meter_type, int *val)
  * ftx1_set_power - Set Power Control
  *
  * CAT command: PC P1 P2...;
- *   P1 = 1 for field head (0.5-10W)
+ *   P1 = 1 for field head (0.5-6W on battery, 0.5-10W on 12V)
  *   P1 = 2 for SPA-1 (5-100W)
  *
  * PC1 (field head) format:
@@ -252,6 +260,7 @@ int ftx1_set_power(RIG *rig, float val)
     int ret;
     int head_type;
     float watts;
+    float max_power;
     int watts_int;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: val=%f\n", __func__, val);
@@ -270,15 +279,18 @@ int ftx1_set_power(RIG *rig, float val)
         ret = newcat_get_cmd(rig);
         if (ret == RIG_OK && strlen(priv->ret_data) >= 3)
         {
-            int p1;
-            if (sscanf(priv->ret_data + 2, "%1d", &p1) == 1)
+            if (strncmp(priv->ret_data, "PC2", 3) == 0)
             {
-                head_type = p1;
+                head_type = FTX1_HEAD_SPA1;
+            }
+            else
+            {
+                head_type = FTX1_HEAD_FIELD_12V;  /* Default to 12V if unknown */
             }
         }
         if (head_type == FTX1_HEAD_UNKNOWN)
         {
-            head_type = FTX1_HEAD_FIELD;  /* Default to field head */
+            head_type = FTX1_HEAD_FIELD_12V;  /* Default to field head 12V */
         }
         /* Small delay after query */
         hl_usleep(50 * 1000);
@@ -296,10 +308,23 @@ int ftx1_set_power(RIG *rig, float val)
     }
     else
     {
-        /* Field head: 0.5-10W */
-        watts = val * FTX1_POWER_MAX_FIELD;
+        /*
+         * Field head power ranges:
+         *   FIELD_BATTERY: 0.5-6W
+         *   FIELD_12V:     0.5-10W
+         */
+        if (head_type == FTX1_HEAD_FIELD_BATTERY)
+        {
+            max_power = FTX1_POWER_MAX_FIELD_BATTERY;
+        }
+        else
+        {
+            max_power = FTX1_POWER_MAX_FIELD_12V;
+        }
+
+        watts = val * max_power;
         if (watts < FTX1_POWER_MIN_FIELD) watts = FTX1_POWER_MIN_FIELD;
-        if (watts > FTX1_POWER_MAX_FIELD) watts = FTX1_POWER_MAX_FIELD;
+        if (watts > max_power) watts = max_power;
 
         if (watts == (float)(int)watts)
         {
@@ -320,18 +345,24 @@ int ftx1_set_power(RIG *rig, float val)
  * ftx1_get_power - Get Power Control
  *
  * Response formats:
- *   PC1 (field head, 0.5-10W):
- *     - Whole watts: PC1001; PC1002; ... PC1010; (3-digit zero-padded)
- *     - Fractional: PC10.5; PC11.1; PC11.5; etc. (decimal format)
+ *   PC1 (field head):
+ *     - Battery (0.5-6W): PC10.5; PC1001; ... PC1006;
+ *     - 12V (0.5-10W): PC10.5; PC1001; ... PC1010;
+ *     - Fractional: decimal format (PC10.5, PC11.5, etc.)
+ *     - Whole watts: 3-digit zero-padded (PC1001, PC1006, PC1010)
  *   PC2 (SPA-1, 5-100W):
  *     - Always whole watts: PC2005; PC2010; ... PC2100; (3-digit zero-padded)
+ *
+ * Returns power as 0.0-1.0 normalized value based on detected head type.
  */
 int ftx1_get_power(RIG *rig, float *val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
     int p1;
+    int head_type;
     float watts;
+    float max_power;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
@@ -359,21 +390,36 @@ int ftx1_get_power(RIG *rig, float *val)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: p1=%d watts=%.1f\n", __func__, p1, watts);
 
+    /* Get detected head type for proper scaling */
+    head_type = ftx1_get_head_type();
+
     /* Convert watts to 0.0-1.0 range based on head type */
-    if (p1 == 1)
-    {
-        /* Field head: 0.5-10W maps to 0.05-1.0 */
-        *val = watts / FTX1_POWER_MAX_FIELD;
-    }
-    else if (p1 == 2)
+    if (p1 == 2)
     {
         /* SPA-1: 5-100W maps to 0.05-1.0 */
         *val = watts / (float)FTX1_POWER_MAX_SPA1;
     }
+    else if (p1 == 1)
+    {
+        /*
+         * Field head: scale based on detected power source
+         *   FIELD_BATTERY: 0.5-6W
+         *   FIELD_12V:     0.5-10W
+         */
+        if (head_type == FTX1_HEAD_FIELD_BATTERY)
+        {
+            max_power = FTX1_POWER_MAX_FIELD_BATTERY;
+        }
+        else
+        {
+            max_power = FTX1_POWER_MAX_FIELD_12V;
+        }
+        *val = watts / max_power;
+    }
     else
     {
         rig_debug(RIG_DEBUG_ERR, "%s: unexpected P1=%d\n", __func__, p1);
-        *val = watts / FTX1_POWER_MAX_FIELD;  /* Default to field head */
+        *val = watts / FTX1_POWER_MAX_FIELD_12V;  /* Default to field head 12V */
     }
 
     return RIG_OK;
@@ -713,4 +759,100 @@ int ftx1_get_meter_switch(RIG *rig, int *meter_type)
 
     *meter_type = mt;
     return RIG_OK;
+}
+
+/*
+ * =============================================================================
+ * PB Command: Play Back (DVS Voice Message)
+ * =============================================================================
+ * CAT format: PB P1 P2;
+ *   P1 = 0 (always 0 for FTX-1)
+ *   P2 = Voice message channel:
+ *        0 = Stop playback/recording
+ *        1 = Voice message channel 1
+ *        2 = Voice message channel 2
+ *        3 = Voice message channel 3
+ *        4 = Voice message channel 4
+ *        5 = Voice message channel 5
+ *
+ * Read response: PB0n where n is current channel (0 if not playing)
+ * Set command: PB0n;
+ *
+ * WARNING: Playing TX voice messages causes transmission!
+ */
+
+/* Voice message channel values */
+#define FTX1_PB_STOP      0   /* Stop playback */
+#define FTX1_PB_CHANNEL_1 1   /* Channel 1 */
+#define FTX1_PB_CHANNEL_2 2   /* Channel 2 */
+#define FTX1_PB_CHANNEL_3 3   /* Channel 3 */
+#define FTX1_PB_CHANNEL_4 4   /* Channel 4 */
+#define FTX1_PB_CHANNEL_5 5   /* Channel 5 */
+
+/*
+ * ftx1_play_voice_msg - Play or stop voice message
+ *
+ * channel: 0=stop, 1-5=play channel
+ * WARNING: This may cause transmission when playing TX messages!
+ */
+int ftx1_play_voice_msg(RIG *rig, int channel)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: channel=%d\n", __func__, channel);
+
+    if (channel < 0 || channel > 5)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid channel %d (must be 0-5)\n",
+                  __func__, channel);
+        return -RIG_EINVAL;
+    }
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PB0%d;", channel);
+
+    return newcat_set_cmd(rig);
+}
+
+/*
+ * ftx1_get_voice_msg_status - Get current voice message playback status
+ *
+ * Returns: channel number (0 if not playing, 1-5 if playing)
+ */
+int ftx1_get_voice_msg_status(RIG *rig, int *channel)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    int p1, p2;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PB0;");
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    /* Response: PB0n where n is channel (0-5) */
+    if (sscanf(priv->ret_data + 2, "%1d%1d", &p1, &p2) != 2)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n",
+                  __func__, priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    *channel = p2;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: channel=%d\n", __func__, *channel);
+
+    return RIG_OK;
+}
+
+/*
+ * ftx1_stop_voice_msg - Stop voice message playback
+ */
+int ftx1_stop_voice_msg(RIG *rig)
+{
+    return ftx1_play_voice_msg(rig, FTX1_PB_STOP);
 }

@@ -457,13 +457,22 @@ SPEC VS FIRMWARE DISCREPANCIES
 Comparison of CAT Operation Reference Manual (2508-C) vs actual firmware v1.08+
 behavior, verified by Python direct serial and Hamlib rigctl testing.
 
-### 1. Radio ID Varies by Configuration
-| Item            | Spec (Page 17) | Field Config | Optima Config |
-|-----------------|----------------|--------------|---------------|
-| ID command      | Returns 0840   | Returns 0763 | Returns 0840  |
+### 1. Radio ID is Always 0840
+| Item            | Spec (Page 17) | All Configs  |
+|-----------------|----------------|--------------|
+| ID command      | Returns 0840   | Returns 0840 |
 
-The spec shows `ID0840;` which matches the Optima (SPA-1) configuration.
-The Field configuration returns `ID0763;`. Both are valid FTX-1 IDs.
+The Radio ID is ALWAYS 0840 regardless of head type or power source:
+  - Field Head on battery: ID0840
+  - Field Head on 12V: ID0840
+  - Field Head with SPA-1: ID0840
+
+To distinguish configurations, use the PC command response format:
+  - PC1xxx = Field Head
+  - PC2xxx = SPA-1
+
+To distinguish battery vs 12V for Field Head, probe max power:
+  - Set 10W, if accepted = 12V, if clamped to 6W = battery
 
 ### 2. Commands with Format Differences from Spec
 
@@ -590,10 +599,11 @@ Author: Terrell Deppe (KJ5HST)
 Status: Beta
 
 The FTX-1 is a portable HF/VHF/UHF transceiver with modular head design.
-It supports two configurations:
+It supports three configurations:
 
-  Field Head: 0.5-10W portable configuration
-  SPA-1 (Optima): 5-100W amplifier with internal antenna tuner
+  Field Head (Battery):  0.5-6W portable configuration on internal battery
+  Field Head (12V):      0.5-10W portable configuration on external 12V
+  SPA-1 (Optima):        5-100W amplifier with internal antenna tuner
 
 The backend uses the newcat framework and implements FTX-1 specific
 CAT commands documented in the FTX-1 CAT Operation Reference Manual.
@@ -602,19 +612,29 @@ Serial Configuration:
   Default: 38400 baud, 8N1
   Supported rates: 4800, 9600, 19200, 38400, 57600, 115200
 
-SPA-1 Auto-Detection
---------------------
+Head Type Auto-Detection
+------------------------
 On rig open, the backend auto-detects the head configuration:
 
-1. PC command (power control) - P1 value indicates head type:
-   - PC1xxx = Field head
+1. PC command response format indicates head type:
+   - PC1xxx = Field Head (battery or 12V)
    - PC2xxx = SPA-1
 
-2. VE4 command - queries SPA-1 firmware version:
-   - Returns version string if SPA-1 present
+2. For Field Head, power probing distinguishes battery vs 12V:
+   - Try setting 10W
+   - If accepted (reads back ~10W): 12V power source
+   - If clamped to 6W: Battery power source
+
+3. VE4 command - confirms SPA-1 presence:
+   - Returns firmware version string if SPA-1 present
    - Returns '?' if no SPA-1
 
-This detection enables guardrails for amplifier-specific commands.
+IMPORTANT: Radio ID is always 0840 regardless of configuration.
+The ID command does NOT distinguish between configurations.
+
+This detection enables:
+  - Correct power range enforcement for each mode
+  - Guardrails for amplifier-specific commands (AC tuner control)
 
 SPA-1 Guardrails
 ----------------
@@ -703,6 +723,14 @@ Source Files:
 ================================================================================
 REVISION HISTORY
 ================================================================================
+2025-12-11  Head type auto-detection update
+            - Discovered Radio ID is always 0840 for all configurations
+            - Changed head type detection to use PC command response format
+              (PC1xxx=Field, PC2xxx=SPA-1 instead of ID command)
+            - Added Field Head power source probing (battery vs 12V)
+              by setting 10W and checking if clamped to 6W
+            - Updated power ranges: FIELD_BATTERY (0.5-6W), FIELD_12V (0.5-10W)
+            - Added FTX1_HEAD_FIELD_BATTERY and FTX1_HEAD_FIELD_12V constants
 2025-12-10  Documentation and test verification complete
             - All 91 official FTX-1 CAT commands verified and documented
             - Test results: 93 passed (Python), 89 passed (shell), 0 failed

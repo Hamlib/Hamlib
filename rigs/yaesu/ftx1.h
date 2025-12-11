@@ -24,18 +24,33 @@
 
 /*
  * FTX-1 rig ID
- * Note: Firmware returns ID0763, not ID0840 as documented in CAT manual
+ * Note: Radio ID is always 0840 regardless of head type or power source
  */
-#define NC_RIGID_FTX1 0x763
+#define NC_RIGID_FTX1 0x840
 
 /*
- * FTX-1 head type constants (detected via PC command response P1 value)
- * Field head: 0.5-10W portable configuration
- * SPA-1: 5-100W amplifier with internal tuner (Optima configuration)
+ * FTX-1 head type constants
+ *
+ * Detection uses PC command response format:
+ *   PC1xxx = Field Head (battery or 12V)
+ *   PC2xxx = SPA-1
+ *
+ * For Field Head, power probe distinguishes battery vs 12V:
+ *   - Battery: max 6W (10W command gets clamped)
+ *   - 12V: max 10W (10W command accepted)
+ *
+ * Power ranges:
+ *   FIELD_BATTERY: 0.5W - 6W (0.5W steps)
+ *   FIELD_12V:     0.5W - 10W (0.5W steps)
+ *   SPA1:          5W - 100W (1W steps)
  */
-#define FTX1_HEAD_UNKNOWN   0
-#define FTX1_HEAD_FIELD     1
-#define FTX1_HEAD_SPA1      2
+#define FTX1_HEAD_UNKNOWN       0
+#define FTX1_HEAD_FIELD_BATTERY 1   /* Field Head on battery (0.5-6W) */
+#define FTX1_HEAD_FIELD_12V     2   /* Field Head on 12V (0.5-10W) */
+#define FTX1_HEAD_SPA1          3   /* SPA-1 amplifier (5-100W) */
+
+/* Legacy alias for backwards compatibility */
+#define FTX1_HEAD_FIELD FTX1_HEAD_FIELD_12V
 
 /*
  * FTX1_VFO_TO_P1 - Convert Hamlib VFO to FTX-1 P1 parameter
