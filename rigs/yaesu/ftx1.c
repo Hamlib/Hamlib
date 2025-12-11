@@ -161,20 +161,107 @@ static int ftx1_detect_spa1(RIG *rig)
 }
 
 /*
- * ftx1_detect_head_type - Detect head type from PC command
+ * ftx1_probe_field_power_source - Probe Field Head for battery vs 12V
  *
- * PC command response format:
- *   PC1xxx; = Field head (P1=1)
- *   PC2xxx; = SPA-1 (P1=2)
+ * Sets power to 10W and reads back actual value:
+ *   - If 10W accepted: 12V power source (max 10W)
+ *   - If clamped to 6W: Battery power source (max 6W)
  *
- * Returns: FTX1_HEAD_FIELD, FTX1_HEAD_SPA1, or FTX1_HEAD_UNKNOWN
+ * Returns: FTX1_HEAD_FIELD_BATTERY or FTX1_HEAD_FIELD_12V
+ */
+static int ftx1_probe_field_power_source(RIG *rig)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    double original_power, actual_power;
+    int head_type;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: probing Field Head power source\n", __func__);
+
+    /* Save original power setting */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC;");
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: failed to read power, assuming battery\n", __func__);
+        return FTX1_HEAD_FIELD_BATTERY;
+    }
+
+    /* Parse original power from PC1xxx response */
+    if (sscanf(priv->ret_data + 3, "%lf", &original_power) != 1)
+    {
+        original_power = 5.0;  /* Default fallback */
+    }
+
+    /* Try setting 10W */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC1010;");
+    ret = newcat_set_cmd(rig);
+    if (ret != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: failed to set 10W, assuming battery\n", __func__);
+        return FTX1_HEAD_FIELD_BATTERY;
+    }
+
+    /* Read back actual power */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC;");
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: failed to read power after set, assuming battery\n", __func__);
+        return FTX1_HEAD_FIELD_BATTERY;
+    }
+
+    /* Parse actual power */
+    if (sscanf(priv->ret_data + 3, "%lf", &actual_power) != 1)
+    {
+        actual_power = 6.0;  /* If parse fails, assume clamped */
+    }
+
+    /* Determine power source */
+    if (actual_power >= 9.5)
+    {
+        head_type = FTX1_HEAD_FIELD_12V;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: 10W accepted (got %.1fW), 12V power source\n",
+                  __func__, actual_power);
+    }
+    else
+    {
+        head_type = FTX1_HEAD_FIELD_BATTERY;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: 10W clamped to %.1fW, battery power source\n",
+                  __func__, actual_power);
+    }
+
+    /* Restore original power */
+    if (original_power < 1.0)
+    {
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC1%.1f;", original_power);
+    }
+    else
+    {
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC1%03d;", (int)original_power);
+    }
+    newcat_set_cmd(rig);
+
+    return head_type;
+}
+
+/*
+ * ftx1_detect_head_type - Detect head type from PC command response format
+ *
+ * PC command response format indicates head type:
+ *   PC1xxx = Field Head (battery or 12V)
+ *   PC2xxx = SPA-1
+ *
+ * For Field Head, probes power to distinguish battery (max 6W) from 12V (max 10W).
+ *
+ * Returns: FTX1_HEAD_FIELD_BATTERY, FTX1_HEAD_FIELD_12V, FTX1_HEAD_SPA1, or FTX1_HEAD_UNKNOWN
  */
 static int ftx1_detect_head_type(RIG *rig)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret, p1;
+    int ret;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: detecting head type via PC command\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: detecting head type via PC command format\n", __func__);
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC;");
     ret = newcat_get_cmd(rig);
@@ -185,25 +272,22 @@ static int ftx1_detect_head_type(RIG *rig)
         return FTX1_HEAD_UNKNOWN;
     }
 
-    /* Parse P1 from response: PC P1 xxx; */
-    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse PC response '%s'\n",
-                  __func__, priv->ret_data);
-        return FTX1_HEAD_UNKNOWN;
-    }
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: PC response: %s\n", __func__, priv->ret_data);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: head type P1=%d\n", __func__, p1);
-
-    if (p1 == 1)
+    /* Check response format: PC1xxx = Field, PC2xxx = SPA-1 */
+    if (strncmp(priv->ret_data, "PC2", 3) == 0)
     {
-        return FTX1_HEAD_FIELD;
-    }
-    else if (p1 == 2)
-    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: PC2 format detected - SPA-1\n", __func__);
         return FTX1_HEAD_SPA1;
     }
+    else if (strncmp(priv->ret_data, "PC1", 3) == 0)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: PC1 format detected - Field Head, probing power source\n", __func__);
+        return ftx1_probe_field_power_source(rig);
+    }
 
+    rig_debug(RIG_DEBUG_WARN, "%s: unexpected PC response format: %s\n",
+              __func__, priv->ret_data);
     return FTX1_HEAD_UNKNOWN;
 }
 
