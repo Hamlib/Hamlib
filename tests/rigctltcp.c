@@ -950,6 +950,7 @@ int main(int argc, char *argv[])
             if (arg->sock < 0)
             {
                 handle_error(RIG_DEBUG_ERR, "accept");
+                free(arg);
                 break;
             }
 
