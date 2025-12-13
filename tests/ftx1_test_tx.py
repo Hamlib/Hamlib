@@ -101,6 +101,29 @@ class TXTests(unittest.TestCase):
         resp = self.send('VE0')
         self.assertRegex(resp, r'VE0\d{4}', "VE read response invalid")
 
+    def test_TS(self):
+        """TS: TX Watch (monitor SUB VFO during TX)
+        Format: TS P1 where P1: 0=Off, 1=On
+        When enabled, allows monitoring SUB band during transmission.
+        This is safe to test - it doesn't cause transmission.
+        """
+        orig = self.send('TS', is_read=True)
+        if orig == '?' or not orig.startswith('TS'):
+            self.skipTest("TS command not available")
+
+        self.assertRegex(orig, r'TS[01]', "TS read response invalid")
+
+        # Toggle TX Watch
+        test_val = '1' if orig[2] != '1' else '0'
+        self.send(f'TS{test_val}')
+        after = self.send('TS', is_read=True)
+        self.assertEqual(after, f'TS{test_val}', "TS set failed")
+
+        # Restore original state
+        self.send(f'TS{orig[2]}')
+        restored = self.send('TS', is_read=True)
+        self.assertEqual(restored, orig, "TS restore failed")
+
 
 def get_test_suite(ser, send_command_func, tx_tests=False, optima=False):
     """Return test suite for TX commands."""

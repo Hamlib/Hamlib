@@ -40,13 +40,13 @@
  * Power ranges by head type:
  *   FIELD_BATTERY: 0.5W - 6W (0.5W increments)
  *   FIELD_12V:     0.5W - 10W (0.5W increments)
- *   SPA1:          5W - 100W (1W increments)
+ *   SPA1:          5W - 100W (1W increments) - "Optima" when attached to Field
  */
 #define FTX1_POWER_MIN_FIELD 0.5f         /* Field head minimum (both modes) */
 #define FTX1_POWER_MAX_FIELD_BATTERY 6.0f /* Field head on battery maximum */
 #define FTX1_POWER_MAX_FIELD_12V 10.0f    /* Field head on 12V maximum */
-#define FTX1_POWER_MIN_SPA1 5             /* SPA-1 minimum */
-#define FTX1_POWER_MAX_SPA1 100           /* SPA-1 maximum */
+#define FTX1_POWER_MIN_SPA1 5             /* Optima/SPA-1 minimum */
+#define FTX1_POWER_MAX_SPA1 100           /* Optima/SPA-1 maximum */
 
 /* Set AF Gain (AG P1 P2P3P4;) */
 int ftx1_set_af_gain(RIG *rig, vfo_t vfo, float val)
@@ -300,7 +300,7 @@ int ftx1_set_power(RIG *rig, float val)
 
     if (head_type == FTX1_HEAD_SPA1)
     {
-        /* SPA-1: 5-100W, always 3-digit zero-padded whole watts */
+        /* Optima/SPA-1: 5-100W, always 3-digit zero-padded whole watts */
         watts_int = (int)(val * FTX1_POWER_MAX_SPA1);
         if (watts_int < FTX1_POWER_MIN_SPA1) watts_int = FTX1_POWER_MIN_SPA1;
         if (watts_int > FTX1_POWER_MAX_SPA1) watts_int = FTX1_POWER_MAX_SPA1;
@@ -396,7 +396,7 @@ int ftx1_get_power(RIG *rig, float *val)
     /* Convert watts to 0.0-1.0 range based on head type */
     if (p1 == 2)
     {
-        /* SPA-1: 5-100W maps to 0.05-1.0 */
+        /* Optima/SPA-1: 5-100W maps to 0.05-1.0 */
         *val = watts / (float)FTX1_POWER_MAX_SPA1;
     }
     else if (p1 == 1)

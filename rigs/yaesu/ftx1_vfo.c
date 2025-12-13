@@ -5,9 +5,10 @@
  * This file implements CAT commands for VFO management and split operation.
  *
  * CAT Commands in this file:
- *   VS P1;  - VFO Select (0=MAIN, 1=SUB)
- *   ST P1;  - Split on/off (0=off, 1=on)
- *   FT P1;  - Function TX VFO (0=MAIN TX, 1=SUB TX)
+ *   VS P1;    - VFO Select (0=MAIN, 1=SUB)
+ *   ST P1;    - Split on/off (0=off, 1=on)
+ *   FT P1;    - Function TX VFO (0=MAIN TX, 1=SUB TX)
+ *   FR P1P2;  - Function RX (00=dual receive, 01=single receive)
  *
  * Note: BS (Band Select) returns '?' in firmware - not implemented.
  *       AB, BA, SV handled via newcat_vfo_op.
@@ -241,4 +242,76 @@ int ftx1_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
     }
 
     return newcat_set_cmd(rig);
+}
+
+/*
+ * =============================================================================
+ * FR Command: Function RX (Dual/Single Receive)
+ * =============================================================================
+ * CAT format: FR P1 P2;
+ *   P1P2 = 00: Dual receive (both VFOs active)
+ *   P1P2 = 01: Single receive (only selected VFO active)
+ *
+ * Read response: FR00 or FR01
+ * Set command: FR00; or FR01;
+ */
+
+/* Dual receive mode values */
+#define FTX1_FR_DUAL_RECEIVE    0   /* FR00: Both VFOs can receive */
+#define FTX1_FR_SINGLE_RECEIVE  1   /* FR01: Only selected VFO receives */
+
+/*
+ * ftx1_set_dual_receive - Set dual/single receive mode
+ *
+ * Format: FR00; (dual) or FR01; (single)
+ */
+int ftx1_set_dual_receive(RIG *rig, int dual)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: dual=%d\n", __func__, dual);
+
+    /* FR00 = dual receive, FR01 = single receive */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FR%02d;",
+             dual ? FTX1_FR_DUAL_RECEIVE : FTX1_FR_SINGLE_RECEIVE);
+
+    return newcat_set_cmd(rig);
+}
+
+/*
+ * ftx1_get_dual_receive - Get dual/single receive mode
+ *
+ * Response: FR00 (dual) or FR01 (single)
+ */
+int ftx1_get_dual_receive(RIG *rig, int *dual)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    int p1p2;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FR;");
+
+    ret = newcat_get_cmd(rig);
+
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    /* Response: FR00 or FR01 */
+    if (sscanf(priv->ret_data + 2, "%02d", &p1p2) != 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    /* 00 = dual (return 1), 01 = single (return 0) */
+    *dual = (p1p2 == FTX1_FR_DUAL_RECEIVE) ? 1 : 0;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: dual=%d\n", __func__, *dual);
+
+    return RIG_OK;
 }

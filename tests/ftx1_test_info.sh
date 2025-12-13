@@ -132,8 +132,31 @@ test_VE() {
     fi
 }
 
+test_SF() {
+    echo "Testing SF (Sub Dial/FUNC Knob)..."
+    # SF: Sub Dial (FUNC Knob) function assignment
+    # Format: SF P1 P2; where P1=VFO (0), P2=single hex char (0-H)
+    # 0=None, 7=Mic Gain, D=RF Power, G=CW Pitch, H=BK Delay, etc.
+    # NOTE: Read-only test - setting SF may affect SPA-1 amp detection
+
+    local orig=$(raw_cmd "SF0")
+    if [ "$orig" = "?" ] || [ -z "$orig" ]; then
+        log_skip "SF (Sub Dial/FUNC Knob) - command not available"
+        return
+    fi
+
+    # Response format: SF0X where X is hex char (0-9, A-H)
+    if [[ ! "$orig" =~ ^SF0[0-9A-H]$ ]]; then
+        log_fail "SF: invalid read format '$orig' (expected SF0X)"
+        return
+    fi
+
+    # Read-only test for safety
+    log_pass "SF (Sub Dial/FUNC Knob) - read verified: $orig"
+}
+
 run_info_tests() {
-    echo "=== Info Tests (Read-Only) ==="
+    echo "=== Info Tests ==="
     test_ID
     test_IF
     test_OI
@@ -143,5 +166,6 @@ run_info_tests() {
     test_DT
     test_PS
     test_VE
+    test_SF
     echo ""
 }

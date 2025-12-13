@@ -276,6 +276,60 @@ test_CF_format() {
     fi
 }
 
+test_OS() {
+    echo "Testing OS (Offset/Repeater Shift)..."
+    # OS: Offset (Repeater Shift) for FM mode
+    # Format: OS P1 P2 where P1=VFO (0/1), P2=Shift mode
+    # Shift modes: 0=Simplex, 1=Plus, 2=Minus, 3=ARS
+    # NOTE: This command only works in FM mode!
+
+    # Save current mode to check if FM
+    local mode=$(raw_cmd "MD0")
+    if [ -z "$mode" ] || [ "$mode" = "?" ]; then
+        log_skip "OS (Repeater Shift) - cannot read mode"
+        return
+    fi
+
+    # Check if in FM mode (mode 4 = FM, B = FM-N)
+    local mode_code="${mode:3:1}"
+    if [ "$mode_code" != "4" ] && [ "$mode_code" != "B" ]; then
+        log_skip "OS (Repeater Shift) - only works in FM mode (current mode: $mode_code)"
+        return
+    fi
+
+    local orig=$(raw_cmd "OS0")
+    if [ "$orig" = "?" ] || [ -z "$orig" ]; then
+        log_skip "OS (Repeater Shift) - command not available"
+        return
+    fi
+
+    if [[ ! "$orig" =~ ^OS0[0-3]$ ]]; then
+        log_fail "OS: invalid read format '$orig'"
+        return
+    fi
+
+    # Toggle between simplex (0) and plus (1)
+    local test_val="1"
+    [ "${orig:3:1}" = "1" ] && test_val="0"
+
+    raw_cmd "OS0$test_val"
+    local after=$(raw_cmd "OS0")
+    if [ "$after" != "OS0$test_val" ]; then
+        log_fail "OS: set failed, expected OS0$test_val got $after"
+        raw_cmd "OS0${orig:3}"
+        return
+    fi
+
+    # Restore original
+    raw_cmd "OS0${orig:3}"
+    local restored=$(raw_cmd "OS0")
+    if [ "$restored" = "$orig" ]; then
+        log_pass "OS (Repeater Shift) - set/read/restore verified (FM mode)"
+    else
+        log_fail "OS: restore failed, expected $orig got $restored"
+    fi
+}
+
 run_freq_tests() {
     echo "=== Frequency Tests ==="
     test_FA
@@ -287,5 +341,6 @@ run_freq_tests() {
     test_RIT_raw
     test_CF
     test_CF_format
+    test_OS
     echo ""
 }

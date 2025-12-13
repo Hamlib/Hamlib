@@ -159,6 +159,23 @@ class AudioTests(unittest.TestCase):
         restored = self.send('VG', is_read=True)
         self.assertEqual(restored, orig, "VG restore mismatch")
 
+    def test_PB(self):
+        """PB: Play Back (DVS voice messages)
+        Format: PB P1 where P1: 0=Stop, 1-5=Play channel 1-5
+        Note: This test only tests stop (PB0) for safety.
+        Playing channels (PB1-PB5) would cause audio output.
+        """
+        orig = self.send('PB', is_read=True)
+        if orig == '?' or not orig.startswith('PB'):
+            self.skipTest("PB command not available")
+
+        self.assertRegex(orig, r'PB[0-5]', "PB read response invalid")
+
+        # Test stop command (safe - doesn't play audio)
+        self.send('PB0')
+        after = self.send('PB', is_read=True)
+        self.assertEqual(after, 'PB0', "PB stop command failed")
+
 
 def get_test_suite(ser, send_command_func):
     """Return test suite for audio commands."""

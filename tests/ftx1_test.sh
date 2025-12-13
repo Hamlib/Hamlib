@@ -2605,7 +2605,7 @@ test_QI() {
     if [ "$resp" = "?" ]; then
         log_fail "QI: command returned error"
     else
-        log_pass "QI (Quick In) - set-only command accepted (non-functional in firmware)"
+        log_pass "QI (Quick In) - set-only, command accepted"
     fi
 }
 
@@ -2618,29 +2618,32 @@ test_QR() {
     if [ "$resp" = "?" ]; then
         log_fail "QR: command returned error"
     else
-        log_pass "QR (Quick Recall) - set-only command accepted (non-functional in firmware)"
+        log_pass "QR (Quick Recall) - set-only, command accepted"
     fi
 }
 
 test_VM() {
-    echo "Testing VM (Voice Memory)..."
-    # VM: Voice memory - P1=0/1 start/stop, set-only
-    local resp=$(raw_cmd "VM00")
+    echo "Testing VM (VFO/Memory Mode)..."
+    # VM: VFO/Memory mode - Format differs from spec!
+    # VM000 = VFO mode, VM011 = Memory mode (not VM001!)
+    # Set-only for VM000; use SV command to toggle to memory mode
+    local resp=$(raw_cmd "VM000")
     if [ "$resp" = "?" ]; then
-        log_skip "VM (Voice Memory) - firmware returns '?'"
+        log_skip "VM (VFO/Memory Mode) - command returned '?'"
     else
-        log_pass "VM (Voice Memory) - set-only command accepted"
+        log_pass "VM (VFO/Memory Mode) - set-only, VM000 accepted"
     fi
 }
 
 test_ZI() {
     echo "Testing ZI (Zero In)..."
-    # ZI: Zero in - P1=0/1 MAIN/SUB, set-only
+    # ZI: CW Auto Zero In - P1=0/1 MAIN/SUB, set-only
+    # Only works in CW mode - activates CW AUTO ZERO IN function
     local resp=$(raw_cmd "ZI0")
     if [ "$resp" = "?" ]; then
-        log_skip "ZI (Zero In) - firmware returns '?'"
+        log_skip "ZI (Zero In) - requires CW mode"
     else
-        log_pass "ZI (Zero In) - set-only command accepted"
+        log_pass "ZI (Zero In) - set-only, command accepted"
     fi
 }
 
@@ -2954,16 +2957,248 @@ test_LM() {
 # Skipped/Not Yet Implemented
 # ============================================================
 
+test_BS_band() {
+    echo "Testing BS (Band Select)..."
+    # BS: Band Select (set-only, no read capability)
+    # Format: BS P1 P2P2 where P1=VFO (0/1), P2P2=band code (00-10)
+    # Verified working 2025-12-09
+
+    # Save current frequency to restore band later
+    local orig_freq=$(raw_cmd "FA")
+    if [ -z "$orig_freq" ] || [ "$orig_freq" = "?" ]; then
+        log_skip "BS (Band Select) - cannot read frequency"
+        return
+    fi
+
+    # Test BS to 20m (band 05)
+    local resp=$(raw_cmd "BS005")
+    if [ "$resp" = "?" ]; then
+        log_fail "BS: command rejected"
+        return
+    fi
+
+    # Verify band changed
+    sleep 0.3
+    local new_freq=$(raw_cmd "FA")
+    local freq_hz="${new_freq:2}"
+
+    # Check if in 20m band (14.000-14.350 MHz)
+    if [ "$freq_hz" -ge 14000000 ] && [ "$freq_hz" -le 14350000 ] 2>/dev/null; then
+        # Test BS to 40m (band 03)
+        raw_cmd "BS003"
+        sleep 0.3
+        new_freq=$(raw_cmd "FA")
+        freq_hz="${new_freq:2}"
+
+        # Check if in 40m band (7.000-7.300 MHz)
+        if [ "$freq_hz" -ge 7000000 ] && [ "$freq_hz" -le 7300000 ] 2>/dev/null; then
+            # Restore original frequency
+            raw_cmd "FA${orig_freq:2}"
+            log_pass "BS (Band Select) - set-only, verified band changes"
+        else
+            log_fail "BS: 40m band change failed, freq=$freq_hz"
+            raw_cmd "FA${orig_freq:2}"
+        fi
+    else
+        log_fail "BS: 20m band change failed, freq=$freq_hz"
+        raw_cmd "FA${orig_freq:2}"
+    fi
+}
+
+test_CF_clarifier() {
+    echo "Testing CF (Clarifier offset)..."
+    # CF sets clarifier offset value only (does not enable clarifier)
+    # Format: CF P1 P2 P3 [+/-] PPPP where P3 must be 1
+    # Verified working 2025-12-09
+
+    # Get current offset from IF command
+    local if_resp=$(raw_cmd "IF")
+    if [ -z "$if_resp" ] || [ "$if_resp" = "?" ]; then
+        log_skip "CF (Clarifier) - cannot read IF response"
+        return
+    fi
+
+    # Extract offset from IF (positions 16-20, e.g., +0500 or -0300)
+    local orig_offset="${if_resp:16:5}"
+
+    # Test setting positive offset
+    local test_val="+0500"
+    [ "$orig_offset" = "+0500" ] && test_val="+0300"
+
+    local resp=$(raw_cmd "CF001$test_val")
+    if [ "$resp" = "?" ]; then
+        log_fail "CF: command rejected"
+        return
+    fi
+
+    # Verify via IF
+    sleep 0.2
+    local after_if=$(raw_cmd "IF")
+    local after_offset="${after_if:16:5}"
+
+    if [ "$after_offset" = "$test_val" ]; then
+        # Restore original
+        raw_cmd "CF001$orig_offset"
+        log_pass "CF (Clarifier offset) - set-only, value changes verified"
+    else
+        log_fail "CF: set failed, expected $test_val got $after_offset"
+        raw_cmd "CF001$orig_offset"
+    fi
+}
+
+test_CH_channel() {
+    echo "Testing CH (Memory Channel Up/Down)..."
+    # CH format (verified 2025-12-09):
+    # CH0 = next memory channel, CH1 = previous memory channel
+    # Only CH0 and CH1 work; CH; CH00; CH01; etc. return '?'
+
+    # Try to read MC first to check if memory is accessible
+    local orig=$(raw_cmd "MC0")
+    if [ -z "$orig" ] || [ "$orig" = "?" ]; then
+        log_skip "CH (Memory Channel) - cannot read MC for verification"
+        return
+    fi
+
+    # Set to channel 1 first
+    raw_cmd "MC000001"
+    sleep 0.2
+    orig=$(raw_cmd "MC0")
+
+    # Test CH0 - should advance to next channel
+    raw_cmd "CH0"
+    sleep 0.2
+    local after_ch0=$(raw_cmd "MC0")
+
+    if [ "$after_ch0" = "$orig" ]; then
+        log_fail "CH: CH0 did not change channel"
+        return
+    fi
+
+    # Test CH1 - should go back
+    raw_cmd "CH1"
+    sleep 0.2
+    local after_ch1=$(raw_cmd "MC0")
+
+    if [ "$after_ch1" = "$orig" ]; then
+        log_pass "CH (Memory Channel Up/Down) - CH0/CH1 verified"
+    else
+        log_fail "CH: CH1 should return to $orig, got $after_ch1"
+    fi
+}
+
+test_CN_ctcss() {
+    echo "Testing CN (CTCSS Number)..."
+    # CN: CTCSS Number - format CN P1 P2P3P4 (P1=00 TX/10 RX, P2P3P4=001-050)
+    # Verified working 2025-12-09
+
+    local orig=$(raw_cmd "CN00")
+    if [ -z "$orig" ] || [ "$orig" = "?" ]; then
+        log_skip "CN (CTCSS Number) - command not available"
+        return
+    fi
+
+    if [[ ! "$orig" =~ ^CN00[0-9]{3}$ ]]; then
+        log_fail "CN: invalid format '$orig'"
+        return
+    fi
+
+    local orig_val="${orig: -3}"
+    local test_val="013"
+    [ "$orig_val" = "013" ] && test_val="012"
+
+    raw_cmd "CN00$test_val"
+    local after=$(raw_cmd "CN00")
+    if [ "$after" = "CN00$test_val" ]; then
+        raw_cmd "CN00$orig_val"
+        log_pass "CN (CTCSS Number) - set/read verified"
+    else
+        log_fail "CN: set failed, expected CN00$test_val got $after"
+        raw_cmd "CN00$orig_val"
+    fi
+}
+
+test_GP_out() {
+    echo "Testing GP (GP OUT)..."
+    # GP: GP OUT control (read/write)
+    # Format: GP P1 P2 P3 P4 where each controls GP OUT A/B/C/D (0=LOW, 1=HIGH)
+    # REQUIRES: Menu [OPERATION SETTING] → [GENERAL] → [TUN/LIN PORT SELECT] = "GPO"
+    # Verified working 2025-12-09
+
+    local orig=$(raw_cmd "GP")
+    if [ "$orig" = "?" ] || [ -z "$orig" ]; then
+        log_skip "GP (GP OUT) - check TUN/LIN PORT SELECT menu = GPO"
+        return
+    fi
+
+    if [[ ! "$orig" =~ ^GP[01]{4}$ ]]; then
+        log_fail "GP: invalid read format '$orig'"
+        return
+    fi
+
+    # Test setting all HIGH then restore
+    raw_cmd "GP1111"
+    local after=$(raw_cmd "GP")
+    if [ "$after" = "GP1111" ]; then
+        raw_cmd "GP${orig:2}"
+        log_pass "GP (GP OUT) - read/write verified"
+    else
+        log_fail "GP: set failed, expected GP1111 got $after"
+        raw_cmd "GP${orig:2}"
+    fi
+}
+
+test_MC_channel() {
+    echo "Testing MC (Memory Channel Select)..."
+    # MC format (different from documented spec!):
+    # Read: MC0 (MAIN) or MC1 (SUB) returns MCNNNNNN (6-digit channel)
+    # Set: MCNNNNNN (6-digit channel, no VFO prefix)
+    # Verified 2025-12-09
+
+    local resp=$(raw_cmd "MC0")
+    if [ -z "$resp" ] || [ "$resp" = "?" ]; then
+        log_fail "MC: read failed"
+        return
+    fi
+
+    if [[ ! "$resp" =~ ^MC[0-9]{6}$ ]]; then
+        log_fail "MC: invalid read format '$resp'"
+        return
+    fi
+
+    local orig_channel="${resp:2}"
+
+    # Test set to channel 1
+    local set_resp=$(raw_cmd "MC000001")
+    if [ "$set_resp" = "?" ]; then
+        log_skip "MC set - channel 1 doesn't exist"
+        return
+    fi
+
+    # Verify
+    local after=$(raw_cmd "MC0")
+    if [ "$after" = "MC000001" ]; then
+        raw_cmd "MC$orig_channel"
+        log_pass "MC (Memory Channel) - read/set verified (6-digit format)"
+    else
+        log_fail "MC: set failed, expected MC000001 got $after"
+        raw_cmd "MC$orig_channel"
+    fi
+}
+
+run_previously_skipped_tests() {
+    echo "=== Previously Skipped (Now Working) Tests ==="
+    test_BS_band
+    test_CF_clarifier
+    test_CH_channel
+    test_CN_ctcss
+    test_GP_out
+    test_MC_channel
+    echo ""
+}
+
 skip_not_implemented() {
-    # Commands not implemented in firmware (return '?')
-    log_skip "BS (Band Select) - firmware returns '?'"
-    log_skip "CF (Clarifier) - firmware returns '?'"
-    log_skip "CH (Channel Up/Down) - firmware returns '?'"
-    log_skip "CN (CTCSS Number) - firmware returns '?'"
-    log_skip "EX (Extended Menu) - firmware returns '?'"
-    log_skip "GP (GP OUT) - firmware returns '?'"
-    log_skip "MC (Memory Channel) - firmware returns '?'"
-    # SS (Spectrum Scope) - NOW WORKING with format SS0X; where X=0-7
+    # Note: BS, CF, CH, CN, GP, MC are now tested via run_previously_skipped_tests()
+    # EX is tested in SPA-1/Optima section when enabled
 
     # Note: TX tests (AC, KY, MX, TX_cmd, VX) now have their own test functions
     # that handle the TX_TESTS check internally
@@ -2975,6 +3210,7 @@ skip_not_implemented() {
 
     # Note: The following are now tested via raw CAT commands above:
     # ID, IF, CT, DA, DT, SC, TS, MR, SL, KP, AI, AB, BA, SF, SV, CS, FR, KR, OS, PB, PL, PR, PS, VE, MZ, MT
+    :
 }
 
 # ============================================================
@@ -3223,6 +3459,8 @@ echo "=== Keyer/Message Command Tests ==="
 test_KM
 test_LM
 echo ""
+
+run_previously_skipped_tests
 
 echo "=== Skipped Tests (firmware limitations) ==="
 skip_not_implemented

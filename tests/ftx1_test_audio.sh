@@ -337,6 +337,34 @@ test_MS() {
     fi
 }
 
+test_PB() {
+    echo "Testing PB (Play Back/DVS Voice Messages)..."
+    # PB: Play Back (DVS voice messages)
+    # Format: PB P1 where P1: 0=Stop, 1-5=Play channel 1-5
+    # Note: This test only tests the stop command (PB0) for safety
+    # Playing back messages (PB1-PB5) would cause audio output
+
+    local orig=$(raw_cmd "PB")
+    if [ "$orig" = "?" ] || [ -z "$orig" ]; then
+        log_skip "PB (Play Back/DVS) - command not available"
+        return
+    fi
+
+    if [[ ! "$orig" =~ ^PB[0-5]$ ]]; then
+        log_fail "PB: invalid read format '$orig'"
+        return
+    fi
+
+    # Test stop command (safe - doesn't play audio)
+    raw_cmd "PB0"
+    local after=$(raw_cmd "PB")
+    if [ "$after" = "PB0" ]; then
+        log_pass "PB (Play Back/DVS) - stop command verified"
+    else
+        log_fail "PB: stop command failed, got $after"
+    fi
+}
+
 run_audio_tests() {
     echo "=== Audio/Level Tests ==="
     test_AG
@@ -353,5 +381,6 @@ run_audio_tests() {
     test_ML_raw
     test_AO
     test_MS
+    test_PB
     echo ""
 }
