@@ -972,13 +972,11 @@ class FTX1CATTestSuite(unittest.TestCase):
         self.skipTest("PS set may power off; read tested")
 
     def test_QI(self):
-        # QI: Quick in (set-only) - ACCEPTED but NON-FUNCTIONAL in firmware v1.08+
-        # Command is parsed (returns empty) but has no actual effect
+        # QI: Quick in (set-only) - stores current VFO to QMB
         self.send_command('QI')
 
     def test_QR(self):
-        # QR: Quick recall (set-only) - ACCEPTED but NON-FUNCTIONAL in firmware v1.08+
-        # Command is parsed (returns empty) but has no actual effect
+        # QR: Quick recall (set-only) - recalls QMB to current VFO
         self.send_command('QR')
 
     def test_RA(self):
@@ -1212,8 +1210,10 @@ class FTX1CATTestSuite(unittest.TestCase):
         self.assertEqual(restored, orig, "VG restore mismatch")
 
     def test_VM(self):
-        # VM: Voice memory (P1=0/1 start/stop, set-only)
-        self.send_command('VM00')  # Example start
+        # VM: VFO/Memory mode - Format differs from spec!
+        # VM000 = VFO mode, VM011 = Memory mode (not VM001!)
+        # Set-only for VM000; use SV command to toggle to memory mode
+        self.send_command('VM000')
 
     def test_VS(self):
         # VS: VFO select (0/1 MAIN/SUB)

@@ -171,6 +171,45 @@ test_AC() {
     fi
 }
 
+test_TS() {
+    echo "Testing TS (TX Watch)..."
+    # TS: TX Watch (monitor SUB VFO during TX)
+    # Format: TS P1 where P1: 0=Off, 1=On
+    # When enabled, allows monitoring SUB band during transmission
+
+    local orig=$(raw_cmd "TS")
+    if [ "$orig" = "?" ] || [ -z "$orig" ]; then
+        log_skip "TS (TX Watch) - command not available"
+        return
+    fi
+
+    if [[ ! "$orig" =~ ^TS[01]$ ]]; then
+        log_fail "TS: invalid read format '$orig'"
+        return
+    fi
+
+    # Toggle TX Watch
+    local test_val="1"
+    [ "${orig:2:1}" = "1" ] && test_val="0"
+
+    raw_cmd "TS$test_val"
+    local after=$(raw_cmd "TS")
+    if [ "$after" != "TS$test_val" ]; then
+        log_fail "TS: set failed, expected TS$test_val got $after"
+        raw_cmd "TS${orig:2}"
+        return
+    fi
+
+    # Restore original
+    raw_cmd "TS${orig:2}"
+    local restored=$(raw_cmd "TS")
+    if [ "$restored" = "$orig" ]; then
+        log_pass "TS (TX Watch) - set/read/restore verified"
+    else
+        log_fail "TS: restore failed, expected $orig got $restored"
+    fi
+}
+
 run_tx_tests() {
     echo "=== TX Tests ==="
     test_PTT
@@ -180,5 +219,6 @@ run_tx_tests() {
     test_VX
     test_MX_cmd
     test_AC
+    test_TS
     echo ""
 }

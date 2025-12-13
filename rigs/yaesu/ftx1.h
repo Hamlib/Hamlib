@@ -23,31 +23,36 @@
 #include <hamlib/rig.h>
 
 /*
- * FTX-1 rig ID
- * Note: Radio ID is always 0840 regardless of head type or power source
+ * FTX-1 rig ID constants
+ *
+ * The Radio ID command (ID;) always returns 0840 for ALL FTX-1 configurations.
+ * Head type detection uses a two-stage process:
+ *
+ * Stage 1: PC Command Format
+ *   PC1xxx = Field Head (battery or 12V)
+ *   PC2xxx = Optima/SPA-1 (5-100W)
+ *
+ * Stage 2: Power Probe (Field Head Only)
+ *   Attempt to set 8W power:
+ *   - If radio accepts 8W → 12V power (0.5-10W range)
+ *   - If radio rejects 8W (stays ≤6W) → Battery power (0.5-6W range)
+ *   The probe saves and restores original power setting.
  */
-#define NC_RIGID_FTX1 0x840
+#define NC_RIGID_FTX1               0x840   /* Default rig model ID */
+#define FTX1_RADIO_ID               "0840"  /* Radio ID (same for all configs) */
 
 /*
  * FTX-1 head type constants
  *
- * Detection uses PC command response format:
- *   PC1xxx = Field Head (battery or 12V)
- *   PC2xxx = SPA-1
- *
- * For Field Head, power probe distinguishes battery vs 12V:
- *   - Battery: max 6W (10W command gets clamped)
- *   - 12V: max 10W (10W command accepted)
- *
- * Power ranges:
+ * Power ranges by head type:
  *   FIELD_BATTERY: 0.5W - 6W (0.5W steps)
  *   FIELD_12V:     0.5W - 10W (0.5W steps)
- *   SPA1:          5W - 100W (1W steps)
+ *   SPA1:          5W - 100W (1W steps) - "Optima" when attached to Field
  */
 #define FTX1_HEAD_UNKNOWN       0
 #define FTX1_HEAD_FIELD_BATTERY 1   /* Field Head on battery (0.5-6W) */
 #define FTX1_HEAD_FIELD_12V     2   /* Field Head on 12V (0.5-10W) */
-#define FTX1_HEAD_SPA1          3   /* SPA-1 amplifier (5-100W) */
+#define FTX1_HEAD_SPA1          3   /* Optima/SPA-1 amplifier (5-100W) */
 
 /* Legacy alias for backwards compatibility */
 #define FTX1_HEAD_FIELD FTX1_HEAD_FIELD_12V

@@ -13,6 +13,7 @@
  *   BI P1;           - Break-In (QSK) (0=off, 1=semi, 2=full)
  *   PS P1;           - Power Switch (0=off, 1=on) - USE WITH CAUTION
  *   SQ P1 P2P3P4;    - Squelch Level (P1=VFO, P2-P4=000-100)
+ *   TS P1;           - TXW (TX Watch) (0=off, 1=on)
  */
 
 #include <stdlib.h>
@@ -456,6 +457,74 @@ int ftx1_get_powerstat(RIG *rig, powerstat_t *status)
     *status = (p1 == 1) ? RIG_POWER_ON : RIG_POWER_OFF;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: p1=%d status=%d\n", __func__, p1, *status);
+
+    return RIG_OK;
+}
+
+/*
+ * =============================================================================
+ * TS Command: TXW (TX Watch)
+ * =============================================================================
+ * CAT format: TS P1;
+ *   P1 = 0: TXW off
+ *   P1 = 1: TXW on (monitor SUB band during TX)
+ *
+ * Read response: TS0 or TS1
+ * Set command: TS0; or TS1;
+ *
+ * When TXW is enabled, the radio continues to monitor the SUB band
+ * while transmitting on the MAIN band. Useful for monitoring a
+ * frequency while calling CQ.
+ */
+
+/*
+ * ftx1_set_tx_watch - Set TXW (TX Watch) mode
+ *
+ * status: 0=off, 1=on
+ */
+int ftx1_set_tx_watch(RIG *rig, int status)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: status=%d\n", __func__, status);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "TS%d;", status ? 1 : 0);
+
+    return newcat_set_cmd(rig);
+}
+
+/*
+ * ftx1_get_tx_watch - Get TXW (TX Watch) status
+ *
+ * Returns: 0=off, 1=on
+ */
+int ftx1_get_tx_watch(RIG *rig, int *status)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    int p1;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "TS;");
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    /* Response: TS0 or TS1 */
+    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n",
+                  __func__, priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    *status = p1;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: status=%d\n", __func__, *status);
 
     return RIG_OK;
 }

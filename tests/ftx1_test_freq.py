@@ -117,6 +117,38 @@ class FrequencyTests(unittest.TestCase):
         resp = self.send('CF001+0100', is_read=True)
         self.assertNotEqual(resp, '?', "CF with P3=1 should be accepted")
 
+    def test_OS(self):
+        """OS: Offset (Repeater Shift) for FM mode
+        Format: OS P1 P2 where P1=VFO (0/1), P2=Shift mode
+        Shift modes: 0=Simplex, 1=Plus, 2=Minus, 3=ARS
+        NOTE: This command only works in FM mode!
+        """
+        # Check if in FM mode
+        mode = self.send('MD0', is_read=True)
+        if not mode.startswith('MD0'):
+            self.skipTest("Cannot read mode")
+
+        mode_code = mode[3] if len(mode) > 3 else ''
+        if mode_code not in ('4', 'B'):  # 4=FM, B=FM-N
+            self.skipTest(f"OS only works in FM mode (current mode code: {mode_code})")
+
+        orig = self.send('OS0', is_read=True)
+        if orig == '?' or not orig.startswith('OS0'):
+            self.skipTest("OS command not available")
+
+        self.assertRegex(orig, r'OS0[0-3]', "OS read response invalid")
+
+        # Toggle between simplex (0) and plus (1)
+        test_val = '1' if orig[3] != '1' else '0'
+        self.send(f'OS0{test_val}')
+        after = self.send('OS0', is_read=True)
+        self.assertEqual(after, f'OS0{test_val}', "OS set failed")
+
+        # Restore original state
+        self.send(f'OS0{orig[3]}')
+        restored = self.send('OS0', is_read=True)
+        self.assertEqual(restored, orig, "OS restore failed")
+
 
 def get_test_suite(ser, send_command_func):
     """Return test suite for frequency commands."""

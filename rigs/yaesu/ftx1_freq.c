@@ -7,6 +7,7 @@
  * CAT Commands in this file:
  *   FA P1...P9;  - VFO-A Frequency (9-digit Hz format)
  *   FB P1...P9;  - VFO-B Frequency (9-digit Hz format)
+ *   OS P1 P2;    - Offset (Repeater Shift) - simplex, +, -, ARS
  *
  * Note: CF (Clarifier) command returns '?' in firmware - not implemented.
  *       RIT/XIT handled via newcat functions using RI/XI commands.
@@ -117,6 +118,166 @@ int ftx1_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     *freq = atof(priv->ret_data + 2);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: freq=%.0f\n", __func__, *freq);
+
+    return RIG_OK;
+}
+
+/*
+ * =============================================================================
+ * OS Command: Offset (Repeater Shift)
+ * =============================================================================
+ * CAT format: OS P1 P2;
+ *   P1 = VFO (0=MAIN, 1=SUB)
+ *   P2 = Shift mode:
+ *        0 = Simplex (no shift)
+ *        1 = Plus shift (+)
+ *        2 = Minus shift (-)
+ *        3 = Automatic Repeater Shift (ARS)
+ *
+ * Read response: OS0n where n is shift mode
+ * Set command: OSnn;
+ *
+ * Note: This command only works in FM mode.
+ */
+
+/* Repeater shift mode values */
+#define FTX1_OS_SIMPLEX  0   /* Simplex (no shift) */
+#define FTX1_OS_PLUS     1   /* Plus shift (+) */
+#define FTX1_OS_MINUS    2   /* Minus shift (-) */
+#define FTX1_OS_ARS      3   /* Automatic Repeater Shift */
+
+/*
+ * ftx1_set_rptr_shift - Set repeater shift mode
+ *
+ * shift: 0=simplex, 1=plus, 2=minus, 3=ARS (see RIG_RPT_SHIFT_*)
+ */
+int ftx1_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int p1, p2;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s shift=%d\n",
+              __func__, rig_strvfo(vfo), shift);
+
+    /* Determine VFO */
+    switch (vfo)
+    {
+    case RIG_VFO_A:
+    case RIG_VFO_MAIN:
+    case RIG_VFO_CURR:
+        p1 = 0;
+        break;
+
+    case RIG_VFO_B:
+    case RIG_VFO_SUB:
+        p1 = 1;
+        break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n",
+                  __func__, rig_strvfo(vfo));
+        return -RIG_EINVAL;
+    }
+
+    /* Convert Hamlib shift to FTX-1 code */
+    switch (shift)
+    {
+    case RIG_RPT_SHIFT_NONE:
+        p2 = FTX1_OS_SIMPLEX;
+        break;
+
+    case RIG_RPT_SHIFT_PLUS:
+        p2 = FTX1_OS_PLUS;
+        break;
+
+    case RIG_RPT_SHIFT_MINUS:
+        p2 = FTX1_OS_MINUS;
+        break;
+
+    default:
+        /* Map unknown shifts to simplex */
+        p2 = FTX1_OS_SIMPLEX;
+        break;
+    }
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "OS%d%d;", p1, p2);
+
+    return newcat_set_cmd(rig);
+}
+
+/*
+ * ftx1_get_rptr_shift - Get repeater shift mode
+ */
+int ftx1_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *shift)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    int p1, p2;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
+
+    /* Determine VFO */
+    switch (vfo)
+    {
+    case RIG_VFO_A:
+    case RIG_VFO_MAIN:
+    case RIG_VFO_CURR:
+        p1 = 0;
+        break;
+
+    case RIG_VFO_B:
+    case RIG_VFO_SUB:
+        p1 = 1;
+        break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n",
+                  __func__, rig_strvfo(vfo));
+        return -RIG_EINVAL;
+    }
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "OS%d;", p1);
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    /* Response: OS P1 P2 */
+    if (sscanf(priv->ret_data + 2, "%1d%1d", &p1, &p2) != 2)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n",
+                  __func__, priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    /* Convert FTX-1 code to Hamlib shift */
+    switch (p2)
+    {
+    case FTX1_OS_SIMPLEX:
+        *shift = RIG_RPT_SHIFT_NONE;
+        break;
+
+    case FTX1_OS_PLUS:
+        *shift = RIG_RPT_SHIFT_PLUS;
+        break;
+
+    case FTX1_OS_MINUS:
+        *shift = RIG_RPT_SHIFT_MINUS;
+        break;
+
+    case FTX1_OS_ARS:
+        /* ARS maps to none for Hamlib */
+        *shift = RIG_RPT_SHIFT_NONE;
+        break;
+
+    default:
+        *shift = RIG_RPT_SHIFT_NONE;
+        break;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: shift=%d\n", __func__, *shift);
 
     return RIG_OK;
 }

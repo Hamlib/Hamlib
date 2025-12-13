@@ -291,6 +291,46 @@ test_BS() {
     fi
 }
 
+test_FR() {
+    echo "Testing FR (Function RX - Dual/Single Receive)..."
+    # FR: Function RX (dual/single receive mode)
+    # Format: FR P1P2 where P1P2: 00=Dual Receive, 01=Single Receive
+    # Dual Receive: both VFOs active (audio from both)
+    # Single Receive: only selected VFO active
+
+    local orig=$(raw_cmd "FR")
+    if [ "$orig" = "?" ] || [ -z "$orig" ]; then
+        log_skip "FR (Function RX) - command not available"
+        return
+    fi
+
+    if [[ ! "$orig" =~ ^FR[01]{2}$ ]]; then
+        log_fail "FR: invalid read format '$orig'"
+        return
+    fi
+
+    # Toggle between dual and single receive
+    local test_val="01"
+    [ "${orig:2:2}" = "01" ] && test_val="00"
+
+    raw_cmd "FR$test_val"
+    local after=$(raw_cmd "FR")
+    if [ "$after" != "FR$test_val" ]; then
+        log_fail "FR: set failed, expected FR$test_val got $after"
+        raw_cmd "FR${orig:2}"
+        return
+    fi
+
+    # Restore original
+    raw_cmd "FR${orig:2}"
+    local restored=$(raw_cmd "FR")
+    if [ "$restored" = "$orig" ]; then
+        log_pass "FR (Function RX) - set/read/restore verified"
+    else
+        log_fail "FR: restore failed, expected $orig got $restored"
+    fi
+}
+
 test_GP() {
     echo "Testing GP (GP OUT)..."
     # GP: GP OUT control (read/write)
@@ -348,6 +388,7 @@ run_vfo_tests() {
     test_BA
     test_SV
     test_BS
+    test_FR
     test_GP
     echo ""
 }

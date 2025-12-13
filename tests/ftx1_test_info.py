@@ -80,6 +80,19 @@ class InfoTests(unittest.TestCase):
         resp = self.send('RM0')
         self.assertRegex(resp, r'RM0\d{6,9}', "RM read response invalid")
 
+    def test_SF(self):
+        """SF: Sub Dial (FUNC Knob) function assignment
+        Format: SF P1 P2; where P1=VFO (0), P2=single hex char (0-H)
+        0=None, 7=Mic Gain, D=RF Power, G=CW Pitch, H=BK Delay, etc.
+        NOTE: Read-only test - setting SF may affect SPA-1 amp detection
+        """
+        orig = self.send('SF0', is_read=True)
+        if orig == '?' or not orig.startswith('SF0'):
+            self.skipTest("SF command not available")
+
+        # Response format: SF0X where X is hex char (0-9, A-H)
+        self.assertRegex(orig, r'SF0[0-9A-H]', "SF read response invalid")
+
 
 def get_test_suite(ser, send_command_func):
     """Return test suite for info commands."""

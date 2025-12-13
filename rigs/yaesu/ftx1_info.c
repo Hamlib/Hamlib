@@ -616,3 +616,220 @@ int ftx1_get_if_shift(RIG *rig, vfo_t vfo, int *on, int *shift_hz)
 
     return RIG_OK;
 }
+
+/*
+ * =============================================================================
+ * GP Command: GP OUT A/B/C/D (Digital Output Pins)
+ * =============================================================================
+ * CAT format: GP P1 P2 P3 P4;
+ *   P1 = GP OUT A (0=LOW, 1=HIGH)
+ *   P2 = GP OUT B (0=LOW, 1=HIGH)
+ *   P3 = GP OUT C (0=LOW, 1=HIGH)
+ *   P4 = GP OUT D (0=LOW, 1=HIGH)
+ *
+ * Read response: GP0000 to GP1111 (4 binary digits)
+ * Set command: GPnnnn;
+ *
+ * Note: Requires TUN/LIN PORT SELECT menu to be set to "GPO".
+ * Output is 5V CMOS level, max 3mA per pin.
+ */
+
+/*
+ * ftx1_set_gp_out - Set GP OUT pin states
+ *
+ * Parameters:
+ *   out_a, out_b, out_c, out_d - pin states (0=LOW, 1=HIGH)
+ */
+int ftx1_set_gp_out(RIG *rig, int out_a, int out_b, int out_c, int out_d)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: A=%d B=%d C=%d D=%d\n",
+              __func__, out_a, out_b, out_c, out_d);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "GP%d%d%d%d;",
+             out_a ? 1 : 0, out_b ? 1 : 0, out_c ? 1 : 0, out_d ? 1 : 0);
+
+    return newcat_set_cmd(rig);
+}
+
+/*
+ * ftx1_get_gp_out - Get GP OUT pin states
+ *
+ * Returns all 4 pin states via output parameters.
+ */
+int ftx1_get_gp_out(RIG *rig, int *out_a, int *out_b, int *out_c, int *out_d)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    int p1, p2, p3, p4;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "GP;");
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    /* Response: GPnnnn where each n is 0 or 1 */
+    if (sscanf(priv->ret_data + 2, "%1d%1d%1d%1d", &p1, &p2, &p3, &p4) != 4)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    *out_a = p1;
+    *out_b = p2;
+    *out_c = p3;
+    *out_d = p4;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: A=%d B=%d C=%d D=%d\n",
+              __func__, *out_a, *out_b, *out_c, *out_d);
+
+    return RIG_OK;
+}
+
+/*
+ * =============================================================================
+ * SF Command: Sub Dial (FUNC Knob) Function Assignment
+ * =============================================================================
+ * CAT format: SF P1 P2;
+ *   P1 = VFO (0=MAIN, always 0 for this radio)
+ *   P2 = Function code (single hex char 0-H):
+ *        0 = None (-)
+ *        1 = SCOPE LEVEL
+ *        2 = PEAK
+ *        3 = COLOR
+ *        4 = CONTRAST
+ *        5 = DIMMER
+ *        6 = Reserved (-)
+ *        7 = MIC GAIN
+ *        8 = PROC LEVEL
+ *        9 = AMC LEVEL
+ *        A = VOX GAIN
+ *        B = VOX DELAY
+ *        C = Reserved (-)
+ *        D = RF POWER
+ *        E = MONI LEVEL
+ *        F = CW SPEED
+ *        G = CW PITCH
+ *        H = BK-DELAY
+ *
+ * Read command: SF0;
+ * Read response: SF0X (e.g., SF00, SF07, SF0D, SF0G)
+ * Set command: SF0X; (WARNING: Some values may affect SPA-1 detection)
+ */
+
+/* FUNC knob function codes */
+#define FTX1_SF_NONE        0x00
+#define FTX1_SF_SCOPE_LEVEL 0x01
+#define FTX1_SF_PEAK        0x02
+#define FTX1_SF_COLOR       0x03
+#define FTX1_SF_CONTRAST    0x04
+#define FTX1_SF_DIMMER      0x05
+#define FTX1_SF_MIC_GAIN    0x07
+#define FTX1_SF_PROC_LEVEL  0x08
+#define FTX1_SF_AMC_LEVEL   0x09
+#define FTX1_SF_VOX_GAIN    0x0A
+#define FTX1_SF_VOX_DELAY   0x0B
+#define FTX1_SF_RF_POWER    0x0D
+#define FTX1_SF_MONI_LEVEL  0x0E
+#define FTX1_SF_CW_SPEED    0x0F
+#define FTX1_SF_CW_PITCH    0x10
+#define FTX1_SF_BK_DELAY    0x11
+
+/*
+ * ftx1_set_func_knob - Set FUNC knob function assignment
+ *
+ * func_code: 0x00-0x11 (see FTX1_SF_* defines)
+ *
+ * CAT format: SF P1 P2; where P1=VFO (0), P2=single hex char (0-H)
+ * WARNING: Setting some values may affect SPA-1 amp detection.
+ */
+int ftx1_set_func_knob(RIG *rig, int func_code)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    char func_char;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: func_code=%d (0x%02X)\n",
+              __func__, func_code, func_code);
+
+    if (func_code < 0 || func_code > 0x11)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid func_code %d\n",
+                  __func__, func_code);
+        return -RIG_EINVAL;
+    }
+
+    /* Convert to single hex character (0-9, A-H) */
+    if (func_code < 10)
+    {
+        func_char = '0' + func_code;
+    }
+    else
+    {
+        func_char = 'A' + (func_code - 10);  /* A=10, B=11, ..., H=17 */
+    }
+
+    /* Format: SF0X where X is single hex char */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SF0%c;", func_char);
+
+    return newcat_set_cmd(rig);
+}
+
+/*
+ * ftx1_get_func_knob - Get FUNC knob function assignment
+ *
+ * Response format: SF0X where X is single hex char (0-9, A-H)
+ */
+int ftx1_get_func_knob(RIG *rig, int *func_code)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    char func_char;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SF0;");
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    /* Response: SF0X where X is single hex char (0-9, A-H) */
+    if (strlen(priv->ret_data) < 4)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: response too short '%s'\n",
+                  __func__, priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    func_char = priv->ret_data[3];
+
+    /* Convert hex char to int */
+    if (func_char >= '0' && func_char <= '9')
+    {
+        *func_code = func_char - '0';
+    }
+    else if (func_char >= 'A' && func_char <= 'H')
+    {
+        *func_code = func_char - 'A' + 10;  /* A=10, B=11, ..., H=17 */
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid func_char '%c' in '%s'\n",
+                  __func__, func_char, priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: func_code=%d (0x%02X)\n",
+              __func__, *func_code, *func_code);
+
+    return RIG_OK;
+}

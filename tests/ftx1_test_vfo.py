@@ -174,6 +174,34 @@ class VFOTests(unittest.TestCase):
         # Restore original frequency (which restores band)
         self.send(f'FA{orig_freq[2:]}')
 
+    def test_FR(self):
+        """FR: Function RX - Dual/Single Receive mode
+        Format: FR P1P2 where P1P2: 00=Dual Receive, 01=Single Receive
+        Dual Receive: both VFOs active (audio from both)
+        Single Receive: only selected VFO active
+        """
+        # SAFETY: Ensure no TX state
+        self.send('MX0')
+        self.send('TX0')
+
+        # Read current state
+        orig = self.send('FR', is_read=True)
+        if orig == '?' or not orig.startswith('FR'):
+            self.skipTest("FR command not available")
+
+        self.assertRegex(orig, r'FR[01]{2}', "FR read response invalid")
+
+        # Toggle between dual and single receive
+        test_val = '01' if orig[2:4] != '01' else '00'
+        self.send(f'FR{test_val}')
+        after = self.send('FR', is_read=True)
+        self.assertEqual(after, f'FR{test_val}', "FR set failed")
+
+        # Restore original state
+        self.send(f'FR{orig[2:]}')
+        restored = self.send('FR', is_read=True)
+        self.assertEqual(restored, orig, "FR restore failed")
+
     def test_GP(self):
         """GP: GP OUT control (read/write)
         Format: GP P1 P2 P3 P4 where each controls GP OUT A/B/C/D (0=LOW, 1=HIGH)

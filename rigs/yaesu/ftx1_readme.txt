@@ -324,7 +324,7 @@ GROUP 11: Display and Information (ftx1_info.c)
 ================================================================================
 Commands:
   AI P1;           - Auto Information (0=off, 1=on) [WORKING]
-  ID;              - Radio ID (Field=0763, Optima=0840) [WORKING]
+  ID;              - Radio ID (always 0840 for all FTX-1 configs) [WORKING]
   IF;              - Information Query (composite status) [WORKING]
   OI;              - Opposite Band Information [WORKING]
   DA P1;           - Date/Dimmer (display brightness) [WORKING]
@@ -457,22 +457,27 @@ SPEC VS FIRMWARE DISCREPANCIES
 Comparison of CAT Operation Reference Manual (2508-C) vs actual firmware v1.08+
 behavior, verified by Python direct serial and Hamlib rigctl testing.
 
-### 1. Radio ID is Always 0840
-| Item            | Spec (Page 17) | All Configs  |
-|-----------------|----------------|--------------|
-| ID command      | Returns 0840   | Returns 0840 |
+### 1. Radio ID is Fixed (0840)
+| Configuration        | Radio ID  | Power Range  |
+|----------------------|-----------|--------------|
+| Field Head (Battery) | ID0840    | 0.5-6W       |
+| Field Head (12V)     | ID0840    | 0.5-10W      |
+| Optima (SPA-1)       | ID0840    | 5-100W       |
 
-The Radio ID is ALWAYS 0840 regardless of head type or power source:
-  - Field Head on battery: ID0840
-  - Field Head on 12V: ID0840
-  - Field Head with SPA-1: ID0840
+The Radio ID command (ID;) always returns ID0840 for all FTX-1 configurations.
+Head type detection uses a two-stage process:
 
-To distinguish configurations, use the PC command response format:
-  - PC1xxx = Field Head
-  - PC2xxx = SPA-1
+Stage 1: PC Command Format
+  - PC1xxx = Field Head (battery or 12V)
+  - PC2xxx = Optima/SPA-1
 
-To distinguish battery vs 12V for Field Head, probe max power:
-  - Set 10W, if accepted = 12V, if clamped to 6W = battery
+Stage 2: Power Probe (Field Head Only)
+  For Field Head, probe the power source by attempting to set 8W:
+  - If radio accepts 8W → 12V power (0.5-10W range)
+  - If radio rejects 8W (stays at 6W or below) → Battery power (0.5-6W range)
+
+  This works because the FTX-1 enforces hardware power limits based on the
+  actual power source, regardless of menu settings.
 
 ### 2. Commands with Format Differences from Spec
 
@@ -603,7 +608,9 @@ It supports three configurations:
 
   Field Head (Battery):  0.5-6W portable configuration on internal battery
   Field Head (12V):      0.5-10W portable configuration on external 12V
-  SPA-1 (Optima):        5-100W amplifier with internal antenna tuner
+  Optima (SPA-1):        5-100W amplifier with internal antenna tuner
+
+Note: Radio ID is always 0840 for all configurations.
 
 The backend uses the newcat framework and implements FTX-1 specific
 CAT commands documented in the FTX-1 CAT Operation Reference Manual.
@@ -614,23 +621,26 @@ Serial Configuration:
 
 Head Type Auto-Detection
 ------------------------
-On rig open, the backend auto-detects the head configuration:
+On rig open, the backend auto-detects the head configuration using a two-stage process:
 
-1. PC command response format indicates head type:
-   - PC1xxx = Field Head (battery or 12V)
-   - PC2xxx = SPA-1
+Stage 1: PC Command Format
+  The PC (Power Control) command response identifies the head type:
+  - PC1xxx = Field Head
+  - PC2xxx = Optima/SPA-1 (5-100W with internal tuner)
 
-2. For Field Head, power probing distinguishes battery vs 12V:
-   - Try setting 10W
-   - If accepted (reads back ~10W): 12V power source
-   - If clamped to 6W: Battery power source
+Stage 2: Power Probe (Field Head Only)
+  For Field Head, probe the actual power source by attempting to set 8W:
+  - If radio accepts 8W → 12V power (0.5-10W range)
+  - If radio rejects 8W (stays ≤6W) → Battery power (0.5-6W range)
 
-3. VE4 command - confirms SPA-1 presence:
-   - Returns firmware version string if SPA-1 present
-   - Returns '?' if no SPA-1
+  This works because the FTX-1 enforces hardware power limits based on the
+  actual power source, regardless of menu settings. The probe saves and
+  restores the original power setting.
 
-IMPORTANT: Radio ID is always 0840 regardless of configuration.
-The ID command does NOT distinguish between configurations.
+Secondary Confirmation (SPA-1):
+  VE4 command confirms SPA-1 presence:
+  - Returns firmware version string if SPA-1 present
+  - Returns '?' if no SPA-1
 
 This detection enables:
   - Correct power range enforcement for each mode
@@ -680,11 +690,11 @@ Notes:
 
 Known Quirks
 ------------
-1. Rig ID varies: Field returns ID0763, Optima returns ID0840
+1. Rig ID is always 0840 for all configurations (use PC command + power probe)
 2. The FTX-1 does not support transceive mode (AI must be queried)
 3. Some EX menu items (ARO, FAGC, DUAL_WATCH, DIVERSITY) return '?'
 4. CW pitch (KP command) is paddle ratio on FTX-1, not pitch frequency
-5. Power level display changes with head type (field vs SPA-1)
+5. Power level display changes with configuration (Field battery/12V vs SPA-1)
 
 ================================================================================
 TEST SCRIPTS
@@ -723,12 +733,21 @@ Source Files:
 ================================================================================
 REVISION HISTORY
 ================================================================================
+2025-12-12  Confirmed Radio ID is fixed (0840), finalized power probe detection
+            - Radio ID is always 0840 for ALL FTX-1 configurations (confirmed)
+            - Head type detection uses two-stage process:
+              * Stage 1: PC command format (PC1xxx=Field, PC2xxx=SPA-1)
+              * Stage 2: Power probe for Field Head battery vs 12V
+            - Power probe method: attempt to set 8W
+              * If accepted (power ≥8W) → Field 12V (0.5-10W)
+              * If rejected (stays ≤6W) → Field Battery (0.5-6W)
+            - Probe saves and restores original power setting
+            - Updated all documentation (README files, code comments)
 2025-12-11  Head type auto-detection update
             - Discovered Radio ID is always 0840 for all configurations
             - Changed head type detection to use PC command response format
               (PC1xxx=Field, PC2xxx=SPA-1 instead of ID command)
             - Added Field Head power source probing (battery vs 12V)
-              by setting 10W and checking if clamped to 6W
             - Updated power ranges: FIELD_BATTERY (0.5-6W), FIELD_12V (0.5-10W)
             - Added FTX1_HEAD_FIELD_BATTERY and FTX1_HEAD_FIELD_12V constants
 2025-12-10  Documentation and test verification complete

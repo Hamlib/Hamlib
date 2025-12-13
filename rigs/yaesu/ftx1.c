@@ -161,98 +161,92 @@ static int ftx1_detect_spa1(RIG *rig)
 }
 
 /*
- * ftx1_probe_field_power_source - Probe Field Head for battery vs 12V
+ * ftx1_probe_field_head_power - Probe Field Head power source (battery vs 12V)
  *
- * Sets power to 10W and reads back actual value:
- *   - If 10W accepted: 12V power source (max 10W)
- *   - If clamped to 6W: Battery power source (max 6W)
+ * The radio enforces hardware power limits based on actual power source.
+ * On battery, the radio will not accept power settings above 6W.
+ * This probe attempts to set 8W and checks if the radio accepts it.
  *
  * Returns: FTX1_HEAD_FIELD_BATTERY or FTX1_HEAD_FIELD_12V
  */
-static int ftx1_probe_field_power_source(RIG *rig)
+static int ftx1_probe_field_head_power(RIG *rig)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
-    double original_power, actual_power;
-    int head_type;
+    char original_power[16];
+    int power_accepted;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: probing Field Head power source\n", __func__);
 
-    /* Save original power setting */
+    /* Save current power setting */
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC;");
     ret = newcat_get_cmd(rig);
-    if (ret != RIG_OK)
+
+    if (ret != RIG_OK || strlen(priv->ret_data) < 4)
     {
-        rig_debug(RIG_DEBUG_WARN, "%s: failed to read power, assuming battery\n", __func__);
-        return FTX1_HEAD_FIELD_BATTERY;
+        rig_debug(RIG_DEBUG_WARN, "%s: could not read current power\n", __func__);
+        return FTX1_HEAD_FIELD_BATTERY;  /* Default to battery (safer) */
     }
 
-    /* Parse original power from PC1xxx response */
-    if (sscanf(priv->ret_data + 3, "%lf", &original_power) != 1)
-    {
-        original_power = 5.0;  /* Default fallback */
-    }
+    strncpy(original_power, priv->ret_data, sizeof(original_power) - 1);
+    original_power[sizeof(original_power) - 1] = '\0';
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: original power: %s\n", __func__, original_power);
 
-    /* Try setting 10W */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC1010;");
+    /* Try to set 8W (above battery max of 6W) */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC1008;");
     ret = newcat_set_cmd(rig);
+
     if (ret != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_WARN, "%s: failed to set 10W, assuming battery\n", __func__);
+        rig_debug(RIG_DEBUG_WARN, "%s: could not set test power\n", __func__);
         return FTX1_HEAD_FIELD_BATTERY;
     }
 
-    /* Read back actual power */
+    /* Read back to see if it was accepted */
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC;");
     ret = newcat_get_cmd(rig);
-    if (ret != RIG_OK)
-    {
-        rig_debug(RIG_DEBUG_WARN, "%s: failed to read power after set, assuming battery\n", __func__);
-        return FTX1_HEAD_FIELD_BATTERY;
-    }
 
-    /* Parse actual power */
-    if (sscanf(priv->ret_data + 3, "%lf", &actual_power) != 1)
+    if (ret != RIG_OK || strlen(priv->ret_data) < 5)
     {
-        actual_power = 6.0;  /* If parse fails, assume clamped */
-    }
-
-    /* Determine power source */
-    if (actual_power >= 9.5)
-    {
-        head_type = FTX1_HEAD_FIELD_12V;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: 10W accepted (got %.1fW), 12V power source\n",
-                  __func__, actual_power);
+        rig_debug(RIG_DEBUG_WARN, "%s: could not read back power\n", __func__);
+        power_accepted = 0;
     }
     else
     {
-        head_type = FTX1_HEAD_FIELD_BATTERY;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: 10W clamped to %.1fW, battery power source\n",
-                  __func__, actual_power);
+        /* Check if power is 8W or above (PC1008 or higher) */
+        int power_value = atoi(priv->ret_data + 3);
+        power_accepted = (power_value >= 8);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: power readback: %d, accepted=%d\n",
+                  __func__, power_value, power_accepted);
     }
 
-    /* Restore original power */
-    if (original_power < 1.0)
-    {
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC1%.1f;", original_power);
-    }
-    else
-    {
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC1%03d;", (int)original_power);
-    }
+    /* Restore original power setting */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", original_power);
     newcat_set_cmd(rig);
 
-    return head_type;
+    if (power_accepted)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Field Head on 12V detected (accepted 8W)\n", __func__);
+        return FTX1_HEAD_FIELD_12V;
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Field Head on battery detected (rejected 8W)\n", __func__);
+        return FTX1_HEAD_FIELD_BATTERY;
+    }
 }
 
 /*
- * ftx1_detect_head_type - Detect head type from PC command response format
+ * ftx1_detect_head_type - Detect head type using PC command format and power probe
  *
- * PC command response format indicates head type:
+ * Stage 1: PC command format identifies Field Head vs SPA-1
  *   PC1xxx = Field Head (battery or 12V)
- *   PC2xxx = SPA-1
+ *   PC2xxx = Optima/SPA-1 (5-100W)
  *
- * For Field Head, probes power to distinguish battery (max 6W) from 12V (max 10W).
+ * Stage 2: For Field Head, power probe distinguishes battery vs 12V
+ *   - Attempt to set 8W
+ *   - If radio accepts 8W → 12V power (0.5-10W)
+ *   - If radio rejects 8W → Battery power (0.5-6W)
  *
  * Returns: FTX1_HEAD_FIELD_BATTERY, FTX1_HEAD_FIELD_12V, FTX1_HEAD_SPA1, or FTX1_HEAD_UNKNOWN
  */
@@ -261,8 +255,9 @@ static int ftx1_detect_head_type(RIG *rig)
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: detecting head type via PC command format\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: detecting head type via PC command\n", __func__);
 
+    /* Stage 1: Read PC command to determine Field vs SPA-1 */
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC;");
     ret = newcat_get_cmd(rig);
 
@@ -274,29 +269,40 @@ static int ftx1_detect_head_type(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: PC response: %s\n", __func__, priv->ret_data);
 
-    /* Check response format: PC1xxx = Field, PC2xxx = SPA-1 */
-    if (strncmp(priv->ret_data, "PC2", 3) == 0)
+    /* Response format: PC1xxx (Field) or PC2xxx (SPA-1) */
+    if (strlen(priv->ret_data) < 4)
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: PC2 format detected - SPA-1\n", __func__);
-        return FTX1_HEAD_SPA1;
-    }
-    else if (strncmp(priv->ret_data, "PC1", 3) == 0)
-    {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: PC1 format detected - Field Head, probing power source\n", __func__);
-        return ftx1_probe_field_power_source(rig);
+        rig_debug(RIG_DEBUG_ERR, "%s: PC response too short: %s\n",
+                  __func__, priv->ret_data);
+        return FTX1_HEAD_UNKNOWN;
     }
 
-    rig_debug(RIG_DEBUG_WARN, "%s: unexpected PC response format: %s\n",
-              __func__, priv->ret_data);
+    /* Check head type indicator (position 2) */
+    char head_code = priv->ret_data[2];
+
+    if (head_code == '1')
+    {
+        /* Field Head - probe to determine battery vs 12V */
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Field Head detected, probing power source\n", __func__);
+        return ftx1_probe_field_head_power(rig);
+    }
+    else if (head_code == '2')
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Optima/SPA-1 (5-100W) detected\n", __func__);
+        return FTX1_HEAD_SPA1;
+    }
+
+    rig_debug(RIG_DEBUG_WARN, "%s: unknown head type code: %c\n", __func__, head_code);
     return FTX1_HEAD_UNKNOWN;
 }
 
 /*
- * ftx1_open - FTX-1 specific rig open with SPA-1 detection
+ * ftx1_open - FTX-1 specific rig open with head type detection
  *
  * Calls newcat_open, then auto-detects the head configuration:
- *   - Queries PC command to determine field head vs SPA-1
- *   - Queries VE4 to confirm SPA-1 presence
+ *   Stage 1: PC command format (PC1xxx=Field, PC2xxx=SPA-1)
+ *   Stage 2: Power probe for Field Head (battery vs 12V)
+ *   - Also queries VE4 to confirm SPA-1 presence
  *   - Stores results for use by tuner and power control functions
  */
 static int ftx1_open(RIG *rig)
@@ -332,9 +338,9 @@ static int ftx1_open(RIG *rig)
 }
 
 /*
- * ftx1_has_spa1 - Check if SPA-1 amplifier is present
+ * ftx1_has_spa1 - Check if Optima/SPA-1 amplifier is present
  *
- * Returns 1 if SPA-1 detected, 0 otherwise.
+ * Returns 1 if Optima/SPA-1 detected, 0 otherwise.
  * Used by tuner and power control functions for guardrails.
  */
 int ftx1_has_spa1(void)
