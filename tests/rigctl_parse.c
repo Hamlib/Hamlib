@@ -1287,7 +1287,7 @@ readline_repeat:
             char cmd_name[MAXNAMSIZ];
 
             /* if there is no terminating '\0' character in the source string,
-             * srncpy() doesn't add one even if the supplied length is less
+             * strncpy() doesn't add one even if the supplied length is less
              * than the destination array.  Truncate the source string here.
              */
             if (strlen(parsed_input[0] + 1) >= MAXNAMSIZ)
