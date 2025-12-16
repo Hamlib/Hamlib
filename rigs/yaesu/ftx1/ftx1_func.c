@@ -136,6 +136,7 @@ extern int ftx1_set_cw_delay(RIG *rig, int ms);
 extern int ftx1_get_cw_delay(RIG *rig, int *ms);
 extern int ftx1_send_morse(RIG *rig, vfo_t vfo, const char *msg);
 extern int ftx1_stop_morse(RIG *rig, vfo_t vfo);
+extern int ftx1_wait_morse(RIG *rig, vfo_t vfo);
 
 /* Extern helpers from ftx1_tx.c */
 extern int ftx1_set_breakin(RIG *rig, int mode);
@@ -488,6 +489,11 @@ int ftx1_send_morse_func(RIG *rig, vfo_t vfo, const char *msg)
 int ftx1_stop_morse_func(RIG *rig, vfo_t vfo)
 {
     return ftx1_stop_morse(rig, vfo);
+}
+
+int ftx1_wait_morse_func(RIG *rig, vfo_t vfo)
+{
+    return ftx1_wait_morse(rig, vfo);
 }
 
 /* Transceive (AI) mode wrapper */

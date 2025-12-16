@@ -206,6 +206,26 @@ int ftx1_stop_morse(RIG *rig, vfo_t vfo)
     return newcat_set_cmd(rig);
 }
 
+/*
+ * Wait for CW Message to complete
+ *
+ * The FTX-1 does not provide a way to query if CW transmission is still
+ * in progress. This stub returns RIG_OK immediately for compatibility
+ * with applications that call wait_morse after send_morse.
+ *
+ * Applications requiring synchronization should implement their own
+ * timing based on message length and keyer speed.
+ */
+int ftx1_wait_morse(RIG *rig, vfo_t vfo)
+{
+    (void)rig;  /* Unused */
+    (void)vfo;  /* Unused */
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: stub - returning immediately\n", __func__);
+
+    return RIG_OK;
+}
+
 /* Set CW Break-in Delay (SD P1P2;) - 2 digits, 00-30 (100ms units) */
 int ftx1_set_cw_delay(RIG *rig, int val)
 {
