@@ -189,11 +189,11 @@ int ftx1_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
     /* Clarifier direction and offset */
     if (chan->rit != 0) {
         clar_dir = (chan->rit >= 0) ? '+' : '-';
-        clar_offset = abs(chan->rit);
+        clar_offset = labs(chan->rit);
         if (clar_offset > 9990) clar_offset = 9990;
     } else if (chan->xit != 0) {
         clar_dir = (chan->xit >= 0) ? '+' : '-';
-        clar_offset = abs(chan->xit);
+        clar_offset = labs(chan->xit);
         if (clar_offset > 9990) clar_offset = 9990;
     } else {
         clar_dir = '+';

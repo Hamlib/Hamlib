@@ -23,7 +23,7 @@
 #include "misc.h"
 #include "yaesu.h"
 #include "newcat.h"
-#include "ftx1.h"
+#include "../ftx1.h"
 
 /*
  * ftx1_set_anf_helper - Set Auto Notch Filter (Beat Cancel) on/off

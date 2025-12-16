@@ -22,7 +22,7 @@
 #include "misc.h"
 #include "yaesu.h"
 #include "newcat.h"
-#include "ftx1.h"
+#include "../ftx1.h"
 
 /* Set PTT (TX P1;) */
 int ftx1_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)

@@ -17,6 +17,18 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * Monolithic FTX-1 backend combining all source files.
+ * This file is auto-generated from the multi-file implementation.
+ * To regenerate: ./gen_ftx1_mono.sh
+ *
+ * FIRMWARE NOTES (v1.08+):
+ * - RT (RIT on/off) and XT (XIT on/off) commands return '?' - not implemented
+ * - CF (Clarifier) sets offset value only, does not enable/disable clarifier
+ * - ZI (Zero In) only works in CW mode (MD03 or MD07)
+ * - BS (Band Select) is set-only - no read/query capability
+ * - MR/MT/MZ (Memory) use 5-digit format, not 4-digit as documented
+ * - MC (Memory Channel) uses 6-digit format
+ * - CH command only accepts CH0/CH1 (not CH;)
+ * - VM mode codes: 00=VFO, 11=Memory (not 01 as documented)
  */
 
 #include <stdlib.h>
@@ -28,18 +40,39 @@
 #include "yaesu.h"
 #include "newcat.h"
 
-/* Shared constants from ftx1.h */
-#define NC_RIGID_FTX1 0x763
-#define FTX1_HEAD_UNKNOWN   0
-#define FTX1_HEAD_FIELD     1
-#define FTX1_HEAD_SPA1      2
-#define FTX1_VFO_TO_P1(vfo) ((vfo == RIG_VFO_CURR || vfo == RIG_VFO_MAIN || vfo == RIG_VFO_A) ? 0 : 1)
-#define FTX1_CTCSS_MODE_OFF  0
-#define FTX1_CTCSS_MODE_ENC  1
-#define FTX1_CTCSS_MODE_TSQ  2
-#define FTX1_CTCSS_MODE_DCS  3
+/* ========== Shared constants from ftx1.h ========== */
+#define NC_RIGID_FTX1               0x840   /* Default rig model ID */
+#define FTX1_RADIO_ID               "0840"  /* Radio ID (same for all configs) */
 
-/* Shared private data */
+/*
+ * FTX-1 head type constants
+ * Power ranges by head type:
+ *   FIELD_BATTERY: 0.5W - 6W (0.5W steps)
+ *   FIELD_12V:     0.5W - 10W (0.5W steps)
+ *   SPA1:          5W - 100W (1W steps) - "Optima" when attached to Field
+ */
+#define FTX1_HEAD_UNKNOWN       0
+#define FTX1_HEAD_FIELD_BATTERY 1   /* Field Head on battery (0.5-6W) */
+#define FTX1_HEAD_FIELD_12V     2   /* Field Head on 12V (0.5-10W) */
+#define FTX1_HEAD_SPA1          3   /* Optima/SPA-1 amplifier (5-100W) */
+
+/* Legacy alias for backwards compatibility */
+#define FTX1_HEAD_FIELD FTX1_HEAD_FIELD_12V
+
+/*
+ * FTX1_VFO_TO_P1 - Convert Hamlib VFO to FTX-1 P1 parameter
+ * Returns: 0 for MAIN/VFO-A/CURR, 1 for SUB/VFO-B
+ */
+#define FTX1_VFO_TO_P1(vfo) \
+    ((vfo == RIG_VFO_CURR || vfo == RIG_VFO_MAIN || vfo == RIG_VFO_A) ? 0 : 1)
+
+/* FTX-1 CTCSS mode values for CT command */
+#define FTX1_CTCSS_MODE_OFF  0   /* CT0: CTCSS/DCS off */
+#define FTX1_CTCSS_MODE_ENC  1   /* CT1: CTCSS encode only (TX tone) */
+#define FTX1_CTCSS_MODE_TSQ  2   /* CT2: Tone squelch (TX+RX tone) */
+#define FTX1_CTCSS_MODE_DCS  3   /* CT3: DCS mode */
+
+/* ========== Shared private data ========== */
 static struct {
     int head_type;
     int spa1_detected;
@@ -48,6 +81,7 @@ static struct {
 
 static const struct newcat_priv_caps ftx1_priv_caps = { .roofing_filter_count = 0 };
 
+/* SPA-1 detection functions */
 static int ftx1_has_spa1(void) {
     return ftx1_priv.spa1_detected || ftx1_priv.head_type == FTX1_HEAD_SPA1;
 }
@@ -58,28 +92,8 @@ static int ftx1_get_head_type(void) {
 
 
 /* ========== FROM ftx1_vfo.c ========== */
-/*
- * Hamlib Yaesu backend - FTX-1 VFO Commands
- * Copyright (c) 2025 by Terrell Deppe (KJ5HST)
- *
- * This file implements CAT commands for VFO management and split operation.
- *
- * CAT Commands in this file:
- *   VS P1;  - VFO Select (0=MAIN, 1=SUB)
- *   ST P1;  - Split on/off (0=off, 1=on)
- *   FT P1;  - Function TX VFO (0=MAIN TX, 1=SUB TX)
- *
- * Note: BS (Band Select) returns '?' in firmware - not implemented.
- *       AB, BA, SV handled via newcat_vfo_op.
- */
 
 
-/*
- * ftx1_set_vfo
- *
- * Set active VFO using VS command.
- * Format: VS0; (MAIN) or VS1; (SUB)
- */
 int ftx1_set_vfo(RIG *rig, vfo_t vfo)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -110,12 +124,6 @@ int ftx1_set_vfo(RIG *rig, vfo_t vfo)
     return newcat_set_cmd(rig);
 }
 
-/*
- * ftx1_get_vfo
- *
- * Get active VFO using VS command.
- * Response: VS0; (MAIN) or VS1; (SUB)
- */
 int ftx1_get_vfo(RIG *rig, vfo_t *vfo)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -148,12 +156,6 @@ int ftx1_get_vfo(RIG *rig, vfo_t *vfo)
     return RIG_OK;
 }
 
-/*
- * ftx1_set_split_vfo
- *
- * Set split mode using ST command, and TX VFO using FT command.
- * Format: ST0; (off) or ST1; (on), FT0; (MAIN TX) or FT1; (SUB TX)
- */
 int ftx1_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -185,12 +187,6 @@ int ftx1_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     return ret;
 }
 
-/*
- * ftx1_get_split_vfo
- *
- * Get split mode using ST command, and TX VFO using FT command.
- * Response: ST0/ST1 for split, FT0/FT1 for TX VFO
- */
 int ftx1_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -243,12 +239,6 @@ int ftx1_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
     return RIG_OK;
 }
 
-/*
- * ftx1_vfo_op
- *
- * VFO operations: AB (copy A->B), BA (copy B->A), XCHG (swap), BAND_UP, BAND_DOWN
- * Commands: AB; BA; SV; BU0; BD0;
- */
 int ftx1_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -297,31 +287,63 @@ int ftx1_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
     return newcat_set_cmd(rig);
 }
 
+
+/* Dual receive mode values */
+#define FTX1_FR_DUAL_RECEIVE    0   /* FR00: Both VFOs can receive */
+#define FTX1_FR_SINGLE_RECEIVE  1   /* FR01: Only selected VFO receives */
+
+int ftx1_set_dual_receive(RIG *rig, int dual)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: dual=%d\n", __func__, dual);
+
+    /* FR00 = dual receive, FR01 = single receive */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FR%02d;",
+             dual ? FTX1_FR_DUAL_RECEIVE : FTX1_FR_SINGLE_RECEIVE);
+
+    return newcat_set_cmd(rig);
+}
+
+int ftx1_get_dual_receive(RIG *rig, int *dual)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    int p1p2;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FR;");
+
+    ret = newcat_get_cmd(rig);
+
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    /* Response: FR00 or FR01 */
+    if (sscanf(priv->ret_data + 2, "%02d", &p1p2) != 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    /* 00 = dual (return 1), 01 = single (return 0) */
+    *dual = (p1p2 == FTX1_FR_DUAL_RECEIVE) ? 1 : 0;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: dual=%d\n", __func__, *dual);
+
+    return RIG_OK;
+}
+
 /* ========== FROM ftx1_freq.c ========== */
-/*
- * Hamlib Yaesu backend - FTX-1 Frequency Commands
- * Copyright (c) 2025 by Terrell Deppe (KJ5HST)
- *
- * This file implements CAT commands for frequency setting/getting.
- *
- * CAT Commands in this file:
- *   FA P1...P9;  - VFO-A Frequency (9-digit Hz format)
- *   FB P1...P9;  - VFO-B Frequency (9-digit Hz format)
- *
- * Note: CF (Clarifier) command returns '?' in firmware - not implemented.
- *       RIT/XIT handled via newcat functions using RI/XI commands.
- */
 
 
 // FTX-1 uses 9-digit Hz format for frequency
 #define FTX1_FREQ_DIGITS 9
 
-/*
- * ftx1_set_freq
- *
- * Set frequency on specified VFO using FA (MAIN) or FB (SUB) command.
- * Format: FA000014074; or FB000014074; (9 digits, Hz)
- */
 int ftx1_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -356,12 +378,6 @@ int ftx1_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     return newcat_set_cmd(rig);
 }
 
-/*
- * ftx1_get_freq
- *
- * Get frequency from specified VFO using FA (MAIN) or FB (SUB) command.
- * Response format: FA000014074; or FB000014074; (9 digits, Hz)
- */
 int ftx1_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -416,21 +432,142 @@ int ftx1_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 }
 
 
+/* Repeater shift mode values */
+#define FTX1_OS_SIMPLEX  0   /* Simplex (no shift) */
+#define FTX1_OS_PLUS     1   /* Plus shift (+) */
+#define FTX1_OS_MINUS    2   /* Minus shift (-) */
+#define FTX1_OS_ARS      3   /* Automatic Repeater Shift */
+
+int ftx1_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int p1, p2;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s shift=%d\n",
+              __func__, rig_strvfo(vfo), shift);
+
+    /* Determine VFO */
+    switch (vfo)
+    {
+    case RIG_VFO_A:
+    case RIG_VFO_MAIN:
+    case RIG_VFO_CURR:
+        p1 = 0;
+        break;
+
+    case RIG_VFO_B:
+    case RIG_VFO_SUB:
+        p1 = 1;
+        break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n",
+                  __func__, rig_strvfo(vfo));
+        return -RIG_EINVAL;
+    }
+
+    /* Convert Hamlib shift to FTX-1 code */
+    switch (shift)
+    {
+    case RIG_RPT_SHIFT_NONE:
+        p2 = FTX1_OS_SIMPLEX;
+        break;
+
+    case RIG_RPT_SHIFT_PLUS:
+        p2 = FTX1_OS_PLUS;
+        break;
+
+    case RIG_RPT_SHIFT_MINUS:
+        p2 = FTX1_OS_MINUS;
+        break;
+
+    default:
+        /* Map unknown shifts to simplex */
+        p2 = FTX1_OS_SIMPLEX;
+        break;
+    }
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "OS%d%d;", p1, p2);
+
+    return newcat_set_cmd(rig);
+}
+
+int ftx1_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *shift)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    int p1, p2;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
+
+    /* Determine VFO */
+    switch (vfo)
+    {
+    case RIG_VFO_A:
+    case RIG_VFO_MAIN:
+    case RIG_VFO_CURR:
+        p1 = 0;
+        break;
+
+    case RIG_VFO_B:
+    case RIG_VFO_SUB:
+        p1 = 1;
+        break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n",
+                  __func__, rig_strvfo(vfo));
+        return -RIG_EINVAL;
+    }
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "OS%d;", p1);
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    /* Response: OS P1 P2 */
+    if (sscanf(priv->ret_data + 2, "%1d%1d", &p1, &p2) != 2)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n",
+                  __func__, priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    /* Convert FTX-1 code to Hamlib shift */
+    switch (p2)
+    {
+    case FTX1_OS_SIMPLEX:
+        *shift = RIG_RPT_SHIFT_NONE;
+        break;
+
+    case FTX1_OS_PLUS:
+        *shift = RIG_RPT_SHIFT_PLUS;
+        break;
+
+    case FTX1_OS_MINUS:
+        *shift = RIG_RPT_SHIFT_MINUS;
+        break;
+
+    case FTX1_OS_ARS:
+        /* ARS maps to none for Hamlib */
+        *shift = RIG_RPT_SHIFT_NONE;
+        break;
+
+    default:
+        *shift = RIG_RPT_SHIFT_NONE;
+        break;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: shift=%d\n", __func__, *shift);
+
+    return RIG_OK;
+}
+
+
 /* ========== FROM ftx1_preamp.c ========== */
-/*
- * Hamlib Yaesu backend - FTX-1 Preamp and Attenuator Group
- * Copyright (c) 2025 by Terrell Deppe (KJ5HST)
- *
- * This file implements CAT commands for RF preamp (PA) and attenuator (RA).
- *
- * CAT Commands in this file:
- *   PA P1 P2;        - Preamp (P1=band type, P2=preamp code)
- *                      P1: 0=HF/50MHz, 1=VHF (144MHz), 2=UHF (430MHz)
- *                      P2 (HF/50): 0=IPO (bypass), 1=AMP1, 2=AMP2
- *                      P2 (VHF/UHF): 0=OFF, 1=ON
- *   RA P1 P2;        - Attenuator (P1=0 fixed, P2=0 off/1 on)
- *                      Provides 12dB fixed attenuation when enabled
- */
 
 
 /* Preamp codes from CAT manual page 21 */
@@ -450,10 +587,6 @@ int ftx1_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 #define FTX1_ATT_OFF 0
 #define FTX1_ATT_ON 1
 
-/*
- * ftx1_get_band_type - Helper to determine band type from frequency
- * Returns: 0=HF/50MHz, 1=VHF (144MHz), 2=UHF (430MHz)
- */
 static int ftx1_get_band_type(RIG *rig, vfo_t vfo)
 {
     freq_t freq = 0;
@@ -483,13 +616,6 @@ static int ftx1_get_band_type(RIG *rig, vfo_t vfo)
     return FTX1_BAND_HF50;  /* HF and 50 MHz */
 }
 
-/*
- * ftx1_set_preamp_helper - Set Preamp
- * CAT command: PA P1 P2; (P1=band type, P2=preamp code)
- *
- * For HF/50: P2: 0=IPO, 1=AMP1, 2=AMP2
- * For VHF/UHF: P2: 0=OFF, 1=ON
- */
 int ftx1_set_preamp_helper(RIG *rig, vfo_t vfo, value_t val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -515,10 +641,6 @@ int ftx1_set_preamp_helper(RIG *rig, vfo_t vfo, value_t val)
     return newcat_set_cmd(rig);
 }
 
-/*
- * ftx1_get_preamp_helper - Get Preamp
- * CAT command: PA P1; Response: PA P1 P2;
- */
 int ftx1_get_preamp_helper(RIG *rig, vfo_t vfo, value_t *val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -558,10 +680,6 @@ int ftx1_get_preamp_helper(RIG *rig, vfo_t vfo, value_t *val)
     return RIG_OK;
 }
 
-/*
- * ftx1_set_att_helper - Set Attenuator
- * CAT command: RA P1 P2; (P1=0 fixed, P2=0 OFF/1 ON)
- */
 int ftx1_set_att_helper(RIG *rig, vfo_t vfo, value_t val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -576,10 +694,6 @@ int ftx1_set_att_helper(RIG *rig, vfo_t vfo, value_t val)
     return newcat_set_cmd(rig);
 }
 
-/*
- * ftx1_get_att_helper - Get Attenuator
- * CAT command: RA0; Response: RA0 P2; (P2=0 OFF/1 ON)
- */
 int ftx1_get_att_helper(RIG *rig, vfo_t vfo, value_t *val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -611,780 +725,7 @@ int ftx1_get_att_helper(RIG *rig, vfo_t vfo, value_t *val)
     return RIG_OK;
 }
 
-/* ========== FROM ftx1_noise.c ========== */
-/*
- * Hamlib Yaesu backend - FTX-1 Noise Reduction Group
- * Copyright (c) 2025 by Terrell Deppe (KJ5HST)
- *
- * This file implements helper functions for noise blanker and digital noise reduction.
- *
- * CAT Commands in this file:
- *   NL P1 P2P3P4;    - Noise Blanker Level (P1=VFO 0/1, P2P3P4=000-010)
- *                      Set to 000 for OFF, 001-010 for level
- *   RL P1 P2P3;      - Noise Reduction Level (P1=VFO 0/1, P2P3=00-15)
- *                      Set to 00 for OFF, 01-15 for level
- *
- * Note: NB and NR on/off commands return ?; on FTX-1.
- *       Use NL/RL level commands instead (level 0 = OFF).
- */
-
-
-/* Level ranges */
-#define FTX1_NB_LEVEL_MIN 0
-#define FTX1_NB_LEVEL_MAX 10   /* 0=OFF, 1-10=level */
-#define FTX1_NR_LEVEL_MIN 0
-#define FTX1_NR_LEVEL_MAX 15   /* 0=OFF, 1-15=level */
-
-/*
- * ftx1_set_nb_helper - Set Noise Blanker on/off via NL level
- *
- * FTX-1 doesn't have NB on/off command, so we use NL level:
- *   NL P1 000; = OFF
- *   NL P1 005; = ON (mid-level)
- */
-int ftx1_set_nb_helper(RIG *rig, vfo_t vfo, int status)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
-    int level = status ? 5 : 0;  /* Default to mid-level when turning on */
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d status=%d\n", __func__,
-              rig_strvfo(vfo), p1, status);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "NL%d%03d;", p1, level);
-    return newcat_set_cmd(rig);
-}
-
-/*
- * ftx1_get_nb_helper - Get Noise Blanker on/off status
- *
- * Query NL level - if > 0, NB is on
- */
-int ftx1_get_nb_helper(RIG *rig, vfo_t vfo, int *status)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
-    int p1_resp, level;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
-              rig_strvfo(vfo), p1);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "NL%d;", p1);
-
-    ret = newcat_get_cmd(rig);
-    if (ret != RIG_OK) return ret;
-
-    /* Response: NL P1 P2P3P4; (VFO + 3-digit level 000-010) */
-    if (sscanf(priv->ret_data + 2, "%1d%3d", &p1_resp, &level) != 2)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    *status = (level > 0) ? 1 : 0;
-    return RIG_OK;
-}
-
-/*
- * ftx1_set_nr_helper - Set Noise Reduction on/off via RL level
- *
- * FTX-1 doesn't have NR on/off command, so we use RL level:
- *   RL P1 00; = OFF
- *   RL P1 08; = ON (mid-level)
- */
-int ftx1_set_nr_helper(RIG *rig, vfo_t vfo, int status)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
-    int level = status ? 8 : 0;  /* Default to mid-level when turning on */
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d status=%d\n", __func__,
-              rig_strvfo(vfo), p1, status);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RL%d%02d;", p1, level);
-    return newcat_set_cmd(rig);
-}
-
-/*
- * ftx1_get_nr_helper - Get Noise Reduction on/off status
- *
- * Query RL level - if > 0, NR is on
- */
-int ftx1_get_nr_helper(RIG *rig, vfo_t vfo, int *status)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
-    int p1_resp, level;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
-              rig_strvfo(vfo), p1);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RL%d;", p1);
-
-    ret = newcat_get_cmd(rig);
-    if (ret != RIG_OK) return ret;
-
-    /* Response: RL P1 P2P3; (VFO + 2-digit level 00-15) */
-    if (sscanf(priv->ret_data + 2, "%1d%2d", &p1_resp, &level) != 2)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    *status = (level > 0) ? 1 : 0;
-    return RIG_OK;
-}
-
-/*
- * ftx1_set_nb_level_helper - Set Noise Blanker Level
- * CAT command: NL P1 P2P3P4; (P1=VFO, P2P3P4=000-010)
- */
-int ftx1_set_nb_level_helper(RIG *rig, vfo_t vfo, value_t val)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
-    int level = (int)(val.f * FTX1_NB_LEVEL_MAX);
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d level=%d\n", __func__,
-              rig_strvfo(vfo), p1, level);
-
-    if (level < FTX1_NB_LEVEL_MIN) level = FTX1_NB_LEVEL_MIN;
-    if (level > FTX1_NB_LEVEL_MAX) level = FTX1_NB_LEVEL_MAX;
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "NL%d%03d;", p1, level);
-    return newcat_set_cmd(rig);
-}
-
-/*
- * ftx1_get_nb_level_helper - Get Noise Blanker Level
- * CAT command: NL P1; Response: NL P1 P2P3P4;
- */
-int ftx1_get_nb_level_helper(RIG *rig, vfo_t vfo, value_t *val)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
-    int p1_resp, level;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
-              rig_strvfo(vfo), p1);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "NL%d;", p1);
-
-    ret = newcat_get_cmd(rig);
-    if (ret != RIG_OK) return ret;
-
-    /* Response: NL P1 P2P3P4; (3-digit level 000-010) */
-    if (sscanf(priv->ret_data + 2, "%1d%3d", &p1_resp, &level) != 2)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    val->f = (float)level / FTX1_NB_LEVEL_MAX;
-    return RIG_OK;
-}
-
-/*
- * ftx1_set_nr_level_helper - Set Noise Reduction Level
- * CAT command: RL P1 P2P3; (P1=VFO, P2P3=00-15)
- */
-int ftx1_set_nr_level_helper(RIG *rig, vfo_t vfo, value_t val)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
-    int level = (int)(val.f * FTX1_NR_LEVEL_MAX);
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d level=%d\n", __func__,
-              rig_strvfo(vfo), p1, level);
-
-    if (level < FTX1_NR_LEVEL_MIN) level = FTX1_NR_LEVEL_MIN;
-    if (level > FTX1_NR_LEVEL_MAX) level = FTX1_NR_LEVEL_MAX;
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RL%d%02d;", p1, level);
-    return newcat_set_cmd(rig);
-}
-
-/*
- * ftx1_get_nr_level_helper - Get Noise Reduction Level
- * CAT command: RL P1; Response: RL P1 P2P3;
- */
-int ftx1_get_nr_level_helper(RIG *rig, vfo_t vfo, value_t *val)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
-    int p1_resp, level;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
-              rig_strvfo(vfo), p1);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RL%d;", p1);
-
-    ret = newcat_get_cmd(rig);
-    if (ret != RIG_OK) return ret;
-
-    /* Response: RL P1 P2P3; (2-digit level 00-15) */
-    if (sscanf(priv->ret_data + 2, "%1d%2d", &p1_resp, &level) != 2)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    val->f = (float)level / FTX1_NR_LEVEL_MAX;
-    return RIG_OK;
-}
-
-/*
- * ftx1_set_na_helper - Set Narrow filter (NA command)
- * CAT command: NA P1 P2; (P1=VFO 0/1, P2=0/1 off/on)
- */
-int ftx1_set_na_helper(RIG *rig, vfo_t vfo, int status)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
-    int p2 = status ? 1 : 0;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d status=%d\n", __func__,
-              rig_strvfo(vfo), p1, status);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "NA%d%d;", p1, p2);
-    return newcat_set_cmd(rig);
-}
-
-/*
- * ftx1_get_na_helper - Get Narrow filter status
- * CAT command: NA P1; Response: NA P1 P2;
- */
-int ftx1_get_na_helper(RIG *rig, vfo_t vfo, int *status)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
-    int p1_resp, p2;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
-              rig_strvfo(vfo), p1);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "NA%d;", p1);
-
-    ret = newcat_get_cmd(rig);
-    if (ret != RIG_OK) return ret;
-
-    /* Response: NA P1 P2; (P1=VFO, P2=on/off) */
-    if (sscanf(priv->ret_data + 2, "%1d%1d", &p1_resp, &p2) != 2)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    *status = p2;
-    return RIG_OK;
-}
-
-/* ========== FROM ftx1_filter.c ========== */
-/*
- * Hamlib Yaesu backend - FTX-1 Filter Commands
- * Copyright (c) 2025 by Terrell Deppe (KJ5HST)
- *
- * This file implements CAT commands for notch, contour, and audio peak filters.
- *
- * CAT Commands in this file:
- *   BC P1 P2;           - Beat Cancel/ANF (P1=VFO 0/1, P2=0 off/1 on)
- *   BP P1 P2 P3P3P3;    - Manual Notch (P1=VFO, P2=0 on/off or 1 freq, P3=value)
- *                         P2=0: P3=000 OFF, 001 ON
- *                         P2=1: P3=001-320 (x10 Hz = 10-3200 Hz notch freq)
- *   CO P1 P2 P3P3P3P3;  - Contour/APF (P1=VFO, P2=type, P3=4-digit value)
- *                         P2=0: CONTOUR on/off (P3=0000 OFF, 0001 ON)
- *                         P2=1: CONTOUR freq (P3=0010-3200 Hz)
- *                         P2=2: APF on/off (P3=0000 OFF, 0001 ON)
- *                         P2=3: APF freq (P3=0000-0050, maps to -250 to +250 Hz)
- *   FN P1 P2;           - Filter Number (P1=VFO 0/1, P2=filter 1-3)
- */
-
-
-/*
- * ftx1_set_anf_helper - Set Auto Notch Filter (Beat Cancel) on/off
- * CAT command: BC P1 P2;
- */
-int ftx1_set_anf_helper(RIG *rig, vfo_t vfo, int status)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d status=%d\n", __func__,
-              rig_strvfo(vfo), p1, status);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BC%d%d;", p1, status ? 1 : 0);
-
-    return newcat_set_cmd(rig);
-}
-
-/*
- * ftx1_get_anf_helper - Get Auto Notch Filter (Beat Cancel) status
- * CAT command: BC P1;
- */
-int ftx1_get_anf_helper(RIG *rig, vfo_t vfo, int *status)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
-    int p1_resp, p2;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__, rig_strvfo(vfo), p1);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BC%d;", p1);
-
-    ret = newcat_get_cmd(rig);
-
-    if (ret != RIG_OK)
-    {
-        return ret;
-    }
-
-    // Response: BC01 (VFO=0, status=1)
-    if (sscanf(priv->ret_data + 2, "%1d%1d", &p1_resp, &p2) != 2)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    *status = p2;
-
-    return RIG_OK;
-}
-
-/*
- * ftx1_set_mn_helper - Set Manual Notch on/off
- * CAT command: BP P1 0 P3P3P3; (P2=0 for on/off, P3=000 OFF, 001 ON)
- */
-int ftx1_set_mn_helper(RIG *rig, vfo_t vfo, int status)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d status=%d\n", __func__,
-              rig_strvfo(vfo), p1, status);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BP%d0%03d;", p1, status ? 1 : 0);
-
-    return newcat_set_cmd(rig);
-}
-
-/*
- * ftx1_get_mn_helper - Get Manual Notch status
- * CAT command: BP P1 0;
- */
-int ftx1_get_mn_helper(RIG *rig, vfo_t vfo, int *status)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
-    int p1_resp, p2, p3;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__, rig_strvfo(vfo), p1);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BP%d0;", p1);
-
-    ret = newcat_get_cmd(rig);
-
-    if (ret != RIG_OK)
-    {
-        return ret;
-    }
-
-    // Response: BP00001 (VFO=0, P2=0, P3=001 ON)
-    if (sscanf(priv->ret_data + 2, "%1d%1d%3d", &p1_resp, &p2, &p3) != 3)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    *status = (p3 == 1) ? 1 : 0;
-
-    return RIG_OK;
-}
-
-/*
- * ftx1_set_apf_helper - Set Audio Peak Filter on/off
- * CAT command: CO P1 2 P3P3P3P3; (P2=2 for APF on/off)
- */
-int ftx1_set_apf_helper(RIG *rig, vfo_t vfo, int status)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d status=%d\n", __func__,
-              rig_strvfo(vfo), p1, status);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CO%d2%04d;", p1, status ? 1 : 0);
-
-    return newcat_set_cmd(rig);
-}
-
-/*
- * ftx1_get_apf_helper - Get Audio Peak Filter status
- * CAT command: CO P1 2;
- */
-int ftx1_get_apf_helper(RIG *rig, vfo_t vfo, int *status)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
-    int p1_resp, p2, p3;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__, rig_strvfo(vfo), p1);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CO%d2;", p1);
-
-    ret = newcat_get_cmd(rig);
-
-    if (ret != RIG_OK)
-    {
-        return ret;
-    }
-
-    // Response: CO020001 (VFO=0, P2=2, P3=0001 ON)
-    if (sscanf(priv->ret_data + 2, "%1d%1d%4d", &p1_resp, &p2, &p3) != 3)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    *status = (p3 == 1) ? 1 : 0;
-
-    return RIG_OK;
-}
-
-/*
- * ftx1_set_notchf_helper - Set Manual Notch frequency
- * CAT command: BP P1 1 P3P3P3; (P2=1 for freq, P3=001-320 x10Hz)
- */
-int ftx1_set_notchf_helper(RIG *rig, vfo_t vfo, value_t val)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
-    int p3;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d freq=%d\n", __func__,
-              rig_strvfo(vfo), p1, val.i);
-
-    // Convert Hz to command units (x10)
-    p3 = val.i / 10;
-
-    if (p3 < 1)
-    {
-        p3 = 1;
-    }
-
-    if (p3 > 320)
-    {
-        p3 = 320;
-    }
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BP%d1%03d;", p1, p3);
-
-    return newcat_set_cmd(rig);
-}
-
-/*
- * ftx1_get_notchf_helper - Get Manual Notch frequency
- * CAT command: BP P1 1;
- */
-int ftx1_get_notchf_helper(RIG *rig, vfo_t vfo, value_t *val)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
-    int p1_resp, p2, p3;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__, rig_strvfo(vfo), p1);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BP%d1;", p1);
-
-    ret = newcat_get_cmd(rig);
-
-    if (ret != RIG_OK)
-    {
-        return ret;
-    }
-
-    // Response: BP01320 (VFO=0, P2=1, P3=320)
-    if (sscanf(priv->ret_data + 2, "%1d%1d%3d", &p1_resp, &p2, &p3) != 3)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    val->i = p3 * 10;  // Convert to Hz
-
-    return RIG_OK;
-}
-
-/*
- * ftx1_set_apf_level_helper - Set APF frequency offset
- * CAT command: CO P1 3 P3P3P3P3; (P2=3 for APF freq, P3=0000-0050)
- */
-int ftx1_set_apf_level_helper(RIG *rig, vfo_t vfo, value_t val)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
-    int p3;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d level=%f\n", __func__,
-              rig_strvfo(vfo), p1, val.f);
-
-    // val.f is 0.0-1.0, map to 0-50
-    p3 = (int)(val.f * 50);
-
-    if (p3 < 0)
-    {
-        p3 = 0;
-    }
-
-    if (p3 > 50)
-    {
-        p3 = 50;
-    }
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CO%d3%04d;", p1, p3);
-
-    return newcat_set_cmd(rig);
-}
-
-/*
- * ftx1_get_apf_level_helper - Get APF frequency offset
- * CAT command: CO P1 3;
- */
-int ftx1_get_apf_level_helper(RIG *rig, vfo_t vfo, value_t *val)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
-    int p1_resp, p2, p3;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__, rig_strvfo(vfo), p1);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CO%d3;", p1);
-
-    ret = newcat_get_cmd(rig);
-
-    if (ret != RIG_OK)
-    {
-        return ret;
-    }
-
-    // Response: CO030025 (VFO=0, P2=3, P3=0025)
-    if (sscanf(priv->ret_data + 2, "%1d%1d%4d", &p1_resp, &p2, &p3) != 3)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    val->f = (float)p3 / 50.0f;  // Convert 0-50 to 0.0-1.0
-
-    return RIG_OK;
-}
-
-/*
- * ftx1_set_filter_number - Set Filter Number
- * CAT command: FN P1 P2; (P1=VFO 0/1, P2=filter 1-3)
- */
-int ftx1_set_filter_number(RIG *rig, vfo_t vfo, int filter)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d filter=%d\n", __func__,
-              rig_strvfo(vfo), p1, filter);
-
-    if (filter < 1 || filter > 3)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: invalid filter number %d\n", __func__, filter);
-        return -RIG_EINVAL;
-    }
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FN%d%d;", p1, filter);
-
-    return newcat_set_cmd(rig);
-}
-
-/*
- * ftx1_get_filter_number - Get Filter Number
- * CAT command: FN P1; Response: FN P1 P2;
- */
-int ftx1_get_filter_number(RIG *rig, vfo_t vfo, int *filter)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
-    int p1_resp, p2;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__, rig_strvfo(vfo), p1);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FN%d;", p1);
-
-    ret = newcat_get_cmd(rig);
-
-    if (ret != RIG_OK)
-    {
-        return ret;
-    }
-
-    /* Response: FN01 (VFO=0, filter=1) */
-    if (sscanf(priv->ret_data + 2, "%1d%1d", &p1_resp, &p2) != 2)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    *filter = p2;
-
-    return RIG_OK;
-}
-
-/*
- * ftx1_set_contour - Set Contour on/off
- * CAT command: CO P1 0 P3P3P3P3; (P2=0 for on/off)
- */
-int ftx1_set_contour(RIG *rig, vfo_t vfo, int status)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d status=%d\n", __func__,
-              rig_strvfo(vfo), p1, status);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CO%d0%04d;", p1, status ? 1 : 0);
-
-    return newcat_set_cmd(rig);
-}
-
-/*
- * ftx1_get_contour - Get Contour status
- * CAT command: CO P1 0;
- */
-int ftx1_get_contour(RIG *rig, vfo_t vfo, int *status)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
-    int p1_resp, p2, p3;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__, rig_strvfo(vfo), p1);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CO%d0;", p1);
-
-    ret = newcat_get_cmd(rig);
-
-    if (ret != RIG_OK)
-    {
-        return ret;
-    }
-
-    /* Response: CO000001 (VFO=0, P2=0, P3=0001 ON) */
-    if (sscanf(priv->ret_data + 2, "%1d%1d%4d", &p1_resp, &p2, &p3) != 3)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    *status = (p3 == 1) ? 1 : 0;
-
-    return RIG_OK;
-}
-
-/*
- * ftx1_set_contour_freq - Set Contour frequency
- * CAT command: CO P1 1 P3P3P3P3; (P2=1 for freq, P3=0010-3200 Hz)
- */
-int ftx1_set_contour_freq(RIG *rig, vfo_t vfo, int freq)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d freq=%d\n", __func__,
-              rig_strvfo(vfo), p1, freq);
-
-    if (freq < 10) freq = 10;
-    if (freq > 3200) freq = 3200;
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CO%d1%04d;", p1, freq);
-
-    return newcat_set_cmd(rig);
-}
-
-/*
- * ftx1_get_contour_freq - Get Contour frequency
- * CAT command: CO P1 1;
- */
-int ftx1_get_contour_freq(RIG *rig, vfo_t vfo, int *freq)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
-    int p1_resp, p2, p3;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__, rig_strvfo(vfo), p1);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CO%d1;", p1);
-
-    ret = newcat_get_cmd(rig);
-
-    if (ret != RIG_OK)
-    {
-        return ret;
-    }
-
-    /* Response: CO011000 (VFO=0, P2=1, P3=1000 Hz) */
-    if (sscanf(priv->ret_data + 2, "%1d%1d%4d", &p1_resp, &p2, &p3) != 3)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    *freq = p3;
-
-    return RIG_OK;
-}
-
 /* ========== FROM ftx1_audio.c ========== */
-/*
- * Hamlib Yaesu backend - FTX-1 Audio and Levels Group
- * Copyright (c) 2025 by Terrell Deppe (KJ5HST)
- *
- * This file implements CAT commands for audio gain, RF gain, meters, and AGC.
- *
- * CAT Commands in this file:
- *   AG P1 P2P3P4;    - AF Gain (P1=VFO 0/1, P2-P4=000-255)
- *   RG P1 P2P3P4;    - RF Gain (P1=VFO 0/1, P2-P4=000-255)
- *   MG P1P2P3;       - Mic Gain (000-100)
- *   GT P1P2P3P4;     - AGC Time Constant (0000-6000ms or code)
- *   ML P1P2P3;       - Monitor Level (000-100)
- *   SM P1;           - S-Meter Read (P1=0 main, returns 0000-0255)
- *   RM P1;           - Meter Read (1=COMP, 2=ALC, 3=PO, 4=SWR, 5=ID, 6=VDD)
- *   PC P1 P2P2P2;    - Power Control (P1=1 field head, P1=2 SPA-1)
- *                      Field head: 0.5-10W (can return decimal: PC10.5, PC11.5)
- *                      SPA-1: 5-100W (PC2005 to PC2100)
- *   VG P1P2P3;       - VOX Gain (000-100)
- *   VD P1P2P3P4;     - VOX Delay (0030-3000ms)
- *   SD P1P2P3P4;     - CW Break-in Delay (0030-3000ms)
- */
 
 
 /* Level ranges */
@@ -1394,10 +735,12 @@ int ftx1_get_contour_freq(RIG *rig, vfo_t vfo, int *freq)
 #define FTX1_RF_GAIN_MAX 255
 #define FTX1_MIC_GAIN_MIN 0
 #define FTX1_MIC_GAIN_MAX 100
-#define FTX1_POWER_MIN_FIELD 0.5f   /* Field head minimum */
-#define FTX1_POWER_MAX_FIELD 10.0f  /* Field head maximum */
-#define FTX1_POWER_MIN_SPA1 5       /* SPA-1 minimum */
-#define FTX1_POWER_MAX_SPA1 100     /* SPA-1 maximum */
+
+#define FTX1_POWER_MIN_FIELD 0.5f         /* Field head minimum (both modes) */
+#define FTX1_POWER_MAX_FIELD_BATTERY 6.0f /* Field head on battery maximum */
+#define FTX1_POWER_MAX_FIELD_12V 10.0f    /* Field head on 12V maximum */
+#define FTX1_POWER_MIN_SPA1 5             /* Optima/SPA-1 minimum */
+#define FTX1_POWER_MAX_SPA1 100           /* Optima/SPA-1 maximum */
 
 /* Set AF Gain (AG P1 P2P3P4;) */
 int ftx1_set_af_gain(RIG *rig, vfo_t vfo, float val)
@@ -1587,30 +930,13 @@ int ftx1_get_meter(RIG *rig, int meter_type, int *val)
     return RIG_OK;
 }
 
-/*
- * ftx1_set_power - Set Power Control
- *
- * CAT command: PC P1 P2...;
- *   P1 = 1 for field head (0.5-10W)
- *   P1 = 2 for SPA-1 (5-100W)
- *
- * PC1 (field head) format:
- *   - Fractional watts: PC10.5; PC11.1; PC11.5; etc. (decimal, NOT zero-padded)
- *   - Whole watts: PC1001; PC1002; ... PC1010; (3-digit zero-padded)
- *
- * PC2 (SPA-1) format:
- *   - Always whole watts: PC2005; PC2010; ... PC2100; (3-digit zero-padded)
- *   - Never uses decimal format
- *
- * Uses pre-detected head type from ftx1_open() for efficiency and safety.
- * Falls back to PC query if detection hasn't been done yet.
- */
 int ftx1_set_power(RIG *rig, float val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
     int head_type;
     float watts;
+    float max_power;
     int watts_int;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: val=%f\n", __func__, val);
@@ -1629,15 +955,18 @@ int ftx1_set_power(RIG *rig, float val)
         ret = newcat_get_cmd(rig);
         if (ret == RIG_OK && strlen(priv->ret_data) >= 3)
         {
-            int p1;
-            if (sscanf(priv->ret_data + 2, "%1d", &p1) == 1)
+            if (strncmp(priv->ret_data, "PC2", 3) == 0)
             {
-                head_type = p1;
+                head_type = FTX1_HEAD_SPA1;
+            }
+            else
+            {
+                head_type = FTX1_HEAD_FIELD_12V;  /* Default to 12V if unknown */
             }
         }
         if (head_type == FTX1_HEAD_UNKNOWN)
         {
-            head_type = FTX1_HEAD_FIELD;  /* Default to field head */
+            head_type = FTX1_HEAD_FIELD_12V;  /* Default to field head 12V */
         }
         /* Small delay after query */
         hl_usleep(50 * 1000);
@@ -1647,7 +976,7 @@ int ftx1_set_power(RIG *rig, float val)
 
     if (head_type == FTX1_HEAD_SPA1)
     {
-        /* SPA-1: 5-100W, always 3-digit zero-padded whole watts */
+        /* Optima/SPA-1: 5-100W, always 3-digit zero-padded whole watts */
         watts_int = (int)(val * FTX1_POWER_MAX_SPA1);
         if (watts_int < FTX1_POWER_MIN_SPA1) watts_int = FTX1_POWER_MIN_SPA1;
         if (watts_int > FTX1_POWER_MAX_SPA1) watts_int = FTX1_POWER_MAX_SPA1;
@@ -1655,10 +984,23 @@ int ftx1_set_power(RIG *rig, float val)
     }
     else
     {
-        /* Field head: 0.5-10W */
-        watts = val * FTX1_POWER_MAX_FIELD;
+        /*
+         * Field head power ranges:
+         *   FIELD_BATTERY: 0.5-6W
+         *   FIELD_12V:     0.5-10W
+         */
+        if (head_type == FTX1_HEAD_FIELD_BATTERY)
+        {
+            max_power = FTX1_POWER_MAX_FIELD_BATTERY;
+        }
+        else
+        {
+            max_power = FTX1_POWER_MAX_FIELD_12V;
+        }
+
+        watts = val * max_power;
         if (watts < FTX1_POWER_MIN_FIELD) watts = FTX1_POWER_MIN_FIELD;
-        if (watts > FTX1_POWER_MAX_FIELD) watts = FTX1_POWER_MAX_FIELD;
+        if (watts > max_power) watts = max_power;
 
         if (watts == (float)(int)watts)
         {
@@ -1675,22 +1017,14 @@ int ftx1_set_power(RIG *rig, float val)
     return newcat_set_cmd(rig);
 }
 
-/*
- * ftx1_get_power - Get Power Control
- *
- * Response formats:
- *   PC1 (field head, 0.5-10W):
- *     - Whole watts: PC1001; PC1002; ... PC1010; (3-digit zero-padded)
- *     - Fractional: PC10.5; PC11.1; PC11.5; etc. (decimal format)
- *   PC2 (SPA-1, 5-100W):
- *     - Always whole watts: PC2005; PC2010; ... PC2100; (3-digit zero-padded)
- */
 int ftx1_get_power(RIG *rig, float *val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
     int p1;
+    int head_type;
     float watts;
+    float max_power;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
@@ -1718,21 +1052,36 @@ int ftx1_get_power(RIG *rig, float *val)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: p1=%d watts=%.1f\n", __func__, p1, watts);
 
+    /* Get detected head type for proper scaling */
+    head_type = ftx1_get_head_type();
+
     /* Convert watts to 0.0-1.0 range based on head type */
-    if (p1 == 1)
+    if (p1 == 2)
     {
-        /* Field head: 0.5-10W maps to 0.05-1.0 */
-        *val = watts / FTX1_POWER_MAX_FIELD;
-    }
-    else if (p1 == 2)
-    {
-        /* SPA-1: 5-100W maps to 0.05-1.0 */
+        /* Optima/SPA-1: 5-100W maps to 0.05-1.0 */
         *val = watts / (float)FTX1_POWER_MAX_SPA1;
+    }
+    else if (p1 == 1)
+    {
+        /*
+         * Field head: scale based on detected power source
+         *   FIELD_BATTERY: 0.5-6W
+         *   FIELD_12V:     0.5-10W
+         */
+        if (head_type == FTX1_HEAD_FIELD_BATTERY)
+        {
+            max_power = FTX1_POWER_MAX_FIELD_BATTERY;
+        }
+        else
+        {
+            max_power = FTX1_POWER_MAX_FIELD_12V;
+        }
+        *val = watts / max_power;
     }
     else
     {
         rig_debug(RIG_DEBUG_ERR, "%s: unexpected P1=%d\n", __func__, p1);
-        *val = watts / FTX1_POWER_MAX_FIELD;  /* Default to field head */
+        *val = watts / FTX1_POWER_MAX_FIELD_12V;  /* Default to field head 12V */
     }
 
     return RIG_OK;
@@ -1778,13 +1127,6 @@ int ftx1_get_vox_gain(RIG *rig, float *val)
     return RIG_OK;
 }
 
-/*
- * ftx1_set_vox_delay - Set VOX Delay
- * CAT command: VD P1P2; (2 digits, 00-30)
- *
- * FTX-1 uses 00-30 range (100ms units: 0=0ms to 30=3000ms)
- * Hamlib VOXDELAY is in tenths of seconds (0-30 maps to 0-3.0s)
- */
 int ftx1_set_vox_delay(RIG *rig, int tenths)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -1824,12 +1166,6 @@ int ftx1_get_vox_delay(RIG *rig, int *tenths)
     return RIG_OK;
 }
 
-/*
- * ftx1_set_monitor_level - Set Monitor Level (ML P1 P2P3P4;)
- * CAT command: ML P1 P2P3P4; (P1=VFO 0/1, P2-P4=000-100)
- *
- * FTX-1 uses P1=0 for MAIN VFO
- */
 int ftx1_set_monitor_level(RIG *rig, float val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -1845,10 +1181,6 @@ int ftx1_set_monitor_level(RIG *rig, float val)
     return newcat_set_cmd(rig);
 }
 
-/*
- * ftx1_get_monitor_level - Get Monitor Level
- * Response: ML P1 P2P3P4; (P1=VFO, P2-P4=level)
- */
 int ftx1_get_monitor_level(RIG *rig, float *val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -1875,19 +1207,6 @@ int ftx1_get_monitor_level(RIG *rig, float *val)
     return RIG_OK;
 }
 
-/*
- * ftx1_set_agc - Set AGC Time Constant
- * CAT command: GT P1 P2; (P1=VFO 0/1, P2=mode 0-4)
- *
- * FTX-1 AGC values (P2):
- *   0 = OFF
- *   1 = FAST
- *   2 = MID
- *   3 = SLOW
- *   4 = AUTO
- *
- * Note: Always uses P1=0 (MAIN VFO) for now
- */
 int ftx1_set_agc(RIG *rig, int val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -1927,10 +1246,6 @@ int ftx1_get_agc(RIG *rig, int *val)
     return RIG_OK;
 }
 
-/*
- * ftx1_set_amc_output - Set AMC Output Level (AO command)
- * CAT command: AO P1P2P3; (000-100)
- */
 int ftx1_set_amc_output(RIG *rig, float val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -1971,16 +1286,6 @@ int ftx1_get_amc_output(RIG *rig, float *val)
     return RIG_OK;
 }
 
-/*
- * ftx1_set_width - Set Filter Width (SH command)
- * CAT command: SH P1 P2 P3P4; (P1=VFO, P2=0, P3P4=00-23)
- *
- * FTX-1 width codes (00-23):
- *   00=200, 01=250, 02=300, 03=350, 04=400, 05=450, 06=500
- *   07=600, 08=700, 09=800, 10=900, 11=1000, 12=1200, 13=1400
- *   14=1600, 15=1800, 16=2000, 17=2200, 18=2400, 19=2600
- *   20=2800, 21=3000, 22=3200, 23=3400
- */
 int ftx1_set_width(RIG *rig, vfo_t vfo, int width_code)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -2023,18 +1328,6 @@ int ftx1_get_width(RIG *rig, vfo_t vfo, int *width_code)
     return RIG_OK;
 }
 
-/*
- * ftx1_set_meter_switch - Set Meter Switch (MS command)
- * CAT command: MS P1P2; (P1=VFO 0/1, P2=meter type 0-5)
- *
- * Meter types:
- *   0 = S-meter
- *   1 = COMP
- *   2 = ALC
- *   3 = PO (Power Output)
- *   4 = SWR
- *   5 = ID
- */
 int ftx1_set_meter_switch(RIG *rig, int meter_type)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -2074,123 +1367,723 @@ int ftx1_get_meter_switch(RIG *rig, int *meter_type)
     return RIG_OK;
 }
 
-/* ========== FROM ftx1_ctcss.c ========== */
-/*
- * Hamlib Yaesu backend - FTX-1 CTCSS/DCS Encode/Decode Group
- * Copyright (c) 2025 by Terrell Deppe (KJ5HST)
- *
- * This file implements CAT commands for CTCSS and DCS tone control.
- *
- * CAT Commands in this file:
- *   CN P1 P2P3;      - CTCSS Tone Number (P1=0 TX/1 RX, P2P3=01-50)
- *   CT P1;           - CTCSS Mode (0=off, 1=ENC, 2=TSQ, 3=DCS)
- *   TS P1;           - Tone Status Query (composite)
- *   DC P1 P2P3P4;    - DCS Code (P1=0 TX/1 RX, P2-P4=code number)
- *
- * CTCSS Tone Table (01-50):
- *   01=67.0   11=94.8   21=131.8  31=177.3  41=225.7
- *   02=69.3   12=97.4   22=136.5  32=179.9  42=229.1
- *   03=71.9   13=100.0  23=141.3  33=183.5  43=233.6
- *   04=74.4   14=103.5  24=146.2  34=186.2  44=241.8
- *   05=77.0   15=107.2  25=151.4  35=189.9  45=250.3
- *   06=79.7   16=110.9  26=156.7  36=192.8  46=254.1
- *   07=82.5   17=114.8  27=159.8  37=196.6  47=CS
- *   08=85.4   18=118.8  28=162.2  38=199.5  48-50=Reserved
- *   09=88.5   19=123.0  29=165.5  39=203.5
- *   10=91.5   20=127.3  30=167.9  40=206.5
- */
 
+/* Voice message channel values */
+#define FTX1_PB_STOP      0   /* Stop playback */
+#define FTX1_PB_CHANNEL_1 1   /* Channel 1 */
+#define FTX1_PB_CHANNEL_2 2   /* Channel 2 */
+#define FTX1_PB_CHANNEL_3 3   /* Channel 3 */
+#define FTX1_PB_CHANNEL_4 4   /* Channel 4 */
+#define FTX1_PB_CHANNEL_5 5   /* Channel 5 */
 
-#define FTX1_CTCSS_MIN 1
-#define FTX1_CTCSS_MAX 50
-
-/* CTCSS tone frequencies in 0.1 Hz (multiply by 10 for actual) */
-static const unsigned int ftx1_ctcss_tones[] = {
-    670,  693,  719,  744,  770,  797,  825,  854,  885,  915,   /* 01-10 */
-    948,  974,  1000, 1035, 1072, 1109, 1148, 1188, 1230, 1273,  /* 11-20 */
-    1318, 1365, 1413, 1462, 1514, 1567, 1598, 1622, 1655, 1679,  /* 21-30 */
-    1773, 1799, 1835, 1862, 1899, 1928, 1966, 1995, 2035, 2065,  /* 31-40 */
-    2257, 2291, 2336, 2418, 2503, 2541, 0, 0, 0, 0               /* 41-50 */
-};
-
-/* Convert CTCSS frequency (in 0.1 Hz) to tone number */
-static int ftx1_freq_to_tone_num(unsigned int freq)
+int ftx1_play_voice_msg(RIG *rig, int channel)
 {
-    int i;
+    struct newcat_priv_data *priv = STATE(rig)->priv;
 
-    for (i = 0; i < FTX1_CTCSS_MAX; i++)
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: channel=%d\n", __func__, channel);
+
+    if (channel < 0 || channel > 5)
     {
-        if (ftx1_ctcss_tones[i] == freq)
-        {
-            return i + 1;  /* Tone numbers are 1-based */
-        }
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid channel %d (must be 0-5)\n",
+                  __func__, channel);
+        return -RIG_EINVAL;
     }
 
-    return -1;  /* Not found */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PB0%d;", channel);
+
+    return newcat_set_cmd(rig);
 }
 
-/* Convert tone number to frequency (in 0.1 Hz) */
-static unsigned int ftx1_tone_num_to_freq(int num)
+int ftx1_get_voice_msg_status(RIG *rig, int *channel)
 {
-    if (num < FTX1_CTCSS_MIN || num > FTX1_CTCSS_MAX)
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    int p1, p2;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PB0;");
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK)
     {
-        return 0;
+        return ret;
     }
 
-    return ftx1_ctcss_tones[num - 1];
+    /* Response: PB0n where n is channel (0-5) */
+    if (sscanf(priv->ret_data + 2, "%1d%1d", &p1, &p2) != 2)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n",
+                  __func__, priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    *channel = p2;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: channel=%d\n", __func__, *channel);
+
+    return RIG_OK;
 }
 
-/*
- * ftx1_set_ctcss_mode - Set CTCSS Mode (CT P1;)
- *
- * Parameter 'mode' is the FTX-1 CT command value:
- *   0 = Off
- *   1 = CTCSS Encode only (TX tone)
- *   2 = Tone Squelch (TX+RX tone)
- *   3 = DCS mode
- *
- * Note: This function expects FTX1_CTCSS_MODE_* values, not Hamlib
- * RIG_FUNC_* flags. The caller is responsible for mapping Hamlib
- * function flags to FTX-1 mode values if needed.
- */
-int ftx1_set_ctcss_mode(RIG *rig, tone_t mode)
+int ftx1_stop_voice_msg(RIG *rig)
+{
+    return ftx1_play_voice_msg(rig, FTX1_PB_STOP);
+}
+
+/* ========== FROM ftx1_filter.c ========== */
+
+
+int ftx1_set_anf_helper(RIG *rig, vfo_t vfo, int status)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d status=%d\n", __func__,
+              rig_strvfo(vfo), p1, status);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BC%d%d;", p1, status ? 1 : 0);
+
+    return newcat_set_cmd(rig);
+}
+
+int ftx1_get_anf_helper(RIG *rig, vfo_t vfo, int *status)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1_resp, p2;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__, rig_strvfo(vfo), p1);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BC%d;", p1);
+
+    ret = newcat_get_cmd(rig);
+
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    // Response: BC01 (VFO=0, status=1)
+    if (sscanf(priv->ret_data + 2, "%1d%1d", &p1_resp, &p2) != 2)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    *status = p2;
+
+    return RIG_OK;
+}
+
+int ftx1_set_mn_helper(RIG *rig, vfo_t vfo, int status)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d status=%d\n", __func__,
+              rig_strvfo(vfo), p1, status);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BP%d0%03d;", p1, status ? 1 : 0);
+
+    return newcat_set_cmd(rig);
+}
+
+int ftx1_get_mn_helper(RIG *rig, vfo_t vfo, int *status)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1_resp, p2, p3;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__, rig_strvfo(vfo), p1);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BP%d0;", p1);
+
+    ret = newcat_get_cmd(rig);
+
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    // Response: BP00001 (VFO=0, P2=0, P3=001 ON)
+    if (sscanf(priv->ret_data + 2, "%1d%1d%3d", &p1_resp, &p2, &p3) != 3)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    *status = (p3 == 1) ? 1 : 0;
+
+    return RIG_OK;
+}
+
+int ftx1_set_apf_helper(RIG *rig, vfo_t vfo, int status)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d status=%d\n", __func__,
+              rig_strvfo(vfo), p1, status);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CO%d2%04d;", p1, status ? 1 : 0);
+
+    return newcat_set_cmd(rig);
+}
+
+int ftx1_get_apf_helper(RIG *rig, vfo_t vfo, int *status)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1_resp, p2, p3;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__, rig_strvfo(vfo), p1);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CO%d2;", p1);
+
+    ret = newcat_get_cmd(rig);
+
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    // Response: CO020001 (VFO=0, P2=2, P3=0001 ON)
+    if (sscanf(priv->ret_data + 2, "%1d%1d%4d", &p1_resp, &p2, &p3) != 3)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    *status = (p3 == 1) ? 1 : 0;
+
+    return RIG_OK;
+}
+
+int ftx1_set_notchf_helper(RIG *rig, vfo_t vfo, value_t val)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p3;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d freq=%d\n", __func__,
+              rig_strvfo(vfo), p1, val.i);
+
+    // Convert Hz to command units (x10)
+    p3 = val.i / 10;
+
+    if (p3 < 1)
+    {
+        p3 = 1;
+    }
+
+    if (p3 > 320)
+    {
+        p3 = 320;
+    }
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BP%d1%03d;", p1, p3);
+
+    return newcat_set_cmd(rig);
+}
+
+int ftx1_get_notchf_helper(RIG *rig, vfo_t vfo, value_t *val)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1_resp, p2, p3;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__, rig_strvfo(vfo), p1);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BP%d1;", p1);
+
+    ret = newcat_get_cmd(rig);
+
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    // Response: BP01320 (VFO=0, P2=1, P3=320)
+    if (sscanf(priv->ret_data + 2, "%1d%1d%3d", &p1_resp, &p2, &p3) != 3)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    val->i = p3 * 10;  // Convert to Hz
+
+    return RIG_OK;
+}
+
+int ftx1_set_apf_level_helper(RIG *rig, vfo_t vfo, value_t val)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p3;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d level=%f\n", __func__,
+              rig_strvfo(vfo), p1, val.f);
+
+    // val.f is 0.0-1.0, map to 0-50
+    p3 = (int)(val.f * 50);
+
+    if (p3 < 0)
+    {
+        p3 = 0;
+    }
+
+    if (p3 > 50)
+    {
+        p3 = 50;
+    }
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CO%d3%04d;", p1, p3);
+
+    return newcat_set_cmd(rig);
+}
+
+int ftx1_get_apf_level_helper(RIG *rig, vfo_t vfo, value_t *val)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1_resp, p2, p3;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__, rig_strvfo(vfo), p1);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CO%d3;", p1);
+
+    ret = newcat_get_cmd(rig);
+
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    // Response: CO030025 (VFO=0, P2=3, P3=0025)
+    if (sscanf(priv->ret_data + 2, "%1d%1d%4d", &p1_resp, &p2, &p3) != 3)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    val->f = (float)p3 / 50.0f;  // Convert 0-50 to 0.0-1.0
+
+    return RIG_OK;
+}
+
+int ftx1_set_filter_number(RIG *rig, vfo_t vfo, int filter)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d filter=%d\n", __func__,
+              rig_strvfo(vfo), p1, filter);
+
+    if (filter < 1 || filter > 3)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid filter number %d\n", __func__, filter);
+        return -RIG_EINVAL;
+    }
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FN%d%d;", p1, filter);
+
+    return newcat_set_cmd(rig);
+}
+
+int ftx1_get_filter_number(RIG *rig, vfo_t vfo, int *filter)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1_resp, p2;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__, rig_strvfo(vfo), p1);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FN%d;", p1);
+
+    ret = newcat_get_cmd(rig);
+
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    /* Response: FN01 (VFO=0, filter=1) */
+    if (sscanf(priv->ret_data + 2, "%1d%1d", &p1_resp, &p2) != 2)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    *filter = p2;
+
+    return RIG_OK;
+}
+
+int ftx1_set_contour(RIG *rig, vfo_t vfo, int status)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d status=%d\n", __func__,
+              rig_strvfo(vfo), p1, status);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CO%d0%04d;", p1, status ? 1 : 0);
+
+    return newcat_set_cmd(rig);
+}
+
+int ftx1_get_contour(RIG *rig, vfo_t vfo, int *status)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1_resp, p2, p3;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__, rig_strvfo(vfo), p1);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CO%d0;", p1);
+
+    ret = newcat_get_cmd(rig);
+
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    /* Response: CO000001 (VFO=0, P2=0, P3=0001 ON) */
+    if (sscanf(priv->ret_data + 2, "%1d%1d%4d", &p1_resp, &p2, &p3) != 3)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    *status = (p3 == 1) ? 1 : 0;
+
+    return RIG_OK;
+}
+
+int ftx1_set_contour_freq(RIG *rig, vfo_t vfo, int freq)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d freq=%d\n", __func__,
+              rig_strvfo(vfo), p1, freq);
+
+    if (freq < 10) freq = 10;
+    if (freq > 3200) freq = 3200;
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CO%d1%04d;", p1, freq);
+
+    return newcat_set_cmd(rig);
+}
+
+int ftx1_get_contour_freq(RIG *rig, vfo_t vfo, int *freq)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1_resp, p2, p3;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__, rig_strvfo(vfo), p1);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CO%d1;", p1);
+
+    ret = newcat_get_cmd(rig);
+
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    /* Response: CO011000 (VFO=0, P2=1, P3=1000 Hz) */
+    if (sscanf(priv->ret_data + 2, "%1d%1d%4d", &p1_resp, &p2, &p3) != 3)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    *freq = p3;
+
+    return RIG_OK;
+}
+
+/* ========== FROM ftx1_noise.c ========== */
+
+
+/* Level ranges */
+#define FTX1_NB_LEVEL_MIN 0
+#define FTX1_NB_LEVEL_MAX 10   /* 0=OFF, 1-10=level */
+#define FTX1_NR_LEVEL_MIN 0
+#define FTX1_NR_LEVEL_MAX 15   /* 0=OFF, 1-15=level */
+
+int ftx1_set_nb_helper(RIG *rig, vfo_t vfo, int status)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+    int level = status ? 5 : 0;  /* Default to mid-level when turning on */
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d status=%d\n", __func__,
+              rig_strvfo(vfo), p1, status);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "NL%d%03d;", p1, level);
+    return newcat_set_cmd(rig);
+}
+
+int ftx1_get_nb_helper(RIG *rig, vfo_t vfo, int *status)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1_resp, level;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
+              rig_strvfo(vfo), p1);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "NL%d;", p1);
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK) return ret;
+
+    /* Response: NL P1 P2P3P4; (VFO + 3-digit level 000-010) */
+    if (sscanf(priv->ret_data + 2, "%1d%3d", &p1_resp, &level) != 2)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    *status = (level > 0) ? 1 : 0;
+    return RIG_OK;
+}
+
+int ftx1_set_nr_helper(RIG *rig, vfo_t vfo, int status)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+    int level = status ? 8 : 0;  /* Default to mid-level when turning on */
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d status=%d\n", __func__,
+              rig_strvfo(vfo), p1, status);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RL%d%02d;", p1, level);
+    return newcat_set_cmd(rig);
+}
+
+int ftx1_get_nr_helper(RIG *rig, vfo_t vfo, int *status)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1_resp, level;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
+              rig_strvfo(vfo), p1);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RL%d;", p1);
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK) return ret;
+
+    /* Response: RL P1 P2P3; (VFO + 2-digit level 00-15) */
+    if (sscanf(priv->ret_data + 2, "%1d%2d", &p1_resp, &level) != 2)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    *status = (level > 0) ? 1 : 0;
+    return RIG_OK;
+}
+
+int ftx1_set_nb_level_helper(RIG *rig, vfo_t vfo, value_t val)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+    int level = (int)(val.f * FTX1_NB_LEVEL_MAX);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d level=%d\n", __func__,
+              rig_strvfo(vfo), p1, level);
+
+    if (level < FTX1_NB_LEVEL_MIN) level = FTX1_NB_LEVEL_MIN;
+    if (level > FTX1_NB_LEVEL_MAX) level = FTX1_NB_LEVEL_MAX;
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "NL%d%03d;", p1, level);
+    return newcat_set_cmd(rig);
+}
+
+int ftx1_get_nb_level_helper(RIG *rig, vfo_t vfo, value_t *val)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1_resp, level;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
+              rig_strvfo(vfo), p1);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "NL%d;", p1);
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK) return ret;
+
+    /* Response: NL P1 P2P3P4; (3-digit level 000-010) */
+    if (sscanf(priv->ret_data + 2, "%1d%3d", &p1_resp, &level) != 2)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    val->f = (float)level / FTX1_NB_LEVEL_MAX;
+    return RIG_OK;
+}
+
+int ftx1_set_nr_level_helper(RIG *rig, vfo_t vfo, value_t val)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+    int level = (int)(val.f * FTX1_NR_LEVEL_MAX);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d level=%d\n", __func__,
+              rig_strvfo(vfo), p1, level);
+
+    if (level < FTX1_NR_LEVEL_MIN) level = FTX1_NR_LEVEL_MIN;
+    if (level > FTX1_NR_LEVEL_MAX) level = FTX1_NR_LEVEL_MAX;
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RL%d%02d;", p1, level);
+    return newcat_set_cmd(rig);
+}
+
+int ftx1_get_nr_level_helper(RIG *rig, vfo_t vfo, value_t *val)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1_resp, level;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
+              rig_strvfo(vfo), p1);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RL%d;", p1);
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK) return ret;
+
+    /* Response: RL P1 P2P3; (2-digit level 00-15) */
+    if (sscanf(priv->ret_data + 2, "%1d%2d", &p1_resp, &level) != 2)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    val->f = (float)level / FTX1_NR_LEVEL_MAX;
+    return RIG_OK;
+}
+
+int ftx1_set_na_helper(RIG *rig, vfo_t vfo, int status)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p2 = status ? 1 : 0;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d status=%d\n", __func__,
+              rig_strvfo(vfo), p1, status);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "NA%d%d;", p1, p2);
+    return newcat_set_cmd(rig);
+}
+
+int ftx1_get_na_helper(RIG *rig, vfo_t vfo, int *status)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1_resp, p2;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
+              rig_strvfo(vfo), p1);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "NA%d;", p1);
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK) return ret;
+
+    /* Response: NA P1 P2; (P1=VFO, P2=on/off) */
+    if (sscanf(priv->ret_data + 2, "%1d%1d", &p1_resp, &p2) != 2)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    *status = p2;
+    return RIG_OK;
+}
+
+/* ========== FROM ftx1_tx.c ========== */
+
+
+/* Set PTT (TX P1;) */
+int ftx1_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int p1;
 
-    /* Validate and use FTX-1 CT command values directly */
-    if (mode > FTX1_CTCSS_MODE_DCS)
+    (void)vfo;  /* Not used for TX command */
+
+    switch (ptt)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: invalid mode %u (must be 0-3)\n",
-                  __func__, mode);
+    case RIG_PTT_OFF:
+        p1 = 0;
+        break;
+
+    case RIG_PTT_ON:
+    case RIG_PTT_ON_MIC:
+        p1 = 1;  /* TX via CAT */
+        break;
+
+    case RIG_PTT_ON_DATA:
+        p1 = 2;  /* TX via Data */
+        break;
+
+    default:
         return -RIG_EINVAL;
     }
 
-    p1 = (int)mode;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: ptt=%d p1=%d\n", __func__, ptt, p1);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: mode=%u p1=%d\n", __func__, mode, p1);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CT%d;", p1);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "TX%d;", p1);
     return newcat_set_cmd(rig);
 }
 
-/*
- * ftx1_get_ctcss_mode - Get CTCSS Mode (CT;)
- *
- * Returns the FTX-1 CT command value in *mode:
- *   0 = Off (FTX1_CTCSS_MODE_OFF)
- *   1 = CTCSS Encode only (FTX1_CTCSS_MODE_ENC)
- *   2 = Tone Squelch (FTX1_CTCSS_MODE_TSQ)
- *   3 = DCS mode (FTX1_CTCSS_MODE_DCS)
- */
-int ftx1_get_ctcss_mode(RIG *rig, tone_t *mode)
+/* Get PTT status */
+int ftx1_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret, p1;
 
+    (void)vfo;  /* Unused */
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CT;");
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "TX;");
 
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
@@ -2202,239 +2095,418 @@ int ftx1_get_ctcss_mode(RIG *rig, tone_t *mode)
         return -RIG_EPROTO;
     }
 
-    /* Return FTX-1 mode value directly (0-3) */
-    *mode = (tone_t)p1;
+    switch (p1)
+    {
+    case 0:
+        *ptt = RIG_PTT_OFF;
+        break;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: p1=%d mode=%u\n", __func__, p1, *mode);
+    case 1:
+        *ptt = RIG_PTT_ON;
+        break;
+
+    case 2:
+        *ptt = RIG_PTT_ON_DATA;
+        break;
+
+    default:
+        *ptt = RIG_PTT_OFF;
+        break;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: p1=%d ptt=%d\n", __func__, p1, *ptt);
 
     return RIG_OK;
 }
 
-/* Set CTCSS Tone (CN P1 P2P3;) */
-int ftx1_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
+/* Set VOX on/off (VX P1;) */
+int ftx1_set_vox(RIG *rig, int status)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int tone_num;
+    int p1 = status ? 1 : 0;
 
-    (void)vfo;  /* Unused */
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: status=%d\n", __func__, status);
 
-    /* tone is in 0.1 Hz, find matching tone number */
-    tone_num = ftx1_freq_to_tone_num(tone);
-
-    if (tone_num < 0)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: tone %u not found in table\n", __func__,
-                  tone);
-        return -RIG_EINVAL;
-    }
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: tone=%u tone_num=%d\n", __func__, tone,
-              tone_num);
-
-    /* P1=0 for TX tone, P2P3P4 is 3-digit tone number */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN00%03d;", tone_num);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VX%d;", p1);
     return newcat_set_cmd(rig);
 }
 
-/* Get CTCSS Tone */
-int ftx1_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret, p1, tone_num;
-
-    (void)vfo;  /* Unused */
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
-
-    /* P1=0 for TX tone, need CN00; to query */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN00;");
-
-    ret = newcat_get_cmd(rig);
-    if (ret != RIG_OK) return ret;
-
-    /* Response format: CN P1 P2P3P4 (e.g., CN00012 for TX tone 12) */
-    if (sscanf(priv->ret_data + 2, "%2d%3d", &p1, &tone_num) != 2)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    *tone = ftx1_tone_num_to_freq(tone_num);
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: tone_num=%d tone=%u\n", __func__,
-              tone_num, *tone);
-
-    return RIG_OK;
-}
-
-/* Set CTCSS Squelch Tone (CN P1 P2P3P4; with P1=1 for RX) */
-int ftx1_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int tone_num;
-
-    (void)vfo;  /* Unused */
-
-    tone_num = ftx1_freq_to_tone_num(tone);
-
-    if (tone_num < 0)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: tone %u not found in table\n", __func__,
-                  tone);
-        return -RIG_EINVAL;
-    }
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: tone=%u tone_num=%d\n", __func__, tone,
-              tone_num);
-
-    /* P1=1 for RX tone, P2P3P4 is 3-digit tone number */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN10%03d;", tone_num);
-    return newcat_set_cmd(rig);
-}
-
-/* Get CTCSS Squelch Tone */
-int ftx1_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret, p1, tone_num;
-
-    (void)vfo;  /* Unused */
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
-
-    /* P1=1 for RX tone, need CN10; to query */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN10;");
-
-    ret = newcat_get_cmd(rig);
-    if (ret != RIG_OK) return ret;
-
-    /* Response format: CN P1 P2P3P4 (e.g., CN10012 for RX tone 12) */
-    if (sscanf(priv->ret_data + 2, "%2d%3d", &p1, &tone_num) != 2)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    *tone = ftx1_tone_num_to_freq(tone_num);
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: tone_num=%d tone=%u\n", __func__,
-              tone_num, *tone);
-
-    return RIG_OK;
-}
-
-/* Set DCS Code (DC P1 P2P3P4;) */
-int ftx1_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-
-    (void)vfo;  /* Unused */
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: code=%u\n", __func__, code);
-
-    /* P1=0 for TX DCS code */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DC0%03u;", code);
-    return newcat_set_cmd(rig);
-}
-
-/* Get DCS Code */
-int ftx1_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
+/* Get VOX status (VX P1;) */
+int ftx1_get_vox(RIG *rig, int *status)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret, p1;
-    unsigned int dcs;
-
-    (void)vfo;  /* Unused */
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DC0;");
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VX;");
 
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    if (sscanf(priv->ret_data + 2, "%1d%3u", &p1, &dcs) != 2)
+    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
                   priv->ret_data);
         return -RIG_EPROTO;
     }
 
-    *code = dcs;
+    *status = p1;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: code=%u\n", __func__, *code);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: status=%d\n", __func__, *status);
 
     return RIG_OK;
 }
 
-/* Set DCS Squelch Code */
-int ftx1_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
+/* Set TX Monitor (MX P1;) */
+int ftx1_set_monitor(RIG *rig, int status)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
+    int p1 = status ? 1 : 0;
 
-    (void)vfo;  /* Unused */
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: status=%d\n", __func__, status);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: code=%u\n", __func__, code);
-
-    /* P1=1 for RX DCS code */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DC1%03u;", code);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MX%d;", p1);
     return newcat_set_cmd(rig);
 }
 
-/* Get DCS Squelch Code */
-int ftx1_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
+/* Get TX Monitor status (MX P1;) */
+int ftx1_get_monitor(RIG *rig, int *status)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret, p1;
-    unsigned int dcs;
-
-    (void)vfo;  /* Unused */
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DC1;");
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MX;");
 
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    if (sscanf(priv->ret_data + 2, "%1d%3u", &p1, &dcs) != 2)
+    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
                   priv->ret_data);
         return -RIG_EPROTO;
     }
 
-    *code = dcs;
+    *status = p1;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: code=%u\n", __func__, *code);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: status=%d\n", __func__, *status);
+
+    return RIG_OK;
+}
+
+
+/* Set Antenna Tuner (AC P1 P2 P3;) - SPA-1 REQUIRED */
+int ftx1_set_tuner(RIG *rig, int mode)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int p1, p2;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: mode=%d\n", __func__, mode);
+
+    /*
+     * GUARDRAIL: Internal tuner requires SPA-1 amplifier
+     * Without SPA-1, the AC command will fail or produce undefined behavior.
+     */
+    if (!ftx1_has_spa1())
+    {
+        rig_debug(RIG_DEBUG_WARN,
+                  "%s: internal tuner requires SPA-1 amplifier (not detected)\n",
+                  __func__);
+        return -RIG_ENAVAIL;  /* Feature not available */
+    }
+
+    /* mode: 0=off, 1=on, 2=tune */
+    switch (mode)
+    {
+    case 0:  /* Tuner off */
+        p1 = 0;
+        p2 = 0;
+        break;
+
+    case 1:  /* Tuner on (no tune) */
+        p1 = 1;
+        p2 = 0;
+        break;
+
+    case 2:  /* Start tune (turns on tuner and starts tuning) */
+        p1 = 1;
+        p2 = 1;
+        break;
+
+    default:
+        return -RIG_EINVAL;
+    }
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AC%d%d0;", p1, p2);
+    return newcat_set_cmd(rig);
+}
+
+/* Get Antenna Tuner status - SPA-1 REQUIRED */
+int ftx1_get_tuner(RIG *rig, int *mode)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret, p1;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    /*
+     * GUARDRAIL: Internal tuner requires SPA-1 amplifier
+     * Without SPA-1, report tuner as off rather than querying.
+     */
+    if (!ftx1_has_spa1())
+    {
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: no SPA-1 detected, tuner not available\n", __func__);
+        *mode = 0;  /* Report tuner as off */
+        return RIG_OK;
+    }
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AC;");
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK) return ret;
+
+    /* Parse first digit (tuner on/off) from AC P1 P2 P3; */
+    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    /* Return 0=off, 1=on */
+    *mode = p1;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: mode=%d\n", __func__, *mode);
+
+    return RIG_OK;
+}
+
+/* Set Break-In mode (BI P1;) */
+int ftx1_set_breakin(RIG *rig, int mode)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+
+    /* mode: 0=off, 1=semi, 2=full */
+    if (mode < 0 || mode > 2)
+    {
+        return -RIG_EINVAL;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: mode=%d\n", __func__, mode);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BI%d;", mode);
+    return newcat_set_cmd(rig);
+}
+
+/* Get Break-In mode */
+int ftx1_get_breakin(RIG *rig, int *mode)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret, p1;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BI;");
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK) return ret;
+
+    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    *mode = p1;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: mode=%d\n", __func__, *mode);
+
+    return RIG_OK;
+}
+
+/* Set Squelch Level (SQ P1 P2P3P4;) */
+int ftx1_set_squelch(RIG *rig, vfo_t vfo, float val)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int p1 = (vfo == RIG_VFO_SUB || vfo == RIG_VFO_B || vfo == RIG_VFO_CURR) ? 0 : 0;
+    int level = (int)(val * 100);
+
+    /* Handle VFO_CURR as MAIN */
+    if (vfo == RIG_VFO_SUB || vfo == RIG_VFO_B)
+    {
+        p1 = 1;
+    }
+
+    if (level < 0) level = 0;
+    if (level > 100) level = 100;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d level=%d\n", __func__,
+              rig_strvfo(vfo), p1, level);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SQ%d%03d;", p1, level);
+    return newcat_set_cmd(rig);
+}
+
+/* Get Squelch Level */
+int ftx1_get_squelch(RIG *rig, vfo_t vfo, float *val)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret, p1, level;
+
+    p1 = (vfo == RIG_VFO_SUB || vfo == RIG_VFO_B) ? 1 : 0;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
+              rig_strvfo(vfo), p1);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SQ%d;", p1);
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK) return ret;
+
+    if (sscanf(priv->ret_data + 2, "%1d%3d", &p1, &level) != 2)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    *val = (float)level / 100.0f;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: level=%d val=%f\n", __func__, level, *val);
+
+    return RIG_OK;
+}
+
+/* Set Speech Processor (PR P1 P2;) */
+int ftx1_set_processor(RIG *rig, int status)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int p2 = status ? 1 : 0;  /* 0=off, 1=on, 2=on2 */
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: status=%d\n", __func__, status);
+
+    /* PR P1 P2; where P1=VFO (0=Main), P2=mode */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PR0%d;", p2);
+    return newcat_set_cmd(rig);
+}
+
+/* Get Speech Processor status */
+int ftx1_get_processor(RIG *rig, int *status)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret, p1, p2;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PR0;");
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK) return ret;
+
+    /* Parse PR P1 P2; response */
+    if (sscanf(priv->ret_data + 2, "%1d%1d", &p1, &p2) != 2)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    /* Return 1 if processor is on (p2 = 1 or 2) */
+    *status = (p2 > 0) ? 1 : 0;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: p2=%d status=%d\n", __func__, p2, *status);
+
+    return RIG_OK;
+}
+
+/* Power Switch (PS P1;) - USE WITH CAUTION */
+int ftx1_set_powerstat(RIG *rig, powerstat_t status)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int p1 = (status == RIG_POWER_ON) ? 1 : 0;
+
+    rig_debug(RIG_DEBUG_WARN, "%s: Setting power to %d\n", __func__, p1);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PS%d;", p1);
+    return newcat_set_cmd(rig);
+}
+
+/* Get Power status */
+int ftx1_get_powerstat(RIG *rig, powerstat_t *status)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret, p1;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PS;");
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK) return ret;
+
+    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    *status = (p1 == 1) ? RIG_POWER_ON : RIG_POWER_OFF;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: p1=%d status=%d\n", __func__, p1, *status);
+
+    return RIG_OK;
+}
+
+
+int ftx1_set_tx_watch(RIG *rig, int status)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: status=%d\n", __func__, status);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "TS%d;", status ? 1 : 0);
+
+    return newcat_set_cmd(rig);
+}
+
+int ftx1_get_tx_watch(RIG *rig, int *status)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    int p1;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "TS;");
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    /* Response: TS0 or TS1 */
+    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n",
+                  __func__, priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    *status = p1;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: status=%d\n", __func__, *status);
 
     return RIG_OK;
 }
 
 /* ========== FROM ftx1_cw.c ========== */
-/*
- * Hamlib Yaesu backend - FTX-1 CW Operations Group
- * Copyright (c) 2025 by Terrell Deppe (KJ5HST)
- *
- * This file implements CAT commands for CW keyer and messaging.
- *
- * CAT Commands in this file:
- *   KP P1P2;         - Keyer Paddle Ratio (00-30)
- *   KR P1;           - Keyer Reverse (0=normal, 1=reverse)
- *   KS P1P2P3;       - Keyer Speed (004-060 WPM)
- *   KY P1 P2...;     - CW Message Send (P1=0, P2=message up to 24 chars)
- *   KM P1 P2...;     - Keyer Memory Read/Write (P1=1-5 slot, P2=message up to 50 chars)
- *   SD P1P2P3P4;     - CW Break-in Delay (0030-3000ms)
- *   BK P1;           - Break-in mode (0=off, 1=semi, 2=full)
- *   CT P1;           - CW Tuning/Sidetone (0=off, 1=on)
- *   LM P1;           - Load Message (P1=0/1 start/stop)
- *
- * CW Message Character Set:
- *   A-Z, 0-9, standard punctuation
- *   Special prosigns encoded per Yaesu convention
- */
 
 
 #define FTX1_CW_SPEED_MIN 4
@@ -2740,11 +2812,6 @@ int ftx1_get_cw_sidetone(RIG *rig, int *status)
     return RIG_OK;
 }
 
-/*
- * ftx1_load_message - Load Message Control (LM P1;)
- * CAT command: LM P1; (P1=0/1 start/stop)
- * Note: Per spec this is a set-only command
- */
 int ftx1_load_message(RIG *rig, int start)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -2756,12 +2823,6 @@ int ftx1_load_message(RIG *rig, int start)
     return newcat_set_cmd(rig);
 }
 
-/*
- * ftx1_get_keyer_memory - Get Keyer Memory contents (KM P1;)
- * CAT command: KM P1; Response: KM P1 <text>;
- * P1 = message slot (1-5)
- * Returns empty string if slot is empty (response is just "KM")
- */
 int ftx1_get_keyer_memory(RIG *rig, int slot, char *msg, size_t msg_len)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -2802,12 +2863,6 @@ int ftx1_get_keyer_memory(RIG *rig, int slot, char *msg, size_t msg_len)
     return RIG_OK;
 }
 
-/*
- * ftx1_set_keyer_memory - Set Keyer Memory contents (KM P1 P2...;)
- * CAT command: KM P1 P2...; (P1=slot 1-5, P2=message up to 50 chars)
- * Stores CW message in specified keyer memory slot.
- * Verified working 2025-12-09 - empty response on success.
- */
 int ftx1_set_keyer_memory(RIG *rig, int slot, const char *msg)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -2845,1118 +2900,300 @@ int ftx1_set_keyer_memory(RIG *rig, int slot, const char *msg)
     return newcat_set_cmd(rig);
 }
 
-/* ========== FROM ftx1_tx.c ========== */
-/*
- * Hamlib Yaesu backend - FTX-1 Transmit Control Group
- * Copyright (c) 2025 by Terrell Deppe (KJ5HST)
- *
- * This file implements CAT commands for transmit control, PTT, and TX settings.
- *
- * CAT Commands in this file:
- *   TX P1;           - Transmit (P1: 0=RX, 1=TX CAT, 2=TX Data)
- *   PC P1P2P3;       - Power Control (005-100 watts) [also in ftx1_audio.c]
- *   MX P1;           - Monitor TX Audio (0=off, 1=on)
- *   VX P1;           - VOX on/off (0=off, 1=on)
- *   AC P1P2P3;       - Antenna Tuner Control (P1: 0=off, 1=on, 2=tune)
- *   BI P1;           - Break-In (QSK) (0=off, 1=semi, 2=full)
- *   PS P1;           - Power Switch (0=off, 1=on) - USE WITH CAUTION
- *   SQ P1 P2P3P4;    - Squelch Level (P1=VFO, P2-P4=000-100)
- */
+/* ========== FROM ftx1_ctcss.c ========== */
 
 
-/* Set PTT (TX P1;) */
-int ftx1_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
+#define FTX1_CTCSS_MIN 1
+#define FTX1_CTCSS_MAX 50
+
+/* CTCSS tone frequencies in 0.1 Hz (multiply by 10 for actual) */
+static const unsigned int ftx1_ctcss_tones[] = {
+    670,  693,  719,  744,  770,  797,  825,  854,  885,  915,   /* 01-10 */
+    948,  974,  1000, 1035, 1072, 1109, 1148, 1188, 1230, 1273,  /* 11-20 */
+    1318, 1365, 1413, 1462, 1514, 1567, 1598, 1622, 1655, 1679,  /* 21-30 */
+    1773, 1799, 1835, 1862, 1899, 1928, 1966, 1995, 2035, 2065,  /* 31-40 */
+    2257, 2291, 2336, 2418, 2503, 2541, 0, 0, 0, 0               /* 41-50 */
+};
+
+/* Convert CTCSS frequency (in 0.1 Hz) to tone number */
+static int ftx1_freq_to_tone_num(unsigned int freq)
+{
+    int i;
+
+    for (i = 0; i < FTX1_CTCSS_MAX; i++)
+    {
+        if (ftx1_ctcss_tones[i] == freq)
+        {
+            return i + 1;  /* Tone numbers are 1-based */
+        }
+    }
+
+    return -1;  /* Not found */
+}
+
+/* Convert tone number to frequency (in 0.1 Hz) */
+static unsigned int ftx1_tone_num_to_freq(int num)
+{
+    if (num < FTX1_CTCSS_MIN || num > FTX1_CTCSS_MAX)
+    {
+        return 0;
+    }
+
+    return ftx1_ctcss_tones[num - 1];
+}
+
+int ftx1_set_ctcss_mode(RIG *rig, tone_t mode)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int p1;
 
-    (void)vfo;  /* Not used for TX command */
-
-    switch (ptt)
+    /* Validate and use FTX-1 CT command values directly */
+    if (mode > FTX1_CTCSS_MODE_DCS)
     {
-    case RIG_PTT_OFF:
-        p1 = 0;
-        break;
-
-    case RIG_PTT_ON:
-    case RIG_PTT_ON_MIC:
-        p1 = 1;  /* TX via CAT */
-        break;
-
-    case RIG_PTT_ON_DATA:
-        p1 = 2;  /* TX via Data */
-        break;
-
-    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid mode %u (must be 0-3)\n",
+                  __func__, mode);
         return -RIG_EINVAL;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: ptt=%d p1=%d\n", __func__, ptt, p1);
+    p1 = (int)mode;
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "TX%d;", p1);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: mode=%u p1=%d\n", __func__, mode, p1);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CT%d;", p1);
     return newcat_set_cmd(rig);
 }
 
-/* Get PTT status */
-int ftx1_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
+int ftx1_get_ctcss_mode(RIG *rig, tone_t *mode)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret, p1;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CT;");
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK) return ret;
+
+    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    /* Return FTX-1 mode value directly (0-3) */
+    *mode = (tone_t)p1;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: p1=%d mode=%u\n", __func__, p1, *mode);
+
+    return RIG_OK;
+}
+
+/* Set CTCSS Tone (CN P1 P2P3;) */
+int ftx1_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int tone_num;
+
+    (void)vfo;  /* Unused */
+
+    /* tone is in 0.1 Hz, find matching tone number */
+    tone_num = ftx1_freq_to_tone_num(tone);
+
+    if (tone_num < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: tone %u not found in table\n", __func__,
+                  tone);
+        return -RIG_EINVAL;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: tone=%u tone_num=%d\n", __func__, tone,
+              tone_num);
+
+    /* P1=0 for TX tone, P2P3P4 is 3-digit tone number */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN00%03d;", tone_num);
+    return newcat_set_cmd(rig);
+}
+
+/* Get CTCSS Tone */
+int ftx1_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret, p1, tone_num;
 
     (void)vfo;  /* Unused */
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "TX;");
+    /* P1=0 for TX tone, need CN00; to query */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN00;");
 
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1)
+    /* Response format: CN P1 P2P3P4 (e.g., CN00012 for TX tone 12) */
+    if (sscanf(priv->ret_data + 2, "%2d%3d", &p1, &tone_num) != 2)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
                   priv->ret_data);
         return -RIG_EPROTO;
     }
 
-    switch (p1)
-    {
-    case 0:
-        *ptt = RIG_PTT_OFF;
-        break;
+    *tone = ftx1_tone_num_to_freq(tone_num);
 
-    case 1:
-        *ptt = RIG_PTT_ON;
-        break;
-
-    case 2:
-        *ptt = RIG_PTT_ON_DATA;
-        break;
-
-    default:
-        *ptt = RIG_PTT_OFF;
-        break;
-    }
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: p1=%d ptt=%d\n", __func__, p1, *ptt);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: tone_num=%d tone=%u\n", __func__,
+              tone_num, *tone);
 
     return RIG_OK;
 }
 
-/* Set VOX on/off (VX P1;) */
-int ftx1_set_vox(RIG *rig, int status)
+/* Set CTCSS Squelch Tone (CN P1 P2P3P4; with P1=1 for RX) */
+int ftx1_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = status ? 1 : 0;
+    int tone_num;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: status=%d\n", __func__, status);
+    (void)vfo;  /* Unused */
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VX%d;", p1);
-    return newcat_set_cmd(rig);
-}
+    tone_num = ftx1_freq_to_tone_num(tone);
 
-/* Get VOX status (VX P1;) */
-int ftx1_get_vox(RIG *rig, int *status)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret, p1;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VX;");
-
-    ret = newcat_get_cmd(rig);
-    if (ret != RIG_OK) return ret;
-
-    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1)
+    if (tone_num < 0)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    *status = p1;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: status=%d\n", __func__, *status);
-
-    return RIG_OK;
-}
-
-/* Set TX Monitor (MX P1;) */
-int ftx1_set_monitor(RIG *rig, int status)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = status ? 1 : 0;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: status=%d\n", __func__, status);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MX%d;", p1);
-    return newcat_set_cmd(rig);
-}
-
-/* Get TX Monitor status (MX P1;) */
-int ftx1_get_monitor(RIG *rig, int *status)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret, p1;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MX;");
-
-    ret = newcat_get_cmd(rig);
-    if (ret != RIG_OK) return ret;
-
-    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    *status = p1;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: status=%d\n", __func__, *status);
-
-    return RIG_OK;
-}
-
-/*
- * FTX-1 AC command format: AC P1 P2 P3;
- *   P1 = Tuner on/off (0=off, 1=on)
- *   P2 = Tune start (0=no action, 1=start tune) - write only
- *   P3 = Unknown
- *
- * Response format: AC P1 P2 P3; (3 digits)
- * Set format for tuner on/off: AC P1 0 0; (turn on/off without starting tune)
- * Set format for tune: AC 1 1 0; (turn on and start tune)
- *
- * IMPORTANT: The internal antenna tuner is ONLY available when the SPA-1
- * amplifier is connected (FTX-1 Optima configuration). When using the field
- * head only, this command will return an error from the radio.
- */
-
-/* Set Antenna Tuner (AC P1 P2 P3;) - SPA-1 REQUIRED */
-int ftx1_set_tuner(RIG *rig, int mode)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1, p2;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: mode=%d\n", __func__, mode);
-
-    /*
-     * GUARDRAIL: Internal tuner requires SPA-1 amplifier
-     * Without SPA-1, the AC command will fail or produce undefined behavior.
-     */
-    if (!ftx1_has_spa1())
-    {
-        rig_debug(RIG_DEBUG_WARN,
-                  "%s: internal tuner requires SPA-1 amplifier (not detected)\n",
-                  __func__);
-        return -RIG_ENAVAIL;  /* Feature not available */
-    }
-
-    /* mode: 0=off, 1=on, 2=tune */
-    switch (mode)
-    {
-    case 0:  /* Tuner off */
-        p1 = 0;
-        p2 = 0;
-        break;
-
-    case 1:  /* Tuner on (no tune) */
-        p1 = 1;
-        p2 = 0;
-        break;
-
-    case 2:  /* Start tune (turns on tuner and starts tuning) */
-        p1 = 1;
-        p2 = 1;
-        break;
-
-    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: tone %u not found in table\n", __func__,
+                  tone);
         return -RIG_EINVAL;
     }
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AC%d%d0;", p1, p2);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: tone=%u tone_num=%d\n", __func__, tone,
+              tone_num);
+
+    /* P1=1 for RX tone, P2P3P4 is 3-digit tone number */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN10%03d;", tone_num);
     return newcat_set_cmd(rig);
 }
 
-/* Get Antenna Tuner status - SPA-1 REQUIRED */
-int ftx1_get_tuner(RIG *rig, int *mode)
+/* Get CTCSS Squelch Tone */
+int ftx1_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret, p1, tone_num;
+
+    (void)vfo;  /* Unused */
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    /* P1=1 for RX tone, need CN10; to query */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN10;");
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK) return ret;
+
+    /* Response format: CN P1 P2P3P4 (e.g., CN10012 for RX tone 12) */
+    if (sscanf(priv->ret_data + 2, "%2d%3d", &p1, &tone_num) != 2)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    *tone = ftx1_tone_num_to_freq(tone_num);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: tone_num=%d tone=%u\n", __func__,
+              tone_num, *tone);
+
+    return RIG_OK;
+}
+
+/* Set DCS Code (DC P1 P2P3P4;) */
+int ftx1_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+
+    (void)vfo;  /* Unused */
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: code=%u\n", __func__, code);
+
+    /* P1=0 for TX DCS code */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DC0%03u;", code);
+    return newcat_set_cmd(rig);
+}
+
+/* Get DCS Code */
+int ftx1_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret, p1;
+    unsigned int dcs;
+
+    (void)vfo;  /* Unused */
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
-    /*
-     * GUARDRAIL: Internal tuner requires SPA-1 amplifier
-     * Without SPA-1, report tuner as off rather than querying.
-     */
-    if (!ftx1_has_spa1())
-    {
-        rig_debug(RIG_DEBUG_VERBOSE,
-                  "%s: no SPA-1 detected, tuner not available\n", __func__);
-        *mode = 0;  /* Report tuner as off */
-        return RIG_OK;
-    }
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AC;");
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DC0;");
 
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    /* Parse first digit (tuner on/off) from AC P1 P2 P3; */
-    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1)
+    if (sscanf(priv->ret_data + 2, "%1d%3u", &p1, &dcs) != 2)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
                   priv->ret_data);
         return -RIG_EPROTO;
     }
 
-    /* Return 0=off, 1=on */
-    *mode = p1;
+    *code = dcs;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: mode=%d\n", __func__, *mode);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: code=%u\n", __func__, *code);
 
     return RIG_OK;
 }
 
-/* Set Break-In mode (BI P1;) */
-int ftx1_set_breakin(RIG *rig, int mode)
+/* Set DCS Squelch Code */
+int ftx1_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
 
-    /* mode: 0=off, 1=semi, 2=full */
-    if (mode < 0 || mode > 2)
-    {
-        return -RIG_EINVAL;
-    }
+    (void)vfo;  /* Unused */
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: mode=%d\n", __func__, mode);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: code=%u\n", __func__, code);
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BI%d;", mode);
+    /* P1=1 for RX DCS code */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DC1%03u;", code);
     return newcat_set_cmd(rig);
 }
 
-/* Get Break-In mode */
-int ftx1_get_breakin(RIG *rig, int *mode)
+/* Get DCS Squelch Code */
+int ftx1_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret, p1;
+    unsigned int dcs;
+
+    (void)vfo;  /* Unused */
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BI;");
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DC1;");
 
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1)
+    if (sscanf(priv->ret_data + 2, "%1d%3u", &p1, &dcs) != 2)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
                   priv->ret_data);
         return -RIG_EPROTO;
     }
 
-    *mode = p1;
+    *code = dcs;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: mode=%d\n", __func__, *mode);
-
-    return RIG_OK;
-}
-
-/* Set Squelch Level (SQ P1 P2P3P4;) */
-int ftx1_set_squelch(RIG *rig, vfo_t vfo, float val)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = (vfo == RIG_VFO_SUB || vfo == RIG_VFO_B || vfo == RIG_VFO_CURR) ? 0 : 0;
-    int level = (int)(val * 100);
-
-    /* Handle VFO_CURR as MAIN */
-    if (vfo == RIG_VFO_SUB || vfo == RIG_VFO_B)
-    {
-        p1 = 1;
-    }
-
-    if (level < 0) level = 0;
-    if (level > 100) level = 100;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d level=%d\n", __func__,
-              rig_strvfo(vfo), p1, level);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SQ%d%03d;", p1, level);
-    return newcat_set_cmd(rig);
-}
-
-/* Get Squelch Level */
-int ftx1_get_squelch(RIG *rig, vfo_t vfo, float *val)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret, p1, level;
-
-    p1 = (vfo == RIG_VFO_SUB || vfo == RIG_VFO_B) ? 1 : 0;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
-              rig_strvfo(vfo), p1);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SQ%d;", p1);
-
-    ret = newcat_get_cmd(rig);
-    if (ret != RIG_OK) return ret;
-
-    if (sscanf(priv->ret_data + 2, "%1d%3d", &p1, &level) != 2)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    *val = (float)level / 100.0f;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: level=%d val=%f\n", __func__, level, *val);
-
-    return RIG_OK;
-}
-
-/* Set Speech Processor (PR P1 P2;) */
-int ftx1_set_processor(RIG *rig, int status)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p2 = status ? 1 : 0;  /* 0=off, 1=on, 2=on2 */
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: status=%d\n", __func__, status);
-
-    /* PR P1 P2; where P1=VFO (0=Main), P2=mode */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PR0%d;", p2);
-    return newcat_set_cmd(rig);
-}
-
-/* Get Speech Processor status */
-int ftx1_get_processor(RIG *rig, int *status)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret, p1, p2;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PR0;");
-
-    ret = newcat_get_cmd(rig);
-    if (ret != RIG_OK) return ret;
-
-    /* Parse PR P1 P2; response */
-    if (sscanf(priv->ret_data + 2, "%1d%1d", &p1, &p2) != 2)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    /* Return 1 if processor is on (p2 = 1 or 2) */
-    *status = (p2 > 0) ? 1 : 0;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: p2=%d status=%d\n", __func__, p2, *status);
-
-    return RIG_OK;
-}
-
-/* Power Switch (PS P1;) - USE WITH CAUTION */
-int ftx1_set_powerstat(RIG *rig, powerstat_t status)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = (status == RIG_POWER_ON) ? 1 : 0;
-
-    rig_debug(RIG_DEBUG_WARN, "%s: Setting power to %d\n", __func__, p1);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PS%d;", p1);
-    return newcat_set_cmd(rig);
-}
-
-/* Get Power status */
-int ftx1_get_powerstat(RIG *rig, powerstat_t *status)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret, p1;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PS;");
-
-    ret = newcat_get_cmd(rig);
-    if (ret != RIG_OK) return ret;
-
-    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    *status = (p1 == 1) ? RIG_POWER_ON : RIG_POWER_OFF;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: p1=%d status=%d\n", __func__, p1, *status);
-
-    return RIG_OK;
-}
-
-/* ========== FROM ftx1_info.c ========== */
-/*
- * Hamlib Yaesu backend - FTX-1 Display and Information Group
- * Copyright (c) 2025 by Terrell Deppe (KJ5HST)
- *
- * This file implements CAT commands for radio info and display control.
- *
- * CAT Commands in this file:
- *   AI P1;           - Auto Information (0=off, 1=on)
- *   ID;              - Radio ID (returns 0763 for FTX-1)
- *   IF;              - Information Query (composite status)
- *   OI;              - Opposite Band Information
- *   DA P1;           - Dimmer (display brightness 0-15)
- *   LK P1;           - Lock (0=off, 1=lock)
- *   CS P1;           - Callsign display
- *   NM P1;           - Name/Label display
- *   DT P1 P2...;     - Date/Time (P1=0 date/1 time)
- *   IS P1 P2 P3 P4;  - IF Shift (P1=VFO, P2=on/off, P3=dir, P4=freq)
- *
- * IF Command Response Format (27+ characters):
- *   Position  Content
- *   01-02     "IF"
- *   03-11     Frequency (9 digits)
- *   12-16     Clarifier offset (5 chars, signed)
- *   17        RX clarifier status
- *   18        TX clarifier status
- *   19        Mode
- *   20        VFO Memory status
- *   21        CTCSS status
- *   22        Simplex/Split
- *   23-24     Tone number
- *   25        Shift direction
- */
-
-
-#define FTX1_ID "0763"  /* Radio ID for FTX-1 */
-
-#define FTX1_DIMMER_MIN 0
-#define FTX1_DIMMER_MAX 15
-
-/* Set Auto-Information mode (AI P1;) */
-int ftx1_set_trn(RIG *rig, int trn)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = trn ? 1 : 0;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: trn=%d\n", __func__, trn);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AI%d;", p1);
-    return newcat_set_cmd(rig);
-}
-
-/* Get Auto-Information mode */
-int ftx1_get_trn(RIG *rig, int *trn)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret, p1;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AI;");
-
-    ret = newcat_get_cmd(rig);
-    if (ret != RIG_OK) return ret;
-
-    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    *trn = p1;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: trn=%d\n", __func__, *trn);
-
-    return RIG_OK;
-}
-
-/* Get Radio ID (ID;) */
-int ftx1_get_info(RIG *rig, char *info, size_t info_len)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret;
-    size_t len;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "ID;");
-
-    ret = newcat_get_cmd(rig);
-    if (ret != RIG_OK) return ret;
-
-    /* Response: ID xxxx; - extract ID after "ID" */
-    if (strlen(priv->ret_data) > 2)
-    {
-        strncpy(info, priv->ret_data + 2, info_len - 1);
-        info[info_len - 1] = '\0';
-        /* Remove trailing semicolon */
-        len = strlen(info);
-
-        if (len > 0 && info[len - 1] == ';')
-        {
-            info[len - 1] = '\0';
-        }
-    }
-    else
-    {
-        info[0] = '\0';
-    }
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: info='%s'\n", __func__, info);
-
-    return RIG_OK;
-}
-
-/* Get composite information (IF;) */
-int ftx1_get_if_info(RIG *rig, freq_t *freq, rmode_t *mode, vfo_t *vfo)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "IF;");
-
-    ret = newcat_get_cmd(rig);
-    if (ret != RIG_OK) return ret;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: IF response='%s'\n", __func__,
-              priv->ret_data);
-
-    /* Parse IF response - minimum 27 characters */
-    if (strlen(priv->ret_data) < 27)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: IF response too short '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    /* Extract frequency (positions 3-11, 9 digits) */
-    if (freq)
-    {
-        char freq_str[10];
-        strncpy(freq_str, priv->ret_data + 2, 9);
-        freq_str[9] = '\0';
-        *freq = atof(freq_str);
-    }
-
-    /* Extract mode (position 19) */
-    if (mode)
-    {
-        char mode_char = priv->ret_data[18];
-
-        switch (mode_char)
-        {
-        case '1': *mode = RIG_MODE_LSB; break;
-        case '2': *mode = RIG_MODE_USB; break;
-        case '3': *mode = RIG_MODE_CW; break;
-        case '4': *mode = RIG_MODE_FM; break;
-        case '5': *mode = RIG_MODE_AM; break;
-        case '6': *mode = RIG_MODE_RTTY; break;
-        case '7': *mode = RIG_MODE_CWR; break;
-        case '8': *mode = RIG_MODE_PKTLSB; break;
-        case '9': *mode = RIG_MODE_RTTYR; break;
-        case 'A': *mode = RIG_MODE_PKTFM; break;
-        case 'B': *mode = RIG_MODE_FMN; break;
-        case 'C': *mode = RIG_MODE_PKTUSB; break;
-        default:  *mode = RIG_MODE_NONE; break;
-        }
-    }
-
-    /* Extract VFO/Memory (position 20) */
-    if (vfo)
-    {
-        char vfo_char = priv->ret_data[19];
-        *vfo = (vfo_char == '1') ? RIG_VFO_MEM : RIG_VFO_CURR;
-    }
-
-    return RIG_OK;
-}
-
-/* Get opposite band info (OI;) */
-int ftx1_get_oi_info(RIG *rig, freq_t *freq)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "OI;");
-
-    ret = newcat_get_cmd(rig);
-    if (ret != RIG_OK) return ret;
-
-    /* OI response format similar to IF */
-    if (strlen(priv->ret_data) >= 11)
-    {
-        char freq_str[10];
-        strncpy(freq_str, priv->ret_data + 2, 9);
-        freq_str[9] = '\0';
-        *freq = atof(freq_str);
-
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: freq=%f\n", __func__, *freq);
-    }
-    else
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: OI response too short '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    return RIG_OK;
-}
-
-/*
- * FTX-1 DA command format: DA P1P2 P3P4 P5P6 P7P8;
- *   P1P2 = LCD Dimmer (00-15)
- *   P3P4 = LED Dimmer (00-15)
- *   P5P6 = TX/Busy LED (00-15)
- *   P7P8 = Unknown (00-15)
- *
- * For set, we need to preserve other fields, so read-modify-write.
- * For simplicity, we only expose LCD dimmer (first field).
- */
-
-/* Set Display Dimmer (DA P1P2 P3P4 P5P6 P7P8;) - sets LCD dimmer only */
-int ftx1_set_dimmer(RIG *rig, int level)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret;
-    int p1, p2, p3, p4;
-
-    if (level < FTX1_DIMMER_MIN) level = FTX1_DIMMER_MIN;
-    if (level > FTX1_DIMMER_MAX) level = FTX1_DIMMER_MAX;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: level=%d\n", __func__, level);
-
-    /* Read current values first */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DA;");
-    ret = newcat_get_cmd(rig);
-
-    if (ret != RIG_OK)
-    {
-        /* If read fails, just set with defaults for other fields */
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DA%02d101520;", level);
-        return newcat_set_cmd(rig);
-    }
-
-    /* Parse current: DA P1P2 P3P4 P5P6 P7P8; */
-    if (sscanf(priv->ret_data + 2, "%2d%2d%2d%2d", &p1, &p2, &p3, &p4) != 4)
-    {
-        /* Parse failed, use defaults */
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DA%02d101520;", level);
-        return newcat_set_cmd(rig);
-    }
-
-    /* Set new LCD dimmer, preserve others */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DA%02d%02d%02d%02d;",
-             level, p2, p3, p4);
-    return newcat_set_cmd(rig);
-}
-
-/* Get Display Dimmer - returns LCD dimmer (first field) */
-int ftx1_get_dimmer(RIG *rig, int *level)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret, val;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DA;");
-
-    ret = newcat_get_cmd(rig);
-    if (ret != RIG_OK) return ret;
-
-    /* Parse first field (LCD dimmer) from DA P1P2 P3P4 P5P6 P7P8; */
-    if (sscanf(priv->ret_data + 2, "%2d", &val) != 1)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    *level = val;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: level=%d\n", __func__, *level);
-
-    return RIG_OK;
-}
-
-/* Set Lock (LK P1;) */
-int ftx1_set_lock(RIG *rig, int lock)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = lock ? 1 : 0;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: lock=%d\n", __func__, lock);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "LK%d;", p1);
-    return newcat_set_cmd(rig);
-}
-
-/* Get Lock status */
-int ftx1_get_lock(RIG *rig, int *lock)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret, p1;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "LK;");
-
-    ret = newcat_get_cmd(rig);
-    if (ret != RIG_OK) return ret;
-
-    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    *lock = p1;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: lock=%d\n", __func__, *lock);
-
-    return RIG_OK;
-}
-
-/* Get Callsign (CS;) - read stored callsign */
-int ftx1_get_callsign(RIG *rig, char *callsign, size_t callsign_len)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret;
-    size_t len;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CS;");
-
-    ret = newcat_get_cmd(rig);
-    if (ret != RIG_OK) return ret;
-
-    /* Response: CS callsign; - extract callsign after "CS" */
-    if (strlen(priv->ret_data) > 2)
-    {
-        strncpy(callsign, priv->ret_data + 2, callsign_len - 1);
-        callsign[callsign_len - 1] = '\0';
-        /* Remove trailing semicolon if present */
-        len = strlen(callsign);
-
-        if (len > 0 && callsign[len - 1] == ';')
-        {
-            callsign[len - 1] = '\0';
-        }
-    }
-    else
-    {
-        callsign[0] = '\0';
-    }
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: callsign='%s'\n", __func__, callsign);
-
-    return RIG_OK;
-}
-
-/* Set Name/Label display mode (NM P1;) */
-int ftx1_set_name_display(RIG *rig, int mode)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = mode ? 1 : 0;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: mode=%d\n", __func__, mode);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "NM%d;", p1);
-    return newcat_set_cmd(rig);
-}
-
-/* Get Name/Label display mode */
-int ftx1_get_name_display(RIG *rig, int *mode)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret, p1;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "NM;");
-
-    ret = newcat_get_cmd(rig);
-    if (ret != RIG_OK) return ret;
-
-    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    *mode = p1;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: mode=%d\n", __func__, *mode);
-
-    return RIG_OK;
-}
-
-/* Decode IF response to fill rig state (utility function) */
-int ftx1_decode_if_response(RIG *rig, const char *resp)
-{
-    freq_t freq;
-    rmode_t mode;
-    vfo_t vfo;
-    char freq_str[10];
-    char mode_char;
-    char vfo_char;
-
-    (void)rig;  /* Unused for now */
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: resp='%s'\n", __func__, resp);
-
-    /* Reparse from string rather than re-query */
-    if (strlen(resp) < 27)
-    {
-        return -RIG_EPROTO;
-    }
-
-    /* Extract frequency */
-    strncpy(freq_str, resp + 2, 9);
-    freq_str[9] = '\0';
-    freq = atof(freq_str);
-
-    /* Extract mode */
-    mode_char = resp[18];
-
-    switch (mode_char)
-    {
-    case '1': mode = RIG_MODE_LSB; break;
-    case '2': mode = RIG_MODE_USB; break;
-    case '3': mode = RIG_MODE_CW; break;
-    case '4': mode = RIG_MODE_FM; break;
-    case '5': mode = RIG_MODE_AM; break;
-    default:  mode = RIG_MODE_NONE; break;
-    }
-
-    /* Extract VFO */
-    vfo_char = resp[19];
-    vfo = (vfo_char == '1') ? RIG_VFO_MEM : RIG_VFO_CURR;
-
-    /* Could update rig state cache here */
-    (void)freq;
-    (void)mode;
-    (void)vfo;
-
-    return RIG_OK;
-}
-
-/*
- * ftx1_set_date - Set Date
- * CAT command: DT 0 YYYYMMDD; (P1=0 for date)
- */
-int ftx1_set_date(RIG *rig, int year, int month, int day)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: year=%d month=%d day=%d\n", __func__,
-              year, month, day);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DT0%04d%02d%02d;",
-             year, month, day);
-
-    return newcat_set_cmd(rig);
-}
-
-/*
- * ftx1_get_date - Get Date
- * CAT command: DT 0; Response: DT0 YYYYMMDD;
- */
-int ftx1_get_date(RIG *rig, int *year, int *month, int *day)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DT0;");
-
-    ret = newcat_get_cmd(rig);
-    if (ret != RIG_OK) return ret;
-
-    /* Response: DT0 YYYYMMDD; */
-    if (sscanf(priv->ret_data + 3, "%4d%2d%2d", year, month, day) != 3)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: year=%d month=%d day=%d\n", __func__,
-              *year, *month, *day);
-
-    return RIG_OK;
-}
-
-/*
- * ftx1_set_time - Set Time
- * CAT command: DT 1 HHMMSS; (P1=1 for time)
- */
-int ftx1_set_time(RIG *rig, int hour, int min, int sec)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: hour=%d min=%d sec=%d\n", __func__,
-              hour, min, sec);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DT1%02d%02d%02d;",
-             hour, min, sec);
-
-    return newcat_set_cmd(rig);
-}
-
-/*
- * ftx1_get_time - Get Time
- * CAT command: DT 1; Response: DT1 HHMMSS;
- */
-int ftx1_get_time(RIG *rig, int *hour, int *min, int *sec)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DT1;");
-
-    ret = newcat_get_cmd(rig);
-    if (ret != RIG_OK) return ret;
-
-    /* Response: DT1 HHMMSS; */
-    if (sscanf(priv->ret_data + 3, "%2d%2d%2d", hour, min, sec) != 3)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: hour=%d min=%d sec=%d\n", __func__,
-              *hour, *min, *sec);
-
-    return RIG_OK;
-}
-
-/*
- * ftx1_set_if_shift - Set IF Shift
- * CAT command: IS P1 P2 P3 P4P4P4P4;
- *   P1 = VFO (0=MAIN, 1=SUB)
- *   P2 = IF Shift on/off (0/1)
- *   P3 = Direction (+/-)
- *   P4 = Shift freq (0000-1200)
- */
-int ftx1_set_if_shift(RIG *rig, vfo_t vfo, int on, int shift_hz)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
-    int p2 = on ? 1 : 0;
-    char p3 = (shift_hz >= 0) ? '+' : '-';
-    int p4 = (shift_hz >= 0) ? shift_hz : -shift_hz;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d on=%d shift=%d\n", __func__,
-              rig_strvfo(vfo), p1, on, shift_hz);
-
-    if (p4 > 1200) p4 = 1200;
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "IS%d%d%c%04d;",
-             p1, p2, p3, p4);
-
-    return newcat_set_cmd(rig);
-}
-
-/*
- * ftx1_get_if_shift - Get IF Shift
- * CAT command: IS P1; Response: IS P1 P2 P3 P4P4P4P4;
- */
-int ftx1_get_if_shift(RIG *rig, vfo_t vfo, int *on, int *shift_hz)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
-    int p1_resp, p2, p4;
-    char p3;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
-              rig_strvfo(vfo), p1);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "IS%d;", p1);
-
-    ret = newcat_get_cmd(rig);
-    if (ret != RIG_OK) return ret;
-
-    /* Response: IS P1 P2 P3 P4P4P4P4; */
-    if (sscanf(priv->ret_data + 2, "%1d%1d%c%4d", &p1_resp, &p2, &p3, &p4) != 4)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    *on = p2;
-    *shift_hz = (p3 == '-') ? -p4 : p4;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: on=%d shift=%d\n", __func__, *on, *shift_hz);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: code=%u\n", __func__, *code);
 
     return RIG_OK;
 }
 
 /* ========== FROM ftx1_mem.c ========== */
-/*
- * Hamlib Yaesu backend - FTX-1 Memory Operations Group
- * Copyright (c) 2025 by Terrell Deppe (KJ5HST)
- *
- * This file implements CAT commands for memory channel operations.
- *
- * FIRMWARE FORMAT NOTES (verified 2025-12-09):
- * All memory commands use DIFFERENT FORMATS than documented in the spec!
- *
- * MC (Memory Channel Select):
- *   Query: MC0 (MAIN VFO) or MC1 (SUB VFO)
- *   Response: MCNNNNNN (6-digit channel, e.g., MC000001)
- *   Set: MCNNNNNN (6-digit channel)
- *   Returns '?' if channel doesn't exist (not programmed)
- *
- * MR (Memory Read): 5-digit format
- *   Query: MR00001 (not MR001 or MR0001)
- *   Response: MR00001FFFFFFFFF+OOOOOPPMMxxxx
- *
- * MT (Memory Tag): 5-digit format, FULL READ/WRITE
- *   Read: MT00001 returns MT00001[12-char name, space padded]
- *   Set: MT00001NAMEHERE (12 chars, space padded)
- *
- * MZ (Memory Zone): 5-digit format, FULL READ/WRITE
- *   Read: MZ00001 returns MZ00001[10-digit zone data]
- *   Set: MZ00001NNNNNNNNNN (10-digit zone data)
- *
- * VM (VFO/Memory Mode):
- *   Mode codes DIFFER FROM SPEC: 00=VFO, 11=Memory (not 01!)
- *   Only VM000 set works; use SV to toggle to memory mode
- *
- * CH (Memory Channel Up/Down):
- *   CH0 = next memory channel, CH1 = previous memory channel
- *   Cycles through ALL channels across groups: PMG (00xxxx) → QMB (05xxxx)
- *   CH; CH00; CH01; etc. return '?' - only CH0 and CH1 work
- *   MC response reflects group: MCGGnnnn where GG=group (00-05), nnnn=channel
- *
- * Memory Channel Ranges:
- *   000001-000099 = Regular memory channels (6-digit for MC)
- *   000100-000117 = Special channels
- *   00001-00099 = Regular memory channels (5-digit for MR/MT/MZ)
- */
 
 
 #define FTX1_MEM_MIN 1
@@ -3966,14 +3203,6 @@ int ftx1_get_if_shift(RIG *rig, vfo_t vfo, int *on, int *shift_hz)
 /* Forward declaration - needed for ftx1_set_vfo_mem_mode */
 static int ftx1_get_vfo_mem_mode_internal(RIG *rig, vfo_t *vfo);
 
-/*
- * Set Memory Channel (MC)
- * FIRMWARE FORMAT: MCNNNNNN (6-digit channel number)
- *   Set: MC000001 for channel 1
- *   Returns '?' if channel doesn't exist (not programmed)
- *
- * Note: VFO parameter is ignored - FTX-1 uses single memory channel format
- */
 int ftx1_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -3993,15 +3222,6 @@ int ftx1_set_mem(RIG *rig, vfo_t vfo, int ch)
     return newcat_set_cmd(rig);
 }
 
-/*
- * Get Memory Channel (MC)
- * FIRMWARE FORMAT: MC0 or MC1 query returns MCNNNNNN (6-digit channel)
- *   Query: MC0 (MAIN VFO) or MC1 (SUB VFO)
- *   Response: MC000001 for channel 1
- *
- * Note: The VFO number in query selects which VFO to read,
- *       but response format is the same (MC + 6-digit channel)
- */
 int ftx1_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
     int ret, channel;
@@ -4040,22 +3260,6 @@ int ftx1_get_mem(RIG *rig, vfo_t vfo, int *ch)
     return RIG_OK;
 }
 
-/*
- * Memory Write (MW) - write channel data to memory
- * CAT Format: MW P1P1P1P1P1 P2P2P2P2P2P2P2P2P2 P3P3P3P3P3 P4 P5 P6 P7 P8 P9P9 P10;
- *   P1 (5 bytes): Channel number (00001-00999 or P-01L-P-50U for PMS)
- *   P2 (9 bytes): VFO Frequency in Hz
- *   P3 (5 bytes): Clarifier direction (+/-) + offset (0000-9990 Hz)
- *   P4 (1 byte): RX CLAR (0=OFF, 1=ON)
- *   P5 (1 byte): TX CLAR (0=OFF, 1=ON)
- *   P6 (1 byte): Mode code (1=LSB, 2=USB, 3=CW-U, 4=FM, 5=AM, 6=RTTY-L,
- *                          7=CW-L, 8=DATA-L, 9=RTTY-U, A=DATA-FM, B=FM-N,
- *                          C=DATA-U, D=AM-N, E=PSK, F=DATA-FM-N)
- *   P7 (1 byte): VFO/Memory mode (0=VFO, 1=Memory, 2=Memory Tune, 3=QMB, 5=PMS)
- *   P8 (1 byte): CTCSS mode (0=OFF, 1=ENC/DEC, 2=ENC, 3=DCS, 4=PR FREQ, 5=REV TONE)
- *   P9 (2 bytes): Fixed "00"
- *   P10 (1 byte): Shift (0=Simplex, 1=Plus, 2=Minus)
- */
 int ftx1_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -4158,13 +3362,6 @@ int ftx1_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
     return newcat_set_cmd(rig);
 }
 
-/*
- * Memory Read (MR) - read memory channel data
- * FIRMWARE FORMAT: MR P1P2P2P2P2 (5-digit: bank + 4-digit channel)
- *   Query: MR00001 for channel 1
- *   Response: MR00001FFFFFFFFF+OOOOOPPMMxxxx
- *   Returns '?' if channel doesn't exist (not programmed)
- */
 int ftx1_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 {
     int ret;
@@ -4220,13 +3417,6 @@ int ftx1_mem_to_vfo(RIG *rig)
     return newcat_set_cmd(rig);
 }
 
-/*
- * Get Memory Tag/Name (MT)
- * FIRMWARE FORMAT: MT P1P2P2P2P2 (5-digit: bank + 4-digit channel)
- *   Query: MT00001 for channel 1
- *   Response: MT00001[12-char name, space padded]
- *   Returns '?' if channel doesn't exist (not programmed)
- */
 int ftx1_get_mem_name(RIG *rig, int ch, char *name, size_t name_len)
 {
     int ret;
@@ -4266,12 +3456,6 @@ int ftx1_get_mem_name(RIG *rig, int ch, char *name, size_t name_len)
     return RIG_OK;
 }
 
-/*
- * Set Memory Tag/Name (MT)
- * FIRMWARE FORMAT: MT P1P2P2P2P2 NAME (5-digit channel + 12-char name)
- *   Set: MT00001NAMEHERE (12 chars, space padded)
- *   Returns '?' if channel doesn't exist (not programmed)
- */
 int ftx1_set_mem_name(RIG *rig, int ch, const char *name)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -4296,12 +3480,6 @@ int ftx1_set_mem_name(RIG *rig, int ch, const char *name)
     return newcat_set_cmd(rig);
 }
 
-/*
- * QMB Store (QI;)
- * NOTE: QI command is ACCEPTED but NON-FUNCTIONAL in firmware v1.08+
- * The command is parsed (returns empty, not '?') but has no effect.
- * Kept for compatibility in case future firmware fixes this.
- */
 int ftx1_quick_mem_store(RIG *rig)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -4312,13 +3490,6 @@ int ftx1_quick_mem_store(RIG *rig)
     return newcat_set_cmd(rig);
 }
 
-/*
- * Quick Memory Recall (QR;)
- * NOTE: QR command is ACCEPTED but NON-FUNCTIONAL in firmware v1.08+
- * The command is parsed (returns empty, not '?') but has no effect.
- * CAT manual shows QR with no parameters, not QR P1 as originally coded.
- * Kept for compatibility in case future firmware fixes this.
- */
 int ftx1_quick_mem_recall(RIG *rig, int slot)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -4332,13 +3503,6 @@ int ftx1_quick_mem_recall(RIG *rig, int slot)
     return newcat_set_cmd(rig);
 }
 
-/*
- * Set VFO/Memory mode (VM)
- * FIRMWARE FORMAT: VMxPP where x=VFO (0=MAIN, 1=SUB), PP=mode
- *   Mode codes DIFFER FROM SPEC: 00=VFO, 11=Memory (not 01!)
- *   IMPORTANT: Only VM000 (VFO mode) set works!
- *   To switch to memory mode, use SV command to toggle
- */
 int ftx1_set_vfo_mem_mode(RIG *rig, vfo_t vfo)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -4369,11 +3533,6 @@ int ftx1_set_vfo_mem_mode(RIG *rig, vfo_t vfo)
     }
 }
 
-/*
- * Get VFO/Memory mode (VM) - internal implementation
- * FIRMWARE FORMAT: VMx (x=VFO) returns VMxPP
- *   Mode codes DIFFER FROM SPEC: 00=VFO, 11=Memory (not 01!)
- */
 static int ftx1_get_vfo_mem_mode_internal(RIG *rig, vfo_t *vfo)
 {
     int ret, mode;
@@ -4416,10 +3575,6 @@ int ftx1_get_vfo_mem_mode(RIG *rig, vfo_t *vfo)
     return ftx1_get_vfo_mem_mode_internal(rig, vfo);
 }
 
-/*
- * ftx1_vfo_a_to_mem - Store VFO-A to Memory (AM;)
- * CAT command: AM; (set-only per spec)
- */
 int ftx1_vfo_a_to_mem(RIG *rig)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -4430,10 +3585,6 @@ int ftx1_vfo_a_to_mem(RIG *rig)
     return newcat_set_cmd(rig);
 }
 
-/*
- * ftx1_vfo_b_to_mem - Store VFO-B to Memory (BM;)
- * CAT command: BM; (set-only per spec)
- */
 int ftx1_vfo_b_to_mem(RIG *rig)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -4444,10 +3595,6 @@ int ftx1_vfo_b_to_mem(RIG *rig)
     return newcat_set_cmd(rig);
 }
 
-/*
- * ftx1_mem_to_vfo_b - Memory to VFO-B (MB;)
- * CAT command: MB; (set-only)
- */
 int ftx1_mem_to_vfo_b(RIG *rig)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -4458,15 +3605,6 @@ int ftx1_mem_to_vfo_b(RIG *rig)
     return newcat_set_cmd(rig);
 }
 
-/*
- * Set Memory Zone data (MZ)
- * FIRMWARE FORMAT: MZ P1P2P2P2P2 DATA (5-digit channel + 10-digit zone data)
- *   Set: MZ00001NNNNNNNNNN (10-digit zone data)
- *   Returns '?' if channel doesn't exist (not programmed)
- *
- * Note: Actual zone data format is firmware-specific (10 digits).
- * This function takes raw zone data string for maximum flexibility.
- */
 int ftx1_set_mem_zone(RIG *rig, int channel, const char *zone_data)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -4493,13 +3631,6 @@ int ftx1_set_mem_zone(RIG *rig, int channel, const char *zone_data)
     return newcat_set_cmd(rig);
 }
 
-/*
- * Get Memory Zone data (MZ)
- * FIRMWARE FORMAT: MZ P1P2P2P2P2 (5-digit: bank + 4-digit channel)
- *   Query: MZ00001 for channel 1
- *   Response: MZ00001[10-digit zone data]
- *   Returns '?' if channel doesn't exist (not programmed)
- */
 int ftx1_get_mem_zone(RIG *rig, int channel, char *zone_data, size_t data_len)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -4535,13 +3666,6 @@ int ftx1_get_mem_zone(RIG *rig, int channel, char *zone_data, size_t data_len)
     return RIG_OK;
 }
 
-/*
- * ftx1_mem_ch_up - Select next memory channel (CH0)
- * CAT command: CH0; (set-only)
- * Cycles through ALL memory channels across groups:
- *   PMG ch1 → ch2 → ... → QMB ch1 → ch2 → ... → PMG ch1 (wraps)
- * Display shows "M-ALL X-NN" where X=group, NN=channel
- */
 int ftx1_mem_ch_up(RIG *rig)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -4552,11 +3676,6 @@ int ftx1_mem_ch_up(RIG *rig)
     return newcat_set_cmd(rig);
 }
 
-/*
- * ftx1_mem_ch_down - Select previous memory channel (CH1)
- * CAT command: CH1; (set-only)
- * Cycles through ALL memory channels in reverse order
- */
 int ftx1_mem_ch_down(RIG *rig)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -4567,12 +3686,6 @@ int ftx1_mem_ch_down(RIG *rig)
     return newcat_set_cmd(rig);
 }
 
-/*
- * ftx1_get_mem_group - Get current memory group from MC response
- * Returns group number (0-5 observed) extracted from MCGGNNNN format
- * Group 00 = PMG (Primary Memory Group)
- * Group 05 = QMB (Quick Memory Bank)
- */
 int ftx1_get_mem_group(RIG *rig, int *group)
 {
     int ret, ch;
@@ -4606,35 +3719,6 @@ int ftx1_get_mem_group(RIG *rig, int *group)
 }
 
 /* ========== FROM ftx1_scan.c ========== */
-/*
- * Hamlib Yaesu backend - FTX-1 Scan and Band Operations Group
- * Copyright (c) 2025 by Terrell Deppe (KJ5HST)
- *
- * This file implements CAT commands for scanning and band selection.
- *
- * CAT Commands in this file:
- *   SC P1;           - Scan Control (0=stop, 1=up, 2=down)
- *   BS P1P2;         - Band Select (P1P2=band code)
- *   UP;              - Frequency/Channel Up
- *   DN;              - Frequency/Channel Down
- *   TS P1P2;         - Tuning Step (00-14 code for step size)
- *   ZI P1;           - Zero In (P1=VFO 0/1, set-only)
- *
- * Band Codes (BS command):
- *   00 = 160m (1.8MHz)     08 = 15m (21MHz)
- *   01 = 80m (3.5MHz)      09 = 12m (24MHz)
- *   02 = 60m (5MHz)        10 = 10m (28MHz)
- *   03 = 40m (7MHz)        11 = 6m (50MHz)
- *   04 = 30m (10MHz)       12 = GEN (general coverage)
- *   05 = 20m (14MHz)       13 = MW (AM broadcast)
- *   06 = 17m (18MHz)       14 = AIR (airband)
- *   07 = (reserved)
- *
- * Tuning Step Codes:
- *   00=1Hz, 01=2.5Hz, 02=5Hz, 03=10Hz, 04=25Hz, 05=50Hz, 06=100Hz
- *   07=250Hz, 08=500Hz, 09=1kHz, 10=2.5kHz, 11=5kHz, 12=10kHz
- *   13=50kHz, 14=100kHz
- */
 
 
 /* Band codes */
@@ -4891,11 +3975,6 @@ int ftx1_vfo_op_scan(RIG *rig, vfo_t vfo, vfo_op_t op)
     }
 }
 
-/*
- * ftx1_zero_in - Zero In (ZI P1;)
- * CAT command: ZI P1; (P1=VFO 0/1, set-only)
- * Clears the RIT/XIT offset for the specified VFO
- */
 int ftx1_zero_in(RIG *rig, vfo_t vfo)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -4908,38 +3987,699 @@ int ftx1_zero_in(RIG *rig, vfo_t vfo)
     return newcat_set_cmd(rig);
 }
 
+/* ========== FROM ftx1_info.c ========== */
+
+
+#define FTX1_ID "0840"  /* Radio ID for FTX-1 */
+
+#define FTX1_DIMMER_MIN 0
+#define FTX1_DIMMER_MAX 15
+
+/* Set Auto-Information mode (AI P1;) */
+int ftx1_set_trn(RIG *rig, int trn)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int p1 = trn ? 1 : 0;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: trn=%d\n", __func__, trn);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AI%d;", p1);
+    return newcat_set_cmd(rig);
+}
+
+/* Get Auto-Information mode */
+int ftx1_get_trn(RIG *rig, int *trn)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret, p1;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AI;");
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK) return ret;
+
+    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    *trn = p1;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: trn=%d\n", __func__, *trn);
+
+    return RIG_OK;
+}
+
+/* Get Radio ID (ID;) */
+int ftx1_get_info(RIG *rig, char *info, size_t info_len)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    size_t len;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "ID;");
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK) return ret;
+
+    /* Response: ID xxxx; - extract ID after "ID" */
+    if (strlen(priv->ret_data) > 2)
+    {
+        strncpy(info, priv->ret_data + 2, info_len - 1);
+        info[info_len - 1] = '\0';
+        /* Remove trailing semicolon */
+        len = strlen(info);
+
+        if (len > 0 && info[len - 1] == ';')
+        {
+            info[len - 1] = '\0';
+        }
+    }
+    else
+    {
+        info[0] = '\0';
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: info='%s'\n", __func__, info);
+
+    return RIG_OK;
+}
+
+/* Get composite information (IF;) */
+int ftx1_get_if_info(RIG *rig, freq_t *freq, rmode_t *mode, vfo_t *vfo)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "IF;");
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK) return ret;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: IF response='%s'\n", __func__,
+              priv->ret_data);
+
+    /* Parse IF response - minimum 27 characters */
+    if (strlen(priv->ret_data) < 27)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: IF response too short '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    /* Extract frequency (positions 3-11, 9 digits) */
+    if (freq)
+    {
+        char freq_str[10];
+        strncpy(freq_str, priv->ret_data + 2, 9);
+        freq_str[9] = '\0';
+        *freq = atof(freq_str);
+    }
+
+    /* Extract mode (position 19) */
+    if (mode)
+    {
+        char mode_char = priv->ret_data[18];
+
+        switch (mode_char)
+        {
+        case '1': *mode = RIG_MODE_LSB; break;
+        case '2': *mode = RIG_MODE_USB; break;
+        case '3': *mode = RIG_MODE_CW; break;
+        case '4': *mode = RIG_MODE_FM; break;
+        case '5': *mode = RIG_MODE_AM; break;
+        case '6': *mode = RIG_MODE_RTTY; break;
+        case '7': *mode = RIG_MODE_CWR; break;
+        case '8': *mode = RIG_MODE_PKTLSB; break;
+        case '9': *mode = RIG_MODE_RTTYR; break;
+        case 'A': *mode = RIG_MODE_PKTFM; break;
+        case 'B': *mode = RIG_MODE_FMN; break;
+        case 'C': *mode = RIG_MODE_PKTUSB; break;
+        default:  *mode = RIG_MODE_NONE; break;
+        }
+    }
+
+    /* Extract VFO/Memory (position 20) */
+    if (vfo)
+    {
+        char vfo_char = priv->ret_data[19];
+        *vfo = (vfo_char == '1') ? RIG_VFO_MEM : RIG_VFO_CURR;
+    }
+
+    return RIG_OK;
+}
+
+/* Get opposite band info (OI;) */
+int ftx1_get_oi_info(RIG *rig, freq_t *freq)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "OI;");
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK) return ret;
+
+    /* OI response format similar to IF */
+    if (strlen(priv->ret_data) >= 11)
+    {
+        char freq_str[10];
+        strncpy(freq_str, priv->ret_data + 2, 9);
+        freq_str[9] = '\0';
+        *freq = atof(freq_str);
+
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: freq=%f\n", __func__, *freq);
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: OI response too short '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    return RIG_OK;
+}
+
+
+/* Set Display Dimmer (DA P1P2 P3P4 P5P6 P7P8;) - sets LCD dimmer only */
+int ftx1_set_dimmer(RIG *rig, int level)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    int p1, p2, p3, p4;
+
+    if (level < FTX1_DIMMER_MIN) level = FTX1_DIMMER_MIN;
+    if (level > FTX1_DIMMER_MAX) level = FTX1_DIMMER_MAX;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: level=%d\n", __func__, level);
+
+    /* Read current values first */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DA;");
+    ret = newcat_get_cmd(rig);
+
+    if (ret != RIG_OK)
+    {
+        /* If read fails, just set with defaults for other fields */
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DA%02d101520;", level);
+        return newcat_set_cmd(rig);
+    }
+
+    /* Parse current: DA P1P2 P3P4 P5P6 P7P8; */
+    if (sscanf(priv->ret_data + 2, "%2d%2d%2d%2d", &p1, &p2, &p3, &p4) != 4)
+    {
+        /* Parse failed, use defaults */
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DA%02d101520;", level);
+        return newcat_set_cmd(rig);
+    }
+
+    /* Set new LCD dimmer, preserve others */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DA%02d%02d%02d%02d;",
+             level, p2, p3, p4);
+    return newcat_set_cmd(rig);
+}
+
+/* Get Display Dimmer - returns LCD dimmer (first field) */
+int ftx1_get_dimmer(RIG *rig, int *level)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret, val;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DA;");
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK) return ret;
+
+    /* Parse first field (LCD dimmer) from DA P1P2 P3P4 P5P6 P7P8; */
+    if (sscanf(priv->ret_data + 2, "%2d", &val) != 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    *level = val;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: level=%d\n", __func__, *level);
+
+    return RIG_OK;
+}
+
+/* Set Lock (LK P1;) */
+int ftx1_set_lock(RIG *rig, int lock)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int p1 = lock ? 1 : 0;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: lock=%d\n", __func__, lock);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "LK%d;", p1);
+    return newcat_set_cmd(rig);
+}
+
+/* Get Lock status */
+int ftx1_get_lock(RIG *rig, int *lock)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret, p1;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "LK;");
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK) return ret;
+
+    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    *lock = p1;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: lock=%d\n", __func__, *lock);
+
+    return RIG_OK;
+}
+
+/* Get Callsign (CS;) - read stored callsign */
+int ftx1_get_callsign(RIG *rig, char *callsign, size_t callsign_len)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    size_t len;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CS;");
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK) return ret;
+
+    /* Response: CS callsign; - extract callsign after "CS" */
+    if (strlen(priv->ret_data) > 2)
+    {
+        strncpy(callsign, priv->ret_data + 2, callsign_len - 1);
+        callsign[callsign_len - 1] = '\0';
+        /* Remove trailing semicolon if present */
+        len = strlen(callsign);
+
+        if (len > 0 && callsign[len - 1] == ';')
+        {
+            callsign[len - 1] = '\0';
+        }
+    }
+    else
+    {
+        callsign[0] = '\0';
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: callsign='%s'\n", __func__, callsign);
+
+    return RIG_OK;
+}
+
+/* Set Name/Label display mode (NM P1;) */
+int ftx1_set_name_display(RIG *rig, int mode)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int p1 = mode ? 1 : 0;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: mode=%d\n", __func__, mode);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "NM%d;", p1);
+    return newcat_set_cmd(rig);
+}
+
+/* Get Name/Label display mode */
+int ftx1_get_name_display(RIG *rig, int *mode)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret, p1;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "NM;");
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK) return ret;
+
+    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    *mode = p1;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: mode=%d\n", __func__, *mode);
+
+    return RIG_OK;
+}
+
+/* Decode IF response to fill rig state (utility function) */
+int ftx1_decode_if_response(RIG *rig, const char *resp)
+{
+    freq_t freq;
+    rmode_t mode;
+    vfo_t vfo;
+    char freq_str[10];
+    char mode_char;
+    char vfo_char;
+
+    (void)rig;  /* Unused for now */
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: resp='%s'\n", __func__, resp);
+
+    /* Reparse from string rather than re-query */
+    if (strlen(resp) < 27)
+    {
+        return -RIG_EPROTO;
+    }
+
+    /* Extract frequency */
+    strncpy(freq_str, resp + 2, 9);
+    freq_str[9] = '\0';
+    freq = atof(freq_str);
+
+    /* Extract mode */
+    mode_char = resp[18];
+
+    switch (mode_char)
+    {
+    case '1': mode = RIG_MODE_LSB; break;
+    case '2': mode = RIG_MODE_USB; break;
+    case '3': mode = RIG_MODE_CW; break;
+    case '4': mode = RIG_MODE_FM; break;
+    case '5': mode = RIG_MODE_AM; break;
+    default:  mode = RIG_MODE_NONE; break;
+    }
+
+    /* Extract VFO */
+    vfo_char = resp[19];
+    vfo = (vfo_char == '1') ? RIG_VFO_MEM : RIG_VFO_CURR;
+
+    /* Could update rig state cache here */
+    (void)freq;
+    (void)mode;
+    (void)vfo;
+
+    return RIG_OK;
+}
+
+int ftx1_set_date(RIG *rig, int year, int month, int day)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: year=%d month=%d day=%d\n", __func__,
+              year, month, day);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DT0%04d%02d%02d;",
+             year, month, day);
+
+    return newcat_set_cmd(rig);
+}
+
+int ftx1_get_date(RIG *rig, int *year, int *month, int *day)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DT0;");
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK) return ret;
+
+    /* Response: DT0 YYYYMMDD; */
+    if (sscanf(priv->ret_data + 3, "%4d%2d%2d", year, month, day) != 3)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: year=%d month=%d day=%d\n", __func__,
+              *year, *month, *day);
+
+    return RIG_OK;
+}
+
+int ftx1_set_time(RIG *rig, int hour, int min, int sec)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: hour=%d min=%d sec=%d\n", __func__,
+              hour, min, sec);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DT1%02d%02d%02d;",
+             hour, min, sec);
+
+    return newcat_set_cmd(rig);
+}
+
+int ftx1_get_time(RIG *rig, int *hour, int *min, int *sec)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DT1;");
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK) return ret;
+
+    /* Response: DT1 HHMMSS; */
+    if (sscanf(priv->ret_data + 3, "%2d%2d%2d", hour, min, sec) != 3)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: hour=%d min=%d sec=%d\n", __func__,
+              *hour, *min, *sec);
+
+    return RIG_OK;
+}
+
+int ftx1_set_if_shift(RIG *rig, vfo_t vfo, int on, int shift_hz)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p2 = on ? 1 : 0;
+    char p3 = (shift_hz >= 0) ? '+' : '-';
+    int p4 = (shift_hz >= 0) ? shift_hz : -shift_hz;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d on=%d shift=%d\n", __func__,
+              rig_strvfo(vfo), p1, on, shift_hz);
+
+    if (p4 > 1200) p4 = 1200;
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "IS%d%d%c%04d;",
+             p1, p2, p3, p4);
+
+    return newcat_set_cmd(rig);
+}
+
+int ftx1_get_if_shift(RIG *rig, vfo_t vfo, int *on, int *shift_hz)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1_resp, p2, p4;
+    char p3;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
+              rig_strvfo(vfo), p1);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "IS%d;", p1);
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK) return ret;
+
+    /* Response: IS P1 P2 P3 P4P4P4P4; */
+    if (sscanf(priv->ret_data + 2, "%1d%1d%c%4d", &p1_resp, &p2, &p3, &p4) != 4)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    *on = p2;
+    *shift_hz = (p3 == '-') ? -p4 : p4;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: on=%d shift=%d\n", __func__, *on, *shift_hz);
+
+    return RIG_OK;
+}
+
+
+int ftx1_set_gp_out(RIG *rig, int out_a, int out_b, int out_c, int out_d)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: A=%d B=%d C=%d D=%d\n",
+              __func__, out_a, out_b, out_c, out_d);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "GP%d%d%d%d;",
+             out_a ? 1 : 0, out_b ? 1 : 0, out_c ? 1 : 0, out_d ? 1 : 0);
+
+    return newcat_set_cmd(rig);
+}
+
+int ftx1_get_gp_out(RIG *rig, int *out_a, int *out_b, int *out_c, int *out_d)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    int p1, p2, p3, p4;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "GP;");
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    /* Response: GPnnnn where each n is 0 or 1 */
+    if (sscanf(priv->ret_data + 2, "%1d%1d%1d%1d", &p1, &p2, &p3, &p4) != 4)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    *out_a = p1;
+    *out_b = p2;
+    *out_c = p3;
+    *out_d = p4;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: A=%d B=%d C=%d D=%d\n",
+              __func__, *out_a, *out_b, *out_c, *out_d);
+
+    return RIG_OK;
+}
+
+
+/* FUNC knob function codes */
+#define FTX1_SF_NONE        0x00
+#define FTX1_SF_SCOPE_LEVEL 0x01
+#define FTX1_SF_PEAK        0x02
+#define FTX1_SF_COLOR       0x03
+#define FTX1_SF_CONTRAST    0x04
+#define FTX1_SF_DIMMER      0x05
+#define FTX1_SF_MIC_GAIN    0x07
+#define FTX1_SF_PROC_LEVEL  0x08
+#define FTX1_SF_AMC_LEVEL   0x09
+#define FTX1_SF_VOX_GAIN    0x0A
+#define FTX1_SF_VOX_DELAY   0x0B
+#define FTX1_SF_RF_POWER    0x0D
+#define FTX1_SF_MONI_LEVEL  0x0E
+#define FTX1_SF_CW_SPEED    0x0F
+#define FTX1_SF_CW_PITCH    0x10
+#define FTX1_SF_BK_DELAY    0x11
+
+int ftx1_set_func_knob(RIG *rig, int func_code)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    char func_char;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: func_code=%d (0x%02X)\n",
+              __func__, func_code, func_code);
+
+    if (func_code < 0 || func_code > 0x11)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid func_code %d\n",
+                  __func__, func_code);
+        return -RIG_EINVAL;
+    }
+
+    /* Convert to single hex character (0-9, A-H) */
+    if (func_code < 10)
+    {
+        func_char = '0' + func_code;
+    }
+    else
+    {
+        func_char = 'A' + (func_code - 10);  /* A=10, B=11, ..., H=17 */
+    }
+
+    /* Format: SF0X where X is single hex char */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SF0%c;", func_char);
+
+    return newcat_set_cmd(rig);
+}
+
+int ftx1_get_func_knob(RIG *rig, int *func_code)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    char func_char;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SF0;");
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    /* Response: SF0X where X is single hex char (0-9, A-H) */
+    if (strlen(priv->ret_data) < 4)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: response too short '%s'\n",
+                  __func__, priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    func_char = priv->ret_data[3];
+
+    /* Convert hex char to int */
+    if (func_char >= '0' && func_char <= '9')
+    {
+        *func_code = func_char - '0';
+    }
+    else if (func_char >= 'A' && func_char <= 'H')
+    {
+        *func_code = func_char - 'A' + 10;  /* A=10, B=11, ..., H=17 */
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid func_char '%c' in '%s'\n",
+                  __func__, func_char, priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: func_code=%d (0x%02X)\n",
+              __func__, *func_code, *func_code);
+
+    return RIG_OK;
+}
+
 /* ========== FROM ftx1_ext.c ========== */
-/*
- * Hamlib Yaesu backend - FTX-1 Extended Menu and Setup Group
- * Copyright (c) 2025 by Terrell Deppe (KJ5HST)
- *
- * This file implements CAT commands for extended menu access.
- *
- * CAT Commands in this file:
- *   EX P1 P2...;     - Extended Menu Read/Write
- *   MN P1P2P3;       - Menu Number Select (for menu navigation)
- *   QI;              - QMB Store [ACCEPTED but NON-FUNCTIONAL in firmware]
- *
- * Extended Menu Numbers (FTX-1 CAT spec page 10-13):
- *   Format: EX P1 P2 P3 P4; where P1=group, P2=section, P3=item, P4=value
- *
- * SPA-1 Specific Settings:
- *   EX030104 TUNER SELECT: 0=INT, 1=INT(FAST), 2=EXT, 3=ATAS
- *            - INT and INT(FAST) require SPA-1 amplifier
- *   EX030503-09 TX GENERAL (field head power limits):
- *            - HF/50M: 5-10W, V/U: 5-100W (field head only)
- *   EX030705-11 OPTION (SPA-1 power limits):
- *            - HF/50M: 5-100W, V/U: 5-50W (SPA-1 only)
- *
- * NOTE: Extended menu structure is radio-specific and may vary by firmware.
- *       Refer to CAT manual for exact menu numbers and parameter ranges.
- */
 
 
-/*
- * SPA-1 specific EX menu item definitions
- * Format: EX P1 P2 P3 P4; (group, section, item, value)
- */
 
 /* TUNER SELECT: EX030104 - values 0 (INT) and 1 (INT FAST) require SPA-1 */
 #define FTX1_EX_TUNER_SELECT_GROUP    3
@@ -4954,11 +4694,6 @@ int ftx1_zero_in(RIG *rig, vfo_t vfo)
 #define FTX1_EX_OPTION_GROUP          3
 #define FTX1_EX_OPTION_SECTION        7
 
-/*
- * ftx1_check_ex_spa1_guardrail - Check if EX menu setting requires SPA-1
- *
- * Returns: RIG_OK if allowed, -RIG_ENAVAIL if SPA-1 required but not present
- */
 static int ftx1_check_ex_spa1_guardrail(int group, int section, int item, int value)
 {
     /*
@@ -5046,28 +4781,7 @@ int ftx1_get_ext_parm(RIG *rig, int menu, int submenu, int *value)
     return RIG_OK;
 }
 
-/*
- * FTX-1 Specific EX Command Functions
- *
- * The FTX-1 uses 6-digit EX command format: EX P1 P2 P3 P4;
- *   P1 = group (01-07)
- *   P2 = section (01-07)
- *   P3 = item (01-26)
- *   P4 = value (variable digits)
- */
 
-/*
- * ftx1_set_ex_menu - Set FTX-1 extended menu parameter with SPA-1 guardrails
- *
- * Format: EX P1P2P3 value; (e.g., EX030104 for TUNER SELECT)
- *
- * Parameters:
- *   group   - P1: 1-7 (menu group)
- *   section - P2: 1-7 (section within group)
- *   item    - P3: 1-26 (item within section)
- *   value   - P4: value to set
- *   digits  - number of digits for value (from CAT spec)
- */
 int ftx1_set_ex_menu(RIG *rig, int group, int section, int item, int value, int digits)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -5092,9 +4806,6 @@ int ftx1_set_ex_menu(RIG *rig, int group, int section, int item, int value, int 
     return newcat_set_cmd(rig);
 }
 
-/*
- * ftx1_get_ex_menu - Get FTX-1 extended menu parameter
- */
 int ftx1_get_ex_menu(RIG *rig, int group, int section, int item, int *value)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -5134,12 +4845,6 @@ int ftx1_get_ex_menu(RIG *rig, int group, int section, int item, int *value)
     return RIG_OK;
 }
 
-/*
- * ftx1_set_tuner_select - Set antenna tuner type with SPA-1 guardrail
- *
- * Values: 0=INT, 1=INT(FAST), 2=EXT, 3=ATAS
- * INT and INT(FAST) require SPA-1 amplifier
- */
 int ftx1_set_tuner_select(RIG *rig, int tuner_type)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: tuner_type=%d\n", __func__, tuner_type);
@@ -5164,35 +4869,11 @@ int ftx1_set_tuner_select(RIG *rig, int tuner_type)
     return ftx1_set_ex_menu(rig, 3, 1, 4, tuner_type, 1);
 }
 
-/*
- * ftx1_get_tuner_select - Get antenna tuner type setting
- */
 int ftx1_get_tuner_select(RIG *rig, int *tuner_type)
 {
     return ftx1_get_ex_menu(rig, 3, 1, 4, tuner_type);
 }
 
-/*
- * ftx1_set_max_power - Set max power limit with head type awareness
- *
- * TX GENERAL (field head) EX0305xx:
- *   03: HF MAX POWER      5-10W
- *   04: 50M MAX POWER     5-10W
- *   05: 70M MAX POWER     5-60W
- *   06: 144M MAX POWER    5-100W
- *   07: 430M MAX POWER    5-100W
- *   08: AM HF/50 MAX PWR  5-25W
- *   09: AM V/U MAX POWER  5-25W
- *
- * OPTION (SPA-1) EX0307xx:
- *   05: HF MAX POWER      5-100W
- *   06: 50M MAX POWER     5-100W
- *   07: 70M MAX POWER     5-50W
- *   08: 144M MAX POWER    5-50W
- *   09: 430M MAX POWER    5-50W
- *   10: AM MAX POWER      5-25W
- *   11: AM V/U MAX POWER  5-13W
- */
 int ftx1_set_max_power(RIG *rig, int band_item, int watts)
 {
     int head_type = ftx1_get_head_type();
@@ -5212,9 +4893,6 @@ int ftx1_set_max_power(RIG *rig, int band_item, int watts)
     }
 }
 
-/*
- * ftx1_get_max_power - Get max power limit based on head type
- */
 int ftx1_get_max_power(RIG *rig, int band_item, int *watts)
 {
     int head_type = ftx1_get_head_type();
@@ -5265,13 +4943,6 @@ int ftx1_get_menu(RIG *rig, int *menu_num)
     return RIG_OK;
 }
 
-/*
- * QMB Store (QI;)
- * NOTE: This function was originally misnamed "quick_info" but QI; is actually
- * the QMB Store command per the CAT manual. However, QI is ACCEPTED but
- * NON-FUNCTIONAL in firmware v1.08+ - the command is parsed but has no effect.
- * Kept for compatibility in case future firmware fixes this.
- */
 int ftx1_quick_info(RIG *rig, char *info, size_t info_len)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -5289,10 +4960,6 @@ int ftx1_quick_info(RIG *rig, char *info, size_t info_len)
     return RIG_OK;
 }
 
-/*
- * Extended parameter definitions - common menu items
- * These are placeholders - actual menu numbers depend on firmware version
- */
 
 /* Audio menu items (01xx) */
 #define FTX1_EX_AF_GAIN_MIN     0100
@@ -5402,29 +5069,6 @@ int ftx1_dump_ext_menu(RIG *rig, char *buf, size_t buf_len)
     return offset;
 }
 
-/*
- * =============================================================================
- * SS Command: Spectrum Scope Settings
- * =============================================================================
- * CAT format: SS P1 P2 [value];
- *   P1 = 0 (fixed)
- *   P2 = parameter type (0-7)
- *
- * P2 Parameter Types:
- *   0 = SPEED    - Scope update speed
- *   1 = PEAK     - Peak hold
- *   2 = MARKER   - Marker display
- *   3 = COLOR    - Display color
- *   4 = LEVEL    - Reference level (returns format like -05.0)
- *   5 = SPAN     - Frequency span
- *   6 = MODE     - Scope mode
- *   7 = AF-FFT   - Audio FFT display
- *
- * Read: SS0X; returns SS0Xvalue; (value format varies by parameter)
- * Set: SS0Xvalue; (set-only for some parameters)
- *
- * Verified working 2025-12-09 via direct serial testing
- */
 
 /* Spectrum scope parameter types */
 #define FTX1_SS_SPEED   0
@@ -5436,15 +5080,6 @@ int ftx1_dump_ext_menu(RIG *rig, char *buf, size_t buf_len)
 #define FTX1_SS_MODE    6
 #define FTX1_SS_AFFFT   7
 
-/*
- * ftx1_get_spectrum_scope - Get spectrum scope parameter
- *
- * Parameters:
- *   param - parameter type (0-7, use FTX1_SS_* constants)
- *   value - pointer to store value (format depends on param type)
- *
- * Returns: RIG_OK on success, negative on error
- */
 int ftx1_get_spectrum_scope(RIG *rig, int param, char *value, size_t value_len)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -5509,15 +5144,6 @@ int ftx1_get_spectrum_scope(RIG *rig, int param, char *value, size_t value_len)
     return RIG_OK;
 }
 
-/*
- * ftx1_set_spectrum_scope - Set spectrum scope parameter
- *
- * Parameters:
- *   param - parameter type (0-7, use FTX1_SS_* constants)
- *   value - value to set (format depends on param type)
- *
- * Returns: RIG_OK on success, negative on error
- */
 int ftx1_set_spectrum_scope(RIG *rig, int param, const char *value)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -5538,11 +5164,6 @@ int ftx1_set_spectrum_scope(RIG *rig, int param, const char *value)
     return newcat_set_cmd(rig);
 }
 
-/*
- * ftx1_get_scope_speed - Get spectrum scope update speed
- *
- * Returns speed value (typically 5-digit format like 20000)
- */
 int ftx1_get_scope_speed(RIG *rig, int *speed)
 {
     char value[16];
@@ -5556,11 +5177,6 @@ int ftx1_get_scope_speed(RIG *rig, int *speed)
     return ret;
 }
 
-/*
- * ftx1_get_scope_level - Get spectrum scope reference level
- *
- * Returns level value (can be negative, like -5.0 dB)
- */
 int ftx1_get_scope_level(RIG *rig, float *level)
 {
     char value[16];
@@ -5574,11 +5190,6 @@ int ftx1_get_scope_level(RIG *rig, float *level)
     return ret;
 }
 
-/*
- * ftx1_get_scope_span - Get spectrum scope frequency span
- *
- * Returns span value
- */
 int ftx1_get_scope_span(RIG *rig, int *span)
 {
     char value[16];
@@ -5592,24 +5203,6 @@ int ftx1_get_scope_span(RIG *rig, int *span)
     return ret;
 }
 
-/*
- * =============================================================================
- * EO Command: Encoder Offset (Dial Step)
- * =============================================================================
- * CAT format: EO P1 P2 P3 P4 P5;
- *   P1 = VFO (0=MAIN, 1=SUB)
- *   P2 = Encoder (0=MAIN dial, 1=FUNC knob)
- *   P3 = Direction (+/-)
- *   P4 = Unit (0=Hz, 1=kHz, 2=MHz)
- *   P5 = Value (000-999)
- *
- * This is a SET-ONLY command (returns empty on success)
- * Used for programmatic frequency stepping without physical dial rotation
- *
- * Example: EO00+0100; = VFO MAIN, MAIN dial, +, Hz, 100 = step up 100 Hz
- *
- * Verified working 2025-12-09 via direct serial testing
- */
 
 /* Encoder offset VFO selection */
 #define FTX1_EO_VFO_MAIN    0
@@ -5624,21 +5217,6 @@ int ftx1_get_scope_span(RIG *rig, int *span)
 #define FTX1_EO_UNIT_KHZ    1
 #define FTX1_EO_UNIT_MHZ    2
 
-/*
- * ftx1_set_encoder_offset - Send encoder offset command
- *
- * This simulates turning the dial by a specified amount.
- * Useful for programmatic frequency stepping.
- *
- * Parameters:
- *   vfo_select - 0=MAIN, 1=SUB
- *   encoder    - 0=MAIN dial, 1=FUNC knob
- *   direction  - +1 for up, -1 for down
- *   unit       - 0=Hz, 1=kHz, 2=MHz
- *   value      - step amount (0-999)
- *
- * Returns: RIG_OK on success, negative on error
- */
 int ftx1_set_encoder_offset(RIG *rig, int vfo_select, int encoder,
                             int direction, int unit, int value)
 {
@@ -5686,21 +5264,6 @@ int ftx1_set_encoder_offset(RIG *rig, int vfo_select, int encoder,
     return newcat_set_cmd(rig);
 }
 
-/*
- * ftx1_step_frequency - Step frequency up or down by specified amount
- *
- * Convenience wrapper for ftx1_set_encoder_offset() that steps the
- * main VFO dial by a specified Hz value.
- *
- * Parameters:
- *   vfo   - RIG_VFO_MAIN, RIG_VFO_A, etc. (or RIG_VFO_CURR for main)
- *   hz    - step amount in Hz (positive=up, negative=down)
- *
- * Note: Large steps are automatically converted to kHz or MHz units
- *       for efficiency. Maximum single step is 999 MHz.
- *
- * Returns: RIG_OK on success, negative on error
- */
 int ftx1_step_frequency(RIG *rig, vfo_t vfo, int hz)
 {
     int vfo_select;
@@ -5756,70 +5319,120 @@ int ftx1_step_frequency(RIG *rig, vfo_t vfo, int hz)
 }
 
 /* ========== FROM ftx1_func.c ========== */
-/*
- * Hamlib Yaesu backend - FTX-1 Common Function and Level Overrides
- * Copyright (c) 2025 by Terrell Deppe (KJ5HST)
- *
- * This file provides the main dispatcher for set/get func/level operations,
- * routing to the appropriate helper functions in group-specific files.
- *
- * Dispatched Functions (RIG_FUNC_*):
- *   ANF  -> ftx1_filter.c - Auto Notch Filter
- *   MN   -> ftx1_filter.c - Manual Notch
- *   APF  -> ftx1_filter.c - Audio Peak Filter
- *   NB   -> ftx1_noise.c - Noise Blanker (read-only on FTX-1)
- *   NR   -> ftx1_noise.c - Noise Reduction (read-only on FTX-1)
- *   VOX  -> ftx1_tx.c - VOX on/off
- *   MON  -> ftx1_tx.c - Monitor on/off
- *   TUNER -> ftx1_tx.c - Antenna tuner
- *   LOCK -> ftx1_info.c - Lock
- *   TONE -> ftx1_ctcss.c - CTCSS encode
- *   TSQL -> ftx1_ctcss.c - Tone squelch
- *   SBKIN/FBKIN -> ftx1_cw.c - Break-in modes
- *
- * Dispatched Levels (RIG_LEVEL_*):
- *   AF      -> ftx1_audio.c - AF Gain
- *   RF      -> ftx1_audio.c - RF Gain
- *   SQL     -> ftx1_tx.c - Squelch
- *   MICGAIN -> ftx1_audio.c - Mic Gain
- *   RFPOWER -> ftx1_audio.c - TX Power
- *   VOXGAIN -> ftx1_audio.c - VOX Gain
- *   VOXDELAY -> ftx1_audio.c - VOX Delay
- *   AGC     -> ftx1_audio.c - AGC
- *   KEYSPD  -> ftx1_cw.c - Keyer Speed
- *   BKINDL  -> ftx1_cw.c - Break-in Delay
- *   NOTCHF  -> ftx1_filter.c - Notch Frequency
- *   APF     -> ftx1_filter.c - APF level
- *   NB      -> ftx1_noise.c - NB level (read-only)
- *   NR      -> ftx1_noise.c - NR level (read-only)
- *   PREAMP  -> ftx1_preamp.c - Preamp
- *   ATT     -> ftx1_preamp.c - Attenuator
- *   STRENGTH/RAWSTR -> ftx1_audio.c - S-meter
- *   SWR/ALC/COMP -> ftx1_audio.c - TX meters
- *
- * Unhandled functions/levels fall through to newcat_set/get_func/level.
- */
 
 
 /* Extern helpers from ftx1_filter.c */
+extern int ftx1_set_anf_helper(RIG *rig, vfo_t vfo, int status);
+extern int ftx1_get_anf_helper(RIG *rig, vfo_t vfo, int *status);
+extern int ftx1_set_mn_helper(RIG *rig, vfo_t vfo, int status);
+extern int ftx1_get_mn_helper(RIG *rig, vfo_t vfo, int *status);
+extern int ftx1_set_apf_helper(RIG *rig, vfo_t vfo, int status);
+extern int ftx1_get_apf_helper(RIG *rig, vfo_t vfo, int *status);
+extern int ftx1_set_notchf_helper(RIG *rig, vfo_t vfo, value_t val);
+extern int ftx1_get_notchf_helper(RIG *rig, vfo_t vfo, value_t *val);
+extern int ftx1_set_apf_level_helper(RIG *rig, vfo_t vfo, value_t val);
+extern int ftx1_get_apf_level_helper(RIG *rig, vfo_t vfo, value_t *val);
 
 /* Extern helpers from ftx1_noise.c */
+extern int ftx1_set_nb_helper(RIG *rig, vfo_t vfo, int status);
+extern int ftx1_get_nb_helper(RIG *rig, vfo_t vfo, int *status);
+extern int ftx1_set_nr_helper(RIG *rig, vfo_t vfo, int status);
+extern int ftx1_get_nr_helper(RIG *rig, vfo_t vfo, int *status);
+extern int ftx1_set_nb_level_helper(RIG *rig, vfo_t vfo, value_t val);
+extern int ftx1_get_nb_level_helper(RIG *rig, vfo_t vfo, value_t *val);
+extern int ftx1_set_nr_level_helper(RIG *rig, vfo_t vfo, value_t val);
+extern int ftx1_get_nr_level_helper(RIG *rig, vfo_t vfo, value_t *val);
+extern int ftx1_set_na_helper(RIG *rig, vfo_t vfo, int status);
+extern int ftx1_get_na_helper(RIG *rig, vfo_t vfo, int *status);
 
 /* Extern helpers from ftx1_preamp.c */
+extern int ftx1_set_preamp_helper(RIG *rig, vfo_t vfo, value_t val);
+extern int ftx1_get_preamp_helper(RIG *rig, vfo_t vfo, value_t *val);
+extern int ftx1_set_att_helper(RIG *rig, vfo_t vfo, value_t val);
+extern int ftx1_get_att_helper(RIG *rig, vfo_t vfo, value_t *val);
 
 /* Extern helpers from ftx1_audio.c */
+extern int ftx1_set_af_gain(RIG *rig, vfo_t vfo, float val);
+extern int ftx1_get_af_gain(RIG *rig, vfo_t vfo, float *val);
+extern int ftx1_set_rf_gain(RIG *rig, vfo_t vfo, float val);
+extern int ftx1_get_rf_gain(RIG *rig, vfo_t vfo, float *val);
+extern int ftx1_set_mic_gain(RIG *rig, float val);
+extern int ftx1_get_mic_gain(RIG *rig, float *val);
+extern int ftx1_set_power(RIG *rig, float val);
+extern int ftx1_get_power(RIG *rig, float *val);
+extern int ftx1_set_vox_gain(RIG *rig, float val);
+extern int ftx1_get_vox_gain(RIG *rig, float *val);
+extern int ftx1_set_vox_delay(RIG *rig, int ms);
+extern int ftx1_get_vox_delay(RIG *rig, int *ms);
+extern int ftx1_set_agc(RIG *rig, int val);
+extern int ftx1_get_agc(RIG *rig, int *val);
+extern int ftx1_get_smeter(RIG *rig, vfo_t vfo, int *val);
+extern int ftx1_get_meter(RIG *rig, int meter_type, int *val);
+extern int ftx1_set_monitor_level(RIG *rig, float val);
+extern int ftx1_get_monitor_level(RIG *rig, float *val);
+extern int ftx1_set_amc_output(RIG *rig, float val);
+extern int ftx1_get_amc_output(RIG *rig, float *val);
+extern int ftx1_set_width(RIG *rig, vfo_t vfo, int width_code);
+extern int ftx1_get_width(RIG *rig, vfo_t vfo, int *width_code);
+extern int ftx1_set_meter_switch(RIG *rig, int meter_type);
+extern int ftx1_get_meter_switch(RIG *rig, int *meter_type);
 
 /* Extern helpers from ftx1_filter.c */
+extern int ftx1_set_filter_number(RIG *rig, vfo_t vfo, int filter);
+extern int ftx1_get_filter_number(RIG *rig, vfo_t vfo, int *filter);
+extern int ftx1_set_contour(RIG *rig, vfo_t vfo, int status);
+extern int ftx1_get_contour(RIG *rig, vfo_t vfo, int *status);
+extern int ftx1_set_contour_freq(RIG *rig, vfo_t vfo, int freq);
+extern int ftx1_get_contour_freq(RIG *rig, vfo_t vfo, int *freq);
 
 /* Extern helpers from ftx1_tx.c */
+extern int ftx1_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+extern int ftx1_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
+extern int ftx1_set_vox(RIG *rig, int status);
+extern int ftx1_get_vox(RIG *rig, int *status);
+extern int ftx1_set_monitor(RIG *rig, int status);
+extern int ftx1_get_monitor(RIG *rig, int *status);
+extern int ftx1_set_tuner(RIG *rig, int mode);
+extern int ftx1_get_tuner(RIG *rig, int *mode);
+extern int ftx1_set_squelch(RIG *rig, vfo_t vfo, float val);
+extern int ftx1_get_squelch(RIG *rig, vfo_t vfo, float *val);
+extern int ftx1_set_powerstat(RIG *rig, powerstat_t status);
+extern int ftx1_get_powerstat(RIG *rig, powerstat_t *status);
 
 /* Extern helpers from ftx1_cw.c */
+extern int ftx1_set_keyer_speed(RIG *rig, int wpm);
+extern int ftx1_get_keyer_speed(RIG *rig, int *wpm);
+extern int ftx1_set_keyer_paddle(RIG *rig, int ratio);
+extern int ftx1_get_keyer_paddle(RIG *rig, int *ratio);
+extern int ftx1_set_cw_delay(RIG *rig, int ms);
+extern int ftx1_get_cw_delay(RIG *rig, int *ms);
+extern int ftx1_send_morse(RIG *rig, vfo_t vfo, const char *msg);
+extern int ftx1_stop_morse(RIG *rig, vfo_t vfo);
 
 /* Extern helpers from ftx1_tx.c */
+extern int ftx1_set_breakin(RIG *rig, int mode);
+extern int ftx1_get_breakin(RIG *rig, int *mode);
+extern int ftx1_set_processor(RIG *rig, int status);
+extern int ftx1_get_processor(RIG *rig, int *status);
 
 /* Extern helpers from ftx1_ctcss.c */
+extern int ftx1_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
+extern int ftx1_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone);
+extern int ftx1_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone);
+extern int ftx1_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone);
+extern int ftx1_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code);
+extern int ftx1_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code);
+extern int ftx1_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code);
+extern int ftx1_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code);
 
 /* Extern helpers from ftx1_info.c */
+extern int ftx1_set_trn(RIG *rig, int trn);
+extern int ftx1_get_trn(RIG *rig, int *trn);
+extern int ftx1_get_info(RIG *rig, char *info, size_t info_len);
+extern int ftx1_set_lock(RIG *rig, int lock);
+extern int ftx1_get_lock(RIG *rig, int *lock);
+extern int ftx1_set_if_shift(RIG *rig, vfo_t vfo, int on, int shift_hz);
+extern int ftx1_get_if_shift(RIG *rig, vfo_t vfo, int *on, int *shift_hz);
 
 /* Main override for set_func */
 int ftx1_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
@@ -6160,7 +5773,75 @@ int ftx1_get_trn_func(RIG *rig, int *trn)
     return ftx1_get_trn(rig, trn);
 }
 
-/* ========== FROM ftx1.c (main driver) ========== */
+/* ========== FROM ftx1.c ========== */
+static struct
+{
+    int head_type;          /* FTX1_HEAD_FIELD or FTX1_HEAD_SPA1 */
+    int spa1_detected;      /* 1 if SPA-1 confirmed via VE4 command */
+    int detection_done;     /* 1 if auto-detection has been performed */
+} ftx1_priv = {
+    .head_type = FTX1_HEAD_UNKNOWN,
+    .spa1_detected = 0,
+    .detection_done = 0,
+};
+
+// Private caps for newcat framework
+static const struct newcat_priv_caps ftx1_priv_caps = {
+    .roofing_filter_count = 0,
+};
+
+// Extern declarations for group-specific functions (add more as groups are implemented)
+extern int ftx1_set_vfo(RIG *rig, vfo_t vfo);
+extern int ftx1_get_vfo(RIG *rig, vfo_t *vfo);
+extern int ftx1_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
+extern int ftx1_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
+// Additional externs for group 4
+extern int ftx1_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
+extern int ftx1_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
+extern int ftx1_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+extern int ftx1_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+// Additional externs for group 6
+extern int ftx1_set_preamp_helper(RIG *rig, vfo_t vfo, value_t val);
+extern int ftx1_get_preamp_helper(RIG *rig, vfo_t vfo, value_t *val);
+extern int ftx1_set_att_helper(RIG *rig, vfo_t vfo, value_t val);
+extern int ftx1_get_att_helper(RIG *rig, vfo_t vfo, value_t *val);
+
+// Wrappers from ftx1_func.c for rig caps
+extern int ftx1_set_ptt_func(RIG *rig, vfo_t vfo, ptt_t ptt);
+extern int ftx1_get_ptt_func(RIG *rig, vfo_t vfo, ptt_t *ptt);
+extern int ftx1_set_powerstat_func(RIG *rig, powerstat_t status);
+extern int ftx1_get_powerstat_func(RIG *rig, powerstat_t *status);
+extern int ftx1_set_ctcss_tone_func(RIG *rig, vfo_t vfo, tone_t tone);
+extern int ftx1_get_ctcss_tone_func(RIG *rig, vfo_t vfo, tone_t *tone);
+extern int ftx1_set_ctcss_sql_func(RIG *rig, vfo_t vfo, tone_t tone);
+extern int ftx1_get_ctcss_sql_func(RIG *rig, vfo_t vfo, tone_t *tone);
+extern int ftx1_set_dcs_code_func(RIG *rig, vfo_t vfo, tone_t code);
+extern int ftx1_get_dcs_code_func(RIG *rig, vfo_t vfo, tone_t *code);
+extern int ftx1_set_dcs_sql_func(RIG *rig, vfo_t vfo, tone_t code);
+extern int ftx1_get_dcs_sql_func(RIG *rig, vfo_t vfo, tone_t *code);
+extern int ftx1_send_morse_func(RIG *rig, vfo_t vfo, const char *msg);
+extern int ftx1_stop_morse_func(RIG *rig, vfo_t vfo);
+extern int ftx1_set_trn_func(RIG *rig, int trn);
+extern int ftx1_get_trn_func(RIG *rig, int *trn);
+
+// Externs from ftx1_mem.c
+extern int ftx1_set_mem(RIG *rig, vfo_t vfo, int ch);
+extern int ftx1_get_mem(RIG *rig, vfo_t vfo, int *ch);
+extern int ftx1_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan);
+extern int ftx1_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only);
+
+// Externs from ftx1_scan.c
+extern int ftx1_set_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch);
+extern int ftx1_get_scan(RIG *rig, vfo_t vfo, scan_t *scan, int *ch);
+extern int ftx1_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts);
+extern int ftx1_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts);
+
+// Externs from ftx1_freq.c
+extern int ftx1_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+extern int ftx1_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+
+// Externs from ftx1_vfo.c
+extern int ftx1_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 
 /*
  * ftx1_detect_spa1 - Detect SPA-1 amplifier via VE4 command
@@ -6200,21 +5881,103 @@ static int ftx1_detect_spa1(RIG *rig)
 }
 
 /*
- * ftx1_detect_head_type - Detect head type from PC command
+ * ftx1_probe_field_head_power - Probe Field Head power source (battery vs 12V)
  *
- * PC command response format:
- *   PC1xxx; = Field head (P1=1)
- *   PC2xxx; = SPA-1 (P1=2)
+ * The radio enforces hardware power limits based on actual power source.
+ * On battery, the radio will not accept power settings above 6W.
+ * This probe attempts to set 8W and checks if the radio accepts it.
  *
- * Returns: FTX1_HEAD_FIELD, FTX1_HEAD_SPA1, or FTX1_HEAD_UNKNOWN
+ * Returns: FTX1_HEAD_FIELD_BATTERY or FTX1_HEAD_FIELD_12V
+ */
+static int ftx1_probe_field_head_power(RIG *rig)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    char original_power[16];
+    int power_accepted;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: probing Field Head power source\n", __func__);
+
+    /* Save current power setting */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC;");
+    ret = newcat_get_cmd(rig);
+
+    if (ret != RIG_OK || strlen(priv->ret_data) < 4)
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: could not read current power\n", __func__);
+        return FTX1_HEAD_FIELD_BATTERY;  /* Default to battery (safer) */
+    }
+
+    strncpy(original_power, priv->ret_data, sizeof(original_power) - 1);
+    original_power[sizeof(original_power) - 1] = '\0';
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: original power: %s\n", __func__, original_power);
+
+    /* Try to set 8W (above battery max of 6W) */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC1008;");
+    ret = newcat_set_cmd(rig);
+
+    if (ret != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: could not set test power\n", __func__);
+        return FTX1_HEAD_FIELD_BATTERY;
+    }
+
+    /* Read back to see if it was accepted */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC;");
+    ret = newcat_get_cmd(rig);
+
+    if (ret != RIG_OK || strlen(priv->ret_data) < 5)
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: could not read back power\n", __func__);
+        power_accepted = 0;
+    }
+    else
+    {
+        /* Check if power is 8W or above (PC1008 or higher) */
+        int power_value = atoi(priv->ret_data + 3);
+        power_accepted = (power_value >= 8);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: power readback: %d, accepted=%d\n",
+                  __func__, power_value, power_accepted);
+    }
+
+    /* Restore original power setting */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", original_power);
+    newcat_set_cmd(rig);
+
+    if (power_accepted)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Field Head on 12V detected (accepted 8W)\n", __func__);
+        return FTX1_HEAD_FIELD_12V;
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Field Head on battery detected (rejected 8W)\n", __func__);
+        return FTX1_HEAD_FIELD_BATTERY;
+    }
+}
+
+/*
+ * ftx1_detect_head_type - Detect head type using PC command format and power probe
+ *
+ * Stage 1: PC command format identifies Field Head vs SPA-1
+ *   PC1xxx = Field Head (battery or 12V)
+ *   PC2xxx = Optima/SPA-1 (5-100W)
+ *
+ * Stage 2: For Field Head, power probe distinguishes battery vs 12V
+ *   - Attempt to set 8W
+ *   - If radio accepts 8W → 12V power (0.5-10W)
+ *   - If radio rejects 8W → Battery power (0.5-6W)
+ *
+ * Returns: FTX1_HEAD_FIELD_BATTERY, FTX1_HEAD_FIELD_12V, FTX1_HEAD_SPA1, or FTX1_HEAD_UNKNOWN
  */
 static int ftx1_detect_head_type(RIG *rig)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret, p1;
+    int ret;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: detecting head type via PC command\n", __func__);
 
+    /* Stage 1: Read PC command to determine Field vs SPA-1 */
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC;");
     ret = newcat_get_cmd(rig);
 
@@ -6224,34 +5987,42 @@ static int ftx1_detect_head_type(RIG *rig)
         return FTX1_HEAD_UNKNOWN;
     }
 
-    /* Parse P1 from response: PC P1 xxx; */
-    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1)
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: PC response: %s\n", __func__, priv->ret_data);
+
+    /* Response format: PC1xxx (Field) or PC2xxx (SPA-1) */
+    if (strlen(priv->ret_data) < 4)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse PC response '%s'\n",
+        rig_debug(RIG_DEBUG_ERR, "%s: PC response too short: %s\n",
                   __func__, priv->ret_data);
         return FTX1_HEAD_UNKNOWN;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: head type P1=%d\n", __func__, p1);
+    /* Check head type indicator (position 2) */
+    char head_code = priv->ret_data[2];
 
-    if (p1 == 1)
+    if (head_code == '1')
     {
-        return FTX1_HEAD_FIELD;
+        /* Field Head - probe to determine battery vs 12V */
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Field Head detected, probing power source\n", __func__);
+        return ftx1_probe_field_head_power(rig);
     }
-    else if (p1 == 2)
+    else if (head_code == '2')
     {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Optima/SPA-1 (5-100W) detected\n", __func__);
         return FTX1_HEAD_SPA1;
     }
 
+    rig_debug(RIG_DEBUG_WARN, "%s: unknown head type code: %c\n", __func__, head_code);
     return FTX1_HEAD_UNKNOWN;
 }
 
 /*
- * ftx1_open - FTX-1 specific rig open with SPA-1 detection
+ * ftx1_open - FTX-1 specific rig open with head type detection
  *
  * Calls newcat_open, then auto-detects the head configuration:
- *   - Queries PC command to determine field head vs SPA-1
- *   - Queries VE4 to confirm SPA-1 presence
+ *   Stage 1: PC command format (PC1xxx=Field, PC2xxx=SPA-1)
+ *   Stage 2: Power probe for Field Head (battery vs 12V)
+ *   - Also queries VE4 to confirm SPA-1 presence
  *   - Stores results for use by tuner and power control functions
  */
 static int ftx1_open(RIG *rig)
@@ -6284,6 +6055,28 @@ static int ftx1_open(RIG *rig)
     }
 
     return RIG_OK;
+}
+
+/*
+ * ftx1_has_spa1 - Check if Optima/SPA-1 amplifier is present
+ *
+ * Returns 1 if Optima/SPA-1 detected, 0 otherwise.
+ * Used by tuner and power control functions for guardrails.
+ */
+int ftx1_has_spa1(void)
+{
+    return ftx1_priv.spa1_detected ||
+           ftx1_priv.head_type == FTX1_HEAD_SPA1;
+}
+
+/*
+ * ftx1_get_head_type - Get detected head type
+ *
+ * Returns FTX1_HEAD_FIELD, FTX1_HEAD_SPA1, or FTX1_HEAD_UNKNOWN
+ */
+int ftx1_get_head_type(void)
+{
+    return ftx1_priv.head_type;
 }
 
 // Rig caps structure
@@ -6319,6 +6112,7 @@ struct rig_caps ftx1_caps = {
     .level_gran = {
         /* FTX-1 specific level granularity */
         /* Include common Yaesu defaults, then override as needed */
+#include "level_gran_yaesu.h"
         /* FTX-1 overrides for levels with 0-100 range instead of 0-255 */
         [LVL_MICGAIN] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f / 100.0f } },
         [LVL_VOXGAIN] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f / 100.0f } },

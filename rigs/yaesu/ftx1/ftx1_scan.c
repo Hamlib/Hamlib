@@ -34,7 +34,7 @@
 #include "misc.h"
 #include "yaesu.h"
 #include "newcat.h"
-#include "ftx1.h"
+#include "../ftx1.h"
 
 /* Band codes */
 #define FTX1_BAND_160M   0
