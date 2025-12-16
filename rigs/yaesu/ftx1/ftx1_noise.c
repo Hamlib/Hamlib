@@ -20,7 +20,7 @@
 #include "misc.h"
 #include "yaesu.h"
 #include "newcat.h"
-#include "ftx1.h"
+#include "../ftx1.h"
 
 /* Level ranges */
 #define FTX1_NB_LEVEL_MIN 0

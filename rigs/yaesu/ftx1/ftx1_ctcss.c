@@ -29,7 +29,7 @@
 #include "misc.h"
 #include "yaesu.h"
 #include "newcat.h"
-#include "ftx1.h"
+#include "../ftx1.h"
 
 #define FTX1_CTCSS_MIN 1
 #define FTX1_CTCSS_MAX 50

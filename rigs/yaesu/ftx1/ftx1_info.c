@@ -6,7 +6,7 @@
  *
  * CAT Commands in this file:
  *   AI P1;           - Auto Information (0=off, 1=on)
- *   ID;              - Radio ID (returns 0763 for FTX-1)
+ *   ID;              - Radio ID (returns 0840 for FTX-1)
  *   IF;              - Information Query (composite status)
  *   OI;              - Opposite Band Information
  *   DA P1;           - Dimmer (display brightness 0-15)
@@ -37,9 +37,9 @@
 #include "misc.h"
 #include "yaesu.h"
 #include "newcat.h"
-#include "ftx1.h"
+#include "../ftx1.h"
 
-#define FTX1_ID "0763"  /* Radio ID for FTX-1 */
+#define FTX1_ID "0840"  /* Radio ID for FTX-1 */
 
 #define FTX1_DIMMER_MIN 0
 #define FTX1_DIMMER_MAX 15

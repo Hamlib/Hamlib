@@ -30,7 +30,7 @@
 #include "misc.h"
 #include "yaesu.h"
 #include "newcat.h"
-#include "ftx1.h"
+#include "../ftx1.h"
 
 /*
  * SPA-1 specific EX menu item definitions
