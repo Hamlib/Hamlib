@@ -3997,6 +3997,168 @@ int ftx1_zero_in(RIG *rig, vfo_t vfo)
     return newcat_set_cmd(rig);
 }
 
+
+/* EX0306 setting numbers by mode category */
+#define FTX1_EX0306_SSB_CW   1
+#define FTX1_EX0306_RTTY_PSK 2
+#define FTX1_EX0306_FM       3
+
+int ftx1_get_ts_ex(RIG *rig, vfo_t vfo, shortfreq_t *ts)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int err, setting_num, step_value;
+    rmode_t mode;
+    pbwidth_t width;
+    char response[32];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!rig || !ts)
+    {
+        return -RIG_EINVAL;
+    }
+
+    /* Get current mode to determine which setting to query */
+    if (RIG_OK != (err = rig_get_mode(rig, vfo, &mode, &width)))
+    {
+        return err;
+    }
+
+    /* Determine setting number based on mode (Jeremy's logic) */
+    if (mode == RIG_MODE_FM || mode == RIG_MODE_FMN || mode == RIG_MODE_PKTFM)
+    {
+        setting_num = FTX1_EX0306_FM;
+    }
+    else if (mode == RIG_MODE_RTTY || mode == RIG_MODE_RTTYR ||
+             mode == RIG_MODE_PKTLSB || mode == RIG_MODE_PKTUSB)
+    {
+        setting_num = FTX1_EX0306_RTTY_PSK;
+    }
+    else
+    {
+        setting_num = FTX1_EX0306_SSB_CW;
+    }
+
+    /* Query: EX0306[setting_num]; */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX0306%02d;", setting_num);
+
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    {
+        return err;
+    }
+
+    /* Parse response like "EX0306012;" (setting 01, value 2) */
+    strncpy(response, priv->ret_data, sizeof(response) - 1);
+    response[sizeof(response) - 1] = '\0';
+
+    if (strlen(response) >= 9 && strncmp(response, "EX0306", 6) == 0)
+    {
+        /* Extract step value - last digit before semicolon */
+        int len = strlen(response);
+        if (len >= 9)
+        {
+            step_value = response[len - 2] - '0';
+        }
+        else
+        {
+            step_value = 1;  /* Default */
+        }
+
+        /* Convert step value to frequency based on mode (Jeremy's mapping) */
+        if (setting_num == FTX1_EX0306_FM)
+        {
+            /* FM: 0=5kHz, 1=6.25kHz, 2=10kHz, 3=12.5kHz, 4=20kHz, 5=25kHz, 6=Auto */
+            switch (step_value)
+            {
+                case 0: *ts = 5000; break;
+                case 1: *ts = 6250; break;
+                case 2: *ts = 10000; break;
+                case 3: *ts = 12500; break;
+                case 4: *ts = 20000; break;
+                case 5: *ts = 25000; break;
+                case 6: *ts = 0; break;  /* Auto */
+                default: *ts = 10000; break;
+            }
+        }
+        else
+        {
+            /* SSB/CW and RTTY/PSK: 0=5Hz, 1=10Hz, 2=20Hz */
+            switch (step_value)
+            {
+                case 0: *ts = 5; break;
+                case 1: *ts = 10; break;
+                case 2: *ts = 20; break;
+                default: *ts = 10; break;
+            }
+        }
+
+        rig_debug(RIG_DEBUG_TRACE, "%s: response=%s setting=%d step=%d ts=%ld\n",
+                  __func__, response, setting_num, step_value, (long)*ts);
+
+        return RIG_OK;
+    }
+
+    /* Parsing failed, return default */
+    *ts = 10;
+    return RIG_OK;
+}
+
+int ftx1_set_ts_ex(RIG *rig, vfo_t vfo, shortfreq_t ts)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int err, setting_num, step_value;
+    rmode_t mode;
+    pbwidth_t width;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called with ts=%ld\n", __func__, (long)ts);
+
+    /* Get current mode to determine which setting to modify */
+    if (RIG_OK != (err = rig_get_mode(rig, vfo, &mode, &width)))
+    {
+        return err;
+    }
+
+    /* Determine setting and convert ts to step value (Jeremy's mapping) */
+    if (mode == RIG_MODE_FM || mode == RIG_MODE_FMN || mode == RIG_MODE_PKTFM)
+    {
+        setting_num = FTX1_EX0306_FM;
+        /* FM: convert frequency to step value */
+        if (ts == 0) step_value = 6;       /* Auto */
+        else if (ts <= 5000) step_value = 0;
+        else if (ts <= 6250) step_value = 1;
+        else if (ts <= 10000) step_value = 2;
+        else if (ts <= 12500) step_value = 3;
+        else if (ts <= 20000) step_value = 4;
+        else step_value = 5;
+    }
+    else if (mode == RIG_MODE_RTTY || mode == RIG_MODE_RTTYR ||
+             mode == RIG_MODE_PKTLSB || mode == RIG_MODE_PKTUSB)
+    {
+        setting_num = FTX1_EX0306_RTTY_PSK;
+        /* RTTY/PSK: 0=5Hz, 1=10Hz, 2=20Hz */
+        if (ts <= 5) step_value = 0;
+        else if (ts <= 10) step_value = 1;
+        else step_value = 2;
+    }
+    else
+    {
+        setting_num = FTX1_EX0306_SSB_CW;
+        /* SSB/CW: 0=5Hz, 1=10Hz, 2=20Hz */
+        if (ts <= 5) step_value = 0;
+        else if (ts <= 10) step_value = 1;
+        else step_value = 2;
+    }
+
+    /* Set: EX0306[setting_num][step_value]; */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX0306%02d%d;",
+             setting_num, step_value);
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmd=%s (setting=%d step=%d)\n",
+              __func__, priv->cmd_str, setting_num, step_value);
+
+    return newcat_set_cmd(rig);
+}
+
 /* ========== FROM ftx1_info.c ========== */
 
 
@@ -5789,6 +5951,184 @@ int ftx1_get_trn_func(RIG *rig, int *trn)
     return ftx1_get_trn(rig, trn);
 }
 
+/* ========== FROM ftx1_clarifier.c ========== */
+
+
+typedef struct {
+    char command[2];      /* "IF" */
+    char memory_ch[3];    /* 001 -> 117 */
+    char vfo_freq[9];     /* 9 digit value in Hz */
+    char clarifier[5];    /* '+' or '-', followed by 0000 -> 9999 Hz */
+    char rx_clarifier;    /* '0' = off, '1' = on (RIT) */
+    char tx_clarifier;    /* '0' = off, '1' = on (XIT) */
+    char mode;            /* Mode code */
+    char vfo_memory;      /* VFO/Memory mode */
+    char tone_mode;       /* CTCSS/DCS mode */
+    char fixed[2];        /* Always '0', '0' */
+    char repeater_offset; /* Repeater shift */
+    char terminator;      /* ';' */
+} ftx1_if_response_t;
+
+int ftx1_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
+    ftx1_if_response_t *rdata;
+    int err;
+
+    (void)vfo;  /* FTX-1 clarifier is not VFO-specific */
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!rig || !rit)
+    {
+        return -RIG_EINVAL;
+    }
+
+    rdata = (ftx1_if_response_t *)priv->ret_data;
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "IF;");
+
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    {
+        return err;
+    }
+
+    /* Check if RX clarifier (RIT) is enabled */
+    if (rdata->rx_clarifier == '1')
+    {
+        *rit = atoi(rdata->clarifier);
+        /* Handle sign - clarifier field includes +/- prefix */
+        if (rdata->clarifier[0] == '-')
+        {
+            *rit = -*rit;
+        }
+    }
+    else
+    {
+        *rit = 0;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: rit=%ld (rx_clar=%c)\n",
+              __func__, (long)*rit, rdata->rx_clarifier);
+
+    return RIG_OK;
+}
+
+int ftx1_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
+    int err;
+
+    (void)vfo;  /* FTX-1 clarifier is not VFO-specific */
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called with rit=%ld\n", __func__, (long)rit);
+
+    if (rit == 0)
+    {
+        /* Clear RIT - RC0; */
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RC0;");
+    }
+    else if (rit > 0)
+    {
+        /* Positive offset - RC+NNNN; */
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RC+%04ld;", (long)rit);
+    }
+    else
+    {
+        /* Negative offset - RC-NNNN; (note: rit is already negative) */
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RC%05ld;", (long)rit);
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmd=%s\n", __func__, priv->cmd_str);
+
+    if (RIG_OK != (err = newcat_set_cmd(rig)))
+    {
+        return err;
+    }
+
+    return RIG_OK;
+}
+
+int ftx1_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
+    ftx1_if_response_t *rdata;
+    int err;
+
+    (void)vfo;  /* FTX-1 clarifier is not VFO-specific */
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!rig || !xit)
+    {
+        return -RIG_EINVAL;
+    }
+
+    rdata = (ftx1_if_response_t *)priv->ret_data;
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "IF;");
+
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    {
+        return err;
+    }
+
+    /* Check if TX clarifier (XIT) is enabled */
+    if (rdata->tx_clarifier == '1')
+    {
+        *xit = atoi(rdata->clarifier);
+        /* Handle sign - clarifier field includes +/- prefix */
+        if (rdata->clarifier[0] == '-')
+        {
+            *xit = -*xit;
+        }
+    }
+    else
+    {
+        *xit = 0;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: xit=%ld (tx_clar=%c)\n",
+              __func__, (long)*xit, rdata->tx_clarifier);
+
+    return RIG_OK;
+}
+
+int ftx1_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
+    int err;
+
+    (void)vfo;  /* FTX-1 clarifier is not VFO-specific */
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called with xit=%ld\n", __func__, (long)xit);
+
+    if (xit == 0)
+    {
+        /* Clear XIT - TC0; */
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "TC0;");
+    }
+    else if (xit > 0)
+    {
+        /* Positive offset - TC+NNNN; */
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "TC+%04ld;", (long)xit);
+    }
+    else
+    {
+        /* Negative offset - TC-NNNN; (note: xit is already negative) */
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "TC%05ld;", (long)xit);
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmd=%s\n", __func__, priv->cmd_str);
+
+    if (RIG_OK != (err = newcat_set_cmd(rig)))
+    {
+        return err;
+    }
+
+    return RIG_OK;
+}
+
 /* ========== FROM ftx1.c ========== */
 static struct
 {
@@ -5852,6 +6192,16 @@ extern int ftx1_set_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch);
 extern int ftx1_get_scan(RIG *rig, vfo_t vfo, scan_t *scan, int *ch);
 extern int ftx1_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts);
 extern int ftx1_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts);
+
+/*
+ * Externs from ftx1_clarifier.c
+ * RIT/XIT implementation by Jeremy Miller (KO4SSD) - uses RC/TC commands
+ * instead of RT/XT which return '?' on FTX-1
+ */
+extern int ftx1_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
+extern int ftx1_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
+extern int ftx1_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit);
+extern int ftx1_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit);
 
 // Externs from ftx1_freq.c
 extern int ftx1_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
@@ -6275,10 +6625,14 @@ struct rig_caps ftx1_caps = {
     .get_ext_level = newcat_get_ext_level,
     .set_conf = newcat_set_conf,
     .get_conf = newcat_get_conf,
-    .set_rit = newcat_set_rit,
-    .get_rit = newcat_get_rit,
-    .set_xit = newcat_set_xit,
-    .get_xit = newcat_get_xit,
+    /*
+     * RIT/XIT: Uses RC/TC commands per Jeremy Miller (KO4SSD) PR #1826
+     * The standard RT/XT commands return '?' on FTX-1
+     */
+    .set_rit = ftx1_set_rit,
+    .get_rit = ftx1_get_rit,
+    .set_xit = ftx1_set_xit,
+    .get_xit = ftx1_get_xit,
     .set_split_vfo = ftx1_set_split_vfo,  // Override from ftx1_vfo.c
     .get_split_vfo = ftx1_get_split_vfo,
     .set_split_freq = NULL,

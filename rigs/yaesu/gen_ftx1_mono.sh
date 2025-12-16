@@ -114,7 +114,7 @@ extract_module() {
 for module in ftx1/ftx1_vfo.c ftx1/ftx1_freq.c ftx1/ftx1_preamp.c ftx1/ftx1_audio.c \
               ftx1/ftx1_filter.c ftx1/ftx1_noise.c ftx1/ftx1_tx.c ftx1/ftx1_cw.c \
               ftx1/ftx1_ctcss.c ftx1/ftx1_mem.c ftx1/ftx1_scan.c ftx1/ftx1_info.c \
-              ftx1/ftx1_ext.c ftx1/ftx1_func.c; do
+              ftx1/ftx1_ext.c ftx1/ftx1_func.c ftx1/ftx1_clarifier.c; do
     basename=$(basename "$module")
     echo "Processing $basename..."
     echo "" >> "$OUTPUT"

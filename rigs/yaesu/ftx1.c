@@ -16,8 +16,30 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
+ * ===========================================================================
+ * ACKNOWLEDGMENTS
+ * ===========================================================================
+ * Special thanks to Jeremy Miller (KO4SSD) for his invaluable contributions
+ * to FTX-1 support in Hamlib (PR #1826). Jeremy discovered critical workarounds
+ * for FTX-1 firmware limitations:
+ *
+ *   - RIT/XIT: The standard RT/XT commands return '?' on FTX-1. Jeremy figured
+ *     out that the RC (Receiver Clarifier) and TC (Transmit Clarifier) commands
+ *     work correctly, and that the IF response can be parsed for clarifier state.
+ *
+ *   - Tuning Steps: Jeremy implemented mode-specific dial steps via the EX0306
+ *     extended menu command, providing finer control than the basic TS command.
+ *
+ * This implementation incorporates Jeremy's discoveries with gratitude.
+ * His persistence in testing with actual hardware and willingness to share
+ * findings with the community made complete FTX-1 support possible.
+ *
+ * Jeremy's original implementation: https://github.com/Hamlib/Hamlib/pull/1826
+ * ===========================================================================
+ *
  * FIRMWARE NOTES (v1.08+):
- * - RT (RIT on/off) and XT (XIT on/off) commands return '?' - not implemented
+ * - RT (RIT on/off) and XT (XIT on/off) commands return '?' - use RC/TC instead
+ *   (discovered by Jeremy Miller KO4SSD)
  * - CF (Clarifier) sets offset value only, does not enable/disable clarifier
  *   Format: CF P1 P2 P3 [+/-] PPPP where P3 must be 1
  *   Example: CF001+0500 sets clarifier offset to +500Hz
@@ -116,6 +138,16 @@ extern int ftx1_set_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch);
 extern int ftx1_get_scan(RIG *rig, vfo_t vfo, scan_t *scan, int *ch);
 extern int ftx1_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts);
 extern int ftx1_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts);
+
+/*
+ * Externs from ftx1_clarifier.c
+ * RIT/XIT implementation by Jeremy Miller (KO4SSD) - uses RC/TC commands
+ * instead of RT/XT which return '?' on FTX-1
+ */
+extern int ftx1_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
+extern int ftx1_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
+extern int ftx1_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit);
+extern int ftx1_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit);
 
 // Externs from ftx1_freq.c
 extern int ftx1_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
@@ -539,10 +571,14 @@ struct rig_caps ftx1_caps = {
     .get_ext_level = newcat_get_ext_level,
     .set_conf = newcat_set_conf,
     .get_conf = newcat_get_conf,
-    .set_rit = newcat_set_rit,
-    .get_rit = newcat_get_rit,
-    .set_xit = newcat_set_xit,
-    .get_xit = newcat_get_xit,
+    /*
+     * RIT/XIT: Uses RC/TC commands per Jeremy Miller (KO4SSD) PR #1826
+     * The standard RT/XT commands return '?' on FTX-1
+     */
+    .set_rit = ftx1_set_rit,
+    .get_rit = ftx1_get_rit,
+    .set_xit = ftx1_set_xit,
+    .get_xit = ftx1_get_xit,
     .set_split_vfo = ftx1_set_split_vfo,  // Override from ftx1_vfo.c
     .get_split_vfo = ftx1_get_split_vfo,
     .set_split_freq = NULL,
