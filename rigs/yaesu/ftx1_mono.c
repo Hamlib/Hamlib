@@ -2688,6 +2688,16 @@ int ftx1_stop_morse(RIG *rig, vfo_t vfo)
     return newcat_set_cmd(rig);
 }
 
+int ftx1_wait_morse(RIG *rig, vfo_t vfo)
+{
+    (void)rig;  /* Unused */
+    (void)vfo;  /* Unused */
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: stub - returning immediately\n", __func__);
+
+    return RIG_OK;
+}
+
 /* Set CW Break-in Delay (SD P1P2;) - 2 digits, 00-30 (100ms units) */
 int ftx1_set_cw_delay(RIG *rig, int val)
 {
@@ -5408,6 +5418,7 @@ extern int ftx1_set_cw_delay(RIG *rig, int ms);
 extern int ftx1_get_cw_delay(RIG *rig, int *ms);
 extern int ftx1_send_morse(RIG *rig, vfo_t vfo, const char *msg);
 extern int ftx1_stop_morse(RIG *rig, vfo_t vfo);
+extern int ftx1_wait_morse(RIG *rig, vfo_t vfo);
 
 /* Extern helpers from ftx1_tx.c */
 extern int ftx1_set_breakin(RIG *rig, int mode);
@@ -5762,6 +5773,11 @@ int ftx1_stop_morse_func(RIG *rig, vfo_t vfo)
     return ftx1_stop_morse(rig, vfo);
 }
 
+int ftx1_wait_morse_func(RIG *rig, vfo_t vfo)
+{
+    return ftx1_wait_morse(rig, vfo);
+}
+
 /* Transceive (AI) mode wrapper */
 int ftx1_set_trn_func(RIG *rig, int trn)
 {
@@ -5821,6 +5837,7 @@ extern int ftx1_set_dcs_sql_func(RIG *rig, vfo_t vfo, tone_t code);
 extern int ftx1_get_dcs_sql_func(RIG *rig, vfo_t vfo, tone_t *code);
 extern int ftx1_send_morse_func(RIG *rig, vfo_t vfo, const char *msg);
 extern int ftx1_stop_morse_func(RIG *rig, vfo_t vfo);
+extern int ftx1_wait_morse_func(RIG *rig, vfo_t vfo);
 extern int ftx1_set_trn_func(RIG *rig, int trn);
 extern int ftx1_get_trn_func(RIG *rig, int *trn);
 
@@ -6116,6 +6133,18 @@ struct rig_caps ftx1_caps = {
         /* FTX-1 overrides for levels with 0-100 range instead of 0-255 */
         [LVL_MICGAIN] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f / 100.0f } },
         [LVL_VOXGAIN] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f / 100.0f } },
+        /*
+         * RFPOWER level_gran: FTX-1 power ranges vary by head configuration:
+         *   Field Battery: 0.5-6W   (min=0.083 normalized)
+         *   Field 12V:     0.5-10W  (min=0.05 normalized)
+         *   Optima/SPA-1:  5-100W   (min=0.05 normalized)
+         *
+         * Static level_gran cannot represent all three configs. Using SPA-1/12V
+         * minimum (0.05) as default. Actual power limits are enforced at runtime
+         * in ftx1_set_power() and ftx1_get_power() based on detected head type.
+         * Field Battery users may see 0.05 minimum in apps but hardware will
+         * clamp to 0.5W (0.083 normalized).
+         */
         [LVL_RFPOWER] = { .min = { .f = 0.05 }, .max = { .f = 1.0 }, .step = { .f = 1.0f / 100.0f } },
         [LVL_MONITOR_GAIN] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f / 100.0f } },
         [LVL_SQL] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f / 100.0f } },
@@ -6231,6 +6260,7 @@ struct rig_caps ftx1_caps = {
     .get_dcs_sql = ftx1_get_dcs_sql_func,
     .send_morse = ftx1_send_morse_func,  // Override from ftx1_cw.c via ftx1_func.c
     .stop_morse = ftx1_stop_morse_func,
+    .wait_morse = ftx1_wait_morse_func,  // Stub - FTX-1 cannot query CW TX status
     .set_trn = ftx1_set_trn_func,  // Override from ftx1_info.c via ftx1_func.c
     .get_trn = ftx1_get_trn_func,
     .set_mem = ftx1_set_mem,  // Override from ftx1_mem.c
