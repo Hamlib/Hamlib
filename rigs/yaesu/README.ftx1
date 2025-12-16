@@ -1,0 +1,133 @@
+Yaesu FTX-1 Hamlib Backend
+==========================
+
+Quirks, known bugs, and other notes for the FTX-1 transceiver.
+
+Authors:
+    Terrell Deppe (KJ5HST) - Primary implementation
+    Jeremy Miller (KO4SSD) - RIT/XIT and tuning step discoveries
+
+Acknowledgments
+===============
+Special thanks to Jeremy Miller (KO4SSD) for his critical discoveries
+documented in Hamlib PR #1826. Jeremy figured out that the standard RT/XT
+commands return '?' on FTX-1 firmware, and that RC/TC commands work instead.
+He also discovered the EX0306 mode-specific tuning step functionality.
+
+Head Type Detection
+===================
+The FTX-1 comes in multiple configurations with different power ranges:
+
+    Field Head (Battery):   0.5W - 6W
+    Field Head (12V):       0.5W - 10W
+    Optima/SPA-1:           5W - 100W
+
+The driver automatically detects the configuration at rig_open() using a
+two-stage process:
+
+    Stage 1: PC Command Format
+        PC1xxx response = Field Head
+        PC2xxx response = Optima/SPA-1
+
+    Stage 2: Power Probe (Field Head only)
+        Attempts to set 8W power
+        If accepted: 12V power source (0.5-10W range)
+        If rejected: Battery power source (0.5-6W range)
+
+The original power setting is saved and restored after probing.
+
+RIT/XIT (Clarifier)
+===================
+The standard RT (RIT toggle) and XT (XIT toggle) commands return '?' on
+FTX-1 firmware. This implementation uses the commands discovered by
+Jeremy Miller (KO4SSD):
+
+    RC command - Receiver Clarifier (RIT)
+        RC0;        Clear RIT
+        RC+NNNN;    Set positive offset
+        RC-NNNN;    Set negative offset
+
+    TC command - Transmit Clarifier (XIT)
+        TC0;        Clear XIT
+        TC+NNNN;    Set positive offset
+        TC-NNNN;    Set negative offset
+
+    IF command - Read clarifier state from response fields
+
+Tuning Steps
+============
+Two methods are available:
+
+    TS command - Basic tuning step (00-14 codes)
+        Works but not mode-aware
+
+    EX0306 command - Mode-specific dial steps (Jeremy Miller's discovery)
+        EX030601 = SSB/CW:   0=5Hz, 1=10Hz, 2=20Hz
+        EX030602 = RTTY/PSK: 0=5Hz, 1=10Hz, 2=20Hz
+        EX030603 = FM:       0=5kHz, 1=6.25kHz, 2=10kHz, 3=12.5kHz,
+                             4=20kHz, 5=25kHz, 6=Auto
+
+Memory Channels
+===============
+The FTX-1 uses a different memory format than documented:
+
+    MR/MT/MZ commands use 5-digit channel format (MR00001, not MR0001)
+    MC command uses 6-digit format without VFO prefix
+    CH command only accepts CH0 (up) and CH1 (down), not CH;
+
+CW Operations
+=============
+    send_morse  - Uses KY0<message>; (up to 24 characters)
+    stop_morse  - Uses KY0; with no message
+    wait_morse  - Stub (FTX-1 cannot query CW TX status)
+
+Tuner (SPA-1 Only)
+==================
+The AC (Antenna Tuner) command only works when the Optima/SPA-1 amplifier
+is connected. The driver guards against calling AC commands when SPA-1 is
+not detected.
+
+Firmware Quirks
+===============
+Tested with FTX-1 firmware v1.08+. Known discrepancies from CAT manual:
+
+    RT/XT       Return '?' - use RC/TC instead
+    BS          Set-only, no query capability
+    ZI          Only works in CW mode (MD03 or MD07)
+    CF          Sets offset only, does not enable/disable clarifier
+    VM          Mode codes: 00=VFO, 11=Memory (not 01 as documented)
+    GP          Requires menu setting: TUN/LIN PORT SELECT = "GPO"
+
+General Notes
+=============
+    - Radio must be polled for status (no transceive mode)
+    - Serial: 38400 baud default, 8N1, no hardware flow control
+    - Post-write delay of 50ms recommended for reliable operation
+    - Radio ID (ID;) always returns 0840 for all configurations
+
+Files
+=====
+    ftx1.c              Main driver, rig_caps, head detection
+    ftx1.h              Shared definitions
+    ftx1/               Module directory
+        ftx1_vfo.c      VFO and split operations
+        ftx1_freq.c     Frequency control
+        ftx1_mode.c     Mode operations
+        ftx1_filter.c   Filter/bandwidth
+        ftx1_noise.c    NR, NB, ANF, Notch
+        ftx1_func.c     Function dispatcher
+        ftx1_preamp.c   Preamp/Attenuator
+        ftx1_audio.c    Audio levels, meters
+        ftx1_tx.c       TX power, Mic, VOX, Tuner
+        ftx1_mem.c      Memory channels
+        ftx1_cw.c       CW keyer, Morse
+        ftx1_ctcss.c    CTCSS/DCS tones
+        ftx1_scan.c     Scan, tuning steps
+        ftx1_info.c     Rig info, transceive
+        ftx1_ext.c      Extended levels
+        ftx1_clarifier.c RIT/XIT (RC/TC commands)
+
+References
+==========
+    FTX-1 CAT Manual: FTX-1_CAT_OM_ENG_2508-C.pdf
+    Jeremy Miller's PR: https://github.com/Hamlib/Hamlib/pull/1826
