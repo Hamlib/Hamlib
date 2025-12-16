@@ -4,12 +4,30 @@
  *
  * This file implements CAT commands for scanning and band selection.
  *
+ * ===========================================================================
+ * SPECIAL ACKNOWLEDGMENT - JEREMY MILLER (KO4SSD)
+ * ===========================================================================
+ * The mode-specific tuning step implementation using EX0306 is based on the
+ * excellent work of Jeremy Miller (KO4SSD) in Hamlib PR #1826. Jeremy figured
+ * out that the FTX-1 supports mode-aware dial steps via the EX0306 extended
+ * menu command, which provides finer control than the basic TS command.
+ *
+ * His implementation properly handles:
+ *   - SSB/CW mode: 5Hz, 10Hz, 20Hz steps (EX030601)
+ *   - RTTY/PSK mode: 5Hz, 10Hz, 20Hz steps (EX030602)
+ *   - FM mode: 5kHz to 25kHz steps + Auto (EX030603)
+ *
+ * Thank you, Jeremy, for this valuable contribution to FTX-1 support!
+ * Jeremy's original implementation: https://github.com/Hamlib/Hamlib/pull/1826
+ * ===========================================================================
+ *
  * CAT Commands in this file:
  *   SC P1;           - Scan Control (0=stop, 1=up, 2=down)
  *   BS P1P2;         - Band Select (P1P2=band code)
  *   UP;              - Frequency/Channel Up
  *   DN;              - Frequency/Channel Down
  *   TS P1P2;         - Tuning Step (00-14 code for step size)
+ *   EX0306xx;        - Mode-specific Dial Step (Jeremy Miller's discovery)
  *   ZI P1;           - Zero In (P1=VFO 0/1, set-only)
  *
  * Band Codes (BS command):
@@ -304,5 +322,193 @@ int ftx1_zero_in(RIG *rig, vfo_t vfo)
               rig_strvfo(vfo), p1);
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "ZI%d;", p1);
+    return newcat_set_cmd(rig);
+}
+
+/*
+ * ===========================================================================
+ * Mode-specific Tuning Step functions using EX0306
+ * Implementation by Jeremy Miller (KO4SSD) - Hamlib PR #1826
+ *
+ * The FTX-1 has mode-specific dial step settings accessed via the EX0306
+ * extended menu command. This provides finer control than the basic TS command.
+ *
+ * EX0306 Settings:
+ *   01 = SSB/CW DIAL STEP:  0=5Hz, 1=10Hz, 2=20Hz
+ *   02 = RTTY/PSK DIAL STEP: 0=5Hz, 1=10Hz, 2=20Hz
+ *   03 = FM DIAL STEP: 0=5kHz, 1=6.25kHz, 2=10kHz, 3=12.5kHz, 4=20kHz, 5=25kHz, 6=Auto
+ * ===========================================================================
+ */
+
+/* EX0306 setting numbers by mode category */
+#define FTX1_EX0306_SSB_CW   1
+#define FTX1_EX0306_RTTY_PSK 2
+#define FTX1_EX0306_FM       3
+
+/*
+ * ftx1_get_ts_ex - Get mode-specific tuning step via EX0306
+ *
+ * Implementation by Jeremy Miller (KO4SSD) - PR #1826
+ * Queries the appropriate EX0306 setting based on current mode.
+ */
+int ftx1_get_ts_ex(RIG *rig, vfo_t vfo, shortfreq_t *ts)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int err, setting_num, step_value;
+    rmode_t mode;
+    pbwidth_t width;
+    char response[32];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!rig || !ts)
+    {
+        return -RIG_EINVAL;
+    }
+
+    /* Get current mode to determine which setting to query */
+    if (RIG_OK != (err = rig_get_mode(rig, vfo, &mode, &width)))
+    {
+        return err;
+    }
+
+    /* Determine setting number based on mode (Jeremy's logic) */
+    if (mode == RIG_MODE_FM || mode == RIG_MODE_FMN || mode == RIG_MODE_PKTFM)
+    {
+        setting_num = FTX1_EX0306_FM;
+    }
+    else if (mode == RIG_MODE_RTTY || mode == RIG_MODE_RTTYR ||
+             mode == RIG_MODE_PKTLSB || mode == RIG_MODE_PKTUSB)
+    {
+        setting_num = FTX1_EX0306_RTTY_PSK;
+    }
+    else
+    {
+        setting_num = FTX1_EX0306_SSB_CW;
+    }
+
+    /* Query: EX0306[setting_num]; */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX0306%02d;", setting_num);
+
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    {
+        return err;
+    }
+
+    /* Parse response like "EX0306012;" (setting 01, value 2) */
+    strncpy(response, priv->ret_data, sizeof(response) - 1);
+    response[sizeof(response) - 1] = '\0';
+
+    if (strlen(response) >= 9 && strncmp(response, "EX0306", 6) == 0)
+    {
+        /* Extract step value - last digit before semicolon */
+        int len = strlen(response);
+        if (len >= 9)
+        {
+            step_value = response[len - 2] - '0';
+        }
+        else
+        {
+            step_value = 1;  /* Default */
+        }
+
+        /* Convert step value to frequency based on mode (Jeremy's mapping) */
+        if (setting_num == FTX1_EX0306_FM)
+        {
+            /* FM: 0=5kHz, 1=6.25kHz, 2=10kHz, 3=12.5kHz, 4=20kHz, 5=25kHz, 6=Auto */
+            switch (step_value)
+            {
+                case 0: *ts = 5000; break;
+                case 1: *ts = 6250; break;
+                case 2: *ts = 10000; break;
+                case 3: *ts = 12500; break;
+                case 4: *ts = 20000; break;
+                case 5: *ts = 25000; break;
+                case 6: *ts = 0; break;  /* Auto */
+                default: *ts = 10000; break;
+            }
+        }
+        else
+        {
+            /* SSB/CW and RTTY/PSK: 0=5Hz, 1=10Hz, 2=20Hz */
+            switch (step_value)
+            {
+                case 0: *ts = 5; break;
+                case 1: *ts = 10; break;
+                case 2: *ts = 20; break;
+                default: *ts = 10; break;
+            }
+        }
+
+        rig_debug(RIG_DEBUG_TRACE, "%s: response=%s setting=%d step=%d ts=%ld\n",
+                  __func__, response, setting_num, step_value, (long)*ts);
+
+        return RIG_OK;
+    }
+
+    /* Parsing failed, return default */
+    *ts = 10;
+    return RIG_OK;
+}
+
+/*
+ * ftx1_set_ts_ex - Set mode-specific tuning step via EX0306
+ *
+ * Implementation by Jeremy Miller (KO4SSD) - PR #1826
+ * Sets the appropriate EX0306 setting based on current mode.
+ */
+int ftx1_set_ts_ex(RIG *rig, vfo_t vfo, shortfreq_t ts)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int err, setting_num, step_value;
+    rmode_t mode;
+    pbwidth_t width;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called with ts=%ld\n", __func__, (long)ts);
+
+    /* Get current mode to determine which setting to modify */
+    if (RIG_OK != (err = rig_get_mode(rig, vfo, &mode, &width)))
+    {
+        return err;
+    }
+
+    /* Determine setting and convert ts to step value (Jeremy's mapping) */
+    if (mode == RIG_MODE_FM || mode == RIG_MODE_FMN || mode == RIG_MODE_PKTFM)
+    {
+        setting_num = FTX1_EX0306_FM;
+        /* FM: convert frequency to step value */
+        if (ts == 0) step_value = 6;       /* Auto */
+        else if (ts <= 5000) step_value = 0;
+        else if (ts <= 6250) step_value = 1;
+        else if (ts <= 10000) step_value = 2;
+        else if (ts <= 12500) step_value = 3;
+        else if (ts <= 20000) step_value = 4;
+        else step_value = 5;
+    }
+    else if (mode == RIG_MODE_RTTY || mode == RIG_MODE_RTTYR ||
+             mode == RIG_MODE_PKTLSB || mode == RIG_MODE_PKTUSB)
+    {
+        setting_num = FTX1_EX0306_RTTY_PSK;
+        /* RTTY/PSK: 0=5Hz, 1=10Hz, 2=20Hz */
+        if (ts <= 5) step_value = 0;
+        else if (ts <= 10) step_value = 1;
+        else step_value = 2;
+    }
+    else
+    {
+        setting_num = FTX1_EX0306_SSB_CW;
+        /* SSB/CW: 0=5Hz, 1=10Hz, 2=20Hz */
+        if (ts <= 5) step_value = 0;
+        else if (ts <= 10) step_value = 1;
+        else step_value = 2;
+    }
+
+    /* Set: EX0306[setting_num][step_value]; */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX0306%02d%d;",
+             setting_num, step_value);
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmd=%s (setting=%d step=%d)\n",
+              __func__, priv->cmd_str, setting_num, step_value);
+
     return newcat_set_cmd(rig);
 }
