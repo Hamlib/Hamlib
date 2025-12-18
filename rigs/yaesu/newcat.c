@@ -28,58 +28,6 @@
  *
  */
 
-/*
- * ============================================================================
- * REFACTORING SUMMARY - December 2025
- * ============================================================================
- *
- * This file was refactored to replace repetitive if/else chains with
- * data-driven lookup tables. The original code had 466+ else-if chains
- * and 53 unsafe strcpy() calls. Key changes:
- *
- * 1. FREQUENCY BAND CONSTANTS (lines ~76-87)
- *    Added BAND_10M_LOW, BAND_10M_HIGH, etc. to replace magic numbers
- *    throughout the codebase. Centralizes band edge definitions.
- *
- * 2. REPEATER OFFSET LOOKUP TABLE (lines ~150-231)
- *    - Added rptr_offs_cmd_entry_t struct and rptr_offs_cmd_table[]
- *    - Maps (rig_id, band) -> (EX command, step size)
- *    - Replaces ~500 lines of if/else chains in set/get_rptr_offs
- *
- * 3. ANTIVOX LOOKUP TABLE (lines ~239-320)
- *    - Added antivox_cmd_entry_t struct and antivox_cmd_table[]
- *    - Maps rig_id -> (set_cmd, get_cmd)
- *    - Note: FT-991 uses EX145 for set, EX147 for get (preserved)
- *    - Replaces ~70 lines of if/else chains in set/get_level ANTIVOX
- *
- * 4. HELPER FUNCTIONS (lines ~2430-2530)
- *    - freq_to_rptr_band(): Convert frequency to band enum
- *    - get_rig_id_from_priv(): Extract nc_rigid_t from rig state
- *    - lookup_rptr_offs_cmd(): Find repeater offset command
- *    - lookup_antivox_cmd(): Find antivox command
- *
- * 5. REFACTORED FUNCTIONS:
- *    - newcat_set_rptr_offs(): ~240 lines -> ~40 lines
- *    - newcat_get_rptr_offs(): ~243 lines -> ~56 lines
- *    - RIG_LEVEL_ANTIVOX set: ~36 lines -> ~18 lines
- *    - RIG_LEVEL_ANTIVOX get: ~34 lines -> ~17 lines
- *
- * BENEFITS:
- *    - Reduced code size by ~400+ lines
- *    - Eliminated duplicated band boundary checks
- *    - Centralized rig-to-command mappings (easier to add new rigs)
- *    - Added documentation explaining each command table
- *    - Preserved all original behavior including FT-991 quirk
- *
- * MAINTENANCE: When adding new rig support:
- *    1. Add rig ID to nc_rigid_t enum (if not present)
- *    2. Add entries to rptr_offs_cmd_table[] for repeater offset support
- *    3. Add entry to antivox_cmd_table[] for ANTIVOX support
- *    4. Update is_ftXXX static boolean initialization
- *
- * ============================================================================
- */
-
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
 #include <math.h>
@@ -126,250 +74,6 @@ typedef enum nc_rigid_e
     NC_RIGID_FTX1            = 840,
 } nc_rigid_t;
 
-
-/*
- * =============================================================================
- * REFACTORING NOTE (2025):
- *
- * The following constants and lookup tables were added to eliminate code
- * duplication in newcat_set_rptr_offs() and newcat_get_rptr_offs().
- *
- * PROBLEM: Previously, these functions contained 460+ lines of repetitive
- * if/else chains checking the same frequency bands for each rig model, with
- * unsafe strcpy() calls and hardcoded magic numbers.
- *
- * SOLUTION: Data-driven approach using lookup tables:
- * 1. Define frequency band boundaries as named constants
- * 2. Create a lookup table mapping rig models to their EX commands
- * 3. Use helper functions to validate bands and look up commands
- *
- * BENEFITS:
- * - Reduced code from ~460 lines to ~80 lines
- * - Eliminated 24 unsafe strcpy() calls (replaced with SNPRINTF)
- * - Made it trivial to add support for new rigs
- * - Improved maintainability and testability
- * =============================================================================
- */
-
-/*
- * Frequency band boundaries for repeater offset commands.
- * These values define the valid frequency ranges for each amateur band.
- * Used by newcat_set_rptr_offs() and newcat_get_rptr_offs().
- */
-#define BAND_10M_LOW     28000000   /* 10 meter band lower edge (Hz) */
-#define BAND_10M_HIGH    29700000   /* 10 meter band upper edge (Hz) */
-#define BAND_6M_LOW      50000000   /* 6 meter band lower edge (Hz) */
-#define BAND_6M_HIGH     54000000   /* 6 meter band upper edge (Hz) */
-#define BAND_2M_LOW     144000000   /* 2 meter band lower edge (Hz) */
-#define BAND_2M_HIGH    148000000   /* 2 meter band upper edge (Hz) */
-#define BAND_70CM_LOW   430000000   /* 70 cm band lower edge (Hz) */
-#define BAND_70CM_HIGH  450000000   /* 70 cm band upper edge (Hz) */
-
-/*
- * Repeater offset step sizes (Hz)
- */
-#define RPTR_OFFS_STEP_100K   100000   /* 100 kHz step (FT-450) */
-#define RPTR_OFFS_STEP_1K       1000   /* 1 kHz step (most rigs) */
-
-/*
- * Band identifiers for the rptr_offs_cmd_entry band field.
- * Allows a single entry to specify which band(s) the command applies to.
- */
-typedef enum {
-    RPTR_BAND_ALL_HF = 0,      /* Command applies to all HF (FT-450 style) */
-    RPTR_BAND_10M,             /* 10 meter band only */
-    RPTR_BAND_6M,              /* 6 meter band only */
-    RPTR_BAND_2M,              /* 2 meter band only */
-    RPTR_BAND_70CM,            /* 70 cm band only */
-} rptr_band_t;
-
-/*
- * Maximum length for EX command strings (e.g., "EX010318")
- * 8 characters + null terminator
- */
-#define RPTR_CMD_MAXLEN 16
-
-/*
- * Entry in the repeater offset command lookup table.
- * Each entry maps a rig model + frequency band to the appropriate EX command.
- *
- * USAGE: To add a new rig, add entries for each supported band.
- *
- * Example for a new rig "FT-NEW" supporting 10m and 6m:
- *   { NC_RIGID_FTNEW, RPTR_BAND_10M,  "EX123", RPTR_OFFS_STEP_1K },
- *   { NC_RIGID_FTNEW, RPTR_BAND_6M,   "EX124", RPTR_OFFS_STEP_1K },
- */
-typedef struct {
-    nc_rigid_t rig_id;          /* Rig model ID from nc_rigid_t enum */
-    rptr_band_t band;           /* Which band this entry applies to */
-    const char *cmd;            /* EX command string (e.g., "EX057") */
-    int step;                   /* Offset step size in Hz */
-} rptr_offs_cmd_entry_t;
-
-/*
- * Repeater offset command lookup table.
- *
- * This table replaces the massive if/else chains in newcat_set_rptr_offs()
- * and newcat_get_rptr_offs(). Each entry defines the EX command for a
- * specific rig model and frequency band combination.
- *
- * The table is searched sequentially; entries are ordered by rig ID and
- * then by band for clarity.
- *
- * MAINTENANCE NOTE: When adding a new rig model:
- * 1. Add entries for each supported band (typically 10m and 6m for HF rigs)
- * 2. Use the appropriate EX command from the rig's CAT documentation
- * 3. Set step = RPTR_OFFS_STEP_1K for most rigs, RPTR_OFFS_STEP_100K for FT-450
- */
-static const rptr_offs_cmd_entry_t rptr_offs_cmd_table[] = {
-    /* FT-450: Single command for all HF, 100 kHz step */
-    { NC_RIGID_FT450,    RPTR_BAND_ALL_HF, "EX050", RPTR_OFFS_STEP_100K },
-    { NC_RIGID_FT450D,   RPTR_BAND_ALL_HF, "EX050", RPTR_OFFS_STEP_100K },
-
-    /* FT-950: Separate commands for 10m and 6m */
-    { NC_RIGID_FT950,    RPTR_BAND_10M,    "EX057", RPTR_OFFS_STEP_1K },
-    { NC_RIGID_FT950,    RPTR_BAND_6M,     "EX058", RPTR_OFFS_STEP_1K },
-
-    /* FT-891: Uses EX09xx format */
-    { NC_RIGID_FT891,    RPTR_BAND_10M,    "EX0904", RPTR_OFFS_STEP_1K },
-    { NC_RIGID_FT891,    RPTR_BAND_6M,     "EX0905", RPTR_OFFS_STEP_1K },
-
-    /* FT-991/FT-991A: Supports 10m, 6m, 2m, and 70cm */
-    { NC_RIGID_FT991,    RPTR_BAND_10M,    "EX080", RPTR_OFFS_STEP_1K },
-    { NC_RIGID_FT991,    RPTR_BAND_6M,     "EX081", RPTR_OFFS_STEP_1K },
-    { NC_RIGID_FT991,    RPTR_BAND_2M,     "EX082", RPTR_OFFS_STEP_1K },
-    { NC_RIGID_FT991,    RPTR_BAND_70CM,   "EX083", RPTR_OFFS_STEP_1K },
-    { NC_RIGID_FT991A,   RPTR_BAND_10M,    "EX080", RPTR_OFFS_STEP_1K },
-    { NC_RIGID_FT991A,   RPTR_BAND_6M,     "EX081", RPTR_OFFS_STEP_1K },
-    { NC_RIGID_FT991A,   RPTR_BAND_2M,     "EX082", RPTR_OFFS_STEP_1K },
-    { NC_RIGID_FT991A,   RPTR_BAND_70CM,   "EX083", RPTR_OFFS_STEP_1K },
-
-    /* FT-2000/FT-2000D */
-    { NC_RIGID_FT2000,   RPTR_BAND_10M,    "EX076", RPTR_OFFS_STEP_1K },
-    { NC_RIGID_FT2000,   RPTR_BAND_6M,     "EX077", RPTR_OFFS_STEP_1K },
-    { NC_RIGID_FT2000D,  RPTR_BAND_10M,    "EX076", RPTR_OFFS_STEP_1K },
-    { NC_RIGID_FT2000D,  RPTR_BAND_6M,     "EX077", RPTR_OFFS_STEP_1K },
-
-    /* FT-710: Uses EX0103xx format */
-    { NC_RIGID_FT710,    RPTR_BAND_10M,    "EX010318", RPTR_OFFS_STEP_1K },
-    { NC_RIGID_FT710,    RPTR_BAND_6M,     "EX010319", RPTR_OFFS_STEP_1K },
-
-    /* FTDX-1200 */
-    { NC_RIGID_FTDX1200, RPTR_BAND_10M,    "EX087", RPTR_OFFS_STEP_1K },
-    { NC_RIGID_FTDX1200, RPTR_BAND_6M,     "EX088", RPTR_OFFS_STEP_1K },
-
-    /* FTDX-3000/FTDX-3000DM */
-    { NC_RIGID_FTDX3000, RPTR_BAND_10M,    "EX086", RPTR_OFFS_STEP_1K },
-    { NC_RIGID_FTDX3000, RPTR_BAND_6M,     "EX087", RPTR_OFFS_STEP_1K },
-    { NC_RIGID_FTDX3000DM, RPTR_BAND_10M,  "EX086", RPTR_OFFS_STEP_1K },
-    { NC_RIGID_FTDX3000DM, RPTR_BAND_6M,   "EX087", RPTR_OFFS_STEP_1K },
-
-    /* FTDX-5000 */
-    { NC_RIGID_FTDX5000, RPTR_BAND_10M,    "EX081", RPTR_OFFS_STEP_1K },
-    { NC_RIGID_FTDX5000, RPTR_BAND_6M,     "EX082", RPTR_OFFS_STEP_1K },
-
-    /* FTDX-101D/FTDX-101MP: Uses EX0103xx format */
-    { NC_RIGID_FTDX101D, RPTR_BAND_10M,    "EX010315", RPTR_OFFS_STEP_1K },
-    { NC_RIGID_FTDX101D, RPTR_BAND_6M,     "EX010316", RPTR_OFFS_STEP_1K },
-    { NC_RIGID_FTDX101MP, RPTR_BAND_10M,   "EX010315", RPTR_OFFS_STEP_1K },
-    { NC_RIGID_FTDX101MP, RPTR_BAND_6M,    "EX010316", RPTR_OFFS_STEP_1K },
-
-    /* FTDX-10: Uses EX0103xx format (different from FTDX-101) */
-    { NC_RIGID_FTDX10,   RPTR_BAND_10M,    "EX010317", RPTR_OFFS_STEP_1K },
-    { NC_RIGID_FTDX10,   RPTR_BAND_6M,     "EX010318", RPTR_OFFS_STEP_1K },
-
-    /* Sentinel entry - marks end of table */
-    { NC_RIGID_NONE,     RPTR_BAND_ALL_HF, NULL,       0 }
-};
-
-/*
- * Get the number of entries in the rptr_offs_cmd_table (excluding sentinel).
- */
-#define RPTR_OFFS_CMD_TABLE_SIZE \
-    (sizeof(rptr_offs_cmd_table) / sizeof(rptr_offs_cmd_table[0]) - 1)
-
-/*
- * ANTIVOX command lookup table.
- *
- * REFACTORED: 2025-12 - Replaces if/else chains in set_level/get_level ANTIVOX cases.
- * Maps rig model ID to the command string for ANTIVOX control.
- *
- * NOTE: FT-991 uses EX145 for SET but EX147 for GET - this appears to be
- * intentional in the original code (different menu items for set vs read).
- * The get_cmd field is NULL if same as set_cmd.
- */
-typedef struct {
-    nc_rigid_t rig_id;          /* Rig model ID from nc_rigid_t enum */
-    const char *set_cmd;        /* Command for setting ANTIVOX */
-    const char *get_cmd;        /* Command for getting ANTIVOX (NULL = same as set_cmd) */
-} antivox_cmd_entry_t;
-
-static const antivox_cmd_entry_t antivox_cmd_table[] = {
-    /* FTDX-101D/101MP, FTDX-10, FT-710: Use dedicated AV command */
-    { NC_RIGID_FTDX101D,  "AV",     NULL },
-    { NC_RIGID_FTDX101MP, "AV",     NULL },
-    { NC_RIGID_FTDX10,    "AV",     NULL },
-    { NC_RIGID_FT710,     "AV",     NULL },
-
-    /* FTDX-5000: EX176 */
-    { NC_RIGID_FTDX5000,  "EX176",  NULL },
-
-    /* FTDX-3000/3000DM, FTDX-1200: EX183 */
-    { NC_RIGID_FTDX3000,  "EX183",  NULL },
-    { NC_RIGID_FTDX3000DM,"EX183",  NULL },
-    { NC_RIGID_FTDX1200,  "EX183",  NULL },
-
-    /* FT-991/991A: EX145 for set, EX147 for get (different menu items) */
-    { NC_RIGID_FT991,     "EX145",  "EX147" },
-    { NC_RIGID_FT991A,    "EX145",  "EX147" },
-
-    /* FT-891: EX1619 */
-    { NC_RIGID_FT891,     "EX1619", NULL },
-
-    /* FT-950: EX117 */
-    { NC_RIGID_FT950,     "EX117",  NULL },
-
-    /* FT-2000/2000D: EX042 */
-    { NC_RIGID_FT2000,    "EX042",  NULL },
-    { NC_RIGID_FT2000D,   "EX042",  NULL },
-
-    /* Sentinel entry - marks end of table */
-    { NC_RIGID_NONE,      NULL,     NULL }
-};
-
-/*
- * lookup_antivox_cmd - Find the ANTIVOX command for a given rig model.
- *
- * Parameters:
- *   rig_id   - Rig model ID from nc_rigid_t enum
- *   is_get   - 1 for get command, 0 for set command
- *   cmd      - Output: command string (e.g., "AV", "EX176")
- *
- * Returns:
- *   RIG_OK if found, -RIG_ENAVAIL if rig not in table
- */
-static int lookup_antivox_cmd(nc_rigid_t rig_id, int is_get, const char **cmd)
-{
-    int i;
-
-    for (i = 0; antivox_cmd_table[i].set_cmd != NULL; i++)
-    {
-        if (antivox_cmd_table[i].rig_id == rig_id)
-        {
-            if (is_get && antivox_cmd_table[i].get_cmd != NULL)
-            {
-                *cmd = antivox_cmd_table[i].get_cmd;
-            }
-            else
-            {
-                *cmd = antivox_cmd_table[i].set_cmd;
-            }
-            return RIG_OK;
-        }
-    }
-
-    return -RIG_ENAVAIL;
-}
 
 /*
  * The following table defines which commands are valid for any given
@@ -1103,13 +807,7 @@ int newcat_set_conf(RIG *rig, hamlib_token_t token, const char *val)
  * rig_get_config
  *
  * Get Configuration Token for Yaesu Radios
- * 
- * HACK: Wrapper is because the header file declarations don't match the implementation.
  */
-int newcat_get_conf(RIG *rig, hamlib_token_t token, char *val)
-{
-    return newcat_get_conf2(rig, token, val, 128);
-}
 
 int newcat_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 {
@@ -2495,225 +2193,251 @@ int newcat_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 }
 
 
-/*
- * =============================================================================
- * HELPER FUNCTIONS FOR REPEATER OFFSET COMMANDS
- *
- * These functions implement the data-driven lookup for repeater offset
- * commands, replacing the previous 460+ lines of if/else chains.
- *
- * REFACTORING (2025): Extracted from newcat_set_rptr_offs/newcat_get_rptr_offs
- * =============================================================================
- */
-
-/**
- * freq_to_rptr_band - Convert a frequency to a band identifier
- *
- * @freq: Frequency in Hz
- *
- * Returns the rptr_band_t identifier for the given frequency, or -1 if
- * the frequency is not within a supported repeater band.
- *
- * REFACTORING NOTE: This function replaces the repetitive frequency range
- * checks that were duplicated 12+ times in the original code:
- *   if (freq >= 28000000 && freq <= 29700000) { ... }
- *   else if (freq >= 50000000 && freq <= 54000000) { ... }
- *   etc.
- */
-static int freq_to_rptr_band(freq_t freq)
-{
-    if (freq >= BAND_10M_LOW && freq <= BAND_10M_HIGH)
-    {
-        return RPTR_BAND_10M;
-    }
-    else if (freq >= BAND_6M_LOW && freq <= BAND_6M_HIGH)
-    {
-        return RPTR_BAND_6M;
-    }
-    else if (freq >= BAND_2M_LOW && freq <= BAND_2M_HIGH)
-    {
-        return RPTR_BAND_2M;
-    }
-    else if (freq >= BAND_70CM_LOW && freq <= BAND_70CM_HIGH)
-    {
-        return RPTR_BAND_70CM;
-    }
-
-    return -1;  /* Frequency not in a supported repeater band */
-}
-
-/**
- * get_rig_id_from_priv - Get the numeric rig ID from private data
- *
- * @rig: Pointer to the RIG structure
- *
- * Returns the nc_rigid_t value for the current rig, or NC_RIGID_NONE if
- * not available.
- *
- * REFACTORING NOTE: This function provides a clean way to get the rig ID
- * for table lookups, avoiding the static boolean variables (is_ft450, etc.)
- * that create non-reentrant code.
- */
-static nc_rigid_t get_rig_id_from_priv(RIG *rig)
-{
-    struct newcat_priv_data *priv;
-
-    if (!rig || !STATE(rig)->priv)
-    {
-        return NC_RIGID_NONE;
-    }
-
-    priv = (struct newcat_priv_data *)STATE(rig)->priv;
-    return (nc_rigid_t)priv->rig_id;
-}
-
-/**
- * lookup_rptr_offs_cmd - Look up the repeater offset command for a rig/band
- *
- * @rig_id: The nc_rigid_t identifier for the rig
- * @freq:   Current frequency in Hz (used to determine band)
- * @cmd:    Output buffer for the command string (must be RPTR_CMD_MAXLEN bytes)
- * @step:   Output pointer for the step size in Hz
- *
- * Returns:
- *   RIG_OK on success (cmd and step are populated)
- *   -RIG_EINVAL if the frequency is not in a valid repeater band for this rig
- *   -RIG_ENAVAIL if the rig does not support repeater offset commands
- *
- * REFACTORING NOTE: This single function replaces the 12 separate if/else
- * blocks in the original newcat_set_rptr_offs() and newcat_get_rptr_offs().
- * Adding support for a new rig now requires only adding entries to the
- * rptr_offs_cmd_table[] array.
- */
-static int lookup_rptr_offs_cmd(nc_rigid_t rig_id, freq_t freq,
-                                 char *cmd, int *step)
-{
-    int band;
-    size_t i;
-
-    /* Determine which band the frequency is in */
-    band = freq_to_rptr_band(freq);
-
-    /* Search the lookup table for a matching entry */
-    for (i = 0; i < RPTR_OFFS_CMD_TABLE_SIZE; i++)
-    {
-        const rptr_offs_cmd_entry_t *entry = &rptr_offs_cmd_table[i];
-
-        if (entry->rig_id != rig_id)
-        {
-            continue;  /* Not for this rig */
-        }
-
-        /*
-         * Check if this entry matches the band:
-         * - RPTR_BAND_ALL_HF matches any frequency (for FT-450 which uses
-         *   a single command for all bands)
-         * - Otherwise, entry->band must match the frequency's band
-         */
-        if (entry->band == RPTR_BAND_ALL_HF || entry->band == band)
-        {
-            /* Found a matching entry */
-            SNPRINTF(cmd, RPTR_CMD_MAXLEN, "%s", entry->cmd);
-            *step = entry->step;
-            return RIG_OK;
-        }
-    }
-
-    /*
-     * No matching entry found. This could mean:
-     * 1. The rig doesn't support repeater offset commands (return -RIG_ENAVAIL)
-     * 2. The frequency is not in a valid band for this rig (return -RIG_EINVAL)
-     *
-     * Check if the rig has ANY entries in the table to distinguish these cases.
-     */
-    for (i = 0; i < RPTR_OFFS_CMD_TABLE_SIZE; i++)
-    {
-        if (rptr_offs_cmd_table[i].rig_id == rig_id)
-        {
-            /* Rig is in the table but frequency is not in a valid band */
-            return -RIG_EINVAL;
-        }
-    }
-
-    /* Rig is not in the table at all */
-    return -RIG_ENAVAIL;
-}
-
-
-/*
- * =============================================================================
- * REFACTORED: newcat_set_rptr_offs (2025)
- *
- * ORIGINAL: ~240 lines with 12 if/else blocks, 24 strcpy() calls
- * REFACTORED: ~40 lines using lookup_rptr_offs_cmd() helper
- *
- * CHANGES MADE:
- * 1. Replaced all strcpy(command, "EXxxx") with SNPRINTF (security fix)
- * 2. Replaced 12 if/else blocks with single lookup_rptr_offs_cmd() call
- * 3. Eliminated hardcoded magic numbers (28000000, 29700000, etc.)
- * 4. Added proper error handling for unsupported rigs/bands
- * =============================================================================
- */
 int newcat_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
-    char command[RPTR_CMD_MAXLEN];
-    int step;
+    char command[32];
     freq_t freq = 0;
 
     ENTERFUNC;
 
-    /* Get the current frequency to determine which band we're on */
-    err = newcat_get_freq(rig, vfo, &freq);
+    err = newcat_get_freq(rig, vfo, &freq); // Need to get freq to determine band
 
     if (err < 0)
     {
         RETURNFUNC(err);
     }
 
-    /*
-     * Use the lookup table to get the appropriate EX command and step size.
-     * This replaces ~200 lines of if/else chains and 24 strcpy() calls.
-     */
-    err = lookup_rptr_offs_cmd(get_rig_id_from_priv(rig), freq, command, &step);
-
-    if (err != RIG_OK)
+    if (is_ft450)
     {
-        RETURNFUNC(err);
+        strcpy(command, "EX050");
+
+        // Step size is 100 kHz
+        offs /= 100000;
+
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%03li%c", command, offs,
+                 cat_term);
     }
-
-    /* Convert offset from Hz to the step units expected by the rig */
-    offs /= step;
-
-    /*
-     * Build the command string.
-     * FT-450 uses 3-digit format, all others use 4-digit format.
-     * The format is determined by the step size (100kHz = 3 digits, 1kHz = 4 digits).
-     */
-    if (step == RPTR_OFFS_STEP_100K)
+    else if (is_ft2000)
     {
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%03li%c",
-                 command, offs, cat_term);
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            strcpy(command, "EX076");
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            strcpy(command, "EX077");
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        // Step size is 1 kHz
+        offs /= 1000;
+
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%04li%c", command, offs,
+                 cat_term);
+    }
+    else if (is_ft950)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            strcpy(command, "EX057");
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            strcpy(command, "EX058");
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        // Step size is 1 kHz
+        offs /= 1000;
+
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%04li%c", command, offs,
+                 cat_term);
+    }
+    else if (is_ft891)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            strcpy(command, "EX0904");
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            strcpy(command, "EX0905");
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        // Step size is 1 kHz
+        offs /= 1000;
+
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%04li%c", command, offs,
+                 cat_term);
+    }
+    else if (is_ft991)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            strcpy(command, "EX080");
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            strcpy(command, "EX081");
+        }
+        else if (freq >= 144000000 && freq <= 148000000)
+        {
+            strcpy(command, "EX082");
+        }
+        else if (freq >= 430000000 && freq <= 450000000)
+        {
+            strcpy(command, "EX083");
+        }
+        else
+        {
+            // only valid on 10m to 70cm bands
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        // Step size is 1 kHz
+        offs /= 1000;
+
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%04li%c", command, offs,
+                 cat_term);
+    }
+    else if (is_ft710)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            strcpy(command, "EX010318");
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            strcpy(command, "EX010319");
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        // Step size is 1 kHz
+        offs /= 1000;
+
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%04li%c", command, offs,
+                 cat_term);
+    }
+    else if (is_ftdx1200)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            strcpy(command, "EX087");
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            strcpy(command, "EX088");
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        // Step size is 1 kHz
+        offs /= 1000;
+
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%04li%c", command, offs,
+                 cat_term);
+    }
+    else if (is_ftdx3000 || is_ftdx3000dm)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            strcpy(command, "EX086");
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            strcpy(command, "EX087");
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        // Step size is 1 kHz
+        offs /= 1000;
+
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%04li%c", command, offs,
+                 cat_term);
+    }
+    else if (is_ftdx5000)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            strcpy(command, "EX081");
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            strcpy(command, "EX082");
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        // Step size is 1 kHz
+        offs /= 1000;
+
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%04li%c", command, offs,
+                 cat_term);
+    }
+    else if (is_ftdx101d || is_ftdx101mp || is_ftdx10)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            strcpy(command, "EX010315");
+
+            if (is_ftdx10) { strcpy(command, "EX010317"); }
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            strcpy(command, "EX010316");
+
+            if (is_ftdx10) { strcpy(command, "EX010318"); }
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        // Step size is 1 kHz
+        offs /= 1000;
+
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%04li%c", command, offs,
+                 cat_term);
     }
     else
     {
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%04li%c",
-                 command, offs, cat_term);
+        RETURNFUNC(-RIG_ENAVAIL);
     }
 
     RETURNFUNC(newcat_set_cmd(rig));
 }
 
 
-/*
- * newcat_get_rptr_offs - Get repeater offset
- *
- * REFACTORED: 2025-12 - Replaced ~220 line if/else chain with data-driven lookup.
- * Uses lookup_rptr_offs_cmd() helper and rptr_offs_cmd_table[] for O(n) lookup.
- * Eliminates duplicated frequency band checking and per-rig command strings.
- * If frequency is not in a supported band, returns offset of 0 (not an error).
- */
 int newcat_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *offs)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
@@ -2721,31 +2445,227 @@ int newcat_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *offs)
     int ret_data_len;
     char *retoffs;
     freq_t freq = 0;
-    char command[RPTR_CMD_MAXLEN];
-    int step;
+    int step = 0;
 
     ENTERFUNC;
 
-    /* Get current frequency to determine which band we're on */
-    err = newcat_get_freq(rig, vfo, &freq);
+    err = newcat_get_freq(rig, vfo, &freq); // Need to get freq to determine band
+
     if (err < 0)
     {
         RETURNFUNC(err);
     }
 
-    /* Look up the EX command and step size for this rig/band combination */
-    err = lookup_rptr_offs_cmd(get_rig_id_from_priv(rig), freq, command, &step);
-    if (err != RIG_OK)
+    if (is_ft450)
     {
-        /* Not on a supported band - return 0 offset (not an error) */
-        *offs = 0;
-        RETURNFUNC(RIG_OK);
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX050%c", cat_term);
+
+        // Step size is 100 kHz
+        step = 100000;
+    }
+    else if (is_ft2000)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX076%c", cat_term);
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX077%c", cat_term);
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            *offs = 0;
+            RETURNFUNC(RIG_OK);
+        }
+
+        // Step size is 1 kHz
+        step = 1000;
+    }
+    else if (is_ft950)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX057%c", cat_term);
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX058%c", cat_term);
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            *offs = 0;
+            RETURNFUNC(RIG_OK);
+        }
+
+        // Step size is 1 kHz
+        step = 1000;
+    }
+    else if (is_ft891)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX0904%c", cat_term);
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX0905%c", cat_term);
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            *offs = 0;
+            RETURNFUNC(RIG_OK);
+        }
+
+        // Step size is 1 kHz
+        step = 1000;
+    }
+    else if (is_ft991)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX080%c", cat_term);
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX081%c", cat_term);
+        }
+        else if (freq >= 144000000 && freq <= 148000000)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX082%c", cat_term);
+        }
+        else if (freq >= 430000000 && freq <= 450000000)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX083%c", cat_term);
+        }
+        else
+        {
+            // only valid on 10m to 70cm bands
+            *offs = 0;
+            RETURNFUNC(RIG_OK);
+        }
+
+        // Step size is 1 kHz
+        step = 1000;
+    }
+    else if (is_ft710)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010318%c", cat_term);
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010319%c", cat_term);
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            *offs = 0;
+            RETURNFUNC(RIG_OK);
+        }
+
+        // Step size is 1 kHz
+        step = 1000;
+    }
+    else if (is_ftdx1200)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX087%c", cat_term);
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX088%c", cat_term);
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            *offs = 0;
+            RETURNFUNC(RIG_OK);
+        }
+
+        // Step size is 1 kHz
+        step = 1000;
+    }
+    else if (is_ftdx3000 || is_ftdx3000dm)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX086%c", cat_term);
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX087%c", cat_term);
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            *offs = 0;
+            RETURNFUNC(RIG_OK);
+        }
+
+        // Step size is 1 kHz
+        step = 1000;
+    }
+    else if (is_ftdx5000)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX081%c", cat_term);
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX082%c", cat_term);
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            *offs = 0;
+            RETURNFUNC(RIG_OK);
+        }
+
+        // Step size is 1 kHz
+        step = 1000;
+    }
+    else if (is_ftdx101d || is_ftdx101mp || is_ftdx10)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            char *cmd = "EX010315%c";
+
+            if (is_ftdx10) { cmd = "EX010317%c"; }
+
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), cmd, cat_term);
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            char *cmd = "EX010316%c";
+
+            if (is_ftdx10) { cmd = "EX010318%c"; }
+
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), cmd, cat_term);
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            *offs = 0;
+            RETURNFUNC(RIG_OK);
+        }
+
+        // Step size is 1 kHz
+        step = 1000;
+    }
+    else
+    {
+        RETURNFUNC(-RIG_ENAVAIL);
     }
 
-    /* Build query command (same as set command, radio returns current value) */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%c", command, cat_term);
-
     err = newcat_get_cmd(rig);
+
     if (err != RIG_OK)
     {
         RETURNFUNC(err);
@@ -2753,12 +2673,11 @@ int newcat_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *offs)
 
     ret_data_len = strlen(priv->ret_data);
 
-    /* skip command prefix, point to numeric offset value */
+    /* skip command */
     retoffs = priv->ret_data + strlen(priv->cmd_str) - 1;
-    /* chop terminator */
+    /* chop term */
     priv->ret_data[ret_data_len - 1] = '\0';
 
-    /* Convert from step units back to Hz */
     *offs = atol(retoffs) * step;
 
     RETURNFUNC(RIG_OK);
@@ -4849,25 +4768,43 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VG%03d%c", fpf, cat_term);
         break;
 
-    /*
-     * RIG_LEVEL_ANTIVOX - Set anti-VOX level
-     *
-     * REFACTORED: 2025-12 - Replaced if/else chain with lookup_antivox_cmd().
-     * See antivox_cmd_table[] for rig-to-command mappings.
-     */
     case RIG_LEVEL_ANTIVOX:
-    {
-        const char *cmd;
         fpf = (int)((val.f / level_info->step.f) + 0.5f);
 
-        if (lookup_antivox_cmd(get_rig_id_from_priv(rig), 0, &cmd) != RIG_OK)
+        if (is_ftdx101d || is_ftdx101mp || is_ftdx10 || is_ft710)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AV%03d%c", fpf, cat_term);
+        }
+        else if (is_ftdx5000)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX176%03d%c", fpf, cat_term);
+        }
+        else if (is_ftdx3000 || is_ftdx3000dm || is_ftdx1200)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX183%03d%c", fpf, cat_term);
+        }
+        else if (is_ft991)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX145%03d%c", fpf, cat_term);
+        }
+        else if (is_ft891)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX1619%03d%c", fpf, cat_term);
+        }
+        else if (is_ft950)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX117%03d%c", fpf, cat_term);
+        }
+        else if (is_ft2000)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX042%03d%c", fpf, cat_term);
+        }
+        else
         {
             RETURNFUNC(-RIG_EINVAL);
         }
 
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%03d%c", cmd, fpf, cat_term);
         break;
-    }
 
     case RIG_LEVEL_NOTCHF:
         if (!newcat_valid_command(rig, "BP"))
@@ -5500,24 +5437,41 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         break;
 
-    /*
-     * RIG_LEVEL_ANTIVOX - Get anti-VOX level
-     *
-     * REFACTORED: 2025-12 - Replaced if/else chain with lookup_antivox_cmd().
-     * Note: FT-991 uses different command for get vs set (EX147 vs EX145).
-     */
     case RIG_LEVEL_ANTIVOX:
-    {
-        const char *cmd;
-
-        if (lookup_antivox_cmd(get_rig_id_from_priv(rig), 1, &cmd) != RIG_OK)
+        if (is_ftdx101d || is_ftdx101mp || is_ftdx10 || is_ft710)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AV%c", cat_term);
+        }
+        else if (is_ftdx5000)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX176%c", cat_term);
+        }
+        else if (is_ftdx3000 || is_ftdx3000dm || is_ftdx1200)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX183%c", cat_term);
+        }
+        else if (is_ft991)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX147%c", cat_term);
+        }
+        else if (is_ft891)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX1619%c", cat_term);
+        }
+        else if (is_ft950)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX117%c", cat_term);
+        }
+        else if (is_ft2000)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX042%c", cat_term);
+        }
+        else
         {
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%c", cmd, cat_term);
         break;
-    }
 
     case RIG_LEVEL_NOTCHF:
         if (!newcat_valid_command(rig, "BP"))
