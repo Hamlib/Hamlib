@@ -48,6 +48,7 @@
 #include "misc.h"
 #include "yaesu.h"
 #include "newcat.h"
+#include "../ftx1.h"
 
 /* Extern helpers from ftx1_filter.c */
 extern int ftx1_set_anf_helper(RIG *rig, vfo_t vfo, int status);
@@ -153,6 +154,14 @@ extern int ftx1_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code);
 extern int ftx1_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code);
 extern int ftx1_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code);
 extern int ftx1_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code);
+extern int ftx1_set_ctcss_mode(RIG *rig, tone_t mode);
+extern int ftx1_get_ctcss_mode(RIG *rig, tone_t *mode);
+
+/* Extern helpers from ftx1_clarifier.c */
+extern int ftx1_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
+extern int ftx1_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
+extern int ftx1_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit);
+extern int ftx1_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit);
 
 /* Extern helpers from ftx1_info.c */
 extern int ftx1_set_trn(RIG *rig, int trn);
@@ -194,6 +203,18 @@ int ftx1_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             return ftx1_set_breakin(rig, status ? 1 : 0);
         case RIG_FUNC_FBKIN:
             return ftx1_set_breakin(rig, status ? 2 : 0);
+        case RIG_FUNC_TONE:
+            return ftx1_set_ctcss_mode(rig, status ? FTX1_CTCSS_MODE_ENC : FTX1_CTCSS_MODE_OFF);
+        case RIG_FUNC_TSQL:
+            return ftx1_set_ctcss_mode(rig, status ? FTX1_CTCSS_MODE_TSQ : FTX1_CTCSS_MODE_OFF);
+        case RIG_FUNC_RIT:
+            /* FTX-1: Setting RIT to 0 disables it; to enable, use set_rit with offset */
+            if (!status) return ftx1_set_rit(rig, vfo, 0);
+            return RIG_OK;  /* Enable is no-op; must use set_rit with offset value */
+        case RIG_FUNC_XIT:
+            /* FTX-1: Setting XIT to 0 disables it; to enable, use set_xit with offset */
+            if (!status) return ftx1_set_xit(rig, vfo, 0);
+            return RIG_OK;  /* Enable is no-op; must use set_xit with offset value */
         /* Note: Contour (CO command) not exposed as RIG_FUNC_CONTOUR doesn't exist in Hamlib */
         default:
             return newcat_set_func(rig, vfo, func, status);
@@ -238,6 +259,34 @@ int ftx1_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
             ret = ftx1_get_breakin(rig, &mode);
             if (ret == RIG_OK) *status = (mode == 2) ? 1 : 0;
             return ret;
+        case RIG_FUNC_TONE:
+            {
+                tone_t ctcss_mode;
+                ret = ftx1_get_ctcss_mode(rig, &ctcss_mode);
+                if (ret == RIG_OK) *status = (ctcss_mode == FTX1_CTCSS_MODE_ENC) ? 1 : 0;
+                return ret;
+            }
+        case RIG_FUNC_TSQL:
+            {
+                tone_t ctcss_mode;
+                ret = ftx1_get_ctcss_mode(rig, &ctcss_mode);
+                if (ret == RIG_OK) *status = (ctcss_mode == FTX1_CTCSS_MODE_TSQ) ? 1 : 0;
+                return ret;
+            }
+        case RIG_FUNC_RIT:
+            {
+                shortfreq_t rit_offset;
+                ret = ftx1_get_rit(rig, vfo, &rit_offset);
+                if (ret == RIG_OK) *status = (rit_offset != 0) ? 1 : 0;
+                return ret;
+            }
+        case RIG_FUNC_XIT:
+            {
+                shortfreq_t xit_offset;
+                ret = ftx1_get_xit(rig, vfo, &xit_offset);
+                if (ret == RIG_OK) *status = (xit_offset != 0) ? 1 : 0;
+                return ret;
+            }
         /* Note: Contour (CO command) not exposed as RIG_FUNC_CONTOUR doesn't exist in Hamlib */
         default:
             return newcat_get_func(rig, vfo, func, status);

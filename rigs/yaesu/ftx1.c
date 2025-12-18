@@ -255,7 +255,13 @@ static int ftx1_probe_field_head_power(RIG *rig)
 
     /* Restore original power setting */
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", original_power);
-    newcat_set_cmd(rig);
+    ret = newcat_set_cmd(rig);
+
+    if (ret != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: failed to restore original power setting\n",
+                  __func__);
+    }
 
     if (power_accepted)
     {
