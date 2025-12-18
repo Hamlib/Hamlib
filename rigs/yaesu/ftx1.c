@@ -576,7 +576,7 @@ struct rig_caps ftx1_caps = {
     .set_ext_level = newcat_set_ext_level,
     .get_ext_level = newcat_get_ext_level,
     .set_conf = newcat_set_conf,
-    .get_conf = newcat_get_conf,
+    .get_conf2 = newcat_get_conf2,
     /*
      * RIT/XIT: Uses RC/TC commands per Jeremy Miller (KO4SSD) PR #1826
      * The standard RT/XT commands return '?' on FTX-1
