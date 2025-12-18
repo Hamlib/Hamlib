@@ -102,12 +102,8 @@ int ftx1_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
     /* Check if RX clarifier (RIT) is enabled */
     if (rdata->rx_clarifier == '1')
     {
+        /* atoi() handles the sign prefix correctly - no need to negate again */
         *rit = atoi(rdata->clarifier);
-        /* Handle sign - clarifier field includes +/- prefix */
-        if (rdata->clarifier[0] == '-')
-        {
-            *rit = -*rit;
-        }
     }
     else
     {
@@ -136,6 +132,14 @@ int ftx1_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     (void)vfo;  /* FTX-1 clarifier is not VFO-specific */
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called with rit=%ld\n", __func__, (long)rit);
+
+    /* Validate range: FTX-1 supports ±9999 Hz */
+    if (rit < -9999 || rit > 9999)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: RIT offset %ld out of range (±9999 Hz)\n",
+                  __func__, (long)rit);
+        return -RIG_EINVAL;
+    }
 
     if (rit == 0)
     {
@@ -196,12 +200,8 @@ int ftx1_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
     /* Check if TX clarifier (XIT) is enabled */
     if (rdata->tx_clarifier == '1')
     {
+        /* atoi() handles the sign prefix correctly - no need to negate again */
         *xit = atoi(rdata->clarifier);
-        /* Handle sign - clarifier field includes +/- prefix */
-        if (rdata->clarifier[0] == '-')
-        {
-            *xit = -*xit;
-        }
     }
     else
     {
@@ -230,6 +230,14 @@ int ftx1_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
     (void)vfo;  /* FTX-1 clarifier is not VFO-specific */
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called with xit=%ld\n", __func__, (long)xit);
+
+    /* Validate range: FTX-1 supports ±9999 Hz */
+    if (xit < -9999 || xit > 9999)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: XIT offset %ld out of range (±9999 Hz)\n",
+                  __func__, (long)xit);
+        return -RIG_EINVAL;
+    }
 
     if (xit == 0)
     {
