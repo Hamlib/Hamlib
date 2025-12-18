@@ -247,9 +247,10 @@ static int ftx1_probe_field_head_power(RIG *rig)
     else
     {
         /* Check if power is 8W or above (PC1008 or higher) */
-        int power_value = atoi(priv->ret_data + 3);
-        power_accepted = (power_value >= 8);
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: power readback: %d, accepted=%d\n",
+        /* Use atof() since Field Head can return decimal values like PC10.5 */
+        float power_value = atof(priv->ret_data + 3);
+        power_accepted = (power_value >= 8.0f);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: power readback: %.1f, accepted=%d\n",
                   __func__, power_value, power_accepted);
     }
 
@@ -462,11 +463,14 @@ struct rig_caps ftx1_caps = {
     },
     .ctcss_list = common_ctcss_list,  // Reused common list
     .dcs_list = common_dcs_list,
+    .str_cal = FTX1_STR_CAL,
     .preamp = {10, 20, RIG_DBLST_END},  // AMP1=10dB, AMP2=20dB (0=IPO)
     .attenuator = {12, RIG_DBLST_END},
     .max_rit = Hz(9999),
     .max_xit = Hz(9999),
     .max_ifshift = Hz(1200),
+    .agc_level_count = 5,
+    .agc_levels = { RIG_AGC_OFF, RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW, RIG_AGC_AUTO },
     .vfo_ops = RIG_OP_CPY | RIG_OP_XCHG | RIG_OP_FROM_VFO | RIG_OP_TO_VFO | RIG_OP_MCL | RIG_OP_TUNE | RIG_OP_BAND_UP | RIG_OP_BAND_DOWN,
     .targetable_vfo = RIG_TARGETABLE_ALL,
     .transceive = RIG_TRN_OFF,
@@ -530,7 +534,49 @@ struct rig_caps ftx1_caps = {
         {RIG_MODE_WFM, kHz(25)},
         RIG_TS_END,
     },
-    .filters = {},  // To be populated in filter group
+    .filters = {
+        /* FTX-1 filter widths based on SH command codes (Hz):
+         *   00=200, 01=250, 02=300, 03=350, 04=400, 05=450, 06=500
+         *   07=600, 08=700, 09=800, 10=900, 11=1000, 12=1200, 13=1400
+         *   14=1600, 15=1800, 16=2000, 17=2200, 18=2400, 19=2600
+         *   20=2800, 21=3000, 22=3200, 23=3400 */
+        /* CW modes: 200Hz to 3000Hz */
+        {RIG_MODE_CW | RIG_MODE_CWR, Hz(500)},     /* Normal CW */
+        {RIG_MODE_CW | RIG_MODE_CWR, Hz(200)},     /* Narrow CW */
+        {RIG_MODE_CW | RIG_MODE_CWR, Hz(2400)},    /* Wide CW */
+        {RIG_MODE_CW | RIG_MODE_CWR, Hz(1800)},
+        {RIG_MODE_CW | RIG_MODE_CWR, Hz(1200)},
+        {RIG_MODE_CW | RIG_MODE_CWR, Hz(800)},
+        {RIG_MODE_CW | RIG_MODE_CWR, Hz(400)},
+        {RIG_MODE_CW | RIG_MODE_CWR, Hz(300)},
+        /* SSB modes: 200Hz to 3000Hz */
+        {RIG_MODE_SSB, Hz(2400)},    /* Normal SSB */
+        {RIG_MODE_SSB, Hz(1800)},    /* Narrow SSB */
+        {RIG_MODE_SSB, Hz(3000)},    /* Wide SSB */
+        {RIG_MODE_SSB, Hz(2800)},
+        {RIG_MODE_SSB, Hz(2600)},
+        {RIG_MODE_SSB, Hz(2200)},
+        {RIG_MODE_SSB, Hz(2000)},
+        {RIG_MODE_SSB, Hz(1600)},
+        {RIG_MODE_SSB, Hz(1400)},
+        {RIG_MODE_SSB, Hz(1200)},
+        /* RTTY/DATA modes: 200Hz to 2400Hz */
+        {RIG_MODE_RTTY | RIG_MODE_RTTYR | RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, Hz(500)},
+        {RIG_MODE_RTTY | RIG_MODE_RTTYR | RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, Hz(250)},
+        {RIG_MODE_RTTY | RIG_MODE_RTTYR | RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, Hz(2400)},
+        {RIG_MODE_RTTY | RIG_MODE_RTTYR | RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, Hz(1800)},
+        {RIG_MODE_RTTY | RIG_MODE_RTTYR | RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, Hz(1200)},
+        /* AM modes */
+        {RIG_MODE_AM, Hz(6000)},     /* Normal AM */
+        {RIG_MODE_AM, Hz(3000)},     /* Narrow AM */
+        {RIG_MODE_AM, Hz(9000)},     /* Wide AM */
+        /* FM modes */
+        {RIG_MODE_FM | RIG_MODE_PKTFM, Hz(12000)},  /* Normal FM */
+        {RIG_MODE_FM | RIG_MODE_PKTFM, Hz(9000)},   /* Narrow FM */
+        /* Any mode, any filter */
+        {RIG_MODE_SSB | RIG_MODE_CW | RIG_MODE_CWR | RIG_MODE_RTTY | RIG_MODE_RTTYR | RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, RIG_FLT_ANY},
+        RIG_FLT_END,
+    },
     .priv = (void *)&ftx1_priv_caps,  // Reuse newcat priv
     .rig_init = newcat_init,
     .rig_cleanup = newcat_cleanup,
@@ -594,4 +640,6 @@ struct rig_caps ftx1_caps = {
     .get_info = newcat_get_info,
     .power2mW = newcat_power2mW,
     .mW2power = newcat_mW2power,
+    .morse_qsize = 50,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };

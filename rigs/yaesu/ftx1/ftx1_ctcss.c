@@ -5,7 +5,7 @@
  * This file implements CAT commands for CTCSS and DCS tone control.
  *
  * CAT Commands in this file:
- *   CN P1 P2P3;      - CTCSS Tone Number (P1=0 TX/1 RX, P2P3=01-50)
+ *   CN P1 0 P2P3P4;  - CTCSS Tone Number (P1=0 TX/1 RX, literal 0, P2P3P4=001-050)
  *   CT P1;           - CTCSS Mode (0=off, 1=ENC, 2=TSQ, 3=DCS)
  *   TS P1;           - Tone Status Query (composite)
  *   DC P1 P2P3P4;    - DCS Code (P1=0 TX/1 RX, P2-P4=code number)

@@ -153,8 +153,8 @@ int ftx1_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     }
     else
     {
-        /* Negative offset - RC-NNNN; (note: rit is already negative) */
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RC%05ld;", (long)rit);
+        /* Negative offset - RC-NNNN; */
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RC-%04ld;", (long)(-rit));
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd=%s\n", __func__, priv->cmd_str);
@@ -251,8 +251,8 @@ int ftx1_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
     }
     else
     {
-        /* Negative offset - TC-NNNN; (note: xit is already negative) */
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "TC%05ld;", (long)xit);
+        /* Negative offset - TC-NNNN; */
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "TC-%04ld;", (long)(-xit));
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd=%s\n", __func__, priv->cmd_str);
