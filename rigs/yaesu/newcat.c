@@ -28,58 +28,6 @@
  *
  */
 
-/*
- * ============================================================================
- * REFACTORING SUMMARY - December 2025
- * ============================================================================
- *
- * This file was refactored to replace repetitive if/else chains with
- * data-driven lookup tables. The original code had 466+ else-if chains
- * and 53 unsafe strcpy() calls. Key changes:
- *
- * 1. FREQUENCY BAND CONSTANTS (lines ~76-87)
- *    Added BAND_10M_LOW, BAND_10M_HIGH, etc. to replace magic numbers
- *    throughout the codebase. Centralizes band edge definitions.
- *
- * 2. REPEATER OFFSET LOOKUP TABLE (lines ~150-231)
- *    - Added rptr_offs_cmd_entry_t struct and rptr_offs_cmd_table[]
- *    - Maps (rig_id, band) -> (EX command, step size)
- *    - Replaces ~500 lines of if/else chains in set/get_rptr_offs
- *
- * 3. ANTIVOX LOOKUP TABLE (lines ~239-320)
- *    - Added antivox_cmd_entry_t struct and antivox_cmd_table[]
- *    - Maps rig_id -> (set_cmd, get_cmd)
- *    - Note: FT-991 uses EX145 for set, EX147 for get (preserved)
- *    - Replaces ~70 lines of if/else chains in set/get_level ANTIVOX
- *
- * 4. HELPER FUNCTIONS (lines ~2430-2530)
- *    - freq_to_rptr_band(): Convert frequency to band enum
- *    - get_rig_id_from_priv(): Extract nc_rigid_t from rig state
- *    - lookup_rptr_offs_cmd(): Find repeater offset command
- *    - lookup_antivox_cmd(): Find antivox command
- *
- * 5. REFACTORED FUNCTIONS:
- *    - newcat_set_rptr_offs(): ~240 lines -> ~40 lines
- *    - newcat_get_rptr_offs(): ~243 lines -> ~56 lines
- *    - RIG_LEVEL_ANTIVOX set: ~36 lines -> ~18 lines
- *    - RIG_LEVEL_ANTIVOX get: ~34 lines -> ~17 lines
- *
- * BENEFITS:
- *    - Reduced code size by ~400+ lines
- *    - Eliminated duplicated band boundary checks
- *    - Centralized rig-to-command mappings (easier to add new rigs)
- *    - Added documentation explaining each command table
- *    - Preserved all original behavior including FT-991 quirk
- *
- * MAINTENANCE: When adding new rig support:
- *    1. Add rig ID to nc_rigid_t enum (if not present)
- *    2. Add entries to rptr_offs_cmd_table[] for repeater offset support
- *    3. Add entry to antivox_cmd_table[] for ANTIVOX support
- *    4. Update is_ftXXX static boolean initialization
- *
- * ============================================================================
- */
-
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
 #include <math.h>
@@ -126,30 +74,6 @@ typedef enum nc_rigid_e
     NC_RIGID_FTX1            = 840,
 } nc_rigid_t;
 
-
-/*
- * =============================================================================
- * REFACTORING NOTE (2025):
- *
- * The following constants and lookup tables were added to eliminate code
- * duplication in newcat_set_rptr_offs() and newcat_get_rptr_offs().
- *
- * PROBLEM: Previously, these functions contained 460+ lines of repetitive
- * if/else chains checking the same frequency bands for each rig model, with
- * unsafe strcpy() calls and hardcoded magic numbers.
- *
- * SOLUTION: Data-driven approach using lookup tables:
- * 1. Define frequency band boundaries as named constants
- * 2. Create a lookup table mapping rig models to their EX commands
- * 3. Use helper functions to validate bands and look up commands
- *
- * BENEFITS:
- * - Reduced code from ~460 lines to ~80 lines
- * - Eliminated 24 unsafe strcpy() calls (replaced with SNPRINTF)
- * - Made it trivial to add support for new rigs
- * - Improved maintainability and testability
- * =============================================================================
- */
 
 /*
  * Frequency band boundaries for repeater offset commands.
@@ -2489,17 +2413,6 @@ int newcat_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 }
 
 
-/*
- * =============================================================================
- * HELPER FUNCTIONS FOR REPEATER OFFSET COMMANDS
- *
- * These functions implement the data-driven lookup for repeater offset
- * commands, replacing the previous 460+ lines of if/else chains.
- *
- * REFACTORING (2025): Extracted from newcat_set_rptr_offs/newcat_get_rptr_offs
- * =============================================================================
- */
-
 /**
  * freq_to_rptr_band - Convert a frequency to a band identifier
  *
@@ -2507,12 +2420,6 @@ int newcat_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
  *
  * Returns the rptr_band_t identifier for the given frequency, or -1 if
  * the frequency is not within a supported repeater band.
- *
- * REFACTORING NOTE: This function replaces the repetitive frequency range
- * checks that were duplicated 12+ times in the original code:
- *   if (freq >= 28000000 && freq <= 29700000) { ... }
- *   else if (freq >= 50000000 && freq <= 54000000) { ... }
- *   etc.
  */
 static int freq_to_rptr_band(freq_t freq)
 {
@@ -2543,10 +2450,6 @@ static int freq_to_rptr_band(freq_t freq)
  *
  * Returns the nc_rigid_t value for the current rig, or NC_RIGID_NONE if
  * not available.
- *
- * REFACTORING NOTE: This function provides a clean way to get the rig ID
- * for table lookups, avoiding the static boolean variables (is_ft450, etc.)
- * that create non-reentrant code.
  */
 static nc_rigid_t get_rig_id_from_priv(RIG *rig)
 {
@@ -2573,11 +2476,6 @@ static nc_rigid_t get_rig_id_from_priv(RIG *rig)
  *   RIG_OK on success (cmd and step are populated)
  *   -RIG_EINVAL if the frequency is not in a valid repeater band for this rig
  *   -RIG_ENAVAIL if the rig does not support repeater offset commands
- *
- * REFACTORING NOTE: This single function replaces the 12 separate if/else
- * blocks in the original newcat_set_rptr_offs() and newcat_get_rptr_offs().
- * Adding support for a new rig now requires only adding entries to the
- * rptr_offs_cmd_table[] array.
  */
 static int lookup_rptr_offs_cmd(nc_rigid_t rig_id, freq_t freq,
                                  char *cmd, int *step)
