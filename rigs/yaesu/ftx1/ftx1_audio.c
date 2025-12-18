@@ -326,10 +326,12 @@ int ftx1_set_power(RIG *rig, float val)
         if (watts < FTX1_POWER_MIN_FIELD) watts = FTX1_POWER_MIN_FIELD;
         if (watts > max_power) watts = max_power;
 
-        if (watts == (float)(int)watts)
+        /* Check if watts is essentially a whole number (within 0.05 tolerance) */
+        /* This avoids floating-point precision issues with direct equality */
+        if ((watts - (int)watts) < 0.05f)
         {
             /* Whole watts: use 3-digit zero-padded format */
-            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC1%03d;", (int)watts);
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC1%03d;", (int)(watts + 0.5f));
         }
         else
         {

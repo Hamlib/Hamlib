@@ -81,6 +81,49 @@
 #define FTX1_CTCSS_MODE_DCS  3   /* CT3: DCS mode */
 
 /*
+ * FTX-1 S-Meter Calibration Table
+ * Maps raw SM command values (0-255) to dB relative to S9
+ * Based on similar Yaesu radios (FT-891 pattern)
+ */
+#define FTX1_STR_CAL { 16, \
+    { \
+        {   0, -54 }, /*  S0 */ \
+        {  12, -48 }, /*  S1 */ \
+        {  27, -42 }, /*  S2 */ \
+        {  40, -36 }, /*  S3 */ \
+        {  55, -30 }, /*  S4 */ \
+        {  65, -24 }, /*  S5 */ \
+        {  80, -18 }, /*  S6 */ \
+        {  95, -12 }, /*  S7 */ \
+        { 112,  -6 }, /*  S8 */ \
+        { 130,   0 }, /*  S9 */ \
+        { 150,  10 }, /* +10 */ \
+        { 172,  20 }, /* +20 */ \
+        { 190,  30 }, /* +30 */ \
+        { 220,  40 }, /* +40 */ \
+        { 240,  50 }, /* +50 */ \
+        { 255,  60 }, /* +60 */ \
+    } \
+}
+
+/*
+ * FTX-1 RF Power Meter Calibration
+ * Maps raw RM03 values to watts (approximate)
+ */
+#define FTX1_RFPOWER_METER_CAL { \
+    7, \
+    { \
+        {0, 0.0f}, \
+        {10, 0.8f}, \
+        {50, 8.0f}, \
+        {100, 26.0f}, \
+        {150, 54.0f}, \
+        {200, 92.0f}, \
+        {250, 140.0f}, \
+    } \
+}
+
+/*
  * SPA-1 detection functions (defined in ftx1.c)
  */
 extern int ftx1_has_spa1(void);
