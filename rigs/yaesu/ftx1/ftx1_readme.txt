@@ -36,6 +36,18 @@ VFO Commands (ftx1_vfo.c):
 Frequency Commands (ftx1_freq.c):
   FA P1...P9;      - VFO-A Frequency (9-digit Hz, e.g., FA014250000;) [WORKING]
   FB P1...P9;      - VFO-B Frequency (9-digit Hz) [WORKING]
+  OS P1 P2;        - Offset Shift (repeater direction) [WORKING - set/read]
+                     P1=VFO (0=MAIN, 1=SUB), P2=Shift (0=Simplex, 1=Plus, 2=Minus, 3=ARS)
+
+Repeater Offset Frequency (ftx1_freq.c):
+  Repeater offset values are stored per-band in EX menu items:
+    EX010316 (TOK_FM_RPT_SHIFT_28)  - 28 MHz band (0-1000 kHz)
+    EX010317 (TOK_FM_RPT_SHIFT_50)  - 50 MHz band (0-4000 kHz)
+    EX010318 (TOK_FM_RPT_SHIFT_144) - 144 MHz band (0-1000 kHz, in 10kHz units)
+    EX010319 (TOK_FM_RPT_SHIFT_430) - 430 MHz band (0-10000 kHz, in 100kHz units)
+
+  ftx1_set_rptr_offs() and ftx1_get_rptr_offs() automatically detect the current
+  band from VFO frequency and access the appropriate menu token.
 
 RIT/XIT Clarifier Commands (ftx1_clarifier.c):
   *** SPECIAL ACKNOWLEDGMENT - JEREMY MILLER (KO4SSD) ***
@@ -435,7 +447,10 @@ Commands:
                      Read: PB0; Response: PB0n (n=channel or 0 if stopped)
   PL P1;           - Processor Level [WORKING - read-only]
   PR P1;           - Processor on/off [WORKING - read-only]
-  RI P1;           - RIT Information [WORKING - read-only]
+  RI;              - Radio Information [WORKING - read-only, used for DCD/squelch status]
+                     Response: RI P1 P2 P3 P4 P5 P6 P7 P8 P9 P10 P11 P12 P13;
+                     P8 = SQL status: 0=Closed (no signal), 1=Open (BUSY/signal present)
+                     Used by ftx1_get_dcd() to report squelch/DCD state
   SF P1 P2;        - Sub Dial (FUNC Knob) assignment [WORKING - read-only recommended]
                      P1=VFO (0), P2=single hex char (0-H)
                      0=None, 7=Mic Gain, D=RF Power, G=CW Pitch, H=BK Delay
@@ -708,10 +723,13 @@ Supported Features
 - Manual/auto notch filter
 - Beat cancel and contour controls
 - CW keyer with memories (1-5)
+- CW pitch adjustment (300-1050 Hz via KP command)
 - VOX with adjustable gain and delay
 - Memory channels (1-99) plus PMS (100-117)
 - Antenna tuner control
 - S-meter, SWR, ALC, power meter readings
+- DCD (squelch status) via RI command P8
+- Repeater shift direction and offset frequency (per-band via EX menu)
 
 Tuner Control
 -------------
@@ -752,20 +770,20 @@ Header File:
 Source Files:
   ftx1.c            - Main driver, rig_caps, open/close, SPA-1 detection
   ftx1_vfo.c        - VFO select (VS), split (ST/FT), VFO operations (AB/BA/SV)
-  ftx1_freq.c       - Frequency get/set (FA/FB)
+  ftx1_freq.c       - Frequency (FA/FB), repeater shift (OS), repeater offset (EX menu)
   ftx1_mode.c       - Mode documentation (delegates to newcat)
   ftx1_audio.c      - AF/RF/Mic gain (AG/RG/MG), power (PC), meters (SM/RM), AGC (GT)
   ftx1_clarifier.c  - RIT/XIT using RC/TC commands (Jeremy Miller KO4SSD - PR #1826)
   ftx1_func.c       - Central dispatcher for func/level operations
   ftx1_info.c       - Radio info (ID/IF/OI), AI mode, IF shift (IS), date/time (DT)
   ftx1_mem.c        - Memory operations (MC/MR/MW/MT/MZ/MA/MB/AM/BM/VM/CH)
-  ftx1_tx.c         - PTT (TX), VOX (VX), tuner (AC), break-in (BI), power (PS)
+  ftx1_tx.c         - PTT (TX), VOX (VX), tuner (AC), break-in (BI), power (PS), DCD (RI)
   ftx1_cw.c         - CW keyer (KS/KP/KR/KY/KM/SD/CS)
   ftx1_ctcss.c      - CTCSS/DCS tone control (CN/CT/DC)
   ftx1_noise.c      - Noise blanker (NL), noise reduction (RL)
   ftx1_filter.c     - Notch (BP), contour/APF (CO), beat cancel (BC)
   ftx1_preamp.c     - Preamp (PA), attenuator (RA)
-  ftx1_scan.c       - Scan (SC), band select (BS), tuning step (TS), zero-in (ZI)
+  ftx1_scan.c       - Scan (SC), band select (BS), band up/down (BU/BD), tuning step (TS), zero-in (ZI)
   ftx1_ext.c        - Extended menu basics (EX), spectrum scope (SS), encoder offset (EO)
   ftx1_menu.c       - Complete EX menu (~250 items): all 11 groups, set/get, ext_parm
   ftx1_menu.h       - EX menu token definitions (TOK_*), item structures, flags
@@ -773,6 +791,26 @@ Source Files:
 ================================================================================
 REVISION HISTORY
 ================================================================================
+2025-12-19  Gap fixes and additional capability support
+            - Added DCD (squelch status) support via RI command P8
+              * Implemented ftx1_get_dcd() in ftx1_tx.c
+              * Changed dcd_type from RIG_DCD_NONE to RIG_DCD_RIG
+              * RI command returns 13 parameters, P8 is SQL status (0=closed, 1=open)
+            - Added RIG_LEVEL_CWPITCH to has_get_level/has_set_level
+              * Implementation already existed via KP command (300-1050 Hz)
+              * Now properly advertised in rig_caps
+            - Added repeater offset frequency support (set_rptr_offs/get_rptr_offs)
+              * Implemented in ftx1_freq.c using per-band EX menu tokens
+              * TOK_FM_RPT_SHIFT_28/50/144/430 for band-specific offsets
+              * Auto-detects band from VFO frequency
+            - Implemented RIG_OP_BAND_UP and RIG_OP_BAND_DOWN
+              * ftx1_band_up() uses BU0; command
+              * ftx1_band_down() uses BD0; command
+              * Cycles through amateur bands on MAIN VFO
+            - Note: NA (narrow filter) helpers exist but Hamlib has no RIG_FUNC_NAR
+              * ftx1_set_na_helper() and ftx1_get_na_helper() available internally
+              * Cannot be exposed via standard Hamlib func interface
+
 2025-12-19  Implemented complete EX menu support (~250 menu items)
             - Created ftx1_menu.h with token definitions for all EX commands
               Token encoding: 0xGGSSII maps directly to EX group/section/item

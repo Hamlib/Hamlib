@@ -335,6 +335,8 @@ static const struct ftx1_menu_item ftx1_menu_table[] = {
     { TOK_APRS_AF_MUTE,      "APRS_AF_MUTE",       1, 0, 1, 0 },
     { TOK_APRS_TX_DELAY,     "APRS_TX_DELAY",      1, 0, 6, 0 },
     { TOK_APRS_CALLSIGN,     "APRS_CALLSIGN",      8, 0, 0, FTX1_MENU_FLAG_STRING },
+    /* Items 06-08 don't exist */
+    { TOK_APRS_DEST,         "APRS_DEST",          6, 0, 0, FTX1_MENU_FLAG_STRING },  /* Fixed: APYX01 */
 
     /* EX0602: MSG TEMPLATE */
     { TOK_APRS_MSG_TEXT1,    "APRS_MSG_TEXT1",     16, 0, 0, FTX1_MENU_FLAG_STRING },

@@ -291,3 +291,151 @@ int ftx1_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *shift)
     return RIG_OK;
 }
 
+/*
+ * =============================================================================
+ * Repeater Offset Frequency Functions
+ * =============================================================================
+ * FTX-1 stores repeater offset frequencies in EX menu items per band:
+ *   EX010316 (TOK_FM_RPT_SHIFT_28)  - 28 MHz band (0-1000 kHz)
+ *   EX010317 (TOK_FM_RPT_SHIFT_50)  - 50 MHz band (0-4000 kHz)
+ *   EX010318 (TOK_FM_RPT_SHIFT_144) - 144 MHz band (0-100 x 10 kHz = 0-1000 kHz)
+ *   EX010319 (TOK_FM_RPT_SHIFT_430) - 430 MHz band (0-100 x 100 kHz = 0-10000 kHz)
+ *
+ * The menu values are in different units per band.
+ */
+
+#include "../ftx1.h"
+#include "ftx1_menu.h"
+
+/*
+ * ftx1_get_band_offset_token - Get menu token for current band's repeater offset
+ *
+ * Returns the token for the appropriate band, or 0 if not applicable.
+ * Also returns the multiplier to convert menu value to Hz.
+ */
+static hamlib_token_t ftx1_get_band_offset_token(freq_t freq, int *multiplier)
+{
+    if (freq >= MHz(420) && freq <= MHz(470))
+    {
+        /* 430 MHz band - menu value is in 100 kHz units */
+        *multiplier = 100000;
+        return TOK_FM_RPT_SHIFT_430;
+    }
+    else if (freq >= MHz(144) && freq <= MHz(148))
+    {
+        /* 144 MHz band - menu value is in 10 kHz units */
+        *multiplier = 10000;
+        return TOK_FM_RPT_SHIFT_144;
+    }
+    else if (freq >= MHz(50) && freq <= MHz(54))
+    {
+        /* 50 MHz band - menu value is in kHz */
+        *multiplier = 1000;
+        return TOK_FM_RPT_SHIFT_50;
+    }
+    else if (freq >= MHz(28) && freq <= MHz(30))
+    {
+        /* 28 MHz band - menu value is in kHz */
+        *multiplier = 1000;
+        return TOK_FM_RPT_SHIFT_28;
+    }
+
+    /* Band doesn't support repeater offset */
+    *multiplier = 0;
+    return 0;
+}
+
+/*
+ * ftx1_set_rptr_offs - Set repeater offset frequency
+ *
+ * Sets the offset for the current band via EX menu.
+ * Requires reading current frequency to determine which band's offset to set.
+ */
+int ftx1_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
+{
+    int ret;
+    freq_t freq;
+    hamlib_token_t token;
+    int multiplier;
+    value_t val;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s offs=%ld\n",
+              __func__, rig_strvfo(vfo), offs);
+
+    /* Get current frequency to determine band */
+    ret = ftx1_get_freq(rig, vfo, &freq);
+    if (ret != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to get frequency\n", __func__);
+        return ret;
+    }
+
+    /* Get appropriate token for this band */
+    token = ftx1_get_band_offset_token(freq, &multiplier);
+    if (token == 0 || multiplier == 0)
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: band at %.0f Hz doesn't support repeater offset\n",
+                  __func__, freq);
+        return -RIG_ENAVAIL;
+    }
+
+    /* Convert Hz offset to menu value */
+    val.i = (int)(offs / multiplier);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: freq=%.0f token=0x%lx val=%d (offs=%ld, mult=%d)\n",
+              __func__, freq, (unsigned long)token, val.i, offs, multiplier);
+
+    /* Set via menu system */
+    return ftx1_menu_set_token(rig, token, val);
+}
+
+/*
+ * ftx1_get_rptr_offs - Get repeater offset frequency
+ *
+ * Gets the offset for the current band via EX menu.
+ * Requires reading current frequency to determine which band's offset to read.
+ */
+int ftx1_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *offs)
+{
+    int ret;
+    freq_t freq;
+    hamlib_token_t token;
+    int multiplier;
+    value_t val;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
+
+    /* Get current frequency to determine band */
+    ret = ftx1_get_freq(rig, vfo, &freq);
+    if (ret != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to get frequency\n", __func__);
+        return ret;
+    }
+
+    /* Get appropriate token for this band */
+    token = ftx1_get_band_offset_token(freq, &multiplier);
+    if (token == 0 || multiplier == 0)
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: band at %.0f Hz doesn't support repeater offset\n",
+                  __func__, freq);
+        *offs = 0;
+        return RIG_OK;  /* Return 0 offset for bands without repeater */
+    }
+
+    /* Get via menu system */
+    ret = ftx1_menu_get_token(rig, token, &val);
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    /* Convert menu value to Hz offset */
+    *offs = (shortfreq_t)val.i * multiplier;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: freq=%.0f token=0x%lx val=%d offs=%ld\n",
+              __func__, freq, (unsigned long)token, val.i, *offs);
+
+    return RIG_OK;
+}
+

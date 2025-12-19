@@ -356,6 +356,8 @@
 #define TOK_APRS_AF_MUTE        FTX1_TOKEN(6, 1, 3)
 #define TOK_APRS_TX_DELAY       FTX1_TOKEN(6, 1, 4)
 #define TOK_APRS_CALLSIGN       FTX1_TOKEN(6, 1, 5)
+/* Note: Items 06-08 don't exist per CAT manual */
+#define TOK_APRS_DEST           FTX1_TOKEN(6, 1, 9)   /* APRS DESTINATION (fixed: APYX01) */
 
 /* EX0602: MSG TEMPLATE */
 #define TOK_APRS_MSG_TEXT1      FTX1_TOKEN(6, 2, 1)

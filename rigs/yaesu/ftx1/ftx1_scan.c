@@ -24,6 +24,8 @@
  * CAT Commands in this file:
  *   SC P1;           - Scan Control (0=stop, 1=up, 2=down)
  *   BS P1P2;         - Band Select (P1P2=band code)
+ *   BU P1;           - Band Up (P1=VFO, cycles to higher band)
+ *   BD P1;           - Band Down (P1=VFO, cycles to lower band)
  *   UP;              - Frequency/Channel Up
  *   DN;              - Frequency/Channel Down
  *   TS P1P2;         - Tuning Step (00-14 code for step size)
@@ -235,6 +237,36 @@ int ftx1_freq_down(RIG *rig)
     return newcat_set_cmd(rig);
 }
 
+/*
+ * Band Up (BU P1;)
+ * CAT command: BU P1; (P1=0 for MAIN VFO)
+ * Cycles to the next higher amateur band
+ */
+int ftx1_band_up(RIG *rig)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BU0;");
+    return newcat_set_cmd(rig);
+}
+
+/*
+ * Band Down (BD P1;)
+ * CAT command: BD P1; (P1=0 for MAIN VFO)
+ * Cycles to the next lower amateur band
+ */
+int ftx1_band_down(RIG *rig)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BD0;");
+    return newcat_set_cmd(rig);
+}
+
 /* Set Tuning Step (TS P1P2;) */
 int ftx1_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 {
@@ -302,10 +334,9 @@ int ftx1_vfo_op_scan(RIG *rig, vfo_t vfo, vfo_op_t op)
         case RIG_OP_DOWN:
             return ftx1_freq_down(rig);
         case RIG_OP_BAND_UP:
-            /* Not directly supported, could cycle bands */
-            return -RIG_ENIMPL;
+            return ftx1_band_up(rig);
         case RIG_OP_BAND_DOWN:
-            return -RIG_ENIMPL;
+            return ftx1_band_down(rig);
         default:
             return -RIG_EINVAL;
     }
