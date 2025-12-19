@@ -10,7 +10,8 @@
  *   OS P1 P2;    - Offset (Repeater Shift) - simplex, +, -, ARS
  *
  * Note: CF (Clarifier) command returns '?' in firmware - not implemented.
- *       RIT/XIT handled via newcat functions using RI/XI commands.
+ *       RIT/XIT handled via ftx1_clarifier.c using RC/TC commands
+ *       (discovered by Jeremy Miller KO4SSD - PR #1826).
  */
 
 #include <stdlib.h>

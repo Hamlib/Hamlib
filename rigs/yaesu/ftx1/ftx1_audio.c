@@ -516,21 +516,20 @@ int ftx1_get_vox_delay(RIG *rig, int *tenths)
 /*
  * ftx1_set_monitor_level - Set Monitor Level (ML P1 P2P3P4;)
  * CAT command: ML P1 P2P3P4; (P1=VFO 0/1, P2-P4=000-100)
- *
- * FTX-1 uses P1=0 for MAIN VFO
  */
-int ftx1_set_monitor_level(RIG *rig, float val)
+int ftx1_set_monitor_level(RIG *rig, vfo_t vfo, float val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
+    int p1 = FTX1_VFO_TO_P1(vfo);
     int level = (int)(val * 100);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: val=%f\n", __func__, val);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d val=%f\n", __func__,
+              rig_strvfo(vfo), p1, val);
 
     if (level < 0) level = 0;
     if (level > 100) level = 100;
 
-    /* FTX-1 format: ML P1 P2P3P4; where P1=VFO (0=MAIN) */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "ML0%03d;", level);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "ML%d%03d;", p1, level);
     return newcat_set_cmd(rig);
 }
 
@@ -538,22 +537,23 @@ int ftx1_set_monitor_level(RIG *rig, float val)
  * ftx1_get_monitor_level - Get Monitor Level
  * Response: ML P1 P2P3P4; (P1=VFO, P2-P4=level)
  */
-int ftx1_get_monitor_level(RIG *rig, float *val)
+int ftx1_get_monitor_level(RIG *rig, vfo_t vfo, float *val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
-    int p1, level;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1_resp, level;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
+              rig_strvfo(vfo), p1);
 
-    /* Query MAIN VFO: ML0; */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "ML0;");
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "ML%d;", p1);
 
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
     /* Response: ML0100 (P1=0, level=100) */
-    if (sscanf(priv->ret_data + 2, "%1d%3d", &p1, &level) != 2)
+    if (sscanf(priv->ret_data + 2, "%1d%3d", &p1_resp, &level) != 2)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
                   priv->ret_data);
@@ -574,38 +574,38 @@ int ftx1_get_monitor_level(RIG *rig, float *val)
  *   2 = MID
  *   3 = SLOW
  *   4 = AUTO
- *
- * Note: Always uses P1=0 (MAIN VFO) for now
  */
-int ftx1_set_agc(RIG *rig, int val)
+int ftx1_set_agc(RIG *rig, vfo_t vfo, int val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
+    int p1 = FTX1_VFO_TO_P1(vfo);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: val=%d\n", __func__, val);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d val=%d\n", __func__,
+              rig_strvfo(vfo), p1, val);
 
     /* val is AGC setting code (0-4 for FTX-1) */
-    /* Format: GT P1 P2; where P1=VFO (0=MAIN), P2=mode */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "GT0%d;", val);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "GT%d%d;", p1, val);
     return newcat_set_cmd(rig);
 }
 
 /* Get AGC */
-int ftx1_get_agc(RIG *rig, int *val)
+int ftx1_get_agc(RIG *rig, vfo_t vfo, int *val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
-    int p1, agc;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1_resp, agc;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
+              rig_strvfo(vfo), p1);
 
-    /* Query MAIN VFO AGC: GT0; */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "GT0;");
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "GT%d;", p1);
 
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
     /* Response: GT0X where X is AGC mode (0-6, 4-6 are AUTO variants) */
-    if (sscanf(priv->ret_data + 2, "%1d%1d", &p1, &agc) != 2)
+    if (sscanf(priv->ret_data + 2, "%1d%1d", &p1_resp, &agc) != 2)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
                   priv->ret_data);
@@ -724,35 +724,39 @@ int ftx1_get_width(RIG *rig, vfo_t vfo, int *width_code)
  *   4 = SWR
  *   5 = ID
  */
-int ftx1_set_meter_switch(RIG *rig, int meter_type)
+int ftx1_set_meter_switch(RIG *rig, vfo_t vfo, int meter_type)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
+    int p1 = FTX1_VFO_TO_P1(vfo);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: meter_type=%d\n", __func__, meter_type);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d meter_type=%d\n", __func__,
+              rig_strvfo(vfo), p1, meter_type);
 
     if (meter_type < 0) meter_type = 0;
     if (meter_type > 5) meter_type = 5;
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MS0%d;", meter_type);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MS%d%d;", p1, meter_type);
     return newcat_set_cmd(rig);
 }
 
 /* Get Meter Switch */
-int ftx1_get_meter_switch(RIG *rig, int *meter_type)
+int ftx1_get_meter_switch(RIG *rig, vfo_t vfo, int *meter_type)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
-    int p1, mt;
+    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1_resp, mt;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
+              rig_strvfo(vfo), p1);
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MS;");
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MS%d;", p1);
 
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
     /* Response: MS P1P2; */
-    if (sscanf(priv->ret_data + 2, "%1d%1d", &p1, &mt) != 2)
+    if (sscanf(priv->ret_data + 2, "%1d%1d", &p1_resp, &mt) != 2)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
                   priv->ret_data);

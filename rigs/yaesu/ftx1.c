@@ -71,6 +71,7 @@
 #include "yaesu.h"
 #include "newcat.h"
 #include "ftx1.h"
+#include "ftx1/ftx1_menu.h"
 
 /* Private caps for newcat framework */
 static const struct newcat_priv_caps ftx1_priv_caps = {
@@ -470,12 +471,40 @@ int ftx1_get_head_type(RIG *rig)
     return priv->ftx1_head_type;
 }
 
+/*
+ * ftx1_set_ext_parm - Set FTX-1 extended menu parameter
+ *
+ * Uses the menu system to set any EX command by token.
+ * Token encodes the EX command address (group/section/item).
+ */
+static int ftx1_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: token=0x%lx\n", __func__,
+              (unsigned long)token);
+
+    return ftx1_menu_set_token(rig, token, val);
+}
+
+/*
+ * ftx1_get_ext_parm - Get FTX-1 extended menu parameter
+ *
+ * Uses the menu system to get any EX command by token.
+ * Token encodes the EX command address (group/section/item).
+ */
+static int ftx1_get_ext_parm(RIG *rig, hamlib_token_t token, value_t *val)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: token=0x%lx\n", __func__,
+              (unsigned long)token);
+
+    return ftx1_menu_get_token(rig, token, val);
+}
+
 /* Rig caps structure */
 struct rig_caps ftx1_caps = {
     .rig_model = RIG_MODEL_FTX1,
     .model_name = "FTX-1",
     .mfg_name = "Yaesu",
-    .version = "20251218.0",  /* Date-based version */
+    .version = "20251219.0",  /* Date-based version - added full EX menu support */
     .copyright = "LGPL",
     .status = RIG_STATUS_BETA,  /* Update to stable once complete */
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -693,6 +722,8 @@ struct rig_caps ftx1_caps = {
     .get_ts = ftx1_get_ts,
     .set_ext_level = newcat_set_ext_level,
     .get_ext_level = newcat_get_ext_level,
+    .set_ext_parm = ftx1_set_ext_parm,
+    .get_ext_parm = ftx1_get_ext_parm,
     .set_conf = newcat_set_conf,
     .get_conf2 = newcat_get_conf2,
     /*
