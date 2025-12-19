@@ -208,7 +208,7 @@ int ftx1_set_tuner(RIG *rig, int mode)
      * GUARDRAIL: Internal tuner requires SPA-1 amplifier
      * Without SPA-1, the AC command will fail or produce undefined behavior.
      */
-    if (!ftx1_has_spa1())
+    if (!ftx1_has_spa1(rig))
     {
         rig_debug(RIG_DEBUG_WARN,
                   "%s: internal tuner requires SPA-1 amplifier (not detected)\n",
@@ -254,7 +254,7 @@ int ftx1_get_tuner(RIG *rig, int *mode)
      * GUARDRAIL: Internal tuner requires SPA-1 amplifier
      * Without SPA-1, report tuner as off rather than querying.
      */
-    if (!ftx1_has_spa1())
+    if (!ftx1_has_spa1(rig))
     {
         rig_debug(RIG_DEBUG_VERBOSE,
                   "%s: no SPA-1 detected, tuner not available\n", __func__);

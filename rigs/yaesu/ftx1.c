@@ -72,43 +72,28 @@
 #include "newcat.h"
 #include "ftx1.h"
 
-/*
- * FTX-1 specific private data structure
- * Tracks SPA-1 amplifier detection for command guardrails
- */
-static struct
-{
-    int head_type;          /* FTX1_HEAD_FIELD or FTX1_HEAD_SPA1 */
-    int spa1_detected;      /* 1 if SPA-1 confirmed via VE4 command */
-    int detection_done;     /* 1 if auto-detection has been performed */
-} ftx1_priv = {
-    .head_type = FTX1_HEAD_UNKNOWN,
-    .spa1_detected = 0,
-    .detection_done = 0,
-};
-
-// Private caps for newcat framework
+/* Private caps for newcat framework */
 static const struct newcat_priv_caps ftx1_priv_caps = {
     .roofing_filter_count = 0,
 };
 
-// Extern declarations for group-specific functions (add more as groups are implemented)
+/* Extern declarations for group-specific functions (add more as groups are implemented) */
 extern int ftx1_set_vfo(RIG *rig, vfo_t vfo);
 extern int ftx1_get_vfo(RIG *rig, vfo_t *vfo);
 extern int ftx1_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
 extern int ftx1_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
-// Additional externs for group 4
+/* Additional externs for group 4 */
 extern int ftx1_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 extern int ftx1_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 extern int ftx1_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 extern int ftx1_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-// Additional externs for group 6
+/* Additional externs for group 6 */
 extern int ftx1_set_preamp_helper(RIG *rig, vfo_t vfo, value_t val);
 extern int ftx1_get_preamp_helper(RIG *rig, vfo_t vfo, value_t *val);
 extern int ftx1_set_att_helper(RIG *rig, vfo_t vfo, value_t val);
 extern int ftx1_get_att_helper(RIG *rig, vfo_t vfo, value_t *val);
 
-// Wrappers from ftx1_func.c for rig caps
+/* Wrappers from ftx1_func.c for rig caps */
 extern int ftx1_set_ptt_func(RIG *rig, vfo_t vfo, ptt_t ptt);
 extern int ftx1_get_ptt_func(RIG *rig, vfo_t vfo, ptt_t *ptt);
 extern int ftx1_set_powerstat_func(RIG *rig, powerstat_t status);
@@ -127,13 +112,13 @@ extern int ftx1_wait_morse_func(RIG *rig, vfo_t vfo);
 extern int ftx1_set_trn_func(RIG *rig, int trn);
 extern int ftx1_get_trn_func(RIG *rig, int *trn);
 
-// Externs from ftx1_mem.c
+/* Externs from ftx1_mem.c */
 extern int ftx1_set_mem(RIG *rig, vfo_t vfo, int ch);
 extern int ftx1_get_mem(RIG *rig, vfo_t vfo, int *ch);
 extern int ftx1_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan);
 extern int ftx1_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only);
 
-// Externs from ftx1_scan.c
+/* Externs from ftx1_scan.c */
 extern int ftx1_set_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch);
 extern int ftx1_get_scan(RIG *rig, vfo_t vfo, scan_t *scan, int *ch);
 extern int ftx1_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts);
@@ -149,11 +134,11 @@ extern int ftx1_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
 extern int ftx1_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit);
 extern int ftx1_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit);
 
-// Externs from ftx1_freq.c
+/* Externs from ftx1_freq.c */
 extern int ftx1_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 extern int ftx1_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 
-// Externs from ftx1_vfo.c
+/* Externs from ftx1_vfo.c */
 extern int ftx1_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 
 /*
@@ -247,21 +232,44 @@ static int ftx1_probe_field_head_power(RIG *rig)
     else
     {
         /* Check if power is 8W or above (PC1008 or higher) */
-        /* Use atof() since Field Head can return decimal values like PC10.5 */
-        float power_value = atof(priv->ret_data + 3);
-        power_accepted = (power_value >= 8.0f);
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: power readback: %.1f, accepted=%d\n",
-                  __func__, power_value, power_accepted);
+        /* Use strtof() for proper error handling (atof returns 0 on error) */
+        char *endptr;
+        float power_value = strtof(priv->ret_data + 3, &endptr);
+
+        /* Validate that we parsed at least one character */
+        if (endptr == priv->ret_data + 3)
+        {
+            rig_debug(RIG_DEBUG_WARN, "%s: failed to parse power value from '%s'\n",
+                      __func__, priv->ret_data);
+            power_accepted = 0;
+        }
+        else
+        {
+            power_accepted = (power_value >= 8.0f);
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: power readback: %.1f, accepted=%d\n",
+                      __func__, power_value, power_accepted);
+        }
     }
 
-    /* Restore original power setting */
+    /* Restore original power setting - retry on failure */
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", original_power);
     ret = newcat_set_cmd(rig);
 
     if (ret != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_WARN, "%s: failed to restore original power setting\n",
+        /* First attempt failed, wait and retry */
+        rig_debug(RIG_DEBUG_WARN, "%s: first restore attempt failed, retrying\n",
                   __func__);
+        hl_usleep(100000);  /* 100ms delay */
+        ret = newcat_set_cmd(rig);
+
+        if (ret != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: CRITICAL - failed to restore original power setting '%s'\n",
+                      __func__, original_power);
+            /* Radio may be left at 8W - log prominently but continue */
+        }
     }
 
     if (power_accepted)
@@ -347,6 +355,7 @@ static int ftx1_detect_head_type(RIG *rig)
  */
 static int ftx1_open(RIG *rig)
 {
+    struct newcat_priv_data *priv;
     int ret;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -358,17 +367,24 @@ static int ftx1_open(RIG *rig)
         return ret;
     }
 
-    /* Auto-detect head type and SPA-1 presence */
-    ftx1_priv.head_type = ftx1_detect_head_type(rig);
-    ftx1_priv.spa1_detected = ftx1_detect_spa1(rig);
-    ftx1_priv.detection_done = 1;
+    priv = STATE(rig)->priv;
+    if (!priv)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: newcat priv data not initialized\n", __func__);
+        return -RIG_EINTERNAL;
+    }
+
+    /* Auto-detect head type and SPA-1 presence - store in per-rig instance */
+    priv->ftx1_head_type = ftx1_detect_head_type(rig);
+    priv->ftx1_spa1_detected = ftx1_detect_spa1(rig);
+    priv->ftx1_detection_done = 1;
 
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s: detection complete - head_type=%d spa1_detected=%d\n",
-              __func__, ftx1_priv.head_type, ftx1_priv.spa1_detected);
+              __func__, priv->ftx1_head_type, priv->ftx1_spa1_detected);
 
     /* Cross-check: if head_type is SPA-1, spa1_detected should also be true */
-    if (ftx1_priv.head_type == FTX1_HEAD_SPA1 && !ftx1_priv.spa1_detected)
+    if (priv->ftx1_head_type == FTX1_HEAD_SPA1 && !priv->ftx1_spa1_detected)
     {
         rig_debug(RIG_DEBUG_WARN,
                   "%s: PC reports SPA-1 but VE4 detection failed\n", __func__);
@@ -378,35 +394,86 @@ static int ftx1_open(RIG *rig)
 }
 
 /*
+ * ftx1_close - FTX-1 specific rig close
+ *
+ * Resets detection state so reopening the rig will re-detect head configuration.
+ * This handles scenarios where the head is swapped while the rig is powered off.
+ */
+static int ftx1_close(RIG *rig)
+{
+    struct newcat_priv_data *priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    priv = STATE(rig)->priv;
+    if (priv)
+    {
+        /* Reset detection state for next open */
+        priv->ftx1_head_type = FTX1_HEAD_UNKNOWN;
+        priv->ftx1_spa1_detected = 0;
+        priv->ftx1_detection_done = 0;
+    }
+
+    return newcat_close(rig);
+}
+
+/*
  * ftx1_has_spa1 - Check if Optima/SPA-1 amplifier is present
  *
  * Returns 1 if Optima/SPA-1 detected, 0 otherwise.
  * Used by tuner and power control functions for guardrails.
  */
-int ftx1_has_spa1(void)
+int ftx1_has_spa1(RIG *rig)
 {
-    return ftx1_priv.spa1_detected ||
-           ftx1_priv.head_type == FTX1_HEAD_SPA1;
+    struct newcat_priv_data *priv;
+
+    if (!rig)
+    {
+        return 0;
+    }
+
+    priv = STATE(rig)->priv;
+    if (!priv)
+    {
+        return 0;
+    }
+
+    return priv->ftx1_spa1_detected ||
+           priv->ftx1_head_type == FTX1_HEAD_SPA1;
 }
 
 /*
  * ftx1_get_head_type - Get detected head type
  *
- * Returns FTX1_HEAD_FIELD, FTX1_HEAD_SPA1, or FTX1_HEAD_UNKNOWN
+ * Returns FTX1_HEAD_FIELD_BATTERY, FTX1_HEAD_FIELD_12V, FTX1_HEAD_SPA1,
+ * or FTX1_HEAD_UNKNOWN
  */
-int ftx1_get_head_type(void)
+int ftx1_get_head_type(RIG *rig)
 {
-    return ftx1_priv.head_type;
+    struct newcat_priv_data *priv;
+
+    if (!rig)
+    {
+        return FTX1_HEAD_UNKNOWN;
+    }
+
+    priv = STATE(rig)->priv;
+    if (!priv)
+    {
+        return FTX1_HEAD_UNKNOWN;
+    }
+
+    return priv->ftx1_head_type;
 }
 
-// Rig caps structure
+/* Rig caps structure */
 struct rig_caps ftx1_caps = {
     .rig_model = RIG_MODEL_FTX1,
     .model_name = "FTX-1",
     .mfg_name = "Yaesu",
-    .version = "20251209.0",  // Use date-based version for dev
+    .version = "20251218.0",  /* Date-based version */
     .copyright = "LGPL",
-    .status = RIG_STATUS_BETA,  // Update to stable once complete
+    .status = RIG_STATUS_BETA,  /* Update to stable once complete */
     .rig_type = RIG_TYPE_TRANSCEIVER,
     .ptt_type = RIG_PTT_RIG,
     .dcd_type = RIG_DCD_RIG,
@@ -418,7 +485,7 @@ struct rig_caps ftx1_caps = {
     .serial_parity = RIG_PARITY_NONE,
     .serial_handshake = RIG_HANDSHAKE_NONE,
     .write_delay = 0,
-    .post_write_delay = 50,  // Delay after write for FTX-1 response time
+    .post_write_delay = 50,  /* Delay after write for FTX-1 response time */
     .timeout = 2000,
     .retry = 3,
     /* Note: ARO, FAGC, DUAL_WATCH, DIVERSITY return '?' from FTX-1 firmware - not supported */
@@ -461,10 +528,10 @@ struct rig_caps ftx1_caps = {
         /* Notch frequency: FTX-1 uses 1-3200 Hz */
         [LVL_NOTCHF] = { .min = { .i = 1 }, .max = { .i = 3200 }, .step = { .i = 10 } },
     },
-    .ctcss_list = common_ctcss_list,  // Reused common list
+    .ctcss_list = common_ctcss_list,
     .dcs_list = common_dcs_list,
     .str_cal = FTX1_STR_CAL,
-    .preamp = {10, 20, RIG_DBLST_END},  // AMP1=10dB, AMP2=20dB (0=IPO)
+    .preamp = {10, 20, RIG_DBLST_END},  /* AMP1=10dB, AMP2=20dB (0=IPO) */
     .attenuator = {12, RIG_DBLST_END},
     .max_rit = Hz(9999),
     .max_xit = Hz(9999),
@@ -475,24 +542,24 @@ struct rig_caps ftx1_caps = {
     .targetable_vfo = RIG_TARGETABLE_ALL,
     .transceive = RIG_TRN_OFF,
     .bank_qty = 0,
-    .chan_desc_sz = 12,  // Tag size from manual
+    .chan_desc_sz = 12,  /* Tag size from manual */
     .chan_list = {
         {1, 99, RIG_MTYPE_MEM, NEWCAT_MEM_CAP},
-        {100, 117, RIG_MTYPE_EDGE, NEWCAT_MEM_CAP},  // PMS
-        {500, 503, RIG_MTYPE_MEM, NEWCAT_MEM_CAP},  // 60m
+        {100, 117, RIG_MTYPE_EDGE, NEWCAT_MEM_CAP},  /* PMS */
+        {500, 503, RIG_MTYPE_MEM, NEWCAT_MEM_CAP},  /* 60m */
         RIG_CHAN_END,
     },
     .rx_range_list1 = {
         {kHz(30), MHz(56), RIG_MODE_ALL, -1, -1, RIG_VFO_ALL, RIG_ANT_1},
         {MHz(76), MHz(108), RIG_MODE_WFM, -1, -1, RIG_VFO_ALL, RIG_ANT_1},
         {MHz(118), MHz(164), RIG_MODE_AM | RIG_MODE_FM, -1, -1, RIG_VFO_ALL, RIG_ANT_1},
-        {MHz(430), MHz(470), RIG_MODE_ALL, -1, -1, RIG_VFO_ALL, RIG_ANT_1},  // Updated to 430-470 for UHF
+        {MHz(430), MHz(470), RIG_MODE_ALL, -1, -1, RIG_VFO_ALL, RIG_ANT_1},
         RIG_FRNG_END,
     },
     .tx_range_list1 = {
         {kHz(1800), MHz(2) - 1, RIG_MODE_ALL, 5000, 100000, RIG_VFO_ALL, RIG_ANT_1},
         {MHz(3.5), MHz(4) - 1, RIG_MODE_ALL, 5000, 100000, RIG_VFO_ALL, RIG_ANT_1},
-        {MHz(5.1675), MHz(5.4065), RIG_MODE_ALL, 5000, 100000, RIG_VFO_ALL, RIG_ANT_1},  // 60m
+        {MHz(5.1675), MHz(5.4065), RIG_MODE_ALL, 5000, 100000, RIG_VFO_ALL, RIG_ANT_1},  /* 60m */
         {MHz(7), MHz(7.3), RIG_MODE_ALL, 5000, 100000, RIG_VFO_ALL, RIG_ANT_1},
         {MHz(10.1), MHz(10.15), RIG_MODE_ALL, 5000, 100000, RIG_VFO_ALL, RIG_ANT_1},
         {MHz(14), MHz(14.35), RIG_MODE_ALL, 5000, 100000, RIG_VFO_ALL, RIG_ANT_1},
@@ -501,21 +568,21 @@ struct rig_caps ftx1_caps = {
         {MHz(24.89), MHz(24.99), RIG_MODE_ALL, 5000, 100000, RIG_VFO_ALL, RIG_ANT_1},
         {MHz(28), MHz(29.7), RIG_MODE_ALL, 5000, 100000, RIG_VFO_ALL, RIG_ANT_1},
         {MHz(50), MHz(54), RIG_MODE_ALL, 5000, 100000, RIG_VFO_ALL, RIG_ANT_1},
-        {MHz(144), MHz(148), RIG_MODE_ALL, 5000, 50000, RIG_VFO_ALL, RIG_ANT_1},  // Approx 50W
-        {MHz(430), MHz(450), RIG_MODE_ALL, 5000, 20000, RIG_VFO_ALL, RIG_ANT_1},  // Approx 20W
+        {MHz(144), MHz(148), RIG_MODE_ALL, 5000, 50000, RIG_VFO_ALL, RIG_ANT_1},
+        {MHz(430), MHz(450), RIG_MODE_ALL, 5000, 20000, RIG_VFO_ALL, RIG_ANT_1},
         RIG_FRNG_END,
     },
     .rx_range_list2 = {
         {kHz(30), MHz(56), RIG_MODE_ALL, -1, -1, RIG_VFO_ALL, RIG_ANT_1},
         {MHz(76), MHz(108), RIG_MODE_WFM, -1, -1, RIG_VFO_ALL, RIG_ANT_1},
         {MHz(118), MHz(164), RIG_MODE_AM | RIG_MODE_FM, -1, -1, RIG_VFO_ALL, RIG_ANT_1},
-        {MHz(430), MHz(470), RIG_MODE_ALL, -1, -1, RIG_VFO_ALL, RIG_ANT_1},  // Updated to 430-470 for UHF
+        {MHz(430), MHz(470), RIG_MODE_ALL, -1, -1, RIG_VFO_ALL, RIG_ANT_1},
         RIG_FRNG_END,
     },
     .tx_range_list2 = {
         {kHz(1800), MHz(2) - 1, RIG_MODE_ALL, 5000, 100000, RIG_VFO_ALL, RIG_ANT_1},
         {MHz(3.5), MHz(4) - 1, RIG_MODE_ALL, 5000, 100000, RIG_VFO_ALL, RIG_ANT_1},
-        {MHz(5.1675), MHz(5.4065), RIG_MODE_ALL, 5000, 100000, RIG_VFO_ALL, RIG_ANT_1},  // 60m
+        {MHz(5.1675), MHz(5.4065), RIG_MODE_ALL, 5000, 100000, RIG_VFO_ALL, RIG_ANT_1},  /* 60m */
         {MHz(7), MHz(7.3), RIG_MODE_ALL, 5000, 100000, RIG_VFO_ALL, RIG_ANT_1},
         {MHz(10.1), MHz(10.15), RIG_MODE_ALL, 5000, 100000, RIG_VFO_ALL, RIG_ANT_1},
         {MHz(14), MHz(14.35), RIG_MODE_ALL, 5000, 100000, RIG_VFO_ALL, RIG_ANT_1},
@@ -524,8 +591,8 @@ struct rig_caps ftx1_caps = {
         {MHz(24.89), MHz(24.99), RIG_MODE_ALL, 5000, 100000, RIG_VFO_ALL, RIG_ANT_1},
         {MHz(28), MHz(29.7), RIG_MODE_ALL, 5000, 100000, RIG_VFO_ALL, RIG_ANT_1},
         {MHz(50), MHz(54), RIG_MODE_ALL, 5000, 100000, RIG_VFO_ALL, RIG_ANT_1},
-        {MHz(144), MHz(148), RIG_MODE_ALL, 5000, 50000, RIG_VFO_ALL, RIG_ANT_1},  // Approx 50W
-        {MHz(430), MHz(450), RIG_MODE_ALL, 5000, 20000, RIG_VFO_ALL, RIG_ANT_1},  // Approx 20W
+        {MHz(144), MHz(148), RIG_MODE_ALL, 5000, 50000, RIG_VFO_ALL, RIG_ANT_1},
+        {MHz(430), MHz(450), RIG_MODE_ALL, 5000, 20000, RIG_VFO_ALL, RIG_ANT_1},
         RIG_FRNG_END,
     },
     .tuning_steps = {
@@ -577,28 +644,27 @@ struct rig_caps ftx1_caps = {
         {RIG_MODE_SSB | RIG_MODE_CW | RIG_MODE_CWR | RIG_MODE_RTTY | RIG_MODE_RTTYR | RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, RIG_FLT_ANY},
         RIG_FLT_END,
     },
-    .priv = (void *)&ftx1_priv_caps,  // Reuse newcat priv
+    .priv = (void *)&ftx1_priv_caps,
     .rig_init = newcat_init,
     .rig_cleanup = newcat_cleanup,
-    .rig_open = ftx1_open,  // FTX-1 specific open with SPA-1 detection
-    .rig_close = newcat_close,
-    // Pointers to group-specific overrides or newcat defaults
-    .set_freq = ftx1_set_freq,  // Override from ftx1_freq.c
+    .rig_open = ftx1_open,
+    .rig_close = ftx1_close,  /* FTX-1 specific close - resets detection state */
+    .set_freq = ftx1_set_freq,
     .get_freq = ftx1_get_freq,
     .set_mode = newcat_set_mode,
     .get_mode = newcat_get_mode,
-    .set_vfo = ftx1_set_vfo,  // Override from ftx1_vfo.c
+    .set_vfo = ftx1_set_vfo,
     .get_vfo = ftx1_get_vfo,
-    .set_ptt = ftx1_set_ptt_func,  // Override from ftx1_tx.c via ftx1_func.c
+    .set_ptt = ftx1_set_ptt_func,
     .get_ptt = ftx1_get_ptt_func,
     .get_dcd = NULL,
-    .set_powerstat = ftx1_set_powerstat_func,  // Override from ftx1_tx.c via ftx1_func.c
+    .set_powerstat = ftx1_set_powerstat_func,
     .get_powerstat = ftx1_get_powerstat_func,
     .set_func = ftx1_set_func,
     .get_func = ftx1_get_func,
     .set_level = ftx1_set_level,
     .get_level = ftx1_get_level,
-    .set_ctcss_tone = ftx1_set_ctcss_tone_func,  // Override from ftx1_ctcss.c via ftx1_func.c
+    .set_ctcss_tone = ftx1_set_ctcss_tone_func,
     .get_ctcss_tone = ftx1_get_ctcss_tone_func,
     .set_ctcss_sql = ftx1_set_ctcss_sql_func,
     .get_ctcss_sql = ftx1_get_ctcss_sql_func,
@@ -606,18 +672,18 @@ struct rig_caps ftx1_caps = {
     .get_dcs_code = ftx1_get_dcs_code_func,
     .set_dcs_sql = ftx1_set_dcs_sql_func,
     .get_dcs_sql = ftx1_get_dcs_sql_func,
-    .send_morse = ftx1_send_morse_func,  // Override from ftx1_cw.c via ftx1_func.c
+    .send_morse = ftx1_send_morse_func,
     .stop_morse = ftx1_stop_morse_func,
-    .wait_morse = ftx1_wait_morse_func,  // Stub - FTX-1 cannot query CW TX status
-    .set_trn = ftx1_set_trn_func,  // Override from ftx1_info.c via ftx1_func.c
+    .wait_morse = ftx1_wait_morse_func,
+    .set_trn = ftx1_set_trn_func,
     .get_trn = ftx1_get_trn_func,
-    .set_mem = ftx1_set_mem,  // Override from ftx1_mem.c
+    .set_mem = ftx1_set_mem,
     .get_mem = ftx1_get_mem,
     .vfo_op = ftx1_vfo_op,
-    .scan = ftx1_set_scan,  // Override from ftx1_scan.c
-    .set_channel = ftx1_set_channel,  // Override from ftx1_mem.c
+    .scan = ftx1_set_scan,
+    .set_channel = ftx1_set_channel,
     .get_channel = ftx1_get_channel,
-    .set_ts = ftx1_set_ts,  // Override from ftx1_scan.c
+    .set_ts = ftx1_set_ts,
     .get_ts = ftx1_get_ts,
     .set_ext_level = newcat_set_ext_level,
     .get_ext_level = newcat_get_ext_level,
@@ -631,7 +697,7 @@ struct rig_caps ftx1_caps = {
     .get_rit = ftx1_get_rit,
     .set_xit = ftx1_set_xit,
     .get_xit = ftx1_get_xit,
-    .set_split_vfo = ftx1_set_split_vfo,  // Override from ftx1_vfo.c
+    .set_split_vfo = ftx1_set_split_vfo,
     .get_split_vfo = ftx1_get_split_vfo,
     .set_split_freq = NULL,
     .get_split_freq = NULL,
