@@ -9,9 +9,11 @@
  *   ST P1;    - Split on/off (0=off, 1=on)
  *   FT P1;    - Function TX VFO (0=MAIN TX, 1=SUB TX)
  *   FR P1P2;  - Function RX (00=dual receive, 01=single receive)
+ *   FA/FB     - VFO-A/B frequency (used for split_freq)
+ *   MD P1 P2; - Mode (used for split_mode, P1=VFO)
  *
  * Note: BS (Band Select) returns '?' in firmware - not implemented.
- *       AB, BA, SV handled via newcat_vfo_op.
+ *       AB, BA, SV handled via ftx1_vfo_op.
  */
 
 #include <stdlib.h>
@@ -396,6 +398,219 @@ int ftx1_get_dual_receive(RIG *rig, int *dual)
     *dual = (p1p2 == FTX1_FR_DUAL_RECEIVE) ? 1 : 0;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: dual=%d\n", __func__, *dual);
+
+    return RIG_OK;
+}
+
+/*
+ * =============================================================================
+ * Split Frequency and Mode Functions
+ * =============================================================================
+ * These functions set/get the TX frequency and mode during split operation.
+ * The FTX-1 uses VFO-B (SUB) as the TX VFO when split is enabled.
+ */
+
+/*
+ * ftx1_set_split_freq - Set TX frequency for split operation
+ *
+ * Sets the frequency on VFO-B (TX VFO during split).
+ * Format: FB000014074; (9 digits, Hz)
+ */
+int ftx1_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
+{
+    struct newcat_priv_data *priv;
+
+    if (!rig)
+    {
+        return -RIG_EINVAL;
+    }
+
+    priv = STATE(rig)->priv;
+    if (!priv)
+    {
+        return -RIG_EINTERNAL;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: tx_freq=%.0f\n", __func__, tx_freq);
+
+    /* Set VFO-B (TX VFO) frequency */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FB%09.0f;", tx_freq);
+
+    return newcat_set_cmd(rig);
+}
+
+/*
+ * ftx1_get_split_freq - Get TX frequency for split operation
+ *
+ * Gets the frequency from VFO-B (TX VFO during split).
+ * Response: FB000014074; (9 digits, Hz)
+ */
+int ftx1_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
+{
+    struct newcat_priv_data *priv;
+    int ret;
+
+    if (!rig || !tx_freq)
+    {
+        return -RIG_EINVAL;
+    }
+
+    priv = STATE(rig)->priv;
+    if (!priv)
+    {
+        return -RIG_EINTERNAL;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    /* Query VFO-B frequency */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FB;");
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    /* Response: FB000014074 (FB + 9 digits) */
+    if (sscanf(priv->ret_data + 2, "%lf", tx_freq) != 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: tx_freq=%.0f\n", __func__, *tx_freq);
+
+    return RIG_OK;
+}
+
+/*
+ * ftx1_set_split_mode - Set TX mode for split operation
+ *
+ * Sets the mode on VFO-B (TX VFO during split).
+ * Format: MD1 P2; where P2 is mode code
+ */
+int ftx1_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
+{
+    struct newcat_priv_data *priv;
+    char mode_char;
+
+    if (!rig)
+    {
+        return -RIG_EINVAL;
+    }
+
+    priv = STATE(rig)->priv;
+    if (!priv)
+    {
+        return -RIG_EINTERNAL;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: tx_mode=%s\n", __func__,
+              rig_strrmode(tx_mode));
+
+    /* Map Hamlib mode to FTX-1 mode code */
+    switch (tx_mode)
+    {
+    case RIG_MODE_LSB:      mode_char = '1'; break;
+    case RIG_MODE_USB:      mode_char = '2'; break;
+    case RIG_MODE_CW:       mode_char = '3'; break;
+    case RIG_MODE_FM:       mode_char = '4'; break;
+    case RIG_MODE_AM:       mode_char = '5'; break;
+    case RIG_MODE_RTTY:     mode_char = '6'; break;
+    case RIG_MODE_CWR:      mode_char = '7'; break;
+    case RIG_MODE_PKTLSB:   mode_char = '8'; break;
+    case RIG_MODE_RTTYR:    mode_char = '9'; break;
+    case RIG_MODE_PKTFM:    mode_char = 'A'; break;
+    case RIG_MODE_FMN:      mode_char = 'B'; break;
+    case RIG_MODE_PKTUSB:   mode_char = 'C'; break;
+    case RIG_MODE_AMN:      mode_char = 'D'; break;
+    case RIG_MODE_PSK:      mode_char = 'E'; break;
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n", __func__,
+                  rig_strrmode(tx_mode));
+        return -RIG_EINVAL;
+    }
+
+    /* Set mode on VFO-B (SUB = 1) */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MD1%c;", mode_char);
+
+    return newcat_set_cmd(rig);
+}
+
+/*
+ * ftx1_get_split_mode - Get TX mode for split operation
+ *
+ * Gets the mode from VFO-B (TX VFO during split).
+ * Response: MD1P2; where P2 is mode code
+ */
+int ftx1_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width)
+{
+    struct newcat_priv_data *priv;
+    int ret;
+    char mode_char;
+
+    if (!rig || !tx_mode || !tx_width)
+    {
+        return -RIG_EINVAL;
+    }
+
+    priv = STATE(rig)->priv;
+    if (!priv)
+    {
+        return -RIG_EINTERNAL;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    /* Query mode on VFO-B (SUB = 1) */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MD1;");
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    /* Response: MD1X where X is mode code */
+    if (strlen(priv->ret_data) < 4)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: response too short '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    mode_char = priv->ret_data[3];
+
+    /* Map FTX-1 mode code to Hamlib mode */
+    switch (mode_char)
+    {
+    case '1': *tx_mode = RIG_MODE_LSB;    break;
+    case '2': *tx_mode = RIG_MODE_USB;    break;
+    case '3': *tx_mode = RIG_MODE_CW;     break;
+    case '4': *tx_mode = RIG_MODE_FM;     break;
+    case '5': *tx_mode = RIG_MODE_AM;     break;
+    case '6': *tx_mode = RIG_MODE_RTTY;   break;
+    case '7': *tx_mode = RIG_MODE_CWR;    break;
+    case '8': *tx_mode = RIG_MODE_PKTLSB; break;
+    case '9': *tx_mode = RIG_MODE_RTTYR;  break;
+    case 'A': *tx_mode = RIG_MODE_PKTFM;  break;
+    case 'B': *tx_mode = RIG_MODE_FMN;    break;
+    case 'C': *tx_mode = RIG_MODE_PKTUSB; break;
+    case 'D': *tx_mode = RIG_MODE_AMN;    break;
+    case 'E': *tx_mode = RIG_MODE_PSK;    break;
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown mode code '%c'\n", __func__,
+                  mode_char);
+        return -RIG_EPROTO;
+    }
+
+    /* Default width - actual width would need SH command query */
+    *tx_width = RIG_PASSBAND_NORMAL;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: tx_mode=%s\n", __func__,
+              rig_strrmode(*tx_mode));
 
     return RIG_OK;
 }

@@ -145,6 +145,10 @@ extern int ftx1_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *shift);
 extern int ftx1_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 extern int ftx1_set_dual_receive(RIG *rig, int dual);
 extern int ftx1_get_dual_receive(RIG *rig, int *dual);
+extern int ftx1_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
+extern int ftx1_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq);
+extern int ftx1_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width);
+extern int ftx1_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width);
 
 /*
  * ftx1_detect_spa1 - Detect SPA-1 amplifier via VE4 command
@@ -738,10 +742,10 @@ struct rig_caps ftx1_caps = {
     .get_rptr_shift = ftx1_get_rptr_shift,
     .set_split_vfo = ftx1_set_split_vfo,
     .get_split_vfo = ftx1_get_split_vfo,
-    .set_split_freq = NULL,
-    .get_split_freq = NULL,
-    .set_split_mode = NULL,
-    .get_split_mode = NULL,
+    .set_split_freq = ftx1_set_split_freq,
+    .get_split_freq = ftx1_get_split_freq,
+    .set_split_mode = ftx1_set_split_mode,
+    .get_split_mode = ftx1_get_split_mode,
     .get_info = newcat_get_info,
     .power2mW = newcat_power2mW,
     .mW2power = newcat_mW2power,
