@@ -214,12 +214,9 @@ static const rptr_offs_cmd_entry_t rptr_offs_cmd_table[] = {
 
 /*
  * ANTIVOX command lookup table.
- *
- * REFACTORED: 2025-12 - Replaces if/else chains in set_level/get_level ANTIVOX cases.
  * Maps rig model ID to the command string for ANTIVOX control.
  *
- * NOTE: FT-991 uses EX145 for SET but EX147 for GET - this appears to be
- * intentional in the original code (different menu items for set vs read).
+ * NOTE: FT-991 uses EX145 for SET but EX147 for GET (different menu items).
  * The get_cmd field is NULL if same as set_cmd.
  */
 typedef struct {
@@ -2532,20 +2529,6 @@ static int lookup_rptr_offs_cmd(nc_rigid_t rig_id, freq_t freq,
 }
 
 
-/*
- * =============================================================================
- * REFACTORED: newcat_set_rptr_offs (2025)
- *
- * ORIGINAL: ~240 lines with 12 if/else blocks, 24 strcpy() calls
- * REFACTORED: ~40 lines using lookup_rptr_offs_cmd() helper
- *
- * CHANGES MADE:
- * 1. Replaced all strcpy(command, "EXxxx") with SNPRINTF (security fix)
- * 2. Replaced 12 if/else blocks with single lookup_rptr_offs_cmd() call
- * 3. Eliminated hardcoded magic numbers (28000000, 29700000, etc.)
- * 4. Added proper error handling for unsupported rigs/bands
- * =============================================================================
- */
 int newcat_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
@@ -2601,10 +2584,9 @@ int newcat_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
 /*
  * newcat_get_rptr_offs - Get repeater offset
  *
- * REFACTORED: 2025-12 - Replaced ~220 line if/else chain with data-driven lookup.
- * Uses lookup_rptr_offs_cmd() helper and rptr_offs_cmd_table[] for O(n) lookup.
- * Eliminates duplicated frequency band checking and per-rig command strings.
- * If frequency is not in a supported band, returns offset of 0 (not an error).
+ * Uses lookup_rptr_offs_cmd() to find the appropriate EX command for the
+ * current rig and frequency band. Returns offset of 0 if frequency is not
+ * in a supported repeater band.
  */
 int newcat_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *offs)
 {
@@ -4741,12 +4723,6 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VG%03d%c", fpf, cat_term);
         break;
 
-    /*
-     * RIG_LEVEL_ANTIVOX - Set anti-VOX level
-     *
-     * REFACTORED: 2025-12 - Replaced if/else chain with lookup_antivox_cmd().
-     * See antivox_cmd_table[] for rig-to-command mappings.
-     */
     case RIG_LEVEL_ANTIVOX:
     {
         const char *cmd;
@@ -5392,12 +5368,6 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         break;
 
-    /*
-     * RIG_LEVEL_ANTIVOX - Get anti-VOX level
-     *
-     * REFACTORED: 2025-12 - Replaced if/else chain with lookup_antivox_cmd().
-     * Note: FT-991 uses different command for get vs set (EX147 vs EX145).
-     */
     case RIG_LEVEL_ANTIVOX:
     {
         const char *cmd;
