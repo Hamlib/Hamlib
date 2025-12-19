@@ -10,9 +10,8 @@
  *   KS P1P2P3;       - Keyer Speed (004-060 WPM)
  *   KY P1 P2...;     - CW Message Send (P1=0, P2=message up to 24 chars)
  *   KM P1 P2...;     - Keyer Memory Read/Write (P1=1-5 slot, P2=message up to 50 chars)
- *   SD P1P2P3P4;     - CW Break-in Delay (0030-3000ms)
- *   BK P1;           - Break-in mode (0=off, 1=semi, 2=full)
- *   CT P1;           - CW Tuning/Sidetone (0=off, 1=on)
+ *   SD P1P2;         - CW Break-in Delay (00-33, see CAT manual for mapping)
+ *   CS P1;           - CW Spot (0=off, 1=on)
  *   LM P1;           - Load Message (P1=0/1 start/stop)
  *
  * CW Message Character Set:
@@ -267,71 +266,34 @@ int ftx1_get_cw_delay(RIG *rig, int *val)
     return RIG_OK;
 }
 
-/* Set CW Break-in mode (BK P1;) */
-int ftx1_set_cw_breakin(RIG *rig, int mode)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-
-    /* mode: 0=off, 1=semi, 2=full */
-    if (mode < 0 || mode > 2)
-    {
-        return -RIG_EINVAL;
-    }
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: mode=%d\n", __func__, mode);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BK%d;", mode);
-    return newcat_set_cmd(rig);
-}
-
-/* Get CW Break-in mode */
-int ftx1_get_cw_breakin(RIG *rig, int *mode)
-{
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret, p1;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BK;");
-
-    ret = newcat_get_cmd(rig);
-    if (ret != RIG_OK) return ret;
-
-    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    *mode = p1;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: mode=%d\n", __func__, *mode);
-
-    return RIG_OK;
-}
-
-/* Set CW Sidetone/Tuning (CT P1;) */
-int ftx1_set_cw_sidetone(RIG *rig, int status)
+/*
+ * ftx1_set_cw_spot - Set CW Spot (CS P1;)
+ * CAT command: CS P1; (P1: 0=off, 1=on)
+ * Enables sidetone for tuning in CW mode.
+ */
+int ftx1_set_cw_spot(RIG *rig, int status)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int p1 = status ? 1 : 0;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: status=%d\n", __func__, status);
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CT%d;", p1);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CS%d;", p1);
     return newcat_set_cmd(rig);
 }
 
-/* Get CW Sidetone/Tuning status */
-int ftx1_get_cw_sidetone(RIG *rig, int *status)
+/*
+ * ftx1_get_cw_spot - Get CW Spot status (CS;)
+ * CAT command: CS; Response: CS0 or CS1
+ */
+int ftx1_get_cw_spot(RIG *rig, int *status)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret, p1;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CT;");
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CS;");
 
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
