@@ -224,6 +224,7 @@ int ftx1_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         case RIG_FUNC_DUAL_WATCH:
             /* FTX-1: FR command controls dual/single receive mode */
             return ftx1_set_dual_receive(rig, status);
+        /* Note: NA command (narrow) available via ftx1_set_na_helper but no RIG_FUNC_NAR in Hamlib */
         /* Note: Contour (CO command) not exposed as RIG_FUNC_CONTOUR doesn't exist in Hamlib */
         default:
             return newcat_set_func(rig, vfo, func, status);
@@ -299,6 +300,7 @@ int ftx1_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         case RIG_FUNC_DUAL_WATCH:
             /* FTX-1: FR command controls dual/single receive mode */
             return ftx1_get_dual_receive(rig, status);
+        /* Note: NA command (narrow) available via ftx1_get_na_helper but no RIG_FUNC_NAR in Hamlib */
         /* Note: Contour (CO command) not exposed as RIG_FUNC_CONTOUR doesn't exist in Hamlib */
         default:
             return newcat_get_func(rig, vfo, func, status);

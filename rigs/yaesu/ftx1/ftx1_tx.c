@@ -522,3 +522,63 @@ int ftx1_get_tx_watch(RIG *rig, int *status)
 
     return RIG_OK;
 }
+
+/*
+ * =============================================================================
+ * RI Command: Read Radio Information (for DCD/Squelch status)
+ * =============================================================================
+ * CAT format: RI;
+ * Response: RI P1 P2 P3 P4 P5 P6 P7 P8 P9 P10 P11 P12 P13;
+ *
+ * P8 = SQL (Squelch) status:
+ *   0 = SQL Closed (no signal / below threshold)
+ *   1 = SQL Open (BUSY - signal present / above threshold)
+ *
+ * This is used for DCD (Data Carrier Detect) functionality.
+ */
+
+/*
+ * ftx1_get_dcd - Get DCD (squelch) status via RI command P8
+ *
+ * Returns RIG_DCD_ON when squelch is open (signal present),
+ * RIG_DCD_OFF when squelch is closed (no signal).
+ */
+int ftx1_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    int p1, p2, p3, p4, p5, p6, p7, p8;
+
+    (void)vfo;  /* FTX-1 RI command returns overall status, not per-VFO */
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RI;");
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    /*
+     * Response format: RI P1 P2 P3 P4 P5 P6 P7 P8 P9 P10 P11 P12 P13;
+     * Each P is a single digit. We need P8 (SQL status).
+     * Parse 8 digits to get to P8.
+     */
+    if (sscanf(priv->ret_data + 2, "%1d%1d%1d%1d%1d%1d%1d%1d",
+               &p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8) != 8)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n",
+                  __func__, priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    /* P8: 0=SQL Closed (no signal), 1=SQL Open (BUSY/signal present) */
+    *dcd = (p8 == 1) ? RIG_DCD_ON : RIG_DCD_OFF;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: P8(SQL)=%d dcd=%s\n",
+              __func__, p8, (*dcd == RIG_DCD_ON) ? "ON" : "OFF");
+
+    return RIG_OK;
+}
