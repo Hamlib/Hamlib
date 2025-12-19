@@ -7,6 +7,12 @@ Each group corresponds to a .c implementation file.
 
 Reference: FTX-1 CAT Operation Reference Manual (2508-C)
 
+ACKNOWLEDGMENTS:
+  Jeremy Miller (KO4SSD) - RIT/XIT implementation using RC/TC commands
+    Discovered that RT/XT commands return '?' on FTX-1, and found the
+    working RC/TC alternatives. See Hamlib PR #1826.
+    Implementation: ftx1_clarifier.c, EX0306 tuning step support
+
 Legend:
   Set  = Command can set a value
   Read = Command can read/query a value
@@ -30,19 +36,31 @@ VFO Commands (ftx1_vfo.c):
 Frequency Commands (ftx1_freq.c):
   FA P1...P9;      - VFO-A Frequency (9-digit Hz, e.g., FA014250000;) [WORKING]
   FB P1...P9;      - VFO-B Frequency (9-digit Hz) [WORKING]
-  CF P1 P2 P3 P4 P5...P8; - Clarifier (RIT/XIT) [WORKING - set offset only]
-                     P1=VFO (0/1), P2=RIT on/off, P3=XIT on/off
-                     P4=+/- direction, P5-P8=offset (0000-9999 Hz)
+
+RIT/XIT Clarifier Commands (ftx1_clarifier.c):
+  *** SPECIAL ACKNOWLEDGMENT - JEREMY MILLER (KO4SSD) ***
+  The RIT/XIT implementation uses RC/TC commands discovered by Jeremy Miller
+  in Hamlib PR #1826. The standard RT/XT commands return '?' on FTX-1.
+
+  RC P1;           - Receiver Clarifier (RIT offset) [WORKING]
+                     RC0; = clear, RC+NNNN; = positive, RC-NNNN; = negative
+                     Range: ±9999 Hz
+  TC P1;           - Transmit Clarifier (XIT offset) [WORKING]
+                     TC0; = clear, TC+NNNN; = positive, TC-NNNN; = negative
+                     Range: ±9999 Hz
+  IF;              - Information query (reads clarifier state)
+                     Response includes clarifier offset and RX/TX enable flags
+
+  Legacy CF command (ftx1_freq.c) - NOT RECOMMENDED:
+  CF P1 P2 P3 P4 P5...P8; - Clarifier offset (set only, does not enable)
+                     P1=VFO, P2=RIT, P3=XIT, P4=sign, P5-P8=offset
 
 Notes:
   - Frequency format: 9 digits, leading zeros required
-  - CF sets clarifier offset value only (does not enable clarifier)
-  - Format: CF P1 P2 P3 [+/-] PPPP (9 chars after CF)
-  - Example: CF001+0500 sets offset to +500Hz
-  - P3 must be 1 for command to be accepted; CF010+0500 returns '?'
-  - P2 can be 0 or 1 (both work: CF001 and CF011)
-  - No CAT command found to enable/disable clarifier (RT, XT, CL all return '?')
-  - Use RI for RIT info read
+  - RT (RIT toggle) and XT (XIT toggle) commands return '?' on FTX-1
+  - Use RC/TC commands for RIT/XIT control (Jeremy Miller's discovery)
+  - Setting RC0; or TC0; clears and disables the respective clarifier
+  - Use IF command to read current clarifier state
 
 ================================================================================
 GROUP 2: Mode and Bandwidth (ftx1_mode.c)
@@ -349,7 +367,7 @@ IF Command Response Format (27+ characters):
   ...       Additional fields
 
 ================================================================================
-GROUP 12: Extended Menu and Setup (ftx1_ext.c)
+GROUP 12: Extended Menu and Setup (ftx1_ext.c, ftx1_menu.c)
 ================================================================================
 Commands:
   EX P1 P2...;     - Extended Menu Read/Write [WORKING - verified with SPA-1]
@@ -362,22 +380,38 @@ Extended Menu Numbers:
   Example: EX030104; queries TUNER SELECT (group 03, section 01, item 04)
   Response: EX0301040; means value is 0 (INT)
 
+Complete EX Menu Implementation (ftx1_menu.c):
+  The backend provides full access to ~250 EX menu items via Hamlib's ext_parm
+  interface. Menu items are organized into 11 groups:
+
+  EX01: RADIO SETTING - Mode-specific audio settings (SSB/AM/FM/DATA/RTTY/DIGITAL)
+        AF treble/mid/bass, AGC, LCUT/HCUT, USB levels, mod source, DTMF memories
+  EX02: CW SETTING - CW mode and keyer settings
+        Keyer type, weight, dot-dash, contest number, CW memories
+  EX03: OPERATION SETTING - General, band-scan, RX-DSP, TX audio, TX general,
+        key/dial, and SPA-1 option settings
+  EX04: DISPLAY SETTING - Display, unit, scope, VFO indicator color
+  EX05: EXTENSION SETTING - Date/time, timezone, GPS settings
+  EX06: APRS SETTING - General, message templates, symbols, digi path
+  EX07: APRS BEACON - Beacon set, auto beacon, SmartBeac, beacon text
+  EX08: APRS FILTER - List setting, station list, popup, ringer, message filter
+  EX09: PRESET - 5 presets with 16 items each (CAT1 rate, AGC, filters, etc.)
+  EX11: BLUETOOTH - Enable, audio settings
+
+  Token Encoding:
+    Tokens encode EX command addresses as 0xGGSSII (group/section/item)
+    Example: TOK_KEYER_TYPE = 0x020201 = EX020201 (CW SETTING > KEYER > TYPE)
+
+  SPA-1 Guardrails:
+    Menu items marked with FTX1_MENU_FLAG_SPA1 are blocked when SPA-1 not present.
+    This includes internal tuner settings and amplifier-specific power limits.
+
   SPA-1 Specific EX Commands:
     EX030104  - TUNER SELECT (0=INT, 1=INT FAST, 2=EXT, 3=ATAS)
-    EX030705  - OPTION 160m Power (005-100)
-    EX030706  - OPTION 80m Power (005-100)
-    EX030707  - OPTION 60m Power (005-100)
-    EX030708  - OPTION 40m Power (005-100)
-    EX030709  - OPTION 30m Power (005-100)
-    EX030710  - OPTION 20m Power (005-100)
-    EX030711  - OPTION 17m Power (005-100)
-    EX030712  - OPTION 15m Power (005-100)
-    EX030713  - OPTION 12m Power (005-100)
-    EX030714  - OPTION 10m Power (005-100)
-    EX030715  - OPTION 6m Power (005-100)
+    EX0307xx  - OPTION power limits per band (5-100W for HF, 5-50W for V/UHF)
 
-  NOTE: EX commands require SPA-1 amplifier to be connected for full access.
-  Without SPA-1, some EX commands may return '?'.
+  NOTE: Some EX commands require SPA-1 amplifier to be connected.
+  Without SPA-1, SPA-1-specific EX commands return -RIG_ENAVAIL.
 
 ================================================================================
 GROUP 13: Miscellaneous Commands
@@ -593,7 +627,9 @@ workarounds using raw CAT command passthrough (`rigctl w "CMD;"`):
 | IS (IFShift)| Hamlib format doesn't match FTX-1 IS command   |
 | ML (MonLvl)| Hamlib expects different parameter format       |
 | SH (Width) | Hamlib width codes don't match FTX-1 codes      |
-| RIT/XIT    | newcat framework collision issues               |
+
+RIT/XIT: FIXED - Now uses RC/TC commands via ftx1_clarifier.c
+         (Jeremy Miller KO4SSD - PR #1826)
 
 These are worked around in the test harness using raw CAT commands.
 
@@ -719,21 +755,45 @@ Source Files:
   ftx1_freq.c       - Frequency get/set (FA/FB)
   ftx1_mode.c       - Mode documentation (delegates to newcat)
   ftx1_audio.c      - AF/RF/Mic gain (AG/RG/MG), power (PC), meters (SM/RM), AGC (GT)
+  ftx1_clarifier.c  - RIT/XIT using RC/TC commands (Jeremy Miller KO4SSD - PR #1826)
   ftx1_func.c       - Central dispatcher for func/level operations
   ftx1_info.c       - Radio info (ID/IF/OI), AI mode, IF shift (IS), date/time (DT)
   ftx1_mem.c        - Memory operations (MC/MR/MW/MT/MZ/MA/MB/AM/BM/VM/CH)
   ftx1_tx.c         - PTT (TX), VOX (VX), tuner (AC), break-in (BI), power (PS)
-  ftx1_cw.c         - CW keyer (KS/KP/KR/KY/KM/SD)
+  ftx1_cw.c         - CW keyer (KS/KP/KR/KY/KM/SD/CS)
   ftx1_ctcss.c      - CTCSS/DCS tone control (CN/CT/DC)
   ftx1_noise.c      - Noise blanker (NL), noise reduction (RL)
   ftx1_filter.c     - Notch (BP), contour/APF (CO), beat cancel (BC)
   ftx1_preamp.c     - Preamp (PA), attenuator (RA)
   ftx1_scan.c       - Scan (SC), band select (BS), tuning step (TS), zero-in (ZI)
-  ftx1_ext.c        - Extended menu (EX), spectrum scope (SS)
+  ftx1_ext.c        - Extended menu basics (EX), spectrum scope (SS), encoder offset (EO)
+  ftx1_menu.c       - Complete EX menu (~250 items): all 11 groups, set/get, ext_parm
+  ftx1_menu.h       - EX menu token definitions (TOK_*), item structures, flags
 
 ================================================================================
 REVISION HISTORY
 ================================================================================
+2025-12-19  Implemented complete EX menu support (~250 menu items)
+            - Created ftx1_menu.h with token definitions for all EX commands
+              Token encoding: 0xGGSSII maps directly to EX group/section/item
+            - Created ftx1_menu.c with menu table and get/set functions
+              Covers all 11 EX groups from CAT manual Table 3 (pages 10-16)
+            - Groups implemented:
+              * EX01 RADIO SETTING (SSB/AM/FM/DATA/RTTY/DIGITAL mode settings)
+              * EX02 CW SETTING (keyer type, weight, memories, QSK)
+              * EX03 OPERATION SETTING (general, scan, DSP, TX audio, power limits)
+              * EX04 DISPLAY SETTING (my call, popup, screen saver, scope)
+              * EX05 EXTENSION SETTING (timezone, GPS time)
+              * EX06 APRS SETTING (modem, callsign, message templates)
+              * EX07 APRS BEACON (beacon set, SmartBeac, status text)
+              * EX08 APRS FILTER (station list, popup, ringer, message filter)
+              * EX09 PRESET (5 presets with 16 items each)
+              * EX11 BLUETOOTH (enable, audio)
+            - Added set_ext_parm/get_ext_parm to rig_caps for Hamlib API access
+            - SPA-1 guardrails for amplifier-specific settings (FTX1_MENU_FLAG_SPA1)
+            - Signed value support for parameters like AF treble/bass (-20 to +10)
+            - String parameter support (callsigns, DTMF memories, status text)
+            - Convenience functions for common operations (keyer_type, weight, etc.)
 2025-12-12  Confirmed Radio ID is fixed (0840), finalized power probe detection
             - Radio ID is always 0840 for ALL FTX-1 configurations (confirmed)
             - Head type detection uses two-stage process:

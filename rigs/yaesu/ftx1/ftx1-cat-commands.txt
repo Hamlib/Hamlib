@@ -31,7 +31,7 @@ Total Commands: 91
  23 | DN  | MICROPHONE DOWN               |  o  |      |     |     | ftx1_scan.c
  24 | DT  | DATE/TIME                     |  o  |  o   |  o  |     | ftx1_info.c
  25 | EO  | ENCODER OFFSET                |  o  |      |     |     | ftx1_ext.c
- 26 | EX  | MENU                          |  o  |  o   |  o  |  o  | ftx1_ext.c
+ 26 | EX  | MENU                          |  o  |  o   |  o  |  o  | ftx1_ext.c, ftx1_menu.c
  27 | FA  | VFO-A FREQUENCY               |  o  |  o   |  o  |  o  | ftx1_freq.c
  28 | FB  | VFO-B FREQUENCY               |  o  |  o   |  o  |  o  | ftx1_freq.c
  29 | FN  | FILTER NUMBER                 |  o  |  o   |  o  |     | ftx1_filter.c
@@ -106,22 +106,29 @@ Legend:
   AI   = Auto Information (radio sends updates automatically when AI is enabled)
 
 Backend Files:
-  ftx1.c        - Main backend, rig_caps definition
-  ftx1.h        - Shared definitions and macros
-  ftx1_audio.c  - Audio levels, meters, power (AG, AO, GT, MG, ML, MS, PB, PC, RG, RM, SH, SM, VD, VG)
-  ftx1_ctcss.c  - CTCSS/DCS tones (CN, CT, DC)
-  ftx1_cw.c     - CW keyer operations (BI, CS, KM, KR, KS, KY, LM, SD)
-  ftx1_ext.c    - Extended menu, spectrum scope (EO, EX, SS)
-  ftx1_filter.c - Filter/notch control (BC, BP, CO, FN)
-  ftx1_freq.c   - Frequency setting (FA, FB, OS)
-  ftx1_func.c   - Level/function dispatcher
-  ftx1_info.c   - Radio info, AI, date/time (AI, DA, DT, GP, ID, IF, IS, LK, OI, SF)
-  ftx1_mem.c    - Memory operations (AM, BM, CH, MA, MB, MC, MR, MT, MW, MZ, QI, QR, VM)
-  ftx1_mode.c   - Operating mode (MD)
-  ftx1_noise.c  - Noise blanker/reduction (NA, NL, RL)
-  ftx1_preamp.c - Preamp/attenuator (PA, RA)
-  ftx1_scan.c   - Scan, band, freq up/down (BD, BS, BU, DN, SC, UP, ZI)
-  ftx1_tx.c     - Transmit control (AC, MX, PR, PS, SQ, TS, TX, VX)
-  ftx1_vfo.c    - VFO operations (AB, BA, FR, FT, ST, SV, VS)
+  ftx1.c            - Main backend, rig_caps definition
+  ftx1.h            - Shared definitions and macros
+  ftx1_audio.c      - Audio levels, meters, power (AG, AO, GT, MG, ML, MS, PB, PC, RG, RM, SH, SM, VD, VG)
+  ftx1_clarifier.c  - RIT/XIT using RC/TC commands (Jeremy Miller KO4SSD - PR #1826)
+  ftx1_ctcss.c      - CTCSS/DCS tones (CN, CT, DC)
+  ftx1_cw.c         - CW keyer operations (BI, CS, KM, KR, KS, KY, LM, SD)
+  ftx1_ext.c        - Extended menu basics, spectrum scope (EO, EX, SS)
+  ftx1_filter.c     - Filter/notch control (BC, BP, CO, FN)
+  ftx1_freq.c       - Frequency setting (FA, FB, OS)
+  ftx1_func.c       - Level/function dispatcher
+  ftx1_info.c       - Radio info, AI, date/time (AI, DA, DT, GP, ID, IF, IS, LK, OI, SF)
+  ftx1_mem.c        - Memory operations (AM, BM, CH, MA, MB, MC, MR, MT, MW, MZ, QI, QR, VM)
+  ftx1_menu.c       - Complete EX menu implementation (~250 menu items)
+  ftx1_menu.h       - EX menu token definitions and structures
+  ftx1_mode.c       - Operating mode (MD) - delegates to newcat
+  ftx1_noise.c      - Noise blanker/reduction (NA, NL, RL)
+  ftx1_preamp.c     - Preamp/attenuator (PA, RA)
+  ftx1_scan.c       - Scan, band, freq up/down (BD, BS, BU, DN, SC, UP, ZI)
+  ftx1_tx.c         - Transmit control (AC, MX, PR, PS, SQ, TS, TX, VX)
+  ftx1_vfo.c        - VFO operations (AB, BA, FR, FT, ST, SV, VS)
+
+Additional Commands (not in official 91-command list but working):
+  RC  - Receiver Clarifier (RIT offset) - discovered by Jeremy Miller (KO4SSD)
+  TC  - Transmit Clarifier (XIT offset) - discovered by Jeremy Miller (KO4SSD)
 
 Implementation Status: 91/91 commands (100%)

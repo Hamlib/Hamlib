@@ -93,18 +93,18 @@ extern int ftx1_set_vox_gain(RIG *rig, float val);
 extern int ftx1_get_vox_gain(RIG *rig, float *val);
 extern int ftx1_set_vox_delay(RIG *rig, int ms);
 extern int ftx1_get_vox_delay(RIG *rig, int *ms);
-extern int ftx1_set_agc(RIG *rig, int val);
-extern int ftx1_get_agc(RIG *rig, int *val);
+extern int ftx1_set_agc(RIG *rig, vfo_t vfo, int val);
+extern int ftx1_get_agc(RIG *rig, vfo_t vfo, int *val);
 extern int ftx1_get_smeter(RIG *rig, vfo_t vfo, int *val);
 extern int ftx1_get_meter(RIG *rig, int meter_type, int *val);
-extern int ftx1_set_monitor_level(RIG *rig, float val);
-extern int ftx1_get_monitor_level(RIG *rig, float *val);
+extern int ftx1_set_monitor_level(RIG *rig, vfo_t vfo, float val);
+extern int ftx1_get_monitor_level(RIG *rig, vfo_t vfo, float *val);
 extern int ftx1_set_amc_output(RIG *rig, float val);
 extern int ftx1_get_amc_output(RIG *rig, float *val);
 extern int ftx1_set_width(RIG *rig, vfo_t vfo, int width_code);
 extern int ftx1_get_width(RIG *rig, vfo_t vfo, int *width_code);
-extern int ftx1_set_meter_switch(RIG *rig, int meter_type);
-extern int ftx1_get_meter_switch(RIG *rig, int *meter_type);
+extern int ftx1_set_meter_switch(RIG *rig, vfo_t vfo, int meter_type);
+extern int ftx1_get_meter_switch(RIG *rig, vfo_t vfo, int *meter_type);
 
 /* Extern helpers from ftx1_filter.c */
 extern int ftx1_set_filter_number(RIG *rig, vfo_t vfo, int filter);
@@ -327,7 +327,7 @@ int ftx1_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             /* VOXDELAY is val.i in tenths of seconds, FTX-1 uses 00-30 (same units) */
             return ftx1_set_vox_delay(rig, val.i);
         case RIG_LEVEL_AGC:
-            return ftx1_set_agc(rig, val.i);
+            return ftx1_set_agc(rig, vfo, val.i);
         case RIG_LEVEL_KEYSPD:
             return ftx1_set_keyer_speed(rig, val.i);
         case RIG_LEVEL_BKINDL:
@@ -356,9 +356,9 @@ int ftx1_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             /* FTX-1 IS command: val.i is shift in Hz, turn on if non-zero */
             return ftx1_set_if_shift(rig, vfo, (val.i != 0) ? 1 : 0, val.i);
         case RIG_LEVEL_MONITOR_GAIN:
-            return ftx1_set_monitor_level(rig, val.f);
+            return ftx1_set_monitor_level(rig, vfo, val.f);
         case RIG_LEVEL_METER:
-            return ftx1_set_meter_switch(rig, val.i);
+            return ftx1_set_meter_switch(rig, vfo, val.i);
         case RIG_LEVEL_PBT_IN:
         case RIG_LEVEL_PBT_OUT:
             /* SH command: val.f is 0.0-1.0, convert to width code (0-23) */
@@ -409,7 +409,7 @@ int ftx1_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             if (ret == RIG_OK) val->i = ival;
             return ret;
         case RIG_LEVEL_AGC:
-            ret = ftx1_get_agc(rig, &ival);
+            ret = ftx1_get_agc(rig, vfo, &ival);
             if (ret == RIG_OK) val->i = ival;
             return ret;
         case RIG_LEVEL_KEYSPD:
@@ -462,11 +462,11 @@ int ftx1_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                 return ret;
             }
         case RIG_LEVEL_MONITOR_GAIN:
-            ret = ftx1_get_monitor_level(rig, &fval);
+            ret = ftx1_get_monitor_level(rig, vfo, &fval);
             if (ret == RIG_OK) val->f = fval;
             return ret;
         case RIG_LEVEL_METER:
-            ret = ftx1_get_meter_switch(rig, &ival);
+            ret = ftx1_get_meter_switch(rig, vfo, &ival);
             if (ret == RIG_OK) val->i = ival;
             return ret;
         case RIG_LEVEL_PBT_IN:
