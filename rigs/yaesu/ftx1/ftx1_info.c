@@ -148,9 +148,16 @@ int ftx1_get_if_info(RIG *rig, freq_t *freq, rmode_t *mode, vfo_t *vfo)
     if (freq)
     {
         char freq_str[10];
+        char *endptr;
         strncpy(freq_str, priv->ret_data + 2, 9);
         freq_str[9] = '\0';
-        *freq = atof(freq_str);
+        *freq = strtod(freq_str, &endptr);
+        if (endptr == freq_str)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: failed to parse frequency from '%s'\n",
+                      __func__, freq_str);
+            return -RIG_EPROTO;
+        }
     }
 
     /* Extract mode (position 19) */
@@ -203,9 +210,16 @@ int ftx1_get_oi_info(RIG *rig, freq_t *freq)
     if (strlen(priv->ret_data) >= 11)
     {
         char freq_str[10];
+        char *endptr;
         strncpy(freq_str, priv->ret_data + 2, 9);
         freq_str[9] = '\0';
-        *freq = atof(freq_str);
+        *freq = strtod(freq_str, &endptr);
+        if (endptr == freq_str)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: failed to parse frequency from '%s'\n",
+                      __func__, freq_str);
+            return -RIG_EPROTO;
+        }
 
         rig_debug(RIG_DEBUG_VERBOSE, "%s: freq=%f\n", __func__, *freq);
     }
@@ -448,6 +462,7 @@ int ftx1_decode_if_response(RIG *rig, const char *resp)
     rmode_t mode;
     vfo_t vfo;
     char freq_str[10];
+    char *endptr;
     char mode_char;
     char vfo_char;
 
@@ -461,10 +476,16 @@ int ftx1_decode_if_response(RIG *rig, const char *resp)
         return -RIG_EPROTO;
     }
 
-    /* Extract frequency */
+    /* Extract frequency using strtod for validation */
     strncpy(freq_str, resp + 2, 9);
     freq_str[9] = '\0';
-    freq = atof(freq_str);
+    freq = strtod(freq_str, &endptr);
+    if (endptr == freq_str)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse frequency from '%s'\n",
+                  __func__, freq_str);
+        return -RIG_EPROTO;
+    }
 
     /* Extract mode */
     mode_char = resp[18];

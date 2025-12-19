@@ -115,7 +115,15 @@ int ftx1_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         return -RIG_EPROTO;
     }
 
-    *freq = atof(priv->ret_data + 2);
+    /* Use strtod with validation instead of atof */
+    char *endptr;
+    *freq = strtod(priv->ret_data + 2, &endptr);
+    if (endptr == priv->ret_data + 2)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse frequency from '%s'\n",
+                  __func__, priv->ret_data);
+        return -RIG_EPROTO;
+    }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: freq=%.0f\n", __func__, *freq);
 
