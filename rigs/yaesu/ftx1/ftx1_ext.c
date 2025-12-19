@@ -217,7 +217,15 @@ int ftx1_get_ex_menu(RIG *rig, int group, int section, int item, int *value)
         char *semi = strchr(valstr, ';');
         if (semi) *semi = '\0';
 
-        *value = atoi(valstr);
+        char *endptr;
+        long parsed_value = strtol(valstr, &endptr, 10);
+        if (endptr == valstr)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: failed to parse value from '%s'\n",
+                      __func__, valstr);
+            return -RIG_EPROTO;
+        }
+        *value = (int)parsed_value;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: value=%d\n", __func__, *value);
     }
     else
