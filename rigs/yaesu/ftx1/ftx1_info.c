@@ -334,7 +334,12 @@ int ftx1_get_lock(RIG *rig, int *lock)
     return RIG_OK;
 }
 
-/* Get Callsign (CS;) - read stored callsign */
+/*
+ * ftx1_get_callsign - Get stored callsign (MY CALL)
+ * CAT command: EX040101; Response: EX040101<callsign>;
+ * Menu path: DISPLAY SETTING -> DISPLAY -> MY CALL
+ * Returns up to 10 characters.
+ */
 int ftx1_get_callsign(RIG *rig, char *callsign, size_t callsign_len)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -343,19 +348,18 @@ int ftx1_get_callsign(RIG *rig, char *callsign, size_t callsign_len)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CS;");
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX040101;");
 
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    /* Response: CS callsign; - extract callsign after "CS" */
-    if (strlen(priv->ret_data) > 2)
+    /* Response: EX040101<callsign>; - extract callsign after "EX040101" (8 chars) */
+    if (strlen(priv->ret_data) > 8)
     {
-        strncpy(callsign, priv->ret_data + 2, callsign_len - 1);
+        strncpy(callsign, priv->ret_data + 8, callsign_len - 1);
         callsign[callsign_len - 1] = '\0';
         /* Remove trailing semicolon if present */
         len = strlen(callsign);
-
         if (len > 0 && callsign[len - 1] == ';')
         {
             callsign[len - 1] = '\0';
@@ -369,6 +373,33 @@ int ftx1_get_callsign(RIG *rig, char *callsign, size_t callsign_len)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: callsign='%s'\n", __func__, callsign);
 
     return RIG_OK;
+}
+
+/*
+ * ftx1_set_callsign - Set stored callsign (MY CALL)
+ * CAT command: EX040101<callsign>;
+ * Menu path: DISPLAY SETTING -> DISPLAY -> MY CALL
+ * Max 10 characters.
+ */
+int ftx1_set_callsign(RIG *rig, const char *callsign)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    char safe_call[11];  /* Max 10 chars + null */
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: callsign='%s'\n", __func__,
+              callsign ? callsign : "(null)");
+
+    if (callsign == NULL)
+    {
+        callsign = "";
+    }
+
+    /* Copy and truncate to 10 chars max */
+    strncpy(safe_call, callsign, 10);
+    safe_call[10] = '\0';
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX040101%s;", safe_call);
+    return newcat_set_cmd(rig);
 }
 
 /* Set Name/Label display mode (NM P1;) */

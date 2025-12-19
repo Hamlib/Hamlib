@@ -330,7 +330,8 @@ Commands:
   DA P1;           - Date/Dimmer (display brightness) [WORKING]
   DT P1;           - Date/Time [WORKING]
   LK P1;           - Lock (0=off, 1=lock) [WORKING]
-  CS P1;           - CW Spot (stored callsign, read-only) [WORKING]
+  CS P1;           - CW Spot (0=off, 1=on, sidetone for tuning) [WORKING]
+  EX040101;        - MY CALL (callsign, up to 10 chars) [WORKING]
 
 IF Command Response Format (27+ characters):
   Position  Content
