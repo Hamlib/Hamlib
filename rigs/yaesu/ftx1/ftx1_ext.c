@@ -660,12 +660,19 @@ int ftx1_get_scope_speed(RIG *rig, int *speed)
 int ftx1_get_scope_level(RIG *rig, float *level)
 {
     char value[16];
+    char *endptr;
     int ret;
 
     ret = ftx1_get_spectrum_scope(rig, FTX1_SS_LEVEL, value, sizeof(value));
     if (ret == RIG_OK)
     {
-        *level = atof(value);
+        *level = strtof(value, &endptr);
+        if (endptr == value)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: failed to parse level from '%s'\n",
+                      __func__, value);
+            return -RIG_EPROTO;
+        }
     }
     return ret;
 }

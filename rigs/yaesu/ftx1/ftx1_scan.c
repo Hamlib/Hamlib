@@ -78,58 +78,61 @@ static const int ftx1_tuning_steps[] = {
 };
 #define FTX1_TS_COUNT 15
 
-/* Set Scan mode (SC P1;) */
+/* Set Scan mode (SC P1 P2;) - P1=VFO, P2=scan mode */
 int ftx1_set_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1;
+    int p1;  /* VFO: 0=MAIN, 1=SUB */
+    int p2;  /* Scan mode: 0=OFF, 1=UP, 2=DOWN */
 
-    (void)vfo;
     (void)ch;
+
+    p1 = FTX1_VFO_TO_P1(vfo);
 
     switch (scan) {
         case RIG_SCAN_STOP:
-            p1 = 0;
+            p2 = 0;
             break;
         case RIG_SCAN_MEM:
         case RIG_SCAN_VFO:
-            p1 = 1;  /* Scan up */
+            p2 = 1;  /* Scan up */
             break;
         default:
-            p1 = 0;
+            p2 = 0;
             break;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: scan=%d p1=%d\n", __func__, scan, p1);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s scan=%d p1=%d p2=%d\n", __func__,
+              rig_strvfo(vfo), scan, p1, p2);
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SC%1d;", p1);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SC%d%d;", p1, p2);
     return newcat_set_cmd(rig);
 }
 
-/* Get Scan status */
+/* Get Scan status (SC P1;) - P1=VFO, response: SC P1 P2 */
 int ftx1_get_scan(RIG *rig, vfo_t vfo, scan_t *scan, int *ch)
 {
-    int ret, p1;
+    int ret, p1, p2;
     struct newcat_priv_data *priv = STATE(rig)->priv;
 
-    (void)vfo;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SC;");
+    p1 = FTX1_VFO_TO_P1(vfo);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SC%d;", p1);
 
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1) {
+    /* Response: SC P1 P2 (e.g., SC00 or SC01 or SC02) */
+    if (sscanf(priv->ret_data + 2, "%1d%1d", &p1, &p2) != 2) {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__, priv->ret_data);
         return -RIG_EPROTO;
     }
 
-    *scan = (p1 == 0) ? RIG_SCAN_STOP : RIG_SCAN_VFO;
+    *scan = (p2 == 0) ? RIG_SCAN_STOP : RIG_SCAN_VFO;
     *ch = 0;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: p1=%d scan=%d\n", __func__, p1, *scan);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: p1=%d p2=%d scan=%d\n", __func__, p1, p2, *scan);
 
     return RIG_OK;
 }

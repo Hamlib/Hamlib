@@ -271,18 +271,26 @@ int ftx1_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
         break;
 
     case RIG_OP_BAND_UP:
-        /* BU: Band Up (P1=0 for MAIN) */
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BU0;");
+        /* BU: Band Up (P1=VFO: 0=MAIN, 1=SUB) */
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BU%d;", FTX1_VFO_TO_P1(vfo));
         break;
 
     case RIG_OP_BAND_DOWN:
-        /* BD: Band Down (P1=0 for MAIN) */
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BD0;");
+        /* BD: Band Down (P1=VFO: 0=MAIN, 1=SUB) */
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BD%d;", FTX1_VFO_TO_P1(vfo));
         break;
 
     case RIG_OP_FROM_VFO:
-        /* BA: Copy VFO-B (SUB) to VFO-A (MAIN) */
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BA;");
+        /* Store VFO to current memory channel (VFO→MEM) */
+        /* AM for VFO-A, BM for VFO-B */
+        if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BM;");
+        }
+        else
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AM;");
+        }
         break;
 
     case RIG_OP_TUNE:
@@ -300,8 +308,16 @@ int ftx1_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
         break;
 
     case RIG_OP_TO_VFO:
-        /* MV: Memory to VFO - copy current memory channel to VFO */
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MV;");
+        /* Copy current memory channel to VFO (MEM→VFO) */
+        /* MA for VFO-A, MB for VFO-B */
+        if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MB;");
+        }
+        else
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MA;");
+        }
         break;
 
     default:

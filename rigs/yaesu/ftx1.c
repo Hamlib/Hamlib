@@ -137,9 +137,13 @@ extern int ftx1_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit);
 /* Externs from ftx1_freq.c */
 extern int ftx1_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 extern int ftx1_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+extern int ftx1_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift);
+extern int ftx1_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *shift);
 
 /* Externs from ftx1_vfo.c */
 extern int ftx1_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
+extern int ftx1_set_dual_receive(RIG *rig, int dual);
+extern int ftx1_get_dual_receive(RIG *rig, int *dual);
 
 /*
  * ftx1_detect_spa1 - Detect SPA-1 amplifier via VE4 command
@@ -488,10 +492,11 @@ struct rig_caps ftx1_caps = {
     .post_write_delay = 50,  /* Delay after write for FTX-1 response time */
     .timeout = 2000,
     .retry = 3,
-    /* Note: ARO, FAGC, DUAL_WATCH, DIVERSITY return '?' from FTX-1 firmware - not supported */
+    /* Note: ARO, FAGC, DIVERSITY return '?' from FTX-1 firmware - not supported */
+    /* DUAL_WATCH uses FR command for dual/single receive mode */
     /* Contour (CO command) is FTX-1 specific - handle via ext_level */
-    .has_get_func = RIG_FUNC_COMP | RIG_FUNC_VOX | RIG_FUNC_TONE | RIG_FUNC_TSQL | RIG_FUNC_SBKIN | RIG_FUNC_FBKIN | RIG_FUNC_NB | RIG_FUNC_NR | RIG_FUNC_MN | RIG_FUNC_LOCK | RIG_FUNC_MON | RIG_FUNC_TUNER | RIG_FUNC_RIT | RIG_FUNC_XIT | RIG_FUNC_APF | RIG_FUNC_ANF,
-    .has_set_func = RIG_FUNC_COMP | RIG_FUNC_VOX | RIG_FUNC_TONE | RIG_FUNC_TSQL | RIG_FUNC_SBKIN | RIG_FUNC_FBKIN | RIG_FUNC_NB | RIG_FUNC_NR | RIG_FUNC_MN | RIG_FUNC_LOCK | RIG_FUNC_MON | RIG_FUNC_TUNER | RIG_FUNC_RIT | RIG_FUNC_XIT | RIG_FUNC_APF | RIG_FUNC_ANF,
+    .has_get_func = RIG_FUNC_COMP | RIG_FUNC_VOX | RIG_FUNC_TONE | RIG_FUNC_TSQL | RIG_FUNC_SBKIN | RIG_FUNC_FBKIN | RIG_FUNC_NB | RIG_FUNC_NR | RIG_FUNC_MN | RIG_FUNC_LOCK | RIG_FUNC_MON | RIG_FUNC_TUNER | RIG_FUNC_RIT | RIG_FUNC_XIT | RIG_FUNC_APF | RIG_FUNC_ANF | RIG_FUNC_DUAL_WATCH,
+    .has_set_func = RIG_FUNC_COMP | RIG_FUNC_VOX | RIG_FUNC_TONE | RIG_FUNC_TSQL | RIG_FUNC_SBKIN | RIG_FUNC_FBKIN | RIG_FUNC_NB | RIG_FUNC_NR | RIG_FUNC_MN | RIG_FUNC_LOCK | RIG_FUNC_MON | RIG_FUNC_TUNER | RIG_FUNC_RIT | RIG_FUNC_XIT | RIG_FUNC_APF | RIG_FUNC_ANF | RIG_FUNC_DUAL_WATCH,
     .has_get_level = RIG_LEVEL_AF | RIG_LEVEL_RF | RIG_LEVEL_SQL | RIG_LEVEL_IF | RIG_LEVEL_APF | RIG_LEVEL_NB | RIG_LEVEL_NR | RIG_LEVEL_PBT_IN | RIG_LEVEL_PBT_OUT | RIG_LEVEL_RFPOWER | RIG_LEVEL_MICGAIN | RIG_LEVEL_KEYSPD | RIG_LEVEL_NOTCHF | RIG_LEVEL_COMP | RIG_LEVEL_AGC | RIG_LEVEL_BKINDL | RIG_LEVEL_BALANCE | RIG_LEVEL_METER | RIG_LEVEL_VOXGAIN | RIG_LEVEL_VOXDELAY | RIG_LEVEL_ANTIVOX | RIG_LEVEL_RAWSTR | RIG_LEVEL_SWR | RIG_LEVEL_ALC | RIG_LEVEL_STRENGTH | RIG_LEVEL_ATT | RIG_LEVEL_PREAMP | RIG_LEVEL_MONITOR_GAIN,
     .has_set_level = RIG_LEVEL_SET(RIG_LEVEL_AF | RIG_LEVEL_RF | RIG_LEVEL_SQL | RIG_LEVEL_IF | RIG_LEVEL_APF | RIG_LEVEL_NB | RIG_LEVEL_NR | RIG_LEVEL_PBT_IN | RIG_LEVEL_PBT_OUT | RIG_LEVEL_RFPOWER | RIG_LEVEL_MICGAIN | RIG_LEVEL_KEYSPD | RIG_LEVEL_NOTCHF | RIG_LEVEL_COMP | RIG_LEVEL_AGC | RIG_LEVEL_BKINDL | RIG_LEVEL_BALANCE | RIG_LEVEL_METER | RIG_LEVEL_VOXGAIN | RIG_LEVEL_VOXDELAY | RIG_LEVEL_ANTIVOX | RIG_LEVEL_RAWSTR | RIG_LEVEL_SWR | RIG_LEVEL_ALC | RIG_LEVEL_STRENGTH | RIG_LEVEL_ATT | RIG_LEVEL_PREAMP | RIG_LEVEL_MONITOR_GAIN),
     .has_get_parm = RIG_PARM_NONE,
@@ -698,6 +703,8 @@ struct rig_caps ftx1_caps = {
     .get_rit = ftx1_get_rit,
     .set_xit = ftx1_set_xit,
     .get_xit = ftx1_get_xit,
+    .set_rptr_shift = ftx1_set_rptr_shift,
+    .get_rptr_shift = ftx1_get_rptr_shift,
     .set_split_vfo = ftx1_set_split_vfo,
     .get_split_vfo = ftx1_get_split_vfo,
     .set_split_freq = NULL,

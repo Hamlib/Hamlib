@@ -147,6 +147,10 @@ extern int ftx1_get_breakin(RIG *rig, int *mode);
 extern int ftx1_set_processor(RIG *rig, int status);
 extern int ftx1_get_processor(RIG *rig, int *status);
 
+/* Extern helpers from ftx1_vfo.c */
+extern int ftx1_set_dual_receive(RIG *rig, int dual);
+extern int ftx1_get_dual_receive(RIG *rig, int *dual);
+
 /* Extern helpers from ftx1_ctcss.c */
 extern int ftx1_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
 extern int ftx1_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone);
@@ -217,6 +221,9 @@ int ftx1_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             /* FTX-1: Setting XIT to 0 disables it; to enable, use set_xit with offset */
             if (!status) return ftx1_set_xit(rig, vfo, 0);
             return RIG_OK;  /* Enable is no-op; must use set_xit with offset value */
+        case RIG_FUNC_DUAL_WATCH:
+            /* FTX-1: FR command controls dual/single receive mode */
+            return ftx1_set_dual_receive(rig, status);
         /* Note: Contour (CO command) not exposed as RIG_FUNC_CONTOUR doesn't exist in Hamlib */
         default:
             return newcat_set_func(rig, vfo, func, status);
@@ -289,6 +296,9 @@ int ftx1_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
                 if (ret == RIG_OK) *status = (xit_offset != 0) ? 1 : 0;
                 return ret;
             }
+        case RIG_FUNC_DUAL_WATCH:
+            /* FTX-1: FR command controls dual/single receive mode */
+            return ftx1_get_dual_receive(rig, status);
         /* Note: Contour (CO command) not exposed as RIG_FUNC_CONTOUR doesn't exist in Hamlib */
         default:
             return newcat_get_func(rig, vfo, func, status);

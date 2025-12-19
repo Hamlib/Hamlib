@@ -251,7 +251,19 @@ int ftx1_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
  * Memory Read (MR) - read memory channel data
  * FIRMWARE FORMAT: MR P1P2P2P2P2 (5-digit: bank + 4-digit channel)
  *   Query: MR00001 for channel 1
- *   Response: MR00001FFFFFFFFF+OOOOOPPMMxxxx
+ *   Response format (30+ chars after MR):
+ *     Position  Field          Description
+ *     0-4       P1             5-digit channel number
+ *     5-13      P2             9-digit frequency (Hz)
+ *     14        P3 sign        Clarifier direction (+/-)
+ *     15-18     P3 offset      4-digit clarifier offset
+ *     19        P4             RX CLAR on/off (0/1)
+ *     20        P5             TX CLAR on/off (0/1)
+ *     21        P6             Mode code (1-E)
+ *     22        P7             VFO/Memory (0/1)
+ *     23        P8             CTCSS mode (0-3)
+ *     24-25     P9             Reserved "00"
+ *     26        P10            Shift (0=simplex, 1=+, 2=-)
  *   Returns '?' if channel doesn't exist (not programmed)
  */
 int ftx1_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
@@ -259,6 +271,16 @@ int ftx1_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
     int ret;
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ch;
+    const char *p;
+    char *endptr;
+    char freq_str[10];
+    char offset_str[5];
+    int clar_offset;
+    char clar_sign;
+    int rx_clar, tx_clar;
+    char mode_char;
+    int ctcss_mode;
+    int shift_mode;
 
     (void)vfo;
     (void)read_only;
@@ -279,21 +301,103 @@ int ftx1_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    /* Response: MR00001FFFFFFFFF+OOOOOPPMMxxxx */
-    /* Skip "MR" + 5-digit channel (7 chars), then 9-digit frequency */
-    if (strlen(priv->ret_data) < 16) {
-        rig_debug(RIG_DEBUG_ERR, "%s: response too short '%s'\n",
-                  __func__, priv->ret_data);
+    /* Response: MR + 5 (channel) + 9 (freq) + 1 (sign) + 4 (offset) +
+     *           1 (rx_clar) + 1 (tx_clar) + 1 (mode) + 1 (vfo/mem) +
+     *           1 (ctcss) + 2 (reserved) + 1 (shift) = 29 chars minimum */
+    if (strlen(priv->ret_data) < 29) {
+        rig_debug(RIG_DEBUG_ERR, "%s: response too short '%s' (len=%zu)\n",
+                  __func__, priv->ret_data, strlen(priv->ret_data));
         return -RIG_EPROTO;
     }
 
-    /* Parse frequency (9 digits starting at position 7) */
-    freq_t freq;
-    if (sscanf(priv->ret_data + 7, "%9lf", &freq) == 1) {
-        chan->freq = freq;
+    /* Point past "MR" prefix */
+    p = priv->ret_data + 2;
+
+    /* Skip 5-digit channel number, point to frequency */
+    p += 5;
+
+    /* Parse frequency (9 digits) using strtod for validation */
+    strncpy(freq_str, p, 9);
+    freq_str[9] = '\0';
+    chan->freq = strtod(freq_str, &endptr);
+    if (endptr == freq_str) {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse frequency from '%s'\n",
+                  __func__, freq_str);
+        return -RIG_EPROTO;
+    }
+    p += 9;
+
+    /* Parse clarifier: sign (1 char) + offset (4 digits) */
+    clar_sign = *p++;
+    strncpy(offset_str, p, 4);
+    offset_str[4] = '\0';
+    clar_offset = atoi(offset_str);
+    if (clar_sign == '-') clar_offset = -clar_offset;
+    p += 4;
+
+    /* Parse RX/TX clarifier on/off */
+    rx_clar = (*p++ == '1') ? 1 : 0;
+    tx_clar = (*p++ == '1') ? 1 : 0;
+
+    /* Set RIT/XIT based on clarifier state */
+    if (rx_clar) {
+        chan->rit = clar_offset;
+    } else {
+        chan->rit = 0;
+    }
+    if (tx_clar) {
+        chan->xit = clar_offset;
+    } else {
+        chan->xit = 0;
     }
 
-    /* TODO: Parse mode, offset, and other parameters from response */
+    /* Parse mode (1 char) */
+    mode_char = *p++;
+    switch (mode_char) {
+    case '1': chan->mode = RIG_MODE_LSB; break;
+    case '2': chan->mode = RIG_MODE_USB; break;
+    case '3': chan->mode = RIG_MODE_CW; break;
+    case '4': chan->mode = RIG_MODE_FM; break;
+    case '5': chan->mode = RIG_MODE_AM; break;
+    case '6': chan->mode = RIG_MODE_RTTYR; break;
+    case '7': chan->mode = RIG_MODE_CWR; break;
+    case '8': chan->mode = RIG_MODE_PKTLSB; break;
+    case '9': chan->mode = RIG_MODE_RTTY; break;
+    case 'A': chan->mode = RIG_MODE_PKTFM; break;
+    case 'B': chan->mode = RIG_MODE_FMN; break;
+    case 'C': chan->mode = RIG_MODE_PKTUSB; break;
+    case 'D': chan->mode = RIG_MODE_AMN; break;
+    case 'E': chan->mode = RIG_MODE_PSK; break;
+    default:  chan->mode = RIG_MODE_USB; break;
+    }
+
+    /* Skip VFO/Memory indicator (1 char) */
+    p++;
+
+    /* Parse CTCSS mode (1 char) */
+    ctcss_mode = *p++ - '0';
+    /* Note: Actual tone frequencies require separate CN/QN queries */
+    /* Here we just record the mode for reference */
+    (void)ctcss_mode;
+
+    /* Skip reserved "00" (2 chars) */
+    p += 2;
+
+    /* Parse shift mode (1 char) */
+    shift_mode = *p - '0';
+    switch (shift_mode) {
+    case 1:  chan->rptr_shift = RIG_RPT_SHIFT_PLUS; break;
+    case 2:  chan->rptr_shift = RIG_RPT_SHIFT_MINUS; break;
+    default: chan->rptr_shift = RIG_RPT_SHIFT_NONE; break;
+    }
+
+    /* Set width to default (not stored in memory response) */
+    chan->width = RIG_PASSBAND_NORMAL;
+
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "%s: ch=%d freq=%.0f mode=%s rit=%ld xit=%ld shift=%d\n",
+              __func__, ch, chan->freq, rig_strrmode(chan->mode),
+              chan->rit, chan->xit, chan->rptr_shift);
 
     return RIG_OK;
 }
