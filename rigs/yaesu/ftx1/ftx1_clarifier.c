@@ -75,11 +75,18 @@ typedef struct {
  * Implementation by Jeremy Miller (KO4SSD) - PR #1826
  * Uses IF command to read clarifier state, returns offset if RX clarifier enabled.
  */
+/*
+ * FTX1_IF_RESPONSE_LEN - Expected minimum length of IF response
+ * The IF response should be at least 27 characters: "IF" + 25 data chars + ";"
+ */
+#define FTX1_IF_RESPONSE_LEN 27
+
 int ftx1_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     ftx1_if_response_t *rdata;
     int err;
+    size_t resp_len;
 
     (void)vfo;  /* FTX-1 clarifier is not VFO-specific */
 
@@ -90,14 +97,23 @@ int ftx1_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
         return -RIG_EINVAL;
     }
 
-    rdata = (ftx1_if_response_t *)priv->ret_data;
-
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "IF;");
 
     if (RIG_OK != (err = newcat_get_cmd(rig)))
     {
         return err;
     }
+
+    /* Validate response length before casting to structure */
+    resp_len = strlen(priv->ret_data);
+    if (resp_len < FTX1_IF_RESPONSE_LEN)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: IF response too short (%zu < %d): '%s'\n",
+                  __func__, resp_len, FTX1_IF_RESPONSE_LEN, priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    rdata = (ftx1_if_response_t *)priv->ret_data;
 
     /* Check if RX clarifier (RIT) is enabled */
     if (rdata->rx_clarifier == '1')
@@ -178,6 +194,7 @@ int ftx1_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
     struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     ftx1_if_response_t *rdata;
     int err;
+    size_t resp_len;
 
     (void)vfo;  /* FTX-1 clarifier is not VFO-specific */
 
@@ -188,14 +205,23 @@ int ftx1_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
         return -RIG_EINVAL;
     }
 
-    rdata = (ftx1_if_response_t *)priv->ret_data;
-
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "IF;");
 
     if (RIG_OK != (err = newcat_get_cmd(rig)))
     {
         return err;
     }
+
+    /* Validate response length before casting to structure */
+    resp_len = strlen(priv->ret_data);
+    if (resp_len < FTX1_IF_RESPONSE_LEN)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: IF response too short (%zu < %d): '%s'\n",
+                  __func__, resp_len, FTX1_IF_RESPONSE_LEN, priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    rdata = (ftx1_if_response_t *)priv->ret_data;
 
     /* Check if TX clarifier (XIT) is enabled */
     if (rdata->tx_clarifier == '1')

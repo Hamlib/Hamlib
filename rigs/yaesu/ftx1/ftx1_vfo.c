@@ -30,8 +30,19 @@
  */
 int ftx1_set_vfo(RIG *rig, vfo_t vfo)
 {
-    struct newcat_priv_data *priv = STATE(rig)->priv;
+    struct newcat_priv_data *priv;
     int p1;
+
+    if (!rig)
+    {
+        return -RIG_EINVAL;
+    }
+
+    priv = STATE(rig)->priv;
+    if (!priv)
+    {
+        return -RIG_EINTERNAL;
+    }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
@@ -66,9 +77,20 @@ int ftx1_set_vfo(RIG *rig, vfo_t vfo)
  */
 int ftx1_get_vfo(RIG *rig, vfo_t *vfo)
 {
-    struct newcat_priv_data *priv = STATE(rig)->priv;
+    struct newcat_priv_data *priv;
     int ret;
     int p1;
+
+    if (!rig || !vfo)
+    {
+        return -RIG_EINVAL;
+    }
+
+    priv = STATE(rig)->priv;
+    if (!priv)
+    {
+        return -RIG_EINTERNAL;
+    }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
@@ -81,7 +103,7 @@ int ftx1_get_vfo(RIG *rig, vfo_t *vfo)
         return ret;
     }
 
-    // Response: VS0 or VS1
+    /* Response: VS0 or VS1 */
     if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
@@ -104,14 +126,25 @@ int ftx1_get_vfo(RIG *rig, vfo_t *vfo)
  */
 int ftx1_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
-    struct newcat_priv_data *priv = STATE(rig)->priv;
+    struct newcat_priv_data *priv;
     int ret;
     int p1;
+
+    if (!rig)
+    {
+        return -RIG_EINVAL;
+    }
+
+    priv = STATE(rig)->priv;
+    if (!priv)
+    {
+        return -RIG_EINTERNAL;
+    }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: split=%d tx_vfo=%s\n", __func__,
               split, rig_strvfo(tx_vfo));
 
-    // Set split on/off
+    /* Set split on/off */
     p1 = (split == RIG_SPLIT_ON) ? 1 : 0;
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "ST%d;", p1);
 
@@ -122,7 +155,7 @@ int ftx1_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         return ret;
     }
 
-    // Set TX VFO if split is on
+    /* Set TX VFO if split is on */
     if (split == RIG_SPLIT_ON)
     {
         p1 = (tx_vfo == RIG_VFO_SUB || tx_vfo == RIG_VFO_B) ? 1 : 0;
@@ -141,13 +174,24 @@ int ftx1_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
  */
 int ftx1_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
-    struct newcat_priv_data *priv = STATE(rig)->priv;
+    struct newcat_priv_data *priv;
     int ret;
     int p1;
 
+    if (!rig || !split || !tx_vfo)
+    {
+        return -RIG_EINVAL;
+    }
+
+    priv = STATE(rig)->priv;
+    if (!priv)
+    {
+        return -RIG_EINTERNAL;
+    }
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
-    // Get split status
+    /* Get split status */
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "ST;");
 
     ret = newcat_get_cmd(rig);
@@ -166,7 +210,7 @@ int ftx1_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 
     *split = (p1 == 1) ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
 
-    // Get TX VFO
+    /* Get TX VFO */
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FT;");
 
     ret = newcat_get_cmd(rig);
@@ -199,7 +243,18 @@ int ftx1_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
  */
 int ftx1_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
-    struct newcat_priv_data *priv = STATE(rig)->priv;
+    struct newcat_priv_data *priv;
+
+    if (!rig)
+    {
+        return -RIG_EINVAL;
+    }
+
+    priv = STATE(rig)->priv;
+    if (!priv)
+    {
+        return -RIG_EINTERNAL;
+    }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: op=%d\n", __func__, op);
 
@@ -235,13 +290,18 @@ int ftx1_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
         /* Format: AC P1 P2 P3; P1=1 (on), P2=1 (start tune), P3=0 (MAIN) */
         /* Note: This causes transmission! */
         /* Tuner is only available on SPA-1/Optima head */
-        if (!ftx1_has_spa1())
+        if (!ftx1_has_spa1(rig))
         {
             rig_debug(RIG_DEBUG_WARN, "%s: TUNE not available on Field Head\n",
                       __func__);
             return -RIG_ENAVAIL;
         }
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AC110;");
+        break;
+
+    case RIG_OP_TO_VFO:
+        /* MV: Memory to VFO - copy current memory channel to VFO */
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MV;");
         break;
 
     default:

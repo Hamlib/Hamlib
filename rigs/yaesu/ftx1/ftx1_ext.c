@@ -55,7 +55,7 @@
  *
  * Returns: RIG_OK if allowed, -RIG_ENAVAIL if SPA-1 required but not present
  */
-static int ftx1_check_ex_spa1_guardrail(int group, int section, int item, int value)
+static int ftx1_check_ex_spa1_guardrail(RIG *rig, int group, int section, int item, int value)
 {
     /*
      * TUNER SELECT (EX030104): Values 0 (INT) and 1 (INT FAST) require SPA-1
@@ -65,7 +65,7 @@ static int ftx1_check_ex_spa1_guardrail(int group, int section, int item, int va
         section == FTX1_EX_TUNER_SELECT_SECTION &&
         item == FTX1_EX_TUNER_SELECT_ITEM)
     {
-        if ((value == 0 || value == 1) && !ftx1_has_spa1())
+        if ((value == 0 || value == 1) && !ftx1_has_spa1(rig))
         {
             rig_debug(RIG_DEBUG_WARN,
                       "%s: TUNER SELECT INT/INT(FAST) requires SPA-1 amplifier\n",
@@ -80,7 +80,7 @@ static int ftx1_check_ex_spa1_guardrail(int group, int section, int item, int va
      */
     if (group == FTX1_EX_OPTION_GROUP && section == FTX1_EX_OPTION_SECTION)
     {
-        if (!ftx1_has_spa1())
+        if (!ftx1_has_spa1(rig))
         {
             rig_debug(RIG_DEBUG_WARN,
                       "%s: OPTION power settings (EX0307%02d) require SPA-1\n",
@@ -102,7 +102,7 @@ int ftx1_set_ext_parm(RIG *rig, int menu, int submenu, int value)
               menu, submenu, value);
 
     /* Check SPA-1 guardrails for specific menu items */
-    ret = ftx1_check_ex_spa1_guardrail(menu / 100, (menu % 100), submenu, value);
+    ret = ftx1_check_ex_spa1_guardrail(rig, menu / 100, (menu % 100), submenu, value);
     if (ret != RIG_OK)
     {
         return ret;
@@ -175,7 +175,7 @@ int ftx1_set_ex_menu(RIG *rig, int group, int section, int item, int value, int 
               __func__, group, section, item, value, digits);
 
     /* Check SPA-1 guardrails */
-    ret = ftx1_check_ex_spa1_guardrail(group, section, item, value);
+    ret = ftx1_check_ex_spa1_guardrail(rig, group, section, item, value);
     if (ret != RIG_OK)
     {
         return ret;
@@ -248,7 +248,7 @@ int ftx1_set_tuner_select(RIG *rig, int tuner_type)
     /*
      * GUARDRAIL: INT (0) and INT(FAST) (1) tuner types require SPA-1
      */
-    if ((tuner_type == 0 || tuner_type == 1) && !ftx1_has_spa1())
+    if ((tuner_type == 0 || tuner_type == 1) && !ftx1_has_spa1(rig))
     {
         rig_debug(RIG_DEBUG_WARN,
                   "%s: internal tuner (INT/INT FAST) requires SPA-1 amplifier\n",
@@ -291,7 +291,7 @@ int ftx1_get_tuner_select(RIG *rig, int *tuner_type)
  */
 int ftx1_set_max_power(RIG *rig, int band_item, int watts)
 {
-    int head_type = ftx1_get_head_type();
+    int head_type = ftx1_get_head_type(rig);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: band_item=%d watts=%d head_type=%d\n",
               __func__, band_item, watts, head_type);
@@ -313,7 +313,7 @@ int ftx1_set_max_power(RIG *rig, int band_item, int watts)
  */
 int ftx1_get_max_power(RIG *rig, int band_item, int *watts)
 {
-    int head_type = ftx1_get_head_type();
+    int head_type = ftx1_get_head_type(rig);
 
     if (head_type == FTX1_HEAD_SPA1)
     {

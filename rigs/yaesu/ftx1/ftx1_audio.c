@@ -269,7 +269,7 @@ int ftx1_set_power(RIG *rig, float val)
      * Use pre-detected head type from ftx1_open() for better performance
      * and to ensure consistency with SPA-1 guardrails.
      */
-    head_type = ftx1_get_head_type();
+    head_type = ftx1_get_head_type(rig);
 
     if (head_type == FTX1_HEAD_UNKNOWN)
     {
@@ -393,7 +393,7 @@ int ftx1_get_power(RIG *rig, float *val)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: p1=%d watts=%.1f\n", __func__, p1, watts);
 
     /* Get detected head type for proper scaling */
-    head_type = ftx1_get_head_type();
+    head_type = ftx1_get_head_type(rig);
 
     /* Convert watts to 0.0-1.0 range based on head type */
     if (p1 == 2)

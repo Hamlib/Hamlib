@@ -124,9 +124,10 @@
 }
 
 /*
- * SPA-1 detection functions (defined in ftx1.c)
+ * FTX-1 head detection functions (defined in ftx1.c)
+ * These functions take a RIG* parameter to access per-rig instance storage.
  */
-extern int ftx1_has_spa1(void);
-extern int ftx1_get_head_type(void);
+extern int ftx1_has_spa1(RIG *rig);
+extern int ftx1_get_head_type(RIG *rig);
 
 #endif /* _FTX1_H */
