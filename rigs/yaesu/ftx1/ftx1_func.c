@@ -131,8 +131,10 @@ extern int ftx1_get_powerstat(RIG *rig, powerstat_t *status);
 /* Extern helpers from ftx1_cw.c */
 extern int ftx1_set_keyer_speed(RIG *rig, int wpm);
 extern int ftx1_get_keyer_speed(RIG *rig, int *wpm);
-extern int ftx1_set_keyer_paddle(RIG *rig, int ratio);
-extern int ftx1_get_keyer_paddle(RIG *rig, int *ratio);
+extern int ftx1_set_cw_pitch(RIG *rig, int val);
+extern int ftx1_get_cw_pitch(RIG *rig, int *val);
+extern int ftx1_set_keyer(RIG *rig, int enable);
+extern int ftx1_get_keyer(RIG *rig, int *enable);
 extern int ftx1_set_cw_delay(RIG *rig, int ms);
 extern int ftx1_get_cw_delay(RIG *rig, int *ms);
 extern int ftx1_send_morse(RIG *rig, vfo_t vfo, const char *msg);
@@ -321,8 +323,13 @@ int ftx1_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         case RIG_LEVEL_BKINDL:
             return ftx1_set_cw_delay(rig, val.i);
         case RIG_LEVEL_CWPITCH:
-            /* FTX-1 uses KP for paddle ratio, not pitch. No CAT command for pitch. */
-            return -RIG_ENAVAIL;
+            /* KP command: 00-75 maps to 300-1050 Hz (10Hz steps) */
+            {
+                int pitch_val = (val.i - 300) / 10;
+                if (pitch_val < 0) pitch_val = 0;
+                if (pitch_val > 75) pitch_val = 75;
+                return ftx1_set_cw_pitch(rig, pitch_val);
+            }
         case RIG_LEVEL_NOTCHF:
             return ftx1_set_notchf_helper(rig, vfo, val);
         case RIG_LEVEL_APF:
@@ -404,8 +411,10 @@ int ftx1_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             if (ret == RIG_OK) val->i = ival;
             return ret;
         case RIG_LEVEL_CWPITCH:
-            /* FTX-1 uses KP for paddle ratio, not pitch. No CAT command for pitch. */
-            return -RIG_ENAVAIL;
+            /* KP command: 00-75 maps to 300-1050 Hz (10Hz steps) */
+            ret = ftx1_get_cw_pitch(rig, &ival);
+            if (ret == RIG_OK) val->i = 300 + (ival * 10);
+            return ret;
         case RIG_LEVEL_NOTCHF:
             return ftx1_get_notchf_helper(rig, vfo, val);
         case RIG_LEVEL_APF:

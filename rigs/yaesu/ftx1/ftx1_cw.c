@@ -5,8 +5,8 @@
  * This file implements CAT commands for CW keyer and messaging.
  *
  * CAT Commands in this file:
- *   KP P1P2;         - Keyer Paddle Ratio (00-30)
- *   KR P1;           - Keyer Reverse (0=normal, 1=reverse)
+ *   KP P1P2;         - Key Pitch Frequency (00-75: 300-1050 Hz in 10Hz steps)
+ *   KR P1;           - Keyer Enable (0=off, 1=on)
  *   KS P1P2P3;       - Keyer Speed (004-060 WPM)
  *   KY P1 P2...;     - CW Message Send (P1=0, P2=message up to 24 chars)
  *   KM P1 P2...;     - Keyer Memory Read/Write (P1=1-5 slot, P2=message up to 50 chars)
@@ -28,11 +28,11 @@
 
 #define FTX1_CW_SPEED_MIN 4
 #define FTX1_CW_SPEED_MAX 60
-#define FTX1_CW_PADDLE_MIN 0
-#define FTX1_CW_PADDLE_MAX 30
-/* SD P1P2; - 2 digits, 00-30 (in 100ms increments, so 00-3000ms) */
+#define FTX1_CW_PITCH_MIN 0
+#define FTX1_CW_PITCH_MAX 75
+/* SD P1P2; - 2 digits, 00-33 (non-linear: 00=30ms, 01=50ms, 02-05=100-250ms, 06-33=300-3000ms) */
 #define FTX1_CW_DELAY_MIN 0
-#define FTX1_CW_DELAY_MAX 30
+#define FTX1_CW_DELAY_MAX 33
 #define FTX1_CW_MSG_MAX 24
 
 /* Set Keyer Speed (KS P1P2P3;) in WPM */
@@ -76,25 +76,32 @@ int ftx1_get_keyer_speed(RIG *rig, int *wpm)
     return RIG_OK;
 }
 
-/* Set Keyer Paddle Ratio (KP P1P2;) */
-int ftx1_set_keyer_paddle(RIG *rig, int ratio)
+/*
+ * ftx1_set_cw_pitch - Set CW sidetone pitch (KP P1P2;)
+ * CAT command: KP P1P2; (P1P2: 00-75, maps to 300-1050 Hz in 10Hz steps)
+ * Formula: frequency = 300 + (value * 10) Hz
+ */
+int ftx1_set_cw_pitch(RIG *rig, int val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
 
-    if (ratio < FTX1_CW_PADDLE_MIN) ratio = FTX1_CW_PADDLE_MIN;
-    if (ratio > FTX1_CW_PADDLE_MAX) ratio = FTX1_CW_PADDLE_MAX;
+    if (val < FTX1_CW_PITCH_MIN) val = FTX1_CW_PITCH_MIN;
+    if (val > FTX1_CW_PITCH_MAX) val = FTX1_CW_PITCH_MAX;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: ratio=%d\n", __func__, ratio);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: val=%d (freq=%d Hz)\n", __func__, val, 300 + val * 10);
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "KP%02d;", ratio);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "KP%02d;", val);
     return newcat_set_cmd(rig);
 }
 
-/* Get Keyer Paddle Ratio */
-int ftx1_get_keyer_paddle(RIG *rig, int *ratio)
+/*
+ * ftx1_get_cw_pitch - Get CW sidetone pitch (KP;)
+ * Response: KP P1P2; (00-75, maps to 300-1050 Hz)
+ */
+int ftx1_get_cw_pitch(RIG *rig, int *val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret, val;
+    int ret, pitch;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
@@ -103,34 +110,42 @@ int ftx1_get_keyer_paddle(RIG *rig, int *ratio)
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    if (sscanf(priv->ret_data + 2, "%2d", &val) != 1)
+    if (sscanf(priv->ret_data + 2, "%2d", &pitch) != 1)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
                   priv->ret_data);
         return -RIG_EPROTO;
     }
 
-    *ratio = val;
+    *val = pitch;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: ratio=%d\n", __func__, *ratio);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: val=%d (freq=%d Hz)\n", __func__, *val, 300 + *val * 10);
 
     return RIG_OK;
 }
 
-/* Set Keyer Reverse (KR P1;) */
-int ftx1_set_keyer_reverse(RIG *rig, int reverse)
+/*
+ * ftx1_set_keyer - Enable/disable CW keyer (KR P1;)
+ * CAT command: KR P1; (P1: 0=keyer OFF, 1=keyer ON)
+ * Note: This controls whether the internal keyer is active, not paddle reverse.
+ *       Paddle reverse (dot/dash swap) is controlled via menu EX020202.
+ */
+int ftx1_set_keyer(RIG *rig, int enable)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = reverse ? 1 : 0;
+    int p1 = enable ? 1 : 0;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: reverse=%d\n", __func__, reverse);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: enable=%d\n", __func__, enable);
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "KR%d;", p1);
     return newcat_set_cmd(rig);
 }
 
-/* Get Keyer Reverse */
-int ftx1_get_keyer_reverse(RIG *rig, int *reverse)
+/*
+ * ftx1_get_keyer - Get CW keyer enable status (KR;)
+ * Response: KR P1; (0=keyer OFF, 1=keyer ON)
+ */
+int ftx1_get_keyer(RIG *rig, int *enable)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret, p1;
@@ -149,9 +164,9 @@ int ftx1_get_keyer_reverse(RIG *rig, int *reverse)
         return -RIG_EPROTO;
     }
 
-    *reverse = p1;
+    *enable = p1;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: reverse=%d\n", __func__, *reverse);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: enable=%d\n", __func__, *enable);
 
     return RIG_OK;
 }

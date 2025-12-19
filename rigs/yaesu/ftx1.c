@@ -518,13 +518,14 @@ struct rig_caps ftx1_caps = {
         [LVL_RFPOWER] = { .min = { .f = 0.05 }, .max = { .f = 1.0 }, .step = { .f = 1.0f / 100.0f } },
         [LVL_MONITOR_GAIN] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f / 100.0f } },
         [LVL_SQL] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f / 100.0f } },
-        /* CW pitch: FTX-1 does NOT support CWPITCH via CAT (KP is paddle ratio) */
+        /* CW pitch: FTX-1 KP command sets pitch 300-1050 Hz in 10Hz steps */
+        [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 10 } },
         /* Key speed: FTX-1 uses 4-60 WPM */
         [LVL_KEYSPD] = { .min = { .i = 4 }, .max = { .i = 60 }, .step = { .i = 1 } },
-        /* Break-in delay: FTX-1 SD command uses 00-30 (tenths of seconds, 0-3000ms) */
-        [LVL_BKINDL] = { .min = { .i = 0 }, .max = { .i = 30 }, .step = { .i = 1 } },
-        /* VOX delay: FTX-1 VD command uses 00-30 (tenths of seconds, 0-3000ms) */
-        [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 30 }, .step = { .i = 1 } },
+        /* Break-in delay: FTX-1 SD command uses 00-33 (non-linear, see CAT manual) */
+        [LVL_BKINDL] = { .min = { .i = 0 }, .max = { .i = 33 }, .step = { .i = 1 } },
+        /* VOX delay: FTX-1 VD command uses 00-33 (non-linear, see CAT manual) */
+        [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 33 }, .step = { .i = 1 } },
         /* Notch frequency: FTX-1 uses 1-3200 Hz */
         [LVL_NOTCHF] = { .min = { .i = 1 }, .max = { .i = 3200 }, .step = { .i = 10 } },
     },
