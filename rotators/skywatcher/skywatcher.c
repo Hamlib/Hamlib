@@ -60,7 +60,8 @@ static int skywatcher_cmd(ROT *rot, const char *cmd, char *response,
     rig_flush(port);
     size_t cmd_len = strlen(cmd);
     ERROR_CHECK(write_block(port, (unsigned char *) cmd, cmd_len));
-    // echo from the device
+    // Some firmwares echo the commands and some don't, so this may be the echo
+    // of the command sent above or the response
     int code = read_string(port, (unsigned char *) response, response_len, "\r", 1,
                            0, 1);
 
@@ -69,13 +70,15 @@ static int skywatcher_cmd(ROT *rot, const char *cmd, char *response,
         return code;
     }
 
-    // the actual response
-    code = read_string(port, (unsigned char *) response, response_len, "\r", 1, 0,
+    // If we got echo from the device, then get the actual response
+    if (response[0] == ':') {
+        code = read_string(port, (unsigned char *) response, response_len, "\r", 1, 0,
                        1);
 
-    if (code < 0)
-    {
-        return code;
+        if (code < 0)
+        {
+            return code;
+        }
     }
 
     // nullify last \r
