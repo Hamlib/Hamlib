@@ -66,7 +66,7 @@ static int skywatcher_cmd(ROT *rot, const char *cmd, char *response,
 
     if (code < 0)
     {
-        return -code;
+        return code;
     }
 
     // the actual response
@@ -75,7 +75,7 @@ static int skywatcher_cmd(ROT *rot, const char *cmd, char *response,
 
     if (code < 0)
     {
-        return -code;
+        return code;
     }
 
     // nullify last \r
