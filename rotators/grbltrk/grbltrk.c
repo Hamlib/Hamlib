@@ -208,7 +208,6 @@ grbl_init(ROT *rot)
 static int
 grbltrk_rot_set_position(ROT *rot, azimuth_t curr_az, elevation_t curr_el)
 {
-    int i;
     int retval;
     static float prev_az, prev_el;
 
@@ -295,7 +294,7 @@ grbltrk_rot_set_position(ROT *rot, azimuth_t curr_az, elevation_t curr_el)
         min_value = delta[0];
         min_index = 0;
 
-        for (i = 0; i < 3; i++)
+        for (int i = 0; i < 3; i++)
         {
             if (delta[i] <= min_value)
             {

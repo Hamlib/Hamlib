@@ -841,7 +841,6 @@ int kenwood_init(RIG *rig)
     struct kenwood_priv_data *priv;
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
     struct rig_state *rs = STATE(rig);
-    int i;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, version %s/%s\n", __func__,
               BACKEND_VER, rig->caps->version);
@@ -911,7 +910,7 @@ int kenwood_init(RIG *rig)
 
     /* Set up voice memory parameters */
     priv->voice_mem_max = -1;
-    for (i = 0; i < HAMLIB_CHANLSTSIZ && !RIG_IS_CHAN_END(rs->chan_list[i]); i++)
+    for (int i = 0; i < HAMLIB_CHANLSTSIZ && !RIG_IS_CHAN_END(rs->chan_list[i]); i++)
     {
         if (rs->chan_list[i].type == RIG_MTYPE_VOICE)
         {
