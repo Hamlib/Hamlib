@@ -12,7 +12,6 @@ LVL_KEYSPD
 
         // Once included these values can be overridden in the back-end
         // Known variants are AGC_TIME, PREAMP, ATT, NB, CWPITCH, IF, NOTCHF, VOXDELAY, BKINDL, BKIN_DLYMS, RFPOWER_METER(255 or 100), RFPOWER_METER_WATTS(255 or 100)
-        // cppcheck-suppress *
         /* raw data */
         [LVL_RAWSTR]        = { .min = { .i = 0 },     .max = { .i = 255 } },
         /* levels with dB units */
