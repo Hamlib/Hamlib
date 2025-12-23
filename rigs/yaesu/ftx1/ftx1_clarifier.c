@@ -44,7 +44,7 @@
 #include "misc.h"
 #include "yaesu.h"
 #include "newcat.h"
-#include "../ftx1.h"
+#include "ftx1.h"
 
 /*
  * FTX-1 IF (Information) response structure

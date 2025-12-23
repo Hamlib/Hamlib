@@ -12,7 +12,7 @@ YAESUSRC = ft100.c ft100.h ft747.c ft747.h ft817.c ft817.h ft847.c ft847.h \
 NEWCATSRC = newcat.c newcat.h ft450.c ft450.h ft950.c ft950.h ft991.c ft991.h \
 	ft2000.c ft2000.h ft9000.c ft9000.h ft5000.c ft5000.h ft1200.c ft1200.h \
 	ft891.c ft891.h ftdx101.c ftdx101.h ftdx101mp.c ft3000.c ftdx10.c ft710.h \
-	ftx1.c ftx1.h \
+	ftx1/ftx1.c ftx1/ftx1.h \
 	ftx1/ftx1_vfo.c ftx1/ftx1_freq.c ftx1/ftx1_mode.c ftx1/ftx1_filter.c \
 	ftx1/ftx1_noise.c ftx1/ftx1_func.c ftx1/ftx1_preamp.c ftx1/ftx1_audio.c \
 	ftx1/ftx1_tx.c ftx1/ftx1_mem.c ftx1/ftx1_cw.c ftx1/ftx1_ctcss.c \

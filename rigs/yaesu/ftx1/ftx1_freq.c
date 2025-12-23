@@ -304,7 +304,7 @@ int ftx1_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *shift)
  * The menu values are in different units per band.
  */
 
-#include "../ftx1.h"
+#include "ftx1.h"
 #include "ftx1_menu.h"
 
 /*

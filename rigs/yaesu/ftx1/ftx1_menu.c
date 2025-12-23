@@ -13,7 +13,7 @@
 #include "misc.h"
 #include "yaesu.h"
 #include "newcat.h"
-#include "../ftx1.h"
+#include "ftx1.h"
 #include "ftx1_menu.h"
 
 /*

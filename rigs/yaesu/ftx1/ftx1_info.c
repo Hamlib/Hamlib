@@ -37,7 +37,7 @@
 #include "misc.h"
 #include "yaesu.h"
 #include "newcat.h"
-#include "../ftx1.h"
+#include "ftx1.h"
 
 #define FTX1_ID "0840"  /* Radio ID for FTX-1 */
 

@@ -48,7 +48,7 @@
 #include "misc.h"
 #include "yaesu.h"
 #include "newcat.h"
-#include "../ftx1.h"
+#include "ftx1.h"
 
 /* Extern helpers from ftx1_filter.c */
 extern int ftx1_set_anf_helper(RIG *rig, vfo_t vfo, int status);

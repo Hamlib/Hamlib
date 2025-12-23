@@ -22,7 +22,7 @@
 #include "misc.h"
 #include "yaesu.h"
 #include "newcat.h"
-#include "../ftx1.h"
+#include "ftx1.h"
 
 /*
  * ftx1_set_vfo
