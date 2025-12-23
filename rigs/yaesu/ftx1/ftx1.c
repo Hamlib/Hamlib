@@ -71,7 +71,7 @@
 #include "yaesu.h"
 #include "newcat.h"
 #include "ftx1.h"
-#include "ftx1/ftx1_menu.h"
+#include "ftx1_menu.h"
 
 /* Private caps for newcat framework */
 static const struct newcat_priv_caps ftx1_priv_caps = {
@@ -540,7 +540,16 @@ struct rig_caps ftx1_caps = {
     .has_set_parm = RIG_PARM_NONE,
     .level_gran = {
         /* FTX-1 specific level granularity */
-        /* Include common Yaesu defaults, then override as needed */
+        /* Suppress entries we override, then include common Yaesu defaults */
+#define NO_LVL_MICGAIN
+#define NO_LVL_VOXGAIN
+#define NO_LVL_RFPOWER
+#define NO_LVL_MONITOR_GAIN
+#define NO_LVL_SQL
+#define NO_LVL_CWPITCH
+#define NO_LVL_NOTCHF
+#define NO_LVL_BKINDL
+#define NO_LVL_VOXDELAY
 #include "level_gran_yaesu.h"
         /* FTX-1 overrides for levels with 0-100 range instead of 0-255 */
         [LVL_MICGAIN] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f / 100.0f } },

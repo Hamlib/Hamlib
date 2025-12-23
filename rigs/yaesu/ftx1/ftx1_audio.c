@@ -26,7 +26,7 @@
 #include "misc.h"
 #include "yaesu.h"
 #include "newcat.h"
-#include "../ftx1.h"
+#include "ftx1.h"
 
 /* Level ranges */
 #define FTX1_AF_GAIN_MIN 0
