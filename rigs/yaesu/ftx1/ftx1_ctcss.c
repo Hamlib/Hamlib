@@ -5,10 +5,12 @@
  * This file implements CAT commands for CTCSS and DCS tone control.
  *
  * CAT Commands in this file:
- *   CN P1 0 P2P3P4;  - CTCSS Tone Number (P1=0 TX/1 RX, literal 0, P2P3P4=001-050)
- *   CT P1 P2;        - CTCSS Mode (P1=VFO 0=Main, P2=0-3: off/ENC/TSQ/DCS)
+ *   CN P1 P2 P3P4P5; - Tone Number (P1=VFO 0/1, P2=Type 0=CTCSS/1=DCS, P3P4P5=code)
+ *                      CN00XXX = Main CTCSS, CN01XXX = Main DCS
+ *                      CN10XXX = Sub CTCSS,  CN11XXX = Sub DCS
+ *                      Code range: 000-103 (table lookup for both CTCSS and DCS)
+ *   CT P1 P2;        - CTCSS/DCS Mode (P1=VFO 0=Main, P2=0-3: off/ENC/TSQ/DCS)
  *                      NOTE: Must include VFO param; CT; alone returns ?;
- *   DC P1 P2P3P4;    - DCS Code (P1=0 TX/1 RX, P2-P4=code number)
  *
  * CTCSS Tone Table (01-50):
  *   01=67.0   11=94.8   21=131.8  31=177.3  41=225.7
@@ -260,37 +262,48 @@ int ftx1_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
     return RIG_OK;
 }
 
-/* Set DCS Code (DC P1 P2P3P4;) */
+/*
+ * Set DCS Code (CN P1 P2 P3P4P5;)
+ *
+ * CN command format:
+ *   P1 = VFO: 0=Main, 1=Sub
+ *   P2 = Type: 0=CTCSS, 1=DCS
+ *   P3P4P5 = Code index (000-103, table lookup)
+ *
+ * Example: CN01023 = Main VFO, DCS, code index 023
+ */
 int ftx1_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
 
-    (void)vfo;  /* Unused */
+    (void)vfo;  /* Unused - always Main for now */
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: code=%u\n", __func__, code);
 
-    /* P1=0 for TX DCS code */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DC0%03u;", code);
+    /* CN01XXX: Main VFO (0), DCS (1), code index */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN01%03u;", code);
     return newcat_set_cmd(rig);
 }
 
-/* Get DCS Code */
+/* Get DCS Code (CN P1 P2;) */
 int ftx1_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret, p1;
+    int ret, p1p2;
     unsigned int dcs;
 
     (void)vfo;  /* Unused */
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DC0;");
+    /* Query Main DCS: CN01; */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN01;");
 
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    if (sscanf(priv->ret_data + 2, "%1d%3u", &p1, &dcs) != 2)
+    /* Response format: CN01XXX (e.g., CN01023) */
+    if (sscanf(priv->ret_data + 2, "%2d%3u", &p1p2, &dcs) != 2)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
                   priv->ret_data);
@@ -304,7 +317,12 @@ int ftx1_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
     return RIG_OK;
 }
 
-/* Set DCS Squelch Code */
+/*
+ * Set DCS Squelch Code (CN P1 P2 P3P4P5;)
+ *
+ * For RX squelch, we use Sub VFO DCS: CN11XXX
+ * Note: This may need adjustment based on actual radio behavior.
+ */
 int ftx1_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
@@ -313,28 +331,30 @@ int ftx1_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: code=%u\n", __func__, code);
 
-    /* P1=1 for RX DCS code */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DC1%03u;", code);
+    /* CN11XXX: Sub VFO (1), DCS (1), code index */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN11%03u;", code);
     return newcat_set_cmd(rig);
 }
 
-/* Get DCS Squelch Code */
+/* Get DCS Squelch Code (CN P1 P2;) */
 int ftx1_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret, p1;
+    int ret, p1p2;
     unsigned int dcs;
 
     (void)vfo;  /* Unused */
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DC1;");
+    /* Query Sub DCS: CN11; */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN11;");
 
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    if (sscanf(priv->ret_data + 2, "%1d%3u", &p1, &dcs) != 2)
+    /* Response format: CN11XXX (e.g., CN11023) */
+    if (sscanf(priv->ret_data + 2, "%2d%3u", &p1p2, &dcs) != 2)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
                   priv->ret_data);
