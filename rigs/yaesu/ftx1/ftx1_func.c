@@ -164,10 +164,10 @@ extern int ftx1_set_ctcss_mode(RIG *rig, tone_t mode);
 extern int ftx1_get_ctcss_mode(RIG *rig, tone_t *mode);
 
 /* Extern helpers from ftx1_clarifier.c */
-extern int ftx1_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
-extern int ftx1_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
-extern int ftx1_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit);
-extern int ftx1_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit);
+extern int ftx1_set_rx_clar(RIG *rig, vfo_t vfo, shortfreq_t offset);
+extern int ftx1_get_rx_clar(RIG *rig, vfo_t vfo, shortfreq_t *offset);
+extern int ftx1_set_tx_clar(RIG *rig, vfo_t vfo, shortfreq_t offset);
+extern int ftx1_get_tx_clar(RIG *rig, vfo_t vfo, shortfreq_t *offset);
 
 /* Extern helpers from ftx1_info.c */
 extern int ftx1_set_trn(RIG *rig, int trn);
@@ -214,12 +214,12 @@ int ftx1_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         case RIG_FUNC_TSQL:
             return ftx1_set_ctcss_mode(rig, status ? FTX1_CTCSS_MODE_TSQ : FTX1_CTCSS_MODE_OFF);
         case RIG_FUNC_RIT:
-            /* FTX-1: Setting RIT to 0 disables it; to enable, use set_rit with offset */
-            if (!status) return ftx1_set_rit(rig, vfo, 0);
+            /* FTX-1: Setting RX CLAR to 0 disables it; to enable, use set_rit with offset */
+            if (!status) return ftx1_set_rx_clar(rig, vfo, 0);
             return RIG_OK;  /* Enable is no-op; must use set_rit with offset value */
         case RIG_FUNC_XIT:
-            /* FTX-1: Setting XIT to 0 disables it; to enable, use set_xit with offset */
-            if (!status) return ftx1_set_xit(rig, vfo, 0);
+            /* FTX-1: Setting TX CLAR to 0 disables it; to enable, use set_xit with offset */
+            if (!status) return ftx1_set_tx_clar(rig, vfo, 0);
             return RIG_OK;  /* Enable is no-op; must use set_xit with offset value */
         case RIG_FUNC_DUAL_WATCH:
             /* FTX-1: FR command controls dual/single receive mode */
@@ -285,16 +285,16 @@ int ftx1_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
             }
         case RIG_FUNC_RIT:
             {
-                shortfreq_t rit_offset;
-                ret = ftx1_get_rit(rig, vfo, &rit_offset);
-                if (ret == RIG_OK) *status = (rit_offset != 0) ? 1 : 0;
+                shortfreq_t rx_clar_offset;
+                ret = ftx1_get_rx_clar(rig, vfo, &rx_clar_offset);
+                if (ret == RIG_OK) *status = (rx_clar_offset != 0) ? 1 : 0;
                 return ret;
             }
         case RIG_FUNC_XIT:
             {
-                shortfreq_t xit_offset;
-                ret = ftx1_get_xit(rig, vfo, &xit_offset);
-                if (ret == RIG_OK) *status = (xit_offset != 0) ? 1 : 0;
+                shortfreq_t tx_clar_offset;
+                ret = ftx1_get_tx_clar(rig, vfo, &tx_clar_offset);
+                if (ret == RIG_OK) *status = (tx_clar_offset != 0) ? 1 : 0;
                 return ret;
             }
         case RIG_FUNC_DUAL_WATCH:

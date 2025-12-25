@@ -1,25 +1,23 @@
 /*
- * Hamlib Yaesu backend - FTX-1 RIT/XIT (Clarifier) Operations
+ * Hamlib Yaesu backend - FTX-1 Clarifier Operations
  * Copyright (c) 2025 by Terrell Deppe (KJ5HST)
  *
- * ===========================================================================
- * WARNING: RIT/XIT NOT SUPPORTED IN LATEST FIRMWARE
- * ===========================================================================
- * The RC/TC commands that worked in earlier FTX-1 firmware versions are no
- * longer functional in the latest firmware. The standard RT/XT toggle commands
- * also return '?'. As of firmware v1.08+, clarifier (RIT/XIT) must be
- * controlled directly from the radio front panel.
+ * CAT Commands in this file:
+ *   CF P1 P2 P3 [P4 P5 P6 P7 P8];  - Clarifier control
  *
- * This code is retained for reference but will return errors on current
- * firmware versions.
- * ===========================================================================
+ * CF Command Parameters:
+ *   P1: 0=MAIN-side, 1=SUB-side
+ *   P2: 0 (Fixed)
+ *   P3: 0=CLAR Setting, 1=CLAR Frequency
  *
- * CAT Commands in this file (NO LONGER WORKING):
- *   RC P1;           - Receiver Clarifier (RIT) offset - NOT SUPPORTED
- *   TC P1;           - Transmit Clarifier (XIT) offset - NOT SUPPORTED
- *   IF;              - Information query (clarifier state may be readable)
+ *   When P3=0 (CLAR Setting):
+ *     P4: 0=RX CLAR OFF, 1=RX CLAR ON
+ *     P5: 0=TX CLAR OFF, 1=TX CLAR ON
+ *     P6-P8: 000 (Fixed)
  *
- * Note: Both RT/XT and RC/TC commands return '?' on current FTX-1 firmware.
+ *   When P3=1 (CLAR Frequency):
+ *     P4: + or -
+ *     P5-P8: 0000-9999 Hz
  */
 
 #include <stdlib.h>
@@ -31,129 +29,187 @@
 #include "ftx1.h"
 
 /*
- * FTX-1 IF (Information) response structure
- *
- * The IF command returns a fixed-format response that contains the current
- * clarifier offset and enable states. This structure maps to that response
- * for easy parsing.
+ * CF command response lengths
+ * CF000 response: CF00RXXTX000; (12 chars) - P3=0 (setting)
+ * CF001 response: CF01+NNNN; or CF01-NNNN; (10 chars) - P3=1 (frequency)
  */
-typedef struct {
-    char command[2];      /* "IF" */
-    char memory_ch[3];    /* 001 -> 117 */
-    char vfo_freq[9];     /* 9 digit value in Hz */
-    char clarifier[5];    /* '+' or '-', followed by 0000 -> 9999 Hz */
-    char rx_clarifier;    /* '0' = off, '1' = on (RIT) */
-    char tx_clarifier;    /* '0' = off, '1' = on (XIT) */
-    char mode;            /* Mode code */
-    char vfo_memory;      /* VFO/Memory mode */
-    char tone_mode;       /* CTCSS/DCS mode */
-    char fixed[2];        /* Always '0', '0' */
-    char repeater_offset; /* Repeater shift */
-    char terminator;      /* ';' */
-} ftx1_if_response_t;
+#define FTX1_CF_SETTING_RESP_LEN  12  /* CF00RXXTX000; */
+#define FTX1_CF_FREQ_RESP_LEN     10  /* CF01+NNNN; */
 
 /*
- * ftx1_get_rit - Get RIT (Receiver Clarifier) offset
- *
- * NOTE: This function may not work with current FTX-1 firmware.
- * Uses IF command to read clarifier state, returns offset if RX clarifier enabled.
+ * Helper function to get VFO parameter for CF command
+ * Returns '0' for MAIN VFO, '1' for SUB VFO
  */
-/*
- * FTX1_IF_RESPONSE_LEN - Expected minimum length of IF response
- * The IF response should be at least 27 characters: "IF" + 25 data chars + ";"
- */
-#define FTX1_IF_RESPONSE_LEN 27
+static char ftx1_get_cf_vfo_param(RIG *rig, vfo_t vfo)
+{
+    vfo_t curr_vfo = vfo;
 
-int ftx1_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
+    if (curr_vfo == RIG_VFO_CURR || curr_vfo == RIG_VFO_NONE)
+    {
+        curr_vfo = STATE(rig)->current_vfo;
+    }
+
+    return (curr_vfo == RIG_VFO_SUB || curr_vfo == RIG_VFO_B) ? '1' : '0';
+}
+
+/*
+ * ftx1_get_rx_clar - Get RX Clarifier offset
+ *
+ * Uses CF command with P3=0 to get clarifier enable state, then P3=1 to get frequency.
+ * Returns the clarifier frequency if RX CLAR is enabled, otherwise 0.
+ */
+int ftx1_get_rx_clar(RIG *rig, vfo_t vfo, shortfreq_t *offset)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
-    ftx1_if_response_t *rdata;
     int err;
     size_t resp_len;
-
-    (void)vfo;  /* FTX-1 clarifier is not VFO-specific */
+    char vfo_param;
+    char rx_clar_enabled;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !rit)
+    if (!rig || !offset)
     {
         return -RIG_EINVAL;
     }
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "IF;");
+    vfo_param = ftx1_get_cf_vfo_param(rig, vfo);
+
+    /* Query clarifier enable state: CF P1 0 0; */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF%c00;", vfo_param);
 
     if (RIG_OK != (err = newcat_get_cmd(rig)))
     {
         return err;
     }
 
-    /* Validate response length before casting to structure */
+    /* Response format: CF00RXXTX000; where RX is P4, TX is P5 */
     resp_len = strlen(priv->ret_data);
-    if (resp_len < FTX1_IF_RESPONSE_LEN)
+
+    if (resp_len < FTX1_CF_SETTING_RESP_LEN)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: IF response too short (%zu < %d): '%s'\n",
-                  __func__, resp_len, FTX1_IF_RESPONSE_LEN, priv->ret_data);
+        rig_debug(RIG_DEBUG_ERR, "%s: CF setting response too short (%zu): '%s'\n",
+                  __func__, resp_len, priv->ret_data);
         return -RIG_EPROTO;
     }
 
-    rdata = (ftx1_if_response_t *)priv->ret_data;
+    /* P4 (RX CLAR enable) is at position 4 (0-indexed) */
+    rx_clar_enabled = priv->ret_data[4];
 
-    /* Check if RX clarifier (RIT) is enabled */
-    if (rdata->rx_clarifier == '1')
+    rig_debug(RIG_DEBUG_TRACE, "%s: CF setting response='%s', rx_clar_enabled=%c\n",
+              __func__, priv->ret_data, rx_clar_enabled);
+
+    if (rx_clar_enabled != '1')
     {
-        /* atoi() handles the sign prefix correctly - no need to negate again */
-        *rit = atoi(rdata->clarifier);
-    }
-    else
-    {
-        *rit = 0;
+        *offset = 0;
+        return RIG_OK;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: rit=%ld (rx_clar=%c)\n",
-              __func__, (long)*rit, rdata->rx_clarifier);
+    /* RX CLAR is enabled, now get the frequency: CF P1 0 1; */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF%c01;", vfo_param);
+
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    {
+        return err;
+    }
+
+    /* Response format: CF01+NNNN; or CF01-NNNN; */
+    resp_len = strlen(priv->ret_data);
+
+    if (resp_len < FTX1_CF_FREQ_RESP_LEN)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: CF freq response too short (%zu): '%s'\n",
+                  __func__, resp_len, priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    /* Frequency starts at position 4: +NNNN or -NNNN */
+    *offset = atoi(&priv->ret_data[4]);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: offset=%ld\n", __func__, (long)*offset);
 
     return RIG_OK;
 }
 
 /*
- * ftx1_set_rit - Set RIT (Receiver Clarifier) offset
+ * ftx1_set_rx_clar - Set RX Clarifier offset
  *
- * NOTE: This function may not work with current FTX-1 firmware.
- * Uses RC command: RC0; to clear, RC+NNNN; or RC-NNNN; to set offset.
+ * Uses CF command:
+ *   - CF P1 0 0 P4 P5 000; to set clarifier enable state
+ *   - CF P1 0 1 +/-NNNN; to set frequency
  *
- * Note: Setting offset to 0 also disables the clarifier.
+ * Setting offset to 0 disables RX CLAR. Non-zero enables and sets frequency.
  */
-int ftx1_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
+int ftx1_set_rx_clar(RIG *rig, vfo_t vfo, shortfreq_t offset)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
+    char vfo_param;
+    size_t resp_len;
+    char tx_clar_enabled;
 
-    (void)vfo;  /* FTX-1 clarifier is not VFO-specific */
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called with rit=%ld\n", __func__, (long)rit);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called with offset=%ld\n", __func__, (long)offset);
 
     /* Validate range: FTX-1 supports ±9999 Hz */
-    if (rit < -9999 || rit > 9999)
+    if (offset < -9999 || offset > 9999)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: RIT offset %ld out of range (±9999 Hz)\n",
-                  __func__, (long)rit);
+        rig_debug(RIG_DEBUG_ERR, "%s: offset %ld out of range (±9999 Hz)\n",
+                  __func__, (long)offset);
         return -RIG_EINVAL;
     }
 
-    if (rit == 0)
+    vfo_param = ftx1_get_cf_vfo_param(rig, vfo);
+
+    /* First, get current TX CLAR state so we preserve it */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF%c00;", vfo_param);
+
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
     {
-        /* Clear RIT - RC0; */
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RC0;");
+        return err;
     }
-    else if (rit > 0)
+
+    resp_len = strlen(priv->ret_data);
+
+    if (resp_len < FTX1_CF_SETTING_RESP_LEN)
     {
-        /* Positive offset - RC+NNNN; */
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RC+%04ld;", (long)rit);
+        rig_debug(RIG_DEBUG_ERR, "%s: CF response too short (%zu): '%s'\n",
+                  __func__, resp_len, priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    /* P5 (TX CLAR enable) is at position 5 */
+    tx_clar_enabled = priv->ret_data[5];
+
+    if (offset == 0)
+    {
+        /* Disable RX CLAR, preserve TX CLAR state */
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF%c000%c000;",
+                 vfo_param, tx_clar_enabled);
     }
     else
     {
-        /* Negative offset - RC-NNNN; */
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RC-%04ld;", (long)(-rit));
+        /* Enable RX CLAR, preserve TX CLAR state, then set frequency */
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF%c001%c000;",
+                 vfo_param, tx_clar_enabled);
+
+        rig_debug(RIG_DEBUG_TRACE, "%s: enable cmd=%s\n", __func__, priv->cmd_str);
+
+        if (RIG_OK != (err = newcat_set_cmd(rig)))
+        {
+            return err;
+        }
+
+        /* Now set the frequency */
+        if (offset > 0)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF%c01+%04ld;",
+                     vfo_param, (long)offset);
+        }
+        else
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF%c01-%04ld;",
+                     vfo_param, (long)(-offset));
+        }
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd=%s\n", __func__, priv->cmd_str);
@@ -167,101 +223,163 @@ int ftx1_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 }
 
 /*
- * ftx1_get_xit - Get XIT (Transmit Clarifier) offset
+ * ftx1_get_tx_clar - Get TX Clarifier offset
  *
- * NOTE: This function may not work with current FTX-1 firmware.
- * Uses IF command to read clarifier state, returns offset if TX clarifier enabled.
+ * Uses CF command with P3=0 to get clarifier enable state, then P3=1 to get frequency.
+ * Returns the clarifier frequency if TX CLAR is enabled, otherwise 0.
  */
-int ftx1_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
+int ftx1_get_tx_clar(RIG *rig, vfo_t vfo, shortfreq_t *offset)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
-    ftx1_if_response_t *rdata;
     int err;
     size_t resp_len;
-
-    (void)vfo;  /* FTX-1 clarifier is not VFO-specific */
+    char vfo_param;
+    char tx_clar_enabled;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !xit)
+    if (!rig || !offset)
     {
         return -RIG_EINVAL;
     }
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "IF;");
+    vfo_param = ftx1_get_cf_vfo_param(rig, vfo);
+
+    /* Query clarifier enable state: CF P1 0 0; */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF%c00;", vfo_param);
 
     if (RIG_OK != (err = newcat_get_cmd(rig)))
     {
         return err;
     }
 
-    /* Validate response length before casting to structure */
+    /* Response format: CF00RXXTX000; where RX is P4, TX is P5 */
     resp_len = strlen(priv->ret_data);
-    if (resp_len < FTX1_IF_RESPONSE_LEN)
+
+    if (resp_len < FTX1_CF_SETTING_RESP_LEN)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: IF response too short (%zu < %d): '%s'\n",
-                  __func__, resp_len, FTX1_IF_RESPONSE_LEN, priv->ret_data);
+        rig_debug(RIG_DEBUG_ERR, "%s: CF setting response too short (%zu): '%s'\n",
+                  __func__, resp_len, priv->ret_data);
         return -RIG_EPROTO;
     }
 
-    rdata = (ftx1_if_response_t *)priv->ret_data;
+    /* P5 (TX CLAR enable) is at position 5 (0-indexed) */
+    tx_clar_enabled = priv->ret_data[5];
 
-    /* Check if TX clarifier (XIT) is enabled */
-    if (rdata->tx_clarifier == '1')
+    rig_debug(RIG_DEBUG_TRACE, "%s: CF setting response='%s', tx_clar_enabled=%c\n",
+              __func__, priv->ret_data, tx_clar_enabled);
+
+    if (tx_clar_enabled != '1')
     {
-        /* atoi() handles the sign prefix correctly - no need to negate again */
-        *xit = atoi(rdata->clarifier);
-    }
-    else
-    {
-        *xit = 0;
+        *offset = 0;
+        return RIG_OK;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: xit=%ld (tx_clar=%c)\n",
-              __func__, (long)*xit, rdata->tx_clarifier);
+    /* TX CLAR is enabled, now get the frequency: CF P1 0 1; */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF%c01;", vfo_param);
+
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    {
+        return err;
+    }
+
+    /* Response format: CF01+NNNN; or CF01-NNNN; */
+    resp_len = strlen(priv->ret_data);
+
+    if (resp_len < FTX1_CF_FREQ_RESP_LEN)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: CF freq response too short (%zu): '%s'\n",
+                  __func__, resp_len, priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    /* Frequency starts at position 4: +NNNN or -NNNN */
+    *offset = atoi(&priv->ret_data[4]);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: offset=%ld\n", __func__, (long)*offset);
 
     return RIG_OK;
 }
 
 /*
- * ftx1_set_xit - Set XIT (Transmit Clarifier) offset
+ * ftx1_set_tx_clar - Set TX Clarifier offset
  *
- * NOTE: This function may not work with current FTX-1 firmware.
- * Uses TC command: TC0; to clear, TC+NNNN; or TC-NNNN; to set offset.
+ * Uses CF command:
+ *   - CF P1 0 0 P4 P5 000; to set clarifier enable state
+ *   - CF P1 0 1 +/-NNNN; to set frequency
  *
- * Note: Setting offset to 0 also disables the clarifier.
+ * Setting offset to 0 disables TX CLAR. Non-zero enables and sets frequency.
  */
-int ftx1_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
+int ftx1_set_tx_clar(RIG *rig, vfo_t vfo, shortfreq_t offset)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
+    char vfo_param;
+    size_t resp_len;
+    char rx_clar_enabled;
 
-    (void)vfo;  /* FTX-1 clarifier is not VFO-specific */
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called with xit=%ld\n", __func__, (long)xit);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called with offset=%ld\n", __func__, (long)offset);
 
     /* Validate range: FTX-1 supports ±9999 Hz */
-    if (xit < -9999 || xit > 9999)
+    if (offset < -9999 || offset > 9999)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: XIT offset %ld out of range (±9999 Hz)\n",
-                  __func__, (long)xit);
+        rig_debug(RIG_DEBUG_ERR, "%s: offset %ld out of range (±9999 Hz)\n",
+                  __func__, (long)offset);
         return -RIG_EINVAL;
     }
 
-    if (xit == 0)
+    vfo_param = ftx1_get_cf_vfo_param(rig, vfo);
+
+    /* First, get current RX CLAR state so we preserve it */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF%c00;", vfo_param);
+
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
     {
-        /* Clear XIT - TC0; */
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "TC0;");
+        return err;
     }
-    else if (xit > 0)
+
+    resp_len = strlen(priv->ret_data);
+
+    if (resp_len < FTX1_CF_SETTING_RESP_LEN)
     {
-        /* Positive offset - TC+NNNN; */
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "TC+%04ld;", (long)xit);
+        rig_debug(RIG_DEBUG_ERR, "%s: CF response too short (%zu): '%s'\n",
+                  __func__, resp_len, priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    /* P4 (RX CLAR enable) is at position 4 */
+    rx_clar_enabled = priv->ret_data[4];
+
+    if (offset == 0)
+    {
+        /* Disable TX CLAR, preserve RX CLAR state */
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF%c00%c0000;",
+                 vfo_param, rx_clar_enabled);
     }
     else
     {
-        /* Negative offset - TC-NNNN; */
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "TC-%04ld;", (long)(-xit));
+        /* Enable TX CLAR, preserve RX CLAR state, then set frequency */
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF%c00%c1000;",
+                 vfo_param, rx_clar_enabled);
+
+        rig_debug(RIG_DEBUG_TRACE, "%s: enable cmd=%s\n", __func__, priv->cmd_str);
+
+        if (RIG_OK != (err = newcat_set_cmd(rig)))
+        {
+            return err;
+        }
+
+        /* Now set the frequency */
+        if (offset > 0)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF%c01+%04ld;",
+                     vfo_param, (long)offset);
+        }
+        else
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF%c01-%04ld;",
+                     vfo_param, (long)(-offset));
+        }
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd=%s\n", __func__, priv->cmd_str);
