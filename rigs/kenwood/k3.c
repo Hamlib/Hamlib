@@ -167,7 +167,6 @@ static int k3_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq
                 rmode_t mode);
 static int kx3_get_bar_graph_level(RIG *rig, float *level);
 static int k3_send_voice_mem(RIG *rig, vfo_t vfo, int ch);
-static int k3_stop_voice_mem(RIG *rig, vfo_t vfo);
 static int k3_stop_morse(RIG *rig, vfo_t vfo);
 
 /* Private helper functions */
@@ -182,8 +181,6 @@ static int k4_get_bar_graph_level(RIG *rig, float *swr, float *pwr, float *alc,
 /* K4 functions */
 static int k4_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 static int k4_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
-static int k4_send_voice_mem(RIG *rig, vfo_t vfo, int ch);
-static int k4_stop_voice_mem(RIG *rig, vfo_t vfo);
 static int k4_stop_morse(RIG *rig, vfo_t vfo);
 
 /*
@@ -349,7 +346,7 @@ struct rig_caps k3_caps =
     .wait_morse =       rig_wait_morse,
     .stop_morse =       k3_stop_morse,
     .send_voice_mem =   k3_send_voice_mem,
-    .stop_voice_mem =   k3_stop_voice_mem,
+    .stop_voice_mem =   kenwood_stop_voice_mem,
     .power2mW =     k3_power2mW,
     .morse_qsize = 24,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
@@ -511,7 +508,7 @@ struct rig_caps k3s_caps =
     .wait_morse =       rig_wait_morse,
     .stop_morse =       k3_stop_morse,
     .send_voice_mem =   k3_send_voice_mem,
-    .stop_voice_mem =   k3_stop_voice_mem,
+    .stop_voice_mem =   kenwood_stop_voice_mem,
     .power2mW =     k3_power2mW,
     .morse_qsize = 24,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
@@ -579,7 +576,7 @@ struct rig_caps k4_caps =
     .chan_desc_sz =     0,
 
     .chan_list =    {
-        {   1,  4, RIG_MTYPE_VOICE },
+        {   1,  8, RIG_MTYPE_VOICE },
         {   1,  4, RIG_MTYPE_MORSE },
         RIG_CHAN_END
     },
@@ -684,8 +681,8 @@ struct rig_caps k4_caps =
     .send_morse =       kenwood_send_morse,
     .wait_morse =       rig_wait_morse,
     .stop_morse =       k4_stop_morse,
-    .send_voice_mem =   k4_send_voice_mem,
-    .stop_voice_mem =   k4_stop_voice_mem,
+    .send_voice_mem =   kenwood_send_voice_mem,
+    .stop_voice_mem =   kenwood_stop_voice_mem,
     .power2mW =     k3_power2mW,
     .morse_qsize = 24,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
@@ -844,7 +841,7 @@ struct rig_caps kx3_caps =
     .wait_morse =       rig_wait_morse,
     .stop_morse =       k3_stop_morse,
     .send_voice_mem =   k3_send_voice_mem,
-    .stop_voice_mem =   k3_stop_voice_mem,
+    .stop_voice_mem =   kenwood_stop_voice_mem,
     .power2mW =     k3_power2mW,
     .morse_qsize = 24,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
@@ -3012,36 +3009,6 @@ static int k3_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
     }
 
     retval = kenwood_transaction(rig, cmd, NULL, 0);
-    return retval;
-}
-
-static int k3_stop_voice_mem(RIG *rig, vfo_t vfo)
-{
-    int retval;
-    retval = kenwood_transaction(rig, "SWT37;", NULL, 0);
-    return retval;
-}
-
-int k4_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
-{
-    int retval;
-    char cmd[32];
-
-    if (ch < 1 || ch > 8)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: expected 1<=ch<=8, got %d\n", __func__, ch);
-        return (-RIG_EINVAL);
-    }
-
-    sprintf(cmd, "DAMP%d00000;", ch);
-    retval = kenwood_transaction(rig, cmd, NULL, 0);
-    return retval;
-}
-
-int k4_stop_voice_mem(RIG *rig, vfo_t vfo)
-{
-    int retval;
-    retval = kenwood_transaction(rig, "DA0;", NULL, 0);
     return retval;
 }
 
