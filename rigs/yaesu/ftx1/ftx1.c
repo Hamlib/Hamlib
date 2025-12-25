@@ -544,6 +544,23 @@ static const struct confparams ftx1_ext_parms[] = {
     { TOK_VMI_COLOR_MEM, "VMI_COLOR_MEM", "VMI_COLOR_MEM", "VMI_COLOR_MEM (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
     { TOK_VMI_COLOR_CLAR, "VMI_COLOR_CLAR", "VMI_COLOR_CLAR", "VMI_COLOR_CLAR (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
 
+    /* SPA-1 Amplifier Settings (EX0307) - Require SPA-1 hardware */
+    { TOK_OPT_TUNER_ANT1, "OPT_TUNER_ANT1", "OPT_TUNER_ANT1", "Tuner ANT1 (0-3, SPA-1 only)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_OPT_TUNER_ANT2, "OPT_TUNER_ANT2", "OPT_TUNER_ANT2", "Tuner ANT2 (0-3, SPA-1 only)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_OPT_ANT2_OP, "OPT_ANT2_OP", "OPT_ANT2_OP", "ANT2 operation (0-2, SPA-1 only)", "0", RIG_CONF_NUMERIC, { .n = { 0, 2, 1 } } },
+    { TOK_OPT_HF_ANT_SEL, "OPT_HF_ANT_SEL", "OPT_HF_ANT_SEL", "HF antenna select (0-1, SPA-1 only)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_OPT_HF_MAX_PWR, "OPT_HF_MAX_PWR", "OPT_HF_MAX_PWR", "HF max power 5-100W (SPA-1 only)", "100", RIG_CONF_NUMERIC, { .n = { 5, 100, 1 } } },
+    { TOK_OPT_50M_MAX_PWR, "OPT_50M_MAX_PWR", "OPT_50M_MAX_PWR", "50MHz max power 5-100W (SPA-1 only)", "100", RIG_CONF_NUMERIC, { .n = { 5, 100, 1 } } },
+    { TOK_OPT_70M_MAX_PWR, "OPT_70M_MAX_PWR", "OPT_70M_MAX_PWR", "70MHz max power 5-50W (SPA-1 only)", "50", RIG_CONF_NUMERIC, { .n = { 5, 50, 1 } } },
+    { TOK_OPT_144M_MAX_PWR, "OPT_144M_MAX_PWR", "OPT_144M_MAX_PWR", "144MHz max power 5-50W (SPA-1 only)", "50", RIG_CONF_NUMERIC, { .n = { 5, 50, 1 } } },
+    { TOK_OPT_430M_MAX_PWR, "OPT_430M_MAX_PWR", "OPT_430M_MAX_PWR", "430MHz max power 5-50W (SPA-1 only)", "50", RIG_CONF_NUMERIC, { .n = { 5, 50, 1 } } },
+    { TOK_OPT_AM_MAX_PWR, "OPT_AM_MAX_PWR", "OPT_AM_MAX_PWR", "AM HF max power 5-25W (SPA-1 only)", "25", RIG_CONF_NUMERIC, { .n = { 5, 25, 1 } } },
+    { TOK_OPT_AM_VU_MAX_PWR, "OPT_AM_VU_MAX_PWR", "OPT_AM_VU_MAX_PWR", "AM V/UHF max power 5-13W (SPA-1 only)", "13", RIG_CONF_NUMERIC, { .n = { 5, 13, 1 } } },
+    /* GPS Settings - On head unit, not SPA-1 */
+    { TOK_OPT_GPS, "OPT_GPS", "OPT_GPS", "GPS enable (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_OPT_GPS_PINNING, "OPT_GPS_PINNING", "OPT_GPS_PINNING", "GPS pinning (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_OPT_GPS_BAUDRATE, "OPT_GPS_BAUDRATE", "OPT_GPS_BAUDRATE", "GPS baudrate (0-4)", "0", RIG_CONF_NUMERIC, { .n = { 0, 4, 1 } } },
+
     /* Terminating entry */
     { RIG_CONF_END, NULL, }
 };

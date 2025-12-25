@@ -2,7 +2,7 @@ FTX-1 Hamlib Backend
 ====================
 Author: Terrell Deppe (KJ5HST)
 Model: 1051
-Status: Complete (91/91 CAT commands implemented)
+Status: Complete (90/90 CAT commands implemented)
 
 Reference: FTX-1 CAT Operation Reference Manual (2508-C)
 Firmware tested: v1.08+
@@ -28,8 +28,8 @@ Serial: 38400 baud, 8N1 (supports 4800-115200)
 WHAT'S WORKING
 ================================================================================
 
-CAT Commands (91/91 = 100%):
-  All 91 official FTX-1 CAT commands are implemented. See ftx1-cat-commands.txt
+CAT Commands (90/90 = 100%):
+  All 90 official FTX-1 CAT commands are implemented. See ftx1-cat-commands.txt
   for the complete command list with backend file mappings.
 
 Extended Parameters (ext_parm API):
@@ -230,4 +230,4 @@ REVISION HISTORY
 
 2025-12-12  Finalized head type detection (PC command + power probe)
 
-2025-12-10  All 91 CAT commands verified and documented
+2025-12-10  All 90 CAT commands verified and documented

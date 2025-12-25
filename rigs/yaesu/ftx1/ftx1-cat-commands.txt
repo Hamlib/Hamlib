@@ -2,7 +2,7 @@ FTX-1 CAT Command List (Hamlib Backend)
 =======================================
 Source: FTX-1_CAT_OM_ENG_2508-C.pdf (Page 5)
 
-Status: 91/91 commands implemented (100%)
+Status: 90/90 commands implemented (100%)
 
 NOT WORKING (firmware limitation):
   RC/TC  - RIT/XIT clarifier (no longer works in v1.08+)
@@ -13,7 +13,7 @@ SET-ONLY (no query):
 SPECIAL FORMAT:
   CH (use CH0/CH1 only), MC (6-digit), MR/MT/MZ (5-digit), CT (needs VFO param)
 
-Total Commands: 91
+Total Commands: 90
 
  #  | Cmd | Function                      | Set | Read | Ans | AI  | Backend File
 ----|-----|-------------------------------|-----|------|-----|-----|--------------------
@@ -38,8 +38,7 @@ Total Commands: 91
  19 | CS  | CW SPOT                       |  o  |  o   |  o  |     | ftx1_cw.c
  20 | CT  | CTCSS                         |  o  |  o   |  o  |  o  | ftx1_ctcss.c
  21 | DA  | LCD CONTRAST/DIMMER           |  o  |  o   |  o  |     | ftx1_info.c
- 22 | DC  | DCS CODE                      |  o  |  o   |  o  |     | ftx1_ctcss.c
- 23 | DN  | MICROPHONE DOWN               |  o  |      |     |     | ftx1_scan.c
+ 22 | DN  | MICROPHONE DOWN               |  o  |      |     |     | ftx1_scan.c
  24 | DT  | DATE/TIME                     |  o  |  o   |  o  |     | ftx1_info.c
  25 | EO  | ENCODER OFFSET                |  o  |      |     |     | ftx1_ext.c
  26 | EX  | MENU                          |  o  |  o   |  o  |  o  | ftx1_ext.c, ftx1_menu.c

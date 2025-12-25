@@ -280,9 +280,10 @@ static const struct ftx1_menu_item ftx1_menu_table[] = {
     { TOK_OPT_430M_MAX_PWR,  "OPT_430M_MAX_PWR",   3, 5, 50, FTX1_MENU_FLAG_SPA1 },
     { TOK_OPT_AM_MAX_PWR,    "OPT_AM_MAX_PWR",     3, 5, 25, FTX1_MENU_FLAG_SPA1 },
     { TOK_OPT_AM_VU_MAX_PWR, "OPT_AM_VU_MAX_PWR",  3, 5, 13, FTX1_MENU_FLAG_SPA1 },
-    { TOK_OPT_GPS,           "OPT_GPS",            1, 0, 1, FTX1_MENU_FLAG_SPA1 },
-    { TOK_OPT_GPS_PINNING,   "OPT_GPS_PINNING",    1, 0, 1, FTX1_MENU_FLAG_SPA1 },
-    { TOK_OPT_GPS_BAUDRATE,  "OPT_GPS_BAUDRATE",   1, 0, 4, FTX1_MENU_FLAG_SPA1 },
+    /* GPS is on the head unit, NOT the SPA-1 amplifier */
+    { TOK_OPT_GPS,           "OPT_GPS",            1, 0, 1, 0 },
+    { TOK_OPT_GPS_PINNING,   "OPT_GPS_PINNING",    1, 0, 1, 0 },
+    { TOK_OPT_GPS_BAUDRATE,  "OPT_GPS_BAUDRATE",   1, 0, 4, 0 },
 
     /*
      * EX04: DISPLAY SETTING
