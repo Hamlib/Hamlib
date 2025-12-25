@@ -196,89 +196,102 @@ int ftx1_get_monitor(RIG *rig, int *status)
  * head only, this command will return an error from the radio.
  */
 
-/* Set Antenna Tuner (AC P1 P2 P3;) - SPA-1 REQUIRED */
+/*
+ * Set Antenna Tuner - SPA-1 REQUIRED
+ *
+ * The AC command is STATUS-ONLY on FTX-1 (set returns '?').
+ * Use GEN_TUNER_SELECT (EX030104) to control tuner:
+ *   0 = OFF (bypass), 1 = INT, 2 = EXT, 3 = ATAS
+ *
+ * mode: 0=off (bypass), 1=on (internal tuner)
+ * Note: mode=2 (start tune) is not supported via CAT.
+ */
 int ftx1_set_tuner(RIG *rig, int mode)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1, p2;
+    int tuner_select;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: mode=%d\n", __func__, mode);
 
     /*
      * GUARDRAIL: Internal tuner requires SPA-1 amplifier
-     * Without SPA-1, the AC command will fail or produce undefined behavior.
      */
     if (!ftx1_has_spa1(rig))
     {
         rig_debug(RIG_DEBUG_WARN,
                   "%s: internal tuner requires SPA-1 amplifier (not detected)\n",
                   __func__);
-        return -RIG_ENAVAIL;  /* Feature not available */
+        return -RIG_ENAVAIL;
     }
 
-    /* mode: 0=off, 1=on, 2=tune */
+    /* mode: 0=off, 1=on, 2=tune (not supported) */
     switch (mode)
     {
-    case 0:  /* Tuner off */
-        p1 = 0;
-        p2 = 0;
+    case 0:  /* Tuner off (bypass) */
+        tuner_select = 0;  /* EX030104 = 0 (OFF) */
         break;
 
-    case 1:  /* Tuner on (no tune) */
-        p1 = 1;
-        p2 = 0;
+    case 1:  /* Tuner on (internal) */
+        tuner_select = 1;  /* EX030104 = 1 (INT) */
         break;
 
-    case 2:  /* Start tune (turns on tuner and starts tuning) */
-        p1 = 1;
-        p2 = 1;
-        break;
+    case 2:  /* Start tune - not supported via CAT */
+        rig_debug(RIG_DEBUG_WARN,
+                  "%s: start tune (mode=2) not supported via CAT\n", __func__);
+        return -RIG_ENIMPL;
 
     default:
         return -RIG_EINVAL;
     }
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AC%d%d0;", p1, p2);
+    /* Use EX030104 (GEN_TUNER_SELECT) instead of AC command */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX030104%d;", tuner_select);
     return newcat_set_cmd(rig);
 }
 
-/* Get Antenna Tuner status - SPA-1 REQUIRED */
+/*
+ * Get Antenna Tuner status - SPA-1 REQUIRED
+ *
+ * Uses GEN_TUNER_SELECT (EX030104) to determine if tuner is enabled.
+ * Returns: 0=off/bypass, 1=on (INT or other tuner selected)
+ */
 int ftx1_get_tuner(RIG *rig, int *mode)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret, p1;
+    int ret, tuner_select;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
     /*
      * GUARDRAIL: Internal tuner requires SPA-1 amplifier
-     * Without SPA-1, report tuner as off rather than querying.
      */
     if (!ftx1_has_spa1(rig))
     {
         rig_debug(RIG_DEBUG_VERBOSE,
                   "%s: no SPA-1 detected, tuner not available\n", __func__);
-        *mode = 0;  /* Report tuner as off */
+        *mode = 0;
         return RIG_OK;
     }
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AC;");
+    /* Query GEN_TUNER_SELECT (EX030104) */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX030104;");
 
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    /* Parse first digit (tuner on/off) from AC P1 P2 P3; */
-    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1)
+    /* Parse value from EX030104N; (N = 0-3) */
+    if (sscanf(priv->ret_data + 8, "%1d", &tuner_select) != 1)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
                   priv->ret_data);
         return -RIG_EPROTO;
     }
 
-    /* Return 0=off, 1=on */
-    *mode = p1;
+    /* 0=OFF(bypass), 1=INT, 2=EXT, 3=ATAS - report 0 as off, others as on */
+    *mode = (tuner_select > 0) ? 1 : 0;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: mode=%d\n", __func__, *mode);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: mode=%d (tuner_select=%d)\n",
+              __func__, *mode, tuner_select);
 
     return RIG_OK;
 }
