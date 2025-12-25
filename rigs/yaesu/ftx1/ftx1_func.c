@@ -361,10 +361,7 @@ int ftx1_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             return ftx1_set_monitor_level(rig, vfo, val.f);
         case RIG_LEVEL_METER:
             return ftx1_set_meter_switch(rig, vfo, val.i);
-        case RIG_LEVEL_PBT_IN:
-        case RIG_LEVEL_PBT_OUT:
-            /* SH command: val.f is 0.0-1.0, convert to width code (0-23) */
-            return ftx1_set_width(rig, vfo, (int)(val.f * 23));
+        /* Note: PBT_IN/PBT_OUT not supported - FTX-1 has width (SH) and IF shift (IS), not true passband tuning */
         case RIG_LEVEL_ANTIVOX:
             return ftx1_set_amc_output(rig, val.f);
         default:
@@ -471,12 +468,7 @@ int ftx1_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             ret = ftx1_get_meter_switch(rig, vfo, &ival);
             if (ret == RIG_OK) val->i = ival;
             return ret;
-        case RIG_LEVEL_PBT_IN:
-        case RIG_LEVEL_PBT_OUT:
-            /* SH command: returns width code (0-23), convert to 0.0-1.0 */
-            ret = ftx1_get_width(rig, vfo, &ival);
-            if (ret == RIG_OK) val->f = (float)ival / 23.0f;
-            return ret;
+        /* Note: PBT_IN/PBT_OUT not supported - see set_level comment */
         case RIG_LEVEL_ANTIVOX:
             ret = ftx1_get_amc_output(rig, &fval);
             if (ret == RIG_OK) val->f = fval;

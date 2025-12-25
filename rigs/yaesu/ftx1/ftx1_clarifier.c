@@ -3,39 +3,23 @@
  * Copyright (c) 2025 by Terrell Deppe (KJ5HST)
  *
  * ===========================================================================
- * SPECIAL ACKNOWLEDGMENT - JEREMY MILLER (KO4SSD)
+ * WARNING: RIT/XIT NOT SUPPORTED IN LATEST FIRMWARE
  * ===========================================================================
- * The RIT/XIT implementation in this file is based on the brilliant work of
- * Jeremy Miller (KO4SSD) in Hamlib PR #1826. Jeremy discovered that the FTX-1
- * does NOT support the standard RT/XT (RIT/XIT toggle) commands - they return
- * '?' on this radio. Instead, he figured out that the RC (Receiver Clarifier)
- * and TC (Transmit Clarifier) commands work correctly for setting RIT/XIT
- * offsets, and that the IF (Information) command can be parsed to read the
- * current clarifier state.
+ * The RC/TC commands that worked in earlier FTX-1 firmware versions are no
+ * longer functional in the latest firmware. The standard RT/XT toggle commands
+ * also return '?'. As of firmware v1.08+, clarifier (RIT/XIT) must be
+ * controlled directly from the radio front panel.
  *
- * This was a critical discovery after much trial and error. The FTX-1 CAT
- * manual was not initially available, and even after release, the differences
- * from other Yaesu radios were not obvious. Jeremy's persistence in testing
- * with actual hardware and his willingness to share his findings with the
- * community made this implementation possible.
- *
- * Thank you, Jeremy, for your excellent work on FTX-1 support in Hamlib!
- * Your contribution is greatly appreciated by the amateur radio community.
- *
- * Jeremy's original implementation: https://github.com/Hamlib/Hamlib/pull/1826
+ * This code is retained for reference but will return errors on current
+ * firmware versions.
  * ===========================================================================
  *
- * CAT Commands in this file (discovered/verified by Jeremy Miller):
- *   RC P1;           - Receiver Clarifier (RIT) offset
- *                      RC0; = clear, RC+NNNN; = positive, RC-NNNN; = negative
- *   TC P1;           - Transmit Clarifier (XIT) offset
- *                      TC0; = clear, TC+NNNN; = positive, TC-NNNN; = negative
- *   IF;              - Information query (used to read clarifier state)
- *                      Response includes clarifier offset and RX/TX enable flags
+ * CAT Commands in this file (NO LONGER WORKING):
+ *   RC P1;           - Receiver Clarifier (RIT) offset - NOT SUPPORTED
+ *   TC P1;           - Transmit Clarifier (XIT) offset - NOT SUPPORTED
+ *   IF;              - Information query (clarifier state may be readable)
  *
- * Note: The RT (RIT toggle) and XT (XIT toggle) commands return '?' on FTX-1.
- * This is documented in our firmware notes but Jeremy was the first to find
- * the working alternative using RC/TC commands.
+ * Note: Both RT/XT and RC/TC commands return '?' on current FTX-1 firmware.
  */
 
 #include <stdlib.h>
@@ -48,7 +32,6 @@
 
 /*
  * FTX-1 IF (Information) response structure
- * Adapted from Jeremy Miller's ftx1info struct in PR #1826
  *
  * The IF command returns a fixed-format response that contains the current
  * clarifier offset and enable states. This structure maps to that response
@@ -72,7 +55,7 @@ typedef struct {
 /*
  * ftx1_get_rit - Get RIT (Receiver Clarifier) offset
  *
- * Implementation by Jeremy Miller (KO4SSD) - PR #1826
+ * NOTE: This function may not work with current FTX-1 firmware.
  * Uses IF command to read clarifier state, returns offset if RX clarifier enabled.
  */
 /*
@@ -135,7 +118,7 @@ int ftx1_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 /*
  * ftx1_set_rit - Set RIT (Receiver Clarifier) offset
  *
- * Implementation by Jeremy Miller (KO4SSD) - PR #1826
+ * NOTE: This function may not work with current FTX-1 firmware.
  * Uses RC command: RC0; to clear, RC+NNNN; or RC-NNNN; to set offset.
  *
  * Note: Setting offset to 0 also disables the clarifier.
@@ -186,7 +169,7 @@ int ftx1_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 /*
  * ftx1_get_xit - Get XIT (Transmit Clarifier) offset
  *
- * Implementation by Jeremy Miller (KO4SSD) - PR #1826
+ * NOTE: This function may not work with current FTX-1 firmware.
  * Uses IF command to read clarifier state, returns offset if TX clarifier enabled.
  */
 int ftx1_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
@@ -243,7 +226,7 @@ int ftx1_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 /*
  * ftx1_set_xit - Set XIT (Transmit Clarifier) offset
  *
- * Implementation by Jeremy Miller (KO4SSD) - PR #1826
+ * NOTE: This function may not work with current FTX-1 firmware.
  * Uses TC command: TC0; to clear, TC+NNNN; or TC-NNNN; to set offset.
  *
  * Note: Setting offset to 0 also disables the clarifier.

@@ -16,9 +16,6 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
- * ACKNOWLEDGMENTS:
- *   Jeremy Miller (KO4SSD) - RIT/XIT using RC/TC commands, EX0306 tuning steps
- *   See: https://github.com/Hamlib/Hamlib/pull/1826
  */
 
 #ifndef _FTX1_H

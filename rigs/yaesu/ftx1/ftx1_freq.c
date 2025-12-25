@@ -10,8 +10,7 @@
  *   OS P1 P2;    - Offset (Repeater Shift) - simplex, +, -, ARS
  *
  * Note: CF (Clarifier) command returns '?' in firmware - not implemented.
- *       RIT/XIT handled via ftx1_clarifier.c using RC/TC commands
- *       (discovered by Jeremy Miller KO4SSD - PR #1826).
+ *       RIT/XIT: NOT SUPPORTED in latest firmware - RC/TC commands no longer work.
  */
 
 #include <stdlib.h>
@@ -379,11 +378,11 @@ int ftx1_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
         return -RIG_ENAVAIL;
     }
 
-    /* Convert Hz offset to menu value */
-    val.i = (int)(offs / multiplier);
+    /* Convert Hz offset to menu value (use val.f for RIG_CONF_NUMERIC) */
+    val.f = (float)(offs / multiplier);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: freq=%.0f token=0x%lx val=%d (offs=%ld, mult=%d)\n",
-              __func__, freq, (unsigned long)token, val.i, offs, multiplier);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: freq=%.0f token=0x%lx val=%.0f (offs=%ld, mult=%d)\n",
+              __func__, freq, (unsigned long)token, val.f, offs, multiplier);
 
     /* Set via menu system */
     return ftx1_menu_set_token(rig, token, val);
@@ -430,11 +429,11 @@ int ftx1_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *offs)
         return ret;
     }
 
-    /* Convert menu value to Hz offset */
-    *offs = (shortfreq_t)val.i * multiplier;
+    /* Convert menu value to Hz offset (val.f for RIG_CONF_NUMERIC) */
+    *offs = (shortfreq_t)val.f * multiplier;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: freq=%.0f token=0x%lx val=%d offs=%ld\n",
-              __func__, freq, (unsigned long)token, val.i, *offs);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: freq=%.0f token=0x%lx val=%.0f offs=%ld\n",
+              __func__, freq, (unsigned long)token, val.f, *offs);
 
     return RIG_OK;
 }
