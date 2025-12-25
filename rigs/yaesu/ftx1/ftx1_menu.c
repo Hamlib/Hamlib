@@ -170,7 +170,7 @@ static const struct ftx1_menu_item ftx1_menu_table[] = {
     /* EX0202: KEYER */
     { TOK_KEYER_TYPE,        "KEYER_TYPE",         1, 0, 5, 0 },
     { TOK_KEYER_DOT_DASH,    "KEYER_DOT_DASH",     1, 0, 1, 0 },
-    { TOK_KEYER_WEIGHT,      "KEYER_WEIGHT",       2, 25, 45, 0 },
+    { TOK_KEYER_WEIGHT,      "KEYER_WEIGHT",       2, 0, 20, 0 },
     { TOK_KEYER_NUM_STYLE,   "KEYER_NUM_STYLE",    1, 0, 6, 0 },
     { TOK_KEYER_CONTEST_NUM, "KEYER_CONTEST_NUM",  4, 1, 9999, 0 },
     { TOK_KEYER_CW_MEM1,     "KEYER_CW_MEM1",      1, 0, 1, 0 },
@@ -603,18 +603,19 @@ int ftx1_menu_set_token(RIG *rig, token_t token, value_t val)
     section = FTX1_TOKEN_SECTION(token);
     menu_item = FTX1_TOKEN_ITEM(token);
 
+    /* For numeric types, val.f is used; convert to int for validation/command */
+    int int_val = (item->flags & FTX1_MENU_FLAG_STRING) ? 0 : (int)val.f;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s: %s group=%d section=%d item=%d val=%d\n",
-              __func__, item->name, group, section, menu_item, val.i);
+              __func__, item->name, group, section, menu_item, int_val);
 
     /* Validate value */
     if (!(item->flags & FTX1_MENU_FLAG_STRING))
     {
-        int v = val.i;
-
-        if (v < item->min_val || v > item->max_val)
+        if (int_val < item->min_val || int_val > item->max_val)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: value %d out of range [%d, %d]\n",
-                      __func__, v, item->min_val, item->max_val);
+                      __func__, int_val, item->min_val, item->max_val);
             return -RIG_EINVAL;
         }
     }
@@ -629,7 +630,7 @@ int ftx1_menu_set_token(RIG *rig, token_t token, value_t val)
     else if (item->flags & FTX1_MENU_FLAG_SIGNED)
     {
         /* Signed value - need special formatting */
-        int v = val.i;
+        int v = int_val;
         char sign = (v >= 0) ? '+' : '-';
         if (v < 0) v = -v;
 
@@ -643,7 +644,7 @@ int ftx1_menu_set_token(RIG *rig, token_t token, value_t val)
         /* Unsigned value */
         SNPRINTF(fmt, sizeof(fmt), "EX%%02d%%02d%%02d%%0%dd;", item->digits);
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), fmt,
-                 group, section, menu_item, val.i);
+                 group, section, menu_item, int_val);
     }
 
     return newcat_set_cmd(rig);
@@ -723,20 +724,15 @@ int ftx1_menu_get_token(RIG *rig, token_t token, value_t *val)
             /* Return as string - caller must provide buffer */
             val->cs = valstr;
         }
-        else if (item->flags & FTX1_MENU_FLAG_SIGNED)
-        {
-            /* Parse signed value */
-            val->i = atoi(valstr);
-        }
         else
         {
-            /* Parse unsigned value */
-            val->i = atoi(valstr);
+            /* Parse numeric value - use val->f for RIG_CONF_NUMERIC compatibility */
+            val->f = (float)atoi(valstr);
         }
 
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: %s value=%d\n",
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: %s value=%.0f\n",
                   __func__, item->name,
-                  (item->flags & FTX1_MENU_FLAG_STRING) ? 0 : val->i);
+                  (item->flags & FTX1_MENU_FLAG_STRING) ? 0.0f : val->f);
     }
     else
     {

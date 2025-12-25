@@ -6,8 +6,8 @@
  *
  * CAT Commands in this file:
  *   CN P1 0 P2P3P4;  - CTCSS Tone Number (P1=0 TX/1 RX, literal 0, P2P3P4=001-050)
- *   CT P1;           - CTCSS Mode (0=off, 1=ENC, 2=TSQ, 3=DCS)
- *   TS P1;           - Tone Status Query (composite)
+ *   CT P1 P2;        - CTCSS Mode (P1=VFO 0=Main, P2=0-3: off/ENC/TSQ/DCS)
+ *                      NOTE: Must include VFO param; CT; alone returns ?;
  *   DC P1 P2P3P4;    - DCS Code (P1=0 TX/1 RX, P2-P4=code number)
  *
  * CTCSS Tone Table (01-50):
@@ -71,13 +71,15 @@ static unsigned int ftx1_tone_num_to_freq(int num)
 }
 
 /*
- * ftx1_set_ctcss_mode - Set CTCSS Mode (CT P1;)
+ * ftx1_set_ctcss_mode - Set CTCSS Mode (CT P1 P2;)
  *
  * Parameter 'mode' is the FTX-1 CT command value:
  *   0 = Off
  *   1 = CTCSS Encode only (TX tone)
  *   2 = Tone Squelch (TX+RX tone)
  *   3 = DCS mode
+ *
+ * Command format: CT P1 P2; where P1=VFO (0=Main), P2=mode (0-3)
  *
  * Note: This function expects FTX1_CTCSS_MODE_* values, not Hamlib
  * RIG_FUNC_* flags. The caller is responsible for mapping Hamlib
@@ -86,7 +88,6 @@ static unsigned int ftx1_tone_num_to_freq(int num)
 int ftx1_set_ctcss_mode(RIG *rig, tone_t mode)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1;
 
     /* Validate and use FTX-1 CT command values directly */
     if (mode > FTX1_CTCSS_MODE_DCS)
@@ -96,16 +97,18 @@ int ftx1_set_ctcss_mode(RIG *rig, tone_t mode)
         return -RIG_EINVAL;
     }
 
-    p1 = (int)mode;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: mode=%u\n", __func__, mode);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: mode=%u p1=%d\n", __func__, mode, p1);
-
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CT%d;", p1);
+    /* CT P1 P2; where P1=VFO (0=Main), P2=mode */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CT0%d;", (int)mode);
     return newcat_set_cmd(rig);
 }
 
 /*
- * ftx1_get_ctcss_mode - Get CTCSS Mode (CT;)
+ * ftx1_get_ctcss_mode - Get CTCSS Mode (CT P1;)
+ *
+ * Command format: CT P1; where P1=VFO (0=Main)
+ * Response format: CT P1 P2; where P2=mode (0-3)
  *
  * Returns the FTX-1 CT command value in *mode:
  *   0 = Off (FTX1_CTCSS_MODE_OFF)
@@ -116,16 +119,18 @@ int ftx1_set_ctcss_mode(RIG *rig, tone_t mode)
 int ftx1_get_ctcss_mode(RIG *rig, tone_t *mode)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret, p1;
+    int ret, vfo, p2;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CT;");
+    /* CT P1; where P1=VFO (0=Main) */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CT0;");
 
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1)
+    /* Response: CT P1 P2; (e.g., CT00; means VFO 0, mode 0) */
+    if (sscanf(priv->ret_data + 2, "%1d%1d", &vfo, &p2) != 2)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
                   priv->ret_data);
@@ -133,9 +138,9 @@ int ftx1_get_ctcss_mode(RIG *rig, tone_t *mode)
     }
 
     /* Return FTX-1 mode value directly (0-3) */
-    *mode = (tone_t)p1;
+    *mode = (tone_t)p2;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: p1=%d mode=%u\n", __func__, p1, *mode);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%d mode=%u\n", __func__, vfo, *mode);
 
     return RIG_OK;
 }

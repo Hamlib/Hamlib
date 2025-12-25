@@ -548,12 +548,28 @@ int ftx1_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
     int p1, p2, p3, p4, p5, p6, p7, p8;
+    int vfo_num;
 
-    (void)vfo;  /* FTX-1 RI command returns overall status, not per-VFO */
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+    /* Determine VFO number for RI command */
+    switch (vfo)
+    {
+    case RIG_VFO_B:
+    case RIG_VFO_SUB:
+        vfo_num = 1;
+        break;
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RI;");
+    case RIG_VFO_A:
+    case RIG_VFO_MAIN:
+    case RIG_VFO_CURR:
+    default:
+        vfo_num = 0;
+        break;
+    }
+
+    /* RI command requires VFO parameter: RI0; or RI1; */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RI%d;", vfo_num);
 
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK)
@@ -562,9 +578,9 @@ int ftx1_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
     }
 
     /*
-     * Response format: RI P1 P2 P3 P4 P5 P6 P7 P8 P9 P10 P11 P12 P13;
-     * Each P is a single digit. We need P8 (SQL status).
-     * Parse 8 digits to get to P8.
+     * Response format: RIP1P2P3P4P5P6P7P8;
+     * VFO is not echoed in response. Parse 8 status digits starting at position 2.
+     * P8 (8th digit) is squelch status: 0=closed, 1=open/BUSY.
      */
     if (sscanf(priv->ret_data + 2, "%1d%1d%1d%1d%1d%1d%1d%1d",
                &p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8) != 8)
