@@ -16,30 +16,10 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
- * ===========================================================================
- * ACKNOWLEDGMENTS
- * ===========================================================================
- * Special thanks to Jeremy Miller (KO4SSD) for his invaluable contributions
- * to FTX-1 support in Hamlib (PR #1826). Jeremy discovered critical workarounds
- * for FTX-1 firmware limitations:
- *
- *   - RIT/XIT: The standard RT/XT commands return '?' on FTX-1. Jeremy figured
- *     out that the RC (Receiver Clarifier) and TC (Transmit Clarifier) commands
- *     work correctly, and that the IF response can be parsed for clarifier state.
- *
- *   - Tuning Steps: Jeremy implemented mode-specific dial steps via the EX0306
- *     extended menu command, providing finer control than the basic TS command.
- *
- * This implementation incorporates Jeremy's discoveries with gratitude.
- * His persistence in testing with actual hardware and willingness to share
- * findings with the community made complete FTX-1 support possible.
- *
- * Jeremy's original implementation: https://github.com/Hamlib/Hamlib/pull/1826
- * ===========================================================================
- *
  * FIRMWARE NOTES (v1.08+):
- * - RT (RIT on/off) and XT (XIT on/off) commands return '?' - use RC/TC instead
- *   (discovered by Jeremy Miller KO4SSD)
+ * - RIT/XIT (Clarifier): NOT SUPPORTED in latest firmware. The RC/TC commands
+ *   that worked in earlier firmware versions no longer function. The standard
+ *   RT/XT commands also return '?'. Clarifier must be controlled from the radio.
  * - CF (Clarifier) sets offset value only, does not enable/disable clarifier
  *   Format: CF P1 P2 P3 [+/-] PPPP where P3 must be 1
  *   Example: CF001+0500 sets clarifier offset to +500Hz
@@ -128,8 +108,7 @@ extern int ftx1_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts);
 
 /*
  * Externs from ftx1_clarifier.c
- * RIT/XIT implementation by Jeremy Miller (KO4SSD) - uses RC/TC commands
- * instead of RT/XT which return '?' on FTX-1
+ * NOTE: RIT/XIT NOT SUPPORTED in latest firmware - RC/TC commands no longer work
  */
 extern int ftx1_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
 extern int ftx1_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
@@ -152,6 +131,422 @@ extern int ftx1_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
 extern int ftx1_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq);
 extern int ftx1_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width);
 extern int ftx1_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width);
+
+/*
+ * Extended parameters (extparms) for Hamlib API access to EX menu items.
+ *
+ * These parameters are exposed through Hamlib's ext_parm API (p/P commands).
+ * Token values are defined in ftx1_menu.h using FTX1_TOKEN(group, section, item).
+ *
+ * Usage:
+ *   rigctl -m 1051 p KEYER_TYPE       # Get keyer type
+ *   rigctl -m 1051 P KEYER_TYPE 3     # Set to ELEKEY-B
+ *
+ * Implementation notes:
+ *   - RIG_CONF_NUMERIC types use val->f (float), not val->i
+ *   - Get/set functions in ftx1_menu.c: ftx1_get_ext_parm(), ftx1_set_ext_parm()
+ *   - rig_caps.extparms points to this static array
+ *
+ * To add a new parameter:
+ *   1. Define token in ftx1_menu.h: #define TOK_XXX FTX1_TOKEN(g, s, i)
+ *   2. Add entry to ftx1_menu_table[] in ftx1_menu.c with range/flags
+ *   3. Add confparams entry here with matching token
+ *
+ * Known issues:
+ *   - EX030601 (DIAL_SSB_CW_STEP) causes radio hang - do not expose
+ *   - EX040108 (DISP_LED_DIMMER) causes radio hang - do not expose
+ */
+static const struct confparams ftx1_ext_parms[] = {
+    /*
+     * NOTE: Signed parameters (Audio EQ, Contour Level) are NOT exposed here
+     * because the FTX-1 locks up when queried with the signed format.
+     * String parameters are also excluded (use direct EX commands).
+     *
+     * Excluded tokens that cause radio hangs:
+     *   - TOK_DIAL_SSB_CW_STEP (EX030601)
+     *   - TOK_DISP_LED_DIMMER (EX040108)
+     */
+
+    /* AM Settings */
+    { TOK_AM_AGC_FAST, "AM_AGC_FAST", "AM_AGC_FAST", "AM_AGC_FAST (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_AM_AGC_MID, "AM_AGC_MID", "AM_AGC_MID", "AM_AGC_MID (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_AM_AGC_SLOW, "AM_AGC_SLOW", "AM_AGC_SLOW", "AM_AGC_SLOW (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_AM_LCUT_FREQ, "AM_LCUT_FREQ", "AM_LCUT_FREQ", "AM_LCUT_FREQ (0-19)", "0", RIG_CONF_NUMERIC, { .n = { 0, 19, 1 } } },
+    { TOK_AM_LCUT_SLOPE, "AM_LCUT_SLOPE", "AM_LCUT_SLOPE", "AM_LCUT_SLOPE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_AM_HCUT_FREQ, "AM_HCUT_FREQ", "AM_HCUT_FREQ", "AM_HCUT_FREQ (0-67)", "0", RIG_CONF_NUMERIC, { .n = { 0, 67, 1 } } },
+    { TOK_AM_HCUT_SLOPE, "AM_HCUT_SLOPE", "AM_HCUT_SLOPE", "AM_HCUT_SLOPE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_AM_USB_OUT_LEVEL, "AM_USB_OUT_LEVEL", "AM_USB_OUT_LEVEL", "AM_USB_OUT_LEVEL (0-100)", "0", RIG_CONF_NUMERIC, { .n = { 0, 100, 1 } } },
+    { TOK_AM_TX_BPF_SEL, "AM_TX_BPF_SEL", "AM_TX_BPF_SEL", "AM_TX_BPF_SEL (0-4)", "0", RIG_CONF_NUMERIC, { .n = { 0, 4, 1 } } },
+    { TOK_AM_MOD_SOURCE, "AM_MOD_SOURCE", "AM_MOD_SOURCE", "AM_MOD_SOURCE (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_AM_USB_MOD_GAIN, "AM_USB_MOD_GAIN", "AM_USB_MOD_GAIN", "AM_USB_MOD_GAIN (0-100)", "0", RIG_CONF_NUMERIC, { .n = { 0, 100, 1 } } },
+    { TOK_AM_RPTT_SELECT, "AM_RPTT_SELECT", "AM_RPTT_SELECT", "AM_RPTT_SELECT (0-2)", "0", RIG_CONF_NUMERIC, { .n = { 0, 2, 1 } } },
+
+    /* APRS Settings */
+    { TOK_APRS_MODEM_SEL, "APRS_MODEM_SEL", "APRS_MODEM_SEL", "APRS_MODEM_SEL (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_APRS_MODEM_TYPE, "APRS_MODEM_TYPE", "APRS_MODEM_TYPE", "APRS_MODEM_TYPE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_APRS_AF_MUTE, "APRS_AF_MUTE", "APRS_AF_MUTE", "APRS_AF_MUTE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_APRS_TX_DELAY, "APRS_TX_DELAY", "APRS_TX_DELAY", "APRS_TX_DELAY (0-6)", "0", RIG_CONF_NUMERIC, { .n = { 0, 6, 1 } } },
+    { TOK_APRS_MY_SYMBOL, "APRS_MY_SYMBOL", "APRS_MY_SYMBOL", "APRS_MY_SYMBOL (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_APRS_PATH_SEL, "APRS_PATH_SEL", "APRS_PATH_SEL", "APRS_PATH_SEL (0-2)", "0", RIG_CONF_NUMERIC, { .n = { 0, 2, 1 } } },
+
+    /* BCN Settings */
+    { TOK_BCN_TYPE, "BCN_TYPE", "BCN_TYPE", "BCN_TYPE (0-2)", "0", RIG_CONF_NUMERIC, { .n = { 0, 2, 1 } } },
+    { TOK_BCN_INFO_AMBIG, "BCN_INFO_AMBIG", "BCN_INFO_AMBIG", "BCN_INFO_AMBIG (0-4)", "0", RIG_CONF_NUMERIC, { .n = { 0, 4, 1 } } },
+    { TOK_BCN_SPEED_COURSE, "BCN_SPEED_COURSE", "BCN_SPEED_COURSE", "BCN_SPEED_COURSE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_BCN_ALTITUDE, "BCN_ALTITUDE", "BCN_ALTITUDE", "BCN_ALTITUDE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_BCN_POS_COMMENT, "BCN_POS_COMMENT", "BCN_POS_COMMENT", "BCN_POS_COMMENT (0-14)", "0", RIG_CONF_NUMERIC, { .n = { 0, 14, 1 } } },
+    { TOK_BCN_EMERGENCY, "BCN_EMERGENCY", "BCN_EMERGENCY", "BCN_EMERGENCY (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_BCN_INTERVAL, "BCN_INTERVAL", "BCN_INTERVAL", "BCN_INTERVAL (0-9)", "0", RIG_CONF_NUMERIC, { .n = { 0, 9, 1 } } },
+    { TOK_BCN_PROPORTIONAL, "BCN_PROPORTIONAL", "BCN_PROPORTIONAL", "BCN_PROPORTIONAL (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_BCN_DECAY, "BCN_DECAY", "BCN_DECAY", "BCN_DECAY (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_BCN_AUTO_LOW_SPD, "BCN_AUTO_LOW_SPD", "BCN_AUTO_LOW_SPD", "BCN_AUTO_LOW_SPD (1-99)", "1", RIG_CONF_NUMERIC, { .n = { 1, 99, 1 } } },
+    { TOK_BCN_DELAY, "BCN_DELAY", "BCN_DELAY", "BCN_DELAY (5-180)", "5", RIG_CONF_NUMERIC, { .n = { 5, 180, 1 } } },
+    { TOK_BCN_TEXT_SEL, "BCN_TEXT_SEL", "BCN_TEXT_SEL", "BCN_TEXT_SEL (0-5)", "0", RIG_CONF_NUMERIC, { .n = { 0, 5, 1 } } },
+    { TOK_BCN_TX_RATE, "BCN_TX_RATE", "BCN_TX_RATE", "BCN_TX_RATE (0-7)", "0", RIG_CONF_NUMERIC, { .n = { 0, 7, 1 } } },
+    { TOK_BCN_FREQ, "BCN_FREQ", "BCN_FREQ", "BCN_FREQ (0-2)", "0", RIG_CONF_NUMERIC, { .n = { 0, 2, 1 } } },
+
+    /* BT Settings */
+    { TOK_BT_ENABLE, "BT_ENABLE", "BT_ENABLE", "BT_ENABLE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_BT_AUDIO, "BT_AUDIO", "BT_AUDIO", "BT_AUDIO (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+
+    /* CW Settings */
+    { TOK_CW_AGC_FAST, "CW_AGC_FAST", "CW_AGC_FAST", "CW_AGC_FAST (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_CW_AGC_MID, "CW_AGC_MID", "CW_AGC_MID", "CW_AGC_MID (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_CW_AGC_SLOW, "CW_AGC_SLOW", "CW_AGC_SLOW", "CW_AGC_SLOW (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_CW_LCUT_FREQ, "CW_LCUT_FREQ", "CW_LCUT_FREQ", "CW_LCUT_FREQ (0-19)", "0", RIG_CONF_NUMERIC, { .n = { 0, 19, 1 } } },
+    { TOK_CW_LCUT_SLOPE, "CW_LCUT_SLOPE", "CW_LCUT_SLOPE", "CW_LCUT_SLOPE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_CW_HCUT_FREQ, "CW_HCUT_FREQ", "CW_HCUT_FREQ", "CW_HCUT_FREQ (0-67)", "0", RIG_CONF_NUMERIC, { .n = { 0, 67, 1 } } },
+    { TOK_CW_HCUT_SLOPE, "CW_HCUT_SLOPE", "CW_HCUT_SLOPE", "CW_HCUT_SLOPE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_CW_USB_OUT_LEVEL, "CW_USB_OUT_LEVEL", "CW_USB_OUT_LEVEL", "CW_USB_OUT_LEVEL (0-100)", "0", RIG_CONF_NUMERIC, { .n = { 0, 100, 1 } } },
+    { TOK_CW_RPTT_SELECT, "CW_RPTT_SELECT", "CW_RPTT_SELECT", "CW_RPTT_SELECT (0-2)", "0", RIG_CONF_NUMERIC, { .n = { 0, 2, 1 } } },
+    { TOK_CW_NAR_WIDTH, "CW_NAR_WIDTH", "CW_NAR_WIDTH", "CW_NAR_WIDTH (0-20)", "0", RIG_CONF_NUMERIC, { .n = { 0, 20, 1 } } },
+    { TOK_CW_PC_KEYING, "CW_PC_KEYING", "CW_PC_KEYING", "CW_PC_KEYING (0-2)", "0", RIG_CONF_NUMERIC, { .n = { 0, 2, 1 } } },
+    { TOK_CW_BK_IN_TYPE, "CW_BK_IN_TYPE", "CW_BK_IN_TYPE", "CW_BK_IN_TYPE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_CW_FREQ_DISPLAY, "CW_FREQ_DISPLAY", "CW_FREQ_DISPLAY", "CW_FREQ_DISPLAY (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_CW_QSK_DELAY, "CW_QSK_DELAY", "CW_QSK_DELAY", "CW_QSK_DELAY (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_CW_INDICATOR, "CW_INDICATOR", "CW_INDICATOR", "CW_INDICATOR (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+
+    /* DATA Settings */
+    { TOK_DATA_AGC_FAST, "DATA_AGC_FAST", "DATA_AGC_FAST", "DATA_AGC_FAST (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_DATA_AGC_MID, "DATA_AGC_MID", "DATA_AGC_MID", "DATA_AGC_MID (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_DATA_AGC_SLOW, "DATA_AGC_SLOW", "DATA_AGC_SLOW", "DATA_AGC_SLOW (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_DATA_LCUT_FREQ, "DATA_LCUT_FREQ", "DATA_LCUT_FREQ", "DATA_LCUT_FREQ (0-19)", "0", RIG_CONF_NUMERIC, { .n = { 0, 19, 1 } } },
+    { TOK_DATA_LCUT_SLOPE, "DATA_LCUT_SLOPE", "DATA_LCUT_SLOPE", "DATA_LCUT_SLOPE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_DATA_HCUT_FREQ, "DATA_HCUT_FREQ", "DATA_HCUT_FREQ", "DATA_HCUT_FREQ (0-67)", "0", RIG_CONF_NUMERIC, { .n = { 0, 67, 1 } } },
+    { TOK_DATA_HCUT_SLOPE, "DATA_HCUT_SLOPE", "DATA_HCUT_SLOPE", "DATA_HCUT_SLOPE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_DATA_USB_OUT_LEVEL, "DATA_USB_OUT_LEVEL", "DATA_USB_OUT_LEVEL", "DATA_USB_OUT_LEVEL (0-100)", "0", RIG_CONF_NUMERIC, { .n = { 0, 100, 1 } } },
+    { TOK_DATA_TX_BPF_SEL, "DATA_TX_BPF_SEL", "DATA_TX_BPF_SEL", "DATA_TX_BPF_SEL (0-4)", "0", RIG_CONF_NUMERIC, { .n = { 0, 4, 1 } } },
+    { TOK_DATA_MOD_SOURCE, "DATA_MOD_SOURCE", "DATA_MOD_SOURCE", "DATA_MOD_SOURCE (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_DATA_USB_MOD_GAIN, "DATA_USB_MOD_GAIN", "DATA_USB_MOD_GAIN", "DATA_USB_MOD_GAIN (0-100)", "0", RIG_CONF_NUMERIC, { .n = { 0, 100, 1 } } },
+    { TOK_DATA_RPTT_SELECT, "DATA_RPTT_SELECT", "DATA_RPTT_SELECT", "DATA_RPTT_SELECT (0-2)", "0", RIG_CONF_NUMERIC, { .n = { 0, 2, 1 } } },
+    { TOK_DATA_NAR_WIDTH, "DATA_NAR_WIDTH", "DATA_NAR_WIDTH", "DATA_NAR_WIDTH (0-20)", "0", RIG_CONF_NUMERIC, { .n = { 0, 20, 1 } } },
+    { TOK_DATA_PSK_TONE, "DATA_PSK_TONE", "DATA_PSK_TONE", "DATA_PSK_TONE (0-2)", "0", RIG_CONF_NUMERIC, { .n = { 0, 2, 1 } } },
+    { TOK_DATA_SHIFT_SSB, "DATA_SHIFT_SSB", "DATA_SHIFT_SSB", "DATA_SHIFT_SSB (0-3000)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3000, 1 } } },
+
+    /* DIAL Settings */
+    { TOK_DIAL_RTTY_PSK_STEP, "DIAL_RTTY_PSK_STEP", "DIAL_RTTY_PSK_STEP", "DIAL_RTTY_PSK_STEP (0-2)", "0", RIG_CONF_NUMERIC, { .n = { 0, 2, 1 } } },
+    { TOK_DIAL_FM_STEP, "DIAL_FM_STEP", "DIAL_FM_STEP", "DIAL_FM_STEP (0-6)", "0", RIG_CONF_NUMERIC, { .n = { 0, 6, 1 } } },
+    { TOK_DIAL_CH_STEP, "DIAL_CH_STEP", "DIAL_CH_STEP", "DIAL_CH_STEP (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_DIAL_AM_CH_STEP, "DIAL_AM_CH_STEP", "DIAL_AM_CH_STEP", "DIAL_AM_CH_STEP (0-5)", "0", RIG_CONF_NUMERIC, { .n = { 0, 5, 1 } } },
+    { TOK_DIAL_FM_CH_STEP, "DIAL_FM_CH_STEP", "DIAL_FM_CH_STEP", "DIAL_FM_CH_STEP (0-5)", "0", RIG_CONF_NUMERIC, { .n = { 0, 5, 1 } } },
+    { TOK_DIAL_MAIN_STEPS, "DIAL_MAIN_STEPS", "DIAL_MAIN_STEPS", "DIAL_MAIN_STEPS (0-2)", "0", RIG_CONF_NUMERIC, { .n = { 0, 2, 1 } } },
+    { TOK_DIAL_MIC_P1, "DIAL_MIC_P1", "DIAL_MIC_P1", "DIAL_MIC_P1 (0-20)", "0", RIG_CONF_NUMERIC, { .n = { 0, 20, 1 } } },
+    { TOK_DIAL_MIC_P2, "DIAL_MIC_P2", "DIAL_MIC_P2", "DIAL_MIC_P2 (0-20)", "0", RIG_CONF_NUMERIC, { .n = { 0, 20, 1 } } },
+    { TOK_DIAL_MIC_P3, "DIAL_MIC_P3", "DIAL_MIC_P3", "DIAL_MIC_P3 (0-20)", "0", RIG_CONF_NUMERIC, { .n = { 0, 20, 1 } } },
+    { TOK_DIAL_MIC_P4, "DIAL_MIC_P4", "DIAL_MIC_P4", "DIAL_MIC_P4 (0-20)", "0", RIG_CONF_NUMERIC, { .n = { 0, 20, 1 } } },
+    { TOK_DIAL_MIC_UP, "DIAL_MIC_UP", "DIAL_MIC_UP", "DIAL_MIC_UP (0-20)", "0", RIG_CONF_NUMERIC, { .n = { 0, 20, 1 } } },
+    { TOK_DIAL_MIC_DOWN, "DIAL_MIC_DOWN", "DIAL_MIC_DOWN", "DIAL_MIC_DOWN (0-20)", "0", RIG_CONF_NUMERIC, { .n = { 0, 20, 1 } } },
+    { TOK_DIAL_MIC_SCAN, "DIAL_MIC_SCAN", "DIAL_MIC_SCAN", "DIAL_MIC_SCAN (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+
+    /* DIG Settings */
+    { TOK_DIG_POPUP, "DIG_POPUP", "DIG_POPUP", "DIG_POPUP (0-60)", "0", RIG_CONF_NUMERIC, { .n = { 0, 60, 1 } } },
+    { TOK_DIG_LOC_SERVICE, "DIG_LOC_SERVICE", "DIG_LOC_SERVICE", "DIG_LOC_SERVICE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_DIG_STANDBY_BEEP, "DIG_STANDBY_BEEP", "DIG_STANDBY_BEEP", "DIG_STANDBY_BEEP (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+
+    /* DISP Settings */
+    { TOK_DISP_MY_CALL_TIME, "DISP_MY_CALL_TIME", "DISP_MY_CALL_TIME", "DISP_MY_CALL_TIME (0-5)", "0", RIG_CONF_NUMERIC, { .n = { 0, 5, 1 } } },
+    { TOK_DISP_POPUP_TIME, "DISP_POPUP_TIME", "DISP_POPUP_TIME", "DISP_POPUP_TIME (0-2)", "0", RIG_CONF_NUMERIC, { .n = { 0, 2, 1 } } },
+    { TOK_DISP_SCREEN_SAVER, "DISP_SCREEN_SAVER", "DISP_SCREEN_SAVER", "DISP_SCREEN_SAVER (0-6)", "0", RIG_CONF_NUMERIC, { .n = { 0, 6, 1 } } },
+    { TOK_DISP_SAVER_BAT, "DISP_SAVER_BAT", "DISP_SAVER_BAT", "DISP_SAVER_BAT (0-6)", "0", RIG_CONF_NUMERIC, { .n = { 0, 6, 1 } } },
+    { TOK_DISP_SAVER_TYPE, "DISP_SAVER_TYPE", "DISP_SAVER_TYPE", "DISP_SAVER_TYPE (0-2)", "0", RIG_CONF_NUMERIC, { .n = { 0, 2, 1 } } },
+    { TOK_DISP_AUTO_PWR_OFF, "DISP_AUTO_PWR_OFF", "DISP_AUTO_PWR_OFF", "DISP_AUTO_PWR_OFF (0-24)", "0", RIG_CONF_NUMERIC, { .n = { 0, 24, 1 } } },
+
+    /* DSP Settings */
+    { TOK_DSP_IF_NOTCH_W, "DSP_IF_NOTCH_W", "DSP_IF_NOTCH_W", "DSP_IF_NOTCH_W (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_DSP_NB_REJECTION, "DSP_NB_REJECTION", "DSP_NB_REJECTION", "DSP_NB_REJECTION (0-2)", "0", RIG_CONF_NUMERIC, { .n = { 0, 2, 1 } } },
+    { TOK_DSP_NB_WIDTH, "DSP_NB_WIDTH", "DSP_NB_WIDTH", "DSP_NB_WIDTH (0-2)", "0", RIG_CONF_NUMERIC, { .n = { 0, 2, 1 } } },
+    { TOK_DSP_APF_WIDTH, "DSP_APF_WIDTH", "DSP_APF_WIDTH", "DSP_APF_WIDTH (0-2)", "0", RIG_CONF_NUMERIC, { .n = { 0, 2, 1 } } },
+    { TOK_DSP_CONTOUR_W, "DSP_CONTOUR_W", "DSP_CONTOUR_W", "DSP_CONTOUR_W (1-11)", "1", RIG_CONF_NUMERIC, { .n = { 1, 11, 1 } } },
+
+    /* DT Settings */
+    { TOK_DT_GPS_TIME_SET, "DT_GPS_TIME_SET", "DT_GPS_TIME_SET", "DT_GPS_TIME_SET (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_DT_MY_POSITION, "DT_MY_POSITION", "DT_MY_POSITION", "DT_MY_POSITION (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+
+    /* FILT Settings */
+    { TOK_FILT_LIST_SORT, "FILT_LIST_SORT", "FILT_LIST_SORT", "FILT_LIST_SORT (0-2)", "0", RIG_CONF_NUMERIC, { .n = { 0, 2, 1 } } },
+    { TOK_FILT_MIC_E, "FILT_MIC_E", "FILT_MIC_E", "FILT_MIC_E (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_FILT_POSITION, "FILT_POSITION", "FILT_POSITION", "FILT_POSITION (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_FILT_WEATHER, "FILT_WEATHER", "FILT_WEATHER", "FILT_WEATHER (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_FILT_OBJECT, "FILT_OBJECT", "FILT_OBJECT", "FILT_OBJECT (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_FILT_ITEM, "FILT_ITEM", "FILT_ITEM", "FILT_ITEM (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_FILT_STATUS, "FILT_STATUS", "FILT_STATUS", "FILT_STATUS (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_FILT_OTHER, "FILT_OTHER", "FILT_OTHER", "FILT_OTHER (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_FILT_ALTNET, "FILT_ALTNET", "FILT_ALTNET", "FILT_ALTNET (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_FILT_POPUP_BCN, "FILT_POPUP_BCN", "FILT_POPUP_BCN", "FILT_POPUP_BCN (0-4)", "0", RIG_CONF_NUMERIC, { .n = { 0, 4, 1 } } },
+    { TOK_FILT_POPUP_MSG, "FILT_POPUP_MSG", "FILT_POPUP_MSG", "FILT_POPUP_MSG (0-4)", "0", RIG_CONF_NUMERIC, { .n = { 0, 4, 1 } } },
+    { TOK_FILT_POPUP_MYPACKET, "FILT_POPUP_MYPACKET", "FILT_POPUP_MYPACKET", "FILT_POPUP_MYPACKET (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+
+    /* FM Settings */
+    { TOK_FM_AGC_FAST, "FM_AGC_FAST", "FM_AGC_FAST", "FM_AGC_FAST (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_FM_AGC_MID, "FM_AGC_MID", "FM_AGC_MID", "FM_AGC_MID (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_FM_AGC_SLOW, "FM_AGC_SLOW", "FM_AGC_SLOW", "FM_AGC_SLOW (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_FM_LCUT_FREQ, "FM_LCUT_FREQ", "FM_LCUT_FREQ", "FM_LCUT_FREQ (0-19)", "0", RIG_CONF_NUMERIC, { .n = { 0, 19, 1 } } },
+    { TOK_FM_LCUT_SLOPE, "FM_LCUT_SLOPE", "FM_LCUT_SLOPE", "FM_LCUT_SLOPE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_FM_HCUT_FREQ, "FM_HCUT_FREQ", "FM_HCUT_FREQ", "FM_HCUT_FREQ (0-67)", "0", RIG_CONF_NUMERIC, { .n = { 0, 67, 1 } } },
+    { TOK_FM_HCUT_SLOPE, "FM_HCUT_SLOPE", "FM_HCUT_SLOPE", "FM_HCUT_SLOPE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_FM_USB_OUT_LEVEL, "FM_USB_OUT_LEVEL", "FM_USB_OUT_LEVEL", "FM_USB_OUT_LEVEL (0-100)", "0", RIG_CONF_NUMERIC, { .n = { 0, 100, 1 } } },
+    { TOK_FM_MOD_SOURCE, "FM_MOD_SOURCE", "FM_MOD_SOURCE", "FM_MOD_SOURCE (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_FM_USB_MOD_GAIN, "FM_USB_MOD_GAIN", "FM_USB_MOD_GAIN", "FM_USB_MOD_GAIN (0-100)", "0", RIG_CONF_NUMERIC, { .n = { 0, 100, 1 } } },
+    { TOK_FM_RPTT_SELECT, "FM_RPTT_SELECT", "FM_RPTT_SELECT", "FM_RPTT_SELECT (0-2)", "0", RIG_CONF_NUMERIC, { .n = { 0, 2, 1 } } },
+    { TOK_FM_RPT_SHIFT, "FM_RPT_SHIFT", "FM_RPT_SHIFT", "FM_RPT_SHIFT (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_FM_RPT_SHIFT_28, "FM_RPT_SHIFT_28", "FM_RPT_SHIFT_28", "FM_RPT_SHIFT_28 (0-1000)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1000, 1 } } },
+    { TOK_FM_RPT_SHIFT_50, "FM_RPT_SHIFT_50", "FM_RPT_SHIFT_50", "FM_RPT_SHIFT_50 (0-4000)", "0", RIG_CONF_NUMERIC, { .n = { 0, 4000, 1 } } },
+    { TOK_FM_RPT_SHIFT_144, "FM_RPT_SHIFT_144", "FM_RPT_SHIFT_144", "FM_RPT_SHIFT_144 (0-100)", "0", RIG_CONF_NUMERIC, { .n = { 0, 100, 1 } } },
+    { TOK_FM_RPT_SHIFT_430, "FM_RPT_SHIFT_430", "FM_RPT_SHIFT_430", "FM_RPT_SHIFT_430 (0-100)", "0", RIG_CONF_NUMERIC, { .n = { 0, 100, 1 } } },
+    { TOK_FM_SQL_TYPE, "FM_SQL_TYPE", "FM_SQL_TYPE", "FM_SQL_TYPE (0-5)", "0", RIG_CONF_NUMERIC, { .n = { 0, 5, 1 } } },
+    { TOK_FM_TONE_FREQ, "FM_TONE_FREQ", "FM_TONE_FREQ", "FM_TONE_FREQ (0-49)", "0", RIG_CONF_NUMERIC, { .n = { 0, 49, 1 } } },
+    { TOK_FM_DCS_CODE, "FM_DCS_CODE", "FM_DCS_CODE", "FM_DCS_CODE (0-103)", "0", RIG_CONF_NUMERIC, { .n = { 0, 103, 1 } } },
+    { TOK_FM_DCS_RX_REV, "FM_DCS_RX_REV", "FM_DCS_RX_REV", "FM_DCS_RX_REV (0-2)", "0", RIG_CONF_NUMERIC, { .n = { 0, 2, 1 } } },
+    { TOK_FM_DCS_TX_REV, "FM_DCS_TX_REV", "FM_DCS_TX_REV", "FM_DCS_TX_REV (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_FM_PR_FREQ, "FM_PR_FREQ", "FM_PR_FREQ", "FM_PR_FREQ (300-3000)", "300", RIG_CONF_NUMERIC, { .n = { 300, 3000, 1 } } },
+    { TOK_FM_DTMF_DELAY, "FM_DTMF_DELAY", "FM_DTMF_DELAY", "FM_DTMF_DELAY (0-4)", "0", RIG_CONF_NUMERIC, { .n = { 0, 4, 1 } } },
+    { TOK_FM_DTMF_SPEED, "FM_DTMF_SPEED", "FM_DTMF_SPEED", "FM_DTMF_SPEED (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+
+    /* GEN Settings */
+    { TOK_GEN_BEEP_LEVEL, "GEN_BEEP_LEVEL", "GEN_BEEP_LEVEL", "GEN_BEEP_LEVEL (0-100)", "0", RIG_CONF_NUMERIC, { .n = { 0, 100, 1 } } },
+    { TOK_GEN_RF_SQL_VR, "GEN_RF_SQL_VR", "GEN_RF_SQL_VR", "GEN_RF_SQL_VR (0-2)", "0", RIG_CONF_NUMERIC, { .n = { 0, 2, 1 } } },
+    { TOK_GEN_TUN_LIN_PORT, "GEN_TUN_LIN_PORT", "GEN_TUN_LIN_PORT", "GEN_TUN_LIN_PORT (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_GEN_TUNER_SELECT, "GEN_TUNER_SELECT", "GEN_TUNER_SELECT", "GEN_TUNER_SELECT (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_GEN_CAT1_RATE, "GEN_CAT1_RATE", "GEN_CAT1_RATE", "GEN_CAT1_RATE (0-4)", "0", RIG_CONF_NUMERIC, { .n = { 0, 4, 1 } } },
+    { TOK_GEN_CAT1_TIMEOUT, "GEN_CAT1_TIMEOUT", "GEN_CAT1_TIMEOUT", "GEN_CAT1_TIMEOUT (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_GEN_CAT1_STOP_BIT, "GEN_CAT1_STOP_BIT", "GEN_CAT1_STOP_BIT", "GEN_CAT1_STOP_BIT (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_GEN_CAT2_RATE, "GEN_CAT2_RATE", "GEN_CAT2_RATE", "GEN_CAT2_RATE (0-4)", "0", RIG_CONF_NUMERIC, { .n = { 0, 4, 1 } } },
+    { TOK_GEN_CAT2_TIMEOUT, "GEN_CAT2_TIMEOUT", "GEN_CAT2_TIMEOUT", "GEN_CAT2_TIMEOUT (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_GEN_CAT3_RATE, "GEN_CAT3_RATE", "GEN_CAT3_RATE", "GEN_CAT3_RATE (0-4)", "0", RIG_CONF_NUMERIC, { .n = { 0, 4, 1 } } },
+    { TOK_GEN_CAT3_TIMEOUT, "GEN_CAT3_TIMEOUT", "GEN_CAT3_TIMEOUT", "GEN_CAT3_TIMEOUT (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_GEN_TX_TIMEOUT, "GEN_TX_TIMEOUT", "GEN_TX_TIMEOUT", "GEN_TX_TIMEOUT (0-30)", "0", RIG_CONF_NUMERIC, { .n = { 0, 30, 1 } } },
+    { TOK_GEN_CHARGE_CTRL, "GEN_CHARGE_CTRL", "GEN_CHARGE_CTRL", "GEN_CHARGE_CTRL (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_GEN_SUB_BAND_MUTE, "GEN_SUB_BAND_MUTE", "GEN_SUB_BAND_MUTE", "GEN_SUB_BAND_MUTE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_GEN_SPEAKER_SEL, "GEN_SPEAKER_SEL", "GEN_SPEAKER_SEL", "GEN_SPEAKER_SEL (0-2)", "0", RIG_CONF_NUMERIC, { .n = { 0, 2, 1 } } },
+    { TOK_GEN_DITHER, "GEN_DITHER", "GEN_DITHER", "GEN_DITHER (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+
+    /* KEYER Settings */
+    { TOK_KEYER_TYPE, "KEYER_TYPE", "KEYER_TYPE", "KEYER_TYPE (0-5)", "0", RIG_CONF_NUMERIC, { .n = { 0, 5, 1 } } },
+    { TOK_KEYER_DOT_DASH, "KEYER_DOT_DASH", "KEYER_DOT_DASH", "KEYER_DOT_DASH (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_KEYER_WEIGHT, "KEYER_WEIGHT", "KEYER_WEIGHT", "KEYER_WEIGHT (0-20)", "0", RIG_CONF_NUMERIC, { .n = { 0, 20, 1 } } },
+    { TOK_KEYER_NUM_STYLE, "KEYER_NUM_STYLE", "KEYER_NUM_STYLE", "KEYER_NUM_STYLE (0-6)", "0", RIG_CONF_NUMERIC, { .n = { 0, 6, 1 } } },
+    { TOK_KEYER_CONTEST_NUM, "KEYER_CONTEST_NUM", "KEYER_CONTEST_NUM", "KEYER_CONTEST_NUM (1-9999)", "1", RIG_CONF_NUMERIC, { .n = { 1, 9999, 1 } } },
+    { TOK_KEYER_CW_MEM1, "KEYER_CW_MEM1", "KEYER_CW_MEM1", "KEYER_CW_MEM1 (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_KEYER_CW_MEM2, "KEYER_CW_MEM2", "KEYER_CW_MEM2", "KEYER_CW_MEM2 (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_KEYER_CW_MEM3, "KEYER_CW_MEM3", "KEYER_CW_MEM3", "KEYER_CW_MEM3 (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_KEYER_CW_MEM4, "KEYER_CW_MEM4", "KEYER_CW_MEM4", "KEYER_CW_MEM4 (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_KEYER_CW_MEM5, "KEYER_CW_MEM5", "KEYER_CW_MEM5", "KEYER_CW_MEM5 (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_KEYER_REPEAT_INT, "KEYER_REPEAT_INT", "KEYER_REPEAT_INT", "KEYER_REPEAT_INT (1-60)", "1", RIG_CONF_NUMERIC, { .n = { 1, 60, 1 } } },
+
+    /* PRE1 Settings */
+    { TOK_PRE1_CAT1_RATE, "PRE1_CAT1_RATE", "PRE1_CAT1_RATE", "PRE1_CAT1_RATE (0-4)", "0", RIG_CONF_NUMERIC, { .n = { 0, 4, 1 } } },
+    { TOK_PRE1_CAT1_TIMEOUT, "PRE1_CAT1_TIMEOUT", "PRE1_CAT1_TIMEOUT", "PRE1_CAT1_TIMEOUT (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_PRE1_STOP_BIT, "PRE1_STOP_BIT", "PRE1_STOP_BIT", "PRE1_STOP_BIT (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_PRE1_AGC_FAST, "PRE1_AGC_FAST", "PRE1_AGC_FAST", "PRE1_AGC_FAST (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_PRE1_AGC_MID, "PRE1_AGC_MID", "PRE1_AGC_MID", "PRE1_AGC_MID (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_PRE1_AGC_SLOW, "PRE1_AGC_SLOW", "PRE1_AGC_SLOW", "PRE1_AGC_SLOW (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_PRE1_LCUT_FREQ, "PRE1_LCUT_FREQ", "PRE1_LCUT_FREQ", "PRE1_LCUT_FREQ (0-19)", "0", RIG_CONF_NUMERIC, { .n = { 0, 19, 1 } } },
+    { TOK_PRE1_LCUT_SLOPE, "PRE1_LCUT_SLOPE", "PRE1_LCUT_SLOPE", "PRE1_LCUT_SLOPE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_PRE1_HCUT_FREQ, "PRE1_HCUT_FREQ", "PRE1_HCUT_FREQ", "PRE1_HCUT_FREQ (0-67)", "0", RIG_CONF_NUMERIC, { .n = { 0, 67, 1 } } },
+    { TOK_PRE1_HCUT_SLOPE, "PRE1_HCUT_SLOPE", "PRE1_HCUT_SLOPE", "PRE1_HCUT_SLOPE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_PRE1_USB_OUT_LVL, "PRE1_USB_OUT_LVL", "PRE1_USB_OUT_LVL", "PRE1_USB_OUT_LVL (0-100)", "0", RIG_CONF_NUMERIC, { .n = { 0, 100, 1 } } },
+    { TOK_PRE1_TX_BPF, "PRE1_TX_BPF", "PRE1_TX_BPF", "PRE1_TX_BPF (0-4)", "0", RIG_CONF_NUMERIC, { .n = { 0, 4, 1 } } },
+    { TOK_PRE1_MOD_SOURCE, "PRE1_MOD_SOURCE", "PRE1_MOD_SOURCE", "PRE1_MOD_SOURCE (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_PRE1_USB_MOD_GAIN, "PRE1_USB_MOD_GAIN", "PRE1_USB_MOD_GAIN", "PRE1_USB_MOD_GAIN (0-100)", "0", RIG_CONF_NUMERIC, { .n = { 0, 100, 1 } } },
+    { TOK_PRE1_RPTT_SELECT, "PRE1_RPTT_SELECT", "PRE1_RPTT_SELECT", "PRE1_RPTT_SELECT (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+
+    /* PRE2 Settings */
+    { TOK_PRE2_CAT1_RATE, "PRE2_CAT1_RATE", "PRE2_CAT1_RATE", "PRE2_CAT1_RATE (0-4)", "0", RIG_CONF_NUMERIC, { .n = { 0, 4, 1 } } },
+    { TOK_PRE2_CAT1_TIMEOUT, "PRE2_CAT1_TIMEOUT", "PRE2_CAT1_TIMEOUT", "PRE2_CAT1_TIMEOUT (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_PRE2_STOP_BIT, "PRE2_STOP_BIT", "PRE2_STOP_BIT", "PRE2_STOP_BIT (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_PRE2_AGC_FAST, "PRE2_AGC_FAST", "PRE2_AGC_FAST", "PRE2_AGC_FAST (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_PRE2_AGC_MID, "PRE2_AGC_MID", "PRE2_AGC_MID", "PRE2_AGC_MID (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_PRE2_AGC_SLOW, "PRE2_AGC_SLOW", "PRE2_AGC_SLOW", "PRE2_AGC_SLOW (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_PRE2_LCUT_FREQ, "PRE2_LCUT_FREQ", "PRE2_LCUT_FREQ", "PRE2_LCUT_FREQ (0-19)", "0", RIG_CONF_NUMERIC, { .n = { 0, 19, 1 } } },
+    { TOK_PRE2_LCUT_SLOPE, "PRE2_LCUT_SLOPE", "PRE2_LCUT_SLOPE", "PRE2_LCUT_SLOPE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_PRE2_HCUT_FREQ, "PRE2_HCUT_FREQ", "PRE2_HCUT_FREQ", "PRE2_HCUT_FREQ (0-67)", "0", RIG_CONF_NUMERIC, { .n = { 0, 67, 1 } } },
+    { TOK_PRE2_HCUT_SLOPE, "PRE2_HCUT_SLOPE", "PRE2_HCUT_SLOPE", "PRE2_HCUT_SLOPE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_PRE2_USB_OUT_LVL, "PRE2_USB_OUT_LVL", "PRE2_USB_OUT_LVL", "PRE2_USB_OUT_LVL (0-100)", "0", RIG_CONF_NUMERIC, { .n = { 0, 100, 1 } } },
+    { TOK_PRE2_TX_BPF, "PRE2_TX_BPF", "PRE2_TX_BPF", "PRE2_TX_BPF (0-4)", "0", RIG_CONF_NUMERIC, { .n = { 0, 4, 1 } } },
+    { TOK_PRE2_MOD_SOURCE, "PRE2_MOD_SOURCE", "PRE2_MOD_SOURCE", "PRE2_MOD_SOURCE (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_PRE2_USB_MOD_GAIN, "PRE2_USB_MOD_GAIN", "PRE2_USB_MOD_GAIN", "PRE2_USB_MOD_GAIN (0-100)", "0", RIG_CONF_NUMERIC, { .n = { 0, 100, 1 } } },
+    { TOK_PRE2_RPTT_SELECT, "PRE2_RPTT_SELECT", "PRE2_RPTT_SELECT", "PRE2_RPTT_SELECT (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+
+    /* PRE3 Settings */
+    { TOK_PRE3_CAT1_RATE, "PRE3_CAT1_RATE", "PRE3_CAT1_RATE", "PRE3_CAT1_RATE (0-4)", "0", RIG_CONF_NUMERIC, { .n = { 0, 4, 1 } } },
+    { TOK_PRE3_CAT1_TIMEOUT, "PRE3_CAT1_TIMEOUT", "PRE3_CAT1_TIMEOUT", "PRE3_CAT1_TIMEOUT (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_PRE3_STOP_BIT, "PRE3_STOP_BIT", "PRE3_STOP_BIT", "PRE3_STOP_BIT (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_PRE3_AGC_FAST, "PRE3_AGC_FAST", "PRE3_AGC_FAST", "PRE3_AGC_FAST (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_PRE3_AGC_MID, "PRE3_AGC_MID", "PRE3_AGC_MID", "PRE3_AGC_MID (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_PRE3_AGC_SLOW, "PRE3_AGC_SLOW", "PRE3_AGC_SLOW", "PRE3_AGC_SLOW (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_PRE3_LCUT_FREQ, "PRE3_LCUT_FREQ", "PRE3_LCUT_FREQ", "PRE3_LCUT_FREQ (0-19)", "0", RIG_CONF_NUMERIC, { .n = { 0, 19, 1 } } },
+    { TOK_PRE3_LCUT_SLOPE, "PRE3_LCUT_SLOPE", "PRE3_LCUT_SLOPE", "PRE3_LCUT_SLOPE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_PRE3_HCUT_FREQ, "PRE3_HCUT_FREQ", "PRE3_HCUT_FREQ", "PRE3_HCUT_FREQ (0-67)", "0", RIG_CONF_NUMERIC, { .n = { 0, 67, 1 } } },
+    { TOK_PRE3_HCUT_SLOPE, "PRE3_HCUT_SLOPE", "PRE3_HCUT_SLOPE", "PRE3_HCUT_SLOPE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_PRE3_USB_OUT_LVL, "PRE3_USB_OUT_LVL", "PRE3_USB_OUT_LVL", "PRE3_USB_OUT_LVL (0-100)", "0", RIG_CONF_NUMERIC, { .n = { 0, 100, 1 } } },
+    { TOK_PRE3_TX_BPF, "PRE3_TX_BPF", "PRE3_TX_BPF", "PRE3_TX_BPF (0-4)", "0", RIG_CONF_NUMERIC, { .n = { 0, 4, 1 } } },
+    { TOK_PRE3_MOD_SOURCE, "PRE3_MOD_SOURCE", "PRE3_MOD_SOURCE", "PRE3_MOD_SOURCE (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_PRE3_USB_MOD_GAIN, "PRE3_USB_MOD_GAIN", "PRE3_USB_MOD_GAIN", "PRE3_USB_MOD_GAIN (0-100)", "0", RIG_CONF_NUMERIC, { .n = { 0, 100, 1 } } },
+    { TOK_PRE3_RPTT_SELECT, "PRE3_RPTT_SELECT", "PRE3_RPTT_SELECT", "PRE3_RPTT_SELECT (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+
+    /* PRE4 Settings */
+    { TOK_PRE4_CAT1_RATE, "PRE4_CAT1_RATE", "PRE4_CAT1_RATE", "PRE4_CAT1_RATE (0-4)", "0", RIG_CONF_NUMERIC, { .n = { 0, 4, 1 } } },
+    { TOK_PRE4_CAT1_TIMEOUT, "PRE4_CAT1_TIMEOUT", "PRE4_CAT1_TIMEOUT", "PRE4_CAT1_TIMEOUT (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_PRE4_STOP_BIT, "PRE4_STOP_BIT", "PRE4_STOP_BIT", "PRE4_STOP_BIT (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_PRE4_AGC_FAST, "PRE4_AGC_FAST", "PRE4_AGC_FAST", "PRE4_AGC_FAST (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_PRE4_AGC_MID, "PRE4_AGC_MID", "PRE4_AGC_MID", "PRE4_AGC_MID (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_PRE4_AGC_SLOW, "PRE4_AGC_SLOW", "PRE4_AGC_SLOW", "PRE4_AGC_SLOW (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_PRE4_LCUT_FREQ, "PRE4_LCUT_FREQ", "PRE4_LCUT_FREQ", "PRE4_LCUT_FREQ (0-19)", "0", RIG_CONF_NUMERIC, { .n = { 0, 19, 1 } } },
+    { TOK_PRE4_LCUT_SLOPE, "PRE4_LCUT_SLOPE", "PRE4_LCUT_SLOPE", "PRE4_LCUT_SLOPE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_PRE4_HCUT_FREQ, "PRE4_HCUT_FREQ", "PRE4_HCUT_FREQ", "PRE4_HCUT_FREQ (0-67)", "0", RIG_CONF_NUMERIC, { .n = { 0, 67, 1 } } },
+    { TOK_PRE4_HCUT_SLOPE, "PRE4_HCUT_SLOPE", "PRE4_HCUT_SLOPE", "PRE4_HCUT_SLOPE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_PRE4_USB_OUT_LVL, "PRE4_USB_OUT_LVL", "PRE4_USB_OUT_LVL", "PRE4_USB_OUT_LVL (0-100)", "0", RIG_CONF_NUMERIC, { .n = { 0, 100, 1 } } },
+    { TOK_PRE4_TX_BPF, "PRE4_TX_BPF", "PRE4_TX_BPF", "PRE4_TX_BPF (0-4)", "0", RIG_CONF_NUMERIC, { .n = { 0, 4, 1 } } },
+    { TOK_PRE4_MOD_SOURCE, "PRE4_MOD_SOURCE", "PRE4_MOD_SOURCE", "PRE4_MOD_SOURCE (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_PRE4_USB_MOD_GAIN, "PRE4_USB_MOD_GAIN", "PRE4_USB_MOD_GAIN", "PRE4_USB_MOD_GAIN (0-100)", "0", RIG_CONF_NUMERIC, { .n = { 0, 100, 1 } } },
+    { TOK_PRE4_RPTT_SELECT, "PRE4_RPTT_SELECT", "PRE4_RPTT_SELECT", "PRE4_RPTT_SELECT (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+
+    /* PRE5 Settings */
+    { TOK_PRE5_CAT1_RATE, "PRE5_CAT1_RATE", "PRE5_CAT1_RATE", "PRE5_CAT1_RATE (0-4)", "0", RIG_CONF_NUMERIC, { .n = { 0, 4, 1 } } },
+    { TOK_PRE5_CAT1_TIMEOUT, "PRE5_CAT1_TIMEOUT", "PRE5_CAT1_TIMEOUT", "PRE5_CAT1_TIMEOUT (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_PRE5_STOP_BIT, "PRE5_STOP_BIT", "PRE5_STOP_BIT", "PRE5_STOP_BIT (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_PRE5_AGC_FAST, "PRE5_AGC_FAST", "PRE5_AGC_FAST", "PRE5_AGC_FAST (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_PRE5_AGC_MID, "PRE5_AGC_MID", "PRE5_AGC_MID", "PRE5_AGC_MID (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_PRE5_AGC_SLOW, "PRE5_AGC_SLOW", "PRE5_AGC_SLOW", "PRE5_AGC_SLOW (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_PRE5_LCUT_FREQ, "PRE5_LCUT_FREQ", "PRE5_LCUT_FREQ", "PRE5_LCUT_FREQ (0-19)", "0", RIG_CONF_NUMERIC, { .n = { 0, 19, 1 } } },
+    { TOK_PRE5_LCUT_SLOPE, "PRE5_LCUT_SLOPE", "PRE5_LCUT_SLOPE", "PRE5_LCUT_SLOPE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_PRE5_HCUT_FREQ, "PRE5_HCUT_FREQ", "PRE5_HCUT_FREQ", "PRE5_HCUT_FREQ (0-67)", "0", RIG_CONF_NUMERIC, { .n = { 0, 67, 1 } } },
+    { TOK_PRE5_HCUT_SLOPE, "PRE5_HCUT_SLOPE", "PRE5_HCUT_SLOPE", "PRE5_HCUT_SLOPE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_PRE5_USB_OUT_LVL, "PRE5_USB_OUT_LVL", "PRE5_USB_OUT_LVL", "PRE5_USB_OUT_LVL (0-100)", "0", RIG_CONF_NUMERIC, { .n = { 0, 100, 1 } } },
+    { TOK_PRE5_TX_BPF, "PRE5_TX_BPF", "PRE5_TX_BPF", "PRE5_TX_BPF (0-4)", "0", RIG_CONF_NUMERIC, { .n = { 0, 4, 1 } } },
+    { TOK_PRE5_MOD_SOURCE, "PRE5_MOD_SOURCE", "PRE5_MOD_SOURCE", "PRE5_MOD_SOURCE (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_PRE5_USB_MOD_GAIN, "PRE5_USB_MOD_GAIN", "PRE5_USB_MOD_GAIN", "PRE5_USB_MOD_GAIN (0-100)", "0", RIG_CONF_NUMERIC, { .n = { 0, 100, 1 } } },
+    { TOK_PRE5_RPTT_SELECT, "PRE5_RPTT_SELECT", "PRE5_RPTT_SELECT", "PRE5_RPTT_SELECT (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+
+    /* RING Settings */
+    { TOK_RING_TX_BCN, "RING_TX_BCN", "RING_TX_BCN", "RING_TX_BCN (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_RING_RX_BCN, "RING_RX_BCN", "RING_RX_BCN", "RING_RX_BCN (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_RING_TX_MSG, "RING_TX_MSG", "RING_TX_MSG", "RING_TX_MSG (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_RING_RX_MSG, "RING_RX_MSG", "RING_RX_MSG", "RING_RX_MSG (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_RING_MY_PACKET, "RING_MY_PACKET", "RING_MY_PACKET", "RING_MY_PACKET (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+
+    /* RTTY Settings */
+    { TOK_RTTY_AGC_FAST, "RTTY_AGC_FAST", "RTTY_AGC_FAST", "RTTY_AGC_FAST (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_RTTY_AGC_MID, "RTTY_AGC_MID", "RTTY_AGC_MID", "RTTY_AGC_MID (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_RTTY_AGC_SLOW, "RTTY_AGC_SLOW", "RTTY_AGC_SLOW", "RTTY_AGC_SLOW (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_RTTY_LCUT_FREQ, "RTTY_LCUT_FREQ", "RTTY_LCUT_FREQ", "RTTY_LCUT_FREQ (0-19)", "0", RIG_CONF_NUMERIC, { .n = { 0, 19, 1 } } },
+    { TOK_RTTY_LCUT_SLOPE, "RTTY_LCUT_SLOPE", "RTTY_LCUT_SLOPE", "RTTY_LCUT_SLOPE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_RTTY_HCUT_FREQ, "RTTY_HCUT_FREQ", "RTTY_HCUT_FREQ", "RTTY_HCUT_FREQ (0-67)", "0", RIG_CONF_NUMERIC, { .n = { 0, 67, 1 } } },
+    { TOK_RTTY_HCUT_SLOPE, "RTTY_HCUT_SLOPE", "RTTY_HCUT_SLOPE", "RTTY_HCUT_SLOPE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_RTTY_USB_OUT_LEVEL, "RTTY_USB_OUT_LEVEL", "RTTY_USB_OUT_LEVEL", "RTTY_USB_OUT_LEVEL (0-100)", "0", RIG_CONF_NUMERIC, { .n = { 0, 100, 1 } } },
+    { TOK_RTTY_RPTT_SELECT, "RTTY_RPTT_SELECT", "RTTY_RPTT_SELECT", "RTTY_RPTT_SELECT (0-2)", "0", RIG_CONF_NUMERIC, { .n = { 0, 2, 1 } } },
+    { TOK_RTTY_NAR_WIDTH, "RTTY_NAR_WIDTH", "RTTY_NAR_WIDTH", "RTTY_NAR_WIDTH (0-20)", "0", RIG_CONF_NUMERIC, { .n = { 0, 20, 1 } } },
+    { TOK_RTTY_MARK_FREQ, "RTTY_MARK_FREQ", "RTTY_MARK_FREQ", "RTTY_MARK_FREQ (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_RTTY_SHIFT_FREQ, "RTTY_SHIFT_FREQ", "RTTY_SHIFT_FREQ", "RTTY_SHIFT_FREQ (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_RTTY_POLARITY_TX, "RTTY_POLARITY_TX", "RTTY_POLARITY_TX", "RTTY_POLARITY_TX (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+
+    /* SCAN Settings */
+    { TOK_SCAN_QMB_CH, "SCAN_QMB_CH", "SCAN_QMB_CH", "SCAN_QMB_CH (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_SCAN_BAND_STACK, "SCAN_BAND_STACK", "SCAN_BAND_STACK", "SCAN_BAND_STACK (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_SCAN_BAND_EDGE, "SCAN_BAND_EDGE", "SCAN_BAND_EDGE", "SCAN_BAND_EDGE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_SCAN_RESUME, "SCAN_RESUME", "SCAN_RESUME", "SCAN_RESUME (0-4)", "0", RIG_CONF_NUMERIC, { .n = { 0, 4, 1 } } },
+
+    /* SCOPE Settings */
+    { TOK_SCOPE_RBW, "SCOPE_RBW", "SCOPE_RBW", "SCOPE_RBW (0-2)", "0", RIG_CONF_NUMERIC, { .n = { 0, 2, 1 } } },
+    { TOK_SCOPE_CTR, "SCOPE_CTR", "SCOPE_CTR", "SCOPE_CTR (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_SCOPE_2D_SENS, "SCOPE_2D_SENS", "SCOPE_2D_SENS", "SCOPE_2D_SENS (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_SCOPE_3DSS_SENS, "SCOPE_3DSS_SENS", "SCOPE_3DSS_SENS", "SCOPE_3DSS_SENS (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_SCOPE_AVERAGE, "SCOPE_AVERAGE", "SCOPE_AVERAGE", "SCOPE_AVERAGE (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+
+    /* SMART Settings */
+    { TOK_SMART_LOW_SPD, "SMART_LOW_SPD", "SMART_LOW_SPD", "SMART_LOW_SPD (2-30)", "2", RIG_CONF_NUMERIC, { .n = { 2, 30, 1 } } },
+    { TOK_SMART_HIGH_SPD, "SMART_HIGH_SPD", "SMART_HIGH_SPD", "SMART_HIGH_SPD (3-90)", "3", RIG_CONF_NUMERIC, { .n = { 3, 90, 1 } } },
+    { TOK_SMART_SLOW_RATE, "SMART_SLOW_RATE", "SMART_SLOW_RATE", "SMART_SLOW_RATE (1-100)", "1", RIG_CONF_NUMERIC, { .n = { 1, 100, 1 } } },
+    { TOK_SMART_FAST_RATE, "SMART_FAST_RATE", "SMART_FAST_RATE", "SMART_FAST_RATE (10-180)", "10", RIG_CONF_NUMERIC, { .n = { 10, 180, 1 } } },
+    { TOK_SMART_TURN_ANGLE, "SMART_TURN_ANGLE", "SMART_TURN_ANGLE", "SMART_TURN_ANGLE (5-90)", "5", RIG_CONF_NUMERIC, { .n = { 5, 90, 1 } } },
+    { TOK_SMART_TURN_SLOPE, "SMART_TURN_SLOPE", "SMART_TURN_SLOPE", "SMART_TURN_SLOPE (1-255)", "1", RIG_CONF_NUMERIC, { .n = { 1, 255, 1 } } },
+    { TOK_SMART_TURN_TIME, "SMART_TURN_TIME", "SMART_TURN_TIME", "SMART_TURN_TIME (5-180)", "5", RIG_CONF_NUMERIC, { .n = { 5, 180, 1 } } },
+
+    /* SSB Settings */
+    { TOK_SSB_AGC_FAST, "SSB_AGC_FAST", "SSB_AGC_FAST", "SSB_AGC_FAST (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_SSB_AGC_MID, "SSB_AGC_MID", "SSB_AGC_MID", "SSB_AGC_MID (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_SSB_AGC_SLOW, "SSB_AGC_SLOW", "SSB_AGC_SLOW", "SSB_AGC_SLOW (20-4000)", "20", RIG_CONF_NUMERIC, { .n = { 20, 4000, 1 } } },
+    { TOK_SSB_LCUT_FREQ, "SSB_LCUT_FREQ", "SSB_LCUT_FREQ", "SSB_LCUT_FREQ (0-19)", "0", RIG_CONF_NUMERIC, { .n = { 0, 19, 1 } } },
+    { TOK_SSB_LCUT_SLOPE, "SSB_LCUT_SLOPE", "SSB_LCUT_SLOPE", "SSB_LCUT_SLOPE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_SSB_HCUT_FREQ, "SSB_HCUT_FREQ", "SSB_HCUT_FREQ", "SSB_HCUT_FREQ (0-67)", "0", RIG_CONF_NUMERIC, { .n = { 0, 67, 1 } } },
+    { TOK_SSB_HCUT_SLOPE, "SSB_HCUT_SLOPE", "SSB_HCUT_SLOPE", "SSB_HCUT_SLOPE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_SSB_USB_OUT_LEVEL, "SSB_USB_OUT_LEVEL", "SSB_USB_OUT_LEVEL", "SSB_USB_OUT_LEVEL (0-100)", "0", RIG_CONF_NUMERIC, { .n = { 0, 100, 1 } } },
+    { TOK_SSB_TX_BPF_SEL, "SSB_TX_BPF_SEL", "SSB_TX_BPF_SEL", "SSB_TX_BPF_SEL (0-4)", "0", RIG_CONF_NUMERIC, { .n = { 0, 4, 1 } } },
+    { TOK_SSB_MOD_SOURCE, "SSB_MOD_SOURCE", "SSB_MOD_SOURCE", "SSB_MOD_SOURCE (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_SSB_USB_MOD_GAIN, "SSB_USB_MOD_GAIN", "SSB_USB_MOD_GAIN", "SSB_USB_MOD_GAIN (0-100)", "0", RIG_CONF_NUMERIC, { .n = { 0, 100, 1 } } },
+    { TOK_SSB_RPTT_SELECT, "SSB_RPTT_SELECT", "SSB_RPTT_SELECT", "SSB_RPTT_SELECT (0-2)", "0", RIG_CONF_NUMERIC, { .n = { 0, 2, 1 } } },
+    { TOK_SSB_NAR_WIDTH, "SSB_NAR_WIDTH", "SSB_NAR_WIDTH", "SSB_NAR_WIDTH (0-22)", "0", RIG_CONF_NUMERIC, { .n = { 0, 22, 1 } } },
+    { TOK_SSB_CW_AUTO_MODE, "SSB_CW_AUTO_MODE", "SSB_CW_AUTO_MODE", "SSB_CW_AUTO_MODE (0-2)", "0", RIG_CONF_NUMERIC, { .n = { 0, 2, 1 } } },
+
+    /* TX Settings */
+    { TOK_TX_AMC_RELEASE, "TX_AMC_RELEASE", "TX_AMC_RELEASE", "TX_AMC_RELEASE (0-2)", "0", RIG_CONF_NUMERIC, { .n = { 0, 2, 1 } } },
+    { TOK_TX_EQ1_FREQ, "TX_EQ1_FREQ", "TX_EQ1_FREQ", "TX_EQ1_FREQ (0-7)", "0", RIG_CONF_NUMERIC, { .n = { 0, 7, 1 } } },
+    { TOK_TX_EQ1_BWTH, "TX_EQ1_BWTH", "TX_EQ1_BWTH", "TX_EQ1_BWTH (0-10)", "0", RIG_CONF_NUMERIC, { .n = { 0, 10, 1 } } },
+    { TOK_TX_EQ2_FREQ, "TX_EQ2_FREQ", "TX_EQ2_FREQ", "TX_EQ2_FREQ (0-9)", "0", RIG_CONF_NUMERIC, { .n = { 0, 9, 1 } } },
+    { TOK_TX_EQ2_BWTH, "TX_EQ2_BWTH", "TX_EQ2_BWTH", "TX_EQ2_BWTH (0-10)", "0", RIG_CONF_NUMERIC, { .n = { 0, 10, 1 } } },
+    { TOK_TX_EQ3_FREQ, "TX_EQ3_FREQ", "TX_EQ3_FREQ", "TX_EQ3_FREQ (0-18)", "0", RIG_CONF_NUMERIC, { .n = { 0, 18, 1 } } },
+    { TOK_TX_EQ3_BWTH, "TX_EQ3_BWTH", "TX_EQ3_BWTH", "TX_EQ3_BWTH (0-10)", "0", RIG_CONF_NUMERIC, { .n = { 0, 10, 1 } } },
+    { TOK_TX_P_EQ1_FREQ, "TX_P_EQ1_FREQ", "TX_P_EQ1_FREQ", "TX_P_EQ1_FREQ (0-7)", "0", RIG_CONF_NUMERIC, { .n = { 0, 7, 1 } } },
+    { TOK_TX_P_EQ1_BWTH, "TX_P_EQ1_BWTH", "TX_P_EQ1_BWTH", "TX_P_EQ1_BWTH (0-10)", "0", RIG_CONF_NUMERIC, { .n = { 0, 10, 1 } } },
+    { TOK_TX_P_EQ2_FREQ, "TX_P_EQ2_FREQ", "TX_P_EQ2_FREQ", "TX_P_EQ2_FREQ (0-9)", "0", RIG_CONF_NUMERIC, { .n = { 0, 9, 1 } } },
+    { TOK_TX_P_EQ2_BWTH, "TX_P_EQ2_BWTH", "TX_P_EQ2_BWTH", "TX_P_EQ2_BWTH (0-10)", "0", RIG_CONF_NUMERIC, { .n = { 0, 10, 1 } } },
+    { TOK_TX_P_EQ3_FREQ, "TX_P_EQ3_FREQ", "TX_P_EQ3_FREQ", "TX_P_EQ3_FREQ (0-18)", "0", RIG_CONF_NUMERIC, { .n = { 0, 18, 1 } } },
+    { TOK_TX_P_EQ3_BWTH, "TX_P_EQ3_BWTH", "TX_P_EQ3_BWTH", "TX_P_EQ3_BWTH (0-10)", "0", RIG_CONF_NUMERIC, { .n = { 0, 10, 1 } } },
+
+    /* TXGEN Settings */
+    { TOK_TXGEN_MAX_PWR_BAT, "TXGEN_MAX_PWR_BAT", "TXGEN_MAX_PWR_BAT", "TXGEN_MAX_PWR_BAT (5-60)", "5", RIG_CONF_NUMERIC, { .n = { 5, 60, 1 } } },
+    { TOK_TXGEN_QRP_MODE, "TXGEN_QRP_MODE", "TXGEN_QRP_MODE", "TXGEN_QRP_MODE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_TXGEN_HF_MAX_PWR, "TXGEN_HF_MAX_PWR", "TXGEN_HF_MAX_PWR", "TXGEN_HF_MAX_PWR (5-10)", "5", RIG_CONF_NUMERIC, { .n = { 5, 10, 1 } } },
+    { TOK_TXGEN_50M_MAX_PWR, "TXGEN_50M_MAX_PWR", "TXGEN_50M_MAX_PWR", "TXGEN_50M_MAX_PWR (5-10)", "5", RIG_CONF_NUMERIC, { .n = { 5, 10, 1 } } },
+    { TOK_TXGEN_70M_MAX_PWR, "TXGEN_70M_MAX_PWR", "TXGEN_70M_MAX_PWR", "TXGEN_70M_MAX_PWR (5-60)", "5", RIG_CONF_NUMERIC, { .n = { 5, 60, 1 } } },
+
+/* Total: 315 parameters */
+    { TOK_TXGEN_144M_MAX_PWR, "TXGEN_144M_MAX_PWR", "TXGEN_144M_MAX_PWR", "TXGEN_144M_MAX_PWR (5-100)", "5", RIG_CONF_NUMERIC, { .n = { 5, 100, 1 } } },
+    { TOK_TXGEN_430M_MAX_PWR, "TXGEN_430M_MAX_PWR", "TXGEN_430M_MAX_PWR", "TXGEN_430M_MAX_PWR (5-100)", "5", RIG_CONF_NUMERIC, { .n = { 5, 100, 1 } } },
+    { TOK_TXGEN_AM_HF_MAX, "TXGEN_AM_HF_MAX", "TXGEN_AM_HF_MAX", "TXGEN_AM_HF_MAX (5-25)", "5", RIG_CONF_NUMERIC, { .n = { 5, 25, 1 } } },
+    { TOK_TXGEN_AM_VU_MAX, "TXGEN_AM_VU_MAX", "TXGEN_AM_VU_MAX", "TXGEN_AM_VU_MAX (5-25)", "5", RIG_CONF_NUMERIC, { .n = { 5, 25, 1 } } },
+    { TOK_TXGEN_VOX_SELECT, "TXGEN_VOX_SELECT", "TXGEN_VOX_SELECT", "TXGEN_VOX_SELECT (0-2)", "0", RIG_CONF_NUMERIC, { .n = { 0, 2, 1 } } },
+    { TOK_TXGEN_EMERG_TX, "TXGEN_EMERG_TX", "TXGEN_EMERG_TX", "TXGEN_EMERG_TX (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_TXGEN_TX_INHIBIT, "TXGEN_TX_INHIBIT", "TXGEN_TX_INHIBIT", "TXGEN_TX_INHIBIT (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_TXGEN_METER_DET, "TXGEN_METER_DET", "TXGEN_METER_DET", "TXGEN_METER_DET (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+
+    /* UNIT Settings */
+    { TOK_UNIT_POSITION, "UNIT_POSITION", "UNIT_POSITION", "UNIT_POSITION (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_UNIT_DISTANCE, "UNIT_DISTANCE", "UNIT_DISTANCE", "UNIT_DISTANCE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_UNIT_SPEED, "UNIT_SPEED", "UNIT_SPEED", "UNIT_SPEED (0-2)", "0", RIG_CONF_NUMERIC, { .n = { 0, 2, 1 } } },
+    { TOK_UNIT_ALTITUDE, "UNIT_ALTITUDE", "UNIT_ALTITUDE", "UNIT_ALTITUDE (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_UNIT_TEMP, "UNIT_TEMP", "UNIT_TEMP", "UNIT_TEMP (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_UNIT_RAIN, "UNIT_RAIN", "UNIT_RAIN", "UNIT_RAIN (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_UNIT_WIND, "UNIT_WIND", "UNIT_WIND", "UNIT_WIND (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+
+    /* VMI Settings */
+    { TOK_VMI_COLOR_VFO, "VMI_COLOR_VFO", "VMI_COLOR_VFO", "VMI_COLOR_VFO (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_VMI_COLOR_MEM, "VMI_COLOR_MEM", "VMI_COLOR_MEM", "VMI_COLOR_MEM (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_VMI_COLOR_CLAR, "VMI_COLOR_CLAR", "VMI_COLOR_CLAR", "VMI_COLOR_CLAR (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+
+    /* Terminating entry */
+    { RIG_CONF_END, NULL, }
+};
 
 /*
  * ftx1_detect_spa1 - Detect SPA-1 amplifier via VE4 command
@@ -222,14 +617,25 @@ static int ftx1_probe_field_head_power(RIG *rig)
     original_power[sizeof(original_power) - 1] = '\0';
     rig_debug(RIG_DEBUG_VERBOSE, "%s: original power: %s\n", __func__, original_power);
 
-    /* Try to set 8W (above battery max of 6W) */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC1008;");
-    ret = newcat_set_cmd(rig);
-
-    if (ret != RIG_OK)
+    /*
+     * Try to set 8W (above battery max of 6W)
+     * Use write_block directly to bypass command validation.
+     * The radio will clamp to 6W on battery, and we detect this by reading back.
+     * If we used newcat_set_cmd, validation would fail (PC1008 != PC1006).
+     */
     {
-        rig_debug(RIG_DEBUG_WARN, "%s: could not set test power\n", __func__);
-        return FTX1_HEAD_FIELD_BATTERY;
+        hamlib_port_t *rp = RIGPORT(rig);
+        ret = write_block(rp, (unsigned char *) "PC1008;", 7);
+
+        if (ret != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_WARN, "%s: could not send test power command\n",
+                      __func__);
+            return FTX1_HEAD_FIELD_BATTERY;
+        }
+
+        /* Small delay for radio to process the command */
+        hl_usleep(50 * 1000);
     }
 
     /* Read back to see if it was accepted */
@@ -263,25 +669,38 @@ static int ftx1_probe_field_head_power(RIG *rig)
         }
     }
 
-    /* Restore original power setting - retry on failure */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", original_power);
-    ret = newcat_set_cmd(rig);
-
-    if (ret != RIG_OK)
+    /*
+     * Restore original power setting using write_block directly.
+     * We bypass validation here since we know the original value was valid.
+     */
     {
-        /* First attempt failed, wait and retry */
-        rig_debug(RIG_DEBUG_WARN, "%s: first restore attempt failed, retrying\n",
-                  __func__);
-        hl_usleep(100000);  /* 100ms delay */
-        ret = newcat_set_cmd(rig);
+        hamlib_port_t *rp = RIGPORT(rig);
+        /* Remove trailing semicolon if present for strlen, then add it back */
+        size_t len = strlen(original_power);
+
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: restoring power to '%s'\n", __func__,
+                  original_power);
+        ret = write_block(rp, (unsigned char *) original_power, len);
 
         if (ret != RIG_OK)
         {
-            rig_debug(RIG_DEBUG_ERR,
-                      "%s: CRITICAL - failed to restore original power setting '%s'\n",
-                      __func__, original_power);
-            /* Radio may be left at 8W - log prominently but continue */
+            /* First attempt failed, wait and retry */
+            rig_debug(RIG_DEBUG_WARN, "%s: first restore attempt failed, retrying\n",
+                      __func__);
+            hl_usleep(100 * 1000);  /* 100ms delay */
+            ret = write_block(rp, (unsigned char *) original_power, len);
+
+            if (ret != RIG_OK)
+            {
+                rig_debug(RIG_DEBUG_ERR,
+                          "%s: CRITICAL - failed to restore original power setting '%s'\n",
+                          __func__, original_power);
+                /* Radio may be left at test power - log prominently but continue */
+            }
         }
+
+        /* Small delay to let radio process the restore command */
+        hl_usleep(50 * 1000);
     }
 
     if (power_accepted)
@@ -479,24 +898,34 @@ int ftx1_get_head_type(RIG *rig)
 }
 
 /*
- * ftx1_set_ext_parm - Set FTX-1 extended menu parameter
+ * ftx1_set_ext_parm - Set FTX-1 extended menu parameter via Hamlib API
  *
- * Uses the menu system to set any EX command by token.
- * Token encodes the EX command address (group/section/item).
+ * Called by Hamlib when user executes: rigctl P <param_name> <value>
+ * Example: rigctl -m 1051 P KEYER_TYPE 3
+ *
+ * The token identifies which parameter (from ftx1_ext_parms[] array).
+ * val.f contains the value to set (float for RIG_CONF_NUMERIC types).
+ *
+ * Delegates to ftx1_menu_set_token() which formats and sends EX command.
  */
 static int ftx1_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: token=0x%lx\n", __func__,
-              (unsigned long)token);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: token=0x%lx val=%.0f\n", __func__,
+              (unsigned long)token, val.f);
 
     return ftx1_menu_set_token(rig, token, val);
 }
 
 /*
- * ftx1_get_ext_parm - Get FTX-1 extended menu parameter
+ * ftx1_get_ext_parm - Get FTX-1 extended menu parameter via Hamlib API
  *
- * Uses the menu system to get any EX command by token.
- * Token encodes the EX command address (group/section/item).
+ * Called by Hamlib when user executes: rigctl p <param_name>
+ * Example: rigctl -m 1051 p KEYER_TYPE
+ *
+ * The token identifies which parameter (from ftx1_ext_parms[] array).
+ * Returns value in val->f (float for RIG_CONF_NUMERIC types).
+ *
+ * Delegates to ftx1_menu_get_token() which sends EX query and parses response.
  */
 static int ftx1_get_ext_parm(RIG *rig, hamlib_token_t token, value_t *val)
 {
@@ -511,7 +940,7 @@ struct rig_caps ftx1_caps = {
     .rig_model = RIG_MODEL_FTX1,
     .model_name = "FTX-1",
     .mfg_name = "Yaesu",
-    .version = "20251219.0",  /* Date-based version - added full EX menu support */
+    .version = "20251224.0",  /* Date-based version - added ext_parm support */
     .copyright = "LGPL",
     .status = RIG_STATUS_BETA,  /* Update to stable once complete */
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -534,8 +963,10 @@ struct rig_caps ftx1_caps = {
     /* Note: NA command (narrow filter) available via ftx1_set_na_helper/ftx1_get_na_helper but no RIG_FUNC_NAR exists in Hamlib */
     .has_get_func = RIG_FUNC_COMP | RIG_FUNC_VOX | RIG_FUNC_TONE | RIG_FUNC_TSQL | RIG_FUNC_SBKIN | RIG_FUNC_FBKIN | RIG_FUNC_NB | RIG_FUNC_NR | RIG_FUNC_MN | RIG_FUNC_LOCK | RIG_FUNC_MON | RIG_FUNC_TUNER | RIG_FUNC_RIT | RIG_FUNC_XIT | RIG_FUNC_APF | RIG_FUNC_ANF | RIG_FUNC_DUAL_WATCH,
     .has_set_func = RIG_FUNC_COMP | RIG_FUNC_VOX | RIG_FUNC_TONE | RIG_FUNC_TSQL | RIG_FUNC_SBKIN | RIG_FUNC_FBKIN | RIG_FUNC_NB | RIG_FUNC_NR | RIG_FUNC_MN | RIG_FUNC_LOCK | RIG_FUNC_MON | RIG_FUNC_TUNER | RIG_FUNC_RIT | RIG_FUNC_XIT | RIG_FUNC_APF | RIG_FUNC_ANF | RIG_FUNC_DUAL_WATCH,
-    .has_get_level = RIG_LEVEL_AF | RIG_LEVEL_RF | RIG_LEVEL_SQL | RIG_LEVEL_IF | RIG_LEVEL_APF | RIG_LEVEL_NB | RIG_LEVEL_NR | RIG_LEVEL_PBT_IN | RIG_LEVEL_PBT_OUT | RIG_LEVEL_RFPOWER | RIG_LEVEL_MICGAIN | RIG_LEVEL_KEYSPD | RIG_LEVEL_NOTCHF | RIG_LEVEL_COMP | RIG_LEVEL_AGC | RIG_LEVEL_BKINDL | RIG_LEVEL_BALANCE | RIG_LEVEL_METER | RIG_LEVEL_VOXGAIN | RIG_LEVEL_VOXDELAY | RIG_LEVEL_ANTIVOX | RIG_LEVEL_RAWSTR | RIG_LEVEL_SWR | RIG_LEVEL_ALC | RIG_LEVEL_STRENGTH | RIG_LEVEL_ATT | RIG_LEVEL_PREAMP | RIG_LEVEL_MONITOR_GAIN | RIG_LEVEL_CWPITCH,
-    .has_set_level = RIG_LEVEL_SET(RIG_LEVEL_AF | RIG_LEVEL_RF | RIG_LEVEL_SQL | RIG_LEVEL_IF | RIG_LEVEL_APF | RIG_LEVEL_NB | RIG_LEVEL_NR | RIG_LEVEL_PBT_IN | RIG_LEVEL_PBT_OUT | RIG_LEVEL_RFPOWER | RIG_LEVEL_MICGAIN | RIG_LEVEL_KEYSPD | RIG_LEVEL_NOTCHF | RIG_LEVEL_COMP | RIG_LEVEL_AGC | RIG_LEVEL_BKINDL | RIG_LEVEL_BALANCE | RIG_LEVEL_METER | RIG_LEVEL_VOXGAIN | RIG_LEVEL_VOXDELAY | RIG_LEVEL_ANTIVOX | RIG_LEVEL_RAWSTR | RIG_LEVEL_SWR | RIG_LEVEL_ALC | RIG_LEVEL_STRENGTH | RIG_LEVEL_ATT | RIG_LEVEL_PREAMP | RIG_LEVEL_MONITOR_GAIN | RIG_LEVEL_CWPITCH),
+    /* Note: PBT_IN/PBT_OUT removed - FTX-1 has width (SH P2=0) and IF shift (IS), not true passband tuning */
+    /* Note: BALANCE removed - FTX-1 has no audio balance control via CAT */
+    .has_get_level = RIG_LEVEL_AF | RIG_LEVEL_RF | RIG_LEVEL_SQL | RIG_LEVEL_IF | RIG_LEVEL_APF | RIG_LEVEL_NB | RIG_LEVEL_NR | RIG_LEVEL_RFPOWER | RIG_LEVEL_MICGAIN | RIG_LEVEL_KEYSPD | RIG_LEVEL_NOTCHF | RIG_LEVEL_COMP | RIG_LEVEL_AGC | RIG_LEVEL_BKINDL | RIG_LEVEL_METER | RIG_LEVEL_VOXGAIN | RIG_LEVEL_VOXDELAY | RIG_LEVEL_ANTIVOX | RIG_LEVEL_RAWSTR | RIG_LEVEL_SWR | RIG_LEVEL_ALC | RIG_LEVEL_STRENGTH | RIG_LEVEL_ATT | RIG_LEVEL_PREAMP | RIG_LEVEL_MONITOR_GAIN | RIG_LEVEL_CWPITCH,
+    .has_set_level = RIG_LEVEL_SET(RIG_LEVEL_AF | RIG_LEVEL_RF | RIG_LEVEL_SQL | RIG_LEVEL_IF | RIG_LEVEL_APF | RIG_LEVEL_NB | RIG_LEVEL_NR | RIG_LEVEL_RFPOWER | RIG_LEVEL_MICGAIN | RIG_LEVEL_KEYSPD | RIG_LEVEL_NOTCHF | RIG_LEVEL_COMP | RIG_LEVEL_AGC | RIG_LEVEL_BKINDL | RIG_LEVEL_METER | RIG_LEVEL_VOXGAIN | RIG_LEVEL_VOXDELAY | RIG_LEVEL_ANTIVOX | RIG_LEVEL_RAWSTR | RIG_LEVEL_SWR | RIG_LEVEL_ALC | RIG_LEVEL_STRENGTH | RIG_LEVEL_ATT | RIG_LEVEL_PREAMP | RIG_LEVEL_MONITOR_GAIN | RIG_LEVEL_CWPITCH),
     .has_get_parm = RIG_PARM_NONE,
     .has_set_parm = RIG_PARM_NONE,
     .level_gran = {
@@ -582,6 +1013,7 @@ struct rig_caps ftx1_caps = {
     },
     .ctcss_list = common_ctcss_list,
     .dcs_list = common_dcs_list,
+    .extparms = ftx1_ext_parms,
     .str_cal = FTX1_STR_CAL,
     .preamp = {10, 20, RIG_DBLST_END},  /* AMP1=10dB, AMP2=20dB (0=IPO) */
     .attenuator = {12, RIG_DBLST_END},
@@ -744,8 +1176,8 @@ struct rig_caps ftx1_caps = {
     .set_conf = newcat_set_conf,
     .get_conf2 = newcat_get_conf2,
     /*
-     * RIT/XIT: Uses RC/TC commands per Jeremy Miller (KO4SSD) PR #1826
-     * The standard RT/XT commands return '?' on FTX-1
+     * RIT/XIT: NOT SUPPORTED in latest firmware - RC/TC commands no longer work
+     * These functions are retained but will return errors on current firmware.
      */
     .set_rit = ftx1_set_rit,
     .get_rit = ftx1_get_rit,
