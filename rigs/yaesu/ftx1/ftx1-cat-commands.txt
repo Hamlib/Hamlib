@@ -4,14 +4,8 @@ Source: FTX-1_CAT_OM_ENG_2508-C.pdf (Page 5)
 
 Status: 90/90 commands implemented (100%)
 
-NOT WORKING (firmware limitation):
-  RC/TC  - RIT/XIT clarifier (no longer works in v1.08+)
-
-SET-ONLY (no query):
-  BS, CF, EO, QI, QR, ZI, MA, MB, AM, BM, SV, CH, DN, UP, BD, BU
-
 SPECIAL FORMAT:
-  CH (use CH0/CH1 only), MC (6-digit), MR/MT/MZ (5-digit), CT (needs VFO param)
+  MC (6-digit), MR/MT/MZ (5-digit), CT (needs VFO param)
 
 Total Commands: 90
 
@@ -31,7 +25,7 @@ Total Commands: 90
  12 | BP  | MANUAL NOTCH                  |  o  |  o   |  o  |  o  | ftx1_filter.c
  13 | BS  | BAND SELECT                   |  o  |      |     |     | ftx1_scan.c
  14 | BU  | BAND UP                       |  o  |      |     |     | ftx1_scan.c
- 15 | CF  | CLARIFIER (RIT/XIT)           |  o  |  o   |  o  |  o  | newcat.c
+ 15 | CF  | CLARIFIER (RIT/XIT)           |  o  |  o   |  o  |  o  | ftx1_clarifier.c
  16 | CH  | CHANNEL UP/DOWN               |  o  |      |     |     | ftx1_mem.c
  17 | CN  | CTCSS TONE NUMBER             |  o  |  o   |  o  |     | ftx1_ctcss.c
  18 | CO  | CONTOUR                       |  o  |  o   |  o  |  o  | ftx1_filter.c
@@ -85,7 +79,7 @@ Total Commands: 90
  67 | QR  | QMB RECALL                    |  o  |      |     |     | ftx1_mem.c
  68 | RA  | RF ATTENUATOR                 |  o  |  o   |  o  |  o  | ftx1_preamp.c
  69 | RG  | RF GAIN                       |  o  |  o   |  o  |     | ftx1_audio.c
- 70 | RI  | RIT INFORMATION               |     |  o   |  o  |     | newcat.c
+ 70 | RI  | RADIO INFORMATION             |     |  o   |  o  |     | ftx1_info.c
  71 | RL  | NOISE REDUCTION (DNR) LEVEL   |  o  |  o   |  o  |  o  | ftx1_noise.c
  72 | RM  | READ METER                    |     |  o   |  o  |     | ftx1_audio.c
  73 | SC  | SCAN                          |  o  |  o   |  o  |     | ftx1_scan.c
@@ -119,8 +113,8 @@ Backend Files:
   ftx1.c            - Main backend, rig_caps definition
   ftx1.h            - Shared definitions and macros
   ftx1_audio.c      - Audio levels, meters, power (AG, AO, GT, MG, ML, MS, PB, PC, RG, RM, SH, SM, VD, VG)
-  ftx1_clarifier.c  - RIT/XIT (NOT SUPPORTED in latest firmware)
-  ftx1_ctcss.c      - CTCSS/DCS tones (CN, CT, DC)
+  ftx1_clarifier.c  - RIT/XIT clarifier control using CF command
+  ftx1_ctcss.c      - CTCSS/DCS tones (CN, CT)
   ftx1_cw.c         - CW keyer operations (BI, CS, KM, KR, KS, KY, LM, SD)
   ftx1_ext.c        - Extended menu basics, spectrum scope (EO, EX, SS)
   ftx1_filter.c     - Filter/notch control (BC, BP, CO, FN)
@@ -136,10 +130,6 @@ Backend Files:
   ftx1_scan.c       - Scan, band, freq up/down, tuning step (BD, BS, BU, DN, SC, UP, ZI, EX0306)
   ftx1_tx.c         - Transmit control (AC, MX, PR, PS, SQ, TS, TX, VX)
   ftx1_vfo.c        - VFO operations (AB, BA, FR, FT, ST, SV, VS)
-
-Additional Commands (not in official 91-command list):
-  RC  - Receiver Clarifier (RIT offset) - NOT WORKING in latest firmware
-  TC  - Transmit Clarifier (XIT offset) - NOT WORKING in latest firmware
 
 Command Format Notes:
   CT  - CTCSS mode requires VFO parameter: CT0; not CT; (else returns ?;)

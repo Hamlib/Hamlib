@@ -108,12 +108,12 @@ extern int ftx1_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts);
 
 /*
  * Externs from ftx1_clarifier.c
- * NOTE: RIT/XIT NOT SUPPORTED in latest firmware - RC/TC commands no longer work
+ * FTX-1 uses CF command for RX/TX clarifier (maps to Hamlib RIT/XIT)
  */
-extern int ftx1_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
-extern int ftx1_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
-extern int ftx1_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit);
-extern int ftx1_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit);
+extern int ftx1_get_rx_clar(RIG *rig, vfo_t vfo, shortfreq_t *offset);
+extern int ftx1_set_rx_clar(RIG *rig, vfo_t vfo, shortfreq_t offset);
+extern int ftx1_get_tx_clar(RIG *rig, vfo_t vfo, shortfreq_t *offset);
+extern int ftx1_set_tx_clar(RIG *rig, vfo_t vfo, shortfreq_t offset);
 
 /* Externs from ftx1_freq.c */
 extern int ftx1_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
@@ -1193,13 +1193,12 @@ struct rig_caps ftx1_caps = {
     .set_conf = newcat_set_conf,
     .get_conf2 = newcat_get_conf2,
     /*
-     * RIT/XIT: NOT SUPPORTED in latest firmware - RC/TC commands no longer work
-     * These functions are retained but will return errors on current firmware.
+     * RIT/XIT: Uses FTX-1 CF command for RX/TX clarifier
      */
-    .set_rit = ftx1_set_rit,
-    .get_rit = ftx1_get_rit,
-    .set_xit = ftx1_set_xit,
-    .get_xit = ftx1_get_xit,
+    .set_rit = ftx1_set_rx_clar,
+    .get_rit = ftx1_get_rx_clar,
+    .set_xit = ftx1_set_tx_clar,
+    .get_xit = ftx1_get_tx_clar,
     .set_rptr_shift = ftx1_set_rptr_shift,
     .get_rptr_shift = ftx1_get_rptr_shift,
     .set_rptr_offs = ftx1_set_rptr_offs,
