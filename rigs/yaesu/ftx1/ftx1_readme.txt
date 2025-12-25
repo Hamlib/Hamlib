@@ -33,7 +33,7 @@ CAT Commands (91/91 = 100%):
   for the complete command list with backend file mappings.
 
 Extended Parameters (ext_parm API):
-  315 EX menu parameters exposed via Hamlib's ext_parm API.
+  329 EX menu parameters exposed via Hamlib's ext_parm API.
   Access with: rigctl -m 1051 p PARAM_NAME   (get)
                rigctl -m 1051 P PARAM_NAME N (set)
 
@@ -45,6 +45,8 @@ Extended Parameters (ext_parm API):
   - General settings (beep, tuner, dial steps)
   - APRS settings (modem, callsign, beacons, filters)
   - Presets (5 presets x 16 items each)
+  - GPS settings (enable, pinning, baudrate) - on head unit
+  - SPA-1 settings (11 params: antenna, power limits) - require amplifier
 
   List all: rigctl -m 1051 --dump-caps | grep -A 500 "Extra parameters:"
 
@@ -76,6 +78,14 @@ RIT/XIT (Clarifier):
   firmware versions no longer function. RT/XT commands return '?'.
   Clarifier must be controlled from the radio front panel.
 
+Antenna Tuner Control (AC command):
+  AC is STATUS-ONLY. AC; query returns tuner status (P1=on, P2=status, P3=ant):
+    AC100 = tuner bypassed (P2=0)
+    AC110 = tuner tuning (P2=1)
+    AC120 = tuner matched (P2=2)
+  AC set commands (AC000, AC100, AC110) return '?' - use GEN_TUNER_SELECT
+  ext_parm (EX030104) to control: 0=OFF(bypass), 1=INT, 2=EXT, 3=ATAS.
+
 Signed EX Parameters (cause radio lockup):
   These parameters are NOT exposed - querying them freezes the radio:
   - Audio EQ (SSB/CW/AM/FM/DATA/RTTY AF_TREBLE/MID/BASS)
@@ -86,14 +96,6 @@ Signed EX Parameters (cause radio lockup):
 String EX Parameters:
   50 string parameters (callsigns, DTMF memories, status text) are in the
   menu table but not exposed via ext_parm. Use direct EX commands if needed.
-
-SPA-1 Parameters (14 total):
-  Not yet exposed via ext_parm API. Requires SPA-1 hardware.
-  See SPA1_EXTPARM_TODO.txt for implementation notes.
-  - OPT_TUNER_ANT1/ANT2, OPT_ANT2_OP, OPT_HF_ANT_SEL
-  - OPT_HF/50M/70M/144M/430M_MAX_PWR
-  - OPT_AM_MAX_PWR, OPT_AM_VU_MAX_PWR
-  - OPT_GPS, OPT_GPS_PINNING, OPT_GPS_BAUDRATE
 
 ================================================================================
 KNOWN QUIRKS
@@ -147,7 +149,7 @@ Token Encoding:
   Tokens encode EX command addresses as 0xGGSSII (group/section/item).
   Example: TOK_KEYER_TYPE = 0x020201 = EX020201
 
-Menu Groups (402 items total, 315 exposed via ext_parm):
+Menu Groups (402 items total, 329 exposed via ext_parm):
   EX01  RADIO SETTING     Mode-specific audio (SSB/AM/FM/DATA/RTTY/DIGITAL)
   EX02  CW SETTING        Keyer type, weight, memories, QSK
   EX03  OPERATION         General, scan, DSP, TX audio, power, dial, SPA-1
@@ -212,10 +214,11 @@ Test results (2025-12-10):
 REVISION HISTORY
 ================================================================================
 
-2025-12-25  Expanded ext_parm API from 13 to 315 parameters
+2025-12-25  Expanded ext_parm API from 13 to 329 parameters
             - Generated entries for all unsigned EX menu parameters
-            - Excluded: 28 signed, 50 string, 16 SPA-1, 2 hang-causing
-            - Prepared SPA-1 parameters for separate implementation
+            - Added 11 SPA-1 parameters (antenna, power limits)
+            - Added 3 GPS parameters (GPS is on head, not SPA-1)
+            - Excluded: 28 signed (cause lockup), 50 string, 2 hang-causing
 
 2025-12-24  Initial ext_parm API (13 parameters)
             - Discovered signed parameters cause radio lockup
