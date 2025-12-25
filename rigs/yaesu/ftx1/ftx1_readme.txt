@@ -7,11 +7,10 @@ Each group corresponds to a .c implementation file.
 
 Reference: FTX-1 CAT Operation Reference Manual (2508-C)
 
-ACKNOWLEDGMENTS:
-  Jeremy Miller (KO4SSD) - RIT/XIT implementation using RC/TC commands
-    Discovered that RT/XT commands return '?' on FTX-1, and found the
-    working RC/TC alternatives. See Hamlib PR #1826.
-    Implementation: ftx1_clarifier.c, EX0306 tuning step support
+FIRMWARE COMPATIBILITY NOTE:
+  RIT/XIT (Clarifier): NOT SUPPORTED in latest firmware (v1.08+).
+  The RC/TC commands that worked in earlier firmware are no longer functional.
+  Clarifier must be controlled directly from the radio front panel.
 
 Legend:
   Set  = Command can set a value
@@ -50,29 +49,20 @@ Repeater Offset Frequency (ftx1_freq.c):
   band from VFO frequency and access the appropriate menu token.
 
 RIT/XIT Clarifier Commands (ftx1_clarifier.c):
-  *** SPECIAL ACKNOWLEDGMENT - JEREMY MILLER (KO4SSD) ***
-  The RIT/XIT implementation uses RC/TC commands discovered by Jeremy Miller
-  in Hamlib PR #1826. The standard RT/XT commands return '?' on FTX-1.
+  *** WARNING: NOT SUPPORTED IN LATEST FIRMWARE ***
+  The RC/TC commands no longer work in firmware v1.08+.
+  The code is retained for reference but will return errors.
 
-  RC P1;           - Receiver Clarifier (RIT offset) [WORKING]
-                     RC0; = clear, RC+NNNN; = positive, RC-NNNN; = negative
-                     Range: ±9999 Hz
-  TC P1;           - Transmit Clarifier (XIT offset) [WORKING]
-                     TC0; = clear, TC+NNNN; = positive, TC-NNNN; = negative
-                     Range: ±9999 Hz
-  IF;              - Information query (reads clarifier state)
-                     Response includes clarifier offset and RX/TX enable flags
-
-  Legacy CF command (ftx1_freq.c) - NOT RECOMMENDED:
-  CF P1 P2 P3 P4 P5...P8; - Clarifier offset (set only, does not enable)
-                     P1=VFO, P2=RIT, P3=XIT, P4=sign, P5-P8=offset
+  RC P1;           - Receiver Clarifier (RIT offset) [NOT WORKING]
+  TC P1;           - Transmit Clarifier (XIT offset) [NOT WORKING]
+  RT;              - RIT toggle [NOT WORKING - returns '?']
+  XT;              - XIT toggle [NOT WORKING - returns '?']
+  IF;              - Information query (may still read clarifier state)
 
 Notes:
   - Frequency format: 9 digits, leading zeros required
-  - RT (RIT toggle) and XT (XIT toggle) commands return '?' on FTX-1
-  - Use RC/TC commands for RIT/XIT control (Jeremy Miller's discovery)
-  - Setting RC0; or TC0; clears and disables the respective clarifier
-  - Use IF command to read current clarifier state
+  - All RIT/XIT CAT commands return '?' on current FTX-1 firmware
+  - Clarifier must be controlled from the radio front panel
 
 ================================================================================
 GROUP 2: Mode and Bandwidth (ftx1_mode.c)
@@ -338,6 +328,21 @@ Commands:
   BS P1 P2P2;      - Band Select (P1=VFO, P2P2=band code) [WORKING - set-only]
   UP;              - Frequency/Channel Up [WORKING - context-dependent]
   DN;              - Frequency/Channel Down [WORKING - context-dependent]
+  ZI P1;           - Zero In (P1=VFO, CW mode only) [WORKING - set-only]
+
+Tuning Step (via EX0306 menu):
+  The standard TS command returns '?' on FTX-1. Instead, tuning steps are
+  mode-specific and controlled via the EX0306 extended menu:
+
+  EX030601;        - SSB/CW Dial Step [WORKING]
+                     0=5Hz, 1=10Hz, 2=20Hz
+  EX030602;        - RTTY/PSK Dial Step [WORKING]
+                     0=5Hz, 1=10Hz, 2=20Hz
+  EX030603;        - FM Dial Step [WORKING]
+                     0=5kHz, 1=6.25kHz, 2=10kHz, 3=12.5kHz, 4=20kHz, 5=25kHz, 6=Auto
+
+  Hamlib's get_ts/set_ts automatically selects the correct setting based on
+  the current operating mode.
 
 Band Codes (BS command):
   00 = 160m (1.8MHz)     06 = 17m (18MHz)
@@ -392,9 +397,49 @@ Extended Menu Numbers:
   Example: EX030104; queries TUNER SELECT (group 03, section 01, item 04)
   Response: EX0301040; means value is 0 (INT)
 
+Hamlib ext_parm API (ftx1.c, ftx1_menu.c):
+  The backend exposes 13 EX menu items via Hamlib's ext_parm API.
+  These can be accessed using rigctl 'p' (get) and 'P' (set) commands:
+
+  | Parameter        | EX Command | Description              | Range                   |
+  |------------------|------------|--------------------------|-------------------------|
+  | KEYER_TYPE       | EX020201   | CW keyer type            | 0-5 (OFF/BUG/ELEKEY)    |
+  | KEYER_DOT_DASH   | EX020202   | Paddle polarity          | 0=Normal, 1=Reversed    |
+  | KEYER_WEIGHT     | EX020203   | Dot/dash weight ratio    | 0-20 (2.5:1 to 4.5:1)   |
+  | KEYER_NUM_STYLE  | EX020204   | CW number style          | 0=Normal, 1-6=Cut       |
+  | CW_BK_IN_TYPE    | EX020115   | Break-in type            | 0=Semi, 1=Full          |
+  | CW_QSK_DELAY     | EX020117   | QSK delay time           | 0=15ms to 3=30ms        |
+  | DSP_IF_NOTCH_W   | EX030301   | IF notch filter width    | 0=Narrow, 1=Wide        |
+  | DSP_NB_REJECTION | EX030302   | NB rejection level       | 0=Low, 1=Mid, 2=High    |
+  | DSP_NB_WIDTH     | EX030303   | Noise blanker width      | 0=1ms, 1=3ms, 2=10ms    |
+  | DSP_APF_WIDTH    | EX030304   | APF width                | 0=Narrow, 1=Mid, 2=Wide |
+  | DSP_CONTOUR_W    | EX030306   | Contour width            | 1-11                    |
+  | GEN_BEEP_LEVEL   | EX030101   | Beep volume level        | 0-100                   |
+  | GEN_TUNER_SELECT | EX030104   | Tuner selection          | 0=OFF, 1=INT, 2=EXT, 3=ATAS |
+
+  Usage:
+    rigctl -m 1051 -r /dev/ttyUSB0 -s 38400 p KEYER_TYPE     # Get
+    rigctl -m 1051 -r /dev/ttyUSB0 -s 38400 P KEYER_TYPE 3   # Set
+    rigctl -m 1051 --dump-caps | grep -A 50 "Extra parameters:"
+
+  Implementation notes:
+    - Static ftx1_ext_parms[] array in ftx1.c defines available parameters
+    - rig_caps.extparms points to this array
+    - Uses val->f (float) for RIG_CONF_NUMERIC types per Hamlib API
+    - Get/set delegated to ftx1_menu_set_token()/ftx1_menu_get_token()
+
+  Known issues - Signed parameters cause radio lockup:
+    - Audio EQ parameters (SSB/CW/AM/FM/DATA/RTTY_AF_TREBLE/MID/BASS) NOT exposed
+    - DSP_CONTOUR_LVL (EX030305) NOT exposed - signed value causes hang
+    - EX030601 (DIAL_SSB_CW_STEP) causes radio hang on CAT query
+    - EX040108 (DISP_LED_DIMMER) causes radio hang on CAT query
+
 Complete EX Menu Implementation (ftx1_menu.c):
-  The backend provides full access to ~250 EX menu items via Hamlib's ext_parm
-  interface. Menu items are organized into 11 groups:
+  The backend provides full access to ~250 EX menu items via the internal
+  ftx1_menu_set_token()/ftx1_menu_get_token() functions. 13 commonly-used
+  items are exposed via Hamlib's ext_parm interface (see above).
+
+  Menu items are organized into 11 groups:
 
   EX01: RADIO SETTING - Mode-specific audio settings (SSB/AM/FM/DATA/RTTY/DIGITAL)
         AF treble/mid/bass, AGC, LCUT/HCUT, USB levels, mod source, DTMF memories
@@ -643,8 +688,7 @@ workarounds using raw CAT command passthrough (`rigctl w "CMD;"`):
 | ML (MonLvl)| Hamlib expects different parameter format       |
 | SH (Width) | Hamlib width codes don't match FTX-1 codes      |
 
-RIT/XIT: FIXED - Now uses RC/TC commands via ftx1_clarifier.c
-         (Jeremy Miller KO4SSD - PR #1826)
+RIT/XIT: NOT SUPPORTED - RC/TC commands no longer work in latest firmware
 
 These are worked around in the test harness using raw CAT commands.
 
@@ -750,6 +794,11 @@ Known Quirks
 3. Some EX menu items (ARO, FAGC, DUAL_WATCH, DIVERSITY) return '?'
 4. CW pitch (KP command) is paddle ratio on FTX-1, not pitch frequency
 5. Power level display changes with configuration (Field battery/12V vs SPA-1)
+6. CT (CTCSS mode) requires VFO parameter: CT0; not CT; (else returns ?;)
+7. TS (tuning step) returns ?; - use EX0306 mode-specific dial step instead
+8. EX030601 (DIAL_SSB_CW_STEP) causes radio hang on CAT query
+9. EX040108 (DISP_LED_DIMMER) causes radio hang on CAT query
+10. Signed EX parameters (Audio EQ, DSP_CONTOUR_LVL) cause radio lockup on query
 
 ================================================================================
 TEST SCRIPTS
@@ -773,7 +822,7 @@ Source Files:
   ftx1_freq.c       - Frequency (FA/FB), repeater shift (OS), repeater offset (EX menu)
   ftx1_mode.c       - Mode documentation (delegates to newcat)
   ftx1_audio.c      - AF/RF/Mic gain (AG/RG/MG), power (PC), meters (SM/RM), AGC (GT)
-  ftx1_clarifier.c  - RIT/XIT using RC/TC commands (Jeremy Miller KO4SSD - PR #1826)
+  ftx1_clarifier.c  - RIT/XIT (NOT SUPPORTED in latest firmware)
   ftx1_func.c       - Central dispatcher for func/level operations
   ftx1_info.c       - Radio info (ID/IF/OI), AI mode, IF shift (IS), date/time (DT)
   ftx1_mem.c        - Memory operations (MC/MR/MW/MT/MZ/MA/MB/AM/BM/VM/CH)
@@ -791,6 +840,31 @@ Source Files:
 ================================================================================
 REVISION HISTORY
 ================================================================================
+2025-12-24  Expanded ext_parm API to 13 parameters, documented signed value issue
+            - Expanded ftx1_ext_parms[] from 6 to 13 working parameters
+            - Added CW keyer settings: KEYER_DOT_DASH, KEYER_NUM_STYLE
+            - Added CW mode settings: CW_BK_IN_TYPE, CW_QSK_DELAY
+            - Added DSP settings: DSP_IF_NOTCH_W, DSP_NB_REJECTION, DSP_APF_WIDTH,
+              DSP_CONTOUR_W
+            - Added GEN_TUNER_SELECT for tuner selection (OFF/INT/EXT/ATAS)
+            - CRITICAL: Signed EX parameters cause radio lockup on CAT query
+              * Audio EQ parameters (SSB/CW/AM/FM/DATA/RTTY_AF_TREBLE/MID/BASS)
+              * DSP_CONTOUR_LVL (EX030305)
+              * These are NOT exposed via ext_parm API
+            - Fixed set_rptr_offs/get_rptr_offs to use val.f instead of val.i
+            - Updated all documentation (CLAUDE.md, ftx1_readme.txt, test issues)
+
+2025-12-24  Initial Hamlib ext_parm API for EX menu access
+            - Added static ftx1_ext_parms[] array in ftx1.c with 6 parameters
+            - Wired rig_caps.extparms to expose parameters via Hamlib API
+            - Parameters: KEYER_TYPE, KEYER_WEIGHT, SSB_AF_TREBLE, CW_AF_TREBLE,
+              DSP_NB_WIDTH, GEN_BEEP_LEVEL
+            - Fixed value type: uses val->f (float) not val->i for RIG_CONF_NUMERIC
+            - Fixed KEYER_WEIGHT range from 25-45 to 0-20 (actual FTX-1 range)
+            - Fixed CT command to include VFO parameter (CT0; instead of CT;)
+            - Documented EX030601/EX040108 cause radio hang - not exposed
+            - Updated ftx1.c version to 20251224.0
+
 2025-12-19  Gap fixes and additional capability support
             - Added DCD (squelch status) support via RI command P8
               * Implemented ftx1_get_dcd() in ftx1_tx.c
