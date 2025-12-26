@@ -263,8 +263,19 @@ int ftx1_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
     switch (op)
     {
     case RIG_OP_CPY:
-        /* AB: Copy VFO-A (MAIN) to VFO-B (SUB) */
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AB;");
+        /*
+         * VFO Copy: Direction depends on source VFO parameter
+         *   AB; copies VFO-A (MAIN) to VFO-B (SUB)
+         *   BA; copies VFO-B (SUB) to VFO-A (MAIN)
+         */
+        if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BA;");
+        }
+        else
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AB;");
+        }
         break;
 
     case RIG_OP_XCHG:

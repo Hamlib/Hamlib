@@ -339,7 +339,7 @@ int ftx1_load_message(RIG *rig, int start)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: start=%d\n", __func__, start);
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "LM%02d;", p1);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "LM%d;", p1);  /* Spec: single digit */
     return newcat_set_cmd(rig);
 }
 

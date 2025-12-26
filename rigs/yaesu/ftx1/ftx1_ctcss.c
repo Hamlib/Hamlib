@@ -12,17 +12,17 @@
  *   CT P1 P2;        - CTCSS/DCS Mode (P1=VFO 0=Main, P2=0-3: off/ENC/TSQ/DCS)
  *                      NOTE: Must include VFO param; CT; alone returns ?;
  *
- * CTCSS Tone Table (01-50):
- *   01=67.0   11=94.8   21=131.8  31=177.3  41=225.7
- *   02=69.3   12=97.4   22=136.5  32=179.9  42=229.1
- *   03=71.9   13=100.0  23=141.3  33=183.5  43=233.6
- *   04=74.4   14=103.5  24=146.2  34=186.2  44=241.8
- *   05=77.0   15=107.2  25=151.4  35=189.9  45=250.3
- *   06=79.7   16=110.9  26=156.7  36=192.8  46=254.1
- *   07=82.5   17=114.8  27=159.8  37=196.6  47=CS
- *   08=85.4   18=118.8  28=162.2  38=199.5  48-50=Reserved
- *   09=88.5   19=123.0  29=165.5  39=203.5
- *   10=91.5   20=127.3  30=167.9  40=206.5
+ * CTCSS Tone Table (00-49 per spec, 0-based indexing):
+ *   00=67.0   10=94.8   20=131.8  30=177.3  40=225.7
+ *   01=69.3   11=97.4   21=136.5  31=179.9  41=229.1
+ *   02=71.9   12=100.0  22=141.3  32=183.5  42=233.6
+ *   03=74.4   13=103.5  23=146.2  33=186.2  43=241.8
+ *   04=77.0   14=107.2  24=151.4  34=189.9  44=250.3
+ *   05=79.7   15=110.9  25=156.7  35=192.8  45=254.1
+ *   06=82.5   16=114.8  26=159.8  36=196.6  46=CS
+ *   07=85.4   17=118.8  27=162.2  37=199.5  47-49=Reserved
+ *   08=88.5   18=123.0  28=165.5  38=203.5
+ *   09=91.5   19=127.3  29=167.9  39=206.5
  */
 
 #include <stdlib.h>
@@ -33,8 +33,8 @@
 #include "newcat.h"
 #include "ftx1.h"
 
-#define FTX1_CTCSS_MIN 1
-#define FTX1_CTCSS_MAX 50
+#define FTX1_CTCSS_MIN 0
+#define FTX1_CTCSS_MAX 49
 
 /* CTCSS tone frequencies in 0.1 Hz (multiply by 10 for actual) */
 static const unsigned int ftx1_ctcss_tones[] = {
@@ -45,23 +45,23 @@ static const unsigned int ftx1_ctcss_tones[] = {
     2257, 2291, 2336, 2418, 2503, 2541, 0, 0, 0, 0               /* 41-50 */
 };
 
-/* Convert CTCSS frequency (in 0.1 Hz) to tone number */
+/* Convert CTCSS frequency (in 0.1 Hz) to tone number (0-based per spec) */
 static int ftx1_freq_to_tone_num(unsigned int freq)
 {
     int i;
 
-    for (i = 0; i < FTX1_CTCSS_MAX; i++)
+    for (i = 0; i <= FTX1_CTCSS_MAX; i++)
     {
         if (ftx1_ctcss_tones[i] == freq)
         {
-            return i + 1;  /* Tone numbers are 1-based */
+            return i;  /* Tone numbers are 0-based (000-049) per spec */
         }
     }
 
     return -1;  /* Not found */
 }
 
-/* Convert tone number to frequency (in 0.1 Hz) */
+/* Convert tone number (0-based per spec) to frequency (in 0.1 Hz) */
 static unsigned int ftx1_tone_num_to_freq(int num)
 {
     if (num < FTX1_CTCSS_MIN || num > FTX1_CTCSS_MAX)
@@ -69,7 +69,7 @@ static unsigned int ftx1_tone_num_to_freq(int num)
         return 0;
     }
 
-    return ftx1_ctcss_tones[num - 1];
+    return ftx1_ctcss_tones[num];
 }
 
 /*
