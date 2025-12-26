@@ -272,7 +272,6 @@ int main(int argc, char *argv[])
 
     pthread_t thread;
     pthread_attr_t attr;
-    struct handle_data *arg;
     int vfo_mode = 0; /* vfo_mode=0 means target VFO is current VFO */
     int i;
     extern int is_rigctld;
@@ -988,16 +987,6 @@ int main(int argc, char *argv[])
         fd_set set;
         struct timeval timeout;
 
-        arg = calloc(1, sizeof(struct handle_data));
-
-        if (!arg)
-        {
-            rig_debug(RIG_DEBUG_ERR, "calloc: %s\n", strerror(errno));
-            exit(1);
-        }
-
-        if (rigctld_password[0] != 0) { arg->use_password = 1; }
-
         /* use select to allow for periodic checks for CTRL+C */
         FD_ZERO(&set);
         FD_SET(sock_listen, &set);
@@ -1034,6 +1023,18 @@ int main(int argc, char *argv[])
         }
         else
         {
+            struct handle_data *arg;
+
+            arg = calloc(1, sizeof(struct handle_data));
+
+            if (!arg)
+            {
+                rig_debug(RIG_DEBUG_ERR, "calloc: %s\n", strerror(errno));
+                exit(1);
+            }
+
+            if (rigctld_password[0] != 0) { arg->use_password = 1; }
+
             arg->rig = my_rig;
             arg->clilen = sizeof(arg->cli_addr);
             arg->vfo_mode = vfo_mode;
@@ -1044,6 +1045,7 @@ int main(int argc, char *argv[])
             if (arg->sock < 0)
             {
                 handle_error(RIG_DEBUG_ERR, "accept");
+                free(arg);
                 break;
             }
 
