@@ -296,13 +296,17 @@ int ftx1_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
         break;
 
     case RIG_OP_TUNE:
-        /* AC110: Tuner start (turns on tuner and starts tune) */
-        /* Format: AC P1 P2 P3; P1=1 (on), P2=1 (start tune), P3=0 (MAIN) */
-        /* Note: This causes transmission! */
-        /* Tuner is only available on SPA-1/Optima head */
+        /*
+         * AC command format: AC P1 P2 P3;
+         *   P1=1 (tuner on), P2=1 (start tune), P3=0 (antenna)
+         *
+         * Note: Current FTX-1 firmware returns '?' for AC set commands.
+         * We try anyway in case future firmware updates fix this.
+         * Tuner is only available on SPA-1/Optima configuration.
+         */
         if (!ftx1_has_spa1(rig))
         {
-            rig_debug(RIG_DEBUG_WARN, "%s: TUNE not available on Field Head\n",
+            rig_debug(RIG_DEBUG_WARN, "%s: TUNE requires SPA-1 amplifier\n",
                       __func__);
             return -RIG_ENAVAIL;
         }

@@ -80,7 +80,6 @@
 /*
  * FTX-1 S-Meter Calibration Table
  * Maps raw SM command values (0-255) to dB relative to S9
- * Based on similar Yaesu radios (FT-891 pattern)
  */
 #define FTX1_STR_CAL { 16, \
     { \
