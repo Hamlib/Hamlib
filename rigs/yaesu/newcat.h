@@ -135,6 +135,8 @@ struct newcat_priv_data
     int ftx1_head_type;          /* FTX1_HEAD_FIELD_BATTERY/12V/SPA1/UNKNOWN */
     int ftx1_spa1_detected;      /* 1 if SPA-1 confirmed via VE4 command */
     int ftx1_detection_done;     /* 1 if auto-detection has been performed */
+    int ftx1_virtual_split;      /* Virtual split state (0=off, 1=on) */
+    vfo_t ftx1_tx_vfo;           /* TX VFO for virtual split */
 };
 
 /*
