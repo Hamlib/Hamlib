@@ -7,6 +7,9 @@ Status: 90/90 commands implemented (100%)
 SPECIAL FORMAT:
   MC (6-digit), MR/MT/MZ (5-digit), CT (needs VFO param)
 
+NOTE: AC set commands currently return '?' on FTX-1 firmware. Backend tries AC anyway
+      for forward compatibility. Use EX030104 for tuner on/off control.
+
 Total Commands: 90
 
  #  | Cmd | Function                      | Set | Read | Ans | AI  | Backend File
