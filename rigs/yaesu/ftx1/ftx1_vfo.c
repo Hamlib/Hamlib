@@ -6,13 +6,13 @@
  *
  * CAT Commands in this file:
  *   VS P1;    - VFO Select (0=MAIN, 1=SUB)
- *   ST P1;    - Split on/off (0=off, 1=on)
  *   FT P1;    - Function TX VFO (0=MAIN TX, 1=SUB TX)
  *   FR P1P2;  - Function RX (00=dual receive, 01=single receive)
  *   FA/FB     - VFO-A/B frequency (used for split_freq)
  *   MD P1 P2; - Mode (used for split_mode, P1=VFO)
  *
- * Note: BS (Band Select) returns '?' in firmware - not implemented.
+ * Note: ST (Split) command NOT used - see ftx1_set_split_vfo() for details.
+ *       BS (Band Select) returns '?' in firmware - not implemented.
  *       AB, BA, SV handled via ftx1_vfo_op.
  */
 
@@ -123,13 +123,21 @@ int ftx1_get_vfo(RIG *rig, vfo_t *vfo)
 /*
  * ftx1_set_split_vfo
  *
- * Set split mode using ST command, and TX VFO using FT command.
- * Format: ST0; (off) or ST1; (on), FT0; (MAIN TX) or FT1; (SUB TX)
+ * Set split mode using virtual split (no ST command to radio).
+ *
+ * The FTX-1 has a firmware issue where enabling hardware split (ST1)
+ * forces the SUB VFO into TX/PTT state, locking its frequency. This
+ * causes problems for sat. tracking apps like GPredict.
+ *
+ * Workaround: We track split state internally and only use the FT
+ * command to select which VFO transmits. The radio never enters
+ * hardware split mode, so SUB VFO remains controllable.
+ *
+ * Format: FT0; (MAIN TX) or FT1; (SUB TX)
  */
 int ftx1_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
     struct newcat_priv_data *priv;
-    int ret;
     int p1;
 
     if (!rig)
@@ -146,33 +154,24 @@ int ftx1_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: split=%d tx_vfo=%s\n", __func__,
               split, rig_strvfo(tx_vfo));
 
-    /* Set split on/off */
-    p1 = (split == RIG_SPLIT_ON) ? 1 : 0;
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "ST%d;", p1);
+    /* Store virtual split state - do NOT send ST command to radio */
+    priv->ftx1_virtual_split = (split == RIG_SPLIT_ON) ? 1 : 0;
+    priv->ftx1_tx_vfo = tx_vfo;
 
-    ret = newcat_set_cmd(rig);
+    /* Set TX VFO using FT command */
+    p1 = (tx_vfo == RIG_VFO_SUB || tx_vfo == RIG_VFO_B) ? 1 : 0;
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FT%d;", p1);
 
-    if (ret != RIG_OK)
-    {
-        return ret;
-    }
-
-    /* Set TX VFO if split is on */
-    if (split == RIG_SPLIT_ON)
-    {
-        p1 = (tx_vfo == RIG_VFO_SUB || tx_vfo == RIG_VFO_B) ? 1 : 0;
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FT%d;", p1);
-        ret = newcat_set_cmd(rig);
-    }
-
-    return ret;
+    return newcat_set_cmd(rig);
 }
 
 /*
  * ftx1_get_split_vfo
  *
- * Get split mode using ST command, and TX VFO using FT command.
- * Response: ST0/ST1 for split, FT0/FT1 for TX VFO
+ * Get split mode from virtual split state, TX VFO from FT command.
+ *
+ * Returns the internally tracked virtual split state (not hardware ST).
+ * TX VFO is queried from radio via FT command.
  */
 int ftx1_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
@@ -193,26 +192,10 @@ int ftx1_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
-    /* Get split status */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "ST;");
+    /* Return virtual split state */
+    *split = priv->ftx1_virtual_split ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
 
-    ret = newcat_get_cmd(rig);
-
-    if (ret != RIG_OK)
-    {
-        return ret;
-    }
-
-    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse split '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    *split = (p1 == 1) ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
-
-    /* Get TX VFO */
+    /* Get actual TX VFO from radio */
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FT;");
 
     ret = newcat_get_cmd(rig);
