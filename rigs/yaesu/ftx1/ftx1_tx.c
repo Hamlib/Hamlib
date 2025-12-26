@@ -10,9 +10,9 @@
  *   MX P1;           - Monitor TX Audio (0=off, 1=on)
  *   VX P1;           - VOX on/off (0=off, 1=on)
  *   AC P1P2P3;       - Antenna Tuner Control (P1: 0=off, 1=on, 2=tune)
- *   BI P1;           - Break-In (QSK) (0=off, 1=semi, 2=full)
+ *   BI P1;           - Break-In on/off (0=off, 1=on) - type via EX020115
  *   PS P1;           - Power Switch (0=off, 1=on) - USE WITH CAUTION
- *   SQ P1 P2P3P4;    - Squelch Level (P1=VFO, P2-P4=000-100)
+ *   SQ P1 P2P3P4;    - Squelch Level (P1=VFO, P2-P4=000-255)
  *   TS P1;           - TXW (TX Watch) (0=off, 1=on)
  */
 
@@ -296,13 +296,13 @@ int ftx1_get_tuner(RIG *rig, int *mode)
     return RIG_OK;
 }
 
-/* Set Break-In mode (BI P1;) */
+/* Set Break-In on/off (BI P1;) - type (semi/full) is EX020115 */
 int ftx1_set_breakin(RIG *rig, int mode)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
 
-    /* mode: 0=off, 1=semi, 2=full */
-    if (mode < 0 || mode > 2)
+    /* Spec: BI P1 only allows 0=off, 1=on; type is EX020115 */
+    if (mode < 0 || mode > 1)
     {
         return -RIG_EINVAL;
     }
@@ -345,10 +345,10 @@ int ftx1_set_squelch(RIG *rig, vfo_t vfo, float val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int p1 = FTX1_VFO_TO_P1(vfo);
-    int level = (int)(val * 100);
+    int level = (int)(val * 255);  /* Spec: SQ P2 range is 000-255 */
 
     if (level < 0) level = 0;
-    if (level > 100) level = 100;
+    if (level > 255) level = 255;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d level=%d\n", __func__,
               rig_strvfo(vfo), p1, level);
@@ -380,7 +380,7 @@ int ftx1_get_squelch(RIG *rig, vfo_t vfo, float *val)
         return -RIG_EPROTO;
     }
 
-    *val = (float)level / 100.0f;
+    *val = (float)level / 255.0f;  /* Spec: SQ P2 range is 000-255 */
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: level=%d val=%f\n", __func__, level, *val);
 
@@ -391,7 +391,7 @@ int ftx1_get_squelch(RIG *rig, vfo_t vfo, float *val)
 int ftx1_set_processor(RIG *rig, int status)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p2 = status ? 1 : 0;  /* 0=off, 1=on, 2=on2 */
+    int p2 = status ? 2 : 1;  /* Spec: P2 1=OFF, 2=ON */
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: status=%d\n", __func__, status);
 
@@ -421,8 +421,8 @@ int ftx1_get_processor(RIG *rig, int *status)
         return -RIG_EPROTO;
     }
 
-    /* Return 1 if processor is on (p2 = 1 or 2) */
-    *status = (p2 > 0) ? 1 : 0;
+    /* Spec: P2 1=OFF, 2=ON - return 1 if p2==2 */
+    *status = (p2 == 2) ? 1 : 0;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: p2=%d status=%d\n", __func__, p2, *status);
 

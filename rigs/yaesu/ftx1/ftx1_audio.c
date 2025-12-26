@@ -192,8 +192,8 @@ int ftx1_get_smeter(RIG *rig, vfo_t vfo, int *val)
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    /* Response: SM P1 P2P3P4P5; (4 digits) */
-    if (sscanf(priv->ret_data + 2, "%1d%4d", &p1_resp, &level) != 2)
+    /* Response: SM P1 P2P3P4; (P2-P4 is 3 digits 000-255 per spec) */
+    if (sscanf(priv->ret_data + 2, "%1d%3d", &p1_resp, &level) != 2)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
                   priv->ret_data);
@@ -469,9 +469,9 @@ int ftx1_get_vox_gain(RIG *rig, float *val)
 
 /*
  * ftx1_set_vox_delay - Set VOX Delay
- * CAT command: VD P1P2; (2 digits, 00-30)
+ * CAT command: VD P1P2; (2 digits, 00-33)
  *
- * FTX-1 uses 00-30 range (100ms units: 0=0ms to 30=3000ms)
+ * Spec: VD uses coded values (00=30ms, 01=50ms, ... 33=3000ms)
  * Hamlib VOXDELAY is in tenths of seconds (0-30 maps to 0-3.0s)
  */
 int ftx1_set_vox_delay(RIG *rig, int tenths)
@@ -481,7 +481,7 @@ int ftx1_set_vox_delay(RIG *rig, int tenths)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: tenths=%d\n", __func__, tenths);
 
     if (tenths < 0) tenths = 0;
-    if (tenths > 30) tenths = 30;
+    if (tenths > 33) tenths = 33;  /* Spec: 00-33 coded values */
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VD%02d;", tenths);
     return newcat_set_cmd(rig);
@@ -714,9 +714,9 @@ int ftx1_get_width(RIG *rig, vfo_t vfo, int *width_code)
 
 /*
  * ftx1_set_meter_switch - Set Meter Switch (MS command)
- * CAT command: MS P1P2; (P1=VFO 0/1, P2=meter type 0-5)
+ * CAT command: MS P1 P2; (P1=MAIN meter, P2=SUB meter)
  *
- * Meter types:
+ * Spec (page 20): Both P1 and P2 are meter types set simultaneously:
  *   0 = S-meter
  *   1 = COMP
  *   2 = ALC
@@ -724,46 +724,50 @@ int ftx1_get_width(RIG *rig, vfo_t vfo, int *width_code)
  *   4 = SWR
  *   5 = ID
  */
-int ftx1_set_meter_switch(RIG *rig, vfo_t vfo, int meter_type)
+int ftx1_set_meter_switch(RIG *rig, int main_meter, int sub_meter)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d meter_type=%d\n", __func__,
-              rig_strvfo(vfo), p1, meter_type);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: main_meter=%d sub_meter=%d\n", __func__,
+              main_meter, sub_meter);
 
-    if (meter_type < 0) meter_type = 0;
-    if (meter_type > 5) meter_type = 5;
+    if (main_meter < 0) main_meter = 0;
+    if (main_meter > 5) main_meter = 5;
+    if (sub_meter < 0) sub_meter = 0;
+    if (sub_meter > 5) sub_meter = 5;
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MS%d%d;", p1, meter_type);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MS%d%d;", main_meter,
+             sub_meter);
     return newcat_set_cmd(rig);
 }
 
-/* Get Meter Switch */
-int ftx1_get_meter_switch(RIG *rig, vfo_t vfo, int *meter_type)
+/*
+ * ftx1_get_meter_switch - Get Meter Switch
+ * Response: MS P1 P2; (P1=MAIN meter, P2=SUB meter)
+ */
+int ftx1_get_meter_switch(RIG *rig, int *main_meter, int *sub_meter)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
-    int p1_resp, mt;
+    int p1, p2;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
-              rig_strvfo(vfo), p1);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MS%d;", p1);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MS;");
 
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    /* Response: MS P1P2; */
-    if (sscanf(priv->ret_data + 2, "%1d%1d", &p1_resp, &mt) != 2)
+    /* Response: MS P1 P2; (both are meter types 0-5) */
+    if (sscanf(priv->ret_data + 2, "%1d%1d", &p1, &p2) != 2)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
                   priv->ret_data);
         return -RIG_EPROTO;
     }
 
-    *meter_type = mt;
+    *main_meter = p1;
+    *sub_meter = p2;
     return RIG_OK;
 }
 

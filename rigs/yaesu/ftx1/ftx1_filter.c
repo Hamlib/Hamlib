@@ -14,7 +14,7 @@
  *                         P2=1: CONTOUR freq (P3=0010-3200 Hz)
  *                         P2=2: APF on/off (P3=0000 OFF, 0001 ON)
  *                         P2=3: APF freq (P3=0000-0050, maps to -250 to +250 Hz)
- *   FN P1 P2;           - Filter Number (P1=VFO 0/1, P2=filter 1-3)
+ *   FN P1;              - Fine Tuning (P1: 0=OFF, 1=Fine ON, 2=Fast ON)
  */
 
 #include <stdlib.h>
@@ -314,42 +314,44 @@ int ftx1_get_apf_level_helper(RIG *rig, vfo_t vfo, value_t *val)
 }
 
 /*
- * ftx1_set_filter_number - Set Filter Number
- * CAT command: FN P1 P2; (P1=VFO 0/1, P2=filter 1-3)
+ * ftx1_set_fine_tuning - Set Fine Tuning mode
+ * CAT command: FN P1; (P1: 0=OFF, 1=Fine ON, 2=Fast ON)
+ *
+ * Spec (page 16): FN is "FINE TUNING" control, not filter number
  */
-int ftx1_set_filter_number(RIG *rig, vfo_t vfo, int filter)
+int ftx1_set_fine_tuning(RIG *rig, int mode)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d filter=%d\n", __func__,
-              rig_strvfo(vfo), p1, filter);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: mode=%d\n", __func__, mode);
 
-    if (filter < 1 || filter > 3)
+    if (mode < 0 || mode > 2)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: invalid filter number %d\n", __func__, filter);
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid fine tuning mode %d\n",
+                  __func__, mode);
         return -RIG_EINVAL;
     }
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FN%d%d;", p1, filter);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FN%d;", mode);
 
     return newcat_set_cmd(rig);
 }
 
 /*
- * ftx1_get_filter_number - Get Filter Number
- * CAT command: FN P1; Response: FN P1 P2;
+ * ftx1_get_fine_tuning - Get Fine Tuning mode
+ * CAT command: FN; Response: FN P1;
+ *
+ * Returns: 0=OFF, 1=Fine ON, 2=Fast ON
  */
-int ftx1_get_filter_number(RIG *rig, vfo_t vfo, int *filter)
+int ftx1_get_fine_tuning(RIG *rig, int *mode)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
-    int p1_resp, p2;
+    int p1;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__, rig_strvfo(vfo), p1);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FN%d;", p1);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FN;");
 
     ret = newcat_get_cmd(rig);
 
@@ -358,15 +360,15 @@ int ftx1_get_filter_number(RIG *rig, vfo_t vfo, int *filter)
         return ret;
     }
 
-    /* Response: FN01 (VFO=0, filter=1) */
-    if (sscanf(priv->ret_data + 2, "%1d%1d", &p1_resp, &p2) != 2)
+    /* Response: FN0, FN1, or FN2 (single digit) */
+    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
                   priv->ret_data);
         return -RIG_EPROTO;
     }
 
-    *filter = p2;
+    *mode = p1;
 
     return RIG_OK;
 }
