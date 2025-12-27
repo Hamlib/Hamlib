@@ -133,6 +133,16 @@ int ftx1_get_vfo(RIG *rig, vfo_t *vfo)
  * command to select which VFO transmits. The radio never enters
  * hardware split mode, so SUB VFO remains controllable.
  *
+ * VFO token mapping (FTX1 uses MAIN/SUB, not A/B):
+ *   Main      → MAIN (TX on main VFO)
+ *   Sub       → SUB  (TX on sub VFO)
+ *   VFOA      → MAIN (A maps to MAIN)
+ *   VFOB, "1" → SUB  (B and numeric "1" map to SUB for split)
+ *
+ * Note: GPredict sends "1" which rig_parse_vfo() maps to RIG_VFO_A.
+ * Since "1" is intended to mean "TX on alternate VFO" for split,
+ * we treat RIG_VFO_A as SUB when split is ON.
+ *
  * Format: FT0; (MAIN TX) or FT1; (SUB TX)
  */
 int ftx1_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
@@ -155,19 +165,41 @@ int ftx1_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
               split, rig_strvfo(tx_vfo));
 
     /*
-     * Normalize VFO: FTX1 uses MAIN/SUB, not A/B.
-     * Some software (e.g., GPredict) sends "1" which maps to RIG_VFO_A.
-     * For split ON, TX must be on SUB VFO.
+     * Normalize tx_vfo to FTX1's MAIN/SUB paradigm.
+     *
+     * Explicit MAIN/SUB tokens are honored directly.
+     * VFOB maps to SUB (natural B→SUB mapping).
+     * VFOA requires special handling:
+     *   - "1" from GPredict maps to RIG_VFO_A but means SUB for split
+     *   - Explicit "VFOA" would also arrive as RIG_VFO_A
+     *   - When split ON: treat RIG_VFO_A as SUB (GPredict compatibility)
+     *   - When split OFF: treat RIG_VFO_A as MAIN (natural A→MAIN mapping)
      */
-    if (split == RIG_SPLIT_ON)
+    if (tx_vfo == RIG_VFO_MAIN)
+    {
+        tx_vfo = RIG_VFO_MAIN;
+    }
+    else if (tx_vfo == RIG_VFO_SUB || tx_vfo == RIG_VFO_B)
     {
         tx_vfo = RIG_VFO_SUB;
     }
+    else if (tx_vfo == RIG_VFO_A)
+    {
+        /*
+         * RIG_VFO_A could be "VFOA" or "1" - we can't distinguish.
+         * For split ON: default to SUB (GPredict sends "1" meaning SUB)
+         * For split OFF: use MAIN (natural A→MAIN mapping)
+         */
+        tx_vfo = (split == RIG_SPLIT_ON) ? RIG_VFO_SUB : RIG_VFO_MAIN;
+    }
     else
     {
-        /* Split OFF: TX on MAIN */
-        tx_vfo = RIG_VFO_MAIN;
+        /* Unknown token: default to SUB for split ON, MAIN for split OFF */
+        tx_vfo = (split == RIG_SPLIT_ON) ? RIG_VFO_SUB : RIG_VFO_MAIN;
     }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: normalized tx_vfo=%s\n", __func__,
+              rig_strvfo(tx_vfo));
 
     /* Store virtual split state - do NOT send ST command to radio */
     priv->ftx1_virtual_split = (split == RIG_SPLIT_ON) ? 1 : 0;
