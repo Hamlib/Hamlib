@@ -77,6 +77,17 @@ int ftx1_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
+    /*
+     * Clear the cache fix flag if set - we're querying the radio directly
+     * so the cache will be updated with the correct value by the caller.
+     */
+    if (priv->ftx1_cache_fix_needed)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: clearing cache fix flag (querying radio)\n", __func__);
+        priv->ftx1_cache_fix_needed = 0;
+    }
+
     // Determine command based on VFO
     switch (vfo)
     {

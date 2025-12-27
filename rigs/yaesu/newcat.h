@@ -137,6 +137,8 @@ struct newcat_priv_data
     int ftx1_detection_done;     /* 1 if auto-detection has been performed */
     int ftx1_virtual_split;      /* Virtual split state (0=off, 1=on) */
     vfo_t ftx1_tx_vfo;           /* TX VFO for virtual split */
+    int ftx1_cache_fix_needed;   /* 1 if Main cache needs restoration */
+    freq_t ftx1_cache_fix_freq;  /* Saved Main freq for cache restoration */
 };
 
 /*
