@@ -20,6 +20,7 @@
 #include <string.h>
 #include <hamlib/rig.h>
 #include "misc.h"
+#include "cache.h"
 #include "yaesu.h"
 #include "newcat.h"
 #include "ftx1.h"
@@ -165,41 +166,37 @@ int ftx1_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
               split, rig_strvfo(tx_vfo));
 
     /*
-     * Normalize tx_vfo to FTX1's MAIN/SUB paradigm.
+     * FTX1 split configuration:
+     *   - Split ON:  RX on MAIN, TX on SUB (the only supported config)
+     *   - Split OFF: TX on MAIN (same as RX)
      *
-     * Explicit MAIN/SUB tokens are honored directly.
-     * VFOB maps to SUB (natural B→SUB mapping).
-     * VFOA requires special handling:
-     *   - "1" from GPredict maps to RIG_VFO_A but means SUB for split
-     *   - Explicit "VFOA" would also arrive as RIG_VFO_A
-     *   - When split ON: treat RIG_VFO_A as SUB (GPredict compatibility)
-     *   - When split OFF: treat RIG_VFO_A as MAIN (natural A→MAIN mapping)
+     * CRITICAL: The Hamlib core's vfo_fixup() converts "Main" to "VFOA".
+     * Since VFOA and MAIN share the same cache slot (freqMainA), we MUST
+     * force tx_vfo to SUB when split is ON. Otherwise:
+     *   1. rig_set_split_freq caches TX freq for VFOA
+     *   2. This overwrites the MAIN cache with the TX frequency
+     *   3. rig_get_freq returns TX freq instead of RX freq
+     *
+     * By forcing tx_vfo=SUB here, and updating STATE(rig)->tx_vfo, we ensure
+     * that subsequent rig_set_split_freq calls cache for SUB (not VFOA/MAIN).
+     *
+     * Note: The core will overwrite rs->tx_vfo after this function returns,
+     * but we also fix it in ftx1_set_split_freq as a backup.
      */
-    if (tx_vfo == RIG_VFO_MAIN)
-    {
-        tx_vfo = RIG_VFO_MAIN;
-    }
-    else if (tx_vfo == RIG_VFO_SUB || tx_vfo == RIG_VFO_B)
+    if (split == RIG_SPLIT_ON)
     {
         tx_vfo = RIG_VFO_SUB;
     }
-    else if (tx_vfo == RIG_VFO_A)
-    {
-        /*
-         * RIG_VFO_A could be "VFOA" or "1" - we can't distinguish.
-         * For split ON: default to SUB (GPredict sends "1" meaning SUB)
-         * For split OFF: use MAIN (natural A→MAIN mapping)
-         */
-        tx_vfo = (split == RIG_SPLIT_ON) ? RIG_VFO_SUB : RIG_VFO_MAIN;
-    }
     else
     {
-        /* Unknown token: default to SUB for split ON, MAIN for split OFF */
-        tx_vfo = (split == RIG_SPLIT_ON) ? RIG_VFO_SUB : RIG_VFO_MAIN;
+        tx_vfo = RIG_VFO_MAIN;
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: normalized tx_vfo=%s\n", __func__,
               rig_strvfo(tx_vfo));
+
+    /* Fix rs->tx_vfo - the core may overwrite this, but try anyway */
+    STATE(rig)->tx_vfo = tx_vfo;
 
     /* Store virtual split state - do NOT send ST command to radio */
     priv->ftx1_virtual_split = (split == RIG_SPLIT_ON) ? 1 : 0;
@@ -464,6 +461,9 @@ int ftx1_get_dual_receive(RIG *rig, int *dual)
 int ftx1_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
     struct newcat_priv_data *priv;
+    struct rig_cache *cachep;
+    freq_t saved_main_freq;
+    int ret;
 
     if (!rig)
     {
@@ -471,17 +471,53 @@ int ftx1_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     }
 
     priv = STATE(rig)->priv;
-    if (!priv)
+    cachep = CACHE(rig);
+    if (!priv || !cachep)
     {
         return -RIG_EINTERNAL;
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: tx_freq=%.0f\n", __func__, tx_freq);
 
+    /*
+     * Save the Main freq before any cache corruption.
+     * The Hamlib core will cache tx_freq for VFOA after we return,
+     * which corrupts the Main cache (they share freqMainA slot).
+     * We save it here so we can restore it below.
+     */
+    saved_main_freq = cachep->freqMainA;
+
     /* Set VFO-B (TX VFO) frequency */
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FB%09.0f;", tx_freq);
+    ret = newcat_set_cmd(rig);
 
-    return newcat_set_cmd(rig);
+    if (ret == RIG_OK)
+    {
+        /*
+         * Fix rs->tx_vfo for future operations.
+         * The core set it to VFOA in rig_set_split_vfo, but FTX1 uses SUB.
+         */
+        STATE(rig)->tx_vfo = RIG_VFO_SUB;
+
+        /*
+         * Cache the TX freq for SUB (where we actually set it).
+         * This ensures rig_get_split_freq returns the correct value.
+         */
+        rig_set_cache_freq(rig, RIG_VFO_SUB, tx_freq);
+
+        /*
+         * WORKAROUND for Hamlib core cache issue:
+         * The core will cache tx_freq for VFOA AFTER we return, which
+         * corrupts the Main cache (VFOA and MAIN share freqMainA slot).
+         *
+         * We save the correct Main freq here. It will be restored in
+         * ftx1_get_split_freq, which GPredict calls before get_freq.
+         */
+        priv->ftx1_cache_fix_freq = saved_main_freq;
+        priv->ftx1_cache_fix_needed = 1;
+    }
+
+    return ret;
 }
 
 /*
@@ -493,6 +529,7 @@ int ftx1_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 int ftx1_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
     struct newcat_priv_data *priv;
+    struct rig_cache *cachep;
     int ret;
 
     if (!rig || !tx_freq)
@@ -501,12 +538,29 @@ int ftx1_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     }
 
     priv = STATE(rig)->priv;
-    if (!priv)
+    cachep = CACHE(rig);
+    if (!priv || !cachep)
     {
         return -RIG_EINTERNAL;
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    /*
+     * WORKAROUND for Hamlib core cache issue:
+     * If ftx1_set_split_freq saved the Main freq, restore it now.
+     * This happens before rig_get_freq is called, so the cache will
+     * return the correct RX frequency.
+     */
+    if (priv->ftx1_cache_fix_needed)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: restoring Main cache to %.0f Hz\n",
+                  __func__, priv->ftx1_cache_fix_freq);
+        cachep->freqMainA = priv->ftx1_cache_fix_freq;
+        elapsed_ms(&cachep->time_freqMainA, HAMLIB_ELAPSED_SET);
+        priv->ftx1_cache_fix_needed = 0;
+    }
 
     /* Query VFO-B frequency */
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FB;");
