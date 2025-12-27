@@ -154,12 +154,27 @@ int ftx1_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: split=%d tx_vfo=%s\n", __func__,
               split, rig_strvfo(tx_vfo));
 
+    /*
+     * Normalize VFO: FTX1 uses MAIN/SUB, not A/B.
+     * Some software (e.g., GPredict) sends "1" which maps to RIG_VFO_A.
+     * For split ON, TX must be on SUB VFO.
+     */
+    if (split == RIG_SPLIT_ON)
+    {
+        tx_vfo = RIG_VFO_SUB;
+    }
+    else
+    {
+        /* Split OFF: TX on MAIN */
+        tx_vfo = RIG_VFO_MAIN;
+    }
+
     /* Store virtual split state - do NOT send ST command to radio */
     priv->ftx1_virtual_split = (split == RIG_SPLIT_ON) ? 1 : 0;
     priv->ftx1_tx_vfo = tx_vfo;
 
-    /* Set TX VFO using FT command */
-    p1 = (tx_vfo == RIG_VFO_SUB || tx_vfo == RIG_VFO_B) ? 1 : 0;
+    /* Set TX VFO using FT command: 0=MAIN TX, 1=SUB TX */
+    p1 = (tx_vfo == RIG_VFO_SUB) ? 1 : 0;
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FT%d;", p1);
 
     return newcat_set_cmd(rig);
