@@ -144,8 +144,8 @@ extern int ftx1_wait_morse(RIG *rig, vfo_t vfo);
 /* Extern helpers from ftx1_tx.c */
 extern int ftx1_set_breakin(RIG *rig, int mode);
 extern int ftx1_get_breakin(RIG *rig, int *mode);
-extern int ftx1_set_processor(RIG *rig, int status);
-extern int ftx1_get_processor(RIG *rig, int *status);
+extern int ftx1_set_processor(RIG *rig, vfo_t vfo, int status);
+extern int ftx1_get_processor(RIG *rig, vfo_t vfo, int *status);
 
 /* Extern helpers from ftx1_vfo.c */
 extern int ftx1_set_dual_receive(RIG *rig, int dual);
@@ -204,7 +204,7 @@ int ftx1_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         case RIG_FUNC_LOCK:
             return ftx1_set_lock(rig, status);
         case RIG_FUNC_COMP:
-            return ftx1_set_processor(rig, status);
+            return ftx1_set_processor(rig, vfo, status);
         case RIG_FUNC_SBKIN:
             return ftx1_set_breakin(rig, status ? 1 : 0);
         case RIG_FUNC_FBKIN:
@@ -260,7 +260,7 @@ int ftx1_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         case RIG_FUNC_LOCK:
             return ftx1_get_lock(rig, status);
         case RIG_FUNC_COMP:
-            return ftx1_get_processor(rig, status);
+            return ftx1_get_processor(rig, vfo, status);
         case RIG_FUNC_SBKIN:
             ret = ftx1_get_breakin(rig, &mode);
             if (ret == RIG_OK) *status = (mode == 1) ? 1 : 0;

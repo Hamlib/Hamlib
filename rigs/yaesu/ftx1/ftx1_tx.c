@@ -387,34 +387,42 @@ int ftx1_get_squelch(RIG *rig, vfo_t vfo, float *val)
     return RIG_OK;
 }
 
-/* Set Speech Processor (PR P1 P2;) */
-int ftx1_set_processor(RIG *rig, int status)
+/*
+ * Set Speech Processor (PR P1 P2;)
+ * Spec: P1=VFO (0=MAIN, 1=SUB), P2=mode (1=OFF, 2=ON)
+ */
+int ftx1_set_processor(RIG *rig, vfo_t vfo, int status)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
+    int p1 = FTX1_VFO_TO_P1(vfo);
     int p2 = status ? 2 : 1;  /* Spec: P2 1=OFF, 2=ON */
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: status=%d\n", __func__, status);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s status=%d\n", __func__,
+              rig_strvfo(vfo), status);
 
-    /* PR P1 P2; where P1=VFO (0=Main), P2=mode */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PR0%d;", p2);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PR%d%d;", p1, p2);
     return newcat_set_cmd(rig);
 }
 
-/* Get Speech Processor status */
-int ftx1_get_processor(RIG *rig, int *status)
+/*
+ * Get Speech Processor status (PR P1;)
+ * Spec: P1=VFO (0=MAIN, 1=SUB), response P2=mode (1=OFF, 2=ON)
+ */
+int ftx1_get_processor(RIG *rig, vfo_t vfo, int *status)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret, p1, p2;
+    int ret, p1_resp, p2;
+    int p1 = FTX1_VFO_TO_P1(vfo);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PR0;");
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PR%d;", p1);
 
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
     /* Parse PR P1 P2; response */
-    if (sscanf(priv->ret_data + 2, "%1d%1d", &p1, &p2) != 2)
+    if (sscanf(priv->ret_data + 2, "%1d%1d", &p1_resp, &p2) != 2)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
                   priv->ret_data);
