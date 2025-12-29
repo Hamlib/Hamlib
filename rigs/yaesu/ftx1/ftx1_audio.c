@@ -723,18 +723,49 @@ int ftx1_get_width(RIG *rig, vfo_t vfo, int *width_code)
  *   3 = PO (Power Output)
  *   4 = SWR
  *   5 = ID
+ *
+ * This function sets the meter for the specified VFO while preserving
+ * the other VFO's meter setting.
  */
-int ftx1_set_meter_switch(RIG *rig, int main_meter, int sub_meter)
+int ftx1_set_meter_switch(RIG *rig, vfo_t vfo, int meter_type)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    int main_meter, sub_meter;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: main_meter=%d sub_meter=%d\n", __func__,
-              main_meter, sub_meter);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s meter_type=%d\n", __func__,
+              rig_strvfo(vfo), meter_type);
 
-    if (main_meter < 0) main_meter = 0;
-    if (main_meter > 5) main_meter = 5;
-    if (sub_meter < 0) sub_meter = 0;
-    if (sub_meter > 5) sub_meter = 5;
+    if (meter_type < 0) meter_type = 0;
+    if (meter_type > 5) meter_type = 5;
+
+    /* Read current settings to preserve the other VFO's meter */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MS;");
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK)
+    {
+        /* If read fails, set both to the same value */
+        main_meter = meter_type;
+        sub_meter = meter_type;
+    }
+    else
+    {
+        if (sscanf(priv->ret_data + 2, "%1d%1d", &main_meter, &sub_meter) != 2)
+        {
+            main_meter = meter_type;
+            sub_meter = meter_type;
+        }
+    }
+
+    /* Update the appropriate meter based on VFO */
+    if (vfo == RIG_VFO_SUB || vfo == RIG_VFO_B)
+    {
+        sub_meter = meter_type;
+    }
+    else
+    {
+        main_meter = meter_type;
+    }
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MS%d%d;", main_meter,
              sub_meter);
@@ -744,14 +775,16 @@ int ftx1_set_meter_switch(RIG *rig, int main_meter, int sub_meter)
 /*
  * ftx1_get_meter_switch - Get Meter Switch
  * Response: MS P1 P2; (P1=MAIN meter, P2=SUB meter)
+ *
+ * Returns the meter type for the specified VFO.
  */
-int ftx1_get_meter_switch(RIG *rig, int *main_meter, int *sub_meter)
+int ftx1_get_meter_switch(RIG *rig, vfo_t vfo, int *meter_type)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
     int p1, p2;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MS;");
 
@@ -766,8 +799,16 @@ int ftx1_get_meter_switch(RIG *rig, int *main_meter, int *sub_meter)
         return -RIG_EPROTO;
     }
 
-    *main_meter = p1;
-    *sub_meter = p2;
+    /* Return the meter type for the requested VFO */
+    if (vfo == RIG_VFO_SUB || vfo == RIG_VFO_B)
+    {
+        *meter_type = p2;
+    }
+    else
+    {
+        *meter_type = p1;
+    }
+
     return RIG_OK;
 }
 
