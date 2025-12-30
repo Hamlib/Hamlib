@@ -61,7 +61,7 @@ typedef struct rig_poll_routine_priv_data_s
     rig_poll_routine_args args;
 } rig_poll_routine_priv_data;
 
-void *rig_poll_routine(void *arg)
+static void *rig_poll_routine(void *arg)
 {
     rig_poll_routine_args *args = (rig_poll_routine_args *)arg;
     RIG *rig = args->rig;

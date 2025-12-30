@@ -367,7 +367,7 @@ int cm108_ptt_get(hamlib_port_t *p, ptt_t *pttx)
 }
 
 
-#ifdef XXREMOVEXX
+#ifdef XXREMOVEDXX
 // Not referenced anywhere
 /**
  * \brief get Data Carrier Detect (squelch) from CM108 GPIO
