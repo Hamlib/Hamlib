@@ -456,6 +456,114 @@ static const struct icom_priv_caps IC7300_priv_caps =
     .fm_filters = { 7000, 10000, 15000 }
 };
 
+/*
+ * IC-7300MK2 rig capabilities.
+ */
+static const struct icom_priv_caps IC7300MK2_priv_caps =
+{
+    0xB6,   /* default address */
+    0,      /* 731 mode */
+    1,      /* no XCHG to avoid display flickering */
+    ic7300_ts_sc_list,
+    .agc_levels_present = 1,
+    .agc_levels = {
+        { .level = RIG_AGC_OFF, .icom_level = 0 }, // note this is handled by AGC time constant instead
+        { .level = RIG_AGC_FAST, .icom_level = 1 },
+        { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
+        { .level = RIG_AGC_SLOW, .icom_level = 3 },
+        { .level = RIG_AGC_LAST, .icom_level = -1 },
+    },
+    .spectrum_scope_caps = {
+        .spectrum_line_length = 475,
+        .single_frame_data_length = 50,
+        .data_level_min = 0,
+        .data_level_max = 160,
+        .signal_strength_min = -80,
+        .signal_strength_max = 0,
+    },
+    .spectrum_edge_frequency_ranges = {
+        {
+            .range_id = 1,
+            .low_freq = 30000,
+            .high_freq = 1600000,
+        },
+        {
+            .range_id = 2,
+            .low_freq = 1600000,
+            .high_freq = 2000000,
+        },
+        {
+            .range_id = 3,
+            .low_freq = 2000000,
+            .high_freq = 6000000,
+        },
+        {
+            .range_id = 4,
+            .low_freq = 6000000,
+            .high_freq = 8000000,
+        },
+        {
+            .range_id = 5,
+            .low_freq = 8000000,
+            .high_freq = 11000000,
+        },
+        {
+            .range_id = 6,
+            .low_freq = 11000000,
+            .high_freq = 15000000,
+        },
+        {
+            .range_id = 7,
+            .low_freq = 15000000,
+            .high_freq = 20000000,
+        },
+        {
+            .range_id = 8,
+            .low_freq = 20000000,
+            .high_freq = 22000000,
+        },
+        {
+            .range_id = 9,
+            .low_freq = 22000000,
+            .high_freq = 26000000,
+        },
+        {
+            .range_id = 10,
+            .low_freq = 26000000,
+            .high_freq = 30000000,
+        },
+        {
+            .range_id = 11,
+            .low_freq = 30000000,
+            .high_freq = 45000000,
+        },
+        {
+            .range_id = 12,
+            .low_freq = 45000000,
+            .high_freq = 60000000,
+        },
+        {
+            .range_id = 13,
+            .low_freq = 60000000,
+            .high_freq = 74800000,
+        },
+        {
+            .range_id = 0,
+            .low_freq = 0,
+            .high_freq = 0,
+        },
+    },
+    .extcmds = ic7300_extcmds,   /* Custom op parameters */
+    .x25x26_always = 1,
+    .x25x26_possibly = 1,
+    .x1cx03_always = 1,
+    .x1cx03_possibly = 1,
+    .x1ax03_supported = 1,
+    .mode_with_filter = 1,
+    .data_mode_supported = 1,
+    .fm_filters = { 7000, 10000, 15000 }
+};
+
 static const struct icom_priv_caps IC9700_priv_caps =
 {
     0xA2,   /* default address */
@@ -958,6 +1066,257 @@ struct rig_caps ic7300_caps =
     .get_conf =  icom_get_conf,
 
     .priv = (void *)& IC7300_priv_caps,
+    .rig_init =   icom_init,
+    .rig_cleanup =   icom_cleanup,
+    .rig_open =  icom_rig_open,
+    .rig_close =  icom_rig_close,
+
+    .set_freq =  icom_set_freq,
+    .get_freq =  icom_get_freq,
+    .set_mode =  icom_set_mode,
+    .get_mode =  icom_get_mode,
+//    .get_vfo =  icom_get_vfo,
+    .set_vfo =  icom_set_vfo,
+    .set_ant =  NULL,
+    .get_ant =  NULL,
+
+    .set_rit =  icom_set_rit_new,
+    .get_rit =  icom_get_rit_new,
+    .get_xit =  icom_get_rit_new,
+    .set_xit =  icom_set_xit_new,
+
+    .decode_event =  icom_decode_event,
+    .set_level =  icom_set_level,
+    .get_level =  icom_get_level,
+    .set_ext_level =  icom_set_ext_level,
+    .get_ext_level =  icom_get_ext_level,
+    .set_func =  icom_set_func,
+    .get_func =  icom_get_func,
+    .set_parm =  ic7300_set_parm,
+    .get_parm =  ic7300_get_parm,
+    .set_mem =  icom_set_mem,
+    .vfo_op =  icom_vfo_op,
+    .scan =  icom_scan,
+    .set_ptt =  icom_set_ptt,
+    .get_ptt =  icom_get_ptt,
+    .get_dcd =  icom_get_dcd,
+    .set_ts =  icom_set_ts,
+    .get_ts =  icom_get_ts,
+    .set_rptr_shift =  NULL,
+    .get_rptr_shift =  NULL,
+    .set_rptr_offs =  NULL,
+    .get_rptr_offs =  NULL,
+    .set_ctcss_tone =  icom_set_ctcss_tone,
+    .get_ctcss_tone =  icom_get_ctcss_tone,
+    .set_ctcss_sql =  icom_set_ctcss_sql,
+    .get_ctcss_sql =  icom_get_ctcss_sql,
+    .set_split_freq =  icom_set_split_freq,
+    .get_split_freq =  icom_get_split_freq,
+    .set_split_mode =  icom_set_split_mode,
+    .get_split_mode =  icom_get_split_mode,
+    .set_split_vfo =  icom_set_split_vfo,
+    .get_split_vfo =  icom_get_split_vfo,
+    .set_powerstat = icom_set_powerstat,
+    .get_powerstat = icom_get_powerstat,
+    .power2mW = icom_power2mW,
+    .mW2power = icom_mW2power,
+    .send_morse = icom_send_morse,
+    .stop_morse = icom_stop_morse,
+    .wait_morse = rig_wait_morse,
+    .send_voice_mem = icom_send_voice_mem,
+    .stop_voice_mem = icom_stop_voice_mem,
+    .set_clock = ic7300_set_clock,
+    .get_clock = ic7300_get_clock,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
+};
+
+struct rig_caps ic7300mk2_caps =
+{
+    RIG_MODEL(RIG_MODEL_IC7300MK2),
+    .model_name = "IC-7300MK2",
+    .mfg_name =  "Icom",
+    .version =  BACKEND_VER ".14",
+    .copyright =  "LGPL",
+    .status =  RIG_STATUS_BETA,
+    .rig_type =  RIG_TYPE_TRANSCEIVER,
+    .ptt_type =  RIG_PTT_RIG,
+    .dcd_type =  RIG_DCD_RIG,
+    .port_type =  RIG_PORT_SERIAL,
+    .serial_rate_min =  4800,
+    .serial_rate_max =  115200,
+    .serial_data_bits =  8,
+    .serial_stop_bits =  1,
+    .serial_parity =  RIG_PARITY_NONE,
+    .serial_handshake =  RIG_HANDSHAKE_NONE,
+    .write_delay =  0,
+    .post_write_delay =  0,
+    .timeout =  1000,
+    .retry =  3,
+    .has_get_func =  IC7300_FUNCS,
+    .has_set_func =  IC7300_FUNCS,
+    .has_get_level =  IC7300_LEVELS,
+    .has_set_level =  RIG_LEVEL_SET(IC7300_LEVELS),
+    .has_get_parm =  IC7300_PARMS,
+    .has_set_parm =  RIG_PARM_SET(IC7300_PARMS),
+    .level_gran = {
+#define NO_LVL_KEYSPD
+#define NO_LVL_CWPITCH
+#define NO_LVL_USB_AF
+#include "level_gran_icom.h"
+#undef NO_LVL_KEYSPD
+#undef NO_LVL_CWPITCH
+#undef NO_LVL_USB_AF
+        [LVL_KEYSPD] = {.min = {.i = 6}, .max = {.i = 48}, .step = {.i = 1}},
+        [LVL_CWPITCH] = {.min = {.i = 300}, .max = {.i = 900}, .step = {.i = 1}},
+        [LVL_SPECTRUM_SPEED] = {.min = {.i = 0}, .max = {.i = 2}, .step = {.i = 1}},
+        [LVL_SPECTRUM_REF] = {.min = {.f = -20.0f}, .max = {.f = 20.0f}, .step = {.f = 0.5f}},
+        [LVL_SPECTRUM_AVG] = {.min = {.i = 0}, .max = {.i = 3}, .step = {.i = 1}},
+        [LVL_USB_AF] = {.min = {.f = 0.0f}, .max = {.f = 1.0f}, .step = {.f = 1.0f / 255.0f }},
+    },
+    .parm_gran =  {
+        [PARM_ANN] = {.min = {.i = 0}, .max = {.i = 2}, .step = {.i = 1}},
+        [PARM_BACKLIGHT] = {.min = {.f = 0.0f}, .max = {.f = 1.0f}, .step = {.f = 1.0f / 255.0f}},
+        [PARM_BANDSELECT] = {.step = {.s = "BANDUNUSED,BAND160M,BAND80M,BAND40M,BAND30M,BAND20M,BAND17M,BAND15M,BAND12M,BAND10M,BAND6M,BANDGEN"}},
+        [PARM_BEEP] = {.min = {.i = 0}, .max = {.i = 1}, .step = {.i = 1}},
+        [PARM_SCREENSAVER] = {.min = {.i = 0}, .max = {.i = 3}, .step = {.i = 1}},
+        [PARM_TIME] = {.min = {.i = 0}, .max = {.i = 86399}, .step = {.i = 1}},
+        [PARM_KEYERTYPE] = {.step = {.s = "STRAIGHT,BUG,PADDLE"}},
+
+    },
+    .ext_tokens = ic7300_ext_tokens,
+    .extlevels = icom_ext_levels,
+    .ctcss_list =  full_ctcss_list,
+    .dcs_list =  NULL,
+    .preamp =   { 1, 2, RIG_DBLST_END, },
+    .attenuator =   { 20, RIG_DBLST_END, },
+    .max_rit =  Hz(9999),
+    .max_xit =  Hz(9999),
+    .max_ifshift =  Hz(0),
+    .agc_level_count = 3,
+    .agc_levels = { RIG_AGC_OFF, RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW },
+    .targetable_vfo = RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
+    .vfo_ops =  IC7300_VFO_OPS,
+    .scan_ops =  IC7300_SCAN_OPS,
+    .transceive =  RIG_TRN_RIG,
+    .bank_qty =   1,
+    .chan_desc_sz =  0,
+    .chan_list =  {
+        {   1,  99, RIG_MTYPE_MEM  },
+        {   1,   8, RIG_MTYPE_VOICE },
+        {   1,   8, RIG_MTYPE_MORSE },
+        RIG_CHAN_END,
+    },
+
+    .rx_range_list1 =   {
+        {kHz(30), MHz(74.8), IC7300_ALL_RX_MODES, -1, -1, IC7300_VFOS}, RIG_FRNG_END,
+    },
+    .tx_range_list1 =   {
+        FRQ_RNG_HF(1, IC7300_OTHER_TX_MODES, W(2), W(100), IC7300_VFOS, RIG_ANT_1),
+        FRQ_RNG_60m(1, IC7300_OTHER_TX_MODES, W(2), W(100), IC7300_VFOS, RIG_ANT_1),
+        FRQ_RNG_6m(1, IC7300_OTHER_TX_MODES, W(2), W(100), IC7300_VFOS, RIG_ANT_1),
+        FRQ_RNG_4m(1, IC7300_OTHER_TX_MODES, W(2), W(50), IC7300_VFOS, RIG_ANT_1),
+        FRQ_RNG_HF(1, IC7300_AM_TX_MODES, W(1), W(25), IC7300_VFOS, RIG_ANT_1), /* AM class */
+        FRQ_RNG_60m(1, IC7300_AM_TX_MODES, W(1), W(25), IC7300_VFOS, RIG_ANT_1), /* AM class */
+        FRQ_RNG_6m(1, IC7300_AM_TX_MODES, W(1), W(25), IC7300_VFOS, RIG_ANT_1), /* AM class */
+        FRQ_RNG_4m(1, IC7300_AM_TX_MODES, W(1), W(12.5), IC7300_VFOS, RIG_ANT_1), /* AM class */
+        RIG_FRNG_END,
+    },
+
+    .tuning_steps = {
+        {IC7300_ALL_RX_MODES, Hz(1)},
+        {IC7300_ALL_RX_MODES, kHz(1)},
+        {IC7300_ALL_RX_MODES, kHz(5)},
+        {IC7300_ALL_RX_MODES, kHz(9)},
+        {IC7300_ALL_RX_MODES, kHz(10)},
+        {IC7300_ALL_RX_MODES, kHz(12.5)},
+        {IC7300_ALL_RX_MODES, kHz(20)},
+        {IC7300_ALL_RX_MODES, kHz(25)},
+        RIG_TS_END,
+    },
+
+    /* mode/filter list, remember: order matters! But duplication may speed up search.  Put the most commonly used modes first!  Remember these are defaults, with dsp rigs you can change them to anything you want except FM and WFM which are fixed */
+    .filters =  {
+        {RIG_MODE_SSB | RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, kHz(2.4)},
+        {RIG_MODE_SSB | RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, kHz(1.8)},
+        {RIG_MODE_SSB | RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, kHz(3)},
+        {RIG_MODE_CW | RIG_MODE_CWR | RIG_MODE_RTTY | RIG_MODE_RTTYR, Hz(500)},
+        {RIG_MODE_CW | RIG_MODE_CWR | RIG_MODE_RTTY | RIG_MODE_RTTYR, Hz(250)},
+        {RIG_MODE_CW | RIG_MODE_CWR, kHz(1.2)},
+        {RIG_MODE_RTTY | RIG_MODE_RTTYR, kHz(2.4)},
+        {RIG_MODE_AM | RIG_MODE_PKTAM, kHz(6)},
+        {RIG_MODE_AM | RIG_MODE_PKTAM, kHz(3)},
+        {RIG_MODE_AM | RIG_MODE_PKTAM, kHz(9)},
+        {RIG_MODE_FM | RIG_MODE_PKTFM, kHz(10)},
+        {RIG_MODE_FM | RIG_MODE_PKTFM, kHz(7)},
+        {RIG_MODE_FM | RIG_MODE_PKTFM, kHz(15)},
+        RIG_FLT_END,
+    },
+
+    .str_cal = IC7300_STR_CAL,
+    .swr_cal = IC7300_SWR_CAL,
+    .alc_cal = IC7300_ALC_CAL,
+    .rfpower_meter_cal = IC7300_RFPOWER_METER_CAL,
+    .comp_meter_cal = IC7300_COMP_METER_CAL,
+    .vd_meter_cal = IC7300_VD_METER_CAL,
+    .id_meter_cal = IC7300_ID_METER_CAL,
+
+    .spectrum_scopes = {
+        {
+            .id = 0,
+            .name = "Main",
+        },
+        {
+            .id = -1,
+            .name = NULL,
+        },
+    },
+    .spectrum_modes = {
+        RIG_SPECTRUM_MODE_CENTER,
+        RIG_SPECTRUM_MODE_FIXED,
+        RIG_SPECTRUM_MODE_CENTER_SCROLL,
+        RIG_SPECTRUM_MODE_FIXED_SCROLL,
+        RIG_SPECTRUM_MODE_NONE,
+    },
+    .spectrum_spans = {
+        5000,
+        10000,
+        20000,
+        50000,
+        100000,
+        200000,
+        500000,
+        1000000,
+        0,
+    },
+    .spectrum_avg_modes = {
+        {
+            .id = 0,
+            .name = "OFF",
+        },
+        {
+            .id = 1,
+            .name = "2",
+        },
+        {
+            .id = 2,
+            .name = "3",
+        },
+        {
+            .id = 3,
+            .name = "4",
+        },
+    },
+
+    .async_data_supported = 1,
+    .read_frame_direct = icom_read_frame_direct,
+    .is_async_frame = icom_is_async_frame,
+    .process_async_frame = icom_process_async_frame,
+
+    .cfgparams =  icom_cfg_params,
+    .set_conf =  icom_set_conf,
+    .get_conf =  icom_get_conf,
+
+    .priv = (void *)& IC7300MK2_priv_caps,
     .rig_init =   icom_init,
     .rig_cleanup =   icom_cleanup,
     .rig_open =  icom_rig_open,
