@@ -13,7 +13,16 @@ applications.
 The master repository is https://github.com/Hamlib/Hamlib  
 The backup repository is https://sourceforge.net/projects/hamlib/  
 
-Daily snapshots are available at https://hamlib.sourceforge.net/snapshots/
+Daily snapshots of the *master branch* are available at
+https://hamlib.sourceforge.net/snapshots/
+
+Daily snapshots of the *Hamlib-4.7 branch* are available at
+https://github.com/Hamlib/Hamlib/tree/Hamlib-4.7
+
+> **Note:** Major changes are planned for Hamlib 5 (current *master branch*)
+> which will introduce incompatibilities with existing software that uses
+> Hamlib.  Until a given software application announces support for Hamlib 5,
+> use the snapshots and releases from the *Hamlib-4.7* branch.
 
 Development happens on the GitHub master (often by merging feature branches)
 and each release has a release branch.
