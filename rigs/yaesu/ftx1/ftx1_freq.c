@@ -8,9 +8,6 @@
  *   FA P1...P9;  - VFO-A Frequency (9-digit Hz format)
  *   FB P1...P9;  - VFO-B Frequency (9-digit Hz format)
  *   OS P1 P2;    - Offset (Repeater Shift) - simplex, +, -, ARS
- *
- * Note: CF (Clarifier) command returns '?' in firmware - not implemented.
- *       RIT/XIT: NOT SUPPORTED in latest firmware - RC/TC commands no longer work.
  */
 
 #include <stdlib.h>

@@ -73,11 +73,6 @@ Core Features:
 WHAT'S NOT WORKING
 ================================================================================
 
-RIT/XIT (Clarifier):
-  NOT SUPPORTED in firmware v1.08+. The RC/TC commands that worked in earlier
-  firmware versions no longer function. RT/XT commands return '?'.
-  Clarifier must be controlled from the radio front panel.
-
 Antenna Tuner Control (AC command):
   AC is STATUS-ONLY. AC; query returns tuner status (P1=on, P2=status, P3=ant):
     AC100 = tuner bypassed (P2=0)
@@ -191,7 +186,7 @@ By Function:
   ftx1_scan.c      Scan, band, tuning step (SC, BS, BD, BU, DN, UP, ZI)
   ftx1_info.c      Radio info (AI, ID, IF, OI, DA, DT, IS, LK, GP, SF)
   ftx1_ext.c       Extended menu basics, scope (EX, SS, EO)
-  ftx1_clarifier.c RIT/XIT (NOT SUPPORTED in latest firmware)
+  ftx1_clarifier.c Clarifier (CF command)
   ftx1_func.c      Level/function dispatcher
 
 ================================================================================
