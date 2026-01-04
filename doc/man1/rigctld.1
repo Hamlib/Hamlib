@@ -1249,7 +1249,7 @@ This command will produce many lines of output so be very careful if using a
 fixed length array!  For example, running this command against the Dummy
 backend results in over 5kB of text output.
 .IP
-VFO parameter not used in 'VFO mode'.
+VFO parameter is not used in 'VFO mode'.
 .
 .TP
 .BR 2 ", " power2mW " \(aq" "\fIPower [0.0..1.0]\fP" "\(aq \(aq" \fIFrequency\fP "\(aq \(aq" \fIMode\fP \(aq
@@ -1311,7 +1311,6 @@ Note: Kenwood rigs only allow setting local clock, and then only if not autoset 
 Trying to set clock when NTP is in use will set the offset, but not the time -
 and no error status will be returned.
 Time displayed on the auxiliary clock is solely determined by UTC and the aux offset.
-.
 .TP
 .BR get_clock
 Get
@@ -1321,22 +1320,17 @@ Gets rig clock -- note that some rigs do not handle seconds or milliseconds.
 Format is ISO8601 YYYY-MM-DDTHH:MM:SS.sss+ZZ where +ZZ is either -/+ UTC offset
 .
 .TP
-.B chk_vfo
-Returns \(lq1\\n\(rq (single line only) if
-.B rigctld
-was invoked with the
-.BR \-o / \-\-vfo
-option and \(lq0\\n\(rq if not.
+.BR chk_vfo
+Get
+.RI \(aq Status \(aq
 .IP
-When in VFO mode the client will need to pass
-.RI \(aq VFO \(aq
-as the first parameter to
-.B set
-or
-.B get
-commands.  VFO is one of the strings defined in
-.B set_vfo
-above.
+Returns Status as 1 if vfo option is on and 0 if vfo option is off.
+This command reflects the -o switch for
+.B rigctld
+and
+.B rigctld
+and can be dynamically changed by
+.B set_vfo_opt.
 .
 .TP
 .BR set_vfo_opt " \(aq" \fIStatus\fP \(aq
@@ -1344,7 +1338,10 @@ Set
 .RI \(aq Status \(aq
 .IP
 Set vfo option Status 1=on or 0=off
-This is the same as using the -o switch for rigctl and rigctld.
+This is the same as using the -o switch for
+.B rigctld
+and
+.B rigctld.
 This can be dynamically changed while running.
 .
 .TP
@@ -1356,7 +1353,7 @@ CW Skimmer is started and "set_lock_mode 0" when CW Skimmer is stopped.
 .
 .TP
 .BR get_lock_mode
-Returns current lock mode status 1=On, 2=Off (only useful with rigctld)
+Returns current lock mode status 1=On, 2=Off (only useful when using rigctld)
 .
 .TP
 .BR send_raw " \(aq" \fITerminator\fP "\(aq \(aq" \fIString\fP \(aq
