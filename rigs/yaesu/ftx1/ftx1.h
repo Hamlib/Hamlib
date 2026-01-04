@@ -64,10 +64,31 @@
  * FTX-1 CAT commands use P1=0 for MAIN VFO and P1=1 for SUB VFO.
  * This macro maps Hamlib VFO types to the appropriate P1 value.
  *
+ * NOTE: This macro does NOT resolve RIG_VFO_CURR - it treats it as MAIN.
+ * For functions that need to respect the current VFO, use ftx1_vfo_to_p1()
+ * instead, which properly resolves currVFO.
+ *
  * Returns: 0 for MAIN/VFO-A/CURR, 1 for SUB/VFO-B
  */
 #define FTX1_VFO_TO_P1(vfo) \
     ((vfo == RIG_VFO_CURR || vfo == RIG_VFO_MAIN || vfo == RIG_VFO_A) ? 0 : 1)
+
+/*
+ * ftx1_vfo_to_p1 - Convert Hamlib VFO to FTX-1 P1 parameter with currVFO resolution
+ *
+ * Unlike the FTX1_VFO_TO_P1 macro, this function properly resolves RIG_VFO_CURR
+ * to the actual current VFO before determining P1.
+ *
+ * Returns: 0 for MAIN/VFO-A, 1 for SUB/VFO-B
+ */
+static inline int ftx1_vfo_to_p1(RIG *rig, vfo_t vfo)
+{
+    /* Resolve currVFO to actual VFO */
+    if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_NONE) {
+        vfo = STATE(rig)->current_vfo;
+    }
+    return (vfo == RIG_VFO_SUB || vfo == RIG_VFO_B) ? 1 : 0;
+}
 
 /*
  * FTX-1 CTCSS mode values for CT command
@@ -125,5 +146,11 @@
  */
 extern int ftx1_has_spa1(RIG *rig);
 extern int ftx1_get_head_type(RIG *rig);
+
+/*
+ * FTX-1 band select functions (defined in ftx1_scan.c)
+ */
+extern int ftx1_set_band_select(RIG *rig, vfo_t vfo, int band);
+extern int ftx1_get_band_select(RIG *rig, vfo_t vfo, int *band);
 
 #endif /* _FTX1_H */

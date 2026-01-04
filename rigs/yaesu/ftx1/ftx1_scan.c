@@ -20,15 +20,15 @@
  *   EX0306xx;        - Mode-specific Dial Step
  *   ZI P1;           - Zero In (P1=VFO 0/1, set-only)
  *
- * Band Codes (BS command):
- *   00 = 160m (1.8MHz)     08 = 15m (21MHz)
- *   01 = 80m (3.5MHz)      09 = 12m (24MHz)
- *   02 = 60m (5MHz)        10 = 10m (28MHz)
- *   03 = 40m (7MHz)        11 = 6m (50MHz)
- *   04 = 30m (10MHz)       12 = GEN (general coverage)
- *   05 = 20m (14MHz)       13 = MW (AM broadcast)
- *   06 = 17m (18MHz)       14 = AIR (airband)
- *   07 = (reserved)
+ * Band Codes (BS command) per FTX-1 CAT spec:
+ *   00 = 160m (1.8MHz)     07 = 15m (21MHz)
+ *   01 = 80m (3.5MHz)      08 = 12m (24.5MHz)
+ *   02 = 60m (5MHz)        09 = 10m (28MHz)
+ *   03 = 40m (7MHz)        10 = 6m (50MHz)
+ *   04 = 30m (10MHz)       11 = GEN (70MHz/general)
+ *   05 = 20m (14MHz)       12 = AIR (airband)
+ *   06 = 17m (18MHz)       13 = 2m (144MHz)
+ *                          14 = 70cm (430MHz)
  *
  * Tuning Step Codes:
  *   00=1Hz, 01=2.5Hz, 02=5Hz, 03=10Hz, 04=25Hz, 05=50Hz, 06=100Hz
@@ -44,7 +44,7 @@
 #include "newcat.h"
 #include "ftx1.h"
 
-/* Band codes */
+/* Band codes per FTX-1 CAT spec */
 #define FTX1_BAND_160M   0
 #define FTX1_BAND_80M    1
 #define FTX1_BAND_60M    2
@@ -52,13 +52,14 @@
 #define FTX1_BAND_30M    4
 #define FTX1_BAND_20M    5
 #define FTX1_BAND_17M    6
-#define FTX1_BAND_15M    8
-#define FTX1_BAND_12M    9
-#define FTX1_BAND_10M    10
-#define FTX1_BAND_6M     11
-#define FTX1_BAND_GEN    12
-#define FTX1_BAND_MW     13
-#define FTX1_BAND_AIR    14
+#define FTX1_BAND_15M    7
+#define FTX1_BAND_12M    8
+#define FTX1_BAND_10M    9
+#define FTX1_BAND_6M     10
+#define FTX1_BAND_GEN    11
+#define FTX1_BAND_AIR    12
+#define FTX1_BAND_2M     13
+#define FTX1_BAND_70CM   14
 #define FTX1_BAND_MAX    14
 
 /*
@@ -76,7 +77,7 @@ int ftx1_set_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 
     (void)ch;
 
-    p1 = FTX1_VFO_TO_P1(vfo);
+    p1 = ftx1_vfo_to_p1(rig, vfo);
 
     switch (scan) {
         case RIG_SCAN_STOP:
@@ -106,7 +107,7 @@ int ftx1_get_scan(RIG *rig, vfo_t vfo, scan_t *scan, int *ch)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
-    p1 = FTX1_VFO_TO_P1(vfo);
+    p1 = ftx1_vfo_to_p1(rig, vfo);
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SC%d;", p1);
 
     ret = newcat_get_cmd(rig);
@@ -163,41 +164,169 @@ int ftx1_scan_stop(RIG *rig)
 int ftx1_set_band(RIG *rig, vfo_t vfo, int band_code)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = (vfo == RIG_VFO_SUB || vfo == RIG_VFO_B) ? 1 : 0;
+    int p1;
 
     if (band_code < 0 || band_code > FTX1_BAND_MAX) {
         return -RIG_EINVAL;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s band_code=%d\n", __func__,
-              rig_strvfo(vfo), band_code);
+    /* Resolve currVFO to actual VFO */
+    if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_NONE) {
+        vfo = STATE(rig)->current_vfo;
+    }
+
+    p1 = (vfo == RIG_VFO_SUB || vfo == RIG_VFO_B) ? 1 : 0;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d band_code=%d\n", __func__,
+              rig_strvfo(vfo), p1, band_code);
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BS%1d%02d;", p1, band_code);
     return newcat_set_cmd(rig);
 }
 
-/* Get Band */
+/*
+ * Get Band - BS command is set-only, so derive band from frequency
+ */
 int ftx1_get_band(RIG *rig, vfo_t vfo, int *band_code)
 {
-    int ret, p1, band;
-    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
+    freq_t freq;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
-    p1 = (vfo == RIG_VFO_SUB || vfo == RIG_VFO_B) ? 1 : 0;
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BS%1d;", p1);
-
-    ret = newcat_get_cmd(rig);
+    /* Get current frequency for the VFO */
+    ret = rig_get_freq(rig, vfo, &freq);
     if (ret != RIG_OK) return ret;
 
-    if (sscanf(priv->ret_data + 2, "%1d%02d", &p1, &band) != 2) {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__, priv->ret_data);
+    /* Determine band from frequency */
+    if (freq >= 1800000 && freq < 2000000) {
+        *band_code = FTX1_BAND_160M;
+    } else if (freq >= 3500000 && freq < 4000000) {
+        *band_code = FTX1_BAND_80M;
+    } else if (freq >= 5000000 && freq < 5500000) {
+        *band_code = FTX1_BAND_60M;
+    } else if (freq >= 7000000 && freq < 7300000) {
+        *band_code = FTX1_BAND_40M;
+    } else if (freq >= 10100000 && freq < 10150000) {
+        *band_code = FTX1_BAND_30M;
+    } else if (freq >= 14000000 && freq < 14350000) {
+        *band_code = FTX1_BAND_20M;
+    } else if (freq >= 18068000 && freq < 18168000) {
+        *band_code = FTX1_BAND_17M;
+    } else if (freq >= 21000000 && freq < 21450000) {
+        *band_code = FTX1_BAND_15M;
+    } else if (freq >= 24890000 && freq < 24990000) {
+        *band_code = FTX1_BAND_12M;
+    } else if (freq >= 28000000 && freq < 29700000) {
+        *band_code = FTX1_BAND_10M;
+    } else if (freq >= 50000000 && freq < 54000000) {
+        *band_code = FTX1_BAND_6M;
+    } else if (freq >= 70000000 && freq < 76000000) {
+        *band_code = FTX1_BAND_GEN;
+    } else if (freq >= 118000000 && freq < 137000000) {
+        *band_code = FTX1_BAND_AIR;
+    } else if (freq >= 144000000 && freq < 148000000) {
+        *band_code = FTX1_BAND_2M;
+    } else if (freq >= 430000000 && freq < 450000000) {
+        *band_code = FTX1_BAND_70CM;
+    } else {
+        /* Default to GEN for out-of-band frequencies */
+        *band_code = FTX1_BAND_GEN;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: freq=%.0f band=%d\n", __func__, freq, *band_code);
+
+    return RIG_OK;
+}
+
+/*
+ * Convert Hamlib hamlib_band_t enum to FTX-1 band code
+ * Returns -1 if band not supported by FTX-1
+ */
+static int hamlib_band_to_ftx1(hamlib_band_t band)
+{
+    switch (band) {
+        case RIG_BAND_160M:   return FTX1_BAND_160M;
+        case RIG_BAND_80M:    return FTX1_BAND_80M;
+        case RIG_BAND_60M:    return FTX1_BAND_60M;
+        case RIG_BAND_40M:    return FTX1_BAND_40M;
+        case RIG_BAND_30M:    return FTX1_BAND_30M;
+        case RIG_BAND_20M:    return FTX1_BAND_20M;
+        case RIG_BAND_17M:    return FTX1_BAND_17M;
+        case RIG_BAND_15M:    return FTX1_BAND_15M;
+        case RIG_BAND_12M:    return FTX1_BAND_12M;
+        case RIG_BAND_10M:    return FTX1_BAND_10M;
+        case RIG_BAND_6M:     return FTX1_BAND_6M;
+        case RIG_BAND_GEN:    return FTX1_BAND_GEN;
+        case RIG_BAND_AIR:    return FTX1_BAND_AIR;
+        case RIG_BAND_144MHZ: return FTX1_BAND_2M;
+        case RIG_BAND_430MHZ: return FTX1_BAND_70CM;
+        default:              return -1;
+    }
+}
+
+/*
+ * Convert FTX-1 band code to Hamlib hamlib_band_t enum
+ * Returns -1 if band code invalid
+ */
+static hamlib_band_t ftx1_band_to_hamlib(int band_code)
+{
+    switch (band_code) {
+        case FTX1_BAND_160M:  return RIG_BAND_160M;
+        case FTX1_BAND_80M:   return RIG_BAND_80M;
+        case FTX1_BAND_60M:   return RIG_BAND_60M;
+        case FTX1_BAND_40M:   return RIG_BAND_40M;
+        case FTX1_BAND_30M:   return RIG_BAND_30M;
+        case FTX1_BAND_20M:   return RIG_BAND_20M;
+        case FTX1_BAND_17M:   return RIG_BAND_17M;
+        case FTX1_BAND_15M:   return RIG_BAND_15M;
+        case FTX1_BAND_12M:   return RIG_BAND_12M;
+        case FTX1_BAND_10M:   return RIG_BAND_10M;
+        case FTX1_BAND_6M:    return RIG_BAND_6M;
+        case FTX1_BAND_GEN:   return RIG_BAND_GEN;
+        case FTX1_BAND_AIR:   return RIG_BAND_AIR;
+        case FTX1_BAND_2M:    return RIG_BAND_144MHZ;
+        case FTX1_BAND_70CM:  return RIG_BAND_430MHZ;
+        default:              return -1;
+    }
+}
+
+/* Set band select level (RIG_LEVEL_BAND_SELECT) */
+int ftx1_set_band_select(RIG *rig, vfo_t vfo, int band)
+{
+    int ftx1_band;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s band=%d\n", __func__,
+              rig_strvfo(vfo), band);
+
+    ftx1_band = hamlib_band_to_ftx1((hamlib_band_t)band);
+    if (ftx1_band < 0) {
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported band %d\n", __func__, band);
+        return -RIG_EINVAL;
+    }
+
+    return ftx1_set_band(rig, vfo, ftx1_band);
+}
+
+/* Get band select level (RIG_LEVEL_BAND_SELECT) */
+int ftx1_get_band_select(RIG *rig, vfo_t vfo, int *band)
+{
+    int ret, ftx1_band;
+    hamlib_band_t hamlib_band;
+
+    ret = ftx1_get_band(rig, vfo, &ftx1_band);
+    if (ret != RIG_OK) return ret;
+
+    hamlib_band = ftx1_band_to_hamlib(ftx1_band);
+    if (hamlib_band < 0) {
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown FTX-1 band code %d\n", __func__, ftx1_band);
         return -RIG_EPROTO;
     }
 
-    *band_code = band;
+    *band = (int)hamlib_band;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: band=%d\n", __func__, *band_code);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: ftx1_band=%d hamlib_band=%d\n", __func__,
+              ftx1_band, *band);
 
     return RIG_OK;
 }
@@ -310,7 +439,7 @@ int ftx1_vfo_op_scan(RIG *rig, vfo_t vfo, vfo_op_t op)
 int ftx1_zero_in(RIG *rig, vfo_t vfo)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
               rig_strvfo(vfo), p1);

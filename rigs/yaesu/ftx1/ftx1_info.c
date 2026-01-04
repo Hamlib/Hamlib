@@ -617,7 +617,7 @@ int ftx1_get_time(RIG *rig, int *hour, int *min, int *sec)
 int ftx1_set_if_shift(RIG *rig, vfo_t vfo, int on, int shift_hz)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int p2 = on ? 1 : 0;
     char p3 = (shift_hz >= 0) ? '+' : '-';
     int p4 = (shift_hz >= 0) ? shift_hz : -shift_hz;
@@ -641,7 +641,7 @@ int ftx1_get_if_shift(RIG *rig, vfo_t vfo, int *on, int *shift_hz)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int p1_resp, p2, p4;
     char p3;
 

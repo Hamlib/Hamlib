@@ -38,7 +38,7 @@
 int ftx1_set_nb_helper(RIG *rig, vfo_t vfo, int status)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int level = status ? 5 : 0;  /* Default to mid-level when turning on */
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d status=%d\n", __func__,
@@ -57,7 +57,7 @@ int ftx1_get_nb_helper(RIG *rig, vfo_t vfo, int *status)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int p1_resp, level;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
@@ -90,7 +90,7 @@ int ftx1_get_nb_helper(RIG *rig, vfo_t vfo, int *status)
 int ftx1_set_nr_helper(RIG *rig, vfo_t vfo, int status)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int level = status ? 8 : 0;  /* Default to mid-level when turning on */
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d status=%d\n", __func__,
@@ -109,7 +109,7 @@ int ftx1_get_nr_helper(RIG *rig, vfo_t vfo, int *status)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int p1_resp, level;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
@@ -139,7 +139,7 @@ int ftx1_get_nr_helper(RIG *rig, vfo_t vfo, int *status)
 int ftx1_set_nb_level_helper(RIG *rig, vfo_t vfo, value_t val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int level = (int)(val.f * FTX1_NB_LEVEL_MAX);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d level=%d\n", __func__,
@@ -160,7 +160,7 @@ int ftx1_get_nb_level_helper(RIG *rig, vfo_t vfo, value_t *val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int p1_resp, level;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
@@ -190,7 +190,7 @@ int ftx1_get_nb_level_helper(RIG *rig, vfo_t vfo, value_t *val)
 int ftx1_set_nr_level_helper(RIG *rig, vfo_t vfo, value_t val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int level = (int)(val.f * FTX1_NR_LEVEL_MAX);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d level=%d\n", __func__,
@@ -211,7 +211,7 @@ int ftx1_get_nr_level_helper(RIG *rig, vfo_t vfo, value_t *val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int p1_resp, level;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
@@ -241,7 +241,7 @@ int ftx1_get_nr_level_helper(RIG *rig, vfo_t vfo, value_t *val)
 int ftx1_set_na_helper(RIG *rig, vfo_t vfo, int status)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int p2 = status ? 1 : 0;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d status=%d\n", __func__,
@@ -259,7 +259,7 @@ int ftx1_get_na_helper(RIG *rig, vfo_t vfo, int *status)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int p1_resp, p2;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,

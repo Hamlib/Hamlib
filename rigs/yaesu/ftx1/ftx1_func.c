@@ -364,6 +364,8 @@ int ftx1_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         /* Note: PBT_IN/PBT_OUT not supported - FTX-1 has width (SH) and IF shift (IS), not true passband tuning */
         case RIG_LEVEL_ANTIVOX:
             return ftx1_set_amc_output(rig, val.f);
+        case RIG_LEVEL_BAND_SELECT:
+            return ftx1_set_band_select(rig, vfo, val.i);
         default:
             return newcat_set_level(rig, vfo, level, val);
     }
@@ -472,6 +474,10 @@ int ftx1_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         case RIG_LEVEL_ANTIVOX:
             ret = ftx1_get_amc_output(rig, &fval);
             if (ret == RIG_OK) val->f = fval;
+            return ret;
+        case RIG_LEVEL_BAND_SELECT:
+            ret = ftx1_get_band_select(rig, vfo, &ival);
+            if (ret == RIG_OK) val->i = ival;
             return ret;
         default:
             return newcat_get_level(rig, vfo, level, val);

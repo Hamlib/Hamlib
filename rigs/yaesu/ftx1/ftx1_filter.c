@@ -32,7 +32,7 @@
 int ftx1_set_anf_helper(RIG *rig, vfo_t vfo, int status)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d status=%d\n", __func__,
               rig_strvfo(vfo), p1, status);
@@ -50,7 +50,7 @@ int ftx1_get_anf_helper(RIG *rig, vfo_t vfo, int *status)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int p1_resp, p2;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__, rig_strvfo(vfo), p1);
@@ -84,7 +84,7 @@ int ftx1_get_anf_helper(RIG *rig, vfo_t vfo, int *status)
 int ftx1_set_mn_helper(RIG *rig, vfo_t vfo, int status)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d status=%d\n", __func__,
               rig_strvfo(vfo), p1, status);
@@ -102,7 +102,7 @@ int ftx1_get_mn_helper(RIG *rig, vfo_t vfo, int *status)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int p1_resp, p2, p3;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__, rig_strvfo(vfo), p1);
@@ -136,7 +136,7 @@ int ftx1_get_mn_helper(RIG *rig, vfo_t vfo, int *status)
 int ftx1_set_apf_helper(RIG *rig, vfo_t vfo, int status)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d status=%d\n", __func__,
               rig_strvfo(vfo), p1, status);
@@ -154,7 +154,7 @@ int ftx1_get_apf_helper(RIG *rig, vfo_t vfo, int *status)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int p1_resp, p2, p3;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__, rig_strvfo(vfo), p1);
@@ -188,7 +188,7 @@ int ftx1_get_apf_helper(RIG *rig, vfo_t vfo, int *status)
 int ftx1_set_notchf_helper(RIG *rig, vfo_t vfo, value_t val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int p3;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d freq=%d\n", __func__,
@@ -220,7 +220,7 @@ int ftx1_get_notchf_helper(RIG *rig, vfo_t vfo, value_t *val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int p1_resp, p2, p3;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__, rig_strvfo(vfo), p1);
@@ -254,7 +254,7 @@ int ftx1_get_notchf_helper(RIG *rig, vfo_t vfo, value_t *val)
 int ftx1_set_apf_level_helper(RIG *rig, vfo_t vfo, value_t val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int p3;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d level=%f\n", __func__,
@@ -286,7 +286,7 @@ int ftx1_get_apf_level_helper(RIG *rig, vfo_t vfo, value_t *val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int p1_resp, p2, p3;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__, rig_strvfo(vfo), p1);
@@ -380,7 +380,7 @@ int ftx1_get_fine_tuning(RIG *rig, int *mode)
 int ftx1_set_contour(RIG *rig, vfo_t vfo, int status)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d status=%d\n", __func__,
               rig_strvfo(vfo), p1, status);
@@ -398,7 +398,7 @@ int ftx1_get_contour(RIG *rig, vfo_t vfo, int *status)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int p1_resp, p2, p3;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__, rig_strvfo(vfo), p1);
@@ -432,7 +432,7 @@ int ftx1_get_contour(RIG *rig, vfo_t vfo, int *status)
 int ftx1_set_contour_freq(RIG *rig, vfo_t vfo, int freq)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d freq=%d\n", __func__,
               rig_strvfo(vfo), p1, freq);
@@ -453,7 +453,7 @@ int ftx1_get_contour_freq(RIG *rig, vfo_t vfo, int *freq)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int p1_resp, p2, p3;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__, rig_strvfo(vfo), p1);
