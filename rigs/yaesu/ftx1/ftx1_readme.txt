@@ -5,7 +5,7 @@ Model: 1051
 Status: Complete (90/90 CAT commands implemented)
 
 Reference: FTX-1 CAT Operation Reference Manual (2508-C)
-Firmware tested: v1.08+
+Firmware tested: November 2025 Update
 
 ================================================================================
 OVERVIEW
@@ -68,52 +68,6 @@ Core Features:
   - Repeater offset frequency (via per-band EX menu tokens)
   - Band up/down (BU, BD)
   - Antenna tuner control (AC) - SPA-1 only
-
-================================================================================
-WHAT'S NOT WORKING
-================================================================================
-
-Antenna Tuner Control (AC command):
-  AC is STATUS-ONLY. AC; query returns tuner status (P1=on, P2=status, P3=ant):
-    AC100 = tuner bypassed (P2=0)
-    AC110 = tuner tuning (P2=1)
-    AC120 = tuner matched (P2=2)
-  AC set commands (AC000, AC100, AC110) return '?' - use GEN_TUNER_SELECT
-  ext_parm (EX030104) to control: 0=OFF(bypass), 1=INT, 2=EXT, 3=ATAS.
-
-Signed EX Parameters (cause radio lockup):
-  These parameters are NOT exposed - querying them freezes the radio:
-  - Audio EQ (SSB/CW/AM/FM/DATA/RTTY AF_TREBLE/MID/BASS)
-  - DSP_CONTOUR_LVL (EX030305)
-  - EX030601 (DIAL_SSB_CW_STEP) - hang on query
-  - EX040108 (DISP_LED_DIMMER) - hang on query
-
-String EX Parameters:
-  50 string parameters (callsigns, DTMF memories, status text) are in the
-  menu table but not exposed via ext_parm. Use direct EX commands if needed.
-
-================================================================================
-KNOWN QUIRKS
-================================================================================
-
-Format Differences from Spec:
-  Command   Spec Says              Actual Behavior
-  -------   --------------------   ------------------------------------
-  BS        Read/write             Set-only (no query capability)
-  CH        CH; CH00; CH01;        Only CH0 (up) and CH1 (down) work
-  MC        4-digit channel        MC0/MC1 read, MCNNNNNN (6-digit) set
-  MR/MT/MZ  4-digit format         5-digit format (MR00001 not MR0001)
-  PC        3-digit integer        Decimal for sub-watt (PC10.5, PC11.5)
-  VM        Mode 01 = Memory       Mode 00=VFO, 11=Memory; VM000 set only
-
-Special Requirements:
-  - CT (CTCSS mode) needs VFO param: CT0; not CT; (else returns ?)
-  - GP (GP OUT) needs menu: TUN/LIN PORT SELECT = "GPO" (factory="OPTION")
-  - ZI (Zero In) only works in CW mode (MD03 or MD07)
-  - TS (tuning step) returns ? - use EX0306 mode-specific dial step
-
-Set-Only Commands (no query):
-  BS, CF, EO, QI, QR, ZI, MA, MB, AM, BM, SV, CH, DN, UP, BD, BU
 
 ================================================================================
 HEAD TYPE DETECTION
@@ -201,28 +155,3 @@ Quick test:
 Dump capabilities:
   ./tests/rigctl -m 1051 --dump-caps
 
-Test results (2025-12-10):
-  Python direct serial: 93 tests passed, 0 failed
-  Hamlib shell test:    89 tests passed, 27 skipped (TX tests, destructive ops)
-
-================================================================================
-REVISION HISTORY
-================================================================================
-
-2025-12-25  Expanded ext_parm API from 13 to 329 parameters
-            - Generated entries for all unsigned EX menu parameters
-            - Added 11 SPA-1 parameters (antenna, power limits)
-            - Added 3 GPS parameters (GPS is on head, not SPA-1)
-            - Excluded: 28 signed (cause lockup), 50 string, 2 hang-causing
-
-2025-12-24  Initial ext_parm API (13 parameters)
-            - Discovered signed parameters cause radio lockup
-            - Fixed val.f vs val.i issue
-            - Fixed set_rptr_offs/get_rptr_offs
-
-2025-12-19  Complete EX menu implementation (~400 items)
-            - Added DCD via RI command, CWPITCH, rptr_offs, band up/down
-
-2025-12-12  Finalized head type detection (PC command + power probe)
-
-2025-12-10  All 90 CAT commands verified and documented

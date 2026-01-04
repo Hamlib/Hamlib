@@ -295,14 +295,8 @@ int ftx1_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
          *   AB; copies VFO-A (MAIN) to VFO-B (SUB)
          *   BA; copies VFO-B (SUB) to VFO-A (MAIN)
          */
-        if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
-        {
-            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BA;");
-        }
-        else
-        {
-            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AB;");
-        }
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str),
+                 ftx1_vfo_to_p1(rig, vfo) ? "BA;" : "AB;");
         break;
 
     case RIG_OP_XCHG:
@@ -312,25 +306,19 @@ int ftx1_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
     case RIG_OP_BAND_UP:
         /* BU: Band Up (P1=VFO: 0=MAIN, 1=SUB) */
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BU%d;", FTX1_VFO_TO_P1(vfo));
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BU%d;", ftx1_vfo_to_p1(rig, vfo));
         break;
 
     case RIG_OP_BAND_DOWN:
         /* BD: Band Down (P1=VFO: 0=MAIN, 1=SUB) */
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BD%d;", FTX1_VFO_TO_P1(vfo));
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BD%d;", ftx1_vfo_to_p1(rig, vfo));
         break;
 
     case RIG_OP_FROM_VFO:
         /* Store VFO to current memory channel (VFO→MEM) */
         /* AM for VFO-A, BM for VFO-B */
-        if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
-        {
-            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BM;");
-        }
-        else
-        {
-            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AM;");
-        }
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str),
+                 ftx1_vfo_to_p1(rig, vfo) ? "BM;" : "AM;");
         break;
 
     case RIG_OP_TUNE:
@@ -354,14 +342,8 @@ int ftx1_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
     case RIG_OP_TO_VFO:
         /* Copy current memory channel to VFO (MEM→VFO) */
         /* MA for VFO-A, MB for VFO-B */
-        if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
-        {
-            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MB;");
-        }
-        else
-        {
-            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MA;");
-        }
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str),
+                 ftx1_vfo_to_p1(rig, vfo) ? "MB;" : "MA;");
         break;
 
     default:

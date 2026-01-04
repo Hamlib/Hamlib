@@ -822,15 +822,8 @@ int ftx1_step_frequency(RIG *rig, vfo_t vfo, int hz)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s hz=%d\n",
               __func__, rig_strvfo(vfo), hz);
 
-    /* Determine VFO */
-    if (vfo == RIG_VFO_SUB || vfo == RIG_VFO_B)
-    {
-        vfo_select = FTX1_EO_VFO_SUB;
-    }
-    else
-    {
-        vfo_select = FTX1_EO_VFO_MAIN;
-    }
+    /* Determine VFO (resolves currVFO properly) */
+    vfo_select = ftx1_vfo_to_p1(rig, vfo);
 
     /* Handle direction */
     direction = (hz >= 0) ? 1 : -1;

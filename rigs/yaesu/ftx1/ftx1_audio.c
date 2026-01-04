@@ -52,7 +52,7 @@
 int ftx1_set_af_gain(RIG *rig, vfo_t vfo, float val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int level = (int)(val * FTX1_AF_GAIN_MAX);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d val=%f\n", __func__,
@@ -70,7 +70,7 @@ int ftx1_get_af_gain(RIG *rig, vfo_t vfo, float *val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int p1_resp, level;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
@@ -96,7 +96,7 @@ int ftx1_get_af_gain(RIG *rig, vfo_t vfo, float *val)
 int ftx1_set_rf_gain(RIG *rig, vfo_t vfo, float val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int level = (int)(val * FTX1_RF_GAIN_MAX);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d val=%f\n", __func__,
@@ -114,7 +114,7 @@ int ftx1_get_rf_gain(RIG *rig, vfo_t vfo, float *val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int p1_resp, level;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
@@ -181,7 +181,7 @@ int ftx1_get_smeter(RIG *rig, vfo_t vfo, int *val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int p1_resp, level;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
@@ -520,7 +520,7 @@ int ftx1_get_vox_delay(RIG *rig, int *tenths)
 int ftx1_set_monitor_level(RIG *rig, vfo_t vfo, float val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int level = (int)(val * 100);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d val=%f\n", __func__,
@@ -541,7 +541,7 @@ int ftx1_get_monitor_level(RIG *rig, vfo_t vfo, float *val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int p1_resp, level;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
@@ -578,7 +578,7 @@ int ftx1_get_monitor_level(RIG *rig, vfo_t vfo, float *val)
 int ftx1_set_agc(RIG *rig, vfo_t vfo, int val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d val=%d\n", __func__,
               rig_strvfo(vfo), p1, val);
@@ -593,7 +593,7 @@ int ftx1_get_agc(RIG *rig, vfo_t vfo, int *val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int p1_resp, agc;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
@@ -673,7 +673,7 @@ int ftx1_get_amc_output(RIG *rig, float *val)
 int ftx1_set_width(RIG *rig, vfo_t vfo, int width_code)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s width_code=%d\n", __func__,
               rig_strvfo(vfo), width_code);
@@ -690,7 +690,7 @@ int ftx1_get_width(RIG *rig, vfo_t vfo, int *width_code)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int p1_resp, p2, width;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
@@ -757,8 +757,8 @@ int ftx1_set_meter_switch(RIG *rig, vfo_t vfo, int meter_type)
         }
     }
 
-    /* Update the appropriate meter based on VFO */
-    if (vfo == RIG_VFO_SUB || vfo == RIG_VFO_B)
+    /* Update the appropriate meter based on VFO (with currVFO resolution) */
+    if (ftx1_vfo_to_p1(rig, vfo) == 1)
     {
         sub_meter = meter_type;
     }
@@ -799,8 +799,8 @@ int ftx1_get_meter_switch(RIG *rig, vfo_t vfo, int *meter_type)
         return -RIG_EPROTO;
     }
 
-    /* Return the meter type for the requested VFO */
-    if (vfo == RIG_VFO_SUB || vfo == RIG_VFO_B)
+    /* Return the meter type for the requested VFO (with currVFO resolution) */
+    if (ftx1_vfo_to_p1(rig, vfo) == 1)
     {
         *meter_type = p2;
     }

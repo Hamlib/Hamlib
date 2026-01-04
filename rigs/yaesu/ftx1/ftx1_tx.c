@@ -344,7 +344,7 @@ int ftx1_get_breakin(RIG *rig, int *mode)
 int ftx1_set_squelch(RIG *rig, vfo_t vfo, float val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int level = (int)(val * 255);  /* Spec: SQ P2 range is 000-255 */
 
     if (level < 0) level = 0;
@@ -363,7 +363,7 @@ int ftx1_get_squelch(RIG *rig, vfo_t vfo, float *val)
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret, p1, level;
 
-    p1 = FTX1_VFO_TO_P1(vfo);
+    p1 = ftx1_vfo_to_p1(rig, vfo);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
               rig_strvfo(vfo), p1);
@@ -394,7 +394,7 @@ int ftx1_get_squelch(RIG *rig, vfo_t vfo, float *val)
 int ftx1_set_processor(RIG *rig, vfo_t vfo, int status)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int p2 = status ? 2 : 1;  /* Spec: P2 1=OFF, 2=ON */
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s status=%d\n", __func__,
@@ -412,7 +412,7 @@ int ftx1_get_processor(RIG *rig, vfo_t vfo, int *status)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret, p1_resp, p2;
-    int p1 = FTX1_VFO_TO_P1(vfo);
+    int p1 = ftx1_vfo_to_p1(rig, vfo);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 

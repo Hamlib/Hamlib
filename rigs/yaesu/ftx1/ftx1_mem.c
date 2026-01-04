@@ -47,6 +47,7 @@
 #include "misc.h"
 #include "yaesu.h"
 #include "newcat.h"
+#include "ftx1.h"
 
 #define FTX1_MEM_MIN 1
 #define FTX1_MEM_MAX 117
@@ -95,12 +96,10 @@ int ftx1_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
     int ret, channel;
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int vfo_num = 0;
+    int vfo_num;
 
-    /* Determine VFO number: 0=MAIN, 1=SUB */
-    if (vfo == RIG_VFO_SUB || vfo == RIG_VFO_B) {
-        vfo_num = 1;
-    }
+    /* Determine VFO number: 0=MAIN, 1=SUB (with currVFO resolution) */
+    vfo_num = ftx1_vfo_to_p1(rig, vfo);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%d\n", __func__, vfo_num);
 
