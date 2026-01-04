@@ -17,12 +17,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * FIRMWARE NOTES (v1.08+):
- * - RIT/XIT (Clarifier): NOT SUPPORTED in latest firmware. The RC/TC commands
- *   that worked in earlier firmware versions no longer function. The standard
- *   RT/XT commands also return '?'. Clarifier must be controlled from the radio.
- * - CF (Clarifier) sets offset value only, does not enable/disable clarifier
- *   Format: CF P1 P2 P3 [+/-] PPPP where P3 must be 1
- *   Example: CF001+0500 sets clarifier offset to +500Hz
+ * - RIT/XIT (Clarifier): Uses CF command (spec page 8).
+ *   P3=0: CLAR Setting (P4=RX on/off, P5=TX on/off)
+ *   P3=1: CLAR Frequency (P4=+/-, P5-P8=0000-9999 Hz)
  * - ZI (Zero In) only works in CW mode (MD03 or MD07)
  * - BS (Band Select) is set-only - no read/query capability
  * - GP (GP OUT) requires menu: [OPERATION SETTING] → [GENERAL] → [TUN/LIN PORT SELECT] = "GPO"
@@ -1016,7 +1013,7 @@ struct rig_caps ftx1_caps = {
          */
         [LVL_RFPOWER] = { .min = { .f = 0.05 }, .max = { .f = 1.0 }, .step = { .f = 1.0f / 100.0f } },
         [LVL_MONITOR_GAIN] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f / 100.0f } },
-        [LVL_SQL] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f / 100.0f } },
+        [LVL_SQL] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f / 255.0f } },
         /* CW pitch: FTX-1 KP command sets pitch 300-1050 Hz in 10Hz steps */
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 10 } },
         /* Key speed: FTX-1 uses 4-60 WPM */
