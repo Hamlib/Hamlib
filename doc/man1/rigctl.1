@@ -184,7 +184,7 @@ below.
 .BR \-L ", " \-\-show\-conf
 List all config parameters for the radio defined with
 .B \-m
-above. Will exit if no -r is given. Note the dummy device has no serial parameters.
+above.
 .
 .TP
 .BR \-C ", " \-\-set\-conf = \fIparm=val\fP [ \fI,parm=val\fP ]
@@ -1092,7 +1092,14 @@ Level is a token:
 The Level Value can be a float or an integer value.  For the AGC token the
 value is one of \(oq0\(cq = OFF, \(oq1\(cq = SUPERFAST, \(oq2\(cq = FAST,
 \(oq3\(cq = SLOW, \(oq4\(cq = USER, \(oq5\(cq = MEDIUM, \(oq6\(cq = AUTO.
-Note that not all values work on all rigs.  To list usable values do "rigctl -m [modelnum] -u | grep AGC levels" or for Windows "rigctl -m [modelnum] -u | find "AGC levels"".
+Note that not all values work on all rigs.  To list usable values do
+.EX
+rigctl -m MODEL_ID -u | grep "AGC levels"
+.EE
+or for Windows
+.EX
+rigctl -m MODEL_ID -u | find "AGC levels"
+.EE
 .IP
 Level units
 .in +4n
@@ -1252,14 +1259,21 @@ Mem/VFO Op tokens.  Use this to determine the supported Mem/VFO Ops of a given
 radio backend.
 .
 .TP
-.BR g ", " scan " \(aq" "\fIScan Fct\fP" "\(aq \(aq" "\fIScan Channel\fP" \(aq
+.BR g ", " scan " \(aq" "\fIScan Function\fP" "\(aq \(aq" "\fIScan Channel\fP" \(aq
 Perform a
-.RI \(aq "Scan Fct" \(aq
+.RI \(aq "Scan Function" \(aq
 on a
 .RI \(aq "Scan Option" \(aq.
 .IP
-Scan Function is a token: \(oqSTOP\(cq, \(oqMEM\(cq, \(oqSLCT\(cq,
-\(oqPRIO\(cq, \(oqPROG\(cq, \(oqDELTA\(cq, \(oqVFO\(cq, \(oqPLT\(cq.
+Scan Function is a token:
+\(oqDELTA\(cq,
+\(oqMEM\(cq,
+\(oqPLT\(cq,
+\(oqPRIO\(cq,
+\(oqPROG\(cq,
+\(oqSLCT\(cq,
+\(oqSTOP\(cq,
+\(oqVFO\(cq.
 .IP
 Scan Option is an integer.  
 .IP
@@ -1284,7 +1298,7 @@ data.
 Sets memory channel information
 .
 .TP
-.BR h ", " get_channel " \(aq" \fIreadonly\fP \(aq
+.BR h ", " get_channel " \(aq" \fIChannel\fP \(aq " \(aq" \fIreadonly\fP \(aq
 Get channel memory.
 .IP
 If readonly!=0 then only channel data is returned and rig remains on the current channel.  If readonly=0 then rig will be set to the channel requested.
@@ -1423,7 +1437,7 @@ This command will produce many lines of output so be very careful if using a
 fixed length array!  For example, running this command against the Dummy
 backend results in over 5kB of text output.
 .IP
-VFO parameter not used in 'VFO mode'.
+VFO parameter is not used in 'VFO mode'.
 .
 .TP
 .BR 2 ", " power2mW " \(aq" "\fIPower [0.0..1.0]\fP" "\(aq \(aq" \fIFrequency\fP "\(aq \(aq" \fIMode\fP \(aq
@@ -1543,7 +1557,11 @@ Get
 .RI \(aq Status \(aq
 .IP
 Returns Status as 1 if vfo option is on and 0 if vfo option is off.
-This command reflects the -o switch for rigctl and ritctld and can be dynamically changed by
+This command reflects the -o switch for
+.B rigctld
+and
+.B rigctld
+and can be dynamically changed by
 .B set_vfo_opt.
 .
 .TP
@@ -1552,15 +1570,11 @@ Set
 .RI \(aq Status \(aq
 .IP
 Set vfo option Status 1=on or 0=off
-This is the same as using the -o switch for rigctl and ritctld.
+This is the same as using the -o switch for
+.B rigctld
+and
+.B rigctld.
 This can be dynamically changed while running.
-.
-.TP
-.BR get_separator 
-Get
-.RI \(aq SeparatorChar \(aq
-.IP
-Shows the current SeparatorChar
 .
 .TP
 .BR set_separator " \(aq" \fISeparatorChar\fP \(aq
@@ -1570,6 +1584,13 @@ Set
 Change rigctld response to use a special char instead of newline (recommend #).
 Handy for node-red's tcprequest node.
 This can be dynamically changed while running.
+.
+.TP
+.BR get_separator
+Get
+.RI \(aq SeparatorChar \(aq
+.IP
+Shows the current SeparatorChar.
 .
 .TP
 .BR pause " \(aq" \fISeconds\fP \(aq
@@ -1596,8 +1617,8 @@ Returns current lock mode status 1=On, 2=Off (only useful when using rigctld)
 .TP
 .BR send_raw " \(aq" \fITerminator\fP "\(aq \(aq" \fIString\fP \(aq
 Can send ASCII string or 0xnn values or xnn values -- there can be no spaces in the command string.
-Possible terminator values are CR, LF, ;, ICOM, 0-100 (bytes to read), or -1 meaning unknown (will timeout on read)
-Examples (note that a ; must be escaped in Unix/Linux):
+Possible terminator values are CR, LF, ;, ICOM, 1-100 (bytes to read), or 0 meaning no reply and -1 meaning unknown (will timeout on read).
+Examples (note that a ; must be escaped in Unix/Linux or enclosed in single or double quotes):
 .IP
 For Windows & Unix/Linux we have a new colon-separated format for hex digits
 .EX
@@ -1605,7 +1626,7 @@ For Windows & Unix/Linux we have a new colon-separated format for hex digits
   send_raw -1 0xFE:0xFE:0x94:0x03:0xFD
   send_raw 14 0xFE:0xFE:0x94:0x03:0xFD
   Note that ASCII commands still require escaping the semicolon on Unix/Linux
-  send_raw \; FA\;MD\;
+  send_raw \\; FA\\;MD\\;
 .EE
 For Windows:
 .EX
@@ -1616,7 +1637,7 @@ For Windows:
 For Unix/Linux
 .EX
   send_raw icom 0xFE\;0xFE\;0x94\;0x03\;0xFD
-  send_raw \; FA\;MD\;
+  send_raw \\; FA\\;MD\\;
   send_raw -1 0xFE\;0xFE\;0x94\;0x03\;0xFD
   send_raw 14 0xFE\;0xFE\;0x94\;0x03\;0xFD
 .EE
