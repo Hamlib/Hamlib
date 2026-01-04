@@ -295,6 +295,9 @@ e.g. 4532, 4534, 4536, etc.
 List all config parameters for the radio defined with
 .B \-m
 above.
+Will exit if no
+.B \-r
+is given. Note the dummy device has no serial parameters.
 .
 .TP
 .BR \-C ", " \-\-set\-conf = \fIparm=val\fP [ \fI,parm=val\fP ]
@@ -558,7 +561,7 @@ option above) only a single VFO parameter is required:
 .IP
 .in +4n
 .EX
-$ rigctl -m 229 -r /dev/rig -o
+.RB $ " rigctl -m 2029 -r /dev/rig -o"
 
 Rig command: V
 VFO: VFOB
@@ -1341,7 +1344,7 @@ Set
 .RI \(aq Status \(aq
 .IP
 Set vfo option Status 1=on or 0=off
-This is the same as using the -o switch for rigctl and ritctld.
+This is the same as using the -o switch for rigctl and rigctld.
 This can be dynamically changed while running.
 .
 .TP
@@ -1788,11 +1791,6 @@ vulnerability.
 .SH BUGS
 .
 The daemon is not detaching and backgrounding itself.
-.PP
-No method to exit the daemon so the
-.BR kill (1)
-command must be used to terminate it.
-.
 .PP
 Multiple clients using the daemon may experience contention with the connected
 radio.
