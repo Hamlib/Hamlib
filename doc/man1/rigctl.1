@@ -12,8 +12,8 @@
 .
 rigctl \- control radio transceivers and receivers
 .
-.SH SYNOPSIS
 .
+.SH SYNOPSIS
 .
 .SY rigctl
 .OP \-hiIlLnouV
@@ -32,7 +32,9 @@ rigctl \- control radio transceivers and receivers
 .RB [ command | \- ]
 .YS
 .
+.
 .SH DESCRIPTION
+.
 Control radio transceivers and receivers.
 .B rigctl
 accepts
@@ -189,7 +191,7 @@ above.
 .TP
 .BR \-C ", " \-\-set\-conf = \fIparm=val\fP [ \fI,parm=val\fP ]
 Set configuration parameter(s). Some common ones are:
-.in +4n
+.in +4
 .EX
 .BR   async: "True enables asynchronous data transfer for backends that support it. This allows use of transceive and spectrum data."
 .BR   auto_power_on: "True enables compatible rigs to be powered up on open"
@@ -490,6 +492,7 @@ in Hz.
 Returns an integer value and the VFO hamlib thinks is active.
 Note that some rigs (e.g. all Icoms) cannot track current VFO so hamlib can
 get out of sync with the rig if the user presses rig buttons like the VFO.
+rigctld clients should ensure they set the intended VFO or use vfo mode.
 .
 .TP
 .BR M ", " set_mode " \(aq" \fIMode\fP "\(aq \(aq" \fIPassband\fP \(aq
@@ -1119,7 +1122,7 @@ Degrees(temperature)
 Hz
     CWPITCH, IF, NOTCHF, PBT_IN, PBT_OUT, SPECTRUM_EDGE_LOW, SPECTRUM_EDGE_HIGH, SPECTRUM_SPAN
 
-Seconds 
+Seconds
     VOXDELAY(ds), BKINDL(ms), BKIN_DLYMS(ms)
 
 Raw info from rig
@@ -1147,8 +1150,6 @@ WPM
     KEYSPD
 .in
 .EE
-.IP
- 
 .IP
 .BR Note :
 Passing a \(oq?\(cq (query) as the first argument instead of a Level token
@@ -1275,7 +1276,7 @@ Scan Function is a token:
 \(oqSTOP\(cq,
 \(oqVFO\(cq.
 .IP
-Scan Option is an integer.  
+Scan Option is an integer.
 .IP
 Scan Option for Yaesu rigs 0=STOP, 1=UP, 2=DOWN.
 .IP
@@ -1630,6 +1631,7 @@ For Windows & Unix/Linux we have a new colon-separated format for hex digits
 .EE
 For Windows:
 .EX
+  send_raw ; FA;MD;
   send_raw icom 0xFE;0xFE;0x94;0x03;0xFD
   send_raw -1 0xFE;0xFE;0x94;0x03;0xFD
   send_raw 14 0xFE;0xFE;0x94;0x03;0xFD
