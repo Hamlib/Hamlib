@@ -677,6 +677,7 @@ static const struct icom_addr icom_addr_list[] =
     {RIG_MODEL_IC7100, 0x88},
     {RIG_MODEL_IC7200, 0x76},
     {RIG_MODEL_IC7300, 0x94},
+    {RIG_MODEL_IC7300MK2, 0xB6},
     {RIG_MODEL_IC7610, 0x98},
     {RIG_MODEL_IC7700, 0x74},
     {RIG_MODEL_IC7760, 0xB2},
@@ -2065,7 +2066,7 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
     retval = icom_transaction(rig, C_CTL_MEM, fw_sub_cmd, 0, 0,
                               resbuf, &res_len);
 
-    if (-RIG_ERJCTED == retval && !RIG_IS_IC7300)
+    if (-RIG_ERJCTED == retval && !RIG_IS_IC7300 && !RIG_IS_IC7300MK2)
     {
         if (priv->no_1a_03_cmd == ENUM_1A_03_UNK)
         {
@@ -2835,7 +2836,7 @@ static int icom_get_mode_without_data(RIG *rig, vfo_t vfo, rmode_t *mode,
                       mode_len == 2 ? modebuf[2] : -1, mode, width);
     }
 
-    if ((RIG_IS_IC7300 || RIG_IS_IC9700 || RIG_IS_IC705) && (*mode == RIG_MODE_FM
+    if ((RIG_IS_IC7300 || RIG_IS_IC7300MK2 || RIG_IS_IC9700 || RIG_IS_IC705) && (*mode == RIG_MODE_FM
             || *mode == RIG_MODE_PKTFM || *mode == RIG_MODE_WFM))
     {
         // we already have width from icom2rig_mode
@@ -2868,8 +2869,8 @@ static int icom_get_mode_without_data(RIG *rig, vfo_t vfo, rmode_t *mode,
 
     if (vfo == rs->current_vfo)
     {
-        if (!((RIG_IS_IC7300 || RIG_IS_IC9700 || RIG_IS_IC705) && (*mode == RIG_MODE_FM
-                || *mode == RIG_MODE_PKTFM))) // can't do this in FM mode
+        if (!((RIG_IS_IC7300 || RIG_IS_IC7300MK2 || RIG_IS_IC9700 || RIG_IS_IC705) &&
+	      (*mode == RIG_MODE_FM || *mode == RIG_MODE_PKTFM))) // can't do this in FM mode
         {
             filter_width = icom_get_dsp_flt(rig, *mode);
         }
@@ -2891,7 +2892,7 @@ static int icom_get_mode_without_data(RIG *rig, vfo_t vfo, rmode_t *mode,
     {
         *width = 12000; // some default to 12000
 
-        if (RIG_IS_IC7300 || RIG_IS_IC9700 || RIG_IS_IC705)
+        if (RIG_IS_IC7300 || RIG_IS_IC7300MK2 || RIG_IS_IC9700 || RIG_IS_IC705)
         {
             if (priv_data->filter == 1) { *width = 15000; }
             else if (priv_data->filter == 2) { *width = 10000; }
@@ -8207,7 +8208,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
         float sec_wait =
             5.5; // 5.5 worked for IC-9700 -- we default to worst-case-found
 
-        if (RIG_IS_IC7300) { sec_wait = 3.8; }
+        if (RIG_IS_IC7300 || RIG_IS_IC7300MK2) { sec_wait = 3.8; }
 
         rig_debug(RIG_DEBUG_VERBOSE, "%s: waiting %g seconds for rig to wake up\n",
                   __func__, sec_wait);
@@ -8369,6 +8370,7 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status)
             || RIG_IS_IC705
             || RIG_IS_IC7100
             || RIG_IS_IC7300
+            || RIG_IS_IC7300MK2
             || RIG_IS_IC7600
             || RIG_IS_IC7610
             || RIG_IS_IC7700
@@ -10119,6 +10121,7 @@ DECLARE_INITRIG_BACKEND(icom)
     rig_register(&ic7100_caps);
     rig_register(&ic7200_caps);
     rig_register(&ic7300_caps);
+    rig_register(&ic7300mk2_caps);
     rig_register(&ic7610_caps);
     rig_register(&ic7760_caps);
     rig_register(&ic781_caps);

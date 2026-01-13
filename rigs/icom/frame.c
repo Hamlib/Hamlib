@@ -813,7 +813,7 @@ void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode,
     rig_debug(RIG_DEBUG_TRACE, "%s: mode=0x%02x, pd=%d\n", __func__, md, pd);
 
     // Some rigs return fixed with for FM mode
-    if (RIG_IS_IC7300 || RIG_IS_IC9700 || RIG_IS_IC705) {
+    if (RIG_IS_IC7300 || RIG_IS_IC7300MK2 || RIG_IS_IC9700 || RIG_IS_IC705) {
         if (md == S_FM) {
             *mode = RIG_MODE_FM;
 

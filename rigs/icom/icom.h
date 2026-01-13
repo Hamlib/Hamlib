@@ -469,6 +469,7 @@ extern struct rig_caps ic7000_caps;
 extern struct rig_caps ic7100_caps;
 extern struct rig_caps ic7200_caps;
 extern struct rig_caps ic7300_caps;
+extern struct rig_caps ic7300mk2_caps;
 extern struct rig_caps ic781_caps;
 extern struct rig_caps ic820h_caps;
 extern struct rig_caps ic821h_caps;
@@ -549,6 +550,7 @@ extern struct rig_caps icr30_caps;
 #define RIG_IS_IC728 (STATE(rig)->rig_model == RIG_MODEL_IC728)
 #define RIG_IS_IC729 (STATE(rig)->rig_model == RIG_MODEL_IC729)
 #define RIG_IS_IC7300 (STATE(rig)->rig_model == RIG_MODEL_IC7300)
+#define RIG_IS_IC7300MK2 (STATE(rig)->rig_model == RIG_MODEL_IC7300MK2)
 #define RIG_IS_IC731 (STATE(rig)->rig_model == RIG_MODEL_IC731)
 #define RIG_IS_IC735 (STATE(rig)->rig_model == RIG_MODEL_IC735)
 #define RIG_IS_IC736 (STATE(rig)->rig_model == RIG_MODEL_IC736)
