@@ -100,7 +100,7 @@ if test $# -eq 0 ; then
                  -q \
                  --force \
                  --enable=all \
-                 --std=c99 \
+                 --std=c11 \
                  $SUPPRESS \
                  $CHECK \
                  --template='{file}:{line},{severity},{id},{message}' \
@@ -118,7 +118,7 @@ else
                  -q \
                  --force \
                  --enable=all \
-                 --std=c99 \
+                 --std=c11 \
                  $SUPPRESS \
                  $CHECK \
                  --template='{file}:{line},{severity},{id},{message}'\
