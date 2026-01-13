@@ -1,0 +1,130 @@
+FTX-1 CAT Command List (Hamlib Backend)
+=======================================
+Source: FTX-1_CAT_OM_ENG_2508-C.pdf
+
+Status: 90/90 commands implemented (100%)
+
+Total Commands: 90
+
+ #  | Cmd | Function                      | Set | Read | Ans | AI  | Backend File
+----|-----|-------------------------------|-----|------|-----|-----|--------------------
+  1 | AB  | VFO-A TO VFO-B                |  o  |      |     |     | ftx1_vfo.c
+  2 | AC  | ANTENNA TUNER CONTROL         |  o  |  o   |  o  |     | ftx1_tx.c
+  3 | AG  | AF GAIN                       |  o  |  o   |  o  |  o  | ftx1_audio.c
+  4 | AI  | AUTO INFORMATION              |  o  |  o   |  o  |     | ftx1_info.c
+  5 | AM  | VFO-A TO MEMORY CHANNEL       |  o  |      |     |     | ftx1_mem.c
+  6 | AO  | AMC OUTPUT LEVEL              |  o  |  o   |  o  |     | ftx1_audio.c
+  7 | BA  | VFO-B TO VFO-A                |  o  |      |     |     | ftx1_vfo.c
+  8 | BC  | AUTO NOTCH (DNF)              |  o  |  o   |  o  |  o  | ftx1_filter.c
+  9 | BD  | BAND DOWN                     |  o  |      |     |     | ftx1_scan.c
+ 10 | BI  | BREAK-IN                      |  o  |  o   |  o  |  o  | ftx1_cw.c
+ 11 | BM  | VFO-B TO MEMORY CHANNEL       |  o  |      |     |     | ftx1_mem.c
+ 12 | BP  | MANUAL NOTCH                  |  o  |  o   |  o  |  o  | ftx1_filter.c
+ 13 | BS  | BAND SELECT                   |  o  |      |     |     | ftx1_scan.c
+ 14 | BU  | BAND UP                       |  o  |      |     |     | ftx1_scan.c
+ 15 | CF  | CLARIFIER (RIT/XIT)           |  o  |  o   |  o  |  o  | ftx1_clarifier.c
+ 16 | CH  | CHANNEL UP/DOWN               |  o  |      |     |     | ftx1_mem.c
+ 17 | CN  | CTCSS TONE NUMBER             |  o  |  o   |  o  |     | ftx1_ctcss.c
+ 18 | CO  | CONTOUR                       |  o  |  o   |  o  |  o  | ftx1_filter.c
+ 19 | CS  | CW SPOT                       |  o  |  o   |  o  |     | ftx1_cw.c
+ 20 | CT  | CTCSS                         |  o  |  o   |  o  |  o  | ftx1_ctcss.c
+ 21 | DA  | LCD CONTRAST/DIMMER           |  o  |  o   |  o  |     | ftx1_info.c
+ 22 | DN  | MICROPHONE DOWN               |  o  |      |     |     | ftx1_scan.c
+ 24 | DT  | DATE/TIME                     |  o  |  o   |  o  |     | ftx1_info.c
+ 25 | EO  | ENCODER OFFSET                |  o  |      |     |     | ftx1_ext.c
+ 26 | EX  | MENU                          |  o  |  o   |  o  |  o  | ftx1_ext.c, ftx1_menu.c
+ 27 | FA  | VFO-A FREQUENCY               |  o  |  o   |  o  |  o  | ftx1_freq.c
+ 28 | FB  | VFO-B FREQUENCY               |  o  |  o   |  o  |  o  | ftx1_freq.c
+ 29 | FN  | FILTER NUMBER                 |  o  |  o   |  o  |     | ftx1_filter.c
+ 30 | FR  | FUNCTION RX                   |  o  |  o   |  o  |  o  | ftx1_vfo.c
+ 31 | FT  | FUNCTION TX                   |  o  |  o   |  o  |     | ftx1_vfo.c
+ 32 | GP  | GP OUT A/B/C/D                |  o  |  o   |  o  |     | ftx1_info.c
+ 33 | GT  | AGC FUNCTION                  |  o  |  o   |  o  |  o  | ftx1_audio.c
+ 34 | ID  | IDENTIFICATION                |     |  o   |  o  |     | ftx1.c
+ 35 | IF  | INFORMATION                   |     |  o   |  o  |  o  | ftx1_info.c
+ 36 | IS  | IF SHIFT                      |  o  |  o   |  o  |  o  | ftx1_info.c
+ 37 | KM  | KEYER MEMORY                  |  o  |  o   |  o  |     | ftx1_cw.c
+ 38 | KP  | KEY PITCH                     |  o  |  o   |  o  |     | ftx1_cw.c
+ 39 | KR  | KEYER                         |  o  |  o   |  o  |     | ftx1_cw.c
+ 40 | KS  | KEY SPEED                     |  o  |  o   |  o  |     | ftx1_cw.c
+ 41 | KY  | CW KEYING                     |  o  |  o   |  o  |     | ftx1_cw.c
+ 42 | LK  | LOCK                          |  o  |  o   |  o  |     | ftx1_info.c
+ 43 | LM  | LOAD MESSAGE                  |  o  |      |     |     | ftx1_cw.c
+ 44 | MA  | MEMORY CHANNEL TO VFO-A       |  o  |      |     |     | ftx1_mem.c
+ 45 | MB  | MEMORY CHANNEL TO VFO-B       |  o  |      |     |     | ftx1_mem.c
+ 46 | MC  | MEMORY CHANNEL                |  o  |  o   |  o  |  o  | ftx1_mem.c
+ 47 | MD  | OPERATING MODE                |  o  |  o   |  o  |  o  | ftx1_mode.c
+ 48 | MG  | MICROPHONE GAIN               |  o  |  o   |  o  |     | ftx1_audio.c
+ 49 | ML  | MONITOR LEVEL                 |  o  |  o   |  o  |     | ftx1_audio.c
+ 50 | MR  | MEMORY READ                   |     |  o   |  o  |     | ftx1_mem.c
+ 51 | MS  | METER SWITCH                  |  o  |  o   |  o  |     | ftx1_audio.c
+ 52 | MT  | MEMORY CHANNEL TAG            |  o  |  o   |  o  |     | ftx1_mem.c
+ 53 | MW  | MEMORY WRITE                  |  o  |      |     |     | ftx1_mem.c
+ 54 | MX  | MOX                           |  o  |  o   |  o  |     | ftx1_tx.c
+ 55 | MZ  | MEMORY ZONE                   |  o  |  o   |  o  |     | ftx1_mem.c
+ 56 | NA  | NARROW                        |  o  |  o   |  o  |  o  | ftx1_noise.c
+ 57 | NL  | NOISE BLANKER LEVEL           |  o  |  o   |  o  |  o  | ftx1_noise.c
+ 58 | OI  | OPPOSITE BAND INFORMATION     |     |  o   |  o  |  o  | ftx1_info.c
+ 59 | OS  | OFFSET (REPEATER SHIFT)       |  o  |  o   |  o  |  o  | ftx1_freq.c
+ 60 | PA  | PREAMP/IPO                    |  o  |  o   |  o  |  o  | ftx1_preamp.c
+ 61 | PB  | PLAY BACK (DVS)               |  o  |  o   |  o  |     | ftx1_audio.c
+ 62 | PC  | POWER CONTROL                 |  o  |  o   |  o  |     | ftx1_audio.c
+ 63 | PL  | SPEECH PROCESSOR LEVEL        |  o  |  o   |  o  |     | ftx1_tx.c
+ 64 | PR  | SPEECH PROCESSOR              |  o  |  o   |  o  |  o  | ftx1_tx.c
+ 65 | PS  | POWER SWITCH                  |  o  |  o   |  o  |     | ftx1_tx.c
+ 66 | QI  | QMB STORE                     |  o  |      |     |     | ftx1_mem.c
+ 67 | QR  | QMB RECALL                    |  o  |      |     |     | ftx1_mem.c
+ 68 | RA  | RF ATTENUATOR                 |  o  |  o   |  o  |  o  | ftx1_preamp.c
+ 69 | RG  | RF GAIN                       |  o  |  o   |  o  |     | ftx1_audio.c
+ 70 | RI  | RADIO INFORMATION             |     |  o   |  o  |     | ftx1_info.c
+ 71 | RL  | NOISE REDUCTION (DNR) LEVEL   |  o  |  o   |  o  |  o  | ftx1_noise.c
+ 72 | RM  | READ METER                    |     |  o   |  o  |     | ftx1_audio.c
+ 73 | SC  | SCAN                          |  o  |  o   |  o  |     | ftx1_scan.c
+ 74 | SD  | SEMI BREAK-IN DELAY TIME      |  o  |  o   |  o  |     | ftx1_cw.c
+ 75 | SF  | SUB DIAL (FUNC KNOB)          |  o  |  o   |  o  |     | ftx1_info.c
+ 76 | SH  | WIDTH/IF SHIFT                |  o  |  o   |  o  |  o  | ftx1_audio.c
+ 77 | SM  | S-METER                       |     |  o   |  o  |     | ftx1_audio.c
+ 78 | SQ  | SQUELCH LEVEL                 |  o  |  o   |  o  |  o  | ftx1_tx.c
+ 79 | SS  | SPECTRUM SCOPE                |  o  |  o   |  o  |     | ftx1_ext.c
+ 80 | ST  | SPLIT                         |  o  |  o   |  o  |  o  | ftx1_vfo.c
+ 81 | SV  | SWAP VFO                      |  o  |      |     |     | ftx1_vfo.c
+ 82 | TS  | TXW (TX WATCH)                |  o  |  o   |  o  |  o  | ftx1_tx.c
+ 83 | TX  | TX SET                        |  o  |  o   |  o  |     | ftx1_tx.c
+ 84 | UP  | MICROPHONE UP                 |  o  |      |     |     | ftx1_scan.c
+ 85 | VD  | VOX DELAY TIME                |  o  |  o   |  o  |     | ftx1_audio.c
+ 86 | VE  | FIRMWARE VERSION              |     |  o   |  o  |     | ftx1.c
+ 87 | VG  | VOX GAIN                      |  o  |  o   |  o  |     | ftx1_audio.c
+ 88 | VM  | VFO/MEMORY CHANNEL            |  o  |  o   |  o  |     | ftx1_mem.c
+ 89 | VS  | VFO SELECT                    |  o  |  o   |  o  |  o  | ftx1_vfo.c
+ 90 | VX  | VOX                           |  o  |  o   |  o  |  o  | ftx1_tx.c
+ 91 | ZI  | ZERO IN                       |  o  |      |     |     | ftx1_scan.c
+
+
+Legend:
+  Set  = Can send command to change value
+  Read = Can query current value
+  Ans  = Radio sends answer response
+  AI   = Auto Information (radio sends updates automatically when AI is enabled)
+
+Backend Files:
+  ftx1.c            - Main backend, rig_caps definition
+  ftx1.h            - Shared definitions and macros
+  ftx1_audio.c      - Audio levels, meters, power (AG, AO, GT, MG, ML, MS, PB, PC, RG, RM, SH, SM, VD, VG)
+  ftx1_clarifier.c  - RIT/XIT clarifier control using CF command
+  ftx1_ctcss.c      - CTCSS/DCS tones (CN, CT)
+  ftx1_cw.c         - CW keyer operations (BI, CS, KM, KR, KS, KY, LM, SD)
+  ftx1_ext.c        - Extended menu basics, spectrum scope (EO, EX, SS)
+  ftx1_filter.c     - Filter/notch control (BC, BP, CO, FN)
+  ftx1_freq.c       - Frequency setting (FA, FB, OS)
+  ftx1_func.c       - Level/function dispatcher
+  ftx1_info.c       - Radio info, AI, date/time (AI, DA, DT, GP, ID, IF, IS, LK, OI, SF)
+  ftx1_mem.c        - Memory operations (AM, BM, CH, MA, MB, MC, MR, MT, MW, MZ, QI, QR, VM)
+  ftx1_menu.c       - Complete EX menu implementation (~250 menu items)
+  ftx1_menu.h       - EX menu token definitions and structures
+  ftx1_mode.c       - Operating mode (MD) - delegates to newcat
+  ftx1_noise.c      - Noise blanker/reduction (NA, NL, RL)
+  ftx1_preamp.c     - Preamp/attenuator (PA, RA)
+  ftx1_scan.c       - Scan, band, freq up/down, tuning step (BD, BS, BU, DN, SC, UP, ZI, EX0306)
+  ftx1_tx.c         - Transmit control (AC, MX, PR, PS, SQ, TS, TX, VX)
+  ftx1_vfo.c        - VFO operations (AB, BA, FR, FT, ST, SV, VS)
+
