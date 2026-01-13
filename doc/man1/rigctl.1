@@ -5,15 +5,15 @@
 .\"
 .\" Note: Please keep this page in sync with the source, rigctl.c
 .\"
-.TH RIGCTL "1" "2020-09-09" "Hamlib" "Hamlib Utilities"
+.TH RIGCTL "1" "2026-01-06" "Hamlib" "Hamlib Utilities"
 .
 .
 .SH NAME
 .
 rigctl \- control radio transceivers and receivers
 .
-.SH SYNOPSIS
 .
+.SH SYNOPSIS
 .
 .SY rigctl
 .OP \-hiIlLnouV
@@ -32,7 +32,9 @@ rigctl \- control radio transceivers and receivers
 .RB [ command | \- ]
 .YS
 .
+.
 .SH DESCRIPTION
+.
 Control radio transceivers and receivers.
 .B rigctl
 accepts
@@ -184,12 +186,12 @@ below.
 .BR \-L ", " \-\-show\-conf
 List all config parameters for the radio defined with
 .B \-m
-above. Will exit if no -r is given. Note the dummy device has no serial parameters.
+above.
 .
 .TP
 .BR \-C ", " \-\-set\-conf = \fIparm=val\fP [ \fI,parm=val\fP ]
 Set configuration parameter(s). Some common ones are:
-.in +4n
+.in +4
 .EX
 .BR   async: "True enables asynchronous data transfer for backends that support it. This allows use of transceive and spectrum data."
 .BR   auto_power_on: "True enables compatible rigs to be powered up on open"
@@ -490,6 +492,7 @@ in Hz.
 Returns an integer value and the VFO hamlib thinks is active.
 Note that some rigs (e.g. all Icoms) cannot track current VFO so hamlib can
 get out of sync with the rig if the user presses rig buttons like the VFO.
+rigctld clients should ensure they set the intended VFO or use vfo mode.
 .
 .TP
 .BR M ", " set_mode " \(aq" \fIMode\fP "\(aq \(aq" \fIPassband\fP \(aq
@@ -665,6 +668,22 @@ in Hz.
 Returns an integer value.
 .
 .TP
+.BR K ", " set_split_freq_mode " \(aq" "\fITX Frequency\fP" "\(aq \(aq" "\fITX Mode\fP" "\(aq \(aq" "\fITX Passband\fP" \(aq
+Set
+.RI \(aq "TX Frequency" \(aq
+,
+.RI \(aq "TX Mode" \(aq
+and
+.RI \(aq "TX Passband" \(aq.
+See
+.B set_split_mode
+for more information.
+.
+.TP
+.BR k ", " get_split_freq_mode
+Get the current split settings.
+.
+.TP
 .BR X ", " set_split_mode " \(aq" "\fITX Mode\fP" "\(aq \(aq" "\fITX Passband\fP" \(aq
 Set
 .RI \(aq "TX Mode" \(aq
@@ -770,6 +789,18 @@ Get
 (squelch) status: \(oq0\(cq (Closed) or \(oq1\(cq (Open).
 .
 .TP
+.BR 0x8d ", " set_twiddle " \(aq" \fITimeout\fP \(aq
+Set the twiddle
+.RI \(aq Timeout \(aq
+in seconds.
+.
+.TP
+.BR 0x8e ", " get_twiddle
+Get the twiddle
+.RI \(aq Timeout \(aq
+in seconds.
+.
+.TP
 .BR R ", " set_rptr_shift " \(aq" "\fIRptr Shift\fP" \(aq
 Set
 .RI \(aq "Rptr Shift" \(aq.
@@ -841,6 +872,20 @@ code.
 Get
 .RI \(aq "DCS Sql" \(aq
 code.
+.
+.TP
+.BR 0x95 ", " set_cache " \(aq" "\fITimeout\fP" \(aq
+Set cache timeout in ms.
+.
+.TP
+.BR 0x96 ", " get_cache
+Get cache timeout in ms.
+.
+.TP
+.BR 0x97 ", " uplink " \(aq" "\fIUplink\fP" \(aq
+Set the uplink VFO to
+.RI \(aq Uplink \(aq
+(1=Sub, 2=Main).
 .
 .TP
 .BR N ", " set_ts " \(aq" "\fITuning Step\fP" \(aq
@@ -1050,7 +1095,14 @@ Level is a token:
 The Level Value can be a float or an integer value.  For the AGC token the
 value is one of \(oq0\(cq = OFF, \(oq1\(cq = SUPERFAST, \(oq2\(cq = FAST,
 \(oq3\(cq = SLOW, \(oq4\(cq = USER, \(oq5\(cq = MEDIUM, \(oq6\(cq = AUTO.
-Note that not all values work on all rigs.  To list usable values do "rigctl -m [modelnum] -u | grep AGC levels" or for Windows "rigctl -m [modelnum] -u | find "AGC levels"".
+Note that not all values work on all rigs.  To list usable values do
+.EX
+rigctl -m MODEL_ID -u | grep "AGC levels"
+.EE
+or for Windows
+.EX
+rigctl -m MODEL_ID -u | find "AGC levels"
+.EE
 .IP
 Level units
 .in +4n
@@ -1070,7 +1122,7 @@ Degrees(temperature)
 Hz
     CWPITCH, IF, NOTCHF, PBT_IN, PBT_OUT, SPECTRUM_EDGE_LOW, SPECTRUM_EDGE_HIGH, SPECTRUM_SPAN
 
-Seconds 
+Seconds
     VOXDELAY(ds), BKINDL(ms), BKIN_DLYMS(ms)
 
 Raw info from rig
@@ -1098,8 +1150,6 @@ WPM
     KEYSPD
 .in
 .EE
-.IP
- 
 .IP
 .BR Note :
 Passing a \(oq?\(cq (query) as the first argument instead of a Level token
@@ -1210,16 +1260,23 @@ Mem/VFO Op tokens.  Use this to determine the supported Mem/VFO Ops of a given
 radio backend.
 .
 .TP
-.BR g ", " scan " \(aq" "\fIScan Fct\fP" "\(aq \(aq" "\fIScan Channel\fP" \(aq
+.BR g ", " scan " \(aq" "\fIScan Function\fP" "\(aq \(aq" "\fIScan Channel\fP" \(aq
 Perform a
-.RI \(aq "Scan Fct" \(aq
+.RI \(aq "Scan Function" \(aq
 on a
 .RI \(aq "Scan Option" \(aq.
 .IP
-Scan Function is a token: \(oqSTOP\(cq, \(oqMEM\(cq, \(oqSLCT\(cq,
-\(oqPRIO\(cq, \(oqPROG\(cq, \(oqDELTA\(cq, \(oqVFO\(cq, \(oqPLT\(cq.
+Scan Function is a token:
+\(oqDELTA\(cq,
+\(oqMEM\(cq,
+\(oqPLT\(cq,
+\(oqPRIO\(cq,
+\(oqPROG\(cq,
+\(oqSLCT\(cq,
+\(oqSTOP\(cq,
+\(oqVFO\(cq.
 .IP
-Scan Option is an integer.  
+Scan Option is an integer.
 .IP
 Scan Option for Yaesu rigs 0=STOP, 1=UP, 2=DOWN.
 .IP
@@ -1242,7 +1299,7 @@ data.
 Sets memory channel information
 .
 .TP
-.BR h ", " get_channel " \(aq" \fIreadonly\fP \(aq
+.BR h ", " get_channel " \(aq" \fIChannel\fP \(aq " \(aq" \fIreadonly\fP \(aq
 Get channel memory.
 .IP
 If readonly!=0 then only channel data is returned and rig remains on the current channel.  If readonly=0 then rig will be set to the channel requested.
@@ -1316,6 +1373,19 @@ Get DTMF
 .RI \(aq Digits \(aq.
 .
 .TP
+.BR 0xac ", " set_conf " \(aq" "\fIToken\fP" \(aq " " \(aq "\fIValue\fP" \(aq
+Set
+.RI \(aq Token \(aq
+to
+.RI \(aq Value \(aq.
+.
+.TP
+.BR 0xad ", " get_conf " \(aq" "\fIToken\fP" \(aq
+Get value
+of
+.RI \(aq Token \(aq.
+.
+.TP
 .BR _ ", " get_info
 Get misc information about the rig.
 .
@@ -1324,8 +1394,32 @@ Get misc information about the rig.
 Get misc information about the rig vfo status and other info.
 .
 .TP
+.BR 0xf1 ", " halt
+When issued inside
+.B rigctl
+it quits it; when issued by another client it quits
+.B rigctld
+instead.
+.
+.TP
 .BR 0xf3 ", " get_vfo_info " \(aq" \fIVFO\fP \(aq
 Get misc information about a specific vfo.
+.
+.TP
+.BR 0xf4 ", " get_vfo_list
+Get the names of the available VFOs.
+.
+.TP
+.BR 0xf6 ", " get_modes
+Get all supported bandwidths for all modes.
+.
+.TP
+.BR 0xf7 ", " get_mode_bandwidths " \(aq" \fIMode\fP \(aq
+Get bandwidths of
+.
+.RI \(aq Mode \(aq.
+See also
+.B get_modes.
 .
 .TP
 .B dump_state
@@ -1344,7 +1438,7 @@ This command will produce many lines of output so be very careful if using a
 fixed length array!  For example, running this command against the Dummy
 backend results in over 5kB of text output.
 .IP
-VFO parameter not used in 'VFO mode'.
+VFO parameter is not used in 'VFO mode'.
 .
 .TP
 .BR 2 ", " power2mW " \(aq" "\fIPower [0.0..1.0]\fP" "\(aq \(aq" \fIFrequency\fP "\(aq \(aq" \fIMode\fP \(aq
@@ -1361,6 +1455,11 @@ and
 also need to be provided as output power may vary according to these values.
 .IP
 VFO parameter is not used in VFO mode.
+.
+.TP
+.BR 3 ", " dump_conf
+Not a real rig remote command, it just dumps the current configuration
+with allowed ranges of values.
 .
 .TP
 .BR 4 ", " mW2power " \(aq" "\fIPower mW\fP" "\(aq \(aq" \fIFrequency\fP "\(aq \(aq" \fIMode\fP \(aq
@@ -1459,7 +1558,11 @@ Get
 .RI \(aq Status \(aq
 .IP
 Returns Status as 1 if vfo option is on and 0 if vfo option is off.
-This command reflects the -o switch for rigctl and ritctld and can be dynamically changed by
+This command reflects the -o switch for
+.B rigctld
+and
+.B rigctld
+and can be dynamically changed by
 .B set_vfo_opt.
 .
 .TP
@@ -1468,15 +1571,11 @@ Set
 .RI \(aq Status \(aq
 .IP
 Set vfo option Status 1=on or 0=off
-This is the same as using the -o switch for rigctl and ritctld.
+This is the same as using the -o switch for
+.B rigctld
+and
+.B rigctld.
 This can be dynamically changed while running.
-.
-.TP
-.BR get_separator 
-Get
-.RI \(aq SeparatorChar \(aq
-.IP
-Shows the current SeparatorChar
 .
 .TP
 .BR set_separator " \(aq" \fISeparatorChar\fP \(aq
@@ -1486,6 +1585,13 @@ Set
 Change rigctld response to use a special char instead of newline (recommend #).
 Handy for node-red's tcprequest node.
 This can be dynamically changed while running.
+.
+.TP
+.BR get_separator
+Get
+.RI \(aq SeparatorChar \(aq
+.IP
+Shows the current SeparatorChar.
 .
 .TP
 .BR pause " \(aq" \fISeconds\fP \(aq
@@ -1512,8 +1618,8 @@ Returns current lock mode status 1=On, 2=Off (only useful when using rigctld)
 .TP
 .BR send_raw " \(aq" \fITerminator\fP "\(aq \(aq" \fIString\fP \(aq
 Can send ASCII string or 0xnn values or xnn values -- there can be no spaces in the command string.
-Possible terminator values are CR, LF, ;, ICOM, 0-100 (bytes to read), or -1 meaning unknown (will timeout on read)
-Examples (note that a ; must be escaped in Unix/Linux):
+Possible terminator values are CR, LF, ;, ICOM, 1-100 (bytes to read), or 0 meaning no reply and -1 meaning unknown (will timeout on read).
+Examples (note that a ; must be escaped in Unix/Linux or enclosed in single or double quotes):
 .IP
 For Windows & Unix/Linux we have a new colon-separated format for hex digits
 .EX
@@ -1521,10 +1627,11 @@ For Windows & Unix/Linux we have a new colon-separated format for hex digits
   send_raw -1 0xFE:0xFE:0x94:0x03:0xFD
   send_raw 14 0xFE:0xFE:0x94:0x03:0xFD
   Note that ASCII commands still require escaping the semicolon on Unix/Linux
-  send_raw \; FA\;MD\;
+  send_raw \\; FA\\;MD\\;
 .EE
 For Windows:
 .EX
+  send_raw ; FA;MD;
   send_raw icom 0xFE;0xFE;0x94;0x03;0xFD
   send_raw -1 0xFE;0xFE;0x94;0x03;0xFD
   send_raw 14 0xFE;0xFE;0x94;0x03;0xFD
@@ -1532,7 +1639,7 @@ For Windows:
 For Unix/Linux
 .EX
   send_raw icom 0xFE\;0xFE\;0x94\;0x03\;0xFD
-  send_raw \; FA\;MD\;
+  send_raw \\; FA\\;MD\\;
   send_raw -1 0xFE\;0xFE\;0x94\;0x03\;0xFD
   send_raw 14 0xFE\;0xFE\;0x94\;0x03\;0xFD
 .EE
