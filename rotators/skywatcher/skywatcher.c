@@ -294,7 +294,7 @@ const struct rot_caps skywatcher_rot_caps =
     ROT_MODEL(ROT_MODEL_SKYWATCHER),
     .model_name =     "Sky-Watcher",
     .mfg_name =       "Sky-Watcher",
-    .version =        "20240825.0",
+    .version =        "20251221.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZEL,
