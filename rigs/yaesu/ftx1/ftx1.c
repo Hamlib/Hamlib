@@ -951,7 +951,7 @@ static int ftx1_get_ext_parm(RIG *rig, hamlib_token_t token, value_t *val)
 
 /* Rig caps structure */
 struct rig_caps ftx1_caps = {
-    .rig_model = RIG_MODEL_FTX1,
+    RIG_MODEL(RIG_MODEL_FTX1),
     .model_name = "FTX-1",
     .mfg_name = "Yaesu",
     .version = "20251224.0",  /* Date-based version - added ext_parm support */
