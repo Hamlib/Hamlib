@@ -430,12 +430,12 @@ int main(int argc, char *argv[])
             {
                 // [SSB|CW/FSK/PSK|FM|AM] Mode Frequency Step Size (Multi/Channel Control)
                 int class = buf[6] - '1';
-                int i, tmpstep = -1;
+                int tmpstep = -1;
 
                 if (buf[7] == ';')
                 {
                     // Read
-                    for (i = 0; i < 10 && stepvalues[class][i] != 0; i++)
+                    for (int i = 0; i < 10 && stepvalues[class][i] != 0; i++)
                     {
                         if (stepsize[class] == stepvalues[class][i])
                         {
@@ -455,7 +455,7 @@ int main(int argc, char *argv[])
                     tmpstep = atoi(buf + 8);
 
                     if (tmpstep < 0 || tmpstep > 9 || stepvalues[class][tmpstep] == 0)
-                    {cmd_err = 1; continue;}
+                        {cmd_err = 1; continue;}
 
                     stepsize[class] = stepvalues[class][tmpstep];
                 }

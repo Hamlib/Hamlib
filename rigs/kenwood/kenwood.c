@@ -841,7 +841,6 @@ int kenwood_init(RIG *rig)
     struct kenwood_priv_data *priv;
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
     struct rig_state *rs = STATE(rig);
-    int i;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, version %s/%s\n", __func__,
               BACKEND_VER, rig->caps->version);
@@ -911,7 +910,7 @@ int kenwood_init(RIG *rig)
 
     /* Set up voice memory parameters */
     priv->voice_mem_max = -1;
-    for (i = 0; i < HAMLIB_CHANLSTSIZ && !RIG_IS_CHAN_END(rs->chan_list[i]); i++)
+    for (int i = 0; i < HAMLIB_CHANLSTSIZ && !RIG_IS_CHAN_END(rs->chan_list[i]); i++)
     {
         if (rs->chan_list[i].type == RIG_MTYPE_VOICE)
         {
@@ -930,13 +929,21 @@ int kenwood_init(RIG *rig)
                Maybe someday there'll be a better way, but for now, if it bothers you just hit
                the ESC button(bottom left)
              */
-            priv->voice_mem_enable = "PB01";
-            priv->voice_mem_start = "PB1%d5";
+            priv->voice_mem_start = "PB01;PB1%d5";
             priv->voice_mem_stop = "PB1%d0";
+        }
+        else if (RIG_IS_K3 || RIG_IS_K3S || RIG_IS_KX3)
+        {
+            //priv->voice_mem_start = NULL;
+            priv->voice_mem_stop = "SWT37";
+        }
+        else if (RIG_IS_K4)
+        {
+            priv->voice_mem_start = "DAMP%d00000";
+            priv->voice_mem_stop = "DA0";
         }
         else
         {
-            //priv->voice_mem_enable = NULL;
             priv->voice_mem_start = "PB%d";
             priv->voice_mem_stop = "PB0";
         }
@@ -5679,7 +5686,7 @@ int kenwood_stop_morse(RIG *rig, vfo_t vfo)
  */
 int kenwood_send_voice_mem(RIG *rig, vfo_t vfo, int bank)
 {
-    char cmd[16];
+    char cmd[32];
     struct kenwood_priv_data *priv = STATE(rig)->priv;
     ENTERFUNC;
 
@@ -5690,20 +5697,17 @@ int kenwood_send_voice_mem(RIG *rig, vfo_t vfo, int bank)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    if (priv->voice_mem_enable)
-    {
-        kenwood_transaction(rig, priv->voice_mem_enable, NULL, 0);
-    }
-
+    if (!priv->voice_mem_start) { RETURNFUNC(-RIG_EINTERNAL); }
     SNPRINTF(cmd, sizeof(cmd), priv->voice_mem_start, bank);
 
     priv->voice_bank = bank;
     RETURNFUNC(kenwood_transaction(rig, cmd, NULL, 0));
 }
+
 int kenwood_stop_voice_mem(RIG *rig, vfo_t vfo)
 {
-    char cmd[16];
-    struct kenwood_priv_data *priv = STATE(rig)->priv;
+    char cmd[32];
+    const struct kenwood_priv_data *priv = STATE(rig)->priv;
     ENTERFUNC;
 
     if (!priv->voice_mem_stop) { RETURNFUNC(-RIG_EINTERNAL); }

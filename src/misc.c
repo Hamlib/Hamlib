@@ -2841,21 +2841,6 @@ const char *hl_stars(int len)
     return &s[MAX_STARS - len];
 }
 
-//---Start cut here---
-//! @cond Doxygen_Suppress
-/* Dummy definition for mismatched rigctl|rigctld|<whatever>
- *   that still references old function
- * Should go away with 5.0
- * Not prototyped or referenced in any current code
- */
-// cppcheck-suppress unusedFunction
-const char *spaces(int len)
-{
-    return hl_stars(len);
-}
-//! @endcond
-
-//---End cut here---
 //! @cond Doxygen_Suppress
 char *date_strget(char *buf, int buflen, int localtime)
 {

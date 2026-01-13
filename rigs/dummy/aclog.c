@@ -427,8 +427,6 @@ static rmode_t modeMapGetHamlib(const char *modeACLog)
 */
 static int aclog_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    int i, j = 0;
-    char f_string[32];
 
     char value[MAXARGLEN];
     struct aclog_priv_data *priv = (struct aclog_priv_data *) STATE(rig)->priv;
@@ -469,11 +467,14 @@ static int aclog_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (p)
     {
+        int j = 0;
+        char f_string[32];
+
         // Move the pointer to the first digit.
         p += strlen("<FREQ>");
 
         // Parse "1,296.171100" ignoring the comma.
-        for (i = 0; p[i] != '<'; i++)
+        for (int i = 0; p[i] != '<'; i++)
         {
             if (isdigit(p[i]))
             {
