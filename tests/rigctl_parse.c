@@ -2,7 +2,7 @@
  * rigctl_parse.c - (C) Stephane Fillod 2000-2011
  *                  (C) Nate Bargmann 2003,2006,2008,2010,2011,2012,2013
  *                  (C) Terry Embry 2008-2009
- *                  (C) The Hamlib Group 2002,2006,2007,2008,2009,2010,2011
+ *                  (C) The Hamlib Group 2002,2006,2007,2008,2009,2010,2011,2026
  *
  * This program tests/controls a radio using Hamlib.
  * It takes commands in interactive mode as well as
@@ -24,6 +24,7 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 #include "hamlib/config.h"
 
@@ -713,9 +714,12 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
     char arg3[MAXARGSZ + 1], *p3 = NULL;
     vfo_t vfo = RIG_VFO_CURR;
     char client_version[32];
+    char name_format[8];
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called, interactive=%d\n", __func__,
               interactive);
+
+    SNPRINTF(name_format, sizeof(name_format), "%%%ds", MAXNAMSIZ - 1);
 
     /* cmd, internal, rigctld */
     if (!(interactive && prompt && have_rl))
@@ -810,7 +814,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 /* command by name */
                 if (cmd == '\\')
                 {
-                    char cmd_name[MAXNAMSIZ], *pcmd = cmd_name;
+                    char cmd_name[MAXNAMSIZ + 1], *pcmd = cmd_name;
 
                     if (scanfc(fin, "%c", pcmd) < 1)
                     {
@@ -818,7 +822,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                         return (RIGCTL_PARSE_ERROR);
                     }
 
-                    retcode = fscanf(fin, "%s", ++pcmd);
+                    retcode = fscanf(fin, name_format, ++pcmd); // Get the rest of the command
 
                     if (retcode == 0 || retcode == EOF) { rig_debug(RIG_DEBUG_WARN, "%s: unable to scan %c\n", __func__, *(pcmd - 1)); }
 
