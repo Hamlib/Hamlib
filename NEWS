@@ -14,6 +14,8 @@ Version 5.x -- future
 
 Version 4.7.0
         * 2025-12-01 (target)
+        * Fix unbounded string usage in tests/*ctl_parse.c. May cause crashes or worse.
+          Reported by Vlatko Kosturjak with Marlink Cyber
         * Revamp Kenwood voice memory handler - Fixes TS-890S & TS-990S (n3gb)
         * libusb is now detected using the pkg-config facility.
         * Some internal functions change names to avoid conflicts with apps.
