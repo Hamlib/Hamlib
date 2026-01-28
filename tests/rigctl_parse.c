@@ -715,11 +715,13 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
     vfo_t vfo = RIG_VFO_CURR;
     char client_version[32];
     char name_format[8];
+    char arg_format[8];
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called, interactive=%d\n", __func__,
               interactive);
 
     SNPRINTF(name_format, sizeof(name_format), "%%%ds", MAXNAMSIZ - 1);
+    SNPRINTF(arg_format, sizeof(arg_format), "%%%ds", MAXARGSZ - 1);
 
     /* cmd, internal, rigctld */
     if (!(interactive && prompt && have_rl))
@@ -948,7 +950,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                     fprintf_flush(fout, "VFO: ");
                 }
 
-                if (scanfc(fin, "%s", arg1) < 1)
+                if (scanfc(fin, arg_format, arg1) < 1)
                 {
                     rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#7?\n", __func__);
                     return (RIGCTL_PARSE_ERROR);
@@ -1055,7 +1057,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                     fprintf_flush(fout, "%s: ", cmd_entry->arg1);
                 }
 
-                if (scanfc(fin, "%s", arg1) < 1)
+                if (scanfc(fin, arg_format, arg1) < 1)
                 {
                     rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#8?\n", __func__);
                     return (RIGCTL_PARSE_ERROR);
@@ -1105,7 +1107,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                     fprintf_flush(fout, "%s: ", cmd_entry->arg2);
                 }
 
-                if (scanfc(fin, "%s", arg2) < 1)
+                if (scanfc(fin, arg_format, arg2) < 1)
                 {
                     rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#9?\n", __func__);
                     return (RIGCTL_PARSE_ERROR);
@@ -1154,7 +1156,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                     fprintf_flush(fout, "%s: ", cmd_entry->arg3);
                 }
 
-                if (scanfc(fin, "%s", arg3) < 1)
+                if (scanfc(fin, arg_format, arg3) < 1)
                 {
                     rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#10?\n", __func__);
                     return (RIGCTL_PARSE_ERROR);
@@ -4093,7 +4095,7 @@ declare_proto_rig(set_channel)
     const chan_t *chan_list;
     channel_t chan;
     int status;
-    char s[16];
+    char s[HAMLIB_MAXCHANDESC];
 
     ENTERFUNC2;
 
@@ -4147,7 +4149,7 @@ declare_proto_rig(set_channel)
             fprintf_flush(fout, "vfo (VFOA,MEM,etc...): ");
         }
 
-        CHKSCN1ARG(scanfc(fin, "%s", s));
+        CHKSCN1ARG(scanfc(fin, "%10s", s));
         chan.vfo = rig_parse_vfo(s);
     }
 
@@ -4180,7 +4182,7 @@ declare_proto_rig(set_channel)
             fprintf_flush(fout, "mode (FM,LSB,etc...): ");
         }
 
-        CHKSCN1ARG(scanfc(fin, "%s", s));
+        CHKSCN1ARG(scanfc(fin, "%10s", s));
         chan.mode = rig_parse_mode(s);
     }
 
@@ -4211,7 +4213,7 @@ declare_proto_rig(set_channel)
             fprintf_flush(fout, "tx mode (FM,LSB,etc...): ");
         }
 
-        CHKSCN1ARG(scanfc(fin, "%s", s));
+        CHKSCN1ARG(scanfc(fin, "%10s", s));
         chan.tx_mode = rig_parse_mode(s);
     }
 
@@ -4243,7 +4245,7 @@ declare_proto_rig(set_channel)
             fprintf_flush(fout, "tx vfo (VFOA,MEM,etc...): ");
         }
 
-        CHKSCN1ARG(scanfc(fin, "%s", s));
+        CHKSCN1ARG(scanfc(fin, "%10s", s));
         chan.tx_vfo = rig_parse_vfo(s);
     }
 
@@ -4254,7 +4256,7 @@ declare_proto_rig(set_channel)
             fprintf_flush(fout, "rptr shift (+-0): ");
         }
 
-        CHKSCN1ARG(scanfc(fin, "%s", s));
+        CHKSCN1ARG(scanfc(fin, "%12s", s));
         chan.rptr_shift = rig_parse_rptr_shift(s);
     }
 
@@ -4385,7 +4387,7 @@ declare_proto_rig(set_channel)
             fprintf_flush(fout, "channel desc: ");
         }
 
-        CHKSCN1ARG(scanfc(fin, "%s", s));
+        CHKSCN1ARG(scanfc(fin, "%31s", s));
         strcpy(chan.channel_desc, s);
     }
 
