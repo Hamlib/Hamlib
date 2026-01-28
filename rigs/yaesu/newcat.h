@@ -131,6 +131,14 @@ struct newcat_priv_data
     char front_rear_status; /* e.g. FTDX5000 EX103 status */
     int split_st_command_missing; /* is ST command gone?  assume not until proven otherwise */
     int band_index;
+    /* FTX-1 specific fields - per-rig instance storage */
+    int ftx1_head_type;          /* FTX1_HEAD_FIELD_BATTERY/12V/SPA1/UNKNOWN */
+    int ftx1_spa1_detected;      /* 1 if SPA-1 confirmed via VE4 command */
+    int ftx1_detection_done;     /* 1 if auto-detection has been performed */
+    int ftx1_virtual_split;      /* Virtual split state (0=off, 1=on) */
+    vfo_t ftx1_tx_vfo;           /* TX VFO for virtual split */
+    int ftx1_cache_fix_needed;   /* 1 if Main cache needs restoration */
+    freq_t ftx1_cache_fix_freq;  /* Saved Main freq for cache restoration */
 };
 
 /*
