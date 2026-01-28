@@ -1,7 +1,7 @@
 /*
  * ampctl_parse.c - (C) Stephane Fillod 2000-2010
  *                  (C) Nate Bargmann 2003,2007,2010,2011,2012,2013
- *                  (C) The Hamlib Group 2002,2006,2011
+ *                  (C) The Hamlib Group 2002,2006,2011,2026
  * Derived from rotctl_parse.c by Michael Black 2019
  *
  * This program test/control an amplifier using Hamlib.
@@ -24,6 +24,7 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 #include "hamlib/config.h"
 
@@ -477,6 +478,9 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
     char *p5 = NULL;
     char *p6 = NULL;
 #endif
+    char arg_format[8];
+
+    SNPRINTF(arg_format, sizeof(arg_format), "%%%ds", MAXARGSZ);
 
     /* cmd, internal, ampctld */
     if (!(interactive && prompt && have_rl))
@@ -542,7 +546,7 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
                 /* command by name */
                 if (cmd == '\\')
                 {
-                    unsigned char cmd_name[MAXNAMSIZ], *pcmd = cmd_name;
+                    unsigned char cmd_name[MAXNAMSIZ + 1], *pcmd = cmd_name;
                     int c_len = MAXNAMSIZ;
 
                     if (scanfc(fin, "%c", pcmd) < 1)
@@ -703,7 +707,7 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
                     fprintf_flush(fout, "%s: ", cmd_entry->arg1);
                 }
 
-                if (scanfc(fin, "%s", arg1) < 1)
+                if (scanfc(fin, arg_format, arg1) < 1)
                 {
                     return -1;
                 }
@@ -743,7 +747,7 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
                     fprintf_flush(fout, "%s: ", cmd_entry->arg2);
                 }
 
-                if (scanfc(fin, "%s", arg2) < 1)
+                if (scanfc(fin, arg_format, arg2) < 1)
                 {
                     return -1;
                 }
@@ -783,7 +787,7 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
                     fprintf_flush(fout, "%s: ", cmd_entry->arg3);
                 }
 
-                if (scanfc(fin, "%s", arg3) < 1)
+                if (scanfc(fin, arg_format, arg3) < 1)
                 {
                     return -1;
                 }
@@ -823,7 +827,7 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
                     fprintf_flush(fout, "%s: ", cmd_entry->arg4);
                 }
 
-                if (scanfc(fin, "%s", arg4) < 1)
+                if (scanfc(fin, arg_format, arg4) < 1)
                 {
                     return -1;
                 }

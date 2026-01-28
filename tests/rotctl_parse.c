@@ -1048,7 +1048,8 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, const char *argv[],
             /* The starting position of the source string is the first
              * character past the initial '\'.
              */
-	    strncpy(cmd_name, parsed_input[0] + 1, sizeof cmd_name);
+	    strncpy(cmd_name, parsed_input[0] + 1, MAXNAMSIZ);
+	    cmd_name[MAXNAMSIZ] = '\0';  // Make sure it's terminated
 
             /* Sanity check as valid multiple character commands consist of
              * alphanumeric characters and the underscore ('_') character.
