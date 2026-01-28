@@ -46,6 +46,8 @@ Version 4.7.0
         * Various manual page updates.  (TNX Daniel Forsi)
         * Additional Yaesu FTX-1 capabilities.  (TNX KJ5HST)
         * Refactor repeater offset and ANTIVOX with lookup tables in newcat.c (TNX KJ5HST)
+        * Fix unbounded string usage in tests/*ctl_parse.c. May cause crashes or worse.
+          Reported by Vlatko Kosturjak with Marlink Cyber.  (TNX George Baltz for the fix)
 
 Version 4.6.5
         * 2025-09-05
