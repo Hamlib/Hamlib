@@ -1,7 +1,7 @@
 /*
  * rotctl_parse.c - (C) Stephane Fillod 2000-2010
  *                  (C) Nate Bargmann 2003,2007,2010,2011,2012,2013
- *                  (C) The Hamlib Group 2002,2006,2011
+ *                  (C) The Hamlib Group 2002,2006,2011,2026
  *
  * This program test/control a rotator using Hamlib.
  * It takes commands in interactive mode as well as
@@ -23,6 +23,7 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 #include "hamlib/config.h"
 
@@ -549,6 +550,9 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, const char *argv[],
     char *p5 = NULL;
     char *p6 = NULL;
 #endif
+    char arg_format[8];
+
+    SNPRINTF(arg_format, sizeof(arg_format), "%%%ds", MAXARGSZ);
 
     /* cmd, internal, rotctld */
 #ifdef HAVE_LIBREADLINE
@@ -617,7 +621,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, const char *argv[],
                 /* command by name */
                 if (cmd == '\\')
                 {
-                    unsigned char cmd_name[MAXNAMSIZ], *pcmd = cmd_name;
+                    unsigned char cmd_name[MAXNAMSIZ + 1], *pcmd = cmd_name;
                     int c_len = MAXNAMSIZ;
 
                     if (scanfc(fin, "%c", pcmd) < 1)
@@ -778,7 +782,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, const char *argv[],
                     fprintf_flush(fout, "%s: ", cmd_entry->arg1);
                 }
 
-                if (scanfc(fin, "%s", arg1) < 1)
+                if (scanfc(fin, arg_format, arg1) < 1)
                 {
                     return -1;
                 }
@@ -818,7 +822,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, const char *argv[],
                     fprintf_flush(fout, "%s: ", cmd_entry->arg2);
                 }
 
-                if (scanfc(fin, "%s", arg2) < 1)
+                if (scanfc(fin, arg_format, arg2) < 1)
                 {
                     return -1;
                 }
@@ -858,7 +862,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, const char *argv[],
                     fprintf_flush(fout, "%s: ", cmd_entry->arg3);
                 }
 
-                if (scanfc(fin, "%s", arg3) < 1)
+                if (scanfc(fin, arg_format, arg3) < 1)
                 {
                     return -1;
                 }
@@ -898,7 +902,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, const char *argv[],
                     fprintf_flush(fout, "%s: ", cmd_entry->arg4);
                 }
 
-                if (scanfc(fin, "%s", arg4) < 1)
+                if (scanfc(fin, arg_format, arg4) < 1)
                 {
                     return -1;
                 }
@@ -1022,7 +1026,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, const char *argv[],
         /* Test the command token, parsed_input[0] */
         else if ((*parsed_input[0] == '\\') && (strlen(parsed_input[0]) > 1))
         {
-            char cmd_name[MAXNAMSIZ];
+            char cmd_name[MAXNAMSIZ + 1];
 
             /* if there is no terminating '\0' character in the source string,
              * strncpy() doesn't add one even if the supplied length is less
@@ -1044,7 +1048,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, const char *argv[],
             /* The starting position of the source string is the first
              * character past the initial '\'.
              */
-            SNPRINTF(cmd_name, sizeof(cmd_name), "%s", parsed_input[0] + 1);
+	    strncpy(cmd_name, parsed_input[0] + 1, sizeof cmd_name);
 
             /* Sanity check as valid multiple character commands consist of
              * alphanumeric characters and the underscore ('_') character.
