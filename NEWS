@@ -45,6 +45,7 @@ Version 4.7.0
         * Fix Skywatcher backend for firmware that doesn't echo commands.  (TNX Daniel Forsi)
         * Various manual page updates.  (TNX Daniel Forsi)
         * Additional Yaesu FTX-1 capabilities.  (TNX KJ5HST)
+        * Refactor repeater offset and ANTIVOX with lookup tables in newcat.c (TNX KJ5HST)
 
 Version 4.6.5
         * 2025-09-05
