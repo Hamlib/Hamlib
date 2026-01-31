@@ -49,6 +49,7 @@ Version 4.7.0
         * Fix unbounded string usage in tests/*ctl_parse.c. May cause crashes or worse.
           Reported by Vlatko Kosturjak with Marlink Cyber.  (TNX George Baltz for the fix)
         * Add extended commands for the IC-7300MK2--closes GitHub #1985.  (TNX George Baltz)
+        * Revert updating FLRig model name.  (TNX Peter Sumner & Philip Rose)
 
 Version 4.6.5
         * 2025-09-05
