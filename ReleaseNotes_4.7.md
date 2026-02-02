@@ -1,12 +1,13 @@
-# HAMLIB 4.7 - Release Notes (WIP)                        2025-12-01(?)
-
-*This is very much a first cut - nothing is set in concrete or inviolate - n3gb*
+# HAMLIB 4.7 - Release Notes                        2026-02-15
 
 This release brings new equipment support, bug fixes/code cleanups, and some
 changes to ease transition to 5.0
 
+**Support term changes go here**
+
 ## New equipment support
-- Yaesu FTX-1 Optima/Field - Work in progress; testers welcome.
+- Icom IC-7300MK2
+- Yaesu FTX-1 Optima/Field
 - Drake R8/R8A/R8B - new, revised backend
 - AF6SA WRC rotator
 - GUOHETEC PMR-171 & Q900 moved to separate backend
@@ -19,7 +20,7 @@ changes to ease transition to 5.0
   [#924](https://github.com/Hamlib/Hamlib/issues/924).
 - Functions `rig_set_trn()` & `rig_get_trn()` deprecated; operation now handled internally.
 - Documentation brought up to date.
-- (TBD)
+- Many bug fixes - see NEWS for summary, `git log` or `gitg`/`gitk` for details.
 
 ## Build/install changes
 - POSIX threads(PTHREADS) support required
@@ -39,8 +40,8 @@ HAMLIB 5.0 will move many data items/structures out of rig_struct into separate 
 buffers. See issues [#487](https://github.com/Hanlib/Hamlib/issues/487),
 [#1445](https://github.com/Hamlib/Hamlib/issues/1445), and
 [#1420](https://github.com/Hamlib/Hamlib/issues/1420). This changes many of
-the methods for accessing HAMLIB internal data. HAMLIB 4.7 marks these old methods as
-"Deprecated", and supplies macros to use for forward compatibility.
+the methods for accessing HAMLIB internal data. HAMLIB 4.7 supports both methods,
+supplying macros to use for forward compatibility.
 
 ### Include files
 Along with the moves to separate storage, the definitions of these data structures
@@ -51,5 +52,5 @@ Preliminary versions of these files are also part of 4.7 for pre-emptive use.
 
 ### The good news
 If your application only calls the Hamlib API routines, then nothing needs to change.
-If your application only uses configuration items like names, speeds, etc, it may be
-easiest to change over to using rig_set_conf(). and let Hamlib handle the internals.
+If your application only uses configuration items like file/port names, speeds, etc, it
+may be easiest to change to using rig_set_conf(). and let Hamlib handle the internals.

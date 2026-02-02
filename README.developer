@@ -1,6 +1,6 @@
 Hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
          (C) Stephane Fillod 2000-2011
-         (C) The Hamlib Group 2000-2025
+         (C) The Hamlib Group 2000-2026
 
 Primary site for the latest development version of Hamlib is
 https://github.com/Hamlib/Hamlib
@@ -12,7 +12,7 @@ See README.md for frontend/backend outline.
 See README.betatester for background on testing Hamlib.
 
 
-The library provides functions for both radio, rotator, and amplifier control,
+The library provides functions for radio, rotator, and amplifier control,
 and data retrieval from the radio, rotator, or amplifier.  A number of functions
 useful for calculating distance and bearing and grid square conversion are
 included.
@@ -700,7 +700,7 @@ GUI development. I would like to see some GTK or Qt apps that use the Hamlib
 APIs so they can be used by end users as a nice part of the Ham shack.
 
 Starting points (not exhaustive):
-    Fldigi, CQRlog, gmfsk, gpredict, grig, klog, kontakt, ktrack, xlog
+    Fldigi, CQRlog, gmfsk, gpredict, grig, klog, kontakt, ktrack, Not1MM, xlog
 
 
 8. Contributing code
@@ -754,8 +754,8 @@ Hamlib should also compile with the following common compilers:
 
 Portability issues to watch:
 
-    * C99 is probably (in 2016) a reasonable target--C11/C17 minimum is being
-      considered for Hamlib 5.
+    * C99 is probably (in 2016) a reasonable target--C11/C17 will be the
+      requirement for Hamlib 5.
     * little vs. big endian systems (use shifts or adhoc functions)
     * printf/scanf of 64bit int: use PRIll (cast value to int64_t) and SCNll
     * printf/scanf of freq_t: use PRIfreq and SCNfreq
