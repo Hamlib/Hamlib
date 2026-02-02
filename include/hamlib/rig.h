@@ -2384,7 +2384,9 @@ __BEGIN_DECLS
  *     https://github.com/Hamlib/Hamlib/issues/536
  *     https://github.com/Hamlib/Hamlib/issues/487
  */
-// Note: Experimental, and subject to change!!
+// Note: Work In Progress(WIP)
+//       All buffers now referenced via these macros
+//       Conversion to calloc() use is underway
 #if defined(IN_HAMLIB)
 /* These are for internal use only */
 #define RIGPORT(r) (&(r)->state.rigport)
