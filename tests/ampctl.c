@@ -300,15 +300,12 @@ int main(int argc, char *argv[])
     if (amp_file)
     {
         strncpy(AMPPORT(my_amp)->pathname, amp_file, HAMLIB_FILPATHLEN - 1);
-        strncpy(AMPSTATE(my_amp)->ampport_deprecated.pathname, amp_file,
-                HAMLIB_FILPATHLEN - 1);
     }
 
     /* FIXME: bound checking and port type == serial */
     if (serial_rate != 0)
     {
         AMPPORT(my_amp)->parm.serial.rate = serial_rate;
-        AMPSTATE(my_amp)->ampport_deprecated.parm.serial.rate = serial_rate;
     }
 
     /*
