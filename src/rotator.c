@@ -338,12 +338,6 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
         }
     }
 
-    // Now we have to copy our new rig state hamlib_port structure to the deprecated one
-    // Clients built on older 4.X versions will use the old structure
-    // Clients built on newer 4.5 versions will use the new structure
-    memcpy(&rs->rotport_deprecated, rotp,
-           sizeof(rs->rotport_deprecated));
-
     return rot;
 }
 
@@ -575,14 +569,9 @@ int HAMLIB_API rot_open(ROT *rot)
 
         if (status != RIG_OK)
         {
-            memcpy(&rs->rotport_deprecated, rotp,
-                   sizeof(rs->rotport_deprecated));
             return status;
         }
     }
-
-    memcpy(&rs->rotport_deprecated, rotp,
-           sizeof(rs->rotport_deprecated));
 
     return RIG_OK;
 }
@@ -668,9 +657,6 @@ int HAMLIB_API rot_close(ROT *rot)
     remove_opened_rot(rot);
 
     rs->comm_state = 0;
-
-    memcpy(&rs->rotport_deprecated, rotp,
-           sizeof(rs->rotport_deprecated));
 
     return RIG_OK;
 }
