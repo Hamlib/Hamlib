@@ -1018,9 +1018,6 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     // So we assume power is on until one of the backends KNOWS it is off
     rs->powerstat = RIG_POWER_ON; // default to power on until proven otherwise
 
-    // we have to copy rs to rig->state_deprecated for DLL backwards compatibility
-    memcpy(&rig->state_deprecated, rs, sizeof(rig->state_deprecated));
-
     // Set up lock for any API entry point
     // If available, use a recursive mutex. Else, fall back on the
     //   depth count.
