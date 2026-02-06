@@ -2669,6 +2669,7 @@ struct s_rig {
     hamlib_port_t *rigport_addr;    /*!< address of rig control (CAT) port struct */
     hamlib_port_t *pttport_addr;    /*!< address of PTT control port struct */
     hamlib_port_t *dcdport_addr;    /*!< address of DCD control port struct */
+    struct rig_state *state_addr;   /*!< address of rig_state struct */
 };
 
 
