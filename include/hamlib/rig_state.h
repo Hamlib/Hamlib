@@ -391,9 +391,11 @@ struct rig_state_deprecated {
 };
 //---End cut here---
 
+// Internal access to state
 #if defined(IN_HAMLIB)
-#define STATE(r) (&(r)->state)
+#define STATE(r) ((r)->state_addr)
 #endif
+
 /** Macro for application access to rig_state data structure using the #RIG
  * handle.
  *

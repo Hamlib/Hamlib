@@ -608,7 +608,11 @@ static void vaporize(RIG *rig)
         free(DCDPORT(rig));
         DCDPORT(rig) = NULL;
     }
-
+    if (STATE(rig))
+    {
+        free(STATE(rig));
+        STATE(rig) = NULL;
+    }
     /* Other buffers go here, as they are converted
      *  to pointers/calloc - WIP
      */
@@ -708,8 +712,16 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
      * populate the rig->state
      * TODO: read the Preferences here!
      */
-    //TODO Allocate and link rig_state
-    rs = STATE(rig);
+    // Allocate and link rig_state
+    needed = sizeof(struct rig_state);
+    rig_debug(RIG_DEBUG_TRACE, "Requesting %zu bytes for rig_state\n", needed);
+    rs = STATE(rig) = calloc(1, needed);
+    if (!rs) {
+        rig_debug(RIG_DEBUG_ERR, "%s: State allocation failed\n", __func__);
+        vaporize(rig);
+        return NULL;
+    }
+
     pthread_mutex_init(&rs->mutex_set_transaction, NULL);
 
     // Allocate and link ports
