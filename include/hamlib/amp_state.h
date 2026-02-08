@@ -61,9 +61,11 @@ struct amp_state
   /*
    * non overridable fields, internal use
    */
-  //---Start cut here---
+//---Start cut here---
+#ifndef NO_OLD_STRUCTS
   hamlib_port_t_deprecated ampport_deprecated;  /*!< \deprecated Amplifier port (internal use). */
-  //---End cut here---
+#endif
+//---End cut here---
 
   hamlib_port_t ampport;  /*!< Amplifier port (internal use). */
 
