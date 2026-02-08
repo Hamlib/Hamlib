@@ -63,6 +63,8 @@ struct rig_state {
     /*
      * overridable fields
      */
+ //---Start cut here---
+ #ifndef NO_OLD_STRUCTS
     // moving the hamlib_port_t to the end of rig_state and making it a pointer
     // this should allow changes to hamlib_port_t without breaking shared libraries
     // these will maintain a copy of the new port_t for backwards compatibility
@@ -73,6 +75,8 @@ struct rig_state {
     hamlib_port_t_deprecated pttport_deprecated;  /*!< \deprecated PTT port (internal use). */
     HL_DEPRECATED
     hamlib_port_t_deprecated dcdport_deprecated;  /*!< \deprecated DCD port (internal use). */
+#endif
+//---End cut here---
 
     double vfo_comp;        /*!< VFO compensation in PPM, 0.0 to disable */
 
@@ -137,8 +141,12 @@ struct rig_state {
     int twiddle_timeout;        /*!< timeout to resume from twiddling */
     // uplink allows gpredict to behave better by no reading the uplink VFO
     int uplink;                 /*!< uplink=1 will not read Sub, uplink=2 will not read Main */
+//---Start cut here---
+#ifndef NO_OLD_STRUCTS
     HL_DEPRECATED
     struct rig_cache_deprecated cache; /*!< \deprecated Only here for backward compatibility */
+#endif
+//---End cut here---
     int vfo_opt;                /*!< Is -o switch turned on? */
     int auto_power_on;          /*!< Allow Hamlib to power on rig
                                    automatically if supported */
@@ -165,6 +173,8 @@ struct rig_state {
     volatile int poll_routine_thread_run;           /*!< Poll routine thread run flag. */
     void *poll_routine_priv_data;                   /*!< Pointer to rig_poll_routine_priv_data. */
     pthread_mutex_t mutex_set_transaction;          /*!< Thread mutex flag. */
+//---Start cut here---
+#ifndef NO_OLD_STRUCTS
     // No longer read, written or referenced in Hamlib code.
     HL_DEPRECATED
     hamlib_port_t rigport;  /*!< Rig port (internal use). */
@@ -172,6 +182,8 @@ struct rig_state {
     hamlib_port_t pttport;  /*!< PTT port (internal use). */
     HL_DEPRECATED
     hamlib_port_t dcdport;  /*!< DCD port (internal use). */
+#endif
+//---End cut here---
     /********* DO NOT ADD or CHANGE anything (or than to rename) ABOVE THIS LINE *********/
     /********* ENSURE ANY NEW ITEMS ARE ADDED AFTER HERE *********/
     /* flags instructing the rig_get routines to use cached values when asyncio is in use */
@@ -257,6 +269,7 @@ struct rig_state {
 };
 
 //---Start cut here---
+#ifndef NO_OLD_STRUCTS
 /**
  * \brief Deprecated Rig state containing live data and customized fields.
  *
@@ -389,6 +402,7 @@ struct rig_state_deprecated {
     freq_t offset_vfob; /*!< Offset to apply to VFOB/Sub set_freq */
     struct multicast_s *multicast; /*!< Pointer to multicast server data */
 };
+#endif
 //---End cut here---
 
 // Internal access to state

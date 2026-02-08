@@ -2657,11 +2657,21 @@ struct rig_callbacks {
  */
 struct s_rig {
     struct rig_caps *caps;          /*!< Pointer to rig capabilities (read only) */
+//---Start cut here---
+#ifndef NO_OLD_STRUCTS
     // Do not remove the deprecated structure -- it will mess up DLL backwards compatibility
     struct rig_state_deprecated state_deprecated; /*!< Deprecated Rig state */
+#endif
+//---End cut here---
     struct rig_callbacks callbacks; /*!< registered event callbacks */
+//---Start cut here---
+#ifndef NO_OLD_STRUCTS
     // state should really be a pointer but that's a LOT of changes involved
+    // -
+    // Yep, it was, but they're all done now.
     struct rig_state state;         /*!< Rig state */
+#endif
+//---End cut here---
 /* Data after this line is for hamlib internal use only,
  *  and should *NOT* be referenced by applications, as layout will change!
  */

@@ -126,6 +126,8 @@ typedef struct hamlib_port {
 } hamlib_port_t;
 
 
+//---Start cut here---
+#ifndef NO_OLD_STRUCTS
 /**
  * \deprecated
  * This structure will be removed in 5.0 and should not be used in new code.
@@ -194,6 +196,8 @@ typedef struct hamlib_port_deprecated {
     int client_port;      /*!< client socket port for tcp connection */
     RIG *rig;             /*!< our parent RIG device */
 } hamlib_port_t_deprecated;
+#endif
+//---End cut here---
 
 #if !defined(__APPLE__) || !defined(__cplusplus)
 //! @deprecated Obsolete port type
