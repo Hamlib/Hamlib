@@ -590,7 +590,15 @@ __BEGIN_DECLS
  */
 struct s_rot {
     struct rot_caps *caps;      /*!< Rotator caps. */
+//---Start cut here---
+#ifndef NO_OLD_STRUCTS
     struct rot_state state;     /*!< Rotator state. */
+#endif
+//---End cut here
+// Data following this line for internal use only
+    HL_PRIVATE hamlib_port_t *rotport_addr;
+    HL_PRIVATE hamlib_port_t *rotport2_addr;
+    HL_PRIVATE struct rot_state *rotstate_addr;
 };
 
 

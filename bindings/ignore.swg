@@ -121,6 +121,9 @@
 %ignore pttport_addr;
 %ignore dcdport_addr;
 %ignore state_addr;
+%ignore rotport_addr;
+%ignore rotport2_addr;
+%ignore rotstate_addr;
 
 // others
 %rename("$ignore", regexmatch$name="python_callbacks") ""; // internal structs and methods used by bindings
@@ -131,6 +134,8 @@
 %ignore rigport;
 %ignore pttport;
 %ignore dcdport;
+%ignore rotport;
+%ignore rotport2;
 
 #ifdef SWIGLUA
 %ignore Rig::set_level(setting_t,int,vfo_t);
