@@ -98,6 +98,14 @@
 #define HL_DEPRECATED
 #endif
 
+// Macro to mark function or variable as private to HAMLIB
+//   and unsafe for application use
+#if __has_c_attribute(deprecated) && !defined(IN_HAMLIB)
+#define HL_PRIVATE [[deprecated("HAMLIB private data")]]
+#else
+#define HL_PRIVATE
+#endif
+
 /**
  * \addtogroup rig
  * @{
@@ -2675,10 +2683,15 @@ struct s_rig {
 /* Data after this line is for hamlib internal use only,
  *  and should *NOT* be referenced by applications, as layout will change!
  */
+    HL_PRIVATE
     struct rig_cache *cache_addr;   /*!< address of rig_cache buffer */
+    HL_PRIVATE
     hamlib_port_t *rigport_addr;    /*!< address of rig control (CAT) port struct */
+    HL_PRIVATE
     hamlib_port_t *pttport_addr;    /*!< address of PTT control port struct */
+    HL_PRIVATE
     hamlib_port_t *dcdport_addr;    /*!< address of DCD control port struct */
+    HL_PRIVATE
     struct rig_state *state_addr;   /*!< address of rig_state struct */
 };
 
