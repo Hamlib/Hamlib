@@ -124,18 +124,21 @@
 %ignore rotport_addr;
 %ignore rotport2_addr;
 %ignore rotstate_addr;
+%ignore ampport_addr;
+%ignore ampstate_addr;
 
 // others
 %rename("$ignore", regexmatch$name="python_callbacks") ""; // internal structs and methods used by bindings
 %ignore rig_state::cache; // deprecated
 %ignore rig_set_trn; // deprecated
 %ignore rig_get_trn; // deprecated
-// Going away RSN
+// Going away RSN - Remove these after deleting old ports
 %ignore rigport;
 %ignore pttport;
 %ignore dcdport;
 %ignore rotport;
 %ignore rotport2;
+%ignore ampport;
 
 #ifdef SWIGLUA
 %ignore Rig::set_level(setting_t,int,vfo_t);

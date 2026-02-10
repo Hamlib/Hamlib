@@ -2406,17 +2406,12 @@ __BEGIN_DECLS
 #define PTTPORT(r) ((r)->pttport_addr)
 #define DCDPORT(r) ((r)->dcdport_addr)
 //Moved to src/cache.h #define CACHE(r) ((r)->cache_addr)
-#define AMPPORT(a) (&(a)->state.ampport)
+#define AMPPORT(a) ((a)->ampport_addr)
 #define ROTPORT(r) ((r)->rotport_addr)
 #define ROTPORT2(r) ((r)->rotport2_addr)
 //Moved to include/hamlib/rig_state.h #define STATE(r) (&r->state)
 //Moved to include/hamlib/amp_state.h #define AMPSTATE(a) (&(a)->state)
 //Moved to include/hamlib/rot_state.h #define ROTSTATE(r) (&(r)->state)
-/* Then when the rigport address is stored as a pointer somewhere else(say,
- *  in the rig structure itself), the definition could be changed to
- *  #define RIGPORT(r) r->somewhereelse
- *  and every reference is updated.
- */
 #else
 /* Define external unique names */
 //#define HAMLIB_RIGPORT(r) ((hamlib_port_t *)rig_data_pointer(r, RIG_PTRX_RIGPORT))
