@@ -463,7 +463,14 @@ __BEGIN_DECLS
 struct amp
 {
   struct amp_caps *caps;      /*!< Amplifier caps. */
+//---Start cut here---
+#ifndef NO_OLD_STRUCTS
   struct amp_state state;     /*!< Amplifier state. */
+#endif
+//---End cut here
+//  Private data below this line
+  HL_PRIVATE struct amp_state *ampstate_addr;
+  HL_PRIVATE hamlib_port_t *ampport_addr;
 };
 
 

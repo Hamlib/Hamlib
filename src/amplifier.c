@@ -171,6 +171,24 @@ int foreach_opened_amp(int (*cfunc)(AMP *, rig_ptr_t), rig_ptr_t data)
 }
 #endif
 
+/**
+ * \brief Clean up and release a #AMP handle
+ */
+static void vaporize(AMP *amp)
+{
+    if (AMPPORT(amp))
+    {
+        free(AMPPORT(amp));
+        AMPPORT(amp) = NULL;
+    }
+    if (AMPSTATE(amp))
+    {
+        free(AMPSTATE(amp));
+        AMPSTATE(amp) = NULL;
+    }
+    free(amp);
+    return;
+}
 
 /**
  * \brief Allocate a new #AMP handle.
@@ -191,6 +209,7 @@ AMP *HAMLIB_API amp_init(amp_model_t amp_model)
     const struct amp_caps *caps;
     struct amp_state *rs;
     hamlib_port_t *ap;
+    size_t needed;
 
     amp_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -207,7 +226,9 @@ AMP *HAMLIB_API amp_init(amp_model_t amp_model)
      * okay, we've found it. Allocate some memory and set it to zeros,
      * and especially the initialize the callbacks
      */
-    amp = calloc(1, sizeof(AMP));
+    needed = sizeof(AMP);
+    rig_debug(RIG_DEBUG_TRACE, "Requesting %zu bytes for amp_struct\n", needed);
+    amp = calloc(1, needed);
 
     if (amp == NULL)
     {
@@ -223,16 +244,31 @@ AMP *HAMLIB_API amp_init(amp_model_t amp_model)
     amp->caps = (struct amp_caps *) caps;
 
     /*
-     * populate the amp->state
+     * Allocate and populate the amp->state
      */
     /**
      * \todo Read the Preferences here!
      */
-    rs = AMPSTATE(amp);
+    needed = sizeof(struct amp_state);
+    rig_debug(RIG_DEBUG_TRACE, "Requesting %zu bytes for amp_state\n", needed);
+    rs = AMPSTATE(amp) = calloc(1, needed);
+    if (!amp)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: Amplifier state calloc failed\n", __func__);
+        vaporize(amp);
+        return NULL;
+    }
 
-    //TODO allocate and link new ampport
-    // For now, use the embedded one
-    ap = AMPPORT(amp);
+    // Allocate and link new ampport
+    needed = sizeof(hamlib_port_t);
+    //rig_debug(RIG_DEBUG_TRACE, "Requesting %zu bytes for amp_port\n", needed);
+    ap = AMPPORT(amp) = calloc(1, needed);
+    if (!ap)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: Amp port alloc failed\n", __func__);
+        vaporize(amp);
+        return NULL;
+    }
 
     rs->comm_state = 0;
     ap->type.rig = caps->port_type; /* default from caps */
@@ -294,7 +330,7 @@ AMP *HAMLIB_API amp_init(amp_model_t amp_model)
                       "%s: backend_init failed!\n",
                       __func__);
             /* cleanup and exit */
-            free(amp);
+            vaporize(amp);
             return NULL;
         }
     }
@@ -590,7 +626,7 @@ int HAMLIB_API amp_cleanup(AMP *amp)
         amp->caps->amp_cleanup(amp);
     }
 
-    free(amp);
+    vaporize(amp);
 
     return RIG_OK;
 }

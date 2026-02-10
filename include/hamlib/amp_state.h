@@ -64,10 +64,10 @@ struct amp_state
 //---Start cut here---
 #ifndef NO_OLD_STRUCTS
   hamlib_port_t_deprecated ampport_deprecated;  /*!< \deprecated Amplifier port (internal use). */
+  hamlib_port_t ampport;  /*!< Amplifier port (internal use). */
+
 #endif
 //---End cut here---
-
-  hamlib_port_t ampport;  /*!< Amplifier port (internal use). */
 
   int comm_state;         /*!< Comm port state, opened/closed. */
   rig_ptr_t priv;         /*!< Pointer to private amplifier state data. */
@@ -90,7 +90,7 @@ struct amp_state
 };
 
 #if defined(IN_HAMLIB)
-#define AMPSTATE(a) (&(a)->state)
+#define AMPSTATE(a) ((a)->ampstate_addr)
 #endif
 
 /** Macro for application access to amp_state data structure using the #AMP
