@@ -26,10 +26,12 @@
 #include <math.h>
 #include <stdbool.h>
 
-#include <hamlib/rig.h>
-#include <serial.h>
-#include <misc.h>
-#include <cal.h>
+#include "hamlib/rig.h"
+#include "hamlib/port.h"
+#include "hamlib/rig_state.h"
+#include "serial.h"
+#include "misc.h"
+#include "cal.h"
 #include "idx_builtin.h"
 
 #define BACKEND_VER "20250718.2"
