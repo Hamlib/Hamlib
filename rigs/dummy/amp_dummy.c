@@ -22,6 +22,8 @@
 #include <stdlib.h>
 
 #include "hamlib/amplifier.h"
+#include "hamlib/port.h"
+#include "hamlib/amp_state.h"
 #include "register.h"
 
 #include "idx_builtin.h"

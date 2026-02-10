@@ -63,8 +63,8 @@ struct rig_state {
     /*
      * overridable fields
      */
- //---Start cut here---
- #ifndef NO_OLD_STRUCTS
+//---Start cut here---
+#ifndef NO_OLD_STRUCTS
     // moving the hamlib_port_t to the end of rig_state and making it a pointer
     // this should allow changes to hamlib_port_t without breaking shared libraries
     // these will maintain a copy of the new port_t for backwards compatibility
