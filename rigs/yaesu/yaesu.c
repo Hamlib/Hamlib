@@ -27,6 +27,7 @@
 #include <unistd.h>  /* UNIX standard function definitions */
 
 #include "hamlib/rig.h"
+#include "hamlib/port.h"
 #include "serial.h"
 #include "register.h"
 
