@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "hamlib/rig.h"
+#include "hamlib/rig_state.h"
 
 #include "serial.h"
 #include "token.h"

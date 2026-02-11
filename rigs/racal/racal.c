@@ -24,6 +24,7 @@
 #include <string.h>  /* String function definitions */
 
 #include "hamlib/rig.h"
+#include "hamlib/rig_state.h"
 #include "iofunc.h"
 #include "register.h"
 #include "token.h"

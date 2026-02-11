@@ -37,6 +37,7 @@
 #include <stdlib.h>
 
 #include "hamlib/rig.h"
+#include "hamlib/rig_state.h"
 #include "tentec2.h"
 #include "tentec.h"
 #include "bandplan.h"

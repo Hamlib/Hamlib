@@ -29,8 +29,9 @@
 #include <math.h>
 
 #include "hamlib/rig.h"
+#include "hamlib/port.h"
 #include "serial.h"
-#include <cal.h>
+#include "cal.h"
 #include "token.h"
 #include "register.h"
 
