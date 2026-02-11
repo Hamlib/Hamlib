@@ -64,6 +64,7 @@ extern int read_history();
 #endif                              /* HAVE_READLINE_HISTORY */
 
 #include "hamlib/amplifier.h"
+#include "hamlib/amp_state.h"
 #include "amplist.h"
 #include "iofunc.h"
 #include "misc.h"

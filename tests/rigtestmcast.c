@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "hamlib/rig.h"
+#include "hamlib/port.h"
 
 #define TEST
 #ifdef TEST

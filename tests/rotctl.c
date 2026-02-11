@@ -62,6 +62,8 @@ extern int read_history();
 
 
 #include "hamlib/rotator.h"
+#include "hamlib/port.h"
+#include "hamlib/rot_state.h"
 
 #include "rig.h"
 #include "rotctl_parse.h"

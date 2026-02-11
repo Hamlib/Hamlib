@@ -65,6 +65,8 @@ extern int read_history();
 
 
 #include "hamlib/rig.h"
+#include "hamlib/port.h"
+#include "hamlib/rig_state.h"
 #include "misc.h"
 #include "rigctl_parse.h"
 #include "riglist.h"
