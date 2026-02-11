@@ -28,6 +28,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "hamlib/rig.h"
+#include "hamlib/port.h"
+#include "hamlib/rig_state.h"
 
 #define BACKEND_VER "20210830"
 

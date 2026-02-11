@@ -25,6 +25,8 @@
 #define _KENWOOD_H 1
 
 #include <string.h>
+
+#include "hamlib/rig_state.h"
 #include "token.h"
 #include "idx_builtin.h"
 
