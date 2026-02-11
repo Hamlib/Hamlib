@@ -31,6 +31,7 @@
 
 #include <string.h>
 #include "hamlib/rig.h"
+#include "hamlib/rig_state.h"
 #include "bandplan.h"
 #include "iofunc.h"
 #include "newcat.h"

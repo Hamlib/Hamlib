@@ -24,6 +24,7 @@
 #include <stddef.h>
 
 #include "hamlib/rotator.h"
+#include "hamlib/port.h"
 #include "iofunc.h"
 #include "register.h"
 
