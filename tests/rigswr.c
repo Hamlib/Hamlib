@@ -27,6 +27,7 @@
 #include <getopt.h>
 
 #include "hamlib/rig.h"
+#include "hamlib/port.h"
 #include "misc.h"
 #include "riglist.h"
 

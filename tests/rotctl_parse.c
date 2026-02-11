@@ -61,6 +61,7 @@ extern int read_history();
 #endif                              /* HAVE_READLINE_HISTORY */
 
 #include "hamlib/rotator.h"
+#include "hamlib/rot_state.h"
 #include "iofunc.h"
 #include "misc.h"
 #include "dumpcaps_rot.h"

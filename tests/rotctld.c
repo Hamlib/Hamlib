@@ -54,6 +54,8 @@
 #include <pthread.h>
 
 #include "hamlib/rotator.h"
+#include "hamlib/port.h"
+#include "hamlib/rot_state.h"
 
 #include "rig.h"
 #include "rotctl_parse.h"

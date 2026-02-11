@@ -67,6 +67,8 @@
 #include <pthread.h>
 
 #include "hamlib/rig.h"
+#include "hamlib/port.h"
+#include "hamlib/rig_state.h"
 #include "misc.h"
 #include "network.h"
 

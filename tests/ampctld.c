@@ -57,6 +57,7 @@
 #include <pthread.h>
 
 #include "hamlib/amplifier.h"
+#include "hamlib/port.h"
 
 #include "ampctl_parse.h"
 #include "amplist.h"
