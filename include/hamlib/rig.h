@@ -2463,6 +2463,8 @@ typedef enum {
     TWIDDLE_ON
 } twiddle_state_t;
 
+//---Start cut here---
+#ifndef NO_OLD_STRUCTS
 /**
  * \brief Rig cache data
  *
@@ -2543,6 +2545,8 @@ struct rig_cache_deprecated {
     struct timespec time_split;
     int satmode; // if rig is in satellite mode
 };
+#endif
+//---End cut here---
 
 /**
  * \brief Multicast data items the are unique per rig instantiation

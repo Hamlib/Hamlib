@@ -200,9 +200,12 @@ typedef struct hamlib_port_deprecated {
 //---End cut here---
 
 #if !defined(__APPLE__) || !defined(__cplusplus)
+//---Start cut here---
+#ifndef NO_OLD_STRUCTS
 //! @deprecated Obsolete port type
 typedef hamlib_port_t_deprecated port_t_deprecated;
-
+#endif
+//---End cut here---
 //! Short type name of the hamlib_port structure.
 typedef hamlib_port_t port_t;
 #endif
