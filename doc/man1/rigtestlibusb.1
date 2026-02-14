@@ -1,0 +1,108 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\"
+.\" For layout and available macros, see man(7), man-pages(7), groff_man(7)
+.\" Please adjust the date whenever revising the manpage.
+.\"
+.\" Note: Please keep this page in sync with the source, rigtestlibusb.c
+.\"
+.TH RIGTESTLIBUSB "1" "2026-02-14" "Hamlib" "Hamlib Utilities"
+.
+.
+.SH NAME
+.
+rigtestlibusb \- print summary of USB devices attached to the system.
+.
+.
+.SH SYNOPSIS
+.
+.SY rigtestlibusb
+.OP \-v
+.OP \-d device
+.YS
+.
+.
+.SH DESCRIPTION
+.
+Command line utility to print a summary USB devices attached to the system.
+.
+More detail is obtained by use of the
+.B \-v
+option.
+.
+.
+.SH OPTIONS
+.
+This program accepts the following options.
+.
+.TP
+.B \-v
+Print more detail about the USB devices.
+.
+.IP
+.BR Note :
+Unlike other
+.B Hamlib
+utilities, this option is not cumulative.
+.
+.TP
+.BR \-d ", " \fI/dev/bus/usb/...\fP
+Print information on a specific USB device.
+.
+.IP
+.BR Note :
+On a current Debian 12 system this fails with:
+.
+.IP
+.EX
+$ rigtestlibusb -v -d /dev/bus/usb/002/009 
+Testing wrapped devices is not supported on your platform
+.EE
+.
+.
+.SH BUGS
+.
+This woefully incomplete document.
+.
+.PP
+Limited understanding of the intended use cases of this utility.
+.
+Perhaps more useful on systems that lack an
+.BR lsusb (1)
+utiltiy.
+.
+.
+.SH COPYING
+.
+This file is part of Hamlib, a project to develop a library that simplifies
+radio, rotator, and amplifier control functions for developers of software
+primarily of interest to radio amateurs and those interested in radio
+communications.
+.
+.PP
+Copyright \(co 2000-2011 Stephane Fillod
+.br
+Copyright \(co 2000-2026 the Hamlib Group (various contributors)
+.br
+Copyright \(co 2010-2026 Nate Bargmann
+.
+.PP
+This is free software; see the file COPYING for copying conditions.
+.
+There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR
+PURPOSE.
+.
+.
+.SH SEE ALSO
+.
+.BR rigctl (1),
+.BR hamlib (7) 
+.
+.
+.SH COLOPHON
+.
+Links to the Hamlib Wiki, Git repository, release archives, and daily snapshot
+archives are available via 
+.
+.UR http://www.hamlib.org
+hamlib.org
+.UE .
