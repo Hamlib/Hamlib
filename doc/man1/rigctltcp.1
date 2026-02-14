@@ -1,0 +1,663 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\"
+.\" For layout and available macros, see man(7), man-pages(7), groff_man(7)
+.\" Please adjust the date whenever revising the manpage.
+.\"
+.\" Note: Please keep this page in sync with the source, rigctltcp.c
+.\"
+.TH RIGCTLTCP "1" "2026-02-14" "Hamlib" "Hamlib Utilities"
+.
+.
+.SH NAME
+.
+rigctltcp \- TCP multicast control of radio transceivers and receivers
+.
+.
+.SH SYNOPSIS
+.
+.SY rigctltcp
+.OP \-hlLuoVR
+.OP \-m id
+.OP \-r device
+.OP \-p device
+.OP \-d device
+.OP \-P type
+.OP \-D type
+.OP \-s baud
+.OP \-c id
+.OP \-S char
+.OP \-C parm=val
+.OP \-T ipaddr
+.OP \-t num
+.OP \-M addr
+.OP \-n port
+.OP \-W secs
+.OP \-w secs
+.OP \-x option
+.OP \-A password
+.RB [ \-v [ \-Z ]]
+.YS
+.
+.
+.SH DESCRIPTION
+.
+Network daemon enabling UDP multicast broadcasts containing rig snapshot data.
+.
+Supports bidirectional rig control and status.
+.
+Broadcast data can be either
+.BR rigctld (1)
+token pairs or
+.IR JSON .
+.
+.PP
+All packets are tagged with a unique
+.I id
+string so multiple rigs can broadcast/rx on the same port.
+.
+Will eventually be able to set frequency, mode, passband width, PTT status,
+satmode, and split status to start since those are common to many apps.
+.
+More functions plan to be added as time goes on.
+.
+.PP
+Broadcast packet contents are based on
+.I get_rig_info
+output and may contain multiple VFO lines.
+.
+See
+.B EXAMPLES
+below.
+.
+.
+.SH OPTIONS
+This program follows the usual GNU command line syntax.
+.
+Short options that take an argument may have the value follow immediately or be
+separated by a space.
+.
+Long options starting with two dashes (\(oq\-\(cq) require an \(oq=\(cq between
+the option and any argument.
+.
+.PP
+Here is a summary of the supported options:
+.
+.TP
+.BR \-m ", " \-\-model = \fIID\fP
+Select radio model number.
+.
+Defaults to Dummy,
+.I ID
+.BR 1 . 
+.IP
+See model list (use \(lqrigctltcp \-l\(rq).
+.IP
+.BR Note :
+.B rigctltcp
+(or third party software using the C API) will use
+.I ID
+.B 2
+for
+.B NET rigctl
+(communicating with 
+.BR rigctld ).
+.
+.
+.TP
+.BR \-r ", " \-\-rig\-file = \fIDEVICE\fP
+Use
+.I DEVICE
+as the file name of the port connected to the radio.
+.IP
+Typically
+.IR /dev/ttyS0 ", " /dev/ttyS1 ", " /dev/ttyUSB0 ,
+etc. on Linux,
+.IR COM1 ", " COM2 ,
+etc. on MS Windows.
+.
+The BSD flavors and MacOS have their own device names.
+.
+See your system's documentation.
+.IP
+Can be a network address:port, e.g.
+.IR 127.0.0.1:12345
+.IP
+The special string \(lquh\-rig\(rq may be given to enable micro-ham device
+support.
+.
+.TP
+.BR \-p ", " \-\-ptt\-file = \fIDEVICE\fP
+Use
+.I DEVICE
+as the file name of the Push To Talk device using a device filename as described
+in
+.B \-r
+above.
+.
+.
+.TP
+.BR \-d ", " \-\-dcd\-file = \fIDEVICE\fP
+Use
+.I DEVICE
+as the file name of the Data Carrier Detect device using a device filename as
+described in
+.B \-r
+above.
+.
+.
+.TP
+.BR \-P ", " \-\-ptt\-type = \fITYPE\fP
+Use
+.I TYPE
+of Push To Talk device.
+.IP
+Supported types are \(oqRIG\(cq (CAT command), \(oqDTR\(cq, \(oqRTS\(cq,
+\(oqPARALLEL\(cq, \(oqCM108\(cq, \(oqGPIO\(cq, \(oqGPION\(cq, \(oqNONE\(cq,
+overriding PTT type defined in the rig's backend.
+.IP
+Some side effects of this command are that when type is set to DTR, read
+PTT state comes from the
+.B Hamlib
+frontend, not read from the radio.
+.
+When set to NONE, PTT state cannot be read or set even if rig backend supports
+reading/setting PTT status from the rig.
+.
+.
+.TP
+.BR \-D ", " \-\-dcd\-type = \fITYPE\fP
+Use
+.I TYPE
+of Data Carrier Detect device.
+.IP
+Supported types are \(oqRIG\(cq (CAT command), \(oqDSR\(cq, \(oqCTS\(cq,
+\(oqCD\(cq, \(oqPARALLEL\(cq, \(oqCM108\(cq, \(oqGPIO\(cq, \(oqGPION\(cq,
+\(oqNONE\(cq.
+.
+.
+.TP
+.BR \-s ", " \-\-serial\-speed = \fIBAUD\fP
+Set serial speed to
+.I BAUD
+rate.
+.IP
+Uses maximum serial speed from radio backend capabilities (set by
+.B \-m
+above) as the default.
+.
+.
+.TP
+.BR \-c ", " \-\-civaddr = \fIID\fP
+Use
+.I ID
+as the CI\[en]V address to communicate with the rig.
+.IP
+Only useful for Icom and some Ten\[en]Tec rigs.
+.IP
+.BR Note :
+The
+.I id
+is in decimal notation, unless prefixed by
+.IR 0x ,
+in which case it is hexadecimal.
+.
+.
+.TP
+.BR \-S ", " \-\-separator = \fICHAR\fP
+Use
+.I CHAR 
+as separator instead of line feed.
+.IP
+The default is
+.IR \[rs]n .
+.
+Recommend using
+.I $
+or
+.I @
+as they work on both POSIX and MS Windows.
+.IP
+.
+.
+.TP
+.BR \-L ", " \-\-show\-conf
+List all config parameters for the radio defined with
+.B \-m
+above.
+.
+Will exit if no
+.B \-r
+is given.
+.B Note
+the dummy device has no serial parameters.
+.
+.
+.TP 
+.BR \-C ", " \-\-set\-conf = \fIPARM=val\fP [ \fI,PARM=val\fP ]
+Set configuration parameter(s). Some common ones are:
+.in +4
+.BR async :
+.I True
+enables asynchronous data transfer for backends that support it.
+.
+This allows use of transceive and spectrum data.
+.br
+.BR auto_power_on :
+.I True
+enables compatible rigs to be powered up on open.
+.br
+.BR auto_power_off :
+.I True
+enables compatible rigs to be powered down on close.
+.br
+.BR auto_disable_screensaver :
+.I True
+enables compatible rigs to have their screen saver disabled on open.
+.br
+.BR dcd_type :
+Data Carrier Detect (or squelch) interface type override.
+.br
+.BR dcd_pathname :
+Path name to the device file of the Data Carrier Detect (or
+squelch).
+.br
+.BR disable_yaesu_bandselect :
+.I True
+disables the automatic band select on band change for Yaesu rigs.
+.br
+.BR dtr_state :
+.I ON
+turns on DTR,
+.I OFF
+turns it off, disabled when not set.
+.br
+.BR freq_skip :
+.RI != 0
+skips setting freq on TX_VFO when in RX and on RX_VFO when in TX\[em]for use
+with gpredict and rigs that do not have TARGETABLE_VFO.
+.br
+.BR lo_freq :
+Frequency to add to the VFO frequency for use with a transverter.
+.br
+.BR post_write_delay :
+Delay in ms between each command sent out.
+.br
+.BR ptt_share :
+.I True
+enables ptt port to be shared with other apps.
+.br
+.BR ptt_type :
+Push\[en]To\[en]Talk interface type override.
+.br
+.BR ptt_pathname :
+Path name to the device file of the Push\[en]To\[en]Talk.
+.br
+.BR ptt_bitnum :
+Push\[en]To\[en]Talk GPIO bit number.
+.br
+.BR retry :
+Max number of retries.
+.br
+.BR rts_state :
+.I ON
+turns on DTR,
+.I OFF
+turns it off, disabled when not set.
+.br
+.BR twiddle_timeout :
+For satellite ops when VFOB is twiddled will pause VFOB commands until timeout.
+.br
+.BR twiddle_rit :
+Suppress get_freq on VFOB for RIT tuning satellites.
+.br
+.BR timeout :
+Timeout in ms.
+.br
+.BR write_delay :
+Delay in mS between each byte sent out.
+.br
+.BR tuner_control_pathname :
+Path name to a script/program to control a tuner with 1 argument of
+.IR 0 / 1
+for Tuner
+.IR Off / On .
+.in
+.
+.IP
+Use the
+.B -L
+option above for a list of configuration parameters for a given model number.
+.
+.
+.TP
+.BR \-l ", " \-\-list
+List all model numbers defined in
+.B Hamlib
+and exit.
+.IP
+The list is sorted by model number.
+.IP
+.BR Note :
+The list can be scrolled back using
+.BR Shift-PageUp / Shift-PageDown ,
+or using the scrollbars of a terminal emulator in X/Wayland or the cmd window in
+MS Windows.
+.
+The output can be piped to
+.BR more (1)
+or
+.BR less (1),
+e.g. \(lqrigctltcp \-l | more\(rq.
+.
+.
+.TP
+.BR \-u ", " \-\-dump\-caps
+Dump capabilities for the radio defined with 
+.B \-m
+above and exit.
+.
+.
+.TP
+.BR \-o ", " \-\-vfo
+Enable vfo mode.
+.IP
+An extra VFO argument will be required in front of each appropriate command
+(except
+.BR set_vfo ).
+Otherwise, \(oqcurrVFO\(cq is used when this option is not set and an extra
+VFO argument is not used.
+.IP
+See
+.B chk_vfo
+below.
+.
+.
+.TP
+.BR \-v ", " \-\-verbose
+Set verbose mode, cumulative (see
+.B DIAGNOSTICS
+below).
+.
+.
+.TP 
+.BR \-T ", " \-\-listen\-addr = \fIIPADDR\fP
+Use 
+.I IPADDR
+as the listening IP address.
+.IP
+The default is ANY (0.0.0.0).
+.
+.
+.TP
+.BR \-t ", " \-\-port = \fINUM\fP
+Use
+.I NUM
+as the TCP listening port.
+.IP
+The default is 4531.
+.
+.
+.TP
+.BR \-M ", " \-\-multicast\-addr = \fIADDR\fP
+Use
+.I ADDR
+as the multicast IP address.
+.IP
+The default is OFF (0.0.0.0).
+.IP
+Recommended IPv4 setting is 224.0.1.1.
+.
+.
+.TP
+.BR \-n ", " \-\-multicast\-port = \fIPORT\fP
+Use
+.I number
+as the TCP listening port.
+.IP
+The default is 4532.
+.
+.
+.TP
+.BR \-W ", " \-\-twiddle_timeout = \fISECONDS\fP
+Enables timeout when VFO twiddling is detected.
+.
+Some functions will be ignored.
+.IP
+Should only be needed when controlling software should be "paused"
+so you can move the VFO.
+.
+Continuous movement extends the timeout.
+.
+.
+.TP
+.BR \-w ", " \-\-twiddle_rit = \fISECONDS\fP
+Suppress VFOB
+.B get_freq
+so RIT can be twiddled.
+.
+.
+.TP
+.BR \-x ", " \-\-uplink = \fIOPTION\fP
+.IR 1 =Sub,
+.IR 2 =Main.
+.IP
+For GPredict use this option to ignore
+.B get_freq
+for Sub or Main uplink VFO.
+.IP
+Should allow downlink VFO movement without confusing GPredict or the uplink.
+.
+.
+.TP
+.BR \-Z ", " \-\-debug\-time\-stamps
+Enable time stamps for the debug messages.
+.IP
+Use only in combination with the
+.B \-v
+option as it generates no output on its own.
+.
+.
+.TP
+.BR \-A ", " \-\-password = \fIPASSWORD\fP
+Sets a password on
+.B rigctltcp
+which requires Hamlib to use
+.B rig_set_password
+and clients to use
+.I PASSWORD
+to access rigctltcp.
+.
+A 32 character shared secret will be displayed to be used on the client side.
+.IP
+.B (NOT IMPLEMENTED)
+.
+.
+.TP
+.BR \-R ", " \-\-rigctltcp\-idle
+Will make
+.B rigctltcp
+close the rig when no clients are connected.
+.
+Normally remains connected to speed up connects.
+.
+.
+.TP
+.BR \-h ", " \-\-help
+Show a summary of these options and exit.
+.
+.
+.TP
+.BR \-V ", " \-\-version
+Show version of
+.B rigctltcp
+and exit.
+.
+.
+.PP
+.BR Note :
+Some options may not be implemented by a given backend and will return an
+error.
+.
+This is most likely to occur with the
+.B \-\-set\-conf
+and
+.B \-\-show\-conf
+options.
+.
+.
+.PP
+Please note that the backend for the radio to be controlled, or the radio
+itself may not support some commands.
+.
+In that case, the operation will fail with a
+.B Hamlib
+error code.
+.
+.
+.SH DIAGNOSTICS
+.
+The
+.BR \-v ,
+.B \-\-verbose
+option allows different levels of diagnostics
+to be output to
+.B stderr
+and correspond to \-v for
+.BR BUG ,
+\-vv for
+.BR ERR ,
+\-vvv for
+.BR WARN ,
+\-vvvv for
+.BR VERBOSE ,
+or \-vvvvv for
+.BR TRACE .
+.
+.PP
+A given verbose level is useful for providing needed debugging information to
+the email address below.  For example, TRACE output shows all of the values
+sent to and received from the radio which is very useful for radio backend
+library development and may be requested by the developers.
+.
+.
+.SH EXIT STATUS
+.B rigctltcp
+exits with:
+.
+.TP
+.B 0
+if all operations completed normally;
+.
+.TP
+.B 1
+if there was an invalid command line option or argument;
+.
+.TP
+.B 2
+if an error was returned by
+.BR Hamlib .
+.
+.
+.SH EXAMPLES
+.
+This is an example of a multicast packet as of 2023-10-20.
+.
+.PP
+.EX
+{
+  "app": "Hamlib",
+  "version": "4.6~git 2023-10-20T16:52:59Z SHA=d87671",
+  "seq": 183,
+  "time": "2023-10-20T20:13:53.139869-0000",
+  "crc": 0,
+  "rig": {
+    "id": "FLRig:127.0.0.1:12345:30508",
+    "status": "OK",
+    "errorMsg": "",
+    "name": "FLRig",
+    "split": false,
+    "splitVfo": "VFOA",
+    "satMode": false,
+    "modelist": "AM CW USB LSB FM CWR PKTLSB PKTUSB "
+  },
+  "vfos": [
+    {
+      "name": "VFOA",
+      "freq": 14074270,
+      "mode": "PKTUSB",
+      "width": 3,
+      "ptt": false,
+      "rx": true,
+      "tx": true
+    },
+    {
+      "name": "VFOB",
+      "freq": 14074500,
+      "mode": "",
+      "width": 0,
+      "ptt": false,
+      "rx": false,
+      "tx": false
+    }
+  ],
+  "spectra": [
+    {
+      "id": 0,
+      "name": "?",
+      "type": "FIXED",
+      "minLevel": 0,
+      "maxLevel": 0,
+      "minStrength": 0,
+      "maxStrength": 0,
+      "centerFreq": 0,
+      "span": 0,
+      "lowFreq": 0,
+      "highFreq": 0,
+      "length": 0,
+      "data": ""
+    }
+  ]
+}
+.EE
+.
+.
+.SH BUGS
+.
+This woefully incomplete document.
+.
+.
+.SH COPYING
+.
+This file is part of Hamlib, a project to develop a library that simplifies
+radio, rotator, and amplifier control functions for developers of software
+primarily of interest to radio amateurs and those interested in radio
+communications.
+.
+.PP
+Copyright \(co 2000-2011 Stephane Fillod
+.br
+Copyright \(co 2000-2026 the Hamlib Group (various contributors)
+.br
+Copyright \(co 2010-2026 Nate Bargmann
+.
+.PP
+This is free software; see the file COPYING for copying conditions.
+.
+There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR
+PURPOSE.
+.
+.
+.SH SEE ALSO
+.
+.BR rigctl (1),
+.BR hamlib (7)
+.
+.
+.SH COLOPHON
+.
+Links to the Hamlib Wiki, Git repository, release archives, and daily snapshot
+archives are available via
+.
+.UR http://www.hamlib.org
+hamlib.org
+.UE .
