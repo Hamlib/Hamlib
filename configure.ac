@@ -14,7 +14,7 @@ dnl Please do not use '-' in the version number, as package managers will fail,
 dnl however, the use of '~' should be fine as apt (others?) will treat
 dnl it as an earlier version than the actual release.  TNX KA6MAL
 dnl PACKAGE_NAME + " " + PACKAGE_VERSION must not exceed 20 chars!
-AC_INIT([Hamlib],[4.7.0~rc],[hamlib-developer@lists.sourceforge.net],[hamlib],[http://www.hamlib.org])
+AC_INIT([Hamlib],[4.7.0],[hamlib-developer@lists.sourceforge.net],[hamlib],[http://www.hamlib.org])
 #AC_INIT([PRODUCT_NAME], [Hamlib])
 #AC_DEFINE([Hamlib], [PRODUCT_VERSION_RESOURCE])
 

@@ -7,7 +7,7 @@ Copyright (C) 2000-2026  The Hamlib Group
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
-+
+
 Version 5.x -- future
         * rig_get_conf deprecated and replaced by rig_get_conf2
         * rot_get_conf deprecated and replaced by rot_get_conf2
@@ -16,7 +16,7 @@ Version 5.x -- future
           heap buffers
 
 Version 4.7.0
-        * 2026-02-15 (target)
+        * 2026-02-15
         * Revamp Kenwood voice memory handler - Fixes TS-890S & TS-990S (n3gb)
         * libusb is now detected using the pkg-config facility.
         * Some internal functions change names to avoid conflicts with apps.
@@ -50,6 +50,9 @@ Version 4.7.0
           Reported by Vlatko Kosturjak with Marlink Cyber.  (TNX George Baltz for the fix)
         * Add extended commands for the IC-7300MK2--closes GitHub #1985.  (TNX George Baltz)
         * Revert updating FLRig model name.  (TNX Peter Sumner & Philip Rose)
+        * Add manual pages for rigctltcp, rigtestlibusb, rigtestmcast, and rigtestmcastrx.
+          Pause building rigfreqwalk as the code does not align with the required
+          commandline parameters.
 
 Version 4.6.5
         * 2025-09-05
