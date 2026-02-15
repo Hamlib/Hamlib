@@ -82,7 +82,7 @@
  *      keep up to date SHORT_OPTIONS, usage()'s output and man page. thanks.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:p:d:P:D:s:S:c:T:t:C:W:w:x:z:lLuovhVZMRA:n:"
+#define SHORT_OPTIONS "m:r:p:d:P:D:s:S:c:T:t:C:W:w:x:M:n:A:lLuovhVZR:"
 static struct option long_options[] =
 {
     {"model",           1, 0, 'm'},
@@ -142,16 +142,16 @@ static sig_atomic_t volatile ctrl_c;
 static int volatile ctrl_c;
 #endif
 
-const char *portno = "4531";
-const char *src_addr = NULL; /* INADDR_ANY */
-const char *multicast_addr = "0.0.0.0";
-int multicast_port = 4532;
-extern char rigctld_password[65];
-char resp_sep = '\n';
+const char *portno = "4531";            /* -t */
+const char *src_addr = NULL;            /* -T INADDR_ANY */
+const char *multicast_addr = "0.0.0.0"; /* -M */
+int multicast_port = 4532;              /* -n */
+extern char rigctld_password[65];       /* -A */
+char resp_sep = '\n';                   /* -S */
 extern int lock_mode;
 extern powerstat_t rig_powerstat;
-static int rigctld_idle =
-    0; // if true then rig will close when no clients are connected
+//if true then rig will close when no clients are connected
+static int rigctld_idle = 0;            /* -R */
 
 #define MAXCONFLEN 2048
 
@@ -1380,26 +1380,28 @@ static void usage(FILE *fout)
         "  -D, --dcd-type=TYPE           set type of the DCD device to operate on\n"
         "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
         "  -c, --civaddr=ID              set CI-V address, decimal (for Icom rigs only)\n"
-        "  -t, --port=NUM                set TCP listening port, default %s\n"
         "  -S, --separator=CHAR          set char as rigctld response separator, default is \\n\n"
-        "  -T, --listen-addr=IPADDR      set listening IP address, default ANY\n"
-        "  -C, --set-conf=PARM=VAL[,...] set config parameters\n"
         "  -L, --show-conf               list all config parameters\n"
+        "  -C, --set-conf=PARM=VAL[,...] set config parameters\n"
         "  -l, --list                    list all model numbers and exit\n"
         "  -u, --dump-caps               dump capabilities and exit\n"
         "  -o, --vfo                     do not default to VFO_CURR, require extra vfo arg\n"
         "  -v, --verbose                 set verbose mode, cumulative (-v to -vvvvv)\n"
+        "  -T, --listen-addr=IPADDR      set listening IP address, default ANY\n"
+        "  -t, --port=NUM                set TCP listening port, default %s\n"
+        "  -M, --multicast-addr=ADDR     set multicast UDP address, default %s (off), recommend 224.0.1.1\n"
+        "  -n, --multicast-port=PORT     set multicast UDP port, default %d\n"
         "  -W, --twiddle_timeout=SECONDS timeout after detecting vfo manual change\n"
         "  -w, --twiddle_rit=SECONDS     suppress VFOB getfreq so RIT can be twiddled\n"
         "  -x, --uplink=OPTION           set uplink get_freq ignore, option 1=Sub, 2=Main\n"
         "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
-        "  -M, --multicast-addr=ADDR     set multicast UDP address, default 0.0.0.0 (off), recommend 224.0.1.1\n"
-        "  -n, --multicast-port=PORT     set multicast UDP port, default 4531\n"
-        "  -A, --password                set password for rigctld access\n"
-        "  -R, --rigctld-idle            make rigctld close the rig when no clients are connected\n"
+        "  -A, --password=PASSWORD       set password for rigctld access (64 chars max), default none\n"
+        "  -R, --rigctltcp-idle          make rigctltcp close the rig when no clients are connected\n"
         "  -h, --help                    display this help and exit\n"
         "  -V, --version                 output version information and exit\n\n",
-        portno);
+        portno,
+        multicast_addr,
+        multicast_port);
 
     usage_rig(fout);
 }
