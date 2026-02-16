@@ -16,10 +16,7 @@ Version 5.x -- future
           heap buffers
 
 Version 4.7.0
-        * 2026-02-15 (target)
-        * New Icom IC-7300MK2 support
-        * Fix unbounded string usage in tests/*ctl_parse.c. May cause crashes or worse.
-          Reported by Vlatko Kosturjak with Marlink Cyber
+        * 2026-02-15
         * Revamp Kenwood voice memory handler - Fixes TS-890S & TS-990S (n3gb)
         * libusb is now detected using the pkg-config facility.
         * Some internal functions change names to avoid conflicts with apps.
@@ -41,6 +38,21 @@ Version 4.7.0
         * New Drake R8 backend.  (TNX Mark Fine)
         * New AF6SA WRC rotator backend.  (TNX Michael Morgan)
         * New Yaesu FTX-1 model support (alpha).  (TNX Jeremy Miller).
+        * Update QRPLabs QMX backend for max serial rate of 230400 bps.  (TNX Mooneer Salem)
+        * Updates to Icom IC-F8101.  (TNX Mitchell Winkle and George Baltz)
+        * New rig model Icom ID-52A/W Plus.  (TNX Martin Andrich)
+        * Fix memory leaks in rigctld and rigctltcp.  (TNX Geroge Baltz)
+        * Fix Skywatcher backend for firmware that doesn't echo commands.  (TNX Daniel Forsi)
+        * Various manual page updates.  (TNX Daniel Forsi)
+        * Additional Yaesu FTX-1 capabilities.  (TNX KJ5HST)
+        * Refactor repeater offset and ANTIVOX with lookup tables in newcat.c (TNX KJ5HST)
+        * Fix unbounded string usage in tests/*ctl_parse.c. May cause crashes or worse.
+          Reported by Vlatko Kosturjak with Marlink Cyber.  (TNX George Baltz for the fix)
+        * Add extended commands for the IC-7300MK2--closes GitHub #1985.  (TNX George Baltz)
+        * Revert updating FLRig model name.  (TNX Peter Sumner & Philip Rose)
+        * Add manual pages for rigctltcp, rigtestlibusb, rigtestmcast, and rigtestmcastrx.
+          Pause building rigfreqwalk as the code does not align with the required
+          commandline parameters.
 
 Version 4.6.5
         * 2025-09-05
