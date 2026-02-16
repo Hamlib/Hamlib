@@ -15,6 +15,9 @@ Version 5.x -- future
         * Internal data structures moved out of rig_struct to individual
           heap buffers
 
+Version 4.7.1
+        *2026-??-??
+
 Version 4.7.0
         * 2026-02-15
         * Revamp Kenwood voice memory handler - Fixes TS-890S & TS-990S (n3gb)
