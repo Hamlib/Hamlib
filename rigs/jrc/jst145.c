@@ -66,7 +66,7 @@ struct jst145_priv_data
 {
     ptt_t ptt;
     freq_t freqA, freqB;
-    mode_t mode;
+    rmode_t mode;
 };
 
 
