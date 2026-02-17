@@ -135,13 +135,27 @@
 #define AMP_EXPERT 4
 /** Used in amp_reg.c for the `be_name`. */
 #define AMP_BACKEND_EXPERT "expert"
-/**
- * \brief A macro that returns the model number of `FA`.
- *
- * The Expert FA series of amplifiers is supported by this backend.
- */
-#define AMP_MODEL_EXPERT_FA AMP_MAKE_MODEL(AMP_EXPERT, 1)
 
+/**
+ * \brief A macro that returns the model number of `13K-FA`.
+ *
+ * The Expert 13K-FA amplifier is supported by this backend.
+ */
+#define AMP_MODEL_EXPERT_13K_FA AMP_MAKE_MODEL(AMP_EXPERT, 1)
+
+/**
+ * \brief A macro that returns the model number of `15K-FA`.
+ *
+ * The Expert 15K-FA amplifier is supported by this backend.
+ */
+#define AMP_MODEL_EXPERT_15K_FA AMP_MAKE_MODEL(AMP_EXPERT, 2)
+
+/**
+ * \brief A macro that returns the model number of `2K-FA`.
+ *
+ * The Expert 2K-FA amplifier is supported by this backend.
+ */
+#define AMP_MODEL_EXPERT_2K_FA AMP_MAKE_MODEL(AMP_EXPERT, 3)
 
 /** Convenience type definition for an amplifier model. */
 typedef int amp_model_t;

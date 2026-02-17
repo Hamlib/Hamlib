@@ -801,6 +801,17 @@ static const struct
 };
 
 
+static const struct
+{
+    setting_t func;
+    const char *str;
+} amp_func_str[] =
+{
+    { AMP_FUNC_TUNER, "TUNER" },
+    { AMP_FUNC_NONE, "" },
+};
+
+
 /**
  * utility function to convert index to bit value
  *
@@ -808,6 +819,33 @@ static const struct
 uint64_t rig_idx2setting(int i)
 {
     return ((uint64_t)1) << i;
+}
+
+/**
+ * \brief convert and integer expressed 2^n to n
+ * \param v The integer to convert to
+ *
+ *  Converts an integer value expressed by 2^n to the value of n.
+ *
+ * \return the index such that 2^n is the value, otherwise -1
+ * if the index was not found.
+ */
+int HAMLIB_API rig_bit2idx(uint64_t v)
+{
+    int i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    for (i = 0; i < 64; i++)
+    {
+        if (v & rig_idx2setting(i))
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: idx=%d\n", __func__, i);
+            return i;
+        }
+    }
+
+    return -1;
 }
 
 /**
@@ -887,6 +925,31 @@ setting_t HAMLIB_API rot_parse_func(const char *s)
 
 
 /**
+ * \brief Convert alpha string to enum AMP_FUNC_...
+ * \param s input alpha string
+ * \return AMP_FUNC_...
+ *
+ * \sa amp_func_e()
+ */
+setting_t HAMLIB_API amp_parse_func(const char *s)
+{
+    int i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    for (i = 0 ; amp_func_str[i].str[0] != '\0'; i++)
+    {
+        if (!strcmp(s, amp_func_str[i].str))
+        {
+            return amp_func_str[i].func;
+        }
+    }
+
+    return AMP_FUNC_NONE;
+}
+
+
+/**
  * \brief Convert enum RIG_FUNC_... to alpha string
  * \param func RIG_FUNC_...
  * \return alpha string
@@ -941,6 +1004,37 @@ const char *HAMLIB_API rot_strfunc(setting_t func)
         if (func == rot_func_str[i].func)
         {
             return rot_func_str[i].str;
+        }
+    }
+
+    return "";
+}
+
+
+/**
+ * \brief Convert enum AMP_FUNC_... to alpha string
+ * \param func AMP_FUNC_...
+ * \return alpha string
+ *
+ * \sa amp_func_e()
+ */
+const char *HAMLIB_API amp_strfunc(setting_t func)
+{
+    int i;
+
+    // too verbose to keep on unless debugging this in particular
+    //rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (func == AMP_FUNC_NONE)
+    {
+        return "";
+    }
+
+    for (i = 0; amp_func_str[i].str[0] != '\0'; i++)
+    {
+        if (func == amp_func_str[i].func)
+        {
+            return amp_func_str[i].str;
         }
     }
 
@@ -1034,6 +1128,12 @@ static const struct
     { AMP_LEVEL_PWR_REFLECTED, "PWRREFLECTED" },
     { AMP_LEVEL_PWR_PEAK, "PWRPEAK" },
     { AMP_LEVEL_FAULT, "FAULT" },
+    { AMP_LEVEL_PWR, "PWR" },
+    { AMP_LEVEL_WARNING, "WARNING" },
+    { AMP_LEVEL_SWR_TUNER, "SWR_TUNER" },
+    { AMP_LEVEL_VD_METER, "VD_METER" },
+    { AMP_LEVEL_ID_METER, "ID_METER" },
+    { AMP_LEVEL_TEMP_METER, "TEMP_METER" },
     { AMP_LEVEL_NONE, "" },
 };
 
@@ -1305,6 +1405,18 @@ static const struct
 };
 
 
+static const struct
+{
+    setting_t parm;
+    const char *str;
+} amp_parm_str[] =
+{
+    { AMP_PARM_BACKLIGHT, "BACKLIGHT" },
+    { AMP_PARM_BEEP, "BEEP" },
+    { AMP_PARM_NONE, "" },
+};
+
+
 /**
  * \brief Convert alpha string to RIG_PARM_...
  * \param s input alpha string
@@ -1352,6 +1464,31 @@ setting_t HAMLIB_API rot_parse_parm(const char *s)
     }
 
     return ROT_PARM_NONE;
+}
+
+
+/**
+ * \brief Convert alpha string to AMP_PARM_...
+ * \param s input alpha string
+ * \return AMP_PARM_...
+ *
+ * \sa amp_parm_e()
+ */
+setting_t HAMLIB_API amp_parse_parm(const char *s)
+{
+    int i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    for (i = 0 ; amp_parm_str[i].str[0] != '\0'; i++)
+    {
+        if (!strcmp(s, amp_parm_str[i].str))
+        {
+            return amp_parm_str[i].parm;
+        }
+    }
+
+    return AMP_PARM_NONE;
 }
 
 
@@ -1413,6 +1550,37 @@ const char *HAMLIB_API rot_strparm(setting_t parm)
 
     return "";
 }
+
+
+/**
+ * \brief Convert enum AMP_PARM_... to alpha string
+ * \param parm AMP_PARM_...
+ * \return alpha string
+ *
+ * \sa amp_parm_e()
+ */
+const char *HAMLIB_API amp_strparm(setting_t parm)
+{
+    int i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (parm == AMP_PARM_NONE)
+    {
+        return "";
+    }
+
+    for (i = 0; amp_parm_str[i].str[0] != '\0'; i++)
+    {
+        if (parm == amp_parm_str[i].parm)
+        {
+            return amp_parm_str[i].str;
+        }
+    }
+
+    return "";
+}
+
 
 static const struct
 {
@@ -2351,6 +2519,119 @@ const char *HAMLIB_API rot_strstatus(rot_status_t status)
 
     return "";
 }
+
+
+static const struct
+{
+    amp_status_t status;
+    const char *str;
+} amp_status_str[] =
+{
+    { AMP_STATUS_PTT, "PTT" },
+    { AMP_STATUS_FAULT_SWR, "FAULT_SWR" },
+    { AMP_STATUS_FAULT_INPUT_POWER, "FAULT_INPUT_POWER" },
+    { AMP_STATUS_FAULT_TEMPERATURE, "FAULT_TEMPERATURE" },
+    { AMP_STATUS_FAULT_PWR_FWD,          "FAULT_PWR_FWD" },
+    { AMP_STATUS_FAULT_PWR_REFLECTED,    "FAULT_PWR_REFLECTED" },
+    { AMP_STATUS_FAULT_VOLTAGE,          "FAULT_VOLTAGE" },
+    { AMP_STATUS_FAULT_FREQUENCY,        "FAULT_FREQUENCY" },
+    { AMP_STATUS_FAULT_TUNER_NO_MATCH,   "FAULT_TUNER_NO_MATCH" },
+    { AMP_STATUS_FAULT_OTHER,            "FAULT_OTHER" },
+    { AMP_STATUS_WARNING_SWR_HIGH,       "WARNING_SWR_HIGH" },
+    { AMP_STATUS_WARNING_POWER_LIMIT,    "WARNING_POWER_LIMIT" },
+    { AMP_STATUS_WARNING_TEMPERATURE,    "WARNING_TEMPERATURE" },
+    { AMP_STATUS_WARNING_FREQUENCY,      "WARNING_FREQUENCY" },
+    { AMP_STATUS_WARNING_TUNER_NO_INPUT, "WARNING_TUNER_NO_INPUT" },
+    { AMP_STATUS_WARNING_OTHER,          "WARNING_OTHER" },
+    { 0xffffff,                          "" },
+};
+
+
+/**
+ * \brief Convert enum AMP_STATUS_... to a string
+ * \param status AMP_STATUS_...
+ * \return the corresponding string value
+ */
+const char *HAMLIB_API amp_strstatus(amp_status_t status)
+{
+    int i;
+
+    for (i = 0 ; amp_status_str[i].str[0] != '\0'; i++)
+    {
+        if (status == amp_status_str[i].status)
+        {
+            return amp_status_str[i].str;
+        }
+    }
+
+    return "";
+}
+
+
+static const struct
+{
+    amp_op_t amp_op;
+    const char *str;
+} amp_op_str[] =
+{
+    { AMP_OP_TUNE, "TUNE" },
+    { AMP_OP_BAND_UP, "BAND_UP" },
+    { AMP_OP_BAND_DOWN, "BAND_DOWN" },
+    { AMP_OP_L_NH_UP, "L_NH_UP" },
+    { AMP_OP_L_NH_DOWN, "L_NH_DOWN" },
+    { AMP_OP_C_PF_UP, "C_PF_UP" },
+    { AMP_OP_C_PF_DOWN, "C_PF_DOWN" },
+    { AMP_OP_NONE, "" },
+};
+
+
+/**
+ * \brief Convert alpha string to enum AMP_OP_...
+ * \param s alpha string
+ * \return AMP_OP_...
+ *
+ * \sa amp_op_t()
+ */
+amp_op_t HAMLIB_API amp_parse_amp_op(const char *s)
+{
+    int i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    for (i = 0 ; amp_op_str[i].str[0] != '\0'; i++)
+    {
+        if (!strcmp(s, amp_op_str[i].str))
+        {
+            return amp_op_str[i].amp_op;
+        }
+    }
+
+    return AMP_OP_NONE;
+}
+
+
+/**
+ * \brief Convert enum AMP_OP_... to alpha string
+ * \param op AMP_OP_...
+ * \return alpha string
+ *
+ * \sa amp_op_t()
+ */
+const char *HAMLIB_API amp_strampop(amp_op_t op)
+{
+    int i;
+
+    for (i = 0; amp_op_str[i].str[0] != '\0'; i++)
+    {
+        if (op == amp_op_str[i].amp_op)
+        {
+            return amp_op_str[i].str;
+        }
+    }
+
+    return "";
+}
+
 
 /**
  * \brief Get pointer to rig function instead of using rig->caps

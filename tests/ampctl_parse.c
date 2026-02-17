@@ -2,6 +2,7 @@
  * ampctl_parse.c - (C) Stephane Fillod 2000-2010
  *                  (C) Nate Bargmann 2003,2007,2010,2011,2012,2013
  *                  (C) The Hamlib Group 2002,2006,2011,2026
+ *                  (C) Mikael Nousiainen OH3BHX 2026
  * Derived from rotctl_parse.c by Michael Black 2019
  *
  * This program test/control an amplifier using Hamlib.
@@ -159,6 +160,16 @@ declare_proto_amp(get_info);
 declare_proto_amp(reset);
 declare_proto_amp(set_level);
 declare_proto_amp(get_level);
+declare_proto_amp(set_func);
+declare_proto_amp(get_func);
+declare_proto_amp(set_parm);
+declare_proto_amp(get_parm);
+declare_proto_amp(amp_op);
+declare_proto_amp(set_input);
+declare_proto_amp(get_input);
+declare_proto_amp(set_ant);
+declare_proto_amp(get_ant);
+declare_proto_amp(get_status);
 declare_proto_amp(set_powerstat);
 declare_proto_amp(get_powerstat);
 //declare_proto_amp(dump_caps);
@@ -170,11 +181,22 @@ declare_proto_amp(get_powerstat);
  */
 struct test_table test_list[] =
 {
-    { 'F', "set_freq",      ACTION(set_freq),       ARG_IN, "Frequency(Hz)" },
-    { 'f', "get_freq",      ACTION(get_freq),       ARG_OUT, "Frequency(Hz)" },
+    { 'F', "set_freq",      ACTION(set_freq),       ARG_IN, "Frequency" },
+    { 'f', "get_freq",      ACTION(get_freq),       ARG_OUT, "Frequency" },
     { 'l', "get_level",     ACTION(get_level),      ARG_IN1 | ARG_OUT2, "Level", "Level Value" },
     { 'L', "set_level",     ACTION(set_level),      ARG_IN, "Level", "Level Value" },
+    { 'U', "set_func",      ACTION(set_func),       ARG_IN, "Func", "Func Status" },
+    { 'u', "get_func",      ACTION(get_func),       ARG_IN1 | ARG_OUT2, "Func", "Func Status" },
+    { 'P', "set_parm",      ACTION(set_parm),       ARG_IN, "Parm", "Parm Value" },
+    { 'p', "get_parm",      ACTION(get_parm),       ARG_IN1 | ARG_OUT2, "Parm", "Parm Value" },
+    { 'G', "amp_op",        ACTION(amp_op),         ARG_IN, "Amplifier Operation" },
+    { 'I', "set_input",     ACTION(set_input),      ARG_IN, "Input" },
+    { 'i', "get_input",     ACTION(get_input),      ARG_OUT, "Input" },
+    { 'Y', "set_ant",       ACTION(set_ant),        ARG_IN, "Antenna" },
+    { 'y', "get_ant",       ACTION(get_ant),        ARG_OUT, "Antenna" },
+    { 's', "get_status",    ACTION(get_status),     ARG_OUT, "Status flags" },
     { 'w', "send_cmd",      ACTION(send_cmd),       ARG_IN1 | ARG_IN_LINE | ARG_OUT2, "Cmd", "Reply" },
+    { 'W', "send_cmd_rx",   ACTION(send_cmd),       ARG_IN | ARG_OUT2, "Cmd", "Reply"},
     { 0x8f, "dump_state",   ACTION(dump_state),     ARG_OUT },
     { '1', "dump_caps",     ACTION(dump_caps), },
     { '_', "get_info",      ACTION(get_info),       ARG_OUT, "Info" },
@@ -183,7 +205,6 @@ struct test_table test_list[] =
     { 0x88, "get_powerstat",    ACTION(get_powerstat),  ARG_OUT, "Power Status" },
     { 0x00, "", NULL },
 };
-
 
 struct test_table *find_cmd_entry(int cmd)
 {
@@ -1698,7 +1719,7 @@ declare_proto_amp(set_level)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_level(s, sizeof(s), AMPSTATE(amp)->has_set_level);
+        amp_sprintf_level(s, sizeof(s), AMPSTATE(amp)->has_set_level);
         fputs(s, fout);
 
         if (amp->caps->set_ext_level)
@@ -1711,11 +1732,11 @@ declare_proto_amp(set_level)
         return (RIG_OK);
     }
 
-    level = rig_parse_level(arg1);
+    level = amp_parse_level(arg1);
 
     if (!strcmp(arg2, "?"))
     {
-        const gran_t *gran = STATE(amp)->level_gran;
+        const gran_t *gran = AMPSTATE(amp)->level_gran;
         int idx = rig_setting2idx(level);
 
         if (AMP_LEVEL_IS_FLOAT(level))
@@ -1775,7 +1796,7 @@ declare_proto_amp(set_level)
         return (amp_set_ext_level(amp, cfp->token, val));
     }
 
-    if (RIG_LEVEL_IS_FLOAT(level))
+    if (AMP_LEVEL_IS_FLOAT(level))
     {
         CHKSCN1ARG(sscanf(arg2, "%f", &val.f));
     }
@@ -1836,8 +1857,6 @@ declare_proto_amp(get_level)
             fprintf(fout, "%s: ", cmd->arg2);
         }
 
-        printf("cfp->type=%d\n", cfp->type);
-
         switch (cfp->type)
         {
         case RIG_CONF_BUTTON:
@@ -1891,6 +1910,459 @@ declare_proto_amp(get_level)
 
     return status;
 }
+
+
+/* 'U' */
+declare_proto_amp(set_func)
+{
+    setting_t func;
+    int func_stat;
+
+    ENTERFUNC2;
+
+    if (!strcmp(arg1, "?"))
+    {
+        char s[SPRINTF_MAX_SIZE];
+        amp_sprintf_func(s, sizeof(s), amp->state.has_set_func);
+        fprintf(fout, "%s\n", s);
+        RETURNFUNC2(RIG_OK);
+    }
+
+    func = amp_parse_func(arg1);
+
+    if (!amp_has_set_func(amp, func))
+    {
+        const struct confparams *cfp;
+
+        cfp = amp_ext_lookup(amp, arg1);
+
+        if (!cfp)
+        {
+            RETURNFUNC2(-RIG_ENAVAIL);    /* no such parameter */
+        }
+
+        CHKSCN1ARG(sscanf(arg2, "%d", &func_stat));
+
+        RETURNFUNC2(amp_set_ext_func(amp, cfp->token, func_stat));
+    }
+
+    CHKSCN1ARG(sscanf(arg2, "%d", &func_stat));
+    RETURNFUNC2(amp_set_func(amp, func, func_stat));
+}
+
+
+/* 'u' */
+declare_proto_amp(get_func)
+{
+    int status;
+    setting_t func;
+    int func_stat;
+
+    ENTERFUNC2;
+
+    if (!strcmp(arg1, "?"))
+    {
+        char s[SPRINTF_MAX_SIZE];
+        amp_sprintf_func(s, sizeof(s), amp->state.has_get_func);
+        fprintf(fout, "%s\n", s);
+        RETURNFUNC2(RIG_OK);
+    }
+
+    func = amp_parse_func(arg1);
+
+    if (!amp_has_get_func(amp, func))
+    {
+        const struct confparams *cfp;
+
+        cfp = amp_ext_lookup(amp, arg1);
+
+        if (!cfp)
+        {
+            RETURNFUNC2(-RIG_EINVAL);    /* no such parameter */
+        }
+
+        status = amp_get_ext_func(amp, cfp->token, &func_stat);
+
+        if (status != RIG_OK)
+        {
+            RETURNFUNC2(status);
+        }
+
+        if (interactive && prompt)
+        {
+            fprintf(fout, "%s: ", cmd->arg2);
+        }
+
+        fprintf(fout, "%d%c", func_stat, resp_sep);
+
+        RETURNFUNC2(status);
+    }
+
+    status = amp_get_func(amp, func, &func_stat);
+
+    if (status != RIG_OK)
+    {
+        RETURNFUNC2(status);
+    }
+
+    if (interactive && prompt)
+    {
+        fprintf(fout, "%s: ", cmd->arg1);
+    }
+
+    fprintf(fout, "%d%c", func_stat, resp_sep);
+
+    RETURNFUNC2(status);
+}
+
+
+/* 'P' */
+declare_proto_amp(set_parm)
+{
+    setting_t parm;
+    value_t val;
+
+    ENTERFUNC2;
+
+    if (!strcmp(arg1, "?"))
+    {
+        char s[SPRINTF_MAX_SIZE];
+        amp_sprintf_parm(s, sizeof(s), amp->state.has_set_parm);
+        fprintf(fout, "%s\n", s);
+        RETURNFUNC2(RIG_OK);
+    }
+
+    parm = amp_parse_parm(arg1);
+
+    if (!amp_has_set_parm(amp, parm))
+    {
+        const struct confparams *cfp;
+
+        cfp = amp_ext_lookup(amp, arg1);
+
+        if (!cfp)
+        {
+            RETURNFUNC2(-RIG_EINVAL);    /* no such parameter */
+        }
+
+        switch (cfp->type)
+        {
+        case RIG_CONF_BUTTON:
+            /* arg is ignored */
+            val.i = 0; // avoid passing uninitialized data
+            break;
+
+        case RIG_CONF_CHECKBUTTON:
+        case RIG_CONF_COMBO:
+            CHKSCN1ARG(sscanf(arg2, "%d", &val.i));
+            break;
+
+        case RIG_CONF_INT:
+            CHKSCN1ARG(sscanf(arg2, "%f", &val.f));
+            break;
+
+        case RIG_CONF_NUMERIC:
+            CHKSCN1ARG(sscanf(arg2, "%g", &val.f));
+            break;
+
+        case RIG_CONF_STRING:
+            val.cs = arg2;
+
+            break;
+
+        case RIG_CONF_BINARY:
+            val.b.d = (unsigned char *)arg2;
+            break;
+
+        default:
+            RETURNFUNC2(-RIG_ECONF);
+        }
+
+        RETURNFUNC2(amp_set_ext_parm(amp, cfp->token, val));
+    }
+
+    if (AMP_PARM_IS_FLOAT(parm))
+    {
+        CHKSCN1ARG(sscanf(arg2, "%f", &val.f));
+    }
+    else if (AMP_PARM_IS_STRING(parm))
+    {
+        val.cs = arg2;
+    }
+    else
+    {
+        CHKSCN1ARG(sscanf(arg2, "%d", &val.i));
+    }
+
+    RETURNFUNC2(amp_set_parm(amp, parm, val));
+}
+
+
+/* 'p' */
+declare_proto_amp(get_parm)
+{
+    int status;
+    setting_t parm;
+    value_t val;
+    char buffer[RIG_BIN_MAX];
+
+    ENTERFUNC2;
+
+    if (!strcmp(arg1, "?"))
+    {
+        char s[SPRINTF_MAX_SIZE];
+        amp_sprintf_parm(s, sizeof(s), amp->state.has_get_parm);
+        fprintf(fout, "%s\n", s);
+        RETURNFUNC2(RIG_OK);
+    }
+
+    parm = amp_parse_parm(arg1);
+
+    if (!amp_has_get_parm(amp, parm))
+    {
+        const struct confparams *cfp;
+
+        cfp = amp_ext_lookup(amp, arg1);
+
+        if (!cfp)
+        {
+            RETURNFUNC2(-RIG_EINVAL);    /* no such parameter */
+        }
+
+        switch (cfp->type)
+        {
+        case RIG_CONF_STRING:
+            memset(buffer, '0', sizeof(buffer));
+            buffer[sizeof(buffer) - 1] = 0;
+            val.s = buffer;
+            break;
+
+        case RIG_CONF_BINARY:
+            memset(buffer, 0, sizeof(buffer));
+            val.b.d = (unsigned char *)buffer;
+            val.b.l = RIG_BIN_MAX;
+            break;
+
+        default:
+            break;
+        }
+
+        status = amp_get_ext_parm(amp, cfp->token, &val);
+
+        if (status != RIG_OK)
+        {
+            RETURNFUNC2(status);
+        }
+
+        if (interactive && prompt)
+        {
+            fprintf(fout, "%s: ", cmd->arg2);
+        }
+
+        switch (cfp->type)
+        {
+        case RIG_CONF_BUTTON:
+            /* there's not sense in retrieving value of stateless button */
+            RETURNFUNC2(-RIG_EINVAL);
+
+        case RIG_CONF_CHECKBUTTON:
+        case RIG_CONF_COMBO:
+            fprintf(fout, "%d%c", val.i, resp_sep);
+            break;
+
+        case RIG_CONF_INT:
+            fprintf(fout, "%.0f%c", val.f, resp_sep);
+            break;
+
+        case RIG_CONF_NUMERIC:
+            fprintf(fout, "%g%c", val.f, resp_sep);
+            break;
+
+        case RIG_CONF_STRING:
+            fprintf(fout, "%s%c", val.s, resp_sep);
+            break;
+
+        case RIG_CONF_BINARY:
+            dump_hex((unsigned char *)buffer, val.b.l);
+            fprintf(fout, "%c", resp_sep);
+            break;
+
+        default:
+            RETURNFUNC2(-RIG_ECONF);
+        }
+
+        RETURNFUNC2(status);
+    }
+
+    status = amp_get_parm(amp, parm, &val);
+
+    if (status != RIG_OK)
+    {
+        RETURNFUNC2(status);
+    }
+
+    if (interactive && prompt)
+    {
+        fprintf(fout, "%s: ", cmd->arg2);
+    }
+
+    if (AMP_PARM_IS_FLOAT(parm))
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: float\n", __func__);
+        fprintf(fout, "%f%c", val.f, resp_sep);
+    }
+    else if (AMP_PARM_IS_STRING(parm))
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: string\n", __func__);
+        fprintf(fout, "%s%c", val.s, resp_sep);
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: int\n", __func__);
+        fprintf(fout, "%d%c", val.i, resp_sep);
+    }
+
+    RETURNFUNC2(status);
+}
+
+
+/* 'G' */
+declare_proto_amp(amp_op)
+{
+    amp_op_t op;
+
+    ENTERFUNC2;
+
+    if (!strcmp(arg1, "?"))
+    {
+        char s[SPRINTF_MAX_SIZE];
+        amp_sprintf_amp_op(s, sizeof(s), amp->caps->amp_ops);
+        fprintf(fout, "%s\n", s);
+        RETURNFUNC2(RIG_OK);
+    }
+
+    op = amp_parse_amp_op(arg1);
+
+    if (AMP_OP_NONE == op)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: amp_parse_amp_op failed with '%s'\n", __func__,
+                  arg1);
+        RETURNFUNC2(-RIG_EINVAL);
+    }
+
+    RETURNFUNC2(amp_op(amp, op));
+}
+
+
+/* 'I' */
+declare_proto_amp(set_input)
+{
+    ant_t input;
+
+    ENTERFUNC2;
+
+    CHKSCN1ARG(sscanf(arg1, "%d", &input));
+
+    RETURNFUNC2(amp_set_input(amp, rig_idx2setting(input - 1)));
+}
+
+
+/* 'i' */
+declare_proto_amp(get_input)
+{
+    int status;
+    ant_t input;
+    char inputbuf[64];
+
+    ENTERFUNC2;
+
+    status = amp_get_input(amp, &input);
+
+    if (status != RIG_OK)
+    {
+        RETURNFUNC2(status);
+    }
+
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
+        fprintf(fout, "%s: ", cmd->arg1);
+    }
+
+    rig_sprintf_ant(inputbuf, sizeof(inputbuf), input);
+    fprintf(fout, "%s%c", inputbuf, resp_sep);
+    //fprintf(fout, "%d%c", rig_setting2idx(ant_curr)+1, resp_sep);
+
+    RETURNFUNC2(status);
+}
+
+
+/* 'Y' */
+declare_proto_amp(set_ant)
+{
+    ant_t ant;
+
+    ENTERFUNC2;
+
+    CHKSCN1ARG(sscanf(arg1, "%d", &ant));
+
+    RETURNFUNC2(amp_set_ant(amp, rig_idx2setting(ant - 1)));
+}
+
+
+/* 'y' */
+declare_proto_amp(get_ant)
+{
+    int status;
+    ant_t ant;
+    char antbuf[64];
+
+    ENTERFUNC2;
+
+    status = amp_get_ant(amp, &ant);
+
+    if (status != RIG_OK)
+    {
+        RETURNFUNC2(status);
+    }
+
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
+        fprintf(fout, "%s: ", cmd->arg1);
+    }
+
+    rig_sprintf_ant(antbuf, sizeof(antbuf), ant);
+    fprintf(fout, "%s%c", antbuf, resp_sep);
+    //fprintf(fout, "%d%c", rig_setting2idx(ant_curr)+1, resp_sep);
+
+    RETURNFUNC2(status);
+}
+
+
+/* 's' */
+declare_proto_amp(get_status)
+{
+    int result;
+    amp_status_t status;
+    char s[SPRINTF_MAX_SIZE];
+
+    result = amp_get_status(amp, &status);
+
+    if (result != RIG_OK)
+    {
+        return result;
+    }
+
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
+        fprintf(fout, "%s: ", cmd->arg1);
+    }
+
+    amp_sprintf_status(s, sizeof(s), status);
+    fprintf(fout, "%s%c", s, resp_sep);
+
+    return RIG_OK;
+}
+
 
 /* 'R' */
 declare_proto_amp(reset)
