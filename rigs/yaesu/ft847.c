@@ -216,7 +216,7 @@ struct ft847_priv_data
     /* for early ft847's we keep our own memory items */
     /* Early rigs are one-way com to the rig */
     freq_t freqA, freqB;
-    mode_t mode;
+    rmode_t mode;
     pbwidth_t width;
     ptt_t ptt;
 };

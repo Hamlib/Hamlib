@@ -1061,7 +1061,7 @@ int newcat_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 static int freq_60m[] = { 5332000, 5348000, 5358500, 5373000, 5405000 };
 
 /* returns 0 if no exception or 1 if rig needs special handling */
-int newcat_60m_exception(RIG *rig, freq_t freq, mode_t mode)
+int newcat_60m_exception(RIG *rig, freq_t freq, rmode_t mode)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
