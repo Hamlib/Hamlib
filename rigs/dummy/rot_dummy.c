@@ -979,6 +979,7 @@ struct rot_caps dummy_rot_caps =
 
     .set_conf =     dummy_set_conf,
     .get_conf =     dummy_get_conf,
+    .get_conf2 =    dummy_get_conf2,
 
     .set_position =     dummy_rot_set_position,
     .get_position =     dummy_rot_get_position,

@@ -282,6 +282,8 @@ typedef struct s_rig RIG;
 #define HAMLIB_MAX_VFOS 31
 #define HAMLIB_MAX_ROTORS 31
 #define HAMLIB_MAX_VFO_OPS 31
+#define HAMLIB_MAX_AMP_OPS 31
+#define HAMLIB_MAX_AMP_STATUS 31
 #define HAMLIB_MAX_RSCANS 31
 #define HAMLIB_MAX_SNAPSHOT_PACKET_SIZE 16384 /* maximum number of bytes in a UDP snapshot packet */
 //! @endcond
@@ -993,6 +995,9 @@ typedef unsigned int ant_t;
 #define RIG_ANT_3       RIG_ANT_N(2)
 #define RIG_ANT_4       RIG_ANT_N(3)
 #define RIG_ANT_5       RIG_ANT_N(4)
+#define RIG_ANT_6       RIG_ANT_N(5)
+#define RIG_ANT_7       RIG_ANT_N(6)
+#define RIG_ANT_8       RIG_ANT_N(7)
 
 #define RIG_ANT_UNKNOWN RIG_ANT_N(30)
 #define RIG_ANT_CURR    RIG_ANT_N(31)

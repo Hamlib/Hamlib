@@ -23,6 +23,19 @@
 #define _AMP_DUMMY_H 1
 
 #include "amplifier.h"
+#include "token.h"
+
+/* backend conf */
+#define TOK_CFG_AMP_MAGICCONF    TOKEN_BACKEND(1)
+#define TOK_CFG_AMP_STATIC_DATA  TOKEN_BACKEND(2)
+
+/* ext_level's and ext_parm's tokens */
+#define TOK_EL_AMP_MAGICLEVEL    TOKEN_BACKEND(1)
+#define TOK_EL_AMP_MAGICFUNC     TOKEN_BACKEND(2)
+#define TOK_EL_AMP_MAGICOP       TOKEN_BACKEND(3)
+#define TOK_EP_AMP_MAGICPARM     TOKEN_BACKEND(4)
+#define TOK_EL_AMP_MAGICCOMBO    TOKEN_BACKEND(5)
+#define TOK_EL_AMP_MAGICEXTFUNC  TOKEN_BACKEND(6)
 
 extern const struct amp_caps dummy_amp_caps;
 extern const struct amp_caps netampctl_caps;
