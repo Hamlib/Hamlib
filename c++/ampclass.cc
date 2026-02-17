@@ -33,6 +33,7 @@
 
 //#include <hamlib/ampator.h>
 #include <hamlib/ampclass.h>
+#include "hamlib/amp_state.h"
 #include <hamlib/rigclass.h>
 
 #define CHECK_AMP(cmd) { int _retval = cmd; if (_retval != RIG_OK) \
@@ -47,14 +48,14 @@ Amplifier::Amplifier(amp_model_t amp_model)
 		THROW(new RigException ("Amplifier initialization error"));
 
 	caps = theAmp->caps;
-	theAmp->state.obj = (amp_ptr_t)this;
+	AMPSTATE(theAmp)->obj = (amp_ptr_t)this;
 }
 
 Amplifier::~Amplifier()
 {
-	theAmp->state.obj = NULL;
-	CHECK_AMP( amp_cleanup(theAmp) );
-	caps = NULL;
+        AMPSTATE(theAmp)->obj = NULL;
+        CHECK_AMP( amp_cleanup(theAmp) );
+        caps = NULL;
 }
 
 void Amplifier::open(void) {

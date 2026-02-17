@@ -31,6 +31,7 @@
 #include <hamlib/config.h>
 
 #include <hamlib/rotator.h>
+#include "hamlib/rot_state.h"
 #include <hamlib/rotclass.h>
 #include <hamlib/rigclass.h>
 
@@ -46,12 +47,12 @@ Rotator::Rotator(rot_model_t rot_model)
 		THROW(new RigException ("Rotator initialization error"));
 
 	caps = theRot->caps;
-	theRot->state.obj = (rig_ptr_t)this;
+	ROTSTATE(theRot)->obj = (rig_ptr_t)this;
 }
 
 Rotator::~Rotator()
 {
-	theRot->state.obj = NULL;
+	ROTSTATE(theRot)->obj = NULL;
 	CHECK_ROT( rot_cleanup(theRot) );
 	caps = NULL;
 }
