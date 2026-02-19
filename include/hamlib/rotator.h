@@ -565,19 +565,6 @@ struct rot_caps {
  */
 #define ROT_MODEL(arg) .rot_model=arg,.macro_name=#arg
 
-//---Start cut here---
-// Rotator state definition moved to include/hamlib/rot_state.h
-// Temporary include until 5.0
-#ifndef NO_OLD_INCLUDES
-
-__END_DECLS
-
-#include <hamlib/rot_state.h>
-
-__BEGIN_DECLS
-
-#endif
-//---End cut here---
 /**
  * \brief Master rotator structure.
  *
@@ -590,11 +577,6 @@ __BEGIN_DECLS
  */
 struct s_rot {
     struct rot_caps *caps;      /*!< Rotator caps. */
-//---Start cut here---
-#ifndef NO_OLD_STRUCTS
-    struct rot_state state;     /*!< Rotator state. */
-#endif
-//---End cut here
 // Data following this line for internal use only
     HL_PRIVATE hamlib_port_t *rotport_addr;
     HL_PRIVATE hamlib_port_t *rotport2_addr;

@@ -259,10 +259,6 @@ struct rig_state;
 struct rig_cache;
 struct hamlib_port;
 typedef struct hamlib_port hamlib_port_t;
-//---Start cut here---
-struct hamlib_port_deprecated;
-typedef struct hamlib_port_deprecated hamlib_port_t_deprecated;
-//---End cut here---
 
 /**
  * \brief Rig structure definition (see rig for details).
@@ -2375,19 +2371,6 @@ struct hamlib_async_pipe;
 
 typedef struct hamlib_async_pipe hamlib_async_pipe_t;
 
-//---Start cut here---
-// Definition of struct hamlib_port moved to port.h
-// Temporary include here until 5.0
-/* For non-invasive debugging */
-#ifndef NO_OLD_INCLUDES
-__END_DECLS
-
-#include <hamlib/port.h>
-
-__BEGIN_DECLS
-#endif
-
-//---End cut here---
 /* Macros to access data structures/pointers
  * Make it easier to change location in preparation
  *   for moving them out of rig->state.
@@ -2463,90 +2446,6 @@ typedef enum {
     TWIDDLE_ON
 } twiddle_state_t;
 
-//---Start cut here---
-#ifndef NO_OLD_STRUCTS
-/**
- * \brief Rig cache data
- *
- * This struct contains all the items we cache at the highest level
- * DO NOT MODIFY THIS STRUCTURE AT ALL -- should go away in 5.0
- * see cache.h - new cache is a pointer rather than an embedded structure
- */
-struct rig_cache_deprecated {
-    int timeout_ms;  // the cache timeout for invalidating itself
-    vfo_t vfo;
-    //freq_t freq; // to be deprecated in 4.1 when full Main/Sub/A/B caching is implemented in 4.1
-    // other abstraction here is based on dual vfo rigs and mapped to all others
-    // So we have four possible states of rig
-    // MainA, MainB, SubA, SubB
-    // Main is the Main VFO and Sub is for the 2nd VFO
-    // Most rigs have MainA and MainB
-    // Dual VFO rigs can have SubA and SubB too
-    // For dual VFO rigs simplex operations are all done on MainA/MainB -- ergo this abstraction
-    freq_t freqCurr; // Other VFO
-    freq_t freqOther; // Other VFO
-    freq_t freqMainA; // VFO_A, VFO_MAIN, and VFO_MAINA
-    freq_t freqMainB; // VFO_B, VFO_SUB, and VFO_MAINB
-    freq_t freqMainC; // VFO_C, VFO_MAINC
-    freq_t freqSubA;  // VFO_SUBA -- only for rigs with dual Sub VFOs
-    freq_t freqSubB;  // VFO_SUBB -- only for rigs with dual Sub VFOs
-    freq_t freqSubC;  // VFO_SUBC -- only for rigs with 3 Sub VFOs
-    freq_t freqMem;   // VFO_MEM -- last MEM channel
-    rmode_t modeCurr;
-    rmode_t modeOther;
-    rmode_t modeMainA;
-    rmode_t modeMainB;
-    rmode_t modeMainC;
-    rmode_t modeSubA;
-    rmode_t modeSubB;
-    rmode_t modeSubC;
-    rmode_t modeMem;
-    pbwidth_t widthCurr; // if non-zero then rig has separate width for MainA
-    pbwidth_t widthOther; // if non-zero then rig has separate width for MainA
-    pbwidth_t widthMainA; // if non-zero then rig has separate width for MainA
-    pbwidth_t widthMainB; // if non-zero then rig has separate width for MainB
-    pbwidth_t widthMainC; // if non-zero then rig has separate width for MainC
-    pbwidth_t widthSubA;  // if non-zero then rig has separate width for SubA
-    pbwidth_t widthSubB;  // if non-zero then rig has separate width for SubB
-    pbwidth_t widthSubC;  // if non-zero then rig has separate width for SubC
-    pbwidth_t widthMem;  // if non-zero then rig has separate width for Mem
-    ptt_t ptt;
-    split_t split;
-    vfo_t split_vfo;  // split caches two values
-    struct timespec time_freqCurr;
-    struct timespec time_freqOther;
-    struct timespec time_freqMainA;
-    struct timespec time_freqMainB;
-    struct timespec time_freqMainC;
-    struct timespec time_freqSubA;
-    struct timespec time_freqSubB;
-    struct timespec time_freqSubC;
-    struct timespec time_freqMem;
-    struct timespec time_vfo;
-    struct timespec time_modeCurr;
-    struct timespec time_modeOther;
-    struct timespec time_modeMainA;
-    struct timespec time_modeMainB;
-    struct timespec time_modeMainC;
-    struct timespec time_modeSubA;
-    struct timespec time_modeSubB;
-    struct timespec time_modeSubC;
-    struct timespec time_modeMem;
-    struct timespec time_widthCurr;
-    struct timespec time_widthOther;
-    struct timespec time_widthMainA;
-    struct timespec time_widthMainB;
-    struct timespec time_widthMainC;
-    struct timespec time_widthSubA;
-    struct timespec time_widthSubB;
-    struct timespec time_widthSubC;
-    struct timespec time_widthMem;
-    struct timespec time_ptt;
-    struct timespec time_split;
-    int satmode; // if rig is in satellite mode
-};
-#endif
-//---End cut here---
 
 /**
  * \brief Multicast data items the are unique per rig instantiation
@@ -2581,18 +2480,6 @@ typedef unsigned int rig_comm_status_t;
 #define RIG_COMM_STATUS_WARNING       0x04
 #define RIG_COMM_STATUS_ERROR         0x05
 
-//---Start cut here---
-/* rig_state definition moved to include/hamlib/rig_state.h */
-#ifndef NO_OLD_INCLUDES
-
-__END_DECLS
-
-#include <hamlib/rig_state.h>
-
-__BEGIN_DECLS
-
-#endif
-//---End cut here---
 
 //! @cond Doxygen_Suppress
 typedef int (*vprintf_cb_t)(enum rig_debug_level_e,
@@ -2664,21 +2551,7 @@ struct rig_callbacks {
  */
 struct s_rig {
     struct rig_caps *caps;          /*!< Pointer to rig capabilities (read only) */
-//---Start cut here---
-#ifndef NO_OLD_STRUCTS
-    // Do not remove the deprecated structure -- it will mess up DLL backwards compatibility
-    struct rig_state_deprecated state_deprecated; /*!< Deprecated Rig state */
-#endif
-//---End cut here---
     struct rig_callbacks callbacks; /*!< registered event callbacks */
-//---Start cut here---
-#ifndef NO_OLD_STRUCTS
-    // state should really be a pointer but that's a LOT of changes involved
-    // -
-    // Yep, it was, but they're all done now.
-    struct rig_state state;         /*!< Rig state */
-#endif
-//---End cut here---
 /* Data after this line is for hamlib internal use only,
  *  and should *NOT* be referenced by applications, as layout will change!
  */

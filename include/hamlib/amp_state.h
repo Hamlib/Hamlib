@@ -61,13 +61,6 @@ struct amp_state
   /*
    * non overridable fields, internal use
    */
-//---Start cut here---
-#ifndef NO_OLD_STRUCTS
-  hamlib_port_t_deprecated ampport_deprecated;  /*!< \deprecated Amplifier port (internal use). */
-  hamlib_port_t ampport;  /*!< Amplifier port (internal use). */
-
-#endif
-//---End cut here---
 
   int comm_state;         /*!< Comm port state, opened/closed. */
   rig_ptr_t priv;         /*!< Pointer to private amplifier state data. */
