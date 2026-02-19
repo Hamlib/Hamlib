@@ -132,15 +132,6 @@
 %ignore rig_state::cache; // deprecated
 %ignore rig_set_trn; // deprecated
 %ignore rig_get_trn; // deprecated
-//---Start cut here---
-// Going away RSN - Remove these after deleting old ports
-%ignore rigport;
-%ignore pttport;
-%ignore dcdport;
-%ignore rotport;
-%ignore rotport2;
-%ignore ampport;
-//---End cut here---
 
 #ifdef SWIGLUA
 %ignore Rig::set_level(setting_t,int,vfo_t);

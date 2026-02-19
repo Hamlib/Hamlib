@@ -436,20 +436,6 @@ struct amp_caps
   amp_freq_range_t range_list5[HAMLIB_FRQRANGESIZ];              /*!< Amplifier frequency range list #5 */
 };
 
-//---Start cut here---
-// Amp state structure definition moved to include/hamlib/amp_state.h
-// Temporary include until 5.0
-#ifndef NO_OLD_INCLUDES
-
-__END_DECLS
-
-#include <hamlib/amp_state.h>
-
-__BEGIN_DECLS
-
-#endif
-
-//---End cut here---
 /**
  * \brief Master amplifier structure.
  *
@@ -463,11 +449,6 @@ __BEGIN_DECLS
 struct amp
 {
   struct amp_caps *caps;      /*!< Amplifier caps. */
-//---Start cut here---
-#ifndef NO_OLD_STRUCTS
-  struct amp_state state;     /*!< Amplifier state. */
-#endif
-//---End cut here
 //  Private data below this line
   HL_PRIVATE struct amp_state *ampstate_addr;
   HL_PRIVATE hamlib_port_t *ampport_addr;
