@@ -6,8 +6,10 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include "hamlib/rig.h"
 #include <sys/time.h>
+
+#include "hamlib/rig.h"
+#include "hamlib/port.h"
 #include "misc.h"
 
 #define LOOP_COUNT 100
