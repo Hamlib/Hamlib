@@ -444,6 +444,11 @@ static int dummy_get_level(AMP *amp, setting_t level, value_t *val)
             break;
     }
 
+    if (!(amp->caps->has_get_level & level))
+    {
+        return -RIG_EINVAL;
+    }
+
     idx = rig_setting2idx(level);
 
     if (idx >= RIG_SETTING_MAX)
@@ -893,8 +898,6 @@ static int dummy_set_func(AMP *amp, setting_t func, int status)
 {
     struct dummy_amp_priv_data *priv = (struct dummy_amp_priv_data *)
                                        AMPSTATE(amp)->priv;
-    const struct confparams *cfp;
-    struct ext_list *elp;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %d\n", __func__,
               amp_strfunc(func), status);
