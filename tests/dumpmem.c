@@ -20,13 +20,15 @@
  */
 
 
+#include "hamlib/config.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
 #include "hamlib/rig.h"
-
-#include "hamlib/config.h"
+#include "hamlib/port.h"
+#include "hamlib/rig_state.h"
 
 #include "misc.h"
 
