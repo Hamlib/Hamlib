@@ -16,7 +16,8 @@ Version 5.x -- future
           heap buffers
 
 Version 4.7.1
-        *2026-??-??
+        * 2026-??-??
+        * Fix unknown type compilation errors on Alpine Linux.  (TNX Bradfor Boyle)
 
 Version 4.7.0
         * 2026-02-15
