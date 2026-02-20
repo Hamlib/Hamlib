@@ -595,36 +595,46 @@ int amp_sprintf_level_gran(char *str, int nlen, setting_t level,
             continue;
         }
 
+        int written = 0;
+
         if (AMP_LEVEL_IS_FLOAT(rig_idx2setting(i)))
         {
-            len += snprintf(str + len, nlen - len,
-                           "%s(%f..%f/%f) ",
-                           ms,
-                           gran[i].min.f,
-                           gran[i].max.f,
-                           gran[i].step.f);
+            written = snprintf(str + len, nlen - len,
+                              "%s(%f..%f/%f) ",
+                              ms,
+                              gran[i].min.f,
+                              gran[i].max.f,
+                              gran[i].step.f);
         }
         else if (AMP_LEVEL_IS_STRING(rig_idx2setting(i)))
         {
             if (gran[i].step.s)
             {
-                len += snprintf(str + len, nlen - len,
-                               "%s(%s) ",
-                               ms,
-                               gran[i].step.s);
+                written = snprintf(str + len, nlen - len,
+                                  "%s(%s) ",
+                                  ms,
+                                  gran[i].step.s);
             }
         }
         else
         {
-            len += snprintf(str + len, nlen - len,
-                           "%s(%d..%d/%d) ",
-                           ms,
-                           gran[i].min.i,
-                           gran[i].max.i,
-                           gran[i].step.i);
+            written = snprintf(str + len, nlen - len,
+                              "%s(%d..%d/%d) ",
+                              ms,
+                              gran[i].min.i,
+                              gran[i].max.i,
+                              gran[i].step.i);
         }
 
-        check_buffer_overflow(str, len, nlen);
+        if (written < 0 || written >= nlen - len)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: buffer overflow\n", __func__);
+            len = nlen - 1;
+            str[len] = '\0';
+            break;
+        }
+
+        len += written;
     }
 
     return len;
@@ -915,36 +925,46 @@ int amp_sprintf_parm_gran(char *str, int nlen, setting_t parm,
             continue;
         }
 
+        int written = 0;
+
         if (AMP_PARM_IS_FLOAT(rig_idx2setting(i)))
         {
-            len += snprintf(str + len, nlen - len,
-                           "%s(%f..%f/%f) ",
-                           ms,
-                           gran[i].min.f,
-                           gran[i].max.f,
-                           gran[i].step.f);
+            written = snprintf(str + len, nlen - len,
+                              "%s(%f..%f/%f) ",
+                              ms,
+                              gran[i].min.f,
+                              gran[i].max.f,
+                              gran[i].step.f);
         }
         else if (AMP_PARM_IS_STRING(rig_idx2setting(i)))
         {
             if (gran[i].step.s)
             {
-                len += snprintf(str + len, nlen - len,
-                               "%s(%s) ",
-                               ms,
-                               gran[i].step.s);
+                written = snprintf(str + len, nlen - len,
+                                  "%s(%s) ",
+                                  ms,
+                                  gran[i].step.s);
             }
         }
         else
         {
-            len += snprintf(str + len, nlen - len,
-                           "%s(%d..%d/%d) ",
-                           ms,
-                           gran[i].min.i,
-                           gran[i].max.i,
-                           gran[i].step.i);
+            written = snprintf(str + len, nlen - len,
+                              "%s(%d..%d/%d) ",
+                              ms,
+                              gran[i].min.i,
+                              gran[i].max.i,
+                              gran[i].step.i);
         }
 
-        check_buffer_overflow(str, len, nlen);
+        if (written < 0 || written >= nlen - len)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: buffer overflow\n", __func__);
+            len = nlen - 1;
+            str[len] = '\0';
+            break;
+        }
+
+        len += written;
     }
 
     return len;
@@ -1106,10 +1126,18 @@ int amp_sprintf_status(char *str, int nlen, amp_status_t status)
 
         if (sv && sv[0] && (strstr(sv, "None") == 0))
         {
-            len += snprintf(str + len, nlen - len, "%s ", sv);
-        }
+            int written = snprintf(str + len, nlen - len, "%s ", sv);
 
-        check_buffer_overflow(str, len, nlen);
+            if (written < 0 || written >= nlen - len)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: buffer overflow\n", __func__);
+                len = nlen - 1;
+                str[len] = '\0';
+                break;
+            }
+
+            len += written;
+        }
     }
 
     return len;

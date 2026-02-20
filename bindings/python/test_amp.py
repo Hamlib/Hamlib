@@ -31,10 +31,10 @@ class TestClass:
         assert amp.get_conf(0) == ""
         if model == Hamlib.AMP_MODEL_DUMMY:
             conf = amp.get_conf("mcfg")
-            assert conf == ""
+            assert conf == "AMPLIFIER"
             assert amp.set_conf("mcfg", "foobar") is None
             conf = amp.get_conf("mcfg")
-            assert conf == ""  # FIXME: should return "foobar"
+            assert conf == "foobar"
         else:
             conf = amp.get_conf("mcfg")
             assert conf == ""
@@ -72,13 +72,16 @@ class TestClass:
         assert isinstance(level, int)
         level = amp.get_level(Hamlib.AMP_LEVEL_FAULT)
         assert isinstance(level, str)
-        level = amp.get_level(123456)
-        assert level is None
+        level = amp.get_level(Hamlib.AMP_LEVEL_TEMP_METER)
+        assert level is None  # not supported by dummy amp
         value = Hamlib.value_t()
         value.i = 2
         assert amp.set_level(Hamlib.AMP_LEVEL_SWR, value) is None
-        assert amp.set_ext_level(Hamlib.AMP_LEVEL_SWR, value) is None
-        level = amp.get_ext_level(Hamlib.AMP_LEVEL_SWR)
+
+        # ext levels depend on the backend, so simply test with TOK_BACKEND_NONE (0)
+        # token 0 is not a valid ext level, so set_ext_level and get_ext_level should return None
+        assert amp.set_ext_level(0, value) is None
+        level = amp.get_ext_level(0)
         assert level is None
 
         assert amp.set_powerstat(Hamlib.RIG_POWER_ON) is None
