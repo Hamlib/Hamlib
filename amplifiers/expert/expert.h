@@ -1,7 +1,8 @@
 /*
  * Hamlib backend library for the Expert amplifier set.
  *
- * expert.h - (C) Michael Black W9MDB 2023
+ *  Copyright (c) 2023 by Michael Black W9MDB
+ *  Copyright (c) 2026 by Mikael Nousiainen OH3BHX
  *
  * This shared library provides an API for communicating
  * via serial interface to Expert amplifiers.
@@ -29,33 +30,38 @@
 #include "hamlib/amplifier.h"
 #include "iofunc.h"
 
-// Is this big enough?
-#define KPABUFSZ 100
+#define EXPERTBUFSZ 128
 
-extern const struct amp_caps expert_amp_caps;
+#define TOKEN_BACKEND(t) (t)
 
-/*
- * Private data structure
- */
-struct expert_priv_data
-{
-    char tmpbuf[256];  // for unknown error msg
-};
+#define TOK_CFG_STATUS_CACHE_TIMEOUT TOKEN_BACKEND(1)
+#define EXPERT_CACHE_TIMEOUT_DEFAULT 40
 
+extern const struct amp_caps expert_13k_fa_amp_caps;
+extern const struct amp_caps expert_15k_fa_amp_caps;
+extern const struct amp_caps expert_2k_fa_amp_caps;
 
 int expert_init(AMP *amp);
+int expert_open(AMP *amp);
 int expert_close(AMP *amp);
+int expert_cleanup(AMP *amp);
 int expert_reset(AMP *amp, amp_reset_t reset);
-int expert_flush_buffer(AMP *amp);
-int expert_transaction(AMP *amp, const unsigned  char *cmd, int cmd_len, unsigned char *response,
-                    int response_len);
 const char *expert_get_info(AMP *amp);
 int expert_get_freq(AMP *amp, freq_t *freq);
-int expert_set_freq(AMP *amp, freq_t freq);
+int expert_get_status(AMP *amp, amp_status_t *status);
 
 int expert_get_level(AMP *amp, setting_t level, value_t *val);
+int expert_set_level(AMP *amp, setting_t level, value_t val);
+int expert_get_func(AMP *amp, setting_t func, int *status);
 int expert_get_powerstat(AMP *amp, powerstat_t *status);
 int expert_set_powerstat(AMP *amp, powerstat_t status);
+
+int expert_get_input(AMP *amp, ant_t *input);
+int expert_set_input(AMP *amp, ant_t input);
+int expert_get_ant(AMP *amp, ant_t *ant);
+int expert_set_ant(AMP *amp, ant_t ant);
+int expert_amp_op(AMP *amp, amp_op_t op);
+int expert_set_parm(AMP *amp, setting_t parm, value_t val);
 
 #endif  /* _AMP_EXPERT_H */
 

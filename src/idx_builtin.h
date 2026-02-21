@@ -22,8 +22,9 @@
 #ifndef _IDX_BUILTIN_H
 #define _IDX_BUILTIN_H 1
 
-#include "hamlib/rig.h"
-#include "hamlib/rotator.h"
+#include <hamlib/rig.h>
+#include <hamlib/rotator.h>
+#include <hamlib/amplifier.h>
 
 /*
  * only for Hamlib internal use (backend caps)
@@ -197,5 +198,21 @@
 
 #define ROT_LVL_SPEED  setting2idx_builtin(ROT_LEVEL_SPEED)
 
+/* Amplifier levels */
+
+#define AMP_LVL_SWR             setting2idx_builtin(AMP_LEVEL_SWR)
+#define AMP_LVL_NH              setting2idx_builtin(AMP_LEVEL_NH)
+#define AMP_LVL_PF              setting2idx_builtin(AMP_LEVEL_PF)
+#define AMP_LVL_PWR_INPUT       setting2idx_builtin(AMP_LEVEL_PWR_INPUT)
+#define AMP_LVL_PWR_FWD         setting2idx_builtin(AMP_LEVEL_PWR_FWD)
+#define AMP_LVL_PWR_REFLECTED   setting2idx_builtin(AMP_LEVEL_PWR_REFLECTED)
+#define AMP_LVL_PWR_PEAK        setting2idx_builtin(AMP_LEVEL_PWR_PEAK)
+#define AMP_LVL_FAULT           setting2idx_builtin(AMP_LEVEL_FAULT)
+#define AMP_LVL_PWR             setting2idx_builtin(AMP_LEVEL_PWR)
+#define AMP_LVL_WARNING         setting2idx_builtin(AMP_LEVEL_WARNING)
+#define AMP_LVL_SWR_TUNER       setting2idx_builtin(AMP_LEVEL_SWR_TUNER)
+#define AMP_LVL_VD_METER        setting2idx_builtin(AMP_LEVEL_VD_METER)
+#define AMP_LVL_ID_METER        setting2idx_builtin(AMP_LEVEL_ID_METER)
+#define AMP_LVL_TEMP_METER      setting2idx_builtin(AMP_LEVEL_TEMP_METER)
 
 #endif  /* _IDX_BUILTIN_H */

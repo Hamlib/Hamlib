@@ -107,6 +107,7 @@ extern HAMLIB_EXPORT(int) rig_check_cache_timeout(const struct timeval *tv,
 extern HAMLIB_EXPORT(void) rig_force_cache_timeout(struct timeval *tv);
 
 extern HAMLIB_EXPORT(setting_t) rig_idx2setting(int i);
+extern HAMLIB_EXPORT(int) rig_bit2idx(uint64_t v);
 
 extern HAMLIB_EXPORT(int) hl_usleep(rig_useconds_t usec);
 

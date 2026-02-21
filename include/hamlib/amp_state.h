@@ -2,6 +2,7 @@
  *  Hamlib Interface - Amplifier state structure
  *  Copyright (c) 2000-2025 The Hamlib Group
  *  Copyright (c) 2025 George Baltz
+ *  Copyright (c) 2026 Mikael Nousiainen OH3BHX
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -64,6 +65,8 @@ struct amp_state
   hamlib_port_t_deprecated ampport_deprecated;  /*!< \deprecated Amplifier port (internal use). */
   //---End cut here---
 
+  hamlib_port_t ampport;  /*!< Amplifier port (internal use). */
+
   int comm_state;         /*!< Comm port state, opened/closed. */
   rig_ptr_t priv;         /*!< Pointer to private amplifier state data. */
   rig_ptr_t obj;          /*!< Internal use by hamlib++ for event handling. */
@@ -73,7 +76,15 @@ struct amp_state
 
   gran_t level_gran[RIG_SETTING_MAX]; /*!< Level granularity. */
   gran_t parm_gran[RIG_SETTING_MAX];  /*!< Parameter granularity. */
-  hamlib_port_t ampport;  /*!< Amplifier port (internal use). */
+
+  amp_status_t has_status;                    /*!< Supported status flags. */
+
+  amp_op_t amp_ops;                           /*!< AMP op bit field list */
+
+  setting_t has_get_func;                     /*!< List of get functions. */
+  setting_t has_set_func;                     /*!< List of set functions. */
+  setting_t has_get_parm;                     /*!< List of get parameters. */
+  setting_t has_set_parm;                     /*!< List of set parameters. */
 };
 
 #if defined(IN_HAMLIB)
