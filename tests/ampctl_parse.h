@@ -33,7 +33,7 @@
  * external prototype
  */
 
-int dumpcaps_amp(const AMP *, FILE *);
+int dumpcaps_amp(AMP *, FILE *);
 
 
 /*

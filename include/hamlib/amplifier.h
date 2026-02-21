@@ -1,6 +1,7 @@
 /*
  *  Hamlib Interface - Amplifier API header
  *  Copyright (c) 2000-2005 by Stephane Fillod
+ *  Copyright (c) 2026 by Mikael Nousiainen OH3BHX
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -131,29 +132,90 @@ typedef enum amp_type_e
 ///@}
 
 
-///@{
-/// Amplifier levels as bit masks.
+//! @cond Doxygen_Suppress
+/**
+ * \brief Amplifier Function Settings.
+ *
+ * Various operating functions supported by an amplifier.
+ *
+ * \c STRING used in the \c ampctl and \c ampctld utilities.
+ *
+ * \sa amp_parse_func(), amp_strfunc()
+ */
+#define AMP_FUNC_NONE       0                          /*!< '' -- No Function */
+#define AMP_FUNC_TUNER      CONSTANT_64BIT_FLAG (1)   /*!< \c TUNER -- Enable automatic tuner */
+#ifndef SWIGLUAHIDE
+/* Hide the top 32 bits from the old Lua binding as they can't be represented */
+#define AMP_FUNC_BIT63      CONSTANT_64BIT_FLAG (63)   /*!< **Future use**, AMP_FUNC items. */
+/* 63 is this highest bit number that can be used */
+#endif
+//! @endcond
+
+//! @cond Doxygen_Suppress
+/**
+ * \brief Amplifier Level Settings.
+ *
+ * Various operating levels supported by an amplifier.
+ *
+ * \c STRING used in the \c ampctl and \c ampctld utilities.
+ *
+ * \sa amp_parse_level(), amp_strlevel()
+ */
 enum amp_level_e
 {
-  AMP_LEVEL_NONE          = 0,        /*!< '' -- No Level. */
-  AMP_LEVEL_SWR           = (1 << 0), /*!< \c SWR 1.0 or greater. */
-  AMP_LEVEL_NH            = (1 << 1), /*!< \c Tune setting in nanohenries. */
-  AMP_LEVEL_PF            = (1 << 2), /*!< \c Tune setting in picofarads. */
-  AMP_LEVEL_PWR_INPUT     = (1 << 3), /*!< \c Power reading from amplifier. */
-  AMP_LEVEL_PWR_FWD       = (1 << 4), /*!< \c Power reading forward. */
-  AMP_LEVEL_PWR_REFLECTED = (1 << 5), /*!< \c Power reading reverse. */
-  AMP_LEVEL_PWR_PEAK      = (1 << 6), /*!< \c Power reading peak. */
-  AMP_LEVEL_FAULT         = (1 << 7), /*!< \c Fault code. */
-  AMP_LEVEL_PWR           = (1 << 8), /*!< \c Power setting. */
+  AMP_LEVEL_NONE          = 0,                      /*!< '' -- No Level. */
+  AMP_LEVEL_SWR           = CONSTANT_64BIT_FLAG(0), /*!< \c Standing Wave Ratio (SWR) from antenna, 1.0 or greater, type float */
+  AMP_LEVEL_NH            = CONSTANT_64BIT_FLAG(1), /*!< \c Tune setting in nanohenries (nH), type int */
+  AMP_LEVEL_PF            = CONSTANT_64BIT_FLAG(2), /*!< \c Tune setting in picofarads (pF), type int */
+  AMP_LEVEL_PWR_INPUT     = CONSTANT_64BIT_FLAG(3), /*!< \c Input power for amplifier in watts (W), type int */
+  AMP_LEVEL_PWR_FWD       = CONSTANT_64BIT_FLAG(4), /*!< \c Output power forward in watts (W), type int */
+  AMP_LEVEL_PWR_REFLECTED = CONSTANT_64BIT_FLAG(5), /*!< \c Output power reflected in watts (W), type int */
+  AMP_LEVEL_PWR_PEAK      = CONSTANT_64BIT_FLAG(6), /*!< \c Peak output power reading in watts (W), type int */
+  AMP_LEVEL_FAULT         = CONSTANT_64BIT_FLAG(7), /*!< \c Fault code as a string message (device-dependent), type string */
+  AMP_LEVEL_PWR           = CONSTANT_64BIT_FLAG(8), /*!< \c Output power setting, type float [model-specific range, defaults to 0.0 ... 1.0] - round up to nearest step where 1.0 = max power, if range not specified */
+  AMP_LEVEL_WARNING       = CONSTANT_64BIT_FLAG(9), /*!< \c Warning code as a string message (device-dependent), type string */
+  AMP_LEVEL_SWR_TUNER     = CONSTANT_64BIT_FLAG(10), /*!< \c Standing Wave Ratio (SWR) reported by tuner, 1.0 or greater, type float */
+  AMP_LEVEL_VD_METER      = CONSTANT_64BIT_FLAG(11), /*!< \c Supply voltage in volts (V), type float */
+  AMP_LEVEL_ID_METER      = CONSTANT_64BIT_FLAG(12), /*!< \c Current draw in amperes (A), type float */
+  AMP_LEVEL_TEMP_METER    = CONSTANT_64BIT_FLAG(13), /*!< \c Temperature in degrees Celsius (C), type float */
+  AMP_LEVEL_63            = CONSTANT_64BIT_FLAG(63), /*!< **Future use**, last level. */
 };
 ///@}
 
 //! @cond Doxygen_Suppress
-// Not used yet.
-#define AMP_LEVEL_FLOAT_LIST  (AMP_LEVEL_SWR)
-#define AMP_LEVEL_STRING_LIST  (AMP_LEVEL_FAULT)
+#define AMP_LEVEL_FLOAT_LIST  (AMP_LEVEL_SWR|AMP_LEVEL_PWR|AMP_LEVEL_SWR_TUNER|AMP_LEVEL_VD_METER|AMP_LEVEL_ID_METER|AMP_LEVEL_TEMP_METER)
+#define AMP_LEVEL_STRING_LIST  (AMP_LEVEL_FAULT|AMP_LEVEL_WARNING)
 #define AMP_LEVEL_IS_FLOAT(l) ((l)&AMP_LEVEL_FLOAT_LIST)
 #define AMP_LEVEL_IS_STRING(l) ((l)&AMP_LEVEL_STRING_LIST)
+
+#define AMP_LEVEL_READONLY_LIST (AMP_LEVEL_SWR|AMP_LEVEL_SWR_TUNER|AMP_LEVEL_VD_METER|AMP_LEVEL_ID_METER|AMP_LEVEL_TEMP_METER|AMP_LEVEL_PWR_INPUT|AMP_LEVEL_PWR_FWD|AMP_LEVEL_PWR_REFLECTED|AMP_LEVEL_PWR_PEAK|AMP_LEVEL_FAULT|AMP_LEVEL_WARNING)
+#define AMP_LEVEL_SET(l) ((l)&~AMP_LEVEL_READONLY_LIST)
+//! @endcond
+
+//! @cond Doxygen_Suppress
+/**
+ * \brief Amplifier Parameters
+ *
+ * Parameters are settings that are not related to the RF output of the amplifier.\n
+ * \c STRING used in ampctl
+ *
+ * \sa amp_parse_parm(), amp_strparm()
+ */
+enum amp_parm_e {
+    AMP_PARM_NONE =         0,          /*!< '' -- No Parm */
+    AMP_PARM_BACKLIGHT =    (1 << 1),   /*!< \c BACKLIGHT -- LCD light, float [0.0 ... 1.0] */
+    AMP_PARM_BEEP =         (1 << 2),   /*!< \c BEEP -- Beep on keypressed, int (0,1) */
+};
+//! @endcond
+
+//! @cond Doxygen_Suppress
+#define AMP_PARM_FLOAT_LIST  (AMP_PARM_BACKLIGHT)
+#define AMP_PARM_STRING_LIST  (AMP_PARM_NONE)
+#define AMP_PARM_IS_FLOAT(l) ((l)&AMP_PARM_FLOAT_LIST)
+#define AMP_PARM_IS_STRING(l) ((l)&AMP_PARM_STRING_LIST)
+
+#define AMP_PARM_READONLY_LIST (0)
+#define AMP_PARM_SET(l) ((l)&~AMP_PARM_READONLY_LIST)
 //! @endcond
 
 /* Basic amp type, can store some useful info about different amplifiers. Each
@@ -167,6 +229,79 @@ enum amp_level_e
  * Used when populating a backend amp_caps structure.
  */
 #define AMP_MODEL(arg) .amp_model=arg,.macro_name=#arg
+
+/**
+ * \brief AMP operation
+ *
+ * A AMP operation is an action on a the amplifier.
+ * The difference with a function is that an action has no on/off
+ * status, it is performed at once.
+ *
+ * \c STRING used in ampctl
+ *
+ * \sa amp_parse_amp_op(), amp_strampop()
+ */
+typedef enum {
+    AMP_OP_NONE =       0,          /*!< '' No AMP_OP */
+    AMP_OP_TUNE =       (1 << 0),   /*!< \c TUNE -- Start tuning */
+    AMP_OP_BAND_UP =    (1 << 1),   /*!< \c BAND_UP -- Band UP */
+    AMP_OP_BAND_DOWN =  (1 << 2),   /*!< \c BAND_DOWN -- Band DOWN */
+    AMP_OP_L_NH_UP =    (1 << 3),   /*!< \c L_NH_UP -- Tune manually L (nH) UP */
+    AMP_OP_L_NH_DOWN =  (1 << 4),   /*!< \c L_NH_DOWN -- Tune manually L (nH) DOWN */
+    AMP_OP_C_PF_UP =    (1 << 5),   /*!< \c C_PF_UP -- Tune manually C (pF) UP */
+    AMP_OP_C_PF_DOWN =  (1 << 6),   /*!< \c C_PF_DOWN -- Tune manually C (pF) DOWN */
+} amp_op_t;
+
+
+/**
+ * \brief Amplifier status flags - common faults, warnings and other status indicators for amplifier.
+ *
+ * Faults prevent the amplifier from working and usually trigger transition from OPERATE to STANDBY state.
+ * Warnings indicate a possible issue, but the conditions still allow amplifier to operate.
+ */
+typedef enum {
+    AMP_STATUS_NONE =                       0,        /*!< '' -- No status. */
+    AMP_STATUS_PTT =                        (1 << 0), /*!< PTT is active, amplifier is transmitting. */
+    AMP_STATUS_FAULT_SWR =                  (1 << 1), /*!< SWR exceeds limits. */
+    AMP_STATUS_FAULT_INPUT_POWER =          (1 << 2), /*!< Input power too high. */
+    AMP_STATUS_FAULT_TEMPERATURE =          (1 << 3), /*!< Temperature too high. */
+    AMP_STATUS_FAULT_PWR_FWD =              (1 << 4), /*!< Forward power too high. */
+    AMP_STATUS_FAULT_PWR_REFLECTED =        (1 << 5), /*!< Reflected power too high. */
+    AMP_STATUS_FAULT_VOLTAGE =              (1 << 6), /*!< Voltage too high or too low. */
+    AMP_STATUS_FAULT_FREQUENCY =            (1 << 7), /*!< Frequency/band not supported by the amplifier. */
+    AMP_STATUS_FAULT_TUNER_NO_MATCH =       (1 << 8), /*!< Tuner did not find a match. */
+    AMP_STATUS_FAULT_OTHER =                (1 << 9), /*!< Other fault. Get model-specific fault with \c AMP_LEVEL_FAULT */
+    AMP_STATUS_WARNING_SWR_HIGH =           (1 << 10), /*!< SWR is high. */
+    AMP_STATUS_WARNING_POWER_LIMIT =        (1 << 11), /*!< Power limit exceeded. */
+    AMP_STATUS_WARNING_TEMPERATURE =        (1 << 12), /*!< Temperature high. */
+    AMP_STATUS_WARNING_FREQUENCY =          (1 << 13), /*!< Frequency/band not supported by the amplifier. */
+    AMP_STATUS_WARNING_TUNER_NO_INPUT =     (1 << 14), /*!< Tuning with no input power. */
+    AMP_STATUS_WARNING_OTHER  =             (1 << 15), /*!< Other warning. Get model-specific warning with \c AMP_LEVEL_WARNING */
+} amp_status_t;
+
+//! @cond Doxygen_Suppress
+/* So far only used in tests/sprintflst.c. */
+#define AMP_STATUS_N(n)        (1u<<(n))
+//! @endcond
+
+
+/**
+ * \brief Amplifier frequency range
+ *
+ * Put together a group of this struct in an array to define
+ * what frequencies the amplifier has access to.
+ */
+typedef struct amp_freq_range_list {
+    freq_t startf;      /*!< Start frequency */
+    freq_t endf;        /*!< End frequency */
+    rmode_t modes;      /*!< Bit field of RIG_MODE's supported for this range, 0 means any mode */
+    int low_power;      /*!< Lower RF power in mW, -1 for no power (ie. rx list) */
+    int high_power;     /*!< Higher RF power in mW, -1 for no power (ie. rx list) */
+    ant_t input;        /*!< Input list for this range, 0 means all (or no inputs). If a particular frequency range uses a specific input always, specify it here. */
+    ant_t ant;          /*!< Antenna list equipped with this range, 0 means all, RIG_ANT_CURR means dedicated to certain bands and automatically switches, no set_ant command */
+    char *label;        /*!< Label for this range that explains why.  e.g. Icom rigs USA, EUR, ITR, TPE, KOR */
+} amp_freq_range_t;
+
 
 /**
  * \brief Amplifier capabilities.
@@ -248,16 +383,57 @@ struct amp_caps
   int (*set_powerstat)(AMP *amp, powerstat_t status);          /*!< Pointer to backend implementation of amp_set_powerstat(). */
   int (*get_powerstat)(AMP *amp, powerstat_t *status);         /*!< Pointer to backend implementation of amp_get_powerstat(). */
 
-
   /* get firmware info, etc. */
   const char *(*get_info)(AMP *amp); /*!< Pointer to backend implementation of amp_get_info(). */
 
+//! @cond Doxygen_Suppress
   setting_t levels;         /*!< Levels bit mask */
   unsigned ext_levels;      /*!< Extension levels value. */
-  const struct confparams *extlevels;         /*!< Extension levels list.  \sa extamp.c */
-  const struct confparams *extparms;          /*!< Extension parameters list.  \sa extamp.c */
+//! @endcond
+  const struct confparams *extlevels;         /*!< Extension levels list.  \sa amp_ext.c */
+  const struct confparams *extparms;          /*!< Extension parameters list.  \sa amp_ext.c */
 
   const char *macro_name;                     /*!< Amplifier model macro name. */
+
+  amp_status_t has_status;                    /*!< Supported status flags. */
+
+  amp_op_t amp_ops;                           /*!< AMP op bit field list */
+
+  setting_t has_get_func;                     /*!< List of get functions. */
+  setting_t has_set_func;                     /*!< List of set functions. */
+  setting_t has_get_parm;                     /*!< List of get parameters. */
+  setting_t has_set_parm;                     /*!< List of set parameters. */
+
+  const struct confparams *extfuncs;          /*!< Extension func list.  \sa amp_ext.c */
+  int *ext_tokens;                            /*!< Extension token list. */
+
+  int (*get_status)(AMP *amp, amp_status_t *status);        /*!< Pointer to backend implementation of ::amp_get_status(). */
+
+  int (*amp_op)(AMP *amp, amp_op_t op);                     /*!< Pointer to backend implementation of ::amp_op(). */
+
+  int (*set_input)(AMP *amp, ant_t input);                  /*!< Pointer to backend implementation of ::amp_set_input(). */
+  int (*get_input)(AMP *amp, ant_t *input);                 /*!< Pointer to backend implementation of ::amp_get_input(). */
+
+  int (*set_ant)(AMP *amp, ant_t ant);                      /*!< Pointer to backend implementation of ::amp_set_ant(). */
+  int (*get_ant)(AMP *amp, ant_t *ant);                     /*!< Pointer to backend implementation of ::amp_get_ant(). */
+
+  int (*set_func)(AMP *amp, setting_t func, int status);     /*!< Pointer to backend implementation of ::amp_set_func(). */
+  int (*get_func)(AMP *amp, setting_t func, int *status);    /*!< Pointer to backend implementation of ::amp_get_func(). */
+
+  int (*set_parm)(AMP *amp, setting_t parm, value_t val);    /*!< Pointer to backend implementation of ::amp_set_parm(). */
+  int (*get_parm)(AMP *amp, setting_t parm, value_t *val);   /*!< Pointer to backend implementation of ::amp_get_parm(). */
+
+  int (*set_ext_func)(AMP *amp, hamlib_token_t token, int status);  /*!< Pointer to backend implementation of ::amp_set_ext_func(). */
+  int (*get_ext_func)(AMP *amp, hamlib_token_t token, int *status); /*!< Pointer to backend implementation of ::amp_get_ext_func(). */
+
+  int (*set_ext_parm)(AMP *amp, hamlib_token_t token, value_t val);     /*!< Pointer to backend implementation of ::amp_set_ext_parm(). */
+  int (*get_ext_parm)(AMP *amp, hamlib_token_t token, value_t *val);    /*!< Pointer to backend implementation of ::amp_get_ext_parm(). */
+
+  amp_freq_range_t range_list1[HAMLIB_FRQRANGESIZ];              /*!< Amplifier frequency range list #1 */
+  amp_freq_range_t range_list2[HAMLIB_FRQRANGESIZ];              /*!< Amplifier frequency range list #2 */
+  amp_freq_range_t range_list3[HAMLIB_FRQRANGESIZ];              /*!< Amplifier frequency range list #3 */
+  amp_freq_range_t range_list4[HAMLIB_FRQRANGESIZ];              /*!< Amplifier frequency range list #4 */
+  amp_freq_range_t range_list5[HAMLIB_FRQRANGESIZ];              /*!< Amplifier frequency range list #5 */
 };
 
 //---Start cut here---
@@ -346,11 +522,43 @@ extern HAMLIB_EXPORT(const char *)
 amp_get_info(AMP *amp);
 
 extern HAMLIB_EXPORT(int)
+amp_get_status(AMP *amp,
+        amp_status_t *status);
+
+extern HAMLIB_EXPORT(int)
+amp_set_input(AMP *amp,
+                             ant_t input);
+extern HAMLIB_EXPORT(int)
+amp_get_input(AMP *amp,
+                             ant_t *input);
+
+extern HAMLIB_EXPORT(int)
+amp_set_ant(AMP *amp,
+                           ant_t ant);
+extern HAMLIB_EXPORT(int)
+amp_get_ant(AMP *amp,
+                           ant_t *ant);
+
+extern HAMLIB_EXPORT(int)
+amp_set_func(AMP *amp,
+        setting_t func,
+        int status);
+extern HAMLIB_EXPORT(int)
+amp_get_func(AMP *amp,
+        setting_t func,
+        int *status);
+
+extern HAMLIB_EXPORT(int)
 amp_get_level(AMP *amp, setting_t level, value_t *val);
 
 extern HAMLIB_EXPORT(int)
 amp_set_level(AMP *amp, setting_t level, value_t val);
 
+extern HAMLIB_EXPORT(int)
+amp_get_parm(AMP *amp, setting_t parm, value_t *val);
+
+extern HAMLIB_EXPORT(int)
+amp_set_parm(AMP *amp, setting_t parm, value_t val);
 
 extern HAMLIB_EXPORT(int)
 amp_register(const struct amp_caps *caps);
@@ -398,9 +606,31 @@ extern HAMLIB_EXPORT(setting_t)
 amp_has_set_level(AMP *amp,
                   setting_t level);
 
+extern HAMLIB_EXPORT(setting_t)
+amp_has_get_parm(AMP *amp,
+                                setting_t parm);
+extern HAMLIB_EXPORT(setting_t)
+amp_has_set_parm(AMP *amp,
+                                setting_t parm);
+
+extern HAMLIB_EXPORT(setting_t)
+amp_has_get_func(AMP *amp,
+                                setting_t func);
+extern HAMLIB_EXPORT(setting_t)
+amp_has_set_func(AMP *amp,
+                                setting_t func);
+
 extern HAMLIB_EXPORT(const struct confparams *)
 amp_ext_lookup(AMP *amp,
                const char *name);
+
+extern HAMLIB_EXPORT(const struct confparams *)
+amp_ext_lookup_tok(AMP *amp,
+                                  hamlib_token_t token);
+
+extern HAMLIB_EXPORT(hamlib_token_t)
+amp_ext_token_lookup(AMP *amp,
+                                    const char *name);
 
 extern HAMLIB_EXPORT(int)
 amp_get_ext_level(AMP *amp,
@@ -412,14 +642,62 @@ amp_set_ext_level(AMP *amp,
                   hamlib_token_t token,
                   value_t val);
 
-extern HAMLIB_EXPORT(const char *) amp_strlevel(setting_t);
+extern HAMLIB_EXPORT(int)
+amp_set_ext_func(AMP *amp,
+                                 hamlib_token_t token,
+                                 int status);
+extern HAMLIB_EXPORT(int)
+amp_get_ext_func(AMP *amp,
+                                 hamlib_token_t token,
+                                 int *status);
 
-extern HAMLIB_EXPORT(const struct confparams *)
-rig_ext_lookup(RIG *rig,
-               const char *name);
+extern HAMLIB_EXPORT(int)
+amp_set_ext_parm(AMP *amp,
+                                hamlib_token_t token,
+                                value_t val);
+extern HAMLIB_EXPORT(int)
+amp_get_ext_parm(AMP *amp,
+                                hamlib_token_t token,
+                                value_t *val);
 
+extern HAMLIB_EXPORT(int)
+amp_ext_func_foreach(AMP *amp,
+                                     int (*cfunc)(AMP *,
+                                                  const struct confparams *,
+                                                  rig_ptr_t),
+                                     rig_ptr_t data);
+extern HAMLIB_EXPORT(int)
+amp_ext_level_foreach(AMP *amp,
+                                     int (*cfunc)(AMP *,
+                                                  const struct confparams *,
+                                                  rig_ptr_t),
+                                     rig_ptr_t data);
+extern HAMLIB_EXPORT(int)
+amp_ext_parm_foreach(AMP *amp,
+                                    int (*cfunc)(AMP *,
+                                                 const struct confparams *,
+                                                 rig_ptr_t),
+                                    rig_ptr_t data);
+
+
+extern HAMLIB_EXPORT(int)
+amp_op(AMP *amp, amp_op_t op);
+
+extern HAMLIB_EXPORT(amp_op_t)
+amp_has_op(AMP *amp,
+                          amp_op_t op);
+
+extern HAMLIB_EXPORT(amp_op_t) amp_parse_amp_op(const char *s);
+extern HAMLIB_EXPORT(const char *) amp_strampop(amp_op_t op);
+
+extern HAMLIB_EXPORT(const char *) amp_strstatus(amp_status_t);
+
+extern HAMLIB_EXPORT(setting_t) amp_parse_func(const char *s);
 extern HAMLIB_EXPORT(setting_t) amp_parse_level(const char *s);
+extern HAMLIB_EXPORT(setting_t) amp_parse_parm(const char *s);
+extern HAMLIB_EXPORT(const char *) amp_strfunc(setting_t);
 extern HAMLIB_EXPORT(const char *) amp_strlevel(setting_t);
+extern HAMLIB_EXPORT(const char *) amp_strparm(setting_t);
 
 extern HAMLIB_EXPORT(void *) amp_data_pointer(AMP *amp, rig_ptrx_t idx);
 

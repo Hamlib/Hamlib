@@ -155,6 +155,12 @@ int rig_sprintf_ant(char *str, int str_len, ant_t ant)
 
             case 4: ant_name = "ANT5"; break;
 
+            case 5: ant_name = "ANT6"; break;
+
+            case 6: ant_name = "ANT7"; break;
+
+            case 7: ant_name = "ANT8"; break;
+
             case 30: ant_name = "ANT_UNKNOWN"; break;
 
             case 31: ant_name = "ANT_CURR"; break;
@@ -242,6 +248,37 @@ int rot_sprintf_func(char *str, int nlen, setting_t func)
 
         if (!ms || !ms[0])
         {
+            continue;    /* unknown, FIXME! */
+        }
+
+        strcat(str, ms);
+        strcat(str, " ");
+        len += strlen(ms) + 1;
+        check_buffer_overflow(str, len, nlen);
+    }
+
+    return len;
+}
+
+
+int amp_sprintf_func(char *str, int nlen, setting_t func)
+{
+    unsigned int i, len = 0;
+
+    *str = '\0';
+
+    if (func == AMP_FUNC_NONE)
+    {
+        return 0;
+    }
+
+    for (i = 0; i < RIG_SETTING_MAX; i++)
+    {
+        const char *ms = amp_strfunc(func & rig_idx2setting(i));
+
+        if (!ms || !ms[0])
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: unknown AMP_FUNC=%x\n", __func__, i);
             continue;    /* unknown, FIXME! */
         }
 
@@ -525,6 +562,85 @@ int rot_sprintf_level_gran(char *str, int nlen, setting_t level,
     return len;
 }
 
+int amp_sprintf_level_gran(char *str, int nlen, setting_t level,
+                           const gran_t *gran)
+{
+    int i, len = 0;
+
+    *str = '\0';
+
+    if (level == AMP_LEVEL_NONE)
+    {
+        return 0;
+    }
+
+    for (i = 0; i < RIG_SETTING_MAX; i++)
+    {
+        const char *ms;
+
+        if (!(level & rig_idx2setting(i)))
+        {
+            continue;
+        }
+
+        ms = amp_strlevel(level & rig_idx2setting(i));
+
+        if (!ms || !ms[0])
+        {
+            if (level != DUMMY_ALL && level != AMP_LEVEL_SET(DUMMY_ALL))
+            {
+                rig_debug(RIG_DEBUG_BUG, "unknown level idx %d\n", i);
+            }
+
+            continue;
+        }
+
+        int written = 0;
+
+        if (AMP_LEVEL_IS_FLOAT(rig_idx2setting(i)))
+        {
+            written = snprintf(str + len, nlen - len,
+                              "%s(%f..%f/%f) ",
+                              ms,
+                              gran[i].min.f,
+                              gran[i].max.f,
+                              gran[i].step.f);
+        }
+        else if (AMP_LEVEL_IS_STRING(rig_idx2setting(i)))
+        {
+            if (gran[i].step.s)
+            {
+                written = snprintf(str + len, nlen - len,
+                                  "%s(%s) ",
+                                  ms,
+                                  gran[i].step.s);
+            }
+        }
+        else
+        {
+            written = snprintf(str + len, nlen - len,
+                              "%s(%d..%d/%d) ",
+                              ms,
+                              gran[i].min.i,
+                              gran[i].max.i,
+                              gran[i].step.i);
+        }
+
+        if (written < 0 || written >= nlen - len)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: buffer overflow\n", __func__);
+            len = nlen - 1;
+            str[len] = '\0';
+            break;
+        }
+
+        len += written;
+    }
+
+    return len;
+}
+
+
 int rig_sprintf_parm(char *str, int nlen, setting_t parm)
 {
     int i, len = 0;
@@ -598,6 +714,36 @@ int rot_sprintf_parm(char *str, int nlen, setting_t parm)
 
     return len;
 }
+
+int amp_sprintf_parm(char *str, int nlen, setting_t parm)
+{
+    int i, len = 0;
+
+    *str = '\0';
+
+    if (parm == AMP_PARM_NONE)
+    {
+        return 0;
+    }
+
+    for (i = 0; i < RIG_SETTING_MAX; i++)
+    {
+        const char *ms = amp_strparm(parm & rig_idx2setting(i));
+
+        if (!ms || !ms[0])
+        {
+            continue;    /* unknown, FIXME! */
+        }
+
+        strcat(str, ms);
+        strcat(str, " ");
+        len += strlen(ms) + 1;
+        check_buffer_overflow(str, len, nlen);
+    }
+
+    return len;
+}
+
 
 int rig_sprintf_parm_gran(char *str, int nlen, setting_t parm,
                           const gran_t *gran)
@@ -746,6 +892,85 @@ int rot_sprintf_parm_gran(char *str, int nlen, setting_t parm,
     return len;
 }
 
+int amp_sprintf_parm_gran(char *str, int nlen, setting_t parm,
+                          const gran_t *gran)
+{
+    int i, len = 0;
+
+    *str = '\0';
+
+    if (parm == AMP_PARM_NONE)
+    {
+        return 0;
+    }
+
+    for (i = 0; i < RIG_SETTING_MAX; i++)
+    {
+        const char *ms;
+
+        if (!(parm & rig_idx2setting(i)))
+        {
+            continue;
+        }
+
+        ms = amp_strparm(parm & rig_idx2setting(i));
+
+        if (!ms || !ms[0])
+        {
+            if (parm != DUMMY_ALL && parm != AMP_PARM_SET(DUMMY_ALL))
+            {
+                rig_debug(RIG_DEBUG_BUG, "unknown parm idx %d\n", i);
+            }
+
+            continue;
+        }
+
+        int written = 0;
+
+        if (AMP_PARM_IS_FLOAT(rig_idx2setting(i)))
+        {
+            written = snprintf(str + len, nlen - len,
+                              "%s(%f..%f/%f) ",
+                              ms,
+                              gran[i].min.f,
+                              gran[i].max.f,
+                              gran[i].step.f);
+        }
+        else if (AMP_PARM_IS_STRING(rig_idx2setting(i)))
+        {
+            if (gran[i].step.s)
+            {
+                written = snprintf(str + len, nlen - len,
+                                  "%s(%s) ",
+                                  ms,
+                                  gran[i].step.s);
+            }
+        }
+        else
+        {
+            written = snprintf(str + len, nlen - len,
+                              "%s(%d..%d/%d) ",
+                              ms,
+                              gran[i].min.i,
+                              gran[i].max.i,
+                              gran[i].step.i);
+        }
+
+        if (written < 0 || written >= nlen - len)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: buffer overflow\n", __func__);
+            len = nlen - 1;
+            str[len] = '\0';
+            break;
+        }
+
+        len += written;
+    }
+
+    return len;
+}
+
+
 int rig_sprintf_vfop(char *str, int nlen, vfo_op_t op)
 {
     int i, len = 0;
@@ -760,6 +985,36 @@ int rig_sprintf_vfop(char *str, int nlen, vfo_op_t op)
     for (i = 0; i < HAMLIB_MAX_VFO_OPS; i++)
     {
         const char *ms = rig_strvfop(op & (1UL << i));
+
+        if (!ms || !ms[0])
+        {
+            continue;    /* unknown, FIXME! */
+        }
+
+        strcat(str, ms);
+        strcat(str, " ");
+        len += strlen(ms) + 1;
+        check_buffer_overflow(str, len, nlen);
+    }
+
+    return len;
+}
+
+
+int amp_sprintf_amp_op(char *str, int nlen, amp_op_t op)
+{
+    int i, len = 0;
+
+    *str = '\0';
+
+    if (op == AMP_OP_NONE)
+    {
+        return 0;
+    }
+
+    for (i = 0; i < HAMLIB_MAX_AMP_OPS; i++)
+    {
+        const char *ms = amp_strampop(op & (1UL << i));
 
         if (!ms || !ms[0])
         {
@@ -844,6 +1099,44 @@ int rot_sprintf_status(char *str, int nlen, rot_status_t status)
             rig_debug(RIG_DEBUG_ERR, "%s: buffer overflow\n", __func__);
             str[nlen - 1] = '\0';
             break;
+        }
+    }
+
+    return len;
+}
+
+
+int amp_sprintf_status(char *str, int nlen, amp_status_t status)
+{
+    int len = 0;
+    unsigned long i;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: status=%08x\n", __func__, status);
+    *str = '\0';
+
+    if (status == AMP_STATUS_NONE)
+    {
+        return 0;
+    }
+
+    for (i = 0; i < HAMLIB_MAX_AMP_STATUS; i++)
+    {
+        const char *sv;
+        sv = amp_strstatus(status & AMP_STATUS_N(i));
+
+        if (sv && sv[0] && (strstr(sv, "None") == 0))
+        {
+            int written = snprintf(str + len, nlen - len, "%s ", sv);
+
+            if (written < 0 || written >= nlen - len)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: buffer overflow\n", __func__);
+                len = nlen - 1;
+                str[len] = '\0';
+                break;
+            }
+
+            len += written;
         }
     }
 
