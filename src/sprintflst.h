@@ -22,9 +22,9 @@
 #ifndef _SPRINTFLST_H
 #define _SPRINTFLST_H 1
 
-#include <hamlib/rig.h>
-#include <hamlib/rotator.h>
-#include <hamlib/amplifier.h>
+#include "hamlib/rig.h"
+#include "hamlib/rotator.h"
+#include "hamlib/amplifier.h"
 
 #define SPRINTF_MAX_SIZE 2048
 

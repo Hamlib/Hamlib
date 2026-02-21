@@ -22,9 +22,9 @@
 #ifndef _IDX_BUILTIN_H
 #define _IDX_BUILTIN_H 1
 
-#include <hamlib/rig.h>
-#include <hamlib/rotator.h>
-#include <hamlib/amplifier.h>
+#include "hamlib/rig.h"
+#include "hamlib/rotator.h"
+#include "hamlib/amplifier.h"
 
 /*
  * only for Hamlib internal use (backend caps)
