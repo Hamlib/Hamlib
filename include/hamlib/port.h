@@ -46,11 +46,7 @@ __BEGIN_DECLS
  *
  * Of course, looks like OO painstakingly programmed in C, sigh.
  *
- * \warning
- * DO NOT CHANGE THIS STRUCTURE AT ALL UNTIL 5.0.
- * Right now it is static inside the rig structure.
- * 5.0 will change it to a pointer which can then be added to.
- * At that point only add to the end of the structure.
+ * Only add to the end of the structure.
  */
 typedef struct hamlib_port {
     union {
@@ -122,7 +118,7 @@ typedef struct hamlib_port {
     int fd_sync_error_read;     /*!< file descriptor for reading synchronous data error codes */
 #endif
     short timeout_retry;    /*!< number of retries to make in case of read timeout errors, some serial interfaces may require this, 0 to disable */
-// DO NOT ADD ANYTHING HERE UNTIL 5.0!!
+// Additions go right above this line
 } hamlib_port_t;
 
 
