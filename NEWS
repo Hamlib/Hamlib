@@ -13,7 +13,7 @@ Version 5.x -- future
         * rot_get_conf deprecated and replaced by rot_get_conf2
         * Change FT1000MP Mark V model names to align with FT1000MP
         * Internal data structures moved out of rig_struct to individual
-          heap buffers
+          heap buffers - Github issues #487 & #1445 (n3gb)
 
 Version 4.7.0
         * 2026-02-15

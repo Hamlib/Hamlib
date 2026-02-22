@@ -54,6 +54,9 @@ struct FIFO_RIG_s;  /* Defined in src/fifo.h */
  * This struct contains live data, as well as a copy of capability fields
  * that may be updated (ie. customized)
  *
+ * Use of this data by applications should be kept to a minimum. Changes to HAMLIB
+ *   internals may make changes to the format and applicability in the future.
+ *
  * It is NOT fine to move fields around as it can break shared library offset
  * As of 2024-03-03  freq_event_elapsed is the last known item being reference externally
  * So any additions or changes to this structure must be at the end of the structure
@@ -153,7 +156,7 @@ struct rig_state {
     volatile int poll_routine_thread_run;           /*!< Poll routine thread run flag. */
     void *poll_routine_priv_data;                   /*!< Pointer to rig_poll_routine_priv_data. */
     pthread_mutex_t mutex_set_transaction;          /*!< Thread mutex flag. */
-    /********* DO NOT ADD or CHANGE anything (or than to rename) ABOVE THIS LINE *********/
+    /********* DO NOT ADD or CHANGE anything (other than to rename) ABOVE THIS LINE *********/
     /********* ENSURE ANY NEW ITEMS ARE ADDED AFTER HERE *********/
     /* flags instructing the rig_get routines to use cached values when asyncio is in use */
     int use_cached_freq; /*!< flag instructing rig_get_freq to use cached values when asyncio is in use */

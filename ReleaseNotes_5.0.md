@@ -50,3 +50,5 @@ compilation time. Some(many?) of these are now kept solely within HAMLIB. Includ
 `hamlib/rig.h` should be just enough to call the API functions.
 
 ### Future considerations
+Giving the port structure some flexibility allows more connection options - Bluetooth ports,
+audio streaming, more secure connections, etc are future possibilities.
