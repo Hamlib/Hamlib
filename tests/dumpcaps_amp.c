@@ -26,7 +26,8 @@
 
 #include "sprintflst.h"
 #include "ampctl_parse.h"
-#include "amplifier.h"
+#include "hamlib/amplifier.h"
+#include "hamlib/amp_state.h"
 
 static int print_ext(AMP *amp, const struct confparams *cfp, rig_ptr_t ptr)
 {
@@ -264,9 +265,9 @@ int dumpcaps_amp(AMP *amp, FILE *fout)
 
     fprintf(fout, "Has priv data:\t\t%c\n", caps->priv != NULL ? 'Y' : 'N');
 
-    if (amp->state.has_status != 0)
+    if (AMPSTATE(amp)->has_status != 0)
     {
-        amp_sprintf_status(prntbuf, sizeof(prntbuf), amp->state.has_status);
+        amp_sprintf_status(prntbuf, sizeof(prntbuf), AMPSTATE(amp)->has_status);
     }
     else
     {

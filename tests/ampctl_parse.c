@@ -1924,7 +1924,7 @@ declare_proto_amp(set_func)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        amp_sprintf_func(s, sizeof(s), amp->state.has_set_func);
+        amp_sprintf_func(s, sizeof(s), AMPSTATE(amp)->has_set_func);
         fprintf(fout, "%s\n", s);
         RETURNFUNC2(RIG_OK);
     }
@@ -1964,7 +1964,7 @@ declare_proto_amp(get_func)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        amp_sprintf_func(s, sizeof(s), amp->state.has_get_func);
+        amp_sprintf_func(s, sizeof(s), AMPSTATE(amp)->has_get_func);
         fprintf(fout, "%s\n", s);
         RETURNFUNC2(RIG_OK);
     }
@@ -2028,7 +2028,7 @@ declare_proto_amp(set_parm)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        amp_sprintf_parm(s, sizeof(s), amp->state.has_set_parm);
+        amp_sprintf_parm(s, sizeof(s), AMPSTATE(amp)->has_set_parm);
         fprintf(fout, "%s\n", s);
         RETURNFUNC2(RIG_OK);
     }
@@ -2112,7 +2112,7 @@ declare_proto_amp(get_parm)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        amp_sprintf_parm(s, sizeof(s), amp->state.has_get_parm);
+        amp_sprintf_parm(s, sizeof(s), AMPSTATE(amp)->has_get_parm);
         fprintf(fout, "%s\n", s);
         RETURNFUNC2(RIG_OK);
     }

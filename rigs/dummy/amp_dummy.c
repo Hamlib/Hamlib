@@ -208,7 +208,7 @@ static int dummy_set_conf(AMP *amp, hamlib_token_t token, const char *val)
 {
     struct dummy_amp_priv_data *priv;
 
-    priv = (struct dummy_amp_priv_data *) amp->state.priv;
+    priv = (struct dummy_amp_priv_data *) AMPSTATE(amp)->priv;
 
     switch (token)
     {
@@ -233,7 +233,7 @@ static int dummy_get_conf2(AMP *amp, hamlib_token_t token, char *val, int val_le
 {
     struct dummy_amp_priv_data *priv;
 
-    priv = (struct dummy_amp_priv_data *) amp->state.priv;
+    priv = (struct dummy_amp_priv_data *) AMPSTATE(amp)->priv;
 
     switch (token)
     {
@@ -318,7 +318,7 @@ static int dummy_amp_set_freq(AMP *amp, freq_t freq)
 static int dummy_amp_get_input(AMP *amp, ant_t *input)
 {
     const struct dummy_amp_priv_data *priv = (struct dummy_amp_priv_data *)
-            amp->state.priv;
+            AMPSTATE(amp)->priv;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     *input = priv->input;
     return RIG_OK;
@@ -327,7 +327,7 @@ static int dummy_amp_get_input(AMP *amp, ant_t *input)
 static int dummy_amp_set_input(AMP *amp, ant_t input)
 {
     struct dummy_amp_priv_data *priv = (struct dummy_amp_priv_data *)
-                                       amp->state.priv;
+                                       AMPSTATE(amp)->priv;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     priv->input = input;
     return RIG_OK;
@@ -336,7 +336,7 @@ static int dummy_amp_set_input(AMP *amp, ant_t input)
 static int dummy_amp_get_ant(AMP *amp, ant_t *ant)
 {
     const struct dummy_amp_priv_data *priv = (struct dummy_amp_priv_data *)
-            amp->state.priv;
+            AMPSTATE(amp)->priv;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     *ant = priv->antenna;
     return RIG_OK;
@@ -345,7 +345,7 @@ static int dummy_amp_get_ant(AMP *amp, ant_t *ant)
 static int dummy_amp_set_ant(AMP *amp, ant_t ant)
 {
     struct dummy_amp_priv_data *priv = (struct dummy_amp_priv_data *)
-                                       amp->state.priv;
+                                       AMPSTATE(amp)->priv;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     priv->antenna = ant;
     return RIG_OK;
@@ -361,7 +361,7 @@ static const char *dummy_amp_get_info(AMP *amp)
 static int dummy_set_level(AMP *amp, setting_t level, value_t val)
 {
     struct dummy_amp_priv_data *priv = (struct dummy_amp_priv_data *)
-            amp->state.priv;
+            AMPSTATE(amp)->priv;
     int idx;
     char lstr[32];
 
@@ -392,7 +392,7 @@ static int dummy_set_level(AMP *amp, setting_t level, value_t val)
 static int dummy_get_level(AMP *amp, setting_t level, value_t *val)
 {
     const struct dummy_amp_priv_data *priv = (struct dummy_amp_priv_data *)
-            amp->state.priv;
+            AMPSTATE(amp)->priv;
     static int flag = 1;
     int idx;
 
@@ -471,7 +471,7 @@ static int dummy_get_level(AMP *amp, setting_t level, value_t *val)
 static int dummy_set_ext_level(AMP *amp, hamlib_token_t token, value_t val)
 {
     const struct dummy_amp_priv_data *priv = (struct dummy_amp_priv_data *)
-            amp->state.priv;
+            AMPSTATE(amp)->priv;
     char lstr[64];
     const struct confparams *cfp;
     struct ext_list *elp;
@@ -540,7 +540,7 @@ static int dummy_set_ext_level(AMP *amp, hamlib_token_t token, value_t val)
 static int dummy_get_ext_level(AMP *amp, hamlib_token_t token, value_t *val)
 {
     const struct dummy_amp_priv_data *priv = (struct dummy_amp_priv_data *)
-            amp->state.priv;
+            AMPSTATE(amp)->priv;
     const struct confparams *cfp;
     struct ext_list *elp;
 
@@ -583,7 +583,7 @@ static int dummy_get_ext_level(AMP *amp, hamlib_token_t token, value_t *val)
 static int dummy_set_ext_func(AMP *amp, hamlib_token_t token, int status)
 {
     const struct dummy_amp_priv_data *priv = (struct dummy_amp_priv_data *)
-            amp->state.priv;
+            AMPSTATE(amp)->priv;
     const struct confparams *cfp;
     struct ext_list *elp;
 
@@ -635,7 +635,7 @@ static int dummy_set_ext_func(AMP *amp, hamlib_token_t token, int status)
 static int dummy_get_ext_func(AMP *amp, hamlib_token_t token, int *status)
 {
     const struct dummy_amp_priv_data *priv = (struct dummy_amp_priv_data *)
-            amp->state.priv;
+            AMPSTATE(amp)->priv;
     const struct confparams *cfp;
     struct ext_list *elp;
 
@@ -675,7 +675,7 @@ static int dummy_get_ext_func(AMP *amp, hamlib_token_t token, int *status)
 static int dummy_set_parm(AMP *amp, setting_t parm, value_t val)
 {
     struct dummy_amp_priv_data *priv = (struct dummy_amp_priv_data *)
-            amp->state.priv;
+            AMPSTATE(amp)->priv;
     int idx;
     char pstr[32];
 
@@ -707,7 +707,7 @@ static int dummy_set_parm(AMP *amp, setting_t parm, value_t val)
 static int dummy_get_parm(AMP *amp, setting_t parm, value_t *val)
 {
     const struct dummy_amp_priv_data *priv = (struct dummy_amp_priv_data *)
-            amp->state.priv;
+            AMPSTATE(amp)->priv;
     int idx;
 
     idx = rig_setting2idx(parm);
@@ -728,7 +728,7 @@ static int dummy_get_parm(AMP *amp, setting_t parm, value_t *val)
 static int dummy_set_ext_parm(AMP *amp, hamlib_token_t token, value_t val)
 {
     const struct dummy_amp_priv_data *priv = (struct dummy_amp_priv_data *)
-            amp->state.priv;
+            AMPSTATE(amp)->priv;
     char lstr[64];
     const struct confparams *cfp;
     struct ext_list *epp;
@@ -794,7 +794,7 @@ static int dummy_set_ext_parm(AMP *amp, hamlib_token_t token, value_t val)
 static int dummy_get_ext_parm(AMP *amp, hamlib_token_t token, value_t *val)
 {
     const struct dummy_amp_priv_data *priv = (struct dummy_amp_priv_data *)
-            amp->state.priv;
+            AMPSTATE(amp)->priv;
     const struct confparams *cfp;
     struct ext_list *epp;
 
@@ -834,7 +834,7 @@ static int dummy_get_ext_parm(AMP *amp, hamlib_token_t token, value_t *val)
 static int dummy_amp_get_status(AMP *amp, amp_status_t *status)
 {
     struct dummy_amp_priv_data *priv = (struct dummy_amp_priv_data *)
-            amp->state.priv;
+            AMPSTATE(amp)->priv;
 
     // TODO: simulate more status bits
     priv->status ^= AMP_STATUS_PTT;
@@ -919,7 +919,7 @@ static int dummy_set_func(AMP *amp, setting_t func, int status)
 static int dummy_get_func(AMP *amp, setting_t func, int *status)
 {
     const struct dummy_amp_priv_data *priv = (struct dummy_amp_priv_data *)
-            amp->state.priv;
+            AMPSTATE(amp)->priv;
 
     *status = (priv->funcs & func) ? 1 : 0;
 
