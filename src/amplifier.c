@@ -912,7 +912,7 @@ amp_op_t HAMLIB_API amp_has_op(AMP *amp, amp_op_t op)
         return 0;
     }
 
-    return (amp->state.amp_ops & op);
+    return (AMPSTATE(amp)->amp_ops & op);
 }
 
 

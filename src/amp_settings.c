@@ -45,7 +45,7 @@
 #include "hamlib/amplifier.h"
 #include "hamlib/amp_state.h"
 
-#define CHECK_AMP_ARG(a) (!(a) || !(a)->caps || !(a)->state.comm_state)
+#define CHECK_AMP_ARG(a) (!(a) || !(a)->caps || !AMPSTATE(a)->comm_state)
 
 
 /**
@@ -301,7 +301,7 @@ setting_t HAMLIB_API amp_has_get_parm(AMP *amp, setting_t parm)
         return 0;
     }
 
-    return (amp->state.has_get_parm & parm);
+    return (AMPSTATE(amp)->has_get_parm & parm);
 }
 
 
@@ -338,7 +338,7 @@ setting_t HAMLIB_API amp_has_set_parm(AMP *amp, setting_t parm)
         return 0;
     }
 
-    return (amp->state.has_set_parm & parm);
+    return (AMPSTATE(amp)->has_set_parm & parm);
 }
 
 
@@ -375,7 +375,7 @@ setting_t HAMLIB_API amp_has_get_func(AMP *amp, setting_t func)
         return 0;
     }
 
-    return (amp->state.has_get_func & func);
+    return (AMPSTATE(amp)->has_get_func & func);
 }
 
 
@@ -411,7 +411,7 @@ setting_t HAMLIB_API amp_has_set_func(AMP *amp, setting_t func)
         return 0;
     }
 
-    return (amp->state.has_set_func & func);
+    return (AMPSTATE(amp)->has_set_func & func);
 }
 
 
