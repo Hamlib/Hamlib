@@ -25,7 +25,9 @@
 #include <libindi/basedevice.h>
 #include <libindi/baseclient.h>
 
-#include <hamlib/rotator.h>
+#include "hamlib/rotator.h"
+#include "hamlib/port.h"
+#include "hamlib/rot_state.h"
 #include "misc.h"
 
 class RotINDIClient : public INDI::BaseClient
