@@ -5,7 +5,7 @@
 .\"
 .\" Note: Please keep this page in sync with the source, ampctl.c
 .\"
-.TH AMPCTL "1" "2020-09-08" "Hamlib" "Hamlib Utilities"
+.TH AMPCTL "1" "2026-02-21" "Hamlib" "Hamlib Utilities"
 .
 .
 .SH NAME
@@ -320,23 +320,35 @@ Amplifier command: \\dump_caps
 Caps dump for model:    1
 Model name:             Dummy
 Mfg name:               Hamlib
-Backend version:        0.1
+Backend version:        0.2
 Backend copyright:      LGPL
 Backend status:         Alpha
 Amp type:               Other
 Port type:              None
 Write delay:            0mS, timeout 0mS, 0 retries
 Post Write delay:       0mS
-Has priv data:          N
-Get level: SWR NH PF PWRINPUT PWRFORWARD PWRREFLECTED PWRPEAK FAULT
+Has priv data:          Y
+Get func: TUNER
+Set func: TUNER
+Get level: SWR NH PF PWRINPUT PWRFORWARD PWRREFLECTED PWRPEAK FAULT \
+           PWR WARNING SWR_TUNER VD_METER ID_METER
+Set level: PWR
+Get parm: BACKLIGHT
+Set parm: BACKLIGHT
+Amp ops: TUNE BAND_UP BAND_DOWN L_NH_UP L_NH_DOWN C_PF_UP C_PF_DOWN
 Has Init:               Y
 Has Cleanup:            Y
 Has Open:               Y
 Has Close:              Y
-Can set Conf:           N
-Can get Conf:           N
+Can set Conf:           Y
+Can get Conf:           Y
 Can Reset:              Y
 Can get Info:           Y
+Can get Status:         Y
+Can set Input:          Y
+Can get Input:          Y
+Can set Ant:            Y
+Can get Ant:            Y
 
 Overall backend warnings: 0
 
@@ -382,17 +394,203 @@ in Hz.
 Returns an integer value.
 .
 .TP
+.BR L ", " set_level " \(aq" \fILevel\fP "\(aq \(aq" "\fILevel Value\fP" \(aq
+Set
+.RI \(aq Level \(aq
+and
+.RI \(aq "Level Value" \(aq.
+.IP
+Level is a token:
+\(oqSWR\(cq,
+\(oqNH\(cq,
+\(oqPF\(cq,
+\(oqPWRINPUT\(cq,
+\(oqPWRFORWARD\(cq,
+\(oqPWRREFLECTED\(cq,
+\(oqPWRPEAK\(cq,
+\(oqFAULT\(cq,
+\(oqPWR\(cq,
+\(oqWARNING\(cq,
+\(oqSWR_TUNER\(cq,
+\(oqVD_METER\(cq,
+\(oqID_METER\(cq,
+\(oqTEMP_METER\(cq.
+.IP
+The Level Value can be a float or an integer value depending on the level.
+.IP
+Level units:
+.in +4n
+.EX
+Float (ratio)
+    SWR, SWR_TUNER, PWR
+
+Float (absolute)
+    VD_METER(V), ID_METER(A), TEMP_METER(C)
+
+Integer (watts)
+    PWRINPUT, PWRFORWARD, PWRREFLECTED, PWRPEAK
+
+Integer (tuning)
+    NH(nH), PF(pF)
+
+String
+    FAULT, WARNING
+.EE
+.in
+.IP
+.BR Note :
+Passing a \(oq?\(cq (query) as the first argument instead of a Level token
+will return a space separated list of amplifier backend supported set level
+tokens.  Use this to determine the supported levels of a given amplifier
+backend.
+.
+.TP
 .BR l ", " get_level " \(aq" \fILevel\fP \(aq
 Get
 .RI \(aq "Level Value" \(aq.
 .IP
-Returns Level Value as a float or integer for the Level token given.
+Returns Level Value as a float, integer, or string for the Level token given
+as in
+.B set_level
+above.
 .IP
 .BR Note :
 Passing a \(oq?\(cq (query) as the first argument instead of a Level token
 will return a space separated list of amplifier backend supported get level
 tokens.  Use this to determine the supported levels of a given amplifier
 backend.
+.
+.TP
+.BR U ", " set_func " \(aq" \fIFunc\fP "\(aq \(aq" "\fIFunc Status\fP" \(aq
+Set
+.RI \(aq Func \(aq
+and
+.RI \(aq "Func Status" \(aq.
+.IP
+Func is a token:
+\(oqTUNER\(cq.
+.IP
+Func Status is a non null value for \(lqactivate\(rq or \(lqde-activate\(rq
+otherwise, much as TRUE/FALSE definitions in the C language (true is non-zero
+and false is zero, \(oq0\(cq).
+.IP
+.BR Note :
+Passing a \(oq?\(cq (query) as the first argument instead of a Func token will
+return a space separated list of amplifier backend supported set function
+tokens.  Use this to determine the supported functions of a given amplifier
+backend.
+.
+.TP
+.BR u ", " get_func " \(aq" \fIFunc\fP \(aq
+Get
+.RI \(aq "Func Status" \(aq.
+.IP
+Returns Func Status as a non null value for the Func token given as in
+.B set_func
+above.
+.IP
+.BR Note :
+Passing a \(oq?\(cq (query) as the first argument instead of a Func token will
+return a space separated list of amplifier backend supported get function
+tokens.  Use this to determine the supported functions of a given amplifier
+backend.
+.
+.TP
+.BR P ", " set_parm " \(aq" \fIParm\fP "\(aq \(aq" "\fIParm Value\fP" \(aq
+Set
+.RI \(aq Parm \(aq
+and
+.RI \(aq "Parm Value" \(aq.
+.IP
+Parm is a token:
+\(oqBACKLIGHT\(cq,
+\(oqBEEP\(cq.
+.IP
+.in +4n
+.EX
+BACKLIGHT -- LCD light, float [0.0 ... 1.0]
+BEEP -- Beep on keypressed, int (0,1)
+.EE
+.in
+.IP
+.BR Note :
+Passing a \(oq?\(cq (query) as the first argument instead of a Parm token will
+return a space separated list of amplifier backend supported set parameter
+tokens.  Use this to determine the supported parameters of a given amplifier
+backend.
+.
+.TP
+.BR p ", " get_parm " \(aq" \fIParm\fP \(aq
+Get
+.RI \(aq "Parm Value" \(aq.
+.IP
+Returns Parm Value as a float or integer for the Parm token given as in
+.B set_parm
+above.
+.IP
+.BR Note :
+Passing a \(oq?\(cq (query) as the first argument instead of a Parm token will
+return a space separated list of amplifier backend supported get parameter
+tokens.  Use this to determine the supported parameters of a given amplifier
+backend.
+.
+.TP
+.BR G ", " amp_op " \(aq" "\fIAmplifier Op\fP" \(aq
+Perform an
+.RI \(aq "Amplifier Op" \(aq.
+.IP
+Amplifier Op is a token:
+\(oqTUNE\(cq,
+\(oqBAND_UP\(cq,
+\(oqBAND_DOWN\(cq,
+\(oqL_NH_UP\(cq,
+\(oqL_NH_DOWN\(cq,
+\(oqC_PF_UP\(cq,
+\(oqC_PF_DOWN\(cq.
+.IP
+.BR Note :
+Passing a \(oq?\(cq (query) as the first argument instead of an Amplifier Op
+token will return a space separated list of amplifier backend supported
+Amplifier Op tokens.  Use this to determine the supported operations of a
+given amplifier backend.
+.
+.TP
+.BR I ", " set_input " \(aq" \fIInput\fP \(aq
+Set amplifier
+.RI \(aq Input \(aq.
+.IP
+Number is 1-based input connector (\(oq1\(cq, \(oq2\(cq, \(oq3\(cq, ...).
+.
+.TP
+.BR i ", " get_input
+Get amplifier
+.RI \(aq Input \(aq.
+.IP
+Returns current input connector number.
+.
+.TP
+.BR s ", " get_status
+Get amplifier
+.RI \(aq "Status flags" \(aq.
+.IP
+Returns amplifier status as a hexadecimal bitmask of status flags.  Status
+flags include fault conditions (which prevent operation) and warning conditions
+(which allow operation to continue).
+.
+.TP
+.BR W ", " send_cmd_rx " \(aq" \fICmd\fP "\(aq \(aq" \fInbytes\fP \(aq
+Send a raw command string to the amplifier and expect
+.I nbytes
+returned.
+.IP
+This is useful for testing and troubleshooting amplifier commands and
+responses when developing a backend.
+.IP
+For binary protocols enter values as \\0xAA\\0xBB.  Expect a
+.RI \(aq Reply \(aq
+from the amplifier which will likely be a binary block or an ASCII string
+depending on the amplifier's protocol (see your amplifier's computer control
+documentation).
 .
 .TP
 .BR w ", " send_cmd " \(aq" \fICmd\fP \(aq
@@ -459,21 +657,18 @@ as in
 above.
 .
 .TP
-.BR Y ", " set_ant " \(aq" \fIAntenna\fP "\(aq \(aq" \fIOption\fP \(aq
-Set
-.RI \(aq Antenna \(aq
-and
-.RI \(aq Option \(aq.
+.BR Y ", " set_ant " \(aq" \fIAntenna\fP \(aq
+Set output
+.RI \(aq Antenna \(aq.
 .IP
 Number is 1-based antenna# (\(oq1\(cq, \(oq2\(cq, \(oq3\(cq, ...).
+.
+.TP
+.BR y ", " get_ant
+Get output
+.RI \(aq Antenna \(aq.
 .IP
-.in +4n
-.EX
-1 = A/1
-2 = B/2
-3 = C/3
-.EE
-.in
+Returns current output antenna number.
 .
 
 .
