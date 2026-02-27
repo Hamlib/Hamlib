@@ -18,6 +18,7 @@ Version 5.x -- future
 Version 4.7.1
         * 2026-??-??
         * Fix unknown type compilation errors on Alpine Linux.  (TNX Bradfor Boyle)
+        * Fix rig port timeout.  (TNX Matthias Moelller)
 
 Version 4.7.0
         * 2026-02-15
