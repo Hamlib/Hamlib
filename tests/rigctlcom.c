@@ -77,6 +77,7 @@
 #endif
 
 #include "hamlib/rig.h"
+#include "hamlib/port.h"
 #include "misc.h"
 #include "cache.h"
 #include "iofunc.h"

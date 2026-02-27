@@ -24,6 +24,7 @@
 #include <math.h>
 
 #include "hamlib/rig.h"
+#include "hamlib/rig_state.h"
 #include "parallel.h"
 #include "misc.h"
 #include "bandplan.h"

@@ -24,6 +24,7 @@
 #define _AR7030P_H 1
 
 #include "hamlib/rig.h"
+#include "hamlib/rig_state.h"
 #include "token.h"
 
 /*

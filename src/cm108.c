@@ -32,8 +32,9 @@
  * CM108 Audio chips found on many USB audio interfaces have controllable
  * General Purpose Input/Output pins.
  */
-#include "hamlib/rig.h"
 #include "hamlib/config.h"
+#include "hamlib/rig.h"
+#include "hamlib/port.h"
 
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */

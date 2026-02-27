@@ -30,6 +30,7 @@
 #include <stdlib.h>
 
 #include "hamlib/rig.h"
+#include "hamlib/port.h"
 #include "ar7030p.h"
 #include "idx_builtin.h"
 

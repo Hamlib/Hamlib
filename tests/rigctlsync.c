@@ -70,6 +70,7 @@
 #endif
 
 #include "hamlib/rig.h"
+#include "hamlib/port.h"
 #include "rigctl_parse.h"
 #include "riglist.h"
 #include "sleep.h"
