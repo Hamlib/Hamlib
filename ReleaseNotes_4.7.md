@@ -3,7 +3,16 @@
 This release brings new equipment support, bug fixes/code cleanups, and some
 changes to ease transition to 5.0
 
-**Support term changes go here**
+As many changes are planned for Hamlib in the future leading to 5.0.0
+(no planned release date at this time), the 4.7.x series is planned to
+be a sort of long term support release and will receive updates in the
+form of new models and backends as they are developed.  If all goes well
+such updates will be in parallel with 5.0.0 development.
+
+This will place a burden on contributors who are asked to submit such
+code to both the master and Hamlib-4.7 branches.  Hopefully this period
+will not last overly long and development can concentrate solely on the
+Hamlib 5 series at some point in the future.
 
 ## New equipment support
 - Icom IC-7300MK2
@@ -31,8 +40,8 @@ changes to ease transition to 5.0
 ## Changes for 5.0
 HAMLIB 5.0 will make some major changes to the Application Binary Interface(ABI) that will
 require changes to some applications, and at least recompilation/linking for all
-apps. Most(all, I hope) of these source changes can be made/tested/debugged incrementally
-with 4.7, making the transition much easier. The Application Programming Interface(API)
+apps. These source changes can be made/tested/debugged incrementally with 4.7,
+making the transition much easier. The Application Programming Interface(API)
 does not change.
 
 ### Storage restructuring
