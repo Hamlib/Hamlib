@@ -16,6 +16,8 @@ EXTRA_DIST = \
 	README.macos \
 	README.md \
 	README.multicast \
+	ReleaseNotes_4.7.md \
+	ReleaseNotes_5.0.md \
 	hamlib.m4 \
 	hamlib.pc.in
 
