@@ -37,6 +37,8 @@
 #include <string.h>  /* String function definitions */
 
 #include "hamlib/rig.h"
+#include "hamlib/port.h"
+#include "hamlib/rig_state.h"
 #include "iofunc.h"
 #include "misc.h"
 #include "cache.h"

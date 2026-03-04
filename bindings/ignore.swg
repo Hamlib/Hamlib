@@ -115,6 +115,18 @@
 %ignore PRIfreq;
 %ignore SCNfreq;
 
+// Private HAMLIB data
+%ignore cache_addr;
+%ignore rigport_addr;
+%ignore pttport_addr;
+%ignore dcdport_addr;
+%ignore state_addr;
+%ignore rotport_addr;
+%ignore rotport2_addr;
+%ignore rotstate_addr;
+%ignore ampport_addr;
+%ignore ampstate_addr;
+
 // others
 %rename("$ignore", regexmatch$name="python_callbacks") ""; // internal structs and methods used by bindings
 %ignore rig_state::cache; // deprecated

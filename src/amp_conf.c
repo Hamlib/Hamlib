@@ -109,11 +109,8 @@ static const struct confparams ampfrontend_serial_cfg_params[] =
  */
 int frontamp_set_conf(AMP *amp, hamlib_token_t token, const char *val)
 {
-    struct amp_state *rs;
     hamlib_port_t *ampp = AMPPORT(amp);
     int val_i;
-
-    rs = AMPSTATE(amp);
 
     amp_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -121,7 +118,6 @@ int frontamp_set_conf(AMP *amp, hamlib_token_t token, const char *val)
     {
     case TOK_PATHNAME:
         strncpy(ampp->pathname, val, HAMLIB_FILPATHLEN - 1);
-        strncpy(rs->ampport_deprecated.pathname, val, HAMLIB_FILPATHLEN - 1);
         break;
 
     case TOK_WRITE_DELAY:
@@ -131,7 +127,6 @@ int frontamp_set_conf(AMP *amp, hamlib_token_t token, const char *val)
         }
 
         ampp->write_delay = val_i;
-        rs->ampport_deprecated.write_delay = val_i;
         break;
 
     case TOK_POST_WRITE_DELAY:
@@ -141,7 +136,6 @@ int frontamp_set_conf(AMP *amp, hamlib_token_t token, const char *val)
         }
 
         ampp->post_write_delay = val_i;
-        rs->ampport_deprecated.post_write_delay = val_i;
         break;
 
     case TOK_TIMEOUT:
@@ -151,7 +145,6 @@ int frontamp_set_conf(AMP *amp, hamlib_token_t token, const char *val)
         }
 
         ampp->timeout = val_i;
-        rs->ampport_deprecated.timeout = val_i;
         break;
 
     case TOK_RETRY:
@@ -161,7 +154,6 @@ int frontamp_set_conf(AMP *amp, hamlib_token_t token, const char *val)
         }
 
         ampp->retry = val_i;
-        rs->ampport_deprecated.retry = val_i;
         break;
 
     case TOK_SERIAL_SPEED:
@@ -176,7 +168,6 @@ int frontamp_set_conf(AMP *amp, hamlib_token_t token, const char *val)
         }
 
         ampp->parm.serial.rate = val_i;
-        rs->ampport_deprecated.parm.serial.rate = val_i;
         break;
 
     case TOK_DATA_BITS:
@@ -191,7 +182,6 @@ int frontamp_set_conf(AMP *amp, hamlib_token_t token, const char *val)
         }
 
         ampp->parm.serial.data_bits = val_i;
-        rs->ampport_deprecated.parm.serial.data_bits = val_i;
         break;
 
     case TOK_STOP_BITS:
@@ -206,7 +196,6 @@ int frontamp_set_conf(AMP *amp, hamlib_token_t token, const char *val)
         }
 
         ampp->parm.serial.stop_bits = val_i;
-        rs->ampport_deprecated.parm.serial.stop_bits = val_i;
         break;
 
     case TOK_PARITY:
@@ -241,7 +230,6 @@ int frontamp_set_conf(AMP *amp, hamlib_token_t token, const char *val)
         }
 
         ampp->parm.serial.parity = val_i;
-        rs->ampport_deprecated.parm.serial.parity = val_i;
         break;
 
     case TOK_HANDSHAKE:
@@ -294,7 +282,6 @@ int frontamp_set_conf(AMP *amp, hamlib_token_t token, const char *val)
         }
 
         ampp->parm.serial.rts_state = val_i;
-        rs->ampport_deprecated.parm.serial.rts_state = val_i;
         break;
 
     case TOK_DTR_STATE:
@@ -321,7 +308,6 @@ int frontamp_set_conf(AMP *amp, hamlib_token_t token, const char *val)
         }
 
         ampp->parm.serial.dtr_state = val_i;
-        rs->ampport_deprecated.parm.serial.dtr_state = val_i;
         break;
 
 

@@ -20,6 +20,11 @@
  */
 %{
 #include <hamlib/rig.h>
+#include "hamlib/rig_state.h"
+#include "hamlib/amplifier.h"
+#include "hamlib/amp_state.h"
+#include "hamlib/rotator.h"
+#include "hamlib/rot_state.h"
 %}
 
 %include macros.swg

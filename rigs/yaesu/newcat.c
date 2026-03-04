@@ -33,6 +33,8 @@
 #include <math.h>
 
 #include "hamlib/rig.h"
+#include "hamlib/port.h"
+#include "hamlib/rig_state.h"
 #include "iofunc.h"
 #include "misc.h"
 #include "cache.h"

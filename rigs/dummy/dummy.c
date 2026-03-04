@@ -35,6 +35,8 @@
 #include <time.h>
 
 #include "hamlib/rig.h"
+#include "hamlib/port.h"
+#include "hamlib/rig_state.h"
 #include "dummy_common.h"
 #include "serial.h"
 #include "parallel.h"

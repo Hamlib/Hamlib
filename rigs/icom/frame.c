@@ -28,6 +28,7 @@
 #endif
 
 #include "hamlib/rig.h"
+#include "hamlib/port.h"
 #include "iofunc.h"
 #include "misc.h"
 #include "icom.h"

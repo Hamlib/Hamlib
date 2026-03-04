@@ -444,7 +444,7 @@ static int expert_transaction(AMP *amp, const unsigned char *cmd, unsigned char 
 static int expert_read_status(AMP *amp, expert_status_response *status,
                               int use_cache)
 {
-    struct expert_priv_data *priv = amp->state.priv;
+    struct expert_priv_data *priv = AMPSTATE(amp)->priv;
     unsigned char cmd = EXPERT_AMP_COMMAND_STATUS;
     unsigned char response[EXPERTBUFSZ];
     int result;
@@ -530,7 +530,7 @@ int expert_init(AMP *amp)
 
 static int expert_set_conf(AMP *amp, hamlib_token_t token, const char *val)
 {
-    struct expert_priv_data *priv = amp->state.priv;
+    struct expert_priv_data *priv = AMPSTATE(amp)->priv;
 
     switch (token)
     {
@@ -558,7 +558,7 @@ static int expert_set_conf(AMP *amp, hamlib_token_t token, const char *val)
 static int expert_get_conf2(AMP *amp, hamlib_token_t token, char *val,
                             int val_len)
 {
-    struct expert_priv_data *priv = amp->state.priv;
+    struct expert_priv_data *priv = AMPSTATE(amp)->priv;
 
     switch (token)
     {
@@ -580,7 +580,7 @@ static int expert_get_conf(AMP *amp, hamlib_token_t token, char *val)
 
 int expert_open(AMP *amp)
 {
-    struct expert_priv_data *priv = amp->state.priv;
+    struct expert_priv_data *priv = AMPSTATE(amp)->priv;
     int result;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -641,7 +641,7 @@ const char *expert_get_info(AMP *amp)
 
 int expert_get_status(AMP *amp, amp_status_t *status)
 {
-    struct expert_priv_data *priv = amp->state.priv;
+    struct expert_priv_data *priv = AMPSTATE(amp)->priv;
     expert_status_response *status_response = &priv->status_response;
     amp_status_t s = AMP_STATUS_NONE;
     int result;
@@ -687,7 +687,7 @@ int expert_get_status(AMP *amp, amp_status_t *status)
 
 int expert_get_freq(AMP *amp, freq_t *freq)
 {
-    struct expert_priv_data *priv = amp->state.priv;
+    struct expert_priv_data *priv = AMPSTATE(amp)->priv;
     expert_status_response *status_response = &priv->status_response;
     int result;
     int band;
@@ -764,7 +764,7 @@ int expert_get_freq(AMP *amp, freq_t *freq)
 
 int expert_get_level(AMP *amp, setting_t level, value_t *val)
 {
-    struct expert_priv_data *priv = amp->state.priv;
+    struct expert_priv_data *priv = AMPSTATE(amp)->priv;
     expert_status_response *status_response = &priv->status_response;
     int result;
     int nargs;
@@ -945,7 +945,7 @@ int expert_get_level(AMP *amp, setting_t level, value_t *val)
 
 int expert_set_level(AMP *amp, setting_t level, value_t val)
 {
-    struct expert_priv_data *priv = amp->state.priv;
+    struct expert_priv_data *priv = AMPSTATE(amp)->priv;
     expert_status_response *status_response = &priv->status_response;
     int result;
     int change_count = 4;
@@ -1020,7 +1020,7 @@ change_again:
 
 int expert_get_func(AMP *amp, setting_t func, int *status)
 {
-    struct expert_priv_data *priv = amp->state.priv;
+    struct expert_priv_data *priv = AMPSTATE(amp)->priv;
     expert_status_response *status_response = &priv->status_response;
     int result;
 
@@ -1053,7 +1053,7 @@ int expert_get_func(AMP *amp, setting_t func, int *status)
 
 int expert_get_powerstat(AMP *amp, powerstat_t *status)
 {
-    struct expert_priv_data *priv = amp->state.priv;
+    struct expert_priv_data *priv = AMPSTATE(amp)->priv;
     expert_status_response *status_response = &priv->status_response;
     int result;
 
@@ -1091,7 +1091,7 @@ int expert_get_powerstat(AMP *amp, powerstat_t *status)
 
 int expert_set_powerstat(AMP *amp, powerstat_t status)
 {
-    struct expert_priv_data *priv = amp->state.priv;
+    struct expert_priv_data *priv = AMPSTATE(amp)->priv;
     expert_status_response *status_response = &priv->status_response;
     int result;
     int powered_on = 0;
@@ -1264,7 +1264,7 @@ retry:
 
 int expert_get_input(AMP *amp, ant_t *input)
 {
-    struct expert_priv_data *priv = amp->state.priv;
+    struct expert_priv_data *priv = AMPSTATE(amp)->priv;
     expert_status_response *status_response = &priv->status_response;
     int result;
 
@@ -1301,7 +1301,7 @@ static int expert_ant_to_idx(ant_t ant)
 int expert_set_input(AMP *amp, ant_t input)
 {
     const struct expert_priv_caps *priv_caps = amp->caps->priv;
-    struct expert_priv_data *priv = amp->state.priv;
+    struct expert_priv_data *priv = AMPSTATE(amp)->priv;
     expert_status_response *status_response = &priv->status_response;
     int result;
     int change_count = priv_caps->input_count;
@@ -1358,7 +1358,7 @@ change_again:
 
 int expert_get_ant(AMP *amp, ant_t *ant)
 {
-    struct expert_priv_data *priv = amp->state.priv;
+    struct expert_priv_data *priv = AMPSTATE(amp)->priv;
     expert_status_response *status_response = &priv->status_response;
     int result;
 
@@ -1384,7 +1384,7 @@ int expert_get_ant(AMP *amp, ant_t *ant)
 int expert_set_ant(AMP *amp, ant_t ant)
 {
     const struct expert_priv_caps *priv_caps = amp->caps->priv;
-    struct expert_priv_data *priv = amp->state.priv;
+    struct expert_priv_data *priv = AMPSTATE(amp)->priv;
     expert_status_response *status_response = &priv->status_response;
     int result;
     int change_count = priv_caps->antenna_count;

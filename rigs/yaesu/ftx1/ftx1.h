@@ -21,7 +21,9 @@
 #ifndef _FTX1_H
 #define _FTX1_H
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
+#include "hamlib/port.h"
+#include "hamlib/rig_state.h"
 
 /*
  * FTX-1 rig ID constants

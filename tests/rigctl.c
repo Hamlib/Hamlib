@@ -65,6 +65,8 @@ extern int read_history();
 
 
 #include "hamlib/rig.h"
+#include "hamlib/port.h"
+#include "hamlib/rig_state.h"
 #include "misc.h"
 #include "rigctl_parse.h"
 #include "riglist.h"
@@ -580,7 +582,6 @@ int main(int argc, char *argv[])
     if (serial_rate != 0)
     {
         RIGPORT(my_rig)->parm.serial.rate = serial_rate;
-        rs->rigport_deprecated.parm.serial.rate = serial_rate;
     }
 
     if (civaddr)
