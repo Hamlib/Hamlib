@@ -384,17 +384,18 @@ int codan_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
     retval = sscanf(response, "FREQ: %lg", freq);
-
-    if (retval == 0)
-    retval = sscanf(response, "CHAN: %lg", freq);
-
-    *freq *= 1000; // returned freq is in kHz
+    if (retval != 1)
+    {
+        retval = sscanf(response, "CHAN: %lg", freq);
+    }
 
     if (retval != 1)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: Unable to parse response\n", __func__);
         return -RIG_EPROTO;
     }
+
+    *freq *= 1000; // returned freq is in kHz
 
     return RIG_OK;
 }
