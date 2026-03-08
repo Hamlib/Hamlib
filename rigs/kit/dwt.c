@@ -23,6 +23,7 @@
 
 #include <stdio.h>
 #include "hamlib/rig.h"
+#include "hamlib/port.h"
 
 #define BACKEND_VER "20200112"
 

@@ -23,6 +23,7 @@
 #define _BARRETT_H 1
 
 #include "hamlib/rig.h"
+#include "hamlib/rig_state.h"
 
 #define BACKEND_VER "20240422"
 

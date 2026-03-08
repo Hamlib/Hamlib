@@ -31,6 +31,8 @@
 #include <ctype.h>
 
 #include "hamlib/rig.h"
+#include "hamlib/port.h"
+#include "hamlib/rig_state.h"
 #include "serial.h"
 #include "misc.h"
 #include "register.h"

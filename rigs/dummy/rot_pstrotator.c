@@ -36,6 +36,8 @@
 #endif
 
 #include "hamlib/rotator.h"
+#include "hamlib/port.h"
+#include "hamlib/rot_state.h"
 #include "dummy_common.h"
 #include "rig.h"
 #include "register.h"
@@ -206,7 +208,7 @@ typedef struct pstrotator_handler_priv_data_s
 static void *pstrotator_handler_start(void *arg)
 {
     ROT *rot = (ROT *)arg;
-    struct rot_state *rs = STATE(rot);
+    struct rot_state *rs = ROTSTATE(rot);
     struct pstrotator_rot_priv_data *priv = rs->priv;
     pstrotator_handler_priv_data *pstrotator_handler_priv;
 

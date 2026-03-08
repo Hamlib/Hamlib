@@ -26,6 +26,7 @@
 
 #include "sprintflst.h"
 #include "rotator.h"
+#include "hamlib/rot_state.h"
 #include "rotctl_parse.h"
 
 

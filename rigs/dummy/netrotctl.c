@@ -24,6 +24,7 @@
 #include <string.h>  /* String function definitions */
 
 #include "hamlib/rotator.h"
+#include "hamlib/rot_state.h"
 #include "iofunc.h"
 
 #define CMD_MAX 32
