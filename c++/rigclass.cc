@@ -31,6 +31,7 @@
 #include <hamlib/config.h>
 
 #include <hamlib/rig.h>
+#include "hamlib/rig_state.h"
 #include <hamlib/rigclass.h>
 
 #define CHECK_RIG(cmd) { int _retval = cmd; if (_retval != RIG_OK) \
@@ -44,11 +45,11 @@ static int hamlibpp_freq_event(RIG *rig, vfo_t vfo, freq_t freq, rig_ptr_t arg);
 
 static int hamlibpp_freq_event(RIG *rig, vfo_t vfo, freq_t freq, rig_ptr_t arg)
 {
-	if (!rig || !rig->state.obj)
+        if (!rig || !STATE(rig)->obj)
 		return -RIG_EINVAL;
 
-/* assert rig == ((Rig*)rig->state.obj).theRig */
-	return (static_cast<Rig*>(rig->state.obj))->FreqEvent(vfo, freq, arg);
+/* assert rig == ((Rig*)STATE(rig)->obj).theRig */
+	return (static_cast<Rig*>(STATE(rig)->obj))->FreqEvent(vfo, freq, arg);
 }
 
 
@@ -59,11 +60,11 @@ Rig::Rig(rig_model_t rig_model) {
 
 	caps = theRig->caps;
 	theRig->callbacks.freq_event = &hamlibpp_freq_event;
-	theRig->state.obj = (rig_ptr_t)this;
+	STATE(theRig)->obj = (rig_ptr_t)this;
 }
 
 Rig::~Rig() {
-	theRig->state.obj = NULL;
+	STATE(theRig)->obj = NULL;
 	CHECK_RIG( rig_cleanup(theRig) );
 	caps = NULL;
 }
@@ -666,15 +667,15 @@ rmode_t Rig::RngRxModes (freq_t freq)
 	int i;
 
 	for (i=0; i<HAMLIB_FRQRANGESIZ; i++) {
-		freq_range_t *rng = &theRig->state.rx_range_list[i];
-		if (RIG_IS_FRNG_END(*rng)) {
-			return (rmode_t)modes;
-		}
-		if (freq >= rng->startf && freq <= rng->endf)
-			modes |= (unsigned)rng->modes;
-	}
+            freq_range_t *rng = &(STATE(theRig)->rx_range_list[i]);
+            if (RIG_IS_FRNG_END(*rng)) {
+                return (rmode_t)modes;
+            }
+            if (freq >= rng->startf && freq <= rng->endf)
+               modes |= (unsigned)rng->modes;
+        }
 
-	return (rmode_t)modes;
+        return (rmode_t)modes;
 }
 
 rmode_t Rig::RngTxModes (freq_t freq)
@@ -683,14 +684,14 @@ rmode_t Rig::RngTxModes (freq_t freq)
 	int i;
 
 	for (i=0; i<HAMLIB_FRQRANGESIZ; i++) {
-	  freq_range_t *rng = &theRig->state.tx_range_list[i];
-		if (RIG_IS_FRNG_END(*rng)) {
-			return (rmode_t)modes;
-		}
-		if (freq >= rng->startf && freq <= rng->endf)
-			modes |= (unsigned)rng->modes;
-	}
+            freq_range_t *rng = &(STATE(theRig)->tx_range_list[i]);
+            if (RIG_IS_FRNG_END(*rng)) {
+                return (rmode_t)modes;
+            }
+            if (freq >= rng->startf && freq <= rng->endf)
+                modes |= (unsigned)rng->modes;
+        }
 
-	return (rmode_t)modes;
+        return (rmode_t)modes;
 }
 

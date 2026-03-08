@@ -21,6 +21,7 @@
 
 #include <string.h>
 #include "hamlib/rig.h"
+#include "hamlib/port.h"
 #include "iofunc.h"
 #include "register.h"
 #include "riglist.h"

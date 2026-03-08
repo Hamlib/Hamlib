@@ -199,6 +199,31 @@ int foreach_opened_rot(int (*cfunc)(ROT *, rig_ptr_t), rig_ptr_t data)
  */
 
 /**
+ * \brief Clean up and release a #ROT handle
+ *
+ */
+static void vaporize(ROT *rot)
+{
+    if (ROTPORT2(rot))
+    {
+        free(ROTPORT2(rot));
+        ROTPORT2(rot) = NULL;
+    }
+    if (ROTPORT(rot))
+    {
+        free(ROTPORT(rot));
+        ROTPORT(rot) = NULL;
+    }
+    if (ROTSTATE(rot))
+    {
+        free(ROTSTATE(rot));
+        ROTSTATE(rot) = NULL;
+    }
+    free(rot);
+    return;
+}
+
+/**
  * \brief Allocate a new #ROT handle.
  *
  * \param rot_model The rotator model for this new handle.
@@ -217,6 +242,7 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
     const struct rot_caps *caps;
     struct rot_state *rs;
     hamlib_port_t *rotp, *rotp2;
+    size_t needed;
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -233,7 +259,9 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
      * okay, we've found it. Allocate some memory and set it to zeros,
      * and especially the initialize the callbacks
      */
-    rot = calloc(1, sizeof(ROT));
+    needed = sizeof(ROT);
+    rig_debug(RIG_DEBUG_TRACE, "Requesting %zu bytes for rot_struct\n", needed);
+    rot = calloc(1, needed);
 
     if (rot == NULL)
     {
@@ -249,17 +277,33 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
     rot->caps = (struct rot_caps *) caps;
 
     /*
-     * populate the rot->state
+     * Allocate and populate the rot->state
      */
     /**
      * \todo Read the Preferences here!
      */
-    rs = ROTSTATE(rot);
+    needed = sizeof(struct rot_state);
+    rig_debug(RIG_DEBUG_TRACE, "Requesting %zu bytes for rot_state\n", needed);
+    rs = ROTSTATE(rot) = calloc(1, needed);
+    if (!rs)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s:Rotator state calloc failed\n", __func__);
+        vaporize(rot);
+        return NULL;
+    }
 
-    //TODO Allocate new rotport[2]
-    // For now, use the embedded ones
-    rotp = ROTPORT(rot);
-    rotp2 = ROTPORT2(rot);
+    // Allocate new rotport[2]
+    //TODO Only build rotp2 if we need it
+    needed = sizeof(hamlib_port_t);
+    rig_debug(RIG_DEBUG_TRACE, "Requesting %zu bytes for each port\n", needed);
+    rotp = ROTPORT(rot) = calloc(1, needed);
+    rotp2 = ROTPORT2(rot) = calloc(1, needed);
+    if (!rotp || !rotp2)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s:Rotator port calloc failed/n", __func__);
+        vaporize(rot);
+        return NULL;
+    }
 
     rs->comm_state = 0;
     rotp->type.rig = rotp2->type.rig = caps->port_type; /* default from caps */
@@ -333,16 +377,10 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
                       "%s: backend_init failed!\n",
                       __func__);
             /* cleanup and exit */
-            free(rot);
+            vaporize(rot);
             return NULL;
         }
     }
-
-    // Now we have to copy our new rig state hamlib_port structure to the deprecated one
-    // Clients built on older 4.X versions will use the old structure
-    // Clients built on newer 4.5 versions will use the new structure
-    memcpy(&rs->rotport_deprecated, rotp,
-           sizeof(rs->rotport_deprecated));
 
     return rot;
 }
@@ -575,14 +613,9 @@ int HAMLIB_API rot_open(ROT *rot)
 
         if (status != RIG_OK)
         {
-            memcpy(&rs->rotport_deprecated, rotp,
-                   sizeof(rs->rotport_deprecated));
             return status;
         }
     }
-
-    memcpy(&rs->rotport_deprecated, rotp,
-           sizeof(rs->rotport_deprecated));
 
     return RIG_OK;
 }
@@ -669,9 +702,6 @@ int HAMLIB_API rot_close(ROT *rot)
 
     rs->comm_state = 0;
 
-    memcpy(&rs->rotport_deprecated, rotp,
-           sizeof(rs->rotport_deprecated));
-
     return RIG_OK;
 }
 
@@ -717,9 +747,7 @@ int HAMLIB_API rot_cleanup(ROT *rot)
         rot->caps->rot_cleanup(rot);
     }
 
-    //TODO Release any allocated port structures
-
-    free(rot);
+    vaporize(rot);
 
     return RIG_OK;
 }

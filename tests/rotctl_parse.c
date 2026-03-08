@@ -61,6 +61,7 @@ extern int read_history();
 #endif                              /* HAVE_READLINE_HISTORY */
 
 #include "hamlib/rotator.h"
+#include "hamlib/rot_state.h"
 #include "iofunc.h"
 #include "misc.h"
 #include "dumpcaps_rot.h"
@@ -1953,7 +1954,7 @@ declare_proto_rot(set_level)
 
     if (!strcmp(arg2, "?"))
     {
-        const gran_t *gran = STATE(rot)->level_gran;
+        const gran_t *gran = ROTSTATE(rot)->level_gran;
         int idx = rig_setting2idx(level);
 
         if (ROT_LEVEL_IS_FLOAT(level))

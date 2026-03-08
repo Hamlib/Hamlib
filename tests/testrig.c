@@ -2,14 +2,15 @@
  * Hamlib sample program
  */
 
+#include "hamlib/config.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
 
 #include "hamlib/rig.h"
-
-#include "hamlib/config.h"
+#include "hamlib/port.h"
 
 #define SERIAL_PORT "/dev/pts/2"
 

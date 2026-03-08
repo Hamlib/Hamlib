@@ -78,16 +78,12 @@ struct rot_state {
     /*
      * non overridable fields, internal use
      */
-    hamlib_port_t_deprecated rotport_deprecated;  /*!< Rotator port (internal use). Deprecated */
-    hamlib_port_t_deprecated rotport2_deprecated;  /*!< 2nd Rotator port (internal use). Deprecated */
 
     int comm_state;         /*!< Comm port state, i.e. opened or closed. */
     rig_ptr_t priv;         /*!< Pointer to private rotator state data. */
     rig_ptr_t obj;          /*!< Internal use by hamlib++ for event handling. */
 
     int current_speed;      /*!< Current speed 1-100, to be used when no change to speed is requested. */
-    hamlib_port_t rotport;  /*!< Rotator port (internal use). */
-    hamlib_port_t rotport2;  /*!< 2nd Rotator port (internal use). */
     rig_ptr_t *pstrotator_handler_priv_data; /*!< PstRotator private data. */
     deferred_config_header_t config_queue;   /*!< Que for deferred processing. */
 };
@@ -95,7 +91,7 @@ struct rot_state {
 __END_DECLS
 
 #if defined(IN_HAMLIB)
-#define ROTSTATE(r) (&(r)->state)
+#define ROTSTATE(r) ((r)->rotstate_addr)
 #endif
 /** Macro for application access to rot_state data structure using the #ROT
  * handle

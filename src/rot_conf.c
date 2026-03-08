@@ -152,7 +152,6 @@ int frontrot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
     {
     case TOK_PATHNAME:
         strncpy(rotp->pathname, val, HAMLIB_FILPATHLEN - 1);
-        strncpy(rs->rotport_deprecated.pathname, val, HAMLIB_FILPATHLEN - 1);
         break;
 
     case TOK_WRITE_DELAY:
@@ -162,7 +161,6 @@ int frontrot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
         }
 
         rotp->write_delay = val_i;
-        rs->rotport_deprecated.write_delay = val_i;
         break;
 
     case TOK_POST_WRITE_DELAY:
@@ -172,7 +170,6 @@ int frontrot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
         }
 
         rotp->post_write_delay = val_i;
-        rs->rotport_deprecated.post_write_delay = val_i;
         break;
 
     case TOK_TIMEOUT:
@@ -182,7 +179,6 @@ int frontrot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
         }
 
         rotp->timeout = val_i;
-        rs->rotport_deprecated.timeout = val_i;
         break;
 
     case TOK_RETRY:
@@ -192,7 +188,6 @@ int frontrot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
         }
 
         rotp->retry = val_i;
-        rs->rotport_deprecated.retry = val_i;
         break;
 
     case TOK_SERIAL_SPEED:
@@ -207,7 +202,6 @@ int frontrot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
         }
 
         rotp->parm.serial.rate = val_i;
-        rs->rotport_deprecated.parm.serial.rate = val_i;
         break;
 
     case TOK_DATA_BITS:
@@ -222,7 +216,6 @@ int frontrot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
         }
 
         rotp->parm.serial.data_bits = val_i;
-        rs->rotport_deprecated.parm.serial.data_bits = val_i;
         break;
 
     case TOK_STOP_BITS:
@@ -237,7 +230,6 @@ int frontrot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
         }
 
         rotp->parm.serial.stop_bits = val_i;
-        rs->rotport_deprecated.parm.serial.stop_bits = val_i;
         break;
 
     case TOK_PARITY:
@@ -272,7 +264,6 @@ int frontrot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
         }
 
         rotp->parm.serial.parity = val_i;
-        rs->rotport_deprecated.parm.serial.parity = val_i;
         break;
 
     case TOK_HANDSHAKE:
@@ -299,12 +290,10 @@ int frontrot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
         }
 
         rotp->parm.serial.handshake = val_i;
-        rs->rotport_deprecated.parm.serial.handshake = val_i;
         break;
 
     case TOK_FLUSHX:
         rotp->flushx = atoi(val);
-        rs->rotport_deprecated.flushx = atoi(val);
         break;
 
     case TOK_MIN_AZ:
@@ -352,7 +341,6 @@ int frontrot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
         }
 
         rotp->parm.serial.rts_state = val_i;
-        rs->rotport_deprecated.parm.serial.rts_state = val_i;
         break;
 
     case TOK_DTR_STATE:
@@ -379,7 +367,6 @@ int frontrot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
         }
 
         rotp->parm.serial.dtr_state = val_i;
-        rs->rotport_deprecated.parm.serial.dtr_state = val_i;
         break;
 
 
