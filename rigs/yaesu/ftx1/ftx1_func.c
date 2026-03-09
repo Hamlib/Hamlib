@@ -46,6 +46,7 @@
 #include <hamlib/rig.h>
 #include "serial.h"
 #include "misc.h"
+#include "cal.h"
 #include "yaesu.h"
 #include "newcat.h"
 #include "ftx1.h"
@@ -439,6 +440,10 @@ int ftx1_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         case RIG_LEVEL_ATT:
             return ftx1_get_att_helper(rig, vfo, val);
         case RIG_LEVEL_STRENGTH:
+            ret = ftx1_get_smeter(rig, vfo, &ival);
+            if (ret == RIG_OK)
+                val->i = (int)rig_raw2val(ival, &STATE(rig)->str_cal);
+            return ret;
         case RIG_LEVEL_RAWSTR:
             ret = ftx1_get_smeter(rig, vfo, &ival);
             if (ret == RIG_OK) val->i = ival;
