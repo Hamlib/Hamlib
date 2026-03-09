@@ -24,11 +24,12 @@
 #include <stdio.h>
 #include "hamlib/rig.h"
 #include "hamlib/port.h"
+#include "hamlib/rig_state.h"
 
 #define BACKEND_VER "20200112"
 
 /*
- * Compile only this model if libusb is available
+ * Compile this model only if libusb is available
  * or if .DLL is available under Windows
  */
 #ifdef _WIN32
