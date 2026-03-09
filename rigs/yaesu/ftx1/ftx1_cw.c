@@ -241,25 +241,83 @@ int ftx1_wait_morse(RIG *rig, vfo_t vfo)
     return RIG_OK;
 }
 
-/* Set CW Break-in Delay (SD P1P2;) - 2 digits, 00-30 (100ms units) */
-int ftx1_set_cw_delay(RIG *rig, int val)
+/*
+ * SD code to milliseconds lookup table (same mapping as VD — FTX-1 CAT manual)
+ *
+ * Codes 00-05 are non-linear: 30, 50, 100, 150, 200, 250 ms
+ * Codes 06-33 are linear: (code - 6) * 100 + 300 ms
+ */
+static const int ftx1_sd_code_to_ms[] = {
+    30, 50, 100, 150, 200, 250,                          /* 00-05 */
+    300, 400, 500, 600, 700, 800, 900, 1000,              /* 06-13 */
+    1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800,       /* 14-21 */
+    1900, 2000, 2100, 2200, 2300, 2400, 2500, 2600,       /* 22-29 */
+    2700, 2800, 2900, 3000                                 /* 30-33 */
+};
+#define FTX1_SD_CODE_COUNT (sizeof(ftx1_sd_code_to_ms) / sizeof(ftx1_sd_code_to_ms[0]))
+
+/*
+ * ftx1_ms_to_sd_code - Find the closest SD code for a given millisecond value
+ */
+static int ftx1_ms_to_sd_code(int ms)
+{
+    int i;
+    int best = 0;
+    int best_diff = abs(ms - ftx1_sd_code_to_ms[0]);
+
+    for (i = 1; i < (int)FTX1_SD_CODE_COUNT; i++)
+    {
+        int diff = abs(ms - ftx1_sd_code_to_ms[i]);
+
+        if (diff < best_diff)
+        {
+            best = i;
+            best_diff = diff;
+        }
+    }
+
+    return best;
+}
+
+/*
+ * ftx1_set_cw_delay - Set CW Break-in Delay (SD P1P2;)
+ *
+ * Hamlib BKINDL is in tenths of dots (WPM-dependent).
+ * Convert: tenths-of-dots → ms (using current keyspeed) → closest SD code.
+ */
+int ftx1_set_cw_delay(RIG *rig, int dot10ths)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret, wpm, ms, code;
 
-    if (val < FTX1_CW_DELAY_MIN) val = FTX1_CW_DELAY_MIN;
-    if (val > FTX1_CW_DELAY_MAX) val = FTX1_CW_DELAY_MAX;
+    ret = ftx1_get_keyer_speed(rig, &wpm);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: val=%d\n", __func__, val);
+    if (ret != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to read keyspeed\n", __func__);
+        return ret;
+    }
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SD%02d;", val);
+    ms = dot10ths_to_millis(dot10ths, wpm);
+    code = ftx1_ms_to_sd_code(ms);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: dot10ths=%d wpm=%d ms=%d code=%d\n",
+              __func__, dot10ths, wpm, ms, code);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SD%02d;", code);
     return newcat_set_cmd(rig);
 }
 
-/* Get CW Break-in Delay (SD P1P2;) - 2 digits, 00-30 (100ms units) */
-int ftx1_get_cw_delay(RIG *rig, int *val)
+/*
+ * ftx1_get_cw_delay - Get CW Break-in Delay (SD P1P2;)
+ *
+ * Returns BKINDL in tenths of dots (WPM-dependent).
+ * Convert: SD code → ms (via lookup) → tenths-of-dots (using current keyspeed).
+ */
+int ftx1_get_cw_delay(RIG *rig, int *dot10ths)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret, delay;
+    int ret, code, wpm, ms;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
@@ -268,16 +326,33 @@ int ftx1_get_cw_delay(RIG *rig, int *val)
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    if (sscanf(priv->ret_data + 2, "%2d", &delay) != 1)
+    if (sscanf(priv->ret_data + 2, "%2d", &code) != 1)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
                   priv->ret_data);
         return -RIG_EPROTO;
     }
 
-    *val = delay;
+    if (code < 0 || code >= (int)FTX1_SD_CODE_COUNT)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: SD code %d out of range\n", __func__, code);
+        return -RIG_EPROTO;
+    }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: val=%d\n", __func__, *val);
+    ms = ftx1_sd_code_to_ms[code];
+
+    ret = ftx1_get_keyer_speed(rig, &wpm);
+
+    if (ret != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to read keyspeed\n", __func__);
+        return ret;
+    }
+
+    *dot10ths = millis_to_dot10ths(ms, wpm);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: code=%d ms=%d wpm=%d dot10ths=%d\n",
+              __func__, code, ms, wpm, *dot10ths);
 
     return RIG_OK;
 }

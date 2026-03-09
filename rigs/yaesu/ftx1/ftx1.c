@@ -1018,8 +1018,8 @@ struct rig_caps ftx1_caps = {
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 10 } },
         /* Key speed: FTX-1 uses 4-60 WPM */
         [LVL_KEYSPD] = { .min = { .i = 4 }, .max = { .i = 60 }, .step = { .i = 1 } },
-        /* Break-in delay: FTX-1 SD command uses 00-33 (non-linear, see CAT manual) */
-        [LVL_BKINDL] = { .min = { .i = 0 }, .max = { .i = 33 }, .step = { .i = 1 } },
+        /* Break-in delay: Hamlib tenths-of-dots, range matches standard Yaesu gran */
+        [LVL_BKINDL] = { .min = { .i = 30 }, .max = { .i = 3000 }, .step = { .i = 1 } },
         /* VOX delay: Hamlib uses tenths of seconds (0=0.0s to 300=30.0s) */
         [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 300 }, .step = { .i = 1 } },
         /* Notch frequency: FTX-1 uses 1-3200 Hz */
