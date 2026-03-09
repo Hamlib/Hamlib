@@ -138,6 +138,8 @@ extern int ftx1_set_keyer(RIG *rig, int enable);
 extern int ftx1_get_keyer(RIG *rig, int *enable);
 extern int ftx1_set_cw_delay(RIG *rig, int ms);
 extern int ftx1_get_cw_delay(RIG *rig, int *ms);
+extern int ftx1_set_cw_delay_ms(RIG *rig, int ms);
+extern int ftx1_get_cw_delay_ms(RIG *rig, int *ms);
 extern int ftx1_send_morse(RIG *rig, vfo_t vfo, const char *msg);
 extern int ftx1_stop_morse(RIG *rig, vfo_t vfo);
 extern int ftx1_wait_morse(RIG *rig, vfo_t vfo);
@@ -207,9 +209,24 @@ int ftx1_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         case RIG_FUNC_COMP:
             return ftx1_set_processor(rig, vfo, status);
         case RIG_FUNC_SBKIN:
-            return ftx1_set_breakin(rig, status ? 1 : 0);
+            if (status) {
+                int ret = ftx1_set_breakin(rig, 1);
+                if (ret != RIG_OK) return ret;
+                /* If currently at QSK delay, bump to a reasonable semi delay */
+                int delay_ms;
+                ret = ftx1_get_cw_delay_ms(rig, &delay_ms);
+                if (ret == RIG_OK && delay_ms <= 30)
+                    return ftx1_set_cw_delay_ms(rig, 250);
+                return RIG_OK;
+            }
+            return ftx1_set_breakin(rig, 0);
         case RIG_FUNC_FBKIN:
-            return ftx1_set_breakin(rig, status ? 2 : 0);
+            if (status) {
+                int ret = ftx1_set_breakin(rig, 1);
+                if (ret != RIG_OK) return ret;
+                return ftx1_set_cw_delay_ms(rig, 0); /* SD00 = 30ms (QSK) */
+            }
+            return ftx1_set_breakin(rig, 0);
         case RIG_FUNC_TONE:
             return ftx1_set_ctcss_mode(rig, status ? FTX1_CTCSS_MODE_ENC : FTX1_CTCSS_MODE_OFF);
         case RIG_FUNC_TSQL:
@@ -264,11 +281,23 @@ int ftx1_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
             return ftx1_get_processor(rig, vfo, status);
         case RIG_FUNC_SBKIN:
             ret = ftx1_get_breakin(rig, &mode);
-            if (ret == RIG_OK) *status = (mode == 1) ? 1 : 0;
+            if (ret != RIG_OK) return ret;
+            if (mode == 0) { *status = 0; return RIG_OK; }
+            {
+                int delay_ms;
+                ret = ftx1_get_cw_delay_ms(rig, &delay_ms);
+                if (ret == RIG_OK) *status = (delay_ms > 30) ? 1 : 0;
+            }
             return ret;
         case RIG_FUNC_FBKIN:
             ret = ftx1_get_breakin(rig, &mode);
-            if (ret == RIG_OK) *status = (mode == 2) ? 1 : 0;
+            if (ret != RIG_OK) return ret;
+            if (mode == 0) { *status = 0; return RIG_OK; }
+            {
+                int delay_ms;
+                ret = ftx1_get_cw_delay_ms(rig, &delay_ms);
+                if (ret == RIG_OK) *status = (delay_ms <= 30) ? 1 : 0;
+            }
             return ret;
         case RIG_FUNC_TONE:
             {

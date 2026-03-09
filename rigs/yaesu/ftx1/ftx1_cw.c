@@ -358,6 +358,61 @@ int ftx1_get_cw_delay(RIG *rig, int *dot10ths)
 }
 
 /*
+ * ftx1_set_cw_delay_ms - Set CW Break-in Delay in milliseconds
+ *
+ * Used by FBKIN/SBKIN to set delay without WPM-dependent dot10ths conversion.
+ */
+int ftx1_set_cw_delay_ms(RIG *rig, int ms)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int code;
+
+    code = ftx1_ms_to_sd_code(ms);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: ms=%d code=%d\n", __func__, ms, code);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SD%02d;", code);
+    return newcat_set_cmd(rig);
+}
+
+/*
+ * ftx1_get_cw_delay_ms - Get CW Break-in Delay in milliseconds
+ *
+ * Used by FBKIN/SBKIN to read delay without WPM-dependent dot10ths conversion.
+ */
+int ftx1_get_cw_delay_ms(RIG *rig, int *ms)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret, code;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SD;");
+
+    ret = newcat_get_cmd(rig);
+    if (ret != RIG_OK) return ret;
+
+    if (sscanf(priv->ret_data + 2, "%2d", &code) != 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    if (code < 0 || code >= (int)FTX1_SD_CODE_COUNT)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: SD code %d out of range\n", __func__, code);
+        return -RIG_EPROTO;
+    }
+
+    *ms = ftx1_sd_code_to_ms[code];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: code=%d ms=%d\n", __func__, code, *ms);
+
+    return RIG_OK;
+}
+
+/*
  * ftx1_set_cw_spot - Set CW Spot (CS P1;)
  * CAT command: CS P1; (P1: 0=off, 1=on)
  * Enables sidetone for tuning in CW mode.
