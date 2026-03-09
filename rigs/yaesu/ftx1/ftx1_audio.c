@@ -11,7 +11,7 @@
  *   GT P1P2P3P4;     - AGC Time Constant (0000-6000ms or code)
  *   ML P1P2P3;       - Monitor Level (000-100)
  *   SM P1;           - S-Meter Read (P1=0 main, returns 0000-0255)
- *   RM P1;           - Meter Read (1=COMP, 2=ALC, 3=PO, 4=SWR, 5=ID, 6=VDD)
+ *   RM P1;           - Meter Read (1=Main S, 2=Sub S, 3=COMP, 4=ALC, 5=PO, 6=SWR, 7=ID, 8=VDD)
  *   PC P1 P2P2P2;    - Power Control (P1=1 field head, P1=2 SPA-1)
  *                      Field head: 0.5-10W (can return decimal: PC10.5, PC11.5)
  *                      SPA-1: 5-100W (PC2005 to PC2100)
@@ -213,8 +213,8 @@ int ftx1_get_meter(RIG *rig, int meter_type, int *val)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: meter_type=%d\n", __func__, meter_type);
 
-    /* meter_type: 1=COMP, 2=ALC, 3=PO, 4=SWR, 5=ID, 6=VDD */
-    if (meter_type < 1 || meter_type > 6)
+    /* meter_type per CAT manual p.23: 1=Main S, 2=Sub S, 3=COMP, 4=ALC, 5=PO, 6=SWR, 7=ID, 8=VDD */
+    if (meter_type < 1 || meter_type > 8)
     {
         return -RIG_EINVAL;
     }

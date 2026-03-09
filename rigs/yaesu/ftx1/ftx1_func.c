@@ -444,15 +444,15 @@ int ftx1_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             if (ret == RIG_OK) val->i = ival;
             return ret;
         case RIG_LEVEL_SWR:
-            ret = ftx1_get_meter(rig, 4, &ival);  /* 4=SWR */
+            ret = ftx1_get_meter(rig, 6, &ival);  /* RM6=SWR */
             if (ret == RIG_OK) val->f = (float)ival / 100.0f;
             return ret;
         case RIG_LEVEL_ALC:
-            ret = ftx1_get_meter(rig, 2, &ival);  /* 2=ALC */
+            ret = ftx1_get_meter(rig, 4, &ival);  /* RM4=ALC */
             if (ret == RIG_OK) val->f = (float)ival / 100.0f;
             return ret;
         case RIG_LEVEL_COMP:
-            ret = ftx1_get_meter(rig, 1, &ival);  /* 1=COMP */
+            ret = ftx1_get_meter(rig, 3, &ival);  /* RM3=COMP */
             if (ret == RIG_OK) val->f = (float)ival / 100.0f;
             return ret;
         case RIG_LEVEL_IF:
