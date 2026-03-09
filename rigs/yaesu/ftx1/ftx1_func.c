@@ -327,7 +327,6 @@ int ftx1_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         case RIG_LEVEL_VOXGAIN:
             return ftx1_set_vox_gain(rig, val.f);
         case RIG_LEVEL_VOXDELAY:
-            /* VOXDELAY is val.i in tenths of seconds, FTX-1 uses 00-30 (same units) */
             return ftx1_set_vox_delay(rig, val.i);
         case RIG_LEVEL_AGC:
             return ftx1_set_agc(rig, vfo, val.i);
@@ -406,7 +405,6 @@ int ftx1_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             if (ret == RIG_OK) val->f = fval;
             return ret;
         case RIG_LEVEL_VOXDELAY:
-            /* FTX-1 returns 00-30 (tenths of seconds), same as Hamlib VOXDELAY */
             ret = ftx1_get_vox_delay(rig, &ival);
             if (ret == RIG_OK) val->i = ival;
             return ret;

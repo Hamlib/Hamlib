@@ -468,31 +468,69 @@ int ftx1_get_vox_gain(RIG *rig, float *val)
 }
 
 /*
+ * VD code to milliseconds lookup table (FTX-1 CAT manual / Java Audio.java:204-209)
+ *
+ * Codes 00-05 are non-linear: 30, 50, 100, 150, 200, 250 ms
+ * Codes 06-33 are linear: (code - 6) * 100 + 300 ms
+ */
+static const int ftx1_vd_code_to_ms[] = {
+    30, 50, 100, 150, 200, 250,                          /* 00-05 */
+    300, 400, 500, 600, 700, 800, 900, 1000,              /* 06-13 */
+    1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800,       /* 14-21 */
+    1900, 2000, 2100, 2200, 2300, 2400, 2500, 2600,       /* 22-29 */
+    2700, 2800, 2900, 3000                                 /* 30-33 */
+};
+#define FTX1_VD_CODE_COUNT (sizeof(ftx1_vd_code_to_ms) / sizeof(ftx1_vd_code_to_ms[0]))
+
+/*
+ * ftx1_ms_to_vd_code - Find the closest VD code for a given millisecond value
+ */
+static int ftx1_ms_to_vd_code(int ms)
+{
+    int i;
+    int best = 0;
+    int best_diff = abs(ms - ftx1_vd_code_to_ms[0]);
+
+    for (i = 1; i < (int)FTX1_VD_CODE_COUNT; i++)
+    {
+        int diff = abs(ms - ftx1_vd_code_to_ms[i]);
+
+        if (diff < best_diff)
+        {
+            best = i;
+            best_diff = diff;
+        }
+    }
+
+    return best;
+}
+
+/*
  * ftx1_set_vox_delay - Set VOX Delay
  * CAT command: VD P1P2; (2 digits, 00-33)
  *
- * Spec: VD uses coded values (00=30ms, 01=50ms, ... 33=3000ms)
- * Hamlib VOXDELAY is in tenths of seconds (0-30 maps to 0-3.0s)
+ * Hamlib VOXDELAY is in tenths of seconds. Convert to ms, find closest VD code.
  */
 int ftx1_set_vox_delay(RIG *rig, int tenths)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ms = tenths * 100;
+    int code;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: tenths=%d\n", __func__, tenths);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: tenths=%d ms=%d\n", __func__, tenths, ms);
 
-    if (tenths < 0) tenths = 0;
-    if (tenths > 33) tenths = 33;  /* Spec: 00-33 coded values */
+    code = ftx1_ms_to_vd_code(ms);
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VD%02d;", tenths);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VD%02d;", code);
     return newcat_set_cmd(rig);
 }
 
-/* Get VOX Delay */
+/* Get VOX Delay — returns tenths of seconds */
 int ftx1_get_vox_delay(RIG *rig, int *tenths)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
-    int delay;
+    int code;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
@@ -501,15 +539,21 @@ int ftx1_get_vox_delay(RIG *rig, int *tenths)
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    /* Response: VD00 to VD30 (2 digits) */
-    if (sscanf(priv->ret_data + 2, "%2d", &delay) != 1)
+    if (sscanf(priv->ret_data + 2, "%2d", &code) != 1)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
                   priv->ret_data);
         return -RIG_EPROTO;
     }
 
-    *tenths = delay;
+    if (code < 0 || code >= (int)FTX1_VD_CODE_COUNT)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: VD code %d out of range\n", __func__, code);
+        return -RIG_EPROTO;
+    }
+
+    /* Convert ms to tenths of seconds (integer division rounds down) */
+    *tenths = ftx1_vd_code_to_ms[code] / 100;
     return RIG_OK;
 }
 
