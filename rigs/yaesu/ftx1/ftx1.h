@@ -127,7 +127,7 @@ static inline int ftx1_vfo_to_p1(RIG *rig, vfo_t vfo)
 
 /*
  * FTX-1 RF Power Meter Calibration
- * Maps raw RM03 values to watts (approximate)
+ * Maps raw RM5 (PO) values to watts (approximate)
  */
 #define FTX1_RFPOWER_METER_CAL { \
     7, \
