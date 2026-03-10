@@ -99,6 +99,8 @@ static int flrig_power2mW(RIG *rig, unsigned int *mwpower, float power,
                           freq_t freq, rmode_t mode);
 static int flrig_mW2power(RIG *rig, float *power, unsigned int mwpower,
                           freq_t freq, rmode_t mode);
+static int flrig_set_powerstat(RIG *rig, powerstat_t status);
+
 
 struct flrig_priv_data
 {
@@ -218,6 +220,7 @@ struct rig_caps flrig_caps =
     .get_ext_parm =  flrig_get_ext_parm,
     .power2mW =   flrig_power2mW,
     .mW2power =   flrig_mW2power,
+    .set_powerstat = flrig_set_powerstat,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
@@ -2658,6 +2661,29 @@ int flrig_set_func(RIG *rig, vfo_t vfo, setting_t func,
 
     return retval;
 }
+
+// Allow FlRig to be "powered down" that is send it a shutdown command.
+// Note - RIG_POWER_ON is deliberately not supported as launching FlRig
+// is outside the scope of Hamlib.
+static int flrig_set_powerstat(RIG *rig, powerstat_t status) {
+    int retval;
+
+    ENTERFUNC;
+    switch(status)
+    {
+    case RIG_POWER_OFF:
+        retval = flrig_transaction(rig, "rig.shutdown", NULL, NULL, 0);
+        break;
+
+    default:
+        // Other parameter vaues are not valid.
+        retval = -RIG_EINVAL;
+        break;
+
+    }
+    RETURNFUNC(retval);
+}
+
 
 #if 0
 static int flrig_set_ext_parm(RIG *rig, setting_t parm, value_t val)
