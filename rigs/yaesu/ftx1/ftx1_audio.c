@@ -708,11 +708,10 @@ int ftx1_get_amc_output(RIG *rig, float *val)
  * ftx1_set_width - Set Filter Width (SH command)
  * CAT command: SH P1 P2 P3P4; (P1=VFO, P2=0, P3P4=00-23)
  *
- * FTX-1 width codes (00-23):
- *   00=200, 01=250, 02=300, 03=350, 04=400, 05=450, 06=500
- *   07=600, 08=700, 09=800, 10=900, 11=1000, 12=1200, 13=1400
- *   14=1600, 15=1800, 16=2000, 17=2200, 18=2400, 19=2600
- *   20=2800, 21=3000, 22=3200, 23=3400
+ * Width codes 00-23, Hz mapping is mode-dependent (see CAT manual Table 5):
+ *   LSB/USB: 00=Default, 01=300..23=4000 Hz
+ *   CW/DATA/RTTY/PSK: 00=Default, 01=50..21=4000 Hz
+ *   AM-N: 02=6000 Hz (fixed), FM/DATA-FM: 03=16000 Hz (fixed)
  */
 int ftx1_set_width(RIG *rig, vfo_t vfo, int width_code)
 {
