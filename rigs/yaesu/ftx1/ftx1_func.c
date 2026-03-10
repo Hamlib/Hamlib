@@ -479,11 +479,11 @@ int ftx1_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return ret;
         case RIG_LEVEL_SWR:
             ret = ftx1_get_meter(rig, 6, &ival);  /* RM6=SWR */
-            if (ret == RIG_OK) val->f = (float)ival / 100.0f;
+            if (ret == RIG_OK) val->f = rig_raw2val_float(ival, &rig->caps->swr_cal);
             return ret;
         case RIG_LEVEL_ALC:
             ret = ftx1_get_meter(rig, 4, &ival);  /* RM4=ALC */
-            if (ret == RIG_OK) val->f = (float)ival / 100.0f;
+            if (ret == RIG_OK) val->f = rig_raw2val_float(ival, &rig->caps->alc_cal);
             return ret;
         case RIG_LEVEL_IF:
             {
