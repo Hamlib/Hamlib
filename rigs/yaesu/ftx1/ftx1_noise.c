@@ -7,8 +7,8 @@
  * CAT Commands in this file:
  *   NL P1 P2P3P4;    - Noise Blanker Level (P1=VFO 0/1, P2P3P4=000-010)
  *                      Set to 000 for OFF, 001-010 for level
- *   RL P1 P2P3;      - Noise Reduction Level (P1=VFO 0/1, P2P3=00-15)
- *                      Set to 00 for OFF, 01-15 for level
+ *   RL P1 P2P3;      - Noise Reduction Level (P1=VFO 0/1, P2P3=00-10)
+ *                      Set to 00 for OFF, 01-10 for level
  *
  * Note: NB and NR on/off commands return ?; on FTX-1.
  *       Use NL/RL level commands instead (level 0 = OFF).
@@ -26,7 +26,7 @@
 #define FTX1_NB_LEVEL_MIN 0
 #define FTX1_NB_LEVEL_MAX 10   /* 0=OFF, 1-10=level */
 #define FTX1_NR_LEVEL_MIN 0
-#define FTX1_NR_LEVEL_MAX 15   /* 0=OFF, 1-15=level */
+#define FTX1_NR_LEVEL_MAX 10   /* 0=OFF, 1-10=level (CAT manual p.23) */
 
 /*
  * ftx1_set_nb_helper - Set Noise Blanker on/off via NL level
@@ -120,7 +120,7 @@ int ftx1_get_nr_helper(RIG *rig, vfo_t vfo, int *status)
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    /* Response: RL P1 P2P3; (VFO + 2-digit level 00-15) */
+    /* Response: RL P1 P2P3; (VFO + 2-digit level 00-10) */
     if (sscanf(priv->ret_data + 2, "%1d%2d", &p1_resp, &level) != 2)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
@@ -185,7 +185,7 @@ int ftx1_get_nb_level_helper(RIG *rig, vfo_t vfo, value_t *val)
 
 /*
  * ftx1_set_nr_level_helper - Set Noise Reduction Level
- * CAT command: RL P1 P2P3; (P1=VFO, P2P3=00-15)
+ * CAT command: RL P1 P2P3; (P1=VFO, P2P3=00-10)
  */
 int ftx1_set_nr_level_helper(RIG *rig, vfo_t vfo, value_t val)
 {
@@ -222,7 +222,7 @@ int ftx1_get_nr_level_helper(RIG *rig, vfo_t vfo, value_t *val)
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    /* Response: RL P1 P2P3; (2-digit level 00-15) */
+    /* Response: RL P1 P2P3; (2-digit level 00-10) */
     if (sscanf(priv->ret_data + 2, "%1d%2d", &p1_resp, &level) != 2)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
