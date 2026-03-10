@@ -756,31 +756,58 @@ int ftx1_get_width(RIG *rig, vfo_t vfo, int *width_code)
 }
 
 /*
+ * FTX-1 MS (Meter Switch) code mapping (CAT manual p.20):
+ *   0 = PO    1 = COMP   2 = ALC   3 = VDD   4 = ID   5 = SWR
+ *
+ * Note: differs from other Yaesu radios (FT-891/991 use 0=COMP,1=ALC,2=PO,
+ * 3=SWR,4=IC,5=VDD). The FTX-1 has its own unique ordering.
+ */
+static int ftx1_meter_to_cat(int hamlib_meter)
+{
+    switch (hamlib_meter)
+    {
+    case RIG_METER_PO:   return 0;
+    case RIG_METER_COMP: return 1;
+    case RIG_METER_ALC:  return 2;
+    case RIG_METER_VDD:  return 3;
+    case RIG_METER_IC:   return 4;
+    case RIG_METER_SWR:  return 5;
+    default:             return 0;  /* default to PO */
+    }
+}
+
+static int ftx1_cat_to_meter(int cat_code)
+{
+    switch (cat_code)
+    {
+    case 0: return RIG_METER_PO;
+    case 1: return RIG_METER_COMP;
+    case 2: return RIG_METER_ALC;
+    case 3: return RIG_METER_VDD;
+    case 4: return RIG_METER_IC;
+    case 5: return RIG_METER_SWR;
+    default: return RIG_METER_NONE;
+    }
+}
+
+/*
  * ftx1_set_meter_switch - Set Meter Switch (MS command)
  * CAT command: MS P1 P2; (P1=MAIN meter, P2=SUB meter)
  *
- * Spec (page 20): Both P1 and P2 are meter types set simultaneously:
- *   0 = S-meter
- *   1 = COMP
- *   2 = ALC
- *   3 = PO (Power Output)
- *   4 = SWR
- *   5 = ID
- *
- * This function sets the meter for the specified VFO while preserving
- * the other VFO's meter setting.
+ * Takes a RIG_METER_* value, converts to FTX-1 CAT code, and sets the
+ * meter for the specified VFO while preserving the other VFO's setting.
  */
 int ftx1_set_meter_switch(RIG *rig, vfo_t vfo, int meter_type)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
     int main_meter, sub_meter;
+    int cat_code;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s meter_type=%d\n", __func__,
               rig_strvfo(vfo), meter_type);
 
-    if (meter_type < 0) meter_type = 0;
-    if (meter_type > 5) meter_type = 5;
+    cat_code = ftx1_meter_to_cat(meter_type);
 
     /* Read current settings to preserve the other VFO's meter */
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MS;");
@@ -788,26 +815,26 @@ int ftx1_set_meter_switch(RIG *rig, vfo_t vfo, int meter_type)
     if (ret != RIG_OK)
     {
         /* If read fails, set both to the same value */
-        main_meter = meter_type;
-        sub_meter = meter_type;
+        main_meter = cat_code;
+        sub_meter = cat_code;
     }
     else
     {
         if (sscanf(priv->ret_data + 2, "%1d%1d", &main_meter, &sub_meter) != 2)
         {
-            main_meter = meter_type;
-            sub_meter = meter_type;
+            main_meter = cat_code;
+            sub_meter = cat_code;
         }
     }
 
     /* Update the appropriate meter based on VFO (with currVFO resolution) */
     if (ftx1_vfo_to_p1(rig, vfo) == 1)
     {
-        sub_meter = meter_type;
+        sub_meter = cat_code;
     }
     else
     {
-        main_meter = meter_type;
+        main_meter = cat_code;
     }
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MS%d%d;", main_meter,
@@ -819,13 +846,14 @@ int ftx1_set_meter_switch(RIG *rig, vfo_t vfo, int meter_type)
  * ftx1_get_meter_switch - Get Meter Switch
  * Response: MS P1 P2; (P1=MAIN meter, P2=SUB meter)
  *
- * Returns the meter type for the specified VFO.
+ * Returns the RIG_METER_* value for the specified VFO.
  */
 int ftx1_get_meter_switch(RIG *rig, vfo_t vfo, int *meter_type)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
     int p1, p2;
+    int cat_code;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
@@ -834,7 +862,6 @@ int ftx1_get_meter_switch(RIG *rig, vfo_t vfo, int *meter_type)
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    /* Response: MS P1 P2; (both are meter types 0-5) */
     if (sscanf(priv->ret_data + 2, "%1d%1d", &p1, &p2) != 2)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
@@ -842,15 +869,9 @@ int ftx1_get_meter_switch(RIG *rig, vfo_t vfo, int *meter_type)
         return -RIG_EPROTO;
     }
 
-    /* Return the meter type for the requested VFO (with currVFO resolution) */
-    if (ftx1_vfo_to_p1(rig, vfo) == 1)
-    {
-        *meter_type = p2;
-    }
-    else
-    {
-        *meter_type = p1;
-    }
+    /* Select the CAT code for the requested VFO, then translate */
+    cat_code = (ftx1_vfo_to_p1(rig, vfo) == 1) ? p2 : p1;
+    *meter_type = ftx1_cat_to_meter(cat_code);
 
     return RIG_OK;
 }
