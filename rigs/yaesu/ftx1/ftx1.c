@@ -1030,6 +1030,11 @@ struct rig_caps ftx1_caps = {
     .extparms = ftx1_ext_parms,
     .str_cal = FTX1_STR_CAL,
     .rfpower_meter_cal = FTX1_RFPOWER_METER_CAL,
+    .swr_cal = FTX1_SWR_CAL,
+    .alc_cal = FTX1_ALC_CAL,
+    .comp_meter_cal = FTX1_COMP_METER_CAL,
+    .vd_meter_cal = FTX1_VD_METER_CAL,
+    .id_meter_cal = FTX1_ID_METER_CAL,
     .preamp = {10, 20, RIG_DBLST_END},  /* AMP1=10dB, AMP2=20dB (0=IPO) */
     .attenuator = {12, RIG_DBLST_END},
     .max_rit = Hz(9999),

@@ -141,6 +141,78 @@ static inline int ftx1_vfo_to_p1(RIG *rig, vfo_t vfo)
 }
 
 /*
+ * FTX-1 SWR Meter Calibration
+ * Using Yaesu default values — verify with hardware
+ */
+#define FTX1_SWR_CAL { \
+    5, \
+    { \
+        {12, 1.0f}, \
+        {39, 1.35f}, \
+        {65, 1.5f}, \
+        {89, 2.0f}, \
+        {242, 5.0f}, \
+    } \
+}
+
+/*
+ * FTX-1 ALC Meter Calibration
+ * Using Yaesu default values — verify with hardware
+ */
+#define FTX1_ALC_CAL { \
+    2, \
+    { \
+        {0, 0.0f}, \
+        {64, 1.0f}, \
+    } \
+}
+
+/*
+ * FTX-1 Compressor Meter Calibration
+ * Using Yaesu default values — verify with hardware
+ */
+#define FTX1_COMP_METER_CAL { \
+    9, \
+    { \
+        {0, 0.0f}, \
+        {40, 2.5f}, \
+        {60, 5.0f}, \
+        {85, 7.5f}, \
+        {135, 10.0f}, \
+        {150, 12.5f}, \
+        {175, 15.0f}, \
+        {195, 17.5f}, \
+        {220, 20.0f}, \
+    } \
+}
+
+/*
+ * FTX-1 VD (Voltage) Meter Calibration
+ * Using Yaesu default values — verify with hardware
+ */
+#define FTX1_VD_METER_CAL { \
+    3, \
+    { \
+        {0, 0.0f}, \
+        {196, 13.8f}, \
+        {255, 17.95f}, \
+    } \
+}
+
+/*
+ * FTX-1 ID (Current) Meter Calibration
+ * Using Yaesu default values — verify with hardware
+ */
+#define FTX1_ID_METER_CAL { \
+    3, \
+    { \
+        {0, 0.0f}, \
+        {100, 10.0f}, \
+        {255, 25.5f}, \
+    } \
+}
+
+/*
  * FTX-1 head detection functions (defined in ftx1.c)
  * These functions take a RIG* parameter to access per-rig instance storage.
  */
