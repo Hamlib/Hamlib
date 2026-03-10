@@ -13,7 +13,7 @@
  *   8=DATA-L, 9=RTTY-U, A=DATA-FM, B=FM-N, C=DATA-U, D=AM-N,
  *   E=PSK, F=DATA-FM-N, H=C4FM-DN, I=C4FM-VW
  *
- * Note: SH (Width) command - firmware doesn't persist set values (read-only).
+ * Note: SH (Width) command - read-write per CAT manual (Set/Read/Answer).
  *       NA (Notch Auto) - handled via ftx1_noise.c
  */
 
