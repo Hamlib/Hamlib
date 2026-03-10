@@ -395,6 +395,8 @@ int ftx1_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             return ftx1_set_amc_output(rig, val.f);
         case RIG_LEVEL_BAND_SELECT:
             return ftx1_set_band_select(rig, vfo, val.i);
+        case RIG_LEVEL_BKIN_DLYMS:
+            return ftx1_set_cw_delay_ms(rig, val.i);
         default:
             return newcat_set_level(rig, vfo, level, val);
     }
@@ -483,10 +485,6 @@ int ftx1_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             ret = ftx1_get_meter(rig, 4, &ival);  /* RM4=ALC */
             if (ret == RIG_OK) val->f = (float)ival / 100.0f;
             return ret;
-        case RIG_LEVEL_COMP:
-            ret = ftx1_get_meter(rig, 3, &ival);  /* RM3=COMP */
-            if (ret == RIG_OK) val->f = (float)ival / 100.0f;
-            return ret;
         case RIG_LEVEL_IF:
             {
                 int on, shift_hz;
@@ -509,6 +507,10 @@ int ftx1_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return ret;
         case RIG_LEVEL_BAND_SELECT:
             ret = ftx1_get_band_select(rig, vfo, &ival);
+            if (ret == RIG_OK) val->i = ival;
+            return ret;
+        case RIG_LEVEL_BKIN_DLYMS:
+            ret = ftx1_get_cw_delay_ms(rig, &ival);
             if (ret == RIG_OK) val->i = ival;
             return ret;
         default:
