@@ -22,6 +22,8 @@
 #include "hamlib/config.h"
 
 #include "hamlib/rig.h"
+#include "hamlib/port.h"
+#include "hamlib/rig_state.h"
 #include "winradio.h"
 
 
