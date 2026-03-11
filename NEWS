@@ -20,6 +20,7 @@ Version 4.7.1
         * Fix unknown type compilation errors on Alpine Linux.  (TNX Bradfor Boyle)
         * Fix rig port timeout.  (TNX Matthias Moelller)
         * Update ReleaseNotes*.md.  (TNX George Baltz)
+        * Fix various FTX-1 meter, level and CTCSS table.  (TNX KJ5HST)
 
 Version 4.7.0
         * 2026-02-15
