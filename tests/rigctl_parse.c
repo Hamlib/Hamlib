@@ -1865,7 +1865,7 @@ readline_repeat:
 
         // we need to copy client_version to our thread in case there are multiple client versions
         // client_version is used to determine any backward compatibility requirements or problems
-        strncpy(client_version, rs->client_version, sizeof(client_version));
+        memcpy(client_version, rs->client_version, sizeof(client_version));
     }
 
 
