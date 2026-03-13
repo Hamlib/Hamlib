@@ -29,7 +29,7 @@ SRCDOCLST = \
 	../src/debug.c \
 	../src/event.c \
 	../src/ext.c \
-	../src/extamp.c \
+	../src/amp_ext.c \
 	../src/locator.c \
 	../src/mem.c \
 	../src/misc.c \
