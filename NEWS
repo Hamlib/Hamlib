@@ -21,6 +21,8 @@ Version 4.7.1
         * Fix rig port timeout.  (TNX Matthias Moelller)
         * Update ReleaseNotes*.md.  (TNX George Baltz)
         * Fix various FTX-1 meter, level and CTCSS table.  (TNX KJ5HST)
+        * Add power off capability to Flrig backend.  (TNX Philip Rose)
+        * Replace strncpy with memcpy to quell GCC 16 warning.  (TNX George Baltz)
 
 Version 4.7.0
         * 2026-02-15
