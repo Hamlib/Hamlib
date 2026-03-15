@@ -24,11 +24,12 @@
 #ifndef MULTICAST_H
 #define MULTICAST_H
 
-//include <stdio.h>
+//#include <stdio.h>
 //#include <stdlib.h>
 //#include <string.h>
 //#include <errno.h>
 //#include <unistd.h>
+#include <pthread.h>
 #include <hamlib/rig.h>
 //#include <sys/socket.h>
 #ifdef HAVE_NETINET_IN_H
