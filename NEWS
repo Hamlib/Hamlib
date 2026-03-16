@@ -24,6 +24,7 @@ Version 4.7.1
         * Add power off capability to Flrig backend.  (TNX Philip Rose)
         * Replace strncpy with memcpy to quell GCC 16 warning.  (TNX George Baltz)
         * Add SWR to supported 'get levels' for K3/K4.  (TNX Tom Crayner (reporter))
+        * Add get_split_vfo to TS-850 backend.  (TNX Elisamuel Resto)
 
 Version 4.7.0
         * 2026-02-15
