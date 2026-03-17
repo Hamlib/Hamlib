@@ -2372,43 +2372,22 @@ struct hamlib_async_pipe;
 typedef struct hamlib_async_pipe hamlib_async_pipe_t;
 
 /* Macros to access data structures/pointers
- * Make it easier to change location in preparation
- *   for moving them out of rig->state.
- * See https://github.com/Hamlib/Hamlib/issues/1445
- *     https://github.com/Hamlib/Hamlib/issues/1452
- *     https://github.com/Hamlib/Hamlib/issues/1420
- *     https://github.com/Hamlib/Hamlib/issues/536
- *     https://github.com/Hamlib/Hamlib/issues/487
+ * See Github issues #487, #536, #1420, #1445, #1452
  */
-// Note: Work In Progress(WIP)
-//       All buffers now referenced via these macros
-//       Conversion to calloc() use is underway
 #if defined(IN_HAMLIB)
-/* These are for internal use only */
+/* Port access macros defined here for backend
+ *   pass-thru to basic I/O routines.
+ * For all others see the appropriate include files.
+ */
 #define RIGPORT(r) ((r)->rigport_addr)
 #define PTTPORT(r) ((r)->pttport_addr)
 #define DCDPORT(r) ((r)->dcdport_addr)
-//Moved to src/cache.h #define CACHE(r) ((r)->cache_addr)
 #define AMPPORT(a) ((a)->ampport_addr)
 #define ROTPORT(r) ((r)->rotport_addr)
 #define ROTPORT2(r) ((r)->rotport2_addr)
-//Moved to include/hamlib/rig_state.h #define STATE(r) (&r->state)
-//Moved to include/hamlib/amp_state.h #define AMPSTATE(a) (&(a)->state)
-//Moved to include/hamlib/rot_state.h #define ROTSTATE(r) (&(r)->state)
-#else
-/* Define external unique names */
-//#define HAMLIB_RIGPORT(r) ((hamlib_port_t *)rig_data_pointer(r, RIG_PTRX_RIGPORT))
-//#define HAMLIB_PTTPORT(r) ((hamlib_port_t *)rig_data_pointer(r, RIG_PTRX_PTTPORT))
-//#define HAMLIB_DCDPORT(r) ((hamlib_port_t *)rig_data_pointer(r, RIG_PTRX_DCDPORT))
-//#define HAMLIB_CACHE(r) ((struct rig_cache *)rig_data_pointer(r, RIG_PTRX_CACHE))
-//#define HAMLIB_AMPPORT(a) ((hamlib_port_t *)amp_data_pointer(a, RIG_PTRX_AMPPORT))
-//#define HAMLIB_ROTPORT(r) ((hamlib_port_t *)rot_data_pointer(r, RIG_PTRX_ROTPORT))
-//#define HAMLIB_ROTPORT2(r) ((hamlib_port_t *)rot_data_pointer(r, RIG_PTRX_ROTPORT2))
-//#define HAMLIB_STATE(r) ((struct rig_state *)rig_data_pointer(r, RIG_PTRX_STATE))
-//#define HAMLIB_AMPSTATE(a) ((struct amp_state *)amp_data_pointer(a, RIG_PTRX_AMPSTATE))
-//#define HAMLIB_ROTSTATE(r) ((struct rot_state *)rot_data_pointer(r, RIG_PTRX_ROTSTATE))
 #endif
 
+/* Index parameters for {rig|amp|rot}_data_pointer() */
 typedef enum {
     RIG_PTRX_NONE=0,
     RIG_PTRX_RIGPORT,
