@@ -8990,6 +8990,132 @@ int icom_stop_morse(RIG *rig, vfo_t vfo)
     RETURNFUNC(RIG_OK);
 }
 
+// if hour < 0 then only date will be set
+int icom_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
+                     int sec, double msec, int utc_offset)
+{
+    int cmd = 0x1a;
+    int subcmd =  0x05;
+    int retval = RIG_OK;
+    unsigned char prmbuf[MAXFRAMELEN];
+    const struct icom_clock_cmds *clox = ((struct icom_priv_caps *)(rig->caps->priv))->clock_cmds;
+
+    if (!clox)
+    {
+	rig_debug(RIG_DEBUG_ERR, "%s: %s - no icom_clock_cmds/n", __func__, rig->caps->model_name);
+	return -RIG_EINTERNAL;
+    }
+
+    if (hour >= 0)
+    {
+        prmbuf[0] = clox->offset_cmds[0];
+        prmbuf[1] = clox->offset_cmds[1];
+        rig_debug(RIG_DEBUG_ERR, "%s: utc_offset=%d\n", __func__, utc_offset);
+        to_bcd(&prmbuf[2], abs(utc_offset) / 100, 2);
+        to_bcd(&prmbuf[3], abs(utc_offset) % 100, 2);
+        to_bcd(&prmbuf[4], utc_offset >= 0 ? 0 : 1, 2);
+        retval = icom_transaction(rig, cmd, subcmd, prmbuf, 5, NULL, NULL);
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s(%d): %s\b", __func__, __LINE__, rigerror(retval));
+        }
+
+        prmbuf[0] = clox->time_cmds[0];
+        prmbuf[1] = clox->time_cmds[1];
+        to_bcd(&prmbuf[2], hour, 2);
+        to_bcd(&prmbuf[3], min, 2);
+        retval = icom_transaction(rig, cmd, subcmd, prmbuf, 4, NULL, NULL);
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s(%d): %s\b", __func__, __LINE__, rigerror(retval));
+        }
+    }
+
+    if (year >= 0)
+    {
+        prmbuf[0] = clox->date_cmds[0];
+        prmbuf[1] = clox->date_cmds[1];
+        to_bcd(&prmbuf[2], year / 100, 2);
+        to_bcd(&prmbuf[3], year % 100, 2);
+        to_bcd(&prmbuf[4], month, 2);
+        to_bcd(&prmbuf[5], day, 2);
+        retval = icom_transaction(rig, cmd, subcmd, prmbuf, 6, NULL, NULL);
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s(%d): %s\b", __func__, __LINE__, rigerror(retval));
+        }
+    }
+
+    return retval;
+}
+
+int icom_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
+                     int *min, int *sec, double *msec, int *utc_offset)
+{
+    int cmd = 0x1a;
+    int subcmd =  0x05;
+    int retval = RIG_OK;
+    int resplen;
+    unsigned char prmbuf[MAXFRAMELEN];
+    unsigned char respbuf[MAXFRAMELEN];
+    const struct icom_clock_cmds *clox = ((struct icom_priv_caps *)(rig->caps->priv))->clock_cmds;
+
+    if (!clox)
+    {
+	rig_debug(RIG_DEBUG_ERR, "%s: %s - no icom_clock_cmds/n", __func__, rig->caps->model_name);
+	return -RIG_EINTERNAL;
+    }
+
+    prmbuf[0] = clox->date_cmds[0];
+    prmbuf[1] = clox->date_cmds[1];
+    resplen = sizeof(respbuf);
+    retval = icom_transaction(rig, cmd, subcmd, prmbuf, 2, respbuf, &resplen);
+    *year = from_bcd(&respbuf[4], 2) * 100 + from_bcd(&respbuf[5], 2);
+    *month = from_bcd(&respbuf[6], 2);
+    *day = from_bcd(&respbuf[7], 2);
+
+    if (hour != NULL)
+    {
+        prmbuf[0] = clox->time_cmds[0];
+        prmbuf[1] = clox->time_cmds[1];
+        retval = icom_transaction(rig, cmd, subcmd, prmbuf, 2, respbuf, &resplen);
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        *hour = from_bcd(&respbuf[4], 2);
+        *min = from_bcd(&respbuf[5], 2);
+        *sec = 0;
+        *msec = 0;
+
+        prmbuf[0] = clox->offset_cmds[0];
+        prmbuf[1] = clox->offset_cmds[1];
+        retval = icom_transaction(rig, cmd, subcmd, prmbuf, 2, respbuf, &resplen);
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        *utc_offset = from_bcd(&respbuf[4], 2) * 100;
+        *utc_offset += from_bcd(&respbuf[5], 2);
+
+        if (respbuf[6] != 0x00) { *utc_offset *= -1; }
+
+        //rig_debug(RIG_DEBUG_VERBOSE,
+        //          "%s: %02d-%02d-%02dT%02d:%02d:%06.3lf%s%04d\n'",
+        //          __func__, *year, *month, *day, *hour, *min, *sec + *msec / 1000,
+        //          *utc_offset >= 0 ? "+" : "-", (unsigned)abs(*utc_offset));
+    }
+
+    return retval;
+}
+
 int icom_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq,
                   rmode_t mode)
 {

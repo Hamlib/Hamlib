@@ -152,6 +152,16 @@ struct cmdparams
 };
 
 /**
+ * \brief Icom clock subsubcommands for 0x1a 0x05
+ */
+struct icom_clock_cmds
+{
+    unsigned char date_cmds[2];    /*!< Read/set date */
+    unsigned char time_cmds[2];    /*!< Read/set time HH:MM */
+    unsigned char offset_cmds[2];  /*!< Read/set offset from UTC */
+};
+
+/**
  * \brief Icom-specific spectrum scope capabilities, if supported by the rig.
  */
 struct icom_spectrum_scope_caps
@@ -252,6 +262,7 @@ struct icom_priv_caps
     int mode_with_filter;       /*!< Rig mode commands include filter selection */
     int data_mode_supported;    /*!< Rig supports data mode flag */
     int fm_filters[3];          /*!< For models with FIL1/2/3 for FM low-to-high fixed filters -- IC7300/9700 */
+    const struct icom_clock_cmds *clock_cmds; /*!< Pointer to clock ops commands */
 };
 
 struct icom_priv_data
@@ -426,6 +437,10 @@ int icom_get_freq_range(RIG *rig);
 int icom_is_async_frame(RIG *rig, size_t frame_length, const unsigned char *frame);
 int icom_process_async_frame(RIG *rig, size_t frame_length, const unsigned char *frame);
 int icom_read_frame_direct(RIG *rig, size_t buffer_length, const unsigned char *buffer);
+int icom_set_clock(RIG *rig, int year, int month, int day, int hour,
+                     int min, int sec, double msec, int utc_offset);
+int icom_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
+                     int *min, int *sec, double *msec, int *utc_offset);
 
 extern const struct confparams icom_cfg_params[];
 extern const struct confparams icom_ext_levels[];
