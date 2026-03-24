@@ -30,7 +30,6 @@
 #include "icom.h"
 #include "icom_defs.h"
 #include "bandplan.h"
-#include "ic7300.h"
 
 #define IC785x_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM|RIG_MODE_PSK|RIG_MODE_PSKR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTAM|RIG_MODE_PKTFM)
 #define IC785x_1HZ_TS_MODES IC785x_ALL_RX_MODES
@@ -140,6 +139,10 @@ int ic785x_ext_tokens[] =
     TOK_BACKEND_NONE
 };
 
+static const struct icom_clock_cmds ic785x_clock_cmds = {
+  .date_cmds = { 0x00, 0x94 }, .time_cmds =  { 0x00, 0x95 }, .offset_cmds = { 0x00, 0x96 }
+};
+
 /*
  * IC-785x rig capabilities.
  */
@@ -241,7 +244,8 @@ static struct icom_priv_caps ic785x_priv_caps =
     .x1cx03_possibly = 1,
     .x1ax03_supported = 1,
     .mode_with_filter = 1,
-    .data_mode_supported = 1
+    .data_mode_supported = 1,
+    .clock_cmds = &ic785x_clock_cmds
 };
 
 struct rig_caps ic785x_caps =
@@ -493,8 +497,8 @@ struct rig_caps ic785x_caps =
     .send_morse = icom_send_morse,
     .stop_morse = icom_stop_morse,
     .wait_morse = rig_wait_morse,
-    .set_clock = ic7300_set_clock,
-    .get_clock = ic7300_get_clock,
+    .set_clock = icom_set_clock,
+    .get_clock = icom_get_clock,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
