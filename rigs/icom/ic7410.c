@@ -89,9 +89,9 @@
     } }
 
 
-struct cmdparams ic7410_extcmds[] =
+static struct cmdparams ic7410_extcmds[] =
 {
-    { {.s = RIG_LEVEL_VOXDELAY}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 1, {0x75 }, CMD_DAT_INT, 1 },
+    { {.s = RIG_LEVEL_VOXDELAY}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x89}, CMD_DAT_INT, 1 },
     { {.s = RIG_PARM_KEYERTYPE}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x75}, CMD_DAT_INT, 1 },
     { {0} }
 };
@@ -115,6 +115,7 @@ static const struct icom_priv_caps ic7410_priv_caps =
         { .level = RIG_AGC_FAST, .icom_level = 3 },
         { .level = RIG_AGC_LAST, .icom_level = -1 },
     },
+    .extcmds = ic7410_extcmds,
     .data_mode_supported = 1,
 };
 
