@@ -275,7 +275,7 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo);
          { 241, 20.0f } \
     } }
 
-struct cmdparams ic7300_extcmds[] =
+static struct cmdparams ic7300_extcmds[] =
 {
     { {.s = RIG_PARM_ANN}, CMD_PARAM_TYPE_PARM, C_CTL_ANN, 0, SC_MOD_WR, 0, {0x00}, CMD_DAT_INT, 1 },
     { {.s = RIG_PARM_BEEP}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x23}, CMD_DAT_BOL, 1 },
@@ -292,7 +292,7 @@ struct cmdparams ic7300_extcmds[] =
     { {.s = RIG_PARM_NONE} }
 };
 
-struct cmdparams ic7300mk2_extcmds[] =
+static struct cmdparams ic7300mk2_extcmds[] =
 {
     { {.s = RIG_PARM_ANN}, CMD_PARAM_TYPE_PARM, C_CTL_ANN, 0, SC_MOD_WR, 0, {0x00}, CMD_DAT_INT, 1 },
     { {.s = RIG_PARM_BEEP}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x24}, CMD_DAT_BOL, 1 },
@@ -309,7 +309,7 @@ struct cmdparams ic7300mk2_extcmds[] =
     { {.s = RIG_PARM_NONE} }
 };
 
-struct cmdparams ic9700_extcmds[] =
+static struct cmdparams ic9700_extcmds[] =
 {
     { {.s = RIG_PARM_ANN}, CMD_PARAM_TYPE_PARM, C_CTL_ANN, 0, SC_MOD_WR, 0, {0x00}, CMD_DAT_INT, 1 },
     { {.s = RIG_PARM_BEEP}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x29}, CMD_DAT_BOL, 1 },
@@ -327,7 +327,7 @@ struct cmdparams ic9700_extcmds[] =
     { {.s = RIG_PARM_NONE} }
 };
 
-struct cmdparams ic705_extcmds[] =
+static struct cmdparams ic705_extcmds[] =
 {
     { {.s = RIG_PARM_ANN}, CMD_PARAM_TYPE_PARM, C_CTL_ANN, 0, SC_MOD_WR, 0, {0x00}, CMD_DAT_INT, 1 },
     { {.s = RIG_PARM_BEEP}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x31}, CMD_DAT_BOL, 1 },
@@ -339,32 +339,57 @@ struct cmdparams ic705_extcmds[] =
     { {.s = RIG_LEVEL_VOXDELAY}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x03, 0x59}, CMD_DAT_INT, 1 },
     { {.s = RIG_FUNC_TRANSCEIVE}, CMD_PARAM_TYPE_FUNC, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x31}, CMD_DAT_BOL, 1 },
     { {.s = RIG_LEVEL_SPECTRUM_AVG}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x78}, CMD_DAT_INT, 1 },
-    { {.s = RIG_LEVEL_USB_AF}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x13}, CMD_DAT_LVL, 2 },
+    { {.s = RIG_LEVEL_USB_AF}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x10}, CMD_DAT_LVL, 2 },
     { {.s = RIG_PARM_KEYERTYPE}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x02, 0x55}, CMD_DAT_INT, 1 },
     { {.s = RIG_PARM_NONE} }
 };
 
-int ic7300_ext_tokens[] =
+static struct cmdparams ic905_extcmds[] =
+{
+    { {.s = RIG_PARM_ANN}, CMD_PARAM_TYPE_PARM, C_CTL_ANN, 0, SC_MOD_WR, 0, {0x00}, CMD_DAT_INT, 1 },
+    { {.s = RIG_PARM_BEEP}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x33}, CMD_DAT_BOL, 1 },
+    { {.s = RIG_PARM_BACKLIGHT}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x48}, CMD_DAT_LVL, 2 },
+    { {.s = RIG_PARM_SCREENSAVER}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x50}, CMD_DAT_INT, 1 },
+    { {.s = RIG_PARM_TIME}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x77}, CMD_DAT_TIM, 2 },
+    { {.s = RIG_PARM_AFIF}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x17}, CMD_DAT_BOL, 1 },
+    { {.s = RIG_PARM_AFIF_WLAN}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x22}, CMD_DAT_BOL, 1 },
+    { {.s = RIG_LEVEL_VOXDELAY}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x03, 0x39}, CMD_DAT_INT, 1 },
+    { {.s = RIG_FUNC_TRANSCEIVE}, CMD_PARAM_TYPE_FUNC, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x42}, CMD_DAT_BOL, 1 },
+    { {.s = RIG_LEVEL_SPECTRUM_AVG}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x89}, CMD_DAT_INT, 1 },
+    { {.s = RIG_LEVEL_USB_AF}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x18}, CMD_DAT_LVL, 2 },
+    { {.s = RIG_PARM_KEYERTYPE}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x02, 0x39}, CMD_DAT_INT, 1 },
+    { {.s = RIG_PARM_NONE} }
+};
+
+static int ic7300_ext_tokens[] =
 {
     TOK_SCOPE_STX, TOK_SCOPE_CFQ, TOK_SCOPE_EDG, TOK_SCOPE_VBW, TOK_BACKEND_NONE,
 };
 
-int ic9700_ext_tokens[] =
+static int ic9700_ext_tokens[] =
 {
     TOK_SCOPE_MSS, TOK_SCOPE_SDS, TOK_SCOPE_STX, TOK_SCOPE_CFQ, TOK_SCOPE_EDG, TOK_SCOPE_VBW, TOK_SCOPE_MKP, TOK_BACKEND_NONE,
 };
 
-int ic705_ext_tokens[] =
+static int ic705_ext_tokens[] =
 {
     TOK_SCOPE_STX, TOK_SCOPE_CFQ, TOK_SCOPE_EDG, TOK_SCOPE_VBW, TOK_BACKEND_NONE,
 };
 
 static const struct icom_clock_cmds ic7300_clock_cmds = {
-  .date_cmds = { 0x00, 0x94 }, .time_cmds =  { 0x00, 0x95 }, .offset_cmds = { 0x00, 0x96 }
+  .date_cmds = { 0x00, 0x94 }, .time_cmds = { 0x00, 0x95 }, .offset_cmds = { 0x00, 0x96 }
 };
 
 static const struct icom_clock_cmds ic7300mk2_clock_cmds = {
-  { 0x01, 0x32 }, { 0x01, 0x33 }, { 0x01, 0x36 }
+  .date_cmds = { 0x01, 0x32 }, .time_cmds = { 0x01, 0x33 }, .offset_cmds = { 0x01, 0x36 }
+};
+
+static const struct icom_clock_cmds ic705_clock_cmds = {
+  .date_cmds = { 0x01, 0x65 }, .time_cmds = { 0x01, 0x66 }, .offset_cmds = { 0x01, 0x69 }
+};
+
+static const struct icom_clock_cmds ic905_clock_cmds = {
+  .date_cmds = { 0x01, 0x76 }, .time_cmds = { 0x01, 0x77 }, .offset_cmds = { 0x01, 0x81 }
 };
 
 /*
@@ -768,7 +793,8 @@ static const struct icom_priv_caps IC705_priv_caps =
     .x1ax03_supported = 1,
     .mode_with_filter = 1,
     .data_mode_supported = 1,
-    .fm_filters = { 7000, 10000, 15000 }
+    .fm_filters = { 7000, 10000, 15000 },
+    .clock_cmds = &ic705_clock_cmds
 };
 
 static const struct icom_priv_caps IC905_priv_caps =
@@ -890,14 +916,15 @@ static const struct icom_priv_caps IC905_priv_caps =
             .high_freq = 0,
         },
     },
-    .extcmds = ic705_extcmds,     /* Custom parameters */
+    .extcmds = ic905_extcmds,     /* Custom parameters */
     .x25x26_always = 1,
     .x25x26_possibly = 1,
     .x1cx03_always = 1,
     .x1cx03_possibly = 1,
     .x1ax03_supported = 1,
     .mode_with_filter = 1,
-    .data_mode_supported = 1
+    .data_mode_supported = 1,
+    .clock_cmds = &ic905_clock_cmds
 };
 
 struct rig_caps ic7300_caps =
@@ -2008,6 +2035,8 @@ struct rig_caps ic705_caps =
     .wait_morse = rig_wait_morse,
     .send_voice_mem = icom_send_voice_mem,
     .stop_voice_mem = icom_stop_voice_mem,
+    .set_clock = icom_set_clock,
+    .get_clock = icom_get_clock,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
@@ -2284,6 +2313,8 @@ struct rig_caps ic905_caps =
     .wait_morse = rig_wait_morse,
     .send_voice_mem = icom_send_voice_mem,
     .stop_voice_mem = icom_stop_voice_mem,
+    .set_clock = icom_set_clock,
+    .get_clock = icom_get_clock,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS,
 };
 
