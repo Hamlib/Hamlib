@@ -47,13 +47,14 @@
 #define TOK_EAR TOKEN_BACKEND(002)
 #define TOK_REC TOKEN_BACKEND(003)
 
+static
 int icr30_tokens[] = { TOK_ANL, TOK_EAR, TOK_REC,
                        TOK_DSTAR_DSQL, TOK_DSTAR_CALL_SIGN, TOK_DSTAR_MESSAGE, TOK_DSTAR_STATUS,
                        TOK_DSTAR_GPS_DATA, TOK_DSTAR_GPS_MESS, TOK_DSTAR_CODE, TOK_DSTAR_TX_DATA,
                        TOK_BACKEND_NONE
                      };
 
-struct confparams icr30_ext[] =
+static struct confparams icr30_ext[] =
 {
     { TOK_ANL, "anl", "Auto noise limiter", "", "", RIG_CONF_CHECKBUTTON, {} },
     { TOK_EAR, "ear", "Earphone mode", "", "", RIG_CONF_CHECKBUTTON, {} },
@@ -61,7 +62,7 @@ struct confparams icr30_ext[] =
     { 0 }
 };
 
-struct cmdparams icr30_extcmds[] =
+static struct cmdparams icr30_extcmds[] =
 {
     { {.t = TOK_ANL}, CMD_PARAM_TYPE_TOKEN, C_CTL_MEM, S_MEM_ANL, SC_MOD_RW, 0, {}, CMD_DAT_BOL, 1 },
     { {.t = TOK_EAR}, CMD_PARAM_TYPE_TOKEN, C_CTL_MEM, S_MEM_EAR, SC_MOD_RW, 0, {}, CMD_DAT_BOL, 1 },
