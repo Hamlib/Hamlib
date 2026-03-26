@@ -91,9 +91,9 @@ static int simplecat_transaction(RIG *rig, const char *cmd, char *response,
         return -RIG_EINVAL;
     }
 
-    if (!rig || !STATE(rig))
+    if (!rig)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: NULL rig or state\n", __func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: NULL rig\n", __func__);
         return -RIG_EINVAL;
     }
 

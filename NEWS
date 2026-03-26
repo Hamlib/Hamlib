@@ -25,6 +25,7 @@ Version 4.7.1
         * Replace strncpy with memcpy to quell GCC 16 warning.  (TNX George Baltz)
         * Add SWR to supported 'get levels' for K3/K4.  (TNX Tom Crayner (reporter))
         * Add get_split_vfo to TS-850 backend.  (TNX Elisamuel Resto)
+        * New simplecat backend.  Supports Bunzee Labs DDX.  (TNX Dhiru Kholia)
 
 Version 4.7.0
         * 2026-02-15
