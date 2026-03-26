@@ -86,7 +86,7 @@
 
 #define IC9100_HF_ANTS (RIG_ANT_1|RIG_ANT_2)
 
-struct cmdparams ic9100_extcmds[] =
+static struct cmdparams ic9100_extcmds[] =
 {
     { {.s = RIG_LEVEL_VOXDELAY}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x27}, CMD_DAT_INT, 1 },
     { {.s = RIG_PARM_KEYERTYPE}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x02}, CMD_DAT_INT, 1 },
