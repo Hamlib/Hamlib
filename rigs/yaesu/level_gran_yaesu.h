@@ -4,11 +4,11 @@
         [LVL_RAWSTR]        = { .min = { .i = 0 },     .max = { .i = 255 } },
         /* levels with dB units */
         [LVL_PREAMP]        = { .min = { .i = 0 },     .max = { .i = 20 },   .step = { .i = 10 } },
-        [LVL_ATT]           = { .min = { .i = 0 },     .max = { .i = 12 },   .step = { .i = 0 } },
+        [LVL_ATT]           = { .min = { .i = 0 },     .max = { .i = 18 },   .step = { .i = 0 } },
         [LVL_STRENGTH]      = { .min = { .i = 0 },     .max = { .i = 60 },   .step = { .i = 0 } },
         [LVL_NB]            = { .min = { .f = 0 },     .max = { .f = 10 },    .step = { .f = 1 } },
         /* levels with WPM units */
-#if !defined(LVL_KEYSPD)
+#if !defined(NO_LVL_KEYSPD)
         [LVL_KEYSPD]  = { .min = { .i = 4 },           .max = { .i = 60 },   .step = { .i = 1 } },
 #endif
         /* levels with Hz units */
