@@ -16,7 +16,7 @@ Version 5.x -- future
           heap buffers
 
 Version 4.7.1
-        * 2026-??-??
+        * 2026-04-15
         * Fix unknown type compilation errors on Alpine Linux.  (TNX Bradfor Boyle)
         * Fix rig port timeout.  (TNX Matthias Moelller)
         * Update ReleaseNotes*.md.  (TNX George Baltz)
@@ -26,6 +26,8 @@ Version 4.7.1
         * Add SWR to supported 'get levels' for K3/K4.  (TNX Tom Crayner (reporter))
         * Add get_split_vfo to TS-850 backend.  (TNX Elisamuel Resto)
         * New simplecat backend.  Supports Bunzee Labs DDX.  (TNX Dhiru Kholia)
+        * Fix and generalize clock handling for Icom radios.  (TNX George Baltz)
+        * Fix Yaesu attenuator levels and LVL_KEYSPD reinitialization.  (TNX George Baltz)
 
 Version 4.7.0
         * 2026-02-15
