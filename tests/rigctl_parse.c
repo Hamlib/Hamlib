@@ -97,7 +97,7 @@ extern int read_history();
 
 #define MAXNAMSIZ 32
 #define MAXNBOPT 100    /* max number of different options */
-#define MAXARGSZ 511
+#define MAXARGSZ 2047
 
 #define ARG_IN1  0x01
 #define ARG_OUT1 0x02
@@ -5606,6 +5606,8 @@ declare_proto_rig(send_cmd)
     int retval;
     hamlib_port_t *rp = RIGPORT(rig);
     int backend_num, cmd_len;
+// bound on discarding non-matching CI-V frames so a noisy/shared bus can't loop forever
+#define ICOM_CIV_MAX_DISCARD_FRAMES 8
 #define BUFSZ 512
     char bufcmd[BUFSZ * 5]; // allow for 5 chars for each binary
     unsigned char buf[BUFSZ];
@@ -5774,22 +5776,47 @@ declare_proto_rig(send_cmd)
         eom_buf[0] = ';';
         eom_buf[1] = 0;
     }
-    else if (strstr(arg1, "xfd") || strstr(arg2, "xfd"))
+    else
     {
         char *s = strdup(arg1);
+        char *s2 = arg2 ? strdup(arg2) : NULL;
         toLowerCase(s);
-        // ICOM answer terminator
-        eom_buf[0] = 0xfd;
-        eom_buf[1] = 0;
-        char *p = strstr(s, "xfd");
+        toLowerCase(s2);
 
-        while (p)
+        if (strstr(s, "xfd") || (s2 && strstr(s2, "xfd")))
         {
-            cmdcount++;
-            p = strstr(p + 1, "xfd");
+            // ICOM answer terminator
+            eom_buf[0] = 0xfd;
+            eom_buf[1] = 0;
+            char *p = strstr(s, "xfd");
+
+            while (p)
+            {
+                cmdcount++;
+                p = strstr(p + 1, "xfd");
+            }
         }
 
         free(s);
+        free(s2);
+    }
+
+    if (backend_num == RIG_ICOM && eom_buf[0] == 0)
+    {
+        eom_buf[0] = 0xfd;
+        eom_buf[1] = 0;
+    }
+
+    // controller ID to expect replies at, from our own frame's "from" byte -- a
+    // multi-controller bus may not use the CI-V default
+    unsigned char icom_ctrl_id = 0xe0;
+
+    if (backend_num == RIG_ICOM
+            && cmd_len >= 4
+            && (unsigned char)bufcmd[0] == 0xfe
+            && (unsigned char)bufcmd[1] == 0xfe)
+    {
+        icom_ctrl_id = (unsigned char)bufcmd[3];
     }
 
     do
@@ -5810,7 +5837,13 @@ declare_proto_rig(send_cmd)
         if (rxbytes > 0 && rxbytes != BUFSZ)
         {
             ++rxbytes;  // need length + 1 for end of string
-            eom_buf[0] = 0;
+
+            // keep the 0xfd terminator for Icom; read_string stops at
+            // whichever comes first, the byte limit or the terminator
+            if (backend_num != RIG_ICOM)
+            {
+                eom_buf[0] = 0;
+            }
         }
 
         if (simulate)
@@ -5858,6 +5891,56 @@ declare_proto_rig(send_cmd)
 
         if (binary)   // convert our buf to a hex representation
         {
+            /* CI-V is often half-duplex, so our own frame can loop back on RX before
+             * the reply arrives (interface-dependent). Discard anything not addressed
+             * to our controller ID and read again. */
+            int civ_discard_count = 0;
+
+            while (backend_num == RIG_ICOM
+                    && retval >= 4
+                    && (unsigned char)buf[0] == 0xfe
+                    && (unsigned char)buf[1] == 0xfe
+                    && (unsigned char)buf[2] != icom_ctrl_id)
+            {
+                if (++civ_discard_count > ICOM_CIV_MAX_DISCARD_FRAMES)
+                {
+                    rig_debug(RIG_DEBUG_ERR,
+                              "%s: gave up after discarding %d non-matching "
+                              "CI-V frames\n",
+                              __func__, civ_discard_count - 1);
+                    rig_flush_force(rp, 1);
+                    set_transaction_inactive(rig);
+                    RETURNFUNC2(-RIG_EPROTO);
+                }
+
+                rig_debug(RIG_DEBUG_TRACE,
+                          "%s: discarding CI-V echo/foreign frame #%d "
+                          "(to=0x%02X from=0x%02X, %d bytes)\n",
+                          __func__, civ_discard_count, buf[2], buf[3], retval);
+
+                retval = read_string(rp, buf, rxbytes, eom_buf,
+                                     strlen(eom_buf), 0, 1);
+
+                if (retval < 0)
+                {
+                    rig_debug(RIG_DEBUG_ERR,
+                              "%s: read_string error after echo: %s\n",
+                              __func__, rigerror(retval));
+                    rig_flush_force(rp, 1);
+                    set_transaction_inactive(rig);
+                    RETURNFUNC2(retval);
+                }
+
+                if (retval < BUFSZ)
+                {
+                    buf[retval] = '\0';
+                }
+                else
+                {
+                    buf[BUFSZ - 1] = '\0';
+                }
+            }
+
             char hex[8];
             int hexbufbytes = retval * 6;
             char *hexbuf = calloc(hexbufbytes, 1);
@@ -5880,11 +5963,11 @@ declare_proto_rig(send_cmd)
                 strncat(hexbuf, hex, hexbufbytes - 1);
             }
 
-            rig_flush_force(rp, 1);
-            set_transaction_inactive(rig);
-
             rig_debug(RIG_DEBUG_TRACE, "%s: binary=%s, retval=%d\n", __func__, hexbuf,
                       retval);
+
+            rig_flush_force(rp, 1);
+            set_transaction_inactive(rig);
             fprintf(fout, "%s %d\n", hexbuf, retval);
             free(hexbuf);
             RETURNFUNC2(RIG_OK);
