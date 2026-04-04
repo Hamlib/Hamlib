@@ -23,15 +23,15 @@ static int harris_transaction(RIG *rig, const char *cmd, char *resp, int resp_le
     
     target_buf[0] = '\0';
 
-    /* 1. Pulizia fisica del buffer */
+    /* 1. Physical buffer flush */
     rig_flush(RIGPORT(rig));
 
-    /* 2. Invio del comando */
+    /* 2. Send command */
     if (write_block(RIGPORT(rig), (unsigned char *)cmd, strlen(cmd)) < 0) {
         return -RIG_EIO;
     }
 
-    /* 3. Loop di accumulo */
+    /* 3. Accumulation loop */
     while (retry > 0) {
         usleep(10000); //150000
         
@@ -41,7 +41,7 @@ static int harris_transaction(RIG *rig, const char *cmd, char *resp, int resp_le
         if (buf[0] != '\0') {
             strncat(target_buf, (char *)buf, target_len - strlen(target_buf) - 1);
             
-            /* Se troviamo il prompt con lo spazio, abbiamo finito */
+            /* If we find the prompt with space, we are done */
             if (strstr(target_buf, "SSB> ")) {
                 return RIG_OK;
             }
@@ -55,18 +55,18 @@ int harris_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     char cmd[64];
     
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: impostazione frequenza a %.0f Hz\n", __func__, freq);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: setting frequency to %.0f Hz\n", __func__, freq);
 
-    /* Il formato %08.0f è CRUCIALE: 
-       - 0 significa 'riempi con zeri'
-       - 8 significa 'lunghezza totale di 8 caratteri'
-       - .0f significa 'numero reale senza decimali' 
-       Esempio: 7000000 diventa 07000000 */
+    /* The %08.0f format is CRITICAL: 
+       - 0 means 'pad with zeros'
+       - 8 means 'total length of 8 characters'
+       - .0f means 'real number without decimals' 
+       Example: 7000000 becomes 07000000 */
     snprintf(cmd, sizeof(cmd), "FR %08.0f\r", freq);
 
-    /* Usiamo la nostra fidata harris_transaction */
+    /* Use our trusted harris_transaction */
     if (harris_transaction(rig, cmd, NULL, 0) != RIG_OK) {
-        rig_debug(RIG_DEBUG_ERR, "%s: errore nella transazione FR\n", __func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: error in FR transaction\n", __func__);
         return -RIG_EIO;
     }
 
@@ -78,54 +78,54 @@ int harris_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     char buf[512];
     char *p;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: richiesta frequenza\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: frequency request\n", __func__);
 
-    /* 1. Eseguiamo la transazione completa */
+    /* 1. Perform complete transaction */
     if (harris_transaction(rig, "FR\r", buf, sizeof(buf)) != RIG_OK) {
-        rig_debug(RIG_DEBUG_ERR, "%s: errore nella transazione FR\n", __func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: error in FR transaction\n", __func__);
         return -RIG_EIO;
     }
 
-    /* 2. Cerchiamo la riga della frequenza di ricezione "RxFr " */
+    /* 2. Look for the Rx frequency line "RxFr " */
     p = strstr(buf, "RxFr ");
     if (p) {
-        /* Saltiamo "RxFr " (5 caratteri) e leggiamo il numero */
-        /* sscanf è più robusto di atof per stringhe che terminano con caratteri speciali */
+        /* Skip "RxFr " (5 characters) and read the number */
+        /* sscanf is more robust than atof for strings ending with special characters */
         if (sscanf(p + 5, "%lf", freq) != 1) {
-            rig_debug(RIG_DEBUG_ERR, "%s: formato frequenza non riconosciuto in [%s]\n", __func__, p);
+            rig_debug(RIG_DEBUG_ERR, "%s: frequency format not recognized in [%s]\n", __func__, p);
             return -RIG_EPROTO;
         }
         
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: frequenza letta: %.0f Hz\n", __func__, *freq);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: frequency read: %.0f Hz\n", __func__, *freq);
         return RIG_OK;
     }
 
-    rig_debug(RIG_DEBUG_ERR, "%s: stringa RxFr non trovata nella risposta\n", __func__);
+    rig_debug(RIG_DEBUG_ERR, "%s: RxFr string not found in response\n", __func__);
     return -RIG_EPROTO;
 }
 
 int harris_open(RIG *rig)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: Apertura e sincronizzazione prompt\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: Opening and prompt synchronization\n", __func__);
 
-    /* Inviamo un semplice ritorno a capo per sollecitare il prompt */
-    /* Passiamo NULL come buffer di risposta perché ci interessa solo l'esito (RIG_OK) */
+    /* Send a simple carriage return to solicit the prompt */
+    /* Pass NULL as response buffer because we only care about the result (RIG_OK) */
     if (harris_transaction(rig, "\r", NULL, 0) != RIG_OK) {
-        rig_debug(RIG_DEBUG_ERR, "%s: La radio non risponde al prompt iniziale\n", __func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: Radio not responding to initial prompt\n", __func__);
         return -RIG_EIO;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: Connessione stabilita con successo\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: Connection successfully established\n", __func__);
     return RIG_OK;
 }
 
 static float find_closest_bandwidth(float target, const float *list) {
     float closest = list[0];
-    float min_diff = 99.0; // Valore iniziale alto
+    float min_diff = 99.0; // High initial value
 
     for (int i = 0; list[i] != 0; i++) {
         float diff = target - list[i];
-        if (diff < 0) diff = -diff; // Valore assoluto
+        if (diff < 0) diff = -diff; // Absolute value
         
         if (diff < min_diff) {
             min_diff = diff;
@@ -142,14 +142,14 @@ int harris_set_pb_width(RIG *rig, vfo_t vfo, pbwidth_t width)
     pbwidth_t current_width;
     const float *bw_list;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: richiesta variazione larghezza banda a %ld Hz\n", __func__, width);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: bandwidth change request to %ld Hz\n", __func__, width);
 
-    /* 1. Recuperiamo il modo attuale per sapere quale tabella usare */
+    /* 1. Retrieve current mode to determine which table to use */
     if (harris_get_mode(rig, vfo, &current_mode, &current_width) != RIG_OK) {
         return -RIG_EIO;
     }
 
-    /* 2. Selezioniamo la tabella corretta */
+    /* 2. Select the correct table */
     switch (current_mode) {
         case RIG_MODE_USB:
         case RIG_MODE_LSB: bw_list = bw_ssb; break;
@@ -158,7 +158,7 @@ int harris_set_pb_width(RIG *rig, vfo_t vfo, pbwidth_t width)
         default: bw_list = bw_ssb; // Fallback
     }
 
-    /* 3. Approssimazione e invio */
+    /* 3. Approximation and sending */
     float target_khz = (float)width / 1000.0;
     float final_khz = find_closest_bandwidth(target_khz, bw_list);
 
@@ -179,11 +179,11 @@ int harris_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         default: return -RIG_EINVAL;
     }
 
-    /* 1. Cambia il Modo */
+    /* 1. Change Mode */
     snprintf(cmd, sizeof(cmd), "MODE %s\r", mstr);
     if (harris_transaction(rig, cmd, NULL, 0) != RIG_OK) return -RIG_EIO;
 
-    /* 2. Cambia la banda usando la nuova funzione (se width > 0) */
+    /* 2. Change bandwidth using the new function (if width > 0) */
     if (width > 0 && width != RIG_PASSBAND_NORMAL) {
         return harris_set_pb_width(rig, vfo, width);
     }
@@ -198,7 +198,7 @@ int harris_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     if (harris_transaction(rig, "MODE\r", buf, sizeof(buf)) != RIG_OK) return -RIG_EIO;
 
-    /* Parsing Modo */
+    /* Mode Parsing */
     p = strstr(buf, "MODE ");
     if (p) {
         p += 5;
@@ -208,7 +208,7 @@ int harris_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         else if (strncmp(p, "AME", 3) == 0 || strncmp(p, "AM", 2) == 0) *mode = RIG_MODE_AM;
     }
 
-    /* Parsing Banda (Filtro) */
+    /* Band Parsing (Filter) */
     p = strstr(buf, "BAND ");
     if (p) {
         *width = (pbwidth_t)(atof(p + 5) * 1000.0);
@@ -221,7 +221,7 @@ int harris_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     char buf[2048];
 
-    /* Caso speciale per il Preamp: il comando SH non lo mostra nel dump */
+    /* Special case for Preamp: SH command doesn't show it in dump */
     if (level == RIG_LEVEL_PREAMP) {
         if (harris_transaction(rig, "PRE\r", buf, sizeof(buf)) != RIG_OK) {
             return -RIG_EIO;
@@ -230,7 +230,7 @@ int harris_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return RIG_OK;
     }
 
-    /* Per tutti gli altri livelli usiamo il dump SH */
+    /* For all other levels we use the SH dump */
     if (harris_transaction(rig, "SH\r", buf, sizeof(buf)) != RIG_OK) {
         return -RIG_EIO;
     }
@@ -298,7 +298,7 @@ int harris_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             else if (val.i == RIG_AGC_MEDIUM) p_str = "MED";
             else if (val.i == RIG_AGC_FAST) p_str = "FAST";
             else p_str = "SLOW"; 
-            snprintf(cmd, sizeof(cmd), "AGC %s\r", p_str); // Usiamo AGC esteso
+            snprintf(cmd, sizeof(cmd), "AGC %s\r", p_str); // Use extended AGC
             break;
 
         case RIG_LEVEL_RF:
@@ -306,7 +306,7 @@ int harris_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             break;
 
         case RIG_LEVEL_PREAMP:
-            // Cruciale: Solo "ENA" e "BYP" funzionano davvero
+            // Crucial: Only "ENA" and "BYP" actually work
             snprintf(cmd, sizeof(cmd), "PRE %s\r", (val.i > 0) ? "ENA" : "BYP");
             break;
 
@@ -322,20 +322,20 @@ int harris_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
     char cmd[64];
 
-    /* Supportiamo solo lo Squelch in questa funzione */
+    /* Only Squelch is supported in this function */
     if (func != RIG_FUNC_SQL) {
-        rig_debug(RIG_DEBUG_TRACE, "%s: funzione %lu non supportata\n", __func__, func);
+        rig_debug(RIG_DEBUG_TRACE, "%s: function %lu not supported\n", __func__, func);
         return -RIG_EINVAL;
     }
 
-    /* Comando Harris: SQ ON per attivare, SQ OF per disattivare */
-    /* Nota: Usiamo 'OF' con una sola F come da logica dei tuoi test precedenti */
+    /* Harris Command: SQ ON to activate, SQ OF to deactivate */
+    /* Note: Using 'OF' with single F as per previous test logic */
     snprintf(cmd, sizeof(cmd), "SQ %s\r", status ? "ON" : "OF");
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: impostazione Squelch status %d [%s]\n", 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: setting Squelch status %d [%s]\n", 
               __func__, status, cmd);
 
-    /* Usiamo la transazione centralizzata per attendere il prompt SSB> */
+    /* Use centralized transaction to wait for SSB> prompt */
     return harris_transaction(rig, cmd, NULL, 0);
 }
 
@@ -343,21 +343,21 @@ int harris_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
     char buf[512];
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: query stato PTT\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: PTT status query\n", __func__);
 
-    /* Usiamo la transazione centralizzata inviando solo 'K' */
+    /* Use centralized transaction by sending only 'K' */
     if (harris_transaction(rig, "K\r", buf, sizeof(buf)) != RIG_OK) {
         return -RIG_EIO;
     }
 
-    /* Analisi della risposta nel buffer */
-    /* La radio tipicamente risponde con "KEY ON", "KEY MIC" o "KEY OFF" */
+    /* Response analysis in buffer */
+    /* Radio typically responds with "KEY ON", "KEY MIC" or "KEY OFF" */
     if (strstr(buf, "KEY ON") || strstr(buf, "KEY MIC")) {
         *ptt = RIG_PTT_ON;
     } else if (strstr(buf, "KEY OFF")) {
         *ptt = RIG_PTT_OFF;
     } else {
-        /* Fallback di sicurezza basato su stringhe parziali */
+        /* Safety fallback based on partial strings */
         if (strstr(buf, "ON")) {
             *ptt = RIG_PTT_ON;
         } else {
@@ -365,7 +365,7 @@ int harris_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         }
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: PTT rilevato: %s\n", 
+    rig_debug(RIG_DEBUG_TRACE, "%s: PTT detected: %s\n", 
               __func__, (*ptt == RIG_PTT_ON) ? "ON" : "OFF");
 
     return RIG_OK;
@@ -375,13 +375,13 @@ int harris_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     char cmd[16];
 
-    /* Costruiamo il comando: K ON per attivare, K OF per disattivare */
-    /* Nota: mantengo 'OF' con una sola F come da tua implementazione originale */
+    /* Build command: K ON to activate, K OF to deactivate */
+    /* Note: maintaining 'OF' with single F as per original implementation */
     snprintf(cmd, sizeof(cmd), "K %s\r", (ptt == RIG_PTT_ON) ? "ON" : "OF");
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: impostazione PTT [%s]\n", __func__, cmd);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: setting PTT [%s]\n", __func__, cmd);
 
-    /* Invio tramite transazione (ignora la risposta testuale, cerca solo il prompt) */
+    /* Send via transaction (ignore text response, just look for prompt) */
     return harris_transaction(rig, cmd, NULL, 0);
 }
 
