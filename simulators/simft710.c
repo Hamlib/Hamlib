@@ -480,12 +480,12 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "SH0;", 4) == 0)
         {
-            sprintf(buf, "SH0%02d;", width);
+            sprintf(buf, "SH00%02d;", width);
             n = write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "SH0", 3) == 0)
         {
-            sscanf(buf, "SH0%02d", &width);
+            sscanf(buf, "SH00%02d", &width);
         }
         else if (strncmp(buf, "NA0;", 4) == 0)
         {
@@ -532,7 +532,7 @@ int main(int argc, char *argv[])
             sprintf(buf, "ST%d;", st);
             n = write(fd, buf, strlen(buf));
         }
-	else if (strncmp(buf, "RF", 2))  // Not defined for FT-710
+	else if (strncmp(buf, "RF", 2) == 0)  // Not defined for FT-710
         {
             n = write(fd, "?;", 2);
         }
