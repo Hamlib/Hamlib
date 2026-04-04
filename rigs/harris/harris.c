@@ -350,7 +350,7 @@ int harris_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
     /* Only Squelch is supported in this function */
     if (func != RIG_FUNC_SQL) {
-        rig_debug(RIG_DEBUG_TRACE, "%s: function %lu not supported\n", __func__, func);
+        rig_debug(RIG_DEBUG_TRACE, "%s: function %llu not supported\n", __func__, (unsigned long long)func);
         return -RIG_EINVAL;
     }
 
