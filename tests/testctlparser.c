@@ -2153,6 +2153,30 @@ static int check_state_granularity_output(RIG *rig)
     return 0;
 }
 
+static int check_oversize_send_raw(RIG *rig)
+{
+    char hex[2048] = "";
+    char *argv[] = { "testctlparser", "send_raw", ";", hex };
+    int i;
+    int ret;
+
+    for (i = 0; i < 300; i++)
+    {
+        strcat(hex, "0x01;");
+    }
+
+    ret = parse_command(rig, stdin, argv, 4, -1);
+
+    if (ret != -RIG_EINVAL)
+    {
+        fprintf(stderr, "oversize send_raw: expected %d, got %d\n",
+                -RIG_EINVAL, ret);
+        return 1;
+    }
+
+    return 0;
+}
+
 int main(void)
 {
     static const char maximum[] = "12345678901234567890123456789";
@@ -2264,7 +2288,8 @@ int main(void)
             || check_receive_length(rig, "999999999999999999999999",
                                     -RIG_EINVAL) != 0
             || check_bad_input_stream(rig) != 0
-            || check_state_granularity_output(rig) != 0)
+            || check_state_granularity_output(rig) != 0
+            || check_oversize_send_raw(rig) != 0)
     {
         rig_cleanup(rig);
         return 1;

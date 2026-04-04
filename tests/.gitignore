@@ -45,6 +45,7 @@ testgeministatus
 testgrid
 testgrid.sh
 testgs100
+testicomsendcmd
 testicomts
 testlibusb
 testloc
