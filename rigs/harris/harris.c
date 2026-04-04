@@ -414,3 +414,4 @@ DECLARE_INITRIG_BACKEND(harris)
     rig_register((struct rig_caps *)&prc138_caps);
     return RIG_OK;
 }
+
