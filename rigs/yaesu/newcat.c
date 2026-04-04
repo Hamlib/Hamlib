@@ -8117,75 +8117,33 @@ ncboolean newcat_valid_command(RIG *rig, char const *const command)
         }
         else
         {
+            ncboolean retval = FALSE;
             /*
              * The command is valid.  Now make sure it is supported by the rig.
              */
-            if (is_ft450 && valid_commands[search_index].ft450)
-            {
-                RETURNFUNC2(TRUE);
-            }
-            else if (is_ft891 && valid_commands[search_index].ft891)
-            {
-                RETURNFUNC2(TRUE);
-            }
-            else if (is_ft950 && valid_commands[search_index].ft950)
-            {
-                RETURNFUNC2(TRUE);
-            }
-            else if (is_ft991 && valid_commands[search_index].ft991)
-            {
-                RETURNFUNC2(TRUE);
-            }
-            else if (is_ft2000 && valid_commands[search_index].ft2000)
-            {
-                RETURNFUNC2(TRUE);
-            }
-            else if (is_ftdx5000 && valid_commands[search_index].ft5000)
-            {
-                RETURNFUNC2(TRUE);
-            }
-            else if (is_ftdx9000 && valid_commands[search_index].ft9000)
-            {
-                RETURNFUNC2(TRUE);
-            }
-            else if (is_ftdx1200 && valid_commands[search_index].ft1200)
-            {
-                RETURNFUNC2(TRUE);
-            }
-            else if (is_ftdx3000 && valid_commands[search_index].ft3000)
-            {
-                RETURNFUNC2(TRUE);
-            }
-            else if (is_ftdx3000dm && valid_commands[search_index].ft3000)
-            {
-                RETURNFUNC2(TRUE);
-            }
-            else if (is_ftdx101d && valid_commands[search_index].ft101d)
-            {
-                RETURNFUNC2(TRUE);
-            }
-            else if (is_ftdx101mp && valid_commands[search_index].ft101mp)
-            {
-                RETURNFUNC2(TRUE);
-            }
-            else if (is_ftdx10 && valid_commands[search_index].ftdx10)
-            {
-                RETURNFUNC2(TRUE);
-            }
-            else if (is_ft710 && valid_commands[search_index].ft710)
-            {
-                RETURNFUNC2(TRUE);
-            }
-            else if (is_ftx1 && valid_commands[search_index].ftx1)
-            {
-                RETURNFUNC2(TRUE);
-            }
-            else
+            // Until valid_commands gets a second index
+            if (is_ft450) { retval = valid_commands[search_index].ft450; }
+            else if (is_ft891) { retval = valid_commands[search_index].ft891; }
+            else if (is_ft950) { retval = valid_commands[search_index].ft950; }
+            else if (is_ft991) { retval = valid_commands[search_index].ft991; }
+            else if (is_ft2000) { retval =  valid_commands[search_index].ft2000; }
+            else if (is_ftdx5000) { retval = valid_commands[search_index].ft5000; }
+            else if (is_ftdx9000) { retval = valid_commands[search_index].ft9000; }
+            else if (is_ftdx1200) { retval = valid_commands[search_index].ft1200; }
+            else if (is_ftdx3000) { retval = valid_commands[search_index].ft3000; }
+            else if (is_ftdx3000dm) { retval = valid_commands[search_index].ft3000; }
+            else if (is_ftdx101d) { retval = valid_commands[search_index].ft101d; }
+            else if (is_ftdx101mp) { retval = valid_commands[search_index].ft101mp; }
+            else if (is_ftdx10) { retval = valid_commands[search_index].ftdx10; }
+            else if (is_ft710) { retval = valid_commands[search_index].ft710; }
+            else if (is_ftx1) { retval = valid_commands[search_index].ftx1; }
+
+            if (!retval)
             {
                 rig_debug(RIG_DEBUG_TRACE, "%s: '%s' command '%s' not supported\n",
                           __func__, caps->model_name, command);
-                RETURNFUNC2(FALSE);
             }
+            RETURNFUNC2(retval);
         }
     }
 
