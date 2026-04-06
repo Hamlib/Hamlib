@@ -33,6 +33,8 @@
 #ifndef _NEWCAT_H
 #define _NEWCAT_H 1
 
+#include <stdbool.h>
+
 #include "tones.h"
 #include "token.h"
 
@@ -47,7 +49,7 @@
 #endif
 #define OFF FALSE
 
-typedef char ncboolean;
+typedef bool ncboolean;
 
 /* shared function version */
 #define NEWCAT_VER "20241118"
