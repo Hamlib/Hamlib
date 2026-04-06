@@ -8159,7 +8159,7 @@ ncboolean newcat_is_rig(RIG *rig, rig_model_t model)
 
     //a bit too verbose so disable this unless needed
     //rig_debug(RIG_DEBUG_TRACE, "%s(%d):%s called\n", __FILE__, __LINE__, __func__);
-    is_rig = (model == rig->caps->rig_model) ? TRUE : FALSE;
+    is_rig = model == rig->caps->rig_model;
 
     return (is_rig); // RETURN is too verbose here
 }
@@ -8716,7 +8716,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
             // Narrow mode must be chosen correctly before filter width
-            err = newcat_set_narrow(rig, vfo, width <= 500 ? TRUE : FALSE);
+            err = newcat_set_narrow(rig, vfo, width <= 500);
 
             if (err != RIG_OK)
             {
@@ -8741,7 +8741,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
             // Narrow mode must be chosen correctly before filter width
-            err = newcat_set_narrow(rig, vfo, width <= 1800 ? TRUE : FALSE);
+            err = newcat_set_narrow(rig, vfo, width <= 1800);
 
             if (err != RIG_OK)
             {
@@ -8813,7 +8813,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
             // Narrow mode must be chosen correctly before filter width
-            err = newcat_set_narrow(rig, vfo, width <= 500 ? TRUE : FALSE);
+            err = newcat_set_narrow(rig, vfo, width <= 500);
 
             if (err != RIG_OK)
             {
@@ -8844,7 +8844,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
             // Narrow mode must be chosen correctly before filter width
-            err = newcat_set_narrow(rig, vfo, width <= 1800 ? TRUE : FALSE);
+            err = newcat_set_narrow(rig, vfo, width <= 1800);
 
             if (err != RIG_OK)
             {
@@ -8902,7 +8902,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
             // Narrow mode must be chosen correctly before filter width
-            err = newcat_set_narrow(rig, vfo, width <= 500 ? TRUE : FALSE);
+            err = newcat_set_narrow(rig, vfo, width <= 500);
 
             if (err != RIG_OK)
             {
@@ -8933,7 +8933,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
             // Narrow mode must be chosen correctly before filter width
-            err = newcat_set_narrow(rig, vfo, width <= 1800 ? TRUE : FALSE);
+            err = newcat_set_narrow(rig, vfo, width <= 1800);
 
             if (err != RIG_OK)
             {
@@ -9035,7 +9035,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
             // Narrow mode must be chosen correctly before filter width
-            err = newcat_set_narrow(rig, vfo, width <= 500 ? TRUE : FALSE);
+            err = newcat_set_narrow(rig, vfo, width <= 500);
 
             if (err != RIG_OK)
             {
@@ -9065,7 +9065,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
             // Narrow mode must be chosen correctly before filter width
-            err = newcat_set_narrow(rig, vfo, width <= 1800 ? TRUE : FALSE);
+            err = newcat_set_narrow(rig, vfo, width <= 1800);
 
             if (err != RIG_OK)
             {
@@ -9142,7 +9142,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
             // Narrow mode must be chosen correctly before filter width
-            err = newcat_set_narrow(rig, vfo, width <= 500 ? TRUE : FALSE);
+            err = newcat_set_narrow(rig, vfo, width <= 500 );
 
             if (err != RIG_OK)
             {
@@ -9172,7 +9172,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
             // Narrow mode must be chosen correctly before filter width
-            err = newcat_set_narrow(rig, vfo, width <= 1800 ? TRUE : FALSE);
+            err = newcat_set_narrow(rig, vfo, width <= 1800);
 
             if (err != RIG_OK)
             {
