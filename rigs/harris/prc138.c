@@ -31,7 +31,7 @@
  * Harris PRC-138 Capabilities
  */
 struct rig_caps prc138_caps = {
-    .rig_model          = RIG_MODEL_PRC138,
+    RIG_MODEL(RIG_MODEL_PRC138),
     .model_name         = "PRC-138",
     .mfg_name           = "Harris",
     .version            = "1.0.6",
