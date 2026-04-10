@@ -28,11 +28,13 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 
 #ifndef _NEWCAT_H
 #define _NEWCAT_H 1
 
+#include <stdint.h>
 #include <stdbool.h>
 
 #include "tones.h"
@@ -105,10 +107,18 @@ struct newcat_roofing_filter
     int optional;
 };
 
+struct newcat_width_info
+{
+    short count;       // Max value + 1
+    uint16_t widths[]; // Must have values for all indices from 0 to max
+};
+
 struct newcat_priv_caps
 {
     int roofing_filter_count;
     struct newcat_roofing_filter roofing_filters[NEWCAT_ROOFING_FILTER_COUNT];
+    const struct newcat_width_info *ssb_widths;
+    const struct newcat_width_info *cw_widths;
 };
 
 /*

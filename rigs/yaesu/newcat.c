@@ -27,6 +27,7 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
@@ -643,6 +644,7 @@ static int newcat_set_contour_level(RIG *rig, vfo_t vfo, int level);
 static int newcat_get_contour_level(RIG *rig, vfo_t vfo, int *level);
 static int newcat_set_contour_width(RIG *rig, vfo_t vfo, int width);
 static int newcat_get_contour_width(RIG *rig, vfo_t vfo, int *width);
+static int newcat_get_index_from_width(pbwidth_t width, const struct newcat_width_info * info);
 static ncboolean newcat_valid_command(RIG *rig, char const *const command);
 
 /*
@@ -682,6 +684,28 @@ static int newcat_band_index(freq_t freq)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: freq=%g, band=%d\n", __func__, freq, band);
     return (band);
+}
+
+/*
+ *  Get the width index(SH value) given the requested passband width
+ *    and the widths the rig supports
+ */
+static int newcat_get_index_from_width(pbwidth_t width, const struct newcat_width_info *info)
+{
+    if (width == RIG_PASSBAND_NORMAL)
+    {
+        return 0;  // Rig default
+    }
+
+    for (int i = 1; i < info->count - 2; i++)
+    {
+        if (width <= info->widths[i])
+        {
+            return i;
+        }
+    }
+
+    return info->count - 1; // Not found, use the maximum
 }
 
 /*
@@ -8677,6 +8701,7 @@ static int get_narrow(RIG *rig, vfo_t vfo)
 int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
+    struct newcat_priv_caps *priv_caps = (struct newcat_priv_caps *)rig->caps->priv;
     int err;
     int w = 0;
     char main_sub_vfo = '0';
@@ -8723,6 +8748,8 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                 RETURNFUNC(err);
             }
 
+            w = newcat_get_index_from_width(width, priv_caps->cw_widths);
+//---Start cut here            // Remove this if() when the above routine works
             if (width == RIG_PASSBAND_NORMAL) { w = 0; }
             else if (width <= 100) { w = 3; }
             else if (width <= 200) { w = 4; }
@@ -8735,6 +8762,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             else if (width <= 1700) { w = 11; }
             else if (width <= 2000) { w = 12; }
             else { w = 13; } // 2400 Hz
+//---End cut here---
 
             break;
 
@@ -8748,6 +8776,8 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                 RETURNFUNC(err);
             }
 
+            w = newcat_get_index_from_width(width, priv_caps->ssb_widths);
+//---Start cut here---            // Remove when above is tested
             if (width == RIG_PASSBAND_NORMAL) { w = 0; }
             else if (width <= 200) { w = 1; }
             else if (width <= 400) { w = 2; }
@@ -8769,6 +8799,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             else if (width <= 2800) { w = 18; }
             else if (width <= 2900) { w = 19; }
             else { w = 20; } // 3000 Hz
+//---End cut here---
 
             break;
 
@@ -9764,6 +9795,7 @@ static int get_roofing_filter(RIG *rig, vfo_t vfo,
 int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
+    struct newcat_priv_caps *priv_caps = (struct newcat_priv_caps *)rig->caps->priv;
     int err;
     int w;
     int sh_command_valid = 1;
@@ -9895,6 +9927,12 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
+            if (w >= 0 && w < priv_caps->cw_widths->count)
+            {
+                *width = priv_caps->cw_widths->widths[w];
+            }
+            else {RETURNFUNC(-RIG_EINVAL);}
+//---Start cut here---
             switch (w)
             {
             case 0:
@@ -9925,6 +9963,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
             default: RETURNFUNC(-RIG_EINVAL);
             }
+//---End cut here---
 
             break;
 

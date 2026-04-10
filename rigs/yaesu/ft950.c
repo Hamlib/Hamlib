@@ -31,6 +31,19 @@
 #include "newcat.h"
 #include "ft950.h"
 
+static const struct newcat_width_info ft950_cw_widths =
+{
+  .count = 14,
+  .widths = { 0, 0, 0, 100, 200, 300, 400, 500, 800, 1200, 1400, 1700, 2000, 2400}
+};
+
+static const struct newcat_width_info ft950_ssb_widths =
+{
+  .count = 21,
+  .widths = { 0, 200, 400, 600, 850, 1100, 1350, 1500, 1650, 1800, 1950, 2100, 2250, 2400,
+	      2450, 2500, 2600, 2700, 2800, 2900, 3000}
+};
+
 const struct newcat_priv_caps ft950_priv_caps =
 {
     .roofing_filter_count = 7,
@@ -44,7 +57,9 @@ const struct newcat_priv_caps ft950_priv_caps =
         { .index = 4, .set_value = 0, .get_value = '4', .width = 15000, .optional = 0 },
         { .index = 5, .set_value = 0, .get_value = '5', .width = 6000, .optional = 0 },
         { .index = 6, .set_value = 0, .get_value = '6', .width = 3000, .optional = 0 },
-    }
+    },
+    .cw_widths = &ft950_cw_widths,
+    .ssb_widths = &ft950_ssb_widths
 };
 
 const struct confparams ft950_ext_levels[] =
