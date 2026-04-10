@@ -33,11 +33,6 @@
 #include "icom_defs.h"
 #include "bandplan.h"
 
-static int ic7800_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
-                     int sec, double msec, int utc_offset);
-static int ic7800_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
-                     int *min, int *sec, double *msec, int *utc_offset);
-
 #define IC7800_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM|RIG_MODE_PSK|RIG_MODE_PSKR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTAM|RIG_MODE_PKTFM)
 #define IC7800_1HZ_TS_MODES IC7800_ALL_RX_MODES
 #define IC7800_OTHER_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM|RIG_MODE_PSK|RIG_MODE_PSKR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTFM)
@@ -121,15 +116,19 @@ static int ic7800_get_clock(RIG *rig, int *year, int *month, int *day, int *hour
 int ic7800_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int ic7800_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
-struct cmdparams ic7800_extcmds[] =
+static struct cmdparams ic7800_extcmds[] =
 {
     { {.s = RIG_LEVEL_VOXDELAY}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x83}, CMD_DAT_INT, 1 },
     { { 0 } }
 };
 
-int ic7800_ext_tokens[] =
+static int ic7800_ext_tokens[] =
 {
     TOK_DRIVE_GAIN, TOK_DIGI_SEL_FUNC, TOK_DIGI_SEL_LEVEL, TOK_BACKEND_NONE
+};
+
+static const struct icom_clock_cmds ic7800_clock_cmds = {
+    .date_cmds = { 0x00, 0x59 }, .time_cmds = { 0x00, 0x60 }, .offset_cmds = { 0x00, 0x62 }
 };
 
 /*
@@ -158,7 +157,8 @@ static const struct icom_priv_caps ic7800_priv_caps =
     .x1cx03_possibly = 1,
     .x1ax03_supported = 1,
     .mode_with_filter = 1,
-    .data_mode_supported = 1
+    .data_mode_supported = 1,
+    .clock_cmds = &ic7800_clock_cmds
 };
 
 struct rig_caps ic7800_caps =
@@ -350,8 +350,8 @@ struct rig_caps ic7800_caps =
     .send_morse = icom_send_morse,
     .stop_morse = icom_stop_morse,
     .wait_morse = rig_wait_morse,
-    .set_clock = ic7800_set_clock,
-    .get_clock = ic7800_get_clock,
+    .set_clock = icom_set_clock,
+    .get_clock = icom_get_clock,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
@@ -425,116 +425,4 @@ int ic7800_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     }
 
     return RIG_OK;
-}
-
-// if hour < 0 then only date will be set
-static int ic7800_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
-                     int sec, double msec, int utc_offset)
-{
-    int cmd = 0x1a;
-    int subcmd =  0x05;
-    int retval = RIG_OK;
-    unsigned char prmbuf[MAXFRAMELEN];
-
-    if (year >= 0)
-    {
-        prmbuf[0] = 0x00;
-        prmbuf[1] = 0x59;
-        to_bcd(&prmbuf[2], year / 100, 2);
-        to_bcd(&prmbuf[3], year % 100, 2);
-        to_bcd(&prmbuf[4], month, 2);
-        to_bcd(&prmbuf[5], day, 2);
-        retval = icom_transaction(rig, cmd, subcmd, prmbuf, 6, NULL, NULL);
-
-        if (retval != RIG_OK)
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s(%d): %s\b", __func__, __LINE__, rigerror(retval));
-        }
-    }
-
-    if (hour >= 0)
-    {
-        prmbuf[0] = 0x00;
-        prmbuf[1] = 0x60;
-        to_bcd(&prmbuf[2], hour, 2);
-        to_bcd(&prmbuf[3], min, 2);
-        retval = icom_transaction(rig, cmd, subcmd, prmbuf, 4, NULL, NULL);
-
-        if (retval != RIG_OK)
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s(%d): %s\b", __func__, __LINE__, rigerror(retval));
-        }
-
-        prmbuf[0] = 0x00;
-        prmbuf[1] = 0x62;
-        rig_debug(RIG_DEBUG_ERR, "%s: utc_offset=%d\n", __func__, utc_offset);
-        to_bcd(&prmbuf[2], abs(utc_offset) / 100, 2);
-        to_bcd(&prmbuf[3], abs(utc_offset) % 100, 2);
-        to_bcd(&prmbuf[4], utc_offset >= 0 ? 0 : 1, 2);
-        retval = icom_transaction(rig, cmd, subcmd, prmbuf, 5, NULL, NULL);
-
-        if (retval != RIG_OK)
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s(%d): %s\b", __func__, __LINE__, rigerror(retval));
-        }
-    }
-
-    return retval;
-}
-
-static int ic7800_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
-                     int *min, int *sec, double *msec, int *utc_offset)
-{
-    int cmd = 0x1a;
-    int subcmd =  0x05;
-    int retval = RIG_OK;
-    int resplen;
-    unsigned char prmbuf[MAXFRAMELEN];
-    unsigned char respbuf[MAXFRAMELEN];
-
-    prmbuf[0] = 0x00;
-    prmbuf[1] = 0x59;
-    resplen = sizeof(respbuf);
-    retval = icom_transaction(rig, cmd, subcmd, prmbuf, 2, respbuf, &resplen);
-    *year = from_bcd(&respbuf[4], 2) * 100 + from_bcd(&respbuf[5], 2);
-    *month = from_bcd(&respbuf[6], 2);
-    *day = from_bcd(&respbuf[7], 2);
-
-    if (hour != NULL)
-    {
-        prmbuf[0] = 0x00;
-        prmbuf[1] = 0x60;
-        retval = icom_transaction(rig, cmd, subcmd, prmbuf, 2, respbuf, &resplen);
-
-        if (retval != RIG_OK)
-        {
-            return retval;
-        }
-
-        *hour = from_bcd(&respbuf[4], 2);
-        *min = from_bcd(&respbuf[5], 2);
-        *sec = 0;
-        *msec = 0;
-
-        prmbuf[0] = 0x00;
-        prmbuf[1] = 0x62;
-        retval = icom_transaction(rig, cmd, subcmd, prmbuf, 2, respbuf, &resplen);
-
-        if (retval != RIG_OK)
-        {
-            return retval;
-        }
-
-        *utc_offset = from_bcd(&respbuf[4], 2) * 100;
-        *utc_offset += from_bcd(&respbuf[5], 2);
-
-        if (respbuf[6] != 0x00) { *utc_offset *= -1; }
-
-        //rig_debug(RIG_DEBUG_VERBOSE,
-        //          "%s: %02d-%02d-%02dT%02d:%02d:%06.3lf%s%04d\n'",
-        //          __func__, *year, *month, *day, *hour, *min, *sec + *msec / 1000,
-        //          *utc_offset >= 0 ? "+" : "-", (unsigned)abs(*utc_offset));
-    }
-
-    return retval;
 }
