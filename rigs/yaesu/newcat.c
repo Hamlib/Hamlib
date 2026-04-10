@@ -549,7 +549,7 @@ static const yaesu_newcat_commands_t valid_commands[] =
     {"RA",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"RC",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"RD",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
-    {"RF",     FALSE, TRUE,  FALSE, FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
+    {"RF",     FALSE, TRUE,  FALSE, FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     FALSE, TRUE },
     {"RG",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"RI",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"RL",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
@@ -9384,9 +9384,12 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             RETURNFUNC(-RIG_EINVAL);
         } // end switch(mode)
 
-        if ((err = set_roofing_filter_for_width(rig, vfo, width)) != RIG_OK)
+        if (((struct newcat_priv_caps *)rig->caps->priv)->roofing_filter_count > 0)
         {
-            RETURNFUNC(err);
+            if ((err = set_roofing_filter_for_width(rig, vfo, width)) != RIG_OK)
+            {
+                RETURNFUNC(err);
+            }
         }
 
         switch (mode)
@@ -9409,7 +9412,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_FMN:
             RETURNFUNC(RIG_OK);
         }
-    } // end is_ftdx101
+    } // end is_ftdx101d || is_ftdx101mp || is_ftdx10 || is_ft710
     else if (is_ft2000)
     {
         // We need details on the widths here, manuals lack information.
@@ -9564,7 +9567,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SH0%02d;", w);
     }
-    else if (is_ftdx10)
+    else if (is_ftdx10 || is_ft710)
     {
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SH00%02d;", w);
     }
@@ -9608,7 +9611,7 @@ static int set_roofing_filter(RIG *rig, vfo_t vfo, int index)
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
-    for (i = 0; roofing_filters[i].index >= 0; i++)
+    for (i = 0; i < priv_caps->roofing_filter_count; i++)
     {
         const struct newcat_roofing_filter *current_filter = &roofing_filters[i];
         char set_value = current_filter->set_value;

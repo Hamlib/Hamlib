@@ -1124,10 +1124,26 @@
 ///@}
 
 /*
+ * Simple CAT Protocol
+ */
+/** The `SIMPLECAT` family. */
+#define RIG_SIMPLECAT 41
+/** Used in register.c for the `be_name`. */
+#define RIG_BACKEND_SIMPLECAT "simplecat"
+
+/**
+ * \name SIMPLECAT
+ * Simple CAT models.
+ */
+///@{
+/// Model of the `RIG_SIMPLECAT` backend family.
+#define RIG_MODEL_SIMPLECAT RIG_MAKE_MODEL(RIG_SIMPLECAT, 1)
+
+/*
  * HARRIS
  */
 /** The `HARRIS` family. */
-#define RIG_HARRIS 41
+#define RIG_HARRIS 42
 /** Used in register.c for the `be_name`. */
 #define RIG_BACKEND_HARRIS "harris"
 

@@ -5,9 +5,12 @@
 #include <string.h>
 #include <unistd.h>
 
+#if 0
 #include "hamlib/rig.h"
 #include "misc.h"
-
+#else
+int hl_usleep(unsigned long usec);
+#endif
 
 float freqA = 14074000;
 float freqB = 14074500;
@@ -108,7 +111,7 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "FA;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "FA%08.0f;", freqA);
+            snprintf(buf, sizeof(buf), "FA%08.0f;", freqA);
             n = write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "FA", 2) == 0)
@@ -117,7 +120,7 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "FB;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "FB%08.0f;", freqB);
+            snprintf(buf, sizeof(buf), "FB%08.0f;", freqB);
             n = write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "FB", 2) == 0)
@@ -128,20 +131,20 @@ int main(int argc, char *argv[])
         {
             hl_usleep(50 * 1000);
             int id = NC_RIGID_FT710;
-            SNPRINTF(buf, sizeof(buf), "ID%03d;", id);
+            snprintf(buf, sizeof(buf), "ID%03d;", id);
             n = write(fd, buf, strlen(buf));
 
             if (n <= 0) { perror("ID"); }
         }
         else if (strcmp(buf, "PS;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "PS1;");
+            snprintf(buf, sizeof(buf), "PS1;");
             n = write(fd, buf, strlen(buf));
         }
         else if (strcmp(buf, "AI;") == 0)
         {
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "AI0;");
+            snprintf(buf, sizeof(buf), "AI0;");
             n = write(fd, buf, strlen(buf));
 
             if (n <= 0) { perror("ID"); }
@@ -153,7 +156,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "FT;") == 0)
         {
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "FT%c;", tx_vfo);
+            snprintf(buf, sizeof(buf), "FT%c;", tx_vfo);
             n = write(fd, buf, strlen(buf));
 
             if (n < 0) { perror("FT"); }
@@ -166,7 +169,7 @@ int main(int argc, char *argv[])
         {
             printf("MD=%s\n", buf);
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "MD0%c;", modeA);
+            snprintf(buf, sizeof(buf), "MD0%c;", modeA);
             n = write(fd, buf, strlen(buf));
 
             if (n < 0) { perror("MD0;"); }
@@ -178,7 +181,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "MD1;") == 0)
         {
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "MD1%c;", modeB);
+            snprintf(buf, sizeof(buf), "MD1%c;", modeB);
             n = write(fd, buf, strlen(buf));
 
             if (n < 0) { perror("MD0;"); }
@@ -206,7 +209,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "VS;") == 0)
         {
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "VS%d;", vs);
+            snprintf(buf, sizeof(buf), "VS%d;", vs);
             n = write(fd, buf, strlen(buf));
 
             if (n < 0) { perror("VS"); }
@@ -218,7 +221,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "KR;") == 0)
         {
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "KR%d;", kr);
+            snprintf(buf, sizeof(buf), "KR%d;", kr);
             n = write(fd, buf, strlen(buf));
 
             if (n < 0) { perror("KR"); }
@@ -230,7 +233,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "BI;") == 0)
         {
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "BI%d;", bi);
+            snprintf(buf, sizeof(buf), "BI%d;", bi);
             n = write(fd, buf, strlen(buf));
 
             if (n < 0) { perror("BI"); }
@@ -242,7 +245,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "VX;") == 0)
         {
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "VX%d;", vx);
+            snprintf(buf, sizeof(buf), "VX%d;", vx);
             n = write(fd, buf, strlen(buf));
 
             if (n < 0) { perror("VX"); }
@@ -255,7 +258,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "PA;") == 0)
         {
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "PA%d;", pa);
+            snprintf(buf, sizeof(buf), "PA%d;", pa);
             n = write(fd, buf, strlen(buf));
 
             if (n < 0) { perror("PA"); }
@@ -267,7 +270,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "RA;") == 0)
         {
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "RA%d;", ra);
+            snprintf(buf, sizeof(buf), "RA%d;", ra);
             n = write(fd, buf, strlen(buf));
 
             if (n < 0) { perror("RA"); }
@@ -279,7 +282,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "AG;") == 0)
         {
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "AG%d;", ag);
+            snprintf(buf, sizeof(buf), "AG%d;", ag);
             n = write(fd, buf, strlen(buf));
 
             if (n < 0) { perror("AG"); }
@@ -291,7 +294,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "PC;") == 0)
         {
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "PC%03d;", pc);
+            snprintf(buf, sizeof(buf), "PC%03d;", pc);
             n = write(fd, buf, strlen(buf));
 
             if (n < 0) { perror("PC"); }
@@ -303,7 +306,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "VG;") == 0)
         {
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "VG%03d;", vg);
+            snprintf(buf, sizeof(buf), "VG%03d;", vg);
             n = write(fd, buf, strlen(buf));
 
             if (n < 0) { perror("VG"); }
@@ -315,7 +318,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "RG0;") == 0)
         {
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "RG0%03d;", rg);
+            snprintf(buf, sizeof(buf), "RG0%03d;", rg);
             n = write(fd, buf, strlen(buf));
 
             if (n < 0) { perror("RG"); }
@@ -327,7 +330,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "GT0;") == 0)
         {
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "GT0%0d;", gt);
+            snprintf(buf, sizeof(buf), "GT0%0d;", gt);
             n = write(fd, buf, strlen(buf));
 
             if (n < 0) { perror("GT"); }
@@ -339,7 +342,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "TX;") == 0)
         {
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "TX+%04d;", tx);
+            snprintf(buf, sizeof(buf), "TX+%04d;", tx);
             n = write(fd, buf, strlen(buf));
 
             if (n < 0) { perror("TX"); }
@@ -351,7 +354,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "IS;") == 0)
         {
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "IS+%04d;", is);
+            snprintf(buf, sizeof(buf), "IS+%04d;", is);
             n = write(fd, buf, strlen(buf));
 
             if (n < 0) { perror("IS"); }
@@ -363,7 +366,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "RL0;") == 0)
         {
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "RL0%d;", rl);
+            snprintf(buf, sizeof(buf), "RL0%d;", rl);
             n = write(fd, buf, strlen(buf));
 
             if (n < 0) { perror("RL"); }
@@ -375,7 +378,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "BP00;") == 0)
         {
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "BP0%d;", bp_on);
+            snprintf(buf, sizeof(buf), "BP0%d;", bp_on);
             n = write(fd, buf, strlen(buf));
 
             if (n < 0) { perror("BP"); }
@@ -387,7 +390,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "BP01;") == 0)
         {
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "BP0%d;", bp_pos);
+            snprintf(buf, sizeof(buf), "BP0%d;", bp_pos);
             n = write(fd, buf, strlen(buf));
 
             if (n < 0) { perror("BP"); }
@@ -399,7 +402,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "NB0;") == 0)
         {
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "NB0%d;", nb);
+            snprintf(buf, sizeof(buf), "NB0%d;", nb);
             n = write(fd, buf, strlen(buf));
 
             if (n < 0) { perror("NB"); }
@@ -411,7 +414,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "NR0;") == 0)
         {
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "NR0%d;", nr);
+            snprintf(buf, sizeof(buf), "NR0%d;", nr);
             n = write(fd, buf, strlen(buf));
 
             if (n < 0) { perror("NR"); }
@@ -427,7 +430,7 @@ int main(int argc, char *argv[])
             static int ant = 0;
             ant = (ant + 1) % 3;
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "EX032%1d;", ant);
+            snprintf(buf, sizeof(buf), "EX032%1d;", ant);
             n = write(fd, buf, strlen(buf));
 
             if (n < 0) { perror("EX032"); }
@@ -435,7 +438,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "EX016;") == 0)
         {
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "EX016%04d;", ex016);
+            snprintf(buf, sizeof(buf), "EX016%04d;", ex016);
             n = write(fd, buf, strlen(buf));
 
             if (n < 0) { perror("EX016"); }
@@ -443,7 +446,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "EX020;") == 0)
         {
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "EX020%04d;", ex020);
+            snprintf(buf, sizeof(buf), "EX020%04d;", ex020);
             n = write(fd, buf, strlen(buf));
 
             if (n < 0) { perror("EX016"); }
@@ -477,12 +480,12 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "SH0;", 4) == 0)
         {
-            sprintf(buf, "SH0%02d;", width);
+            sprintf(buf, "SH00%02d;", width);
             n = write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "SH0", 3) == 0)
         {
-            sscanf(buf, "SH0%02d", &width);
+            sscanf(buf, "SH00%02d", &width);
         }
         else if (strncmp(buf, "NA0;", 4) == 0)
         {
@@ -528,6 +531,10 @@ int main(int argc, char *argv[])
         {
             sprintf(buf, "ST%d;", st);
             n = write(fd, buf, strlen(buf));
+        }
+	else if (strncmp(buf, "RF", 2) == 0)  // Not defined for FT-710
+        {
+            n = write(fd, "?;", 2);
         }
         else if (strlen(buf) > 0)
         {

@@ -30,7 +30,6 @@
 #include "icom.h"
 #include "icom_defs.h"
 #include "bandplan.h"
-#include "ic7300.h"
 
 #define IC785x_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM|RIG_MODE_PSK|RIG_MODE_PSKR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTAM|RIG_MODE_PKTFM)
 #define IC785x_1HZ_TS_MODES IC785x_ALL_RX_MODES
@@ -119,7 +118,7 @@ extern int ic7800_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 static int ic785x_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 static int ic785x_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
-struct cmdparams ic785x_extcmds[] =
+static struct cmdparams ic785x_extcmds[] =
 {
     { {.s = RIG_PARM_BEEP}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x04}, CMD_DAT_BOL, 1 },
     { {.s = RIG_PARM_BACKLIGHT}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x76}, CMD_DAT_LVL, 2 },
@@ -132,12 +131,15 @@ struct cmdparams ic785x_extcmds[] =
     { { 0 } }
 };
 
-
-int ic785x_ext_tokens[] =
+static int ic785x_ext_tokens[] =
 {
     TOK_DRIVE_GAIN, TOK_DIGI_SEL_FUNC, TOK_DIGI_SEL_LEVEL,
     TOK_SCOPE_MSS, TOK_SCOPE_SDS, TOK_SCOPE_STX, TOK_SCOPE_CFQ, TOK_SCOPE_EDG, TOK_SCOPE_VBW, TOK_SCOPE_MKP,
     TOK_BACKEND_NONE
+};
+
+static const struct icom_clock_cmds ic785x_clock_cmds = {
+  .date_cmds = { 0x00, 0x94 }, .time_cmds =  { 0x00, 0x95 }, .offset_cmds = { 0x00, 0x96 }
 };
 
 /*
@@ -241,7 +243,8 @@ static struct icom_priv_caps ic785x_priv_caps =
     .x1cx03_possibly = 1,
     .x1ax03_supported = 1,
     .mode_with_filter = 1,
-    .data_mode_supported = 1
+    .data_mode_supported = 1,
+    .clock_cmds = &ic785x_clock_cmds
 };
 
 struct rig_caps ic785x_caps =
@@ -493,8 +496,8 @@ struct rig_caps ic785x_caps =
     .send_morse = icom_send_morse,
     .stop_morse = icom_stop_morse,
     .wait_morse = rig_wait_morse,
-    .set_clock = ic7300_set_clock,
-    .get_clock = ic7300_get_clock,
+    .set_clock = icom_set_clock,
+    .get_clock = icom_get_clock,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
