@@ -2764,6 +2764,7 @@ static int k3_get_bar_graph_level(RIG *rig, float *smeter, float *pwr, float *al
                            int *mode_tx)
 {
     char levelbuf[16];
+    char pwr_buf[16];
     int retval;
     int tm_raw;
     int bg_raw;
@@ -2831,7 +2832,22 @@ static int k3_get_bar_graph_level(RIG *rig, float *smeter, float *pwr, float *al
             // PWR: nn is 00 - 12
             if (pwr != NULL)
             {
-                *pwr = (float) bg_raw / 12.0f;
+                retval = kenwood_transaction(rig, "PC", pwr_buf, sizeof(pwr_buf));
+
+                if (retval != RIG_OK)
+                {
+                    return retval;
+                }
+
+                // extended K22 format PCnnnx where x == 0=.1W units and 1=1W units
+                if (6 == strlen(pwr_buf) && '0' == pwr_buf[5])
+                {
+                        *pwr = (float) bg_raw / 100.0f;
+                }
+                else
+                {
+                        *pwr = (float) bg_raw / 10.0f;
+                }
             }
 
             if (alc != NULL)
