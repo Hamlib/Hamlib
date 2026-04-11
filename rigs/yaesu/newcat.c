@@ -9897,7 +9897,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
             case 6: *width = 400; break;
 
-            case 7: *width = 5000; break;
+            case 7: *width = 500; break;
 
             case 8: *width = 800; break;
 
@@ -10567,7 +10567,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         }   /* end switch(mode) */
 
     } /* end if is_ftdx5000 */
-    else if (is_ftdx101d || is_ftdx101mp || is_ftdx10)
+    else if (is_ftdx101d || is_ftdx101mp || is_ftdx10 || is_ft710)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: is_ftdx101 w=%d, mode=%s\n", __func__, w,
                   rig_strrmode(mode));
@@ -10580,6 +10580,10 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
             if (err == RIG_OK)
             {
                 *width = roofing_filter->width;
+            }
+	    else
+            {
+                *width = rig_passband_normal(rig, mode);  // The best we can do
             }
         }
 
@@ -10724,7 +10728,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         }   /* end switch(mode) */
 
         rig_debug(RIG_DEBUG_TRACE, "%s: end if FTDX101D\n", __func__);
-    } /* end if is_ftdx101 */
+    } /* end if is_ftdx101d || is_ftdx101mp || is_ftdx10 || is_ft710 */
     else if (is_ft2000)
     {
         if ((narrow = get_narrow(rig, RIG_VFO_MAIN)) < 0)
