@@ -28,6 +28,7 @@ Version 4.7.1
         * New simplecat backend.  Supports Bunzee Labs DDX.  (TNX Dhiru Kholia)
         * Fix and generalize clock handling for Icom radios.  (TNX George Baltz)
         * Fix Yaesu attenuator levels and LVL_KEYSPD reinitialization.  (TNX George Baltz)
+        * Add new rig model Harris PRC-138.  (TNX Antonio Regazzoni)
 
 Version 4.7.0
         * 2026-02-15
