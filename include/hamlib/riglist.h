@@ -1138,6 +1138,7 @@
 ///@{
 /// Model of the `RIG_SIMPLECAT` backend family.
 #define RIG_MODEL_SIMPLECAT RIG_MAKE_MODEL(RIG_SIMPLECAT, 1)
+///@}
 
 /*
  * HARRIS
