@@ -430,6 +430,7 @@ const cal_table_float_t yaesu_default_id_meter_cal =
     }
 };
 
+#if 0 // This cannot handle multiple rigs! (Think SO2R)
 // Easy reference to rig model -- it is set in newcat_valid_command
 static ncboolean is_ft450;
 static ncboolean is_ft710;
@@ -449,6 +450,28 @@ static ncboolean is_ftdx101mp;
 static ncboolean is_ftdx10;
 static ncboolean is_ftx1;
 static ncboolean is_ftdx9000Old;
+#else
+// These assume there is a 'rig' in scope
+#define is_ft450 (RIG_MODEL_FT450==rig->caps->rig_model || RIG_MODEL_FT450D==rig->caps->rig_model)
+#define is_ft710 (RIG_MODEL_FT710==rig->caps->rig_model)
+#define is_ft891 (RIG_MODEL_FT891==rig->caps->rig_model)
+#define is_ft897 (RIG_MODEL_FT897==rig->caps->rig_model)
+#define is_ft897d (RIG_MODEL_FT897D==rig->caps->rig_model)
+#define is_ft950 (RIG_MODEL_FT950==rig->caps->rig_model)
+#define is_ft991 (RIG_MODEL_FT991==rig->caps->rig_model)
+#define is_ft2000 (RIG_MODEL_FT2000==rig->caps->rig_model)
+#define is_ftdx10 (RIG_MODEL_FTDX10==rig->caps->rig_model)
+#define is_ftdx101d (RIG_MODEL_FTDX101D==rig->caps->rig_model)
+#define is_ftdx101mp (RIG_MODEL_FTDX101MP==rig->caps->rig_model)
+#define is_ftdx1200 (RIG_MODEL_FTDX1200==rig->caps->rig_model)
+#define is_ftdx3000 (RIG_MODEL_FTDX3000==rig->caps->rig_model)
+// Only needed to distinguish between versions of the same model
+#define is_ftdx3000dm (NC_RIGID_FTDX3000DM==((struct newcat_priv_data *)(STATE(rig)->priv))->rig_id)
+#define is_ftdx5000 (RIG_MODEL_FTDX5000==rig->caps->rig_model)
+#define is_ftdx9000 (RIG_MODEL_FT9000==rig->caps->rig_model)
+#define is_ftdx9000Old (RIG_MODEL_FTD000OLD==rig->caps->rig_model)
+#define is_ftx1 (RIG_MODEL_FTX1==rig->caps->rig_model)
+#endif
 
 /*
  * Even though this table does make a handy reference, it could be deprecated as it is not really needed.
@@ -603,7 +626,9 @@ int valid_commands_count = sizeof(valid_commands) / sizeof(
 const struct confparams newcat_cfg_params[] =
 {
     {
-        TOK_FAST_SET_CMD, "fast_commands_token", "High throughput of commands", "Enabled high throughput of >200 messages/sec by not waiting for ACK/NAK of messages", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } }
+        TOK_FAST_SET_CMD, "fast_commands_token", "High throughput of commands",
+        "Enabled high throughput of >200 messages/sec by not waiting for ACK/NAK of messages",
+        "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } }
     },
     { RIG_CONF_END, NULL, }
 };
@@ -651,7 +676,7 @@ static ncboolean newcat_valid_command(RIG *rig, char const *const command);
  * The BS command needs to know what band we're on so we can restore band info
  * So this converts freq to band index
  */
-static int newcat_band_index(freq_t freq)
+static int newcat_band_index(RIG *rig, freq_t freq)
 {
     int band = 11; // general
 
@@ -751,6 +776,7 @@ int newcat_init(RIG *rig)
      * FT-9000 variants.
      */
 
+#if 0
     is_ft450 = newcat_is_rig(rig, RIG_MODEL_FT450);
     is_ft450 |= newcat_is_rig(rig, RIG_MODEL_FT450D);
     is_ft891 = newcat_is_rig(rig, RIG_MODEL_FT891);
@@ -770,6 +796,7 @@ int newcat_init(RIG *rig)
     is_ftdx10 = newcat_is_rig(rig, RIG_MODEL_FTDX10);
     is_ft710 = newcat_is_rig(rig, RIG_MODEL_FT710);
     is_ftx1 = newcat_is_rig(rig, RIG_MODEL_FTX1);
+#endif
 
     RETURNFUNC(RIG_OK);
 }
@@ -1392,7 +1419,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         rig_debug(RIG_DEBUG_TRACE, "%s(%d)%s: checking VFOA for band change \n",
                   __FILE__, __LINE__, __func__);
 
-        changing = newcat_band_index(freq) != newcat_band_index(freqA);
+        changing = newcat_band_index(rig, freq) != newcat_band_index(rig, freqA);
         rig_debug(RIG_DEBUG_TRACE, "%s: VFO_A band changing=%d\n", __func__, changing);
     }
     else
@@ -1402,7 +1429,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         rig_debug(RIG_DEBUG_TRACE, "%s(%d)%s: checking VFOB for band change \n",
                   __FILE__, __LINE__, __func__);
 
-        changing = newcat_band_index(freq) != newcat_band_index(freqB);
+        changing = newcat_band_index(rig, freq) != newcat_band_index(rig, freqB);
         rig_debug(RIG_DEBUG_TRACE, "%s: VFO_B band changing=%d\n", __func__, changing);
     }
 
@@ -1413,9 +1440,9 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             // seems some rigs are problematic
             // && !(is_ftdx3000 || is_ftdx3000dm)
             // some rigs can't do BS command on 60M
-            // && !(is_ftdx3000 || is_ftdx3000dm && newcat_band_index(freq) == 2)
-            && !(is_ft2000 && newcat_band_index(freq) == 2)
-            && !(is_ftdx1200 && newcat_band_index(freq) == 2)
+            // && !(is_ftdx3000 || is_ftdx3000dm && newcat_band_index(rig, freq) == 2)
+            && !(is_ft2000 && newcat_band_index(rig, freq) == 2)
+            && !(is_ftdx1200 && newcat_band_index(rig, freq) == 2)
             && !is_ft891 // 891 does not remember bandwidth so don't do this
             && !is_ft991 // 991 does not behave well with bandstack changes
             && rig->caps->get_vfo != NULL
@@ -1436,12 +1463,12 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             if (is_ft991 == FALSE && is_ft891 == FALSE && newcat_valid_command(rig, "VS"))
             {
                 SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VS%d;BS%02d%c",
-                         vfo1, newcat_band_index(freq), cat_term);
+                         vfo1, newcat_band_index(rig, freq), cat_term);
             }
             else
             {
                 SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BS%02d%c",
-                         newcat_band_index(freq), cat_term);
+                         newcat_band_index(rig, freq), cat_term);
             }
 
 
@@ -1467,7 +1494,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         else
         {
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BS%02d%c",
-                     newcat_band_index(freq), cat_term);
+                     newcat_band_index(rig, freq), cat_term);
 
             if (RIG_OK != (err = newcat_set_cmd(rig)))
             {
@@ -1509,11 +1536,11 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             // If the BS works on both VFOs then VFOB will have the band select answer
             // so now change needed
             // If the BS is by VFO then we'll need to do BS for the other VFO too
-            if (newcat_band_index(freqtmp) != newcat_band_index(freq))
+            if (newcat_band_index(rig, freqtmp) != newcat_band_index(rig, freq))
             {
 
                 SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BS%02d%c",
-                         newcat_band_index(freq), cat_term);
+                         newcat_band_index(rig, freq), cat_term);
 
                 if (RIG_OK != (err = newcat_set_cmd(rig)))
                 {
@@ -1596,26 +1623,26 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: is_ft991=%d, CACHE(rig)->split=%d, vfo=%s\n",
               __func__, is_ft991, cachep->split, rig_strvfo(vfo));
 
-    if (priv->band_index < 0) { priv->band_index = newcat_band_index(freq); }
+    if (priv->band_index < 0) { priv->band_index = newcat_band_index(rig, freq); }
 
     // only use bandstack method when actually changing bands
     // there are multiple bandstacks so we just use the 1st one
-    if (is_ft991 && vfo == RIG_VFO_A && priv->band_index != newcat_band_index(freq))
+    if (is_ft991 && vfo == RIG_VFO_A && priv->band_index != newcat_band_index(rig, freq))
     {
         if (cachep->split)
         {
             // FT991/991A bandstack does not work in split mode
             // so for a VFOA change we stop split, change bands, change freq, enable split
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FT2;BS%02d;FA%09.0f;FT3;",
-                     newcat_band_index(freq), freq);
+                     newcat_band_index(rig, freq), freq);
         }
         else  // in non-split us BS to get bandstack info
         {
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BS%02d;FA%09.0f;",
-                     newcat_band_index(freq), freq);
+                     newcat_band_index(rig, freq), freq);
         }
 
-        priv->band_index = newcat_band_index(freq);
+        priv->band_index = newcat_band_index(rig, freq);
     }
 
     else if (RIG_MODEL_FT450 == caps->rig_model)
@@ -1648,7 +1675,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: band changing? old=%d, new=%d\n", __func__,
-              newcat_band_index(freq), newcat_band_index(rig_s->current_freq));
+              newcat_band_index(rig, freq), newcat_band_index(rig, rig_s->current_freq));
 
     if (RIG_MODEL_FT450 == caps->rig_model && priv->ret_data[2] != target_vfo)
     {
@@ -8154,8 +8181,7 @@ ncboolean newcat_valid_command(RIG *rig, char const *const command)
             else if (is_ftdx5000) { retval = valid_commands[search_index].ft5000; }
             else if (is_ftdx9000) { retval = valid_commands[search_index].ft9000; }
             else if (is_ftdx1200) { retval = valid_commands[search_index].ft1200; }
-            else if (is_ftdx3000) { retval = valid_commands[search_index].ft3000; }
-            else if (is_ftdx3000dm) { retval = valid_commands[search_index].ft3000; }
+            else if (is_ftdx3000 || is_ftdx3000dm) { retval = valid_commands[search_index].ft3000; }
             else if (is_ftdx101d) { retval = valid_commands[search_index].ft101d; }
             else if (is_ftdx101mp) { retval = valid_commands[search_index].ft101mp; }
             else if (is_ftdx10) { retval = valid_commands[search_index].ftdx10; }
@@ -11178,7 +11204,7 @@ int newcat_get_rigid(RIG *rig)
             s += 2;     /* ID0310, jump past ID */
             priv->rig_id = atoi(s);
 
-            is_ftdx3000dm = priv->rig_id == NC_RIGID_FTDX3000DM;
+            //is_ftdx3000dm = priv->rig_id == NC_RIGID_FTDX3000DM;
         }
 
         rig_debug(RIG_DEBUG_TRACE, "rig_id = %d, idstr = %s\n", priv->rig_id,
