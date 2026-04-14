@@ -1017,7 +1017,7 @@ struct rig_caps ftx1_caps = {
         /* CW pitch: FTX-1 KP command sets pitch 300-1050 Hz in 10Hz steps */
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 10 } },
         /* Key speed: FTX-1 uses 4-60 WPM */
-        [LVL_KEYSPD] = { .min = { .i = 4 }, .max = { .i = 60 }, .step = { .i = 1 } },
+//        [LVL_KEYSPD] = { .min = { .i = 4 }, .max = { .i = 60 }, .step = { .i = 1 } },
         /* Break-in delay: Hamlib tenths-of-dots, range matches standard Yaesu gran */
         [LVL_BKINDL] = { .min = { .i = 30 }, .max = { .i = 3000 }, .step = { .i = 1 } },
         /* VOX delay: Hamlib uses tenths of seconds (0=0.0s to 300=30.0s) */
