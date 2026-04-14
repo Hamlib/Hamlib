@@ -32,6 +32,7 @@ Version 4.7.1
         * Various FT-710 fixes, eespecially handling SH format and RX bandwidth.
           Ensure FT-710 simulator rejects RF command.  (TNX George Baltz)
         * Fix low power calculation for K3/K3S.  (N0NB)
+        * Fix FTX-1 SH bandwidth command in set/get_mode.  (TNX Terrell Deppe)
 
 Version 4.7.0
         * 2026-02-15
