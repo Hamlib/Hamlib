@@ -169,7 +169,8 @@ static int hd1780_rot_set_position(ROT *rot, azimuth_t azimuth,
                                    elevation_t elevation)
 {
     char cmdstr[8];
-    const char execstr[5] = "\r", ok[3];
+    const char execstr[5] = "\r";
+    char ok[3];
     int err;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
