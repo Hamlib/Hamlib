@@ -129,121 +129,192 @@ int ftx1_get_mem(RIG *rig, vfo_t vfo, int *ch)
 }
 
 /*
- * Memory Write (MW) - write channel data to memory
- * CAT Format: MW P1P1P1P1P1 P2P2P2P2P2P2P2P2P2 P3P3P3P3P3 P4 P5 P6 P7 P8 P9P9 P10;
- *   P1 (5 bytes): Channel number (00001-00999 or P-01L-P-50U for PMS)
- *   P2 (9 bytes): VFO Frequency in Hz
- *   P3 (5 bytes): Clarifier direction (+/-) + offset (0000-9990 Hz)
- *   P4 (1 byte): RX CLAR (0=OFF, 1=ON)
- *   P5 (1 byte): TX CLAR (0=OFF, 1=ON)
- *   P6 (1 byte): Mode code (1=LSB, 2=USB, 3=CW-U, 4=FM, 5=AM, 6=RTTY-L,
- *                          7=CW-L, 8=DATA-L, 9=RTTY-U, A=DATA-FM, B=FM-N,
- *                          C=DATA-U, D=AM-N, E=PSK, F=DATA-FM-N)
- *   P7 (1 byte): VFO/Memory mode (0=VFO, 1=Memory, 2=Memory Tune, 3=QMB, 5=PMS)
- *   P8 (1 byte): CTCSS mode (0=OFF, 1=ENC/DEC, 2=ENC, 3=DCS, 4=PR FREQ, 5=REV TONE)
- *   P9 (2 bytes): Fixed "00"
- *   P10 (1 byte): Shift (0=Simplex, 1=Plus, 2=Minus)
+ * Memory Write — VFO-B + BM workaround (issue #2034)
+ *
+ * The FTX-1 MW command is firmware-broken: the radio returns '?;' for
+ * every MW write on every channel, regardless of parameters (verified
+ * against fw v1.12). We therefore implement rig_set_channel by
+ * programming VFO-B to the target state and committing it to the
+ * target memory slot via the BM command:
+ *
+ *   1. MC<ch>;   Point the "last-selected channel" cursor at the
+ *                target slot. Ignore '?' if the slot is currently
+ *                unprogrammed — the cursor still updates for BM.
+ *   2. VM000;    Force VFO mode in case MC entered memory mode.
+ *   3. FB / MD1 / CT1 / CN10 / CN11 / OS1   Program VFO-B.
+ *                CT/CN/OS only work in FM, so tone/shift are only
+ *                emitted for FM-family channel modes.
+ *   4. BM;       Copy VFO-B to the last-selected memory channel.
+ *
+ * VFO-B is used rather than VFO-A so the operator's primary RX VFO
+ * is not disturbed. VFO-B's frequency and mode are snapshotted at
+ * entry and best-effort restored on exit (including error paths).
+ * Advanced VFO-B state (CT/CN/OS/CF) may still be clobbered for
+ * callers that relied on it.
+ *
+ * Clarifier/RIT/XIT persistence into the memory slot is not yet
+ * supported — BM's handling of clarifier state has not been
+ * empirically verified. This is a potential follow-up if users
+ * report it missing.
  */
 int ftx1_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
+    char saved_fb[32]  = {0};
+    char saved_md1[16] = {0};
     char mode_char;
-    char clar_dir;
-    int clar_offset;
-    int p7_vfo_mem;
-    int p8_ctcss;
-    int p10_shift;
+    int err;
+    int is_fm_family;
 
     (void)vfo;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: ch=%d freq=%.0f mode=%d\n", __func__,
-              chan->channel_num, chan->freq, (int)chan->mode);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: ch=%d freq=%.0f mode=%s\n", __func__,
+              chan->channel_num, chan->freq, rig_strrmode(chan->mode));
 
-    /* Validate channel number */
-    if (chan->channel_num < FTX1_MEM_MIN || chan->channel_num > FTX1_MEM_MAX) {
+    if (chan->channel_num < FTX1_MEM_MIN || chan->channel_num > FTX1_MEM_MAX)
+    {
         rig_debug(RIG_DEBUG_ERR, "%s: channel %d out of range %d-%d\n",
                   __func__, chan->channel_num, FTX1_MEM_MIN, FTX1_MEM_MAX);
         return -RIG_EINVAL;
     }
 
-    /* Convert Hamlib mode to FTX-1 mode code */
-    switch (chan->mode) {
-    case RIG_MODE_LSB:      mode_char = '1'; break;
-    case RIG_MODE_USB:      mode_char = '2'; break;
-    case RIG_MODE_CW:       mode_char = '3'; break;  /* CW-U */
-    case RIG_MODE_FM:       mode_char = '4'; break;
-    case RIG_MODE_AM:       mode_char = '5'; break;
-    case RIG_MODE_RTTYR:    mode_char = '6'; break;  /* RTTY-L */
-    case RIG_MODE_CWR:      mode_char = '7'; break;  /* CW-L */
-    case RIG_MODE_PKTLSB:   mode_char = '8'; break;  /* DATA-L */
-    case RIG_MODE_RTTY:     mode_char = '9'; break;  /* RTTY-U */
-    case RIG_MODE_PKTFM:    mode_char = 'A'; break;  /* DATA-FM */
-    case RIG_MODE_FMN:      mode_char = 'B'; break;  /* FM-N */
-    case RIG_MODE_PKTUSB:   mode_char = 'C'; break;  /* DATA-U */
-    case RIG_MODE_AMN:      mode_char = 'D'; break;  /* AM-N */
-    case RIG_MODE_PSK:      mode_char = 'E'; break;  /* PSK */
-    default:                mode_char = '2'; break;  /* Default to USB */
+    switch (chan->mode)
+    {
+    case RIG_MODE_LSB:    mode_char = '1'; break;
+    case RIG_MODE_USB:    mode_char = '2'; break;
+    case RIG_MODE_CW:     mode_char = '3'; break;  /* CW-U */
+    case RIG_MODE_FM:     mode_char = '4'; break;
+    case RIG_MODE_AM:     mode_char = '5'; break;
+    case RIG_MODE_RTTYR:  mode_char = '6'; break;  /* RTTY-L */
+    case RIG_MODE_CWR:    mode_char = '7'; break;  /* CW-L */
+    case RIG_MODE_PKTLSB: mode_char = '8'; break;  /* DATA-L */
+    case RIG_MODE_RTTY:   mode_char = '9'; break;  /* RTTY-U */
+    case RIG_MODE_PKTFM:  mode_char = 'A'; break;  /* DATA-FM */
+    case RIG_MODE_FMN:    mode_char = 'B'; break;  /* FM-N */
+    case RIG_MODE_PKTUSB: mode_char = 'C'; break;  /* DATA-U */
+    case RIG_MODE_AMN:    mode_char = 'D'; break;  /* AM-N */
+    case RIG_MODE_PSK:    mode_char = 'E'; break;  /* PSK */
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n",
+                  __func__, rig_strrmode(chan->mode));
+        return -RIG_EINVAL;
     }
 
-    /* Clarifier direction and offset */
-    if (chan->rit != 0) {
-        clar_dir = (chan->rit >= 0) ? '+' : '-';
-        clar_offset = labs(chan->rit);
-        if (clar_offset > 9990) clar_offset = 9990;
-    } else if (chan->xit != 0) {
-        clar_dir = (chan->xit >= 0) ? '+' : '-';
-        clar_offset = labs(chan->xit);
-        if (clar_offset > 9990) clar_offset = 9990;
-    } else {
-        clar_dir = '+';
-        clar_offset = 0;
+    is_fm_family = (chan->mode == RIG_MODE_FM    || chan->mode == RIG_MODE_FMN
+                 || chan->mode == RIG_MODE_PKTFM || chan->mode == RIG_MODE_PKTFMN);
+
+    /* Snapshot VFO-B state for best-effort restore on exit. Responses
+     * (FB%09d; and MD1%c;) are already valid set commands and can be
+     * replayed verbatim. If the query fails, the saved_* buffer stays
+     * empty and restore is skipped. */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FB;");
+    if (newcat_get_cmd(rig) == RIG_OK)
+    {
+        strncpy(saved_fb, priv->ret_data, sizeof(saved_fb) - 1);
+    }
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MD1;");
+    if (newcat_get_cmd(rig) == RIG_OK)
+    {
+        strncpy(saved_md1, priv->ret_data, sizeof(saved_md1) - 1);
     }
 
-    /* P7: VFO/Memory mode - default to Memory (1) when writing to channel */
-    p7_vfo_mem = 1;
+    /* 1. Point the MC cursor at the target slot. Returns '?;' when the
+     *    slot is unprogrammed, but the cursor still updates for BM. */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MC%06d;",
+             chan->channel_num);
+    (void)newcat_set_cmd(rig);
 
-    /* P8: CTCSS mode from channel flags */
-    p8_ctcss = 0;  /* Default OFF */
-    if (chan->flags & RIG_CHFLAG_SKIP) {
-        /* Use flags for tone squelch indication if available */
+    /* 2. Force VFO mode. Must be the 6-char form — extra digits are
+     *    rejected by firmware. */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VM000;");
+    (void)newcat_set_cmd(rig);
+
+    /* 3a. Program VFO-B frequency. */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FB%09.0f;", chan->freq);
+    err = newcat_set_cmd(rig);
+    if (err != RIG_OK) goto restore;
+
+    /* 3b. Program VFO-B mode. */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MD1%c;", mode_char);
+    err = newcat_set_cmd(rig);
+    if (err != RIG_OK) goto restore;
+
+    /* 3c. FM-family channels: program CTCSS/DCS and repeater shift.
+     *     CT, CN (P2=1), and OS commands only function in FM mode, so
+     *     non-FM channels skip this block entirely. */
+    if (is_fm_family)
+    {
+        int os_mode;
+
+        if (chan->dcs_code != 0)
+        {
+            /* DCS: select CT mode 3, then program code via CN P2=1.
+             * (The DC command is firmware-broken — use CN instead.) */
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CT13;");
+            (void)newcat_set_cmd(rig);
+
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN11%03u;",
+                     chan->dcs_code);
+            (void)newcat_set_cmd(rig);
+        }
+        else if (chan->ctcss_tone != 0)
+        {
+            /* CTCSS: TSQ when both encode and squelch tones are set,
+             * else ENC only. CN P2=0 programs the tone index. */
+            int ct_mode = (chan->ctcss_sql != 0)
+                            ? FTX1_CTCSS_MODE_TSQ
+                            : FTX1_CTCSS_MODE_ENC;
+            int tone_num = ftx1_freq_to_tone_num(chan->ctcss_tone);
+
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str),
+                     "CT1%d;", ct_mode);
+            (void)newcat_set_cmd(rig);
+
+            if (tone_num >= 0)
+            {
+                SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str),
+                         "CN10%03d;", tone_num);
+                (void)newcat_set_cmd(rig);
+            }
+        }
+        else
+        {
+            /* Explicit CT OFF in case VFO-B was previously configured
+             * with a tone. */
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CT10;");
+            (void)newcat_set_cmd(rig);
+        }
+
+        switch (chan->rptr_shift)
+        {
+        case RIG_RPT_SHIFT_PLUS:  os_mode = 1; break;
+        case RIG_RPT_SHIFT_MINUS: os_mode = 2; break;
+        default:                  os_mode = 0; break;  /* simplex */
+        }
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "OS1%d;", os_mode);
+        (void)newcat_set_cmd(rig);
     }
-    /* Check tone settings */
-    if (chan->ctcss_tone != 0 && chan->ctcss_sql != 0) {
-        p8_ctcss = 1;  /* CTCSS ENC/DEC */
-    } else if (chan->ctcss_tone != 0) {
-        p8_ctcss = 2;  /* CTCSS ENC only */
-    } else if (chan->dcs_code != 0) {
-        p8_ctcss = 3;  /* DCS */
+
+    /* 4. Commit VFO-B to the last-selected memory channel. */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BM;");
+    err = newcat_set_cmd(rig);
+
+restore:
+    /* Best-effort restore of VFO-B state. Restore failures are not
+     * surfaced — the caller cares about the write's status, not the
+     * side-effect cleanup. */
+    if (saved_fb[0] != '\0')
+    {
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", saved_fb);
+        (void)newcat_set_cmd(rig);
+    }
+    if (saved_md1[0] != '\0')
+    {
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", saved_md1);
+        (void)newcat_set_cmd(rig);
     }
 
-    /* P10: Repeater shift */
-    switch (chan->rptr_shift) {
-    case RIG_RPT_SHIFT_PLUS:  p10_shift = 1; break;
-    case RIG_RPT_SHIFT_MINUS: p10_shift = 2; break;
-    default:                  p10_shift = 0; break;  /* Simplex */
-    }
-
-    /* Build MW command string:
-     * MW P1P1P1P1P1 P2P2P2P2P2P2P2P2P2 P3P3P3P3P3 P4 P5 P6 P7 P8 P9P9 P10;
-     * Total: 2 + 5 + 9 + 5 + 1 + 1 + 1 + 1 + 1 + 2 + 1 + 1 = 30 chars
-     */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str),
-             "MW%05d%09.0f%c%04d%d%d%c%d%d00%d;",
-             chan->channel_num,          /* P1: 5-digit channel */
-             chan->freq,                 /* P2: 9-digit frequency in Hz */
-             clar_dir,                   /* P3: clarifier direction */
-             clar_offset,                /* P3: clarifier offset */
-             (chan->rit != 0) ? 1 : 0,   /* P4: RX CLAR on/off */
-             (chan->xit != 0) ? 1 : 0,   /* P5: TX CLAR on/off */
-             mode_char,                  /* P6: mode code */
-             p7_vfo_mem,                 /* P7: VFO/Memory mode */
-             p8_ctcss,                   /* P8: CTCSS mode */
-                                         /* P9: "00" (fixed) */
-             p10_shift);                 /* P10: shift */
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd='%s'\n", __func__, priv->cmd_str);
-
-    return newcat_set_cmd(rig);
+    return err;
 }
 
 /*
