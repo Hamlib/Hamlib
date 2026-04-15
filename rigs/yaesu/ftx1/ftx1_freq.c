@@ -17,6 +17,7 @@
 #include "misc.h"
 #include "yaesu.h"
 #include "newcat.h"
+#include "ftx1.h"
 
 // FTX-1 uses 9-digit Hz format for frequency
 #define FTX1_FREQ_DIGITS 9
@@ -43,6 +44,10 @@ int ftx1_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     case RIG_VFO_MAIN:
     case RIG_VFO_CURR:
         cmd = 'A';
+        /* FA set is rejected with ?; while the Main side is in Memory
+         * mode. Force an exit before sending the command. FB (sub) is
+         * unaffected and does not need this. */
+        ftx1_ensure_vfo_mode(rig);
         break;
 
     case RIG_VFO_B:
@@ -175,6 +180,9 @@ int ftx1_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s shift=%d\n",
               __func__, rig_strvfo(vfo), shift);
+
+    /* OS Main is rejected with ?; in Memory mode. Exit before sending. */
+    ftx1_ensure_vfo_mode(rig);
 
     /* Determine VFO */
     switch (vfo)

@@ -222,9 +222,23 @@ extern int ftx1_has_spa1(RIG *rig);
 extern int ftx1_get_head_type(RIG *rig);
 
 /*
+ * ftx1_ensure_vfo_mode - force the radio out of Memory mode if the driver
+ * knows it entered via a prior set_mem.  Call at the top of any VFO-state
+ * setter that would otherwise fail or behave transiently in Memory mode.
+ * See ftx1.c for full rationale.
+ */
+extern void ftx1_ensure_vfo_mode(RIG *rig);
+
+/*
  * FTX-1 band select functions (defined in ftx1_scan.c)
  */
 extern int ftx1_set_band_select(RIG *rig, vfo_t vfo, int band);
 extern int ftx1_get_band_select(RIG *rig, vfo_t vfo, int *band);
+
+/*
+ * FTX-1 CTCSS helpers (defined in ftx1_ctcss.c)
+ */
+extern int ftx1_freq_to_tone_num(unsigned int freq);
+extern unsigned int ftx1_tone_num_to_freq(int num);
 
 #endif /* _FTX1_H */
