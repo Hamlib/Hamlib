@@ -392,6 +392,100 @@ restore:
 }
 
 /*
+ * ftx1_read_channel_tone_state — read a channel's CTCSS tone / DCS code.
+ *
+ * The MR response carries only the tone MODE (P8), not the actual tone
+ * number or DCS code. To retrieve those we have to select the memory
+ * channel via MC, query CN (which reflects the stored channel state in
+ * memory mode), then restore the caller's prior VM/MC position.
+ *
+ * Intrusiveness note: this briefly switches the radio to memory mode
+ * on the target channel. The visible side effect is a momentary front-
+ * panel display change. State is restored at the end — if the caller
+ * was previously in VFO mode we return via VM000, if they were already
+ * in memory mode on another channel we MC back to that channel.
+ *
+ * mr_p8 is the raw stored P8 byte from MR, encoded per the firmware's
+ * MW/MR swap (different from CT encoding):
+ *   1 = TSQ (tone squelch — TX+RX CTCSS tone)
+ *   2 = ENC (TX CTCSS tone only)
+ *   3 = DCS
+ *
+ * Returns void: best-effort. On any CAT failure the tone fields are
+ * simply left at whatever the caller passed in, and the restore step
+ * still runs.
+ */
+static void ftx1_read_channel_tone_state(RIG *rig, int ch, int mr_p8,
+                                         channel_t *chan)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    char saved_vm[16] = {0};
+    char saved_mc[16] = {0};
+    int p1p2, val;
+
+    /* Snapshot current VM and MC so we can restore them. */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VM0;");
+    if (newcat_get_cmd(rig) == RIG_OK)
+    {
+        strncpy(saved_vm, priv->ret_data, sizeof(saved_vm) - 1);
+    }
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MC0;");
+    if (newcat_get_cmd(rig) == RIG_OK)
+    {
+        strncpy(saved_mc, priv->ret_data, sizeof(saved_mc) - 1);
+    }
+
+    /* Select the target memory channel. */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MC%06d;", ch);
+    if (newcat_set_cmd(rig) != RIG_OK)
+    {
+        goto restore;
+    }
+
+    if (mr_p8 == 3)
+    {
+        /* DCS: query main-side DCS code via CN01. */
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN01;");
+        if (newcat_get_cmd(rig) == RIG_OK
+            && sscanf(priv->ret_data + 2, "%2d%3d", &p1p2, &val) == 2)
+        {
+            chan->dcs_code = (tone_t)val;
+        }
+    }
+    else
+    {
+        /* CTCSS: query main-side tone index via CN00. */
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN00;");
+        if (newcat_get_cmd(rig) == RIG_OK
+            && sscanf(priv->ret_data + 2, "%2d%3d", &p1p2, &val) == 2)
+        {
+            tone_t tone = (tone_t)ftx1_tone_num_to_freq(val);
+            chan->ctcss_tone = tone;
+            /* MW/MR P8=1 is TSQ (encode and decode tones both active);
+             * P8=2 is ENC only. */
+            if (mr_p8 == 1)
+            {
+                chan->ctcss_sql = tone;
+            }
+        }
+    }
+
+restore:
+    /* Return to the caller's prior position. Memory mode on some other
+     * channel is restored via MC; otherwise fall back to VFO mode. */
+    if (strstr(saved_vm, "VM011;") != NULL && saved_mc[0] != '\0')
+    {
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", saved_mc);
+        (void)newcat_set_cmd(rig);
+    }
+    else
+    {
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VM000;");
+        (void)newcat_set_cmd(rig);
+    }
+}
+
+/*
  * Memory Read (MR) - read memory channel data
  * FIRMWARE FORMAT: MR P1P2P2P2P2 (5-digit: bank + 4-digit channel)
  *   Query: MR00001 for channel 1
@@ -405,10 +499,14 @@ restore:
  *     20        P5             TX CLAR on/off (0/1)
  *     21        P6             Mode code (1-E)
  *     22        P7             VFO/Memory (0/1)
- *     23        P8             CTCSS mode (0-3)
+ *     23        P8             CTCSS mode (0-3, MW/MR swap encoding)
  *     24-25     P9             Reserved "00"
  *     26        P10            Shift (0=simplex, 1=+, 2=-)
  *   Returns '?' if channel doesn't exist (not programmed)
+ *
+ * P8 does NOT carry the actual tone number or DCS code — those have
+ * to be fetched separately via CN, which requires briefly selecting
+ * the channel via MC. See ftx1_read_channel_tone_state().
  */
 int ftx1_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 {
@@ -518,11 +616,12 @@ int ftx1_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
     /* Skip VFO/Memory indicator (1 char) */
     p++;
 
-    /* Parse CTCSS mode (1 char) */
+    /* Parse CTCSS mode (1 char). This is the MW/MR stored encoding,
+     * which is swapped relative to CT:
+     *   0 = OFF, 1 = TSQ, 2 = ENC, 3 = DCS
+     * The actual tone number or DCS code is fetched below via the
+     * ftx1_read_channel_tone_state helper — MR does not carry it. */
     ctcss_mode = *p++ - '0';
-    /* Note: Actual tone frequencies require separate CN/QN queries */
-    /* Here we just record the mode for reference */
-    (void)ctcss_mode;
 
     /* Skip reserved "00" (2 chars) */
     p += 2;
@@ -537,6 +636,13 @@ int ftx1_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 
     /* Set width to default (not stored in memory response) */
     chan->width = RIG_PASSBAND_NORMAL;
+
+    /* If the channel has a tone, fetch the actual number or DCS code
+     * via CN (intrusive — briefly selects the channel and restores). */
+    if (ctcss_mode > 0 && ctcss_mode <= 3)
+    {
+        ftx1_read_channel_tone_state(rig, ch, ctcss_mode, chan);
+    }
 
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s: ch=%d freq=%.0f mode=%s rit=%ld xit=%ld shift=%d\n",
