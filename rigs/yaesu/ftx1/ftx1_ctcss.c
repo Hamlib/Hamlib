@@ -62,7 +62,7 @@ int ftx1_freq_to_tone_num(unsigned int freq)
 }
 
 /* Convert tone number (0-based per spec) to frequency (in 0.1 Hz) */
-static unsigned int ftx1_tone_num_to_freq(int num)
+unsigned int ftx1_tone_num_to_freq(int num)
 {
     if (num < FTX1_CTCSS_MIN || num > FTX1_CTCSS_MAX)
     {
