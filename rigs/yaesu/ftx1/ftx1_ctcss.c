@@ -46,7 +46,7 @@ static const unsigned int ftx1_ctcss_tones[] = {
 };
 
 /* Convert CTCSS frequency (in 0.1 Hz) to tone number (0-based per spec) */
-static int ftx1_freq_to_tone_num(unsigned int freq)
+int ftx1_freq_to_tone_num(unsigned int freq)
 {
     int i;
 
