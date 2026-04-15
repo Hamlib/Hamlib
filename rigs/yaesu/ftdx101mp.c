@@ -46,7 +46,9 @@ const struct newcat_priv_caps ftdx101mp_priv_caps =
         { .index = 3, .set_value = '3', .get_value = '8', .width = 1200, .optional = 1 },
         { .index = 4, .set_value = '4', .get_value = '9', .width = 600, .optional = 0 },
         { .index = 5, .set_value = '5', .get_value = 'A', .width = 300, .optional = 1 },
-    }
+    },
+    .cw_widths = &ftdx101_cw_widths,
+    .ssb_widths = &ftdx101_ssb_widths
 };
 
 const struct confparams ftdx101mp_ext_levels[] =

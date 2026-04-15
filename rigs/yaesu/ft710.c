@@ -38,7 +38,9 @@
 const struct newcat_priv_caps ft710_priv_caps =
 {
     .roofing_filter_count = 0,
-    .roofing_filters = {}
+    .roofing_filters = {},
+    .cw_widths = &ftdx101_cw_widths,
+    .ssb_widths = &ftdx101_ssb_widths
 };
 
 const struct confparams ft710_ext_levels[] =
