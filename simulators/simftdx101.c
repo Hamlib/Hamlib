@@ -5,9 +5,12 @@
 #include <string.h>
 #include <unistd.h>
 
+#if 0
 #include "hamlib/rig.h"
 #include "misc.h"
-
+#else
+int hl_usleep(unsigned long usec);
+#endif
 
 float freqA = 14074000;
 float freqB = 14074500;
@@ -29,11 +32,14 @@ int rport_gain_am = 50;
 int rport_gain_fm = 50;
 int rport_gain_psk = 50;
 int syncvfo = 0;
+int submain = 0;    // Dummy for now
 int ant = 1;
 
 
 #include "sim.h"
 
+#define ID NC_RIGID_FTDX101D
+//#define ID NC_RIGID_FTDX101MP
 
 int main(int argc, char *argv[])
 {
@@ -64,7 +70,7 @@ int main(int argc, char *argv[])
         if (strcmp(buf, "AN0;") == 0)
         {
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "AN0%d;", ant);
+            snprintf(buf, sizeof(buf), "AN0%d;", ant);
             n = write(fd, buf, strlen(buf));
 
             if (n <= 0) { perror("AN"); }
@@ -88,8 +94,8 @@ int main(int argc, char *argv[])
         {
             printf("%s\n", buf);
             hl_usleep(50 * 1000);
-            int id = NC_RIGID_FTDX3000;
-            SNPRINTF(buf, sizeof(buf), "ID%03d;", id);
+            int id = ID;
+            snprintf(buf, sizeof(buf), "ID%03d;", id);
             n = write(fd, buf, strlen(buf));
             printf("n=%d\n", n);
 
@@ -116,7 +122,7 @@ int main(int argc, char *argv[])
             ant = (ant + 1) % 3;
             printf("%s\n", buf);
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "EX032%1d;", ant);
+            snprintf(buf, sizeof(buf), "EX032%1d;", ant);
             n = write(fd, buf, strlen(buf));
             printf("n=%d\n", n);
 
@@ -125,7 +131,7 @@ int main(int argc, char *argv[])
 
         else if (strcmp(buf, "FA;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "FA%08.0f;", freqA);
+            snprintf(buf, sizeof(buf), "FA%08.0f;", freqA);
             n = write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "FA", 2) == 0)
@@ -134,7 +140,7 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "FB;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "FB%08.0f;", freqB);
+            snprintf(buf, sizeof(buf), "FB%08.0f;", freqB);
             n = write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "FB", 2) == 0)
@@ -143,12 +149,12 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "FT;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "FT%d;", ft);
+            snprintf(buf, sizeof(buf), "FT%d;", ft);
             n = write(fd, buf, strlen(buf));
         }
         else if (strcmp(buf, "MD0;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "MD0%X;", modeA);
+            snprintf(buf, sizeof(buf), "MD0%X;", modeA);
             n = write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "MD0", 3) == 0)
@@ -157,7 +163,7 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "MD1;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "MD1%X;", modeB);
+            snprintf(buf, sizeof(buf), "MD1%X;", modeB);
             n = write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "MD1", 3) == 0)
@@ -166,7 +172,7 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "VS;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "VS%d;", vs);
+            snprintf(buf, sizeof(buf), "VS%d;", vs);
             n = write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "VS", 2) == 0)
@@ -175,7 +181,7 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "TX;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "TX%d;", tx);
+            snprintf(buf, sizeof(buf), "TX%d;", tx);
             n = write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "TX", 2) == 0)
@@ -184,7 +190,7 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "AI;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "AI%d;", ai);
+            snprintf(buf, sizeof(buf), "AI%d;", ai);
             n = write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "AI", 2) == 0)
@@ -193,7 +199,7 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "PC;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "PC%d;", power);
+            snprintf(buf, sizeof(buf), "PC%d;", power);
             n = write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "PC", 2) == 0)
@@ -202,16 +208,17 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "SH0;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "SH0%d;", sh);
+            snprintf(buf, sizeof(buf), "SH0%1d%2d;", vfo, sh);
             n = write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "SH0", 3) == 0)
         {
-            sscanf(buf, "SH0%d", &sh);
+            sscanf(buf, "SH0%1d%02d", &submain, &sh);
+	    printf("submain=%d, sh=%d\n", submain, sh);
         }
         else if (strcmp(buf, "NA0;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "NA0%d;", na);
+            snprintf(buf, sizeof(buf), "NA0%d;", na);
             n = write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "NA0", 3) == 0)
@@ -220,7 +227,7 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "EX039;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "EX039%d;", ex039);
+            snprintf(buf, sizeof(buf), "EX039%d;", ex039);
             n = write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "EX039", 5) == 0)
@@ -229,7 +236,7 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "PS;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "PS1;");
+            snprintf(buf, sizeof(buf), "PS1;");
             n = write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "KS;", 3) == 0)
