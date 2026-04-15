@@ -101,6 +101,10 @@ int ftx1_set_ctcss_mode(RIG *rig, tone_t mode)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: mode=%u\n", __func__, mode);
 
+    /* CT sets are transient overlays in Memory mode — accepted but not
+     * persisted.  Exit memory mode so the change actually sticks. */
+    ftx1_ensure_vfo_mode(rig);
+
     /* CT P1 P2; where P1=VFO (0=Main), P2=mode */
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CT0%d;", (int)mode);
     return newcat_set_cmd(rig);
@@ -168,6 +172,9 @@ int ftx1_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: tone=%u tone_num=%d\n", __func__, tone,
               tone_num);
 
+    /* CN on Main is a transient overlay in Memory mode — exit first. */
+    ftx1_ensure_vfo_mode(rig);
+
     /* P1=0 for TX tone, P2P3P4 is 3-digit tone number */
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN00%03d;", tone_num);
     return newcat_set_cmd(rig);
@@ -225,7 +232,9 @@ int ftx1_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: tone=%u tone_num=%d\n", __func__, tone,
               tone_num);
 
-    /* P1=1 for RX tone, P2P3P4 is 3-digit tone number */
+    /* P1=1 for RX tone, P2P3P4 is 3-digit tone number.  CN10 targets
+     * Sub VFO, which is not affected by Main's Memory mode, so no
+     * VM000 injection is needed here. */
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN10%03d;", tone_num);
     return newcat_set_cmd(rig);
 }
@@ -279,6 +288,9 @@ int ftx1_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
     (void)vfo;  /* Unused - always Main for now */
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: code=%u\n", __func__, code);
+
+    /* CN on Main is a transient overlay in Memory mode — exit first. */
+    ftx1_ensure_vfo_mode(rig);
 
     /* CN01XXX: Main VFO (0), DCS (1), code index */
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN01%03u;", code);
