@@ -33,7 +33,8 @@ Version 4.7.1
           Ensure FT-710 simulator rejects RF command.  (TNX George Baltz)
         * Fix low power calculation for K3/K3S.  (N0NB)
         * Fix FTX-1 SH bandwidth command in set/get_mode.  (TNX Terrell Deppe)
-        * Quell initializer overrides prior initialzation clang warning.  (TNX George Baltz)
+        * Quell initializer overrides prior initialzation clang warning in ftx1.c
+          and fix compiler warning in hd1780.c.  (TNX George Baltz)
 
 Version 4.7.0
         * 2026-02-15
