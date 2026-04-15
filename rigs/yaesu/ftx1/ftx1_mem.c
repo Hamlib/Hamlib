@@ -67,6 +67,7 @@ static int ftx1_get_vfo_mem_mode_internal(RIG *rig, vfo_t *vfo);
 int ftx1_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
+    int ret;
 
     (void)vfo;  /* VFO not used in MC command */
 
@@ -80,7 +81,15 @@ int ftx1_set_mem(RIG *rig, vfo_t vfo, int ch)
 
     /* Format: MCNNNNNN (6-digit channel) */
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MC%06d;", ch);
-    return newcat_set_cmd(rig);
+    ret = newcat_set_cmd(rig);
+    if (ret == RIG_OK)
+    {
+        /* MC on a programmed channel enters Memory mode on the Main
+         * side. Track this so the next VFO-state setter can force an
+         * exit via VM000 before issuing FA/OS/CT/CN/MD. */
+        priv->ftx1_in_memory_mode = 1;
+    }
+    return ret;
 }
 
 /*
@@ -387,6 +396,11 @@ restore:
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", saved_md1);
         (void)newcat_set_cmd(rig);
     }
+
+    /* BM always ends with the Main side in VFO mode regardless of the
+     * caller's prior position, so clear the memory-mode tracking flag
+     * to keep ftx1_ensure_vfo_mode() accurate for subsequent setters. */
+    priv->ftx1_in_memory_mode = 0;
 
     return err;
 }

@@ -72,6 +72,7 @@ extern int ftx1_set_att_helper(RIG *rig, vfo_t vfo, value_t val);
 extern int ftx1_get_att_helper(RIG *rig, vfo_t vfo, value_t *val);
 
 /* Wrappers from ftx1_func.c for rig caps */
+extern int ftx1_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 extern int ftx1_set_ptt_func(RIG *rig, vfo_t vfo, ptt_t ptt);
 extern int ftx1_get_ptt_func(RIG *rig, vfo_t vfo, ptt_t *ptt);
 extern int ftx1_set_powerstat_func(RIG *rig, powerstat_t status);
@@ -863,6 +864,43 @@ static int ftx1_close(RIG *rig)
 }
 
 /*
+ * ftx1_ensure_vfo_mode - exit Memory mode if the driver last saw MC enter it
+ *
+ * FTX-1 firmware rejects FA/OS sets when the Main side is in Memory mode
+ * (VM011) and silently discards CT/CN/MD sets as transient memory-tune
+ * overlays. Callers that set VFO-side state should call this first so the
+ * operation actually lands.
+ *
+ * We track memory-mode entry in priv->ftx1_in_memory_mode (set by
+ * ftx1_set_mem after a successful MC). If the flag is clear, this is a
+ * no-op — we don't spam the rig with VM000 on every VFO-state set.
+ *
+ * Best-effort: on failure the flag is cleared unconditionally so we
+ * don't loop.
+ */
+void ftx1_ensure_vfo_mode(RIG *rig)
+{
+    struct newcat_priv_data *priv;
+
+    if (!rig)
+    {
+        return;
+    }
+
+    priv = STATE(rig)->priv;
+    if (!priv || !priv->ftx1_in_memory_mode)
+    {
+        return;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: exiting memory mode via VM000;\n",
+              __func__);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VM000;");
+    (void)newcat_set_cmd(rig);
+    priv->ftx1_in_memory_mode = 0;
+}
+
+/*
  * ftx1_has_spa1 - Check if Optima/SPA-1 amplifier is present
  *
  * Returns 1 if Optima/SPA-1 detected, 0 otherwise.
@@ -1157,7 +1195,7 @@ struct rig_caps ftx1_caps = {
     .rig_close = ftx1_close,  /* FTX-1 specific close - resets detection state */
     .set_freq = ftx1_set_freq,
     .get_freq = ftx1_get_freq,
-    .set_mode = newcat_set_mode,
+    .set_mode = ftx1_set_mode,
     .get_mode = newcat_get_mode,
     .set_vfo = ftx1_set_vfo,
     .get_vfo = ftx1_get_vfo,

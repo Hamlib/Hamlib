@@ -142,6 +142,7 @@ struct newcat_priv_data
     int ftx1_clar_cached;        /* 1 if RX/TX CLAR states have been cached */
     char ftx1_rx_clar_on;        /* Cached RX CLAR enable: '0' or '1' */
     char ftx1_tx_clar_on;        /* Cached TX CLAR enable: '0' or '1' */
+    int ftx1_in_memory_mode;     /* 1 if driver knows the Main-side is in Memory mode (VM011) */
 };
 
 /*
