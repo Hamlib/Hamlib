@@ -269,6 +269,11 @@ int newcat_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
                      int *min, int *sec, double *msec, int *utc_offset);
 int newcat_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch);
 
+/*
+ * Shared data structures
+ */
+extern const struct newcat_width_info ftdx101_cw_widths, ftdx101_ssb_widths;
+
 #define TOKEN_BACKEND(t) (t)
 
 #define TOK_ROOFING_FILTER TOKEN_BACKEND(100)

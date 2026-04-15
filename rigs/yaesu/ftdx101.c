@@ -33,6 +33,20 @@
 #include "yaesu.h"
 #include "ftdx101.h"
 
+// Shared with FTDX-101mp, FTDX-10, FT-710
+const struct newcat_width_info ftdx101_cw_widths =
+{
+    .count = 22,
+    .widths = { 0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 600, 800, 1200, 1400, 1700,
+                2000, 2400, 3000, 3200, 3500, 4000 }
+};
+const struct newcat_width_info ftdx101_ssb_widths =
+{
+    .count = 24,
+    .widths = { 0, 300, 400, 600, 850, 1100, 1200, 1500, 1650, 1800, 1950, 2100, 2200, 2300, 2400,
+		2500, 2600, 2700, 2800, 2900, 3000, 3200, 3500, 4000 }
+};
+
 const struct newcat_priv_caps ftdx101d_priv_caps =
 {
     .roofing_filter_count = 6,
@@ -45,7 +59,9 @@ const struct newcat_priv_caps ftdx101d_priv_caps =
         { .index = 3, .set_value = '3', .get_value = '8', .width = 1200, .optional = 1 },
         { .index = 4, .set_value = '4', .get_value = '9', .width = 600, .optional = 0 },
         { .index = 5, .set_value = '5', .get_value = 'A', .width = 300, .optional = 1 },
-    }
+    },
+    .cw_widths = &ftdx101_cw_widths,
+    .ssb_widths = &ftdx101_ssb_widths
 };
 
 const struct confparams ftdx101d_ext_levels[] =
