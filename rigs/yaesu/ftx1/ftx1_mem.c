@@ -141,21 +141,34 @@ int ftx1_get_mem(RIG *rig, vfo_t vfo, int *ch)
  *                target slot. Ignore '?' if the slot is currently
  *                unprogrammed — the cursor still updates for BM.
  *   2. VM000;    Force VFO mode in case MC entered memory mode.
- *   3. FB / MD1 / CT1 / CN10 / CN11 / OS1   Program VFO-B.
- *                CT/CN/OS only work in FM, so tone/shift are only
- *                emitted for FM-family channel modes.
+ *   3. FB / MD1 / CT1 / CN10 / OS1 / CF1   Program VFO-B.
+ *                CT/CN/OS only work in FM, so tone and shift are only
+ *                emitted for FM-family channel modes. Clarifier (CF)
+ *                is programmed for all modes.
  *   4. BM;       Copy VFO-B to the last-selected memory channel.
  *
  * VFO-B is used rather than VFO-A so the operator's primary RX VFO
  * is not disturbed. VFO-B's frequency and mode are snapshotted at
  * entry and best-effort restored on exit (including error paths).
- * Advanced VFO-B state (CT/CN/OS/CF) may still be clobbered for
- * callers that relied on it.
+ * VFO-B's clarifier and CT state are cleared during cleanup — any
+ * caller that relied on those aspects of VFO-B's state will need to
+ * reprogram them after rig_set_channel.
  *
- * Clarifier/RIT/XIT persistence into the memory slot is not yet
- * supported — BM's handling of clarifier state has not been
- * empirically verified. This is a potential follow-up if users
- * report it missing.
+ * Firmware limitations verified empirically on fw v1.12: the BM
+ * command does NOT propagate two kinds of state to the memory slot,
+ * even though the CAT commands to set them on VFO-B succeed:
+ *
+ *   - DCS: CT13 (DCS mode) + CN11<code> program VFO-B correctly, but
+ *     the stored memory channel reads back with CTCSS mode OFF. DCS
+ *     channels cannot be programmed via CAT and must be set up from
+ *     the front panel. We still emit the CT/CN commands so that if
+ *     firmware is fixed later, the code path works.
+ *
+ *   - XIT (TX clarifier flag): the clarifier offset frequency and
+ *     the RX clarifier on/off flag both propagate correctly, but the
+ *     TX CLAR on/off flag is dropped by BM and always reads back as
+ *     OFF in the stored channel. We set it anyway for forward
+ *     compatibility.
  */
 int ftx1_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
@@ -295,14 +308,75 @@ int ftx1_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
         (void)newcat_set_cmd(rig);
     }
 
+    /* 3d. Clarifier (RIT/XIT). The FTX-1 uses one shared offset with
+     *     independent RX/TX on-off toggles via the 11-char CF command:
+     *     CF P1 P2 P3 P4 P5P5P5P5 ; where P3=0 sets RX/TX on/off
+     *     (P4: 0=RX OFF, 1=RX ON, 2=TX OFF, 3=TX ON) and P3=1 sets the
+     *     offset frequency (P4=+/-, P5P5P5P5 = offset Hz).
+     *
+     *     If both rit and xit are set, rit's offset wins (matches the
+     *     pre-#2034 behavior of the broken MW path). Note that the TX
+     *     CLAR flag is silently dropped by BM (firmware limitation);
+     *     we still emit it for forward compatibility. */
+    if (chan->rit != 0 || chan->xit != 0)
+    {
+        int off;
+        char dir;
+
+        if (chan->rit != 0)
+        {
+            dir = (chan->rit >= 0) ? '+' : '-';
+            off = (int)labs(chan->rit);
+        }
+        else
+        {
+            dir = (chan->xit >= 0) ? '+' : '-';
+            off = (int)labs(chan->xit);
+        }
+        if (off > 9999) off = 9999;
+
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str),
+                 "CF100%d0000;", (chan->rit != 0) ? 1 : 0);
+        (void)newcat_set_cmd(rig);
+
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str),
+                 "CF100%d0000;", (chan->xit != 0) ? 3 : 2);
+        (void)newcat_set_cmd(rig);
+
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str),
+                 "CF101%c%04d;", dir, off);
+        (void)newcat_set_cmd(rig);
+    }
+    else
+    {
+        /* Explicitly clear VFO-B clarifier state so it doesn't leak
+         * from a previous write or the operator's prior VFO-B. */
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF10000000;");
+        (void)newcat_set_cmd(rig);
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF10020000;");
+        (void)newcat_set_cmd(rig);
+    }
+
     /* 4. Commit VFO-B to the last-selected memory channel. */
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BM;");
     err = newcat_set_cmd(rig);
 
 restore:
-    /* Best-effort restore of VFO-B state. Restore failures are not
-     * surfaced — the caller cares about the write's status, not the
+    /* Best-effort restore of VFO-B. Clarifier and CT state that we may
+     * have touched are cleared unconditionally — we don't snapshot
+     * them because CF has no reliable read form. FB and MD1 are
+     * replayed from the entry snapshot. Restore failures are not
+     * surfaced: the caller cares about the write's status, not the
      * side-effect cleanup. */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF10000000;");
+    (void)newcat_set_cmd(rig);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF10020000;");
+    (void)newcat_set_cmd(rig);
+    if (is_fm_family)
+    {
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CT10;");
+        (void)newcat_set_cmd(rig);
+    }
     if (saved_fb[0] != '\0')
     {
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", saved_fb);
