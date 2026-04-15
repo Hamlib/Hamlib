@@ -225,4 +225,9 @@ extern int ftx1_get_head_type(RIG *rig);
 extern int ftx1_set_band_select(RIG *rig, vfo_t vfo, int band);
 extern int ftx1_get_band_select(RIG *rig, vfo_t vfo, int *band);
 
+/*
+ * FTX-1 CTCSS helpers (defined in ftx1_ctcss.c)
+ */
+extern int ftx1_freq_to_tone_num(unsigned int freq);
+
 #endif /* _FTX1_H */
