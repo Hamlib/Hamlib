@@ -5,19 +5,22 @@
 #include <string.h>
 #include <unistd.h>
 
+#if 0
 #include "hamlib/rig.h"
 #include "misc.h"
-
+#else
+int hl_usleep(unsigned long usec);
+#endif
 
 float freqA = 14074000;
 float freqB = 14074500;
 char tx_vfo = '1';
 char rx_vfo = '1';
-char modeA = '0';
-char modeB = '0';
+char modeA = 'C';
+char modeB = 'C';
 int keyspd = 20;
 int bandselect = 5;
-int  width = 21;
+int  width = 17;
 int narrow = 0;
 int vd = 0;
 int sm0 = 0;
@@ -26,6 +29,8 @@ int sm1 = 0;
 
 #include "sim.h"
 
+//#define ID NC_RIGID_FT991
+#define ID NC_RIGID_FT991A
 
 int main(int argc, char *argv[])
 {
@@ -88,7 +93,7 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "FA;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "FA%09.0f;", freqA);
+            snprintf(buf, sizeof(buf), "FA%09.0f;", freqA);
             n = write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "FA", 2) == 0)
@@ -97,7 +102,7 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "FB;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "FB%09.0f;", freqB);
+            snprintf(buf, sizeof(buf), "FB%09.0f;", freqB);
             n = write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "FB", 2) == 0)
@@ -108,8 +113,8 @@ int main(int argc, char *argv[])
         {
             printf("%s\n", buf);
             hl_usleep(50 * 1000);
-            int id = NC_RIGID_FTDX3000;
-            SNPRINTF(buf, sizeof(buf), "ID%03d;", id);
+            int id = ID;
+            snprintf(buf, sizeof(buf), "ID%04d;", id);
             n = write(fd, buf, strlen(buf));
             printf("n=%d\n", n);
 
@@ -117,14 +122,14 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "PS;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "PS1;");
+            snprintf(buf, sizeof(buf), "PS1;");
             n = write(fd, buf, strlen(buf));
         }
         else if (strcmp(buf, "AI;") == 0)
         {
             printf("%s\n", buf);
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "AI0;");
+            snprintf(buf, sizeof(buf), "AI0;");
             n = write(fd, buf, strlen(buf));
             printf("n=%d\n", n);
 
@@ -137,7 +142,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "FT;") == 0)
         {
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "FT%c;", tx_vfo);
+            snprintf(buf, sizeof(buf), "FT%c;", tx_vfo);
             printf(" FT response#1=%s, tx_vfo=%c\n", buf, tx_vfo);
             n = write(fd, buf, strlen(buf));
             printf(" FT response#2=%s\n", buf);
@@ -155,7 +160,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "MD0;") == 0)
         {
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "MD0%c;", modeA);
+            snprintf(buf, sizeof(buf), "MD0%c;", modeA);
             n = write(fd, buf, strlen(buf));
 
             if (n < 0) { perror("MD0;"); }
@@ -167,7 +172,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "MD1;") == 0)
         {
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "MD1%c;", modeB);
+            snprintf(buf, sizeof(buf), "MD1%c;", modeB);
             n = write(fd, buf, strlen(buf));
 
             if (n < 0) { perror("MD0;"); }
@@ -210,7 +215,7 @@ int main(int argc, char *argv[])
             ant = (ant + 1) % 3;
             printf("%s\n", buf);
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "EX032%1d;", ant);
+            snprintf(buf, sizeof(buf), "EX032%1d;", ant);
             n = write(fd, buf, strlen(buf));
             printf("n=%d\n", n);
 
