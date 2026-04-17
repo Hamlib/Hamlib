@@ -170,6 +170,25 @@ int ft991_ext_tokens[] =
 };
 
 /*
+ * Rig unique data
+ */
+static const struct newcat_width_info ft991_cw_widths = {
+    .count = 18,
+    .widths = { 0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 800, 1200, 1400, 1700,
+                2000, 2400, 3000 }
+};
+static const struct newcat_width_info ft991_ssb_widths = {
+    .count = 22,
+    .widths = { 0, 200, 400, 600, 850, 1100, 1350, 1500, 1650, 1800, 1950, 2100, 2200, 2300,
+                2400, 2500, 2600, 2700, 2800, 2900, 3000, 3200 }
+};
+
+static const struct newcat_priv_caps ft991_priv_caps = {
+    .cw_widths = &ft991_cw_widths,
+    .ssb_widths = &ft991_ssb_widths
+};
+
+/*
  * FT-991 rig capabilities
  */
 struct rig_caps ft991_caps =
@@ -347,7 +366,7 @@ struct rig_caps ft991_caps =
     .ext_tokens =         ft991_ext_tokens,
     .extlevels =          ft991_ext_levels,
 
-    .priv =               NULL,           /* private data FIXME: */
+    .priv =               &ft991_priv_caps,
 
     .rig_init =           ft991_init,
     .rig_cleanup =        newcat_cleanup,
