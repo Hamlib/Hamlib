@@ -169,15 +169,13 @@ int ft991_ext_tokens[] =
     TOK_BACKEND_NONE
 };
 
-/*
- * Rig unique data
- */
-static const struct newcat_width_info ft991_cw_widths = {
+// Shared with FT-891
+const struct newcat_width_info ft991_cw_widths = {
     .count = 18,
     .widths = { 0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 800, 1200, 1400, 1700,
                 2000, 2400, 3000 }
 };
-static const struct newcat_width_info ft991_ssb_widths = {
+const struct newcat_width_info ft991_ssb_widths = {
     .count = 22,
     .widths = { 0, 200, 400, 600, 850, 1100, 1350, 1500, 1650, 1800, 1950, 2100, 2200, 2300,
                 2400, 2500, 2600, 2700, 2800, 2900, 3000, 3200 }

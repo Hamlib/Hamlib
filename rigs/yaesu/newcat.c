@@ -759,8 +759,7 @@ int newcat_init(RIG *rig)
     STATE(rig)->priv = (struct newcat_priv_data *) calloc(1,
                        sizeof(struct newcat_priv_data));
 
-    if (!STATE(
-                rig)->priv)                                  /* whoops! memory shortage! */
+    if (!STATE(rig)->priv)                                  /* whoops! memory shortage! */
     {
         RETURNFUNC(-RIG_ENOMEM);
     }
@@ -773,34 +772,6 @@ int newcat_init(RIG *rig)
     priv->rig_id = NC_RIGID_NONE;
     priv->current_mem = NC_MEM_CHANNEL_NONE;
     priv->fast_set_commands = FALSE;
-
-    /*
-     * Determine the type of rig from the model number.  Note it is
-     * possible for several model variants to exist; i.e., all the
-     * FT-9000 variants.
-     */
-
-#if 0
-    is_ft450 = newcat_is_rig(rig, RIG_MODEL_FT450);
-    is_ft450 |= newcat_is_rig(rig, RIG_MODEL_FT450D);
-    is_ft891 = newcat_is_rig(rig, RIG_MODEL_FT891);
-    is_ft897 = newcat_is_rig(rig, RIG_MODEL_FT897);
-    is_ft897d = newcat_is_rig(rig, RIG_MODEL_FT897D);
-    is_ft950 = newcat_is_rig(rig, RIG_MODEL_FT950);
-    is_ft991 = newcat_is_rig(rig, RIG_MODEL_FT991);
-    is_ft2000 = newcat_is_rig(rig, RIG_MODEL_FT2000);
-    is_ftdx9000 = newcat_is_rig(rig, RIG_MODEL_FT9000);
-    is_ftdx9000Old = newcat_is_rig(rig, RIG_MODEL_FT9000OLD);
-    is_ftdx5000 = newcat_is_rig(rig, RIG_MODEL_FTDX5000);
-    is_ftdx1200 = newcat_is_rig(rig, RIG_MODEL_FTDX1200);
-    is_ftdx3000 = newcat_is_rig(rig, RIG_MODEL_FTDX3000);
-    is_ftdx3000dm = FALSE; // Detected dynamically
-    is_ftdx101d = newcat_is_rig(rig, RIG_MODEL_FTDX101D);
-    is_ftdx101mp = newcat_is_rig(rig, RIG_MODEL_FTDX101MP);
-    is_ftdx10 = newcat_is_rig(rig, RIG_MODEL_FTDX10);
-    is_ft710 = newcat_is_rig(rig, RIG_MODEL_FT710);
-    is_ftx1 = newcat_is_rig(rig, RIG_MODEL_FTX1);
-#endif
 
     RETURNFUNC(RIG_OK);
 }
@@ -8845,24 +8816,8 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                 RETURNFUNC(err);
             }
 
-            if (width == RIG_PASSBAND_NORMAL) { w = 0; }
-            else if (width <= 50) { w = 1; }
-            else if (width <= 100) { w = 2; }
-            else if (width <= 150) { w = 3; }
-            else if (width <= 200) { w = 4; }
-            else if (width <= 250) { w = 5; }
-            else if (width <= 300) { w = 6; }
-            else if (width <= 350) { w = 7; }
-            else if (width <= 400) { w = 8; }
-            else if (width <= 450) { w = 9; }
-            else if (width <= 500) { w = 10; }
-            else if (width <= 800) { w = 11; }
-            else if (width <= 1200) { w = 12; }
-            else if (width <= 1400) { w = 13; }
-            else if (width <= 1700) { w = 14; }
-            else if (width <= 2000) { w = 15; }
-            else if (width <= 2400) { w = 16; }
-            else { w = 17; } // 3000 Hz
+            w = newcat_get_index_from_width(width, priv_caps->cw_widths);
+            if (w < 0) { RETURNFUNC(w); }
 
             break;
 
@@ -8876,28 +8831,8 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                 RETURNFUNC(err);
             }
 
-            if (width == RIG_PASSBAND_NORMAL) { w = 0; }
-            else if (width <= 200) { w = 1; }
-            else if (width <= 400) { w = 2; }
-            else if (width <= 600) { w = 3; }
-            else if (width <= 850) { w = 4; }
-            else if (width <= 1100) { w = 5; }
-            else if (width <= 1350) { w = 6; }
-            else if (width <= 1500) { w = 7; }
-            else if (width <= 1650) { w = 8; }
-            else if (width <= 1800) { w = 9; }
-            else if (width <= 1950) { w = 10; }
-            else if (width <= 2100) { w = 11; }
-            else if (width <= 2200) { w = 12; }
-            else if (width <= 2300) { w = 13; }
-            else if (width <= 2400) { w = 14; }
-            else if (width <= 2500) { w = 15; }
-            else if (width <= 2600) { w = 16; }
-            else if (width <= 2700) { w = 17; }
-            else if (width <= 2800) { w = 18; }
-            else if (width <= 2900) { w = 19; }
-            else if (width <= 3000) { w = 20; }
-            else { w = 21; } // 3000 Hz
+            w = newcat_get_index_from_width(width, priv_caps->ssb_widths);
+            if (w < 0) { RETURNFUNC(w); }
 
             break;
 
@@ -9908,9 +9843,12 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
-            switch (w)
+            if (w > 0 && w < priv_caps->cw_widths->count)
             {
-            case 0:
+                *width = priv_caps->cw_widths->widths[w];
+            }
+            else if (w == 0)
+            {
                 if (mode == RIG_MODE_CW || mode == RIG_MODE_CWR)
                 {
                     *width = narrow ? 500 : 2400;
@@ -9919,44 +9857,9 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
                 {
                     *width = narrow ? 300 : 500;
                 }
-
-                break;
-
-            case 1: *width = 50; break;
-
-            case 2: *width = 100; break;
-
-            case 3: *width = 150; break;
-
-            case 4: *width = 200; break;
-
-            case 5: *width = 250; break;
-
-            case 6: *width = 300; break;
-
-            case 7: *width = 350; break;
-
-            case 8: *width = 400; break;
-
-            case 9: *width = 450; break;
-
-            case 10: *width = 500; break;
-
-            case 11: *width = 800; break;
-
-            case 12: *width = 1200; break;
-
-            case 13: *width = 1400; break;
-
-            case 14: *width = 1700; break;
-
-            case 15: *width = 2000; break;
-
-            case 16: *width = 2400; break;
-
-            case 17: *width = 3000; break;
-
-            default:
+            }
+            else
+            {
                 rig_debug(RIG_DEBUG_ERR, "%s: unknown w=%d\n", __func__, w);
                 RETURNFUNC(-RIG_EINVAL);
             }
@@ -9965,53 +9868,16 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
-            switch (w)
+            if (w > 0 && w < priv_caps->ssb_widths->count)
             {
-            case 0: *width = narrow ? 1500 : 2400; break;
-
-            case  1: *width =  200; break;
-
-            case  2: *width =  400; break;
-
-            case  3: *width =  600; break;
-
-            case  4: *width =  850; break;
-
-            case  5: *width = 1100; break;
-
-            case  6: *width = 1350; break;
-
-            case  7: *width = 1500; break;
-
-            case  8: *width = 1650; break;
-
-            case  9: *width = 1800; break;
-
-            case 10: *width = 1950; break;
-
-            case 11: *width = 2100; break;
-
-            case 12: *width = 2200; break;
-
-            case 13: *width = 2300; break;
-
-            case 14: *width = 2400; break;
-
-            case 15: *width = 2500; break;
-
-            case 16: *width = 2600; break;
-
-            case 17: *width = 2700; break;
-
-            case 18: *width = 2800; break;
-
-            case 19: *width = 2900; break;
-
-            case 20: *width = 3000; break;
-
-            case 21: *width = 3200; break;
-
-            default:
+                *width = priv_caps->ssb_widths->widths[w];
+            }
+            else if (w == 0)
+            {
+                *width = narrow ? 1500 : 2400;
+            }
+            else
+            {
                 rig_debug(RIG_DEBUG_ERR, "%s: unknown mode=%s\n", __func__, rig_strrmode(mode));
                 RETURNFUNC(-RIG_EINVAL);
             }
@@ -10087,7 +9953,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
             }
             else if (w == 0)
             {
-                *width = narrow ? 1500 : 2400; break;
+                *width = narrow ? 1500 : 2400;
             }
             else
             {
