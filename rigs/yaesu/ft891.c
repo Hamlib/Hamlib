@@ -123,6 +123,12 @@ int ft891_ext_tokens[] =
     TOK_BACKEND_NONE
 };
 
+static const struct newcat_priv_caps ft891_priv_caps =
+{
+    .cw_widths = &ft991_cw_widths,
+    .ssb_widths = &ft991_ssb_widths
+};
+
 /*
  * FT-891 rig capabilities
  */
@@ -286,7 +292,7 @@ struct rig_caps ft891_caps =
     .ext_tokens =         ft891_ext_tokens,
     .extlevels =          ft891_ext_levels,
 
-    .priv =               NULL,           /* private data FIXME: */
+    .priv =               &ft891_priv_caps,
 
     .rig_init =           ft891_init,
     .rig_cleanup =        newcat_cleanup,
