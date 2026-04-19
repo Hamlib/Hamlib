@@ -51,8 +51,20 @@
 #include "ftx1_menu.h"
 
 /* Private caps for newcat framework */
+static const struct newcat_width_info ftx1_ssb_widths =
+{
+    // Bandwidth table per FTX-1 CAT Operation Reference Manual Table 5
+    // (doc 2508-C). Differs from the FT-710/FTDX10 table at SSB codes
+    // 12/13/14 (2250/2400/2450 Hz vs 2200/2300/2400), so do not merge.
+    .count = 24,
+    .widths = { 0, 300, 400, 600, 850, 1100, 1200, 1500, 1650, 1800, 1950, 2100, 2250,
+		2400, 2450, 2500, 2600, 2700, 2800, 2900, 3000, 3200, 3500, 4000 }
+};
+
 static const struct newcat_priv_caps ftx1_priv_caps = {
     .roofing_filter_count = 0,
+    .cw_widths = &ftdx101_cw_widths,
+    .ssb_widths = &ftx1_ssb_widths,
 };
 
 /* Extern declarations for group-specific functions (add more as groups are implemented) */
