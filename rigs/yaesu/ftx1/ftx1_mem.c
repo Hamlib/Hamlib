@@ -242,12 +242,14 @@ int ftx1_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FB;");
     if (newcat_get_cmd(rig) == RIG_OK)
     {
-        snprintf(saved_fb, sizeof(saved_fb), "%s", priv->ret_data);
+        snprintf(saved_fb, sizeof(saved_fb), "%.*s",
+                 (int)sizeof(saved_fb) - 1, priv->ret_data);
     }
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MD1;");
     if (newcat_get_cmd(rig) == RIG_OK)
     {
-        snprintf(saved_md1, sizeof(saved_md1), "%s", priv->ret_data);
+        snprintf(saved_md1, sizeof(saved_md1), "%.*s",
+                 (int)sizeof(saved_md1) - 1, priv->ret_data);
     }
 
     /* 1. Point the Sub-side MC cursor at the target slot. The MC SET
@@ -456,12 +458,14 @@ static void ftx1_read_channel_tone_state(RIG *rig, int ch, int mr_p8,
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VM0;");
     if (newcat_get_cmd(rig) == RIG_OK)
     {
-        snprintf(saved_vm, sizeof(saved_vm), "%s", priv->ret_data);
+        snprintf(saved_vm, sizeof(saved_vm), "%.*s",
+                 (int)sizeof(saved_vm) - 1, priv->ret_data);
     }
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MC0;");
     if (newcat_get_cmd(rig) == RIG_OK)
     {
-        snprintf(saved_mc, sizeof(saved_mc), "%s", priv->ret_data);
+        snprintf(saved_mc, sizeof(saved_mc), "%.*s",
+                 (int)sizeof(saved_mc) - 1, priv->ret_data);
     }
 
     /* Select the target memory channel. */
