@@ -274,6 +274,7 @@ int newcat_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch);
  */
 extern const struct newcat_width_info ft991_cw_widths, ft991_ssb_widths;
 extern const struct newcat_width_info ftdx101_cw_widths, ftdx101_ssb_widths;
+extern const struct newcat_width_info ftdx1200_cw_widths, ftdx1200_ssb_widths;
 
 #define TOKEN_BACKEND(t) (t)
 
