@@ -9141,9 +9141,6 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     } // end is_ftdx101d || is_ftdx101mp || is_ftdx10 || is_ft710
     else if (is_ftx1)
     {
-        // Bandwidth table per FTX-1 CAT Operation Reference Manual Table 5
-        // (doc 2508-C). Differs from the FT-710/FTDX10 table at SSB codes
-        // 12/13/14 (2250/2400/2450 Hz vs 2200/2300/2400), so do not merge.
         switch (mode)
         {
         case RIG_MODE_PKTUSB:
@@ -9153,58 +9150,14 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
         case RIG_MODE_PSK:
-            if (width == RIG_PASSBAND_NORMAL) { w = 0; }
-            else if (width <= 50) { w = 1; }
-            else if (width <= 100) { w = 2; }
-            else if (width <= 150) { w = 3; }
-            else if (width <= 200) { w = 4; }
-            else if (width <= 250) { w = 5; }
-            else if (width <= 300) { w = 6; }
-            else if (width <= 350) { w = 7; }
-            else if (width <= 400) { w = 8; }
-            else if (width <= 450) { w = 9; }
-            else if (width <= 500) { w = 10; }
-            else if (width <= 600) { w = 11; }
-            else if (width <= 800) { w = 12; }
-            else if (width <= 1200) { w = 13; }
-            else if (width <= 1400) { w = 14; }
-            else if (width <= 1700) { w = 15; }
-            else if (width <= 2000) { w = 16; }
-            else if (width <= 2400) { w = 17; }
-            else if (width <= 3000) { w = 18; }
-            else if (width <= 3200) { w = 19; }
-            else if (width <= 3500) { w = 20; }
-            else { w = 21; } // 4000 Hz
-
+            w = newcat_get_index_from_width(width, priv_caps->cw_widths);
+            if (w < 0) { RETURNFUNC(w); } // Out of bounds
             break;
 
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
-            if (width == RIG_PASSBAND_NORMAL) { w = 0; }
-            else if (width <= 300) {  w = 1; }
-            else if (width <= 400) {  w = 2; }
-            else if (width <= 600) {  w = 3; }
-            else if (width <= 850) {  w = 4; }
-            else if (width <= 1100) {  w = 5; }
-            else if (width <= 1200) {  w = 6; }
-            else if (width <= 1500) {  w = 7; }
-            else if (width <= 1650) {  w = 8; }
-            else if (width <= 1800) {  w = 9; }
-            else if (width <= 1950) {  w = 10; }
-            else if (width <= 2100) {  w = 11; }
-            else if (width <= 2250) {  w = 12; }
-            else if (width <= 2400) {  w = 13; }
-            else if (width <= 2450) {  w = 14; }
-            else if (width <= 2500) {  w = 15; }
-            else if (width <= 2600) {  w = 16; }
-            else if (width <= 2700) {  w = 17; }
-            else if (width <= 2800) {  w = 18; }
-            else if (width <= 2900) {  w = 19; }
-            else if (width <= 3000) {  w = 20; }
-            else if (width <= 3200) {  w = 21; }
-            else if (width <= 3500) {  w = 22; }
-            else { w = 23; } // 4000 Hz
-
+            w = newcat_get_index_from_width(width, priv_caps->ssb_widths);
+            if (w < 0) { RETURNFUNC(w); }
             break;
 
         case RIG_MODE_AM:
@@ -9224,14 +9177,8 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_AM:
         case RIG_MODE_FM:
         case RIG_MODE_PKTFM:
-            if (width > 0 && width < rig_passband_normal(rig, mode))
-            {
-                err = newcat_set_narrow(rig, vfo,  TRUE);
-            }
-            else
-            {
-                err = newcat_set_narrow(rig, vfo, FALSE);
-            }
+            is_narrow = width > 0 && width < rig_passband_normal(rig, mode);
+            err = newcat_set_narrow(rig, vfo, is_narrow);
 
             RETURNFUNC(err);
 
@@ -10121,8 +10068,6 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
     } /* end if is_ftdx101d || is_ftdx101mp || is_ftdx10 || is_ft710 */
     else if (is_ftx1)
     {
-        // Bandwidth table per FTX-1 CAT Operation Reference Manual Table 5
-        // (doc 2508-C). Differs from FT-710/FTDX10 at SSB codes 12/13/14.
         rig_debug(RIG_DEBUG_TRACE, "%s: is_ftx1 w=%d, mode=%s\n", __func__, w,
                   rig_strrmode(mode));
 
@@ -10140,114 +10085,29 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
         case RIG_MODE_PSK:
-            switch (w)
+            if (w > 0 && w < priv_caps->cw_widths->count)
             {
-            case 0: break; /* default */
-
-            case 1: *width = 50; break;
-
-            case 2: *width = 100; break;
-
-            case 3: *width = 150; break;
-
-            case 4: *width = 200; break;
-
-            case 5: *width = 250; break;
-
-            case 6: *width = 300; break;
-
-            case 7: *width = 350; break;
-
-            case 8: *width = 400; break;
-
-            case 9: *width = 450;  break;
-
-            case 10: *width = 500;  break;
-
-            case 11: *width = 600;  break;
-
-            case 12: *width = 800;  break;
-
-            case 13: *width = 1200;  break;
-
-            case 14: *width = 1400;  break;
-
-            case 15: *width = 1700;  break;
-
-            case 16: *width = 2000;  break;
-
-            case 17: *width = 2400;  break;
-
-            case 18: *width = 3000;  break;
-
-            case 19: *width = 3200;  break;
-
-            case 20: *width = 3500;  break;
-
-            case 21: *width = 4000;  break;
-
-            default:
-                RETURNFUNC(-RIG_EINVAL);
+                *width = priv_caps->cw_widths->widths[w];
             }
+            else if (w == 0)
+            {
+                break;   // use the roofing/default width
+            }
+            else {RETURNFUNC(-RIG_EPROTO);}  // Should not happen
 
             break;
 
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
-            switch (w)
+            if (w > 0 && w < priv_caps->ssb_widths->count)
             {
-            case 0: break; /* default */
-
-            case 1: *width = 300; break;
-
-            case 2: *width = 400; break;
-
-            case 3: *width = 600; break;
-
-            case 4: *width = 850; break;
-
-            case 5: *width = 1100; break;
-
-            case 6: *width = 1200; break;
-
-            case 7: *width = 1500; break;
-
-            case 8: *width = 1650; break;
-
-            case 9: *width = 1800; break;
-
-            case 10: *width = 1950;  break;
-
-            case 11: *width = 2100;  break;
-
-            case 12: *width = 2250;  break;
-
-            case 13: *width = 2400;  break;
-
-            case 14: *width = 2450;  break;
-
-            case 15: *width = 2500;  break;
-
-            case 16: *width = 2600;  break;
-
-            case 17: *width = 2700;  break;
-
-            case 18: *width = 2800;  break;
-
-            case 19: *width = 2900;  break;
-
-            case 20: *width = 3000;  break;
-
-            case 21: *width = 3200;  break;
-
-            case 22: *width = 3500;  break;
-
-            case 23: *width = 4000;  break;
-
-            default:
-                rig_debug(RIG_DEBUG_ERR, "%s: unknown width=%d\n", __func__, w);
-                RETURNFUNC(-RIG_EINVAL);
+                *width = priv_caps->ssb_widths->widths[w];
             }
+            else if (w == 0)
+            {
+                break;  // Use the roofing/default value
+            }
+            else {RETURNFUNC(-RIG_EPROTO);}
 
             break;
 
