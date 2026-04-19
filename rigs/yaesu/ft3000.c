@@ -53,7 +53,9 @@ const struct newcat_priv_caps ftdx3000_priv_caps =
         { .index = 8, .set_value = 0, .get_value = '6', .width = 3000, .optional = 0 },
         { .index = 9, .set_value = 0, .get_value = '9', .width = 600, .optional = 0 },
         { .index = 10, .set_value = 0, .get_value = 'A', .width = 300, .optional = 0 },
-    }
+    },
+    .cw_widths = &ftdx1200_cw_widths,
+    .ssb_widths = &ftdx1200_ssb_widths
 };
 
 const struct confparams ftdx3000_ext_levels[] =

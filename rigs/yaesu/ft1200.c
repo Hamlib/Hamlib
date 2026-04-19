@@ -33,6 +33,20 @@
 #include "ft1200.h"
 #include "tones.h"
 
+// Shared with FTDX-3000/FTDX-3000dm
+const struct newcat_width_info ftdx1200_cw_widths =
+{
+    .count = 17,
+    .widths = { 0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 800, 1200, 1400,
+		1700, 2000, 2400 }
+};
+const struct newcat_width_info ftdx1200_ssb_widths =
+{
+    .count = 26,
+    .widths = { 0, 200, 400, 600, 850, 1100, 1350, 1500, 1650, 1800, 1950, 2100, 2200, 2300,
+		2400, 2500, 2600, 2700, 2800, 2900, 3000, 3200, 3400, 3600, 3800, 4000 }
+};
+
 const struct newcat_priv_caps ftdx1200_priv_caps =
 {
     .roofing_filter_count = 7,
@@ -46,7 +60,9 @@ const struct newcat_priv_caps ftdx1200_priv_caps =
         { .index = 4, .set_value = 0, .get_value = '4', .width = 15000, .optional = 0 },
         { .index = 5, .set_value = 0, .get_value = '5', .width = 6000, .optional = 0 },
         { .index = 6, .set_value = 0, .get_value = '6', .width = 3000, .optional = 0 },
-    }
+    },
+    .cw_widths = &ftdx1200_cw_widths,
+    .ssb_widths = &ftdx1200_ssb_widths
 };
 
 const struct confparams ftdx1200_ext_levels[] =
