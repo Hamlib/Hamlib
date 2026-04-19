@@ -8,10 +8,20 @@
  * All memory commands use DIFFERENT FORMATS than documented in the spec!
  *
  * MC (Memory Channel Select):
- *   Query: MC0 (MAIN VFO) or MC1 (SUB VFO)
- *   Response: MCNNNNNN (6-digit channel, e.g., MC000001)
- *   Set: MCNNNNNN (6-digit channel)
- *   Returns '?' if channel doesn't exist (not programmed)
+ *   Both the query and the set form take a VFO digit followed by a
+ *   5-digit channel. The VFO digit is 0 (Main) or 1 (Sub); the two
+ *   sides have independent memory-mode state and can both be parked
+ *   in memory mode simultaneously (VM011 + VM111).
+ *   Query:    MC0;      returns MC0NNNNN (Main's channel)
+ *             MC1;      returns MC1NNNNN (Sub's channel)
+ *   Set:      MC0NNNNN; tunes Main to channel NNNNN
+ *             MC1NNNNN; tunes Sub to channel NNNNN
+ *   The radio's active VFO (VS) does NOT influence which side the SET
+ *   applies to — the first digit of the parameter does. MC%06d; with
+ *   a channel in 1..99 happens to produce MC0NNNNN, so it targets
+ *   Main. Hardware-verified 2026-04-18 against fw v1.12.
+ *   Returns '?' if channel doesn't exist (not programmed), but the
+ *   cursor still updates for a subsequent BM commit.
  *
  * MR (Memory Read): 5-digit format
  *   Query: MR00001 (not MR001 or MR0001)
@@ -232,17 +242,22 @@ int ftx1_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FB;");
     if (newcat_get_cmd(rig) == RIG_OK)
     {
-        strncpy(saved_fb, priv->ret_data, sizeof(saved_fb) - 1);
+        snprintf(saved_fb, sizeof(saved_fb), "%s", priv->ret_data);
     }
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MD1;");
     if (newcat_get_cmd(rig) == RIG_OK)
     {
-        strncpy(saved_md1, priv->ret_data, sizeof(saved_md1) - 1);
+        snprintf(saved_md1, sizeof(saved_md1), "%s", priv->ret_data);
     }
 
-    /* 1. Point the MC cursor at the target slot. Returns '?;' when the
-     *    slot is unprogrammed, but the cursor still updates for BM. */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MC%06d;",
+    /* 1. Point the Sub-side MC cursor at the target slot. The MC SET
+     *    form takes a VFO digit followed by a 5-digit channel
+     *    (MC0NNNNN = Main, MC1NNNNN = Sub); BM commits VFO-B to the
+     *    last-selected memory on the Sub side, so targeting Sub here
+     *    keeps Main's front-panel channel from silently flipping.
+     *    Returns '?;' when the slot is unprogrammed, but the cursor
+     *    still updates for the subsequent BM. */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MC1%05d;",
              chan->channel_num);
     (void)newcat_set_cmd(rig);
 
@@ -441,12 +456,12 @@ static void ftx1_read_channel_tone_state(RIG *rig, int ch, int mr_p8,
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VM0;");
     if (newcat_get_cmd(rig) == RIG_OK)
     {
-        strncpy(saved_vm, priv->ret_data, sizeof(saved_vm) - 1);
+        snprintf(saved_vm, sizeof(saved_vm), "%s", priv->ret_data);
     }
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MC0;");
     if (newcat_get_cmd(rig) == RIG_OK)
     {
-        strncpy(saved_mc, priv->ret_data, sizeof(saved_mc) - 1);
+        snprintf(saved_mc, sizeof(saved_mc), "%s", priv->ret_data);
     }
 
     /* Select the target memory channel. */
