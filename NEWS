@@ -14,6 +14,8 @@ Version 5.x -- future
         * Change FT1000MP Mark V model names to align with FT1000MP
         * Internal data structures moved out of rig_struct to individual
           heap buffers - Github issues #487 & #1445 (n3gb)
+        * Update bandwidth handling in rigs/yaesu/newcat.c to use data in
+          priv_caps. Moves lots of hard-coded data into tables.  (n3gb)
 
 Version 4.7.0
         * 2026-02-15
