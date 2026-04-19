@@ -12,6 +12,9 @@ changes to the Application Binary Interface(ABI).
 - shortfreq_t changed to int32? (may not happen)
 - Functions rig_get_conf(), rot_get_conf() and amp_get_conf() have been removed.
   See [issue #924](https://github.com/Hamlib/Hamlib/issues/924).
+- Clean up bandwidth handling in newcat.c.  Move data from code to priv_caps.
+- Convert ncboolean (in newcat.h) to real `bool` typedef. Clean up previous
+  pseudo-boolean code.
 
 ## Build changes
 - C compiler needs at least c11 capability.

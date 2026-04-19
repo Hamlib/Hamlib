@@ -54,7 +54,7 @@
 typedef bool ncboolean;
 
 /* shared function version */
-#define NEWCAT_VER "20241118"
+#define NEWCAT_VER "20260419"
 
 /* Hopefully large enough for future use, 128 chars plus '\0' */
 #define NEWCAT_DATA_LEN                 129
@@ -109,8 +109,9 @@ struct newcat_roofing_filter
 
 struct newcat_width_info
 {
+    // New entries should go here
     short count;       // Max value + 1
-    uint16_t widths[]; // Must have values for all indices from 0 to max
+    uint16_t widths[]; // Must have values for all indices from 0 to max and must be last in struct
 };
 
 struct newcat_priv_caps
