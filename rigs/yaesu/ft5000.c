@@ -32,6 +32,14 @@
 #include "ft5000.h"
 #include "tones.h"
 
+/* FTDX-5000 CAT Operation Reference says index 14 not defined - 2400 duplicated as filler */
+static const struct newcat_width_info ftdx5000_ssb_widths =
+{
+    .count = 26,
+    .widths = { 0, 200, 400, 600, 850, 1100, 1350, 1500, 1650, 1800, 1950, 2100, 2250, 2400,
+                2400, 2500, 2600, 2700, 2800, 2900, 3000, 3200, 3400, 3600, 3800, 4000 }
+};
+
 const struct newcat_priv_caps ftdx5000_priv_caps =
 {
     .roofing_filter_count = 11,
@@ -50,6 +58,8 @@ const struct newcat_priv_caps ftdx5000_priv_caps =
         { .index = 9, .set_value = 0, .get_value = '9', .width = 600, .optional = 0 },
         { .index = 10, .set_value = 0, .get_value = 'A', .width = 300, .optional = 0 },
     },
+    .cw_widths = &ftdx1200_cw_widths,
+    .ssb_widths = &ftdx5000_ssb_widths,
 };
 
 const struct confparams ftdx5000_ext_levels[] =
