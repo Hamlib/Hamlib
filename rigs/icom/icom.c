@@ -2107,8 +2107,8 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
             return ((i + 1) * 200); /* All Icoms that we know of */
         }
         else if (mode &
-                 (RIG_MODE_CW | RIG_MODE_USB | RIG_MODE_LSB | RIG_MODE_RTTY |
-                  RIG_MODE_RTTYR | RIG_MODE_PKTUSB | RIG_MODE_PKTLSB))
+                 (RIG_MODE_CW | RIG_MODE_CWR | RIG_MODE_USB | RIG_MODE_LSB |
+                  RIG_MODE_RTTY | RIG_MODE_RTTYR | RIG_MODE_PKTUSB | RIG_MODE_PKTLSB))
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: using filtericom width=%d\n", __func__, i);
 
@@ -2175,8 +2175,8 @@ int icom_set_dsp_flt(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         flt_idx = (width / 200) - 1;  /* TBC: IC_7800? */
     }
-    else if (mode & (RIG_MODE_CW | RIG_MODE_USB | RIG_MODE_LSB | RIG_MODE_RTTY |
-                     RIG_MODE_RTTYR | RIG_MODE_PKTUSB | RIG_MODE_PKTLSB))
+    else if (mode & (RIG_MODE_CW | RIG_MODE_CWR | RIG_MODE_USB | RIG_MODE_LSB |
+                     RIG_MODE_RTTY | RIG_MODE_RTTYR | RIG_MODE_PKTUSB | RIG_MODE_PKTLSB))
     {
         if (width == 0)
         {
