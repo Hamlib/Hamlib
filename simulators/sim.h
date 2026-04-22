@@ -22,8 +22,7 @@ typedef enum nc_rigid_e
     NC_RIGID_FTDX9000Contest = 102,
     NC_RIGID_FTDX9000MP      = 103,
     NC_RIGID_FTDX5000        = 362,
-    NC_RIGID_FTDX3000        = 460,
-    NC_RIGID_FTDX3000DM      = 462, // an undocumented FT-DX3000DM 50W rig
+    NC_RIGID_FTDX3000        = 462,
     NC_RIGID_FTDX101D        = 681,
     NC_RIGID_FTDX101MP       = 682,
     NC_RIGID_FT710           = 800,
