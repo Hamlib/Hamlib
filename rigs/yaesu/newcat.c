@@ -69,8 +69,7 @@ typedef enum nc_rigid_e
     NC_RIGID_FTDX9000Contest = 102,
     NC_RIGID_FTDX9000MP      = 103,
     NC_RIGID_FTDX5000        = 362,
-    NC_RIGID_FTDX3000        = 460,
-    NC_RIGID_FTDX3000DM      = 462, // an undocumented FT-DX3000DM 50W rig
+    NC_RIGID_FTDX3000        = 462,
     NC_RIGID_FTDX101D        = 681,
     NC_RIGID_FTDX101MP       = 682,
     NC_RIGID_FT710           = 800,
@@ -185,11 +184,9 @@ static const rptr_offs_cmd_entry_t rptr_offs_cmd_table[] = {
     { NC_RIGID_FTDX1200, RPTR_BAND_10M,    "EX087", RPTR_OFFS_STEP_1K },
     { NC_RIGID_FTDX1200, RPTR_BAND_6M,     "EX088", RPTR_OFFS_STEP_1K },
 
-    /* FTDX-3000/FTDX-3000DM */
+    /* FTDX-3000 */
     { NC_RIGID_FTDX3000, RPTR_BAND_10M,    "EX086", RPTR_OFFS_STEP_1K },
     { NC_RIGID_FTDX3000, RPTR_BAND_6M,     "EX087", RPTR_OFFS_STEP_1K },
-    { NC_RIGID_FTDX3000DM, RPTR_BAND_10M,  "EX086", RPTR_OFFS_STEP_1K },
-    { NC_RIGID_FTDX3000DM, RPTR_BAND_6M,   "EX087", RPTR_OFFS_STEP_1K },
 
     /* FTDX-5000 */
     { NC_RIGID_FTDX5000, RPTR_BAND_10M,    "EX081", RPTR_OFFS_STEP_1K },
@@ -238,9 +235,8 @@ static const antivox_cmd_entry_t antivox_cmd_table[] = {
     /* FTDX-5000: EX176 */
     { NC_RIGID_FTDX5000,  "EX176",  NULL },
 
-    /* FTDX-3000/3000DM, FTDX-1200: EX183 */
+    /* FTDX-3000, FTDX-1200: EX183 */
     { NC_RIGID_FTDX3000,  "EX183",  NULL },
-    { NC_RIGID_FTDX3000DM,"EX183",  NULL },
     { NC_RIGID_FTDX1200,  "EX183",  NULL },
 
     /* FT-991/991A: EX145 for set, EX147 for get (different menu items) */
@@ -430,27 +426,6 @@ const cal_table_float_t yaesu_default_id_meter_cal =
     }
 };
 
-#if 0 // This cannot handle multiple rigs! (Think SO2R)
-// Easy reference to rig model -- it is set in newcat_valid_command
-static ncboolean is_ft450;
-static ncboolean is_ft710;
-static ncboolean is_ft891;
-static ncboolean is_ft897;
-static ncboolean is_ft897d;
-static ncboolean is_ft950;
-static ncboolean is_ft991;
-static ncboolean is_ft2000;
-static ncboolean is_ftdx9000;
-static ncboolean is_ftdx5000;
-static ncboolean is_ftdx1200;
-static ncboolean is_ftdx3000;
-static ncboolean is_ftdx3000dm;
-static ncboolean is_ftdx101d;
-static ncboolean is_ftdx101mp;
-static ncboolean is_ftdx10;
-static ncboolean is_ftx1;
-static ncboolean is_ftdx9000Old;
-#else
 // These assume there is a 'rig' in scope
 #define is_ft450 (RIG_MODEL_FT450==rig->caps->rig_model || RIG_MODEL_FT450D==rig->caps->rig_model)
 #define is_ft710 (RIG_MODEL_FT710==rig->caps->rig_model)
@@ -465,13 +440,10 @@ static ncboolean is_ftdx9000Old;
 #define is_ftdx101mp (RIG_MODEL_FTDX101MP==rig->caps->rig_model)
 #define is_ftdx1200 (RIG_MODEL_FTDX1200==rig->caps->rig_model)
 #define is_ftdx3000 (RIG_MODEL_FTDX3000==rig->caps->rig_model)
-// Only needed to distinguish between versions of the same model
-#define is_ftdx3000dm (NC_RIGID_FTDX3000DM==((struct newcat_priv_data *)(STATE(rig)->priv))->rig_id)
 #define is_ftdx5000 (RIG_MODEL_FTDX5000==rig->caps->rig_model)
 #define is_ftdx9000 (RIG_MODEL_FT9000==rig->caps->rig_model)
 #define is_ftdx9000Old (RIG_MODEL_FTD000OLD==rig->caps->rig_model)
 #define is_ftx1 (RIG_MODEL_FTX1==rig->caps->rig_model)
-#endif
 
 /*
  * Even though this table does make a handy reference, it could be deprecated as it is not really needed.
@@ -868,8 +840,7 @@ int newcat_open(RIG *rig)
             || priv->rig_id == NC_RIGID_FT991A
             || priv->rig_id == NC_RIGID_FT950
             || priv->rig_id == NC_RIGID_FTDX10
-            || priv->rig_id == NC_RIGID_FTDX3000
-            || priv->rig_id == NC_RIGID_FTDX3000DM)
+            || priv->rig_id == NC_RIGID_FTDX3000)
     {
         char *cmd = "EX0291;EX029;"; // FT2000/D
         int retry_save;
@@ -882,8 +853,6 @@ int newcat_open(RIG *rig)
         else if (priv->rig_id == NC_RIGID_FT991A
                  || rig->caps->rig_model == RIG_MODEL_FT991) { cmd = "EX0321;EX032;"; }
         else if (priv->rig_id == NC_RIGID_FTDX3000
-                 || rig->caps->rig_model == RIG_MODEL_FTDX3000) { cmd = "EX0391;"; set_only = 1; }
-        else if (priv->rig_id == NC_RIGID_FTDX3000DM
                  || rig->caps->rig_model == RIG_MODEL_FTDX3000) { cmd = "EX0391;"; set_only = 1; }
         else if (priv->rig_id == NC_RIGID_FTDX5000
                  || rig->caps->rig_model == RIG_MODEL_FTDX5000) { cmd = "EX0331;EX033"; }
@@ -912,7 +881,7 @@ int newcat_open(RIG *rig)
         }
     }
 
-    if (priv->rig_id == NC_RIGID_FTDX3000 || priv->rig_id == NC_RIGID_FTDX3000DM)
+    if (priv->rig_id == NC_RIGID_FTDX3000)
     {
         rig_s->disable_yaesu_bandselect = 1;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: disabling FTDX3000 band select\n", __func__);
@@ -1254,9 +1223,9 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     //special_60m = newcat_is_rig(rig, RIG_MODEL_FTDX5000);
     //special_60m |= newcat_is_rig(rig, RIG_MODEL_FT450);
     rig_debug(RIG_DEBUG_TRACE,
-              "%s: special_60m=%d, 60m freq=%d, is_ftdx3000=%d,is_ftdx3000dm=%d\n",
+              "%s: special_60m=%d, 60m freq=%d, is_ftdx3000=%d\n",
               __func__, special_60m, freq >= 5300000
-              && freq <= 5410000, is_ftdx3000, is_ftdx3000dm);
+              && freq <= 5410000, is_ftdx3000);
 
     if (special_60m && (freq >= 5300000 && freq <= 5410000))
     {
@@ -4135,14 +4104,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
-        if (is_ftdx3000dm)      /* No separate rig->caps for this rig :-( */
-        {
-            fpf = (int)((val.f * 50.0f) + 0.5f);
-        }
-        else
-        {
-            fpf = (int)((val.f / level_info->step.f) + 0.5f);
-        }
+        fpf = (int)((val.f / level_info->step.f) + 0.5f);
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC%03d%c", fpf, cat_term);
         break;
@@ -10376,8 +10338,6 @@ int newcat_get_rigid(RIG *rig)
         {
             s += 2;     /* ID0310, jump past ID */
             priv->rig_id = atoi(s);
-
-            //is_ftdx3000dm = priv->rig_id == NC_RIGID_FTDX3000DM;
         }
 
         rig_debug(RIG_DEBUG_TRACE, "rig_id = %d, idstr = %s\n", priv->rig_id,
@@ -10781,8 +10741,7 @@ int newcat_set_cmd_validate(RIG *rig)
     {
         strcpy(valcmd, "FA;");
 
-        if (priv->rig_id == NC_RIGID_FTDX3000 || priv->rig_id == NC_RIGID_FTDX5000
-                || priv->rig_id == NC_RIGID_FTDX3000DM)
+        if (priv->rig_id == NC_RIGID_FTDX3000 || priv->rig_id == NC_RIGID_FTDX5000)
         {
             strcpy(valcmd, "");
         }
@@ -10791,8 +10750,7 @@ int newcat_set_cmd_validate(RIG *rig)
     {
         strcpy(valcmd, "FB;");
 
-        if (priv->rig_id == NC_RIGID_FTDX3000 || priv->rig_id == NC_RIGID_FTDX5000
-                || priv->rig_id == NC_RIGID_FTDX3000DM)
+        if (priv->rig_id == NC_RIGID_FTDX3000 || priv->rig_id == NC_RIGID_FTDX5000)
         {
             strcpy(valcmd, "");
         }
