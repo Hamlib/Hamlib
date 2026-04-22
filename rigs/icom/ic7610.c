@@ -150,7 +150,7 @@ static int ic7610_ext_tokens[] =
 
 static const struct icom_clock_cmds ic7610_clock_cmds =
 {
-  .date_cmds = { 0x00, 0x58 }, .time_cmds = { 0x00, 0x59 }, .offset_cmds = { 0x00, 0x62 }
+    .date_cmds = { 0x01, 0x58 }, .time_cmds = { 0x01, 0x59 }, .offset_cmds = { 0x01, 0x62 }
 };
 
 /*
