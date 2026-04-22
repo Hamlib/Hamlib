@@ -33,7 +33,7 @@
 #include "ft1200.h"
 #include "tones.h"
 
-// Shared with FTDX-3000/FTDX-3000dm
+// Shared with FTDX-3000
 const struct newcat_width_info ftdx1200_cw_widths =
 {
     .count = 17,
