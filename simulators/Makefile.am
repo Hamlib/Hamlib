@@ -20,7 +20,6 @@ check_PROGRAMS = \
 	simft736 \
 	simft747gx \
 	simft817 \
-	simft818 \
 	simft847 \
 	simft897 \
 	simft990 \

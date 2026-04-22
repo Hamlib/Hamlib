@@ -29,7 +29,6 @@ int keyspd = 24;
 #include "sim.h"
 
 #define ID NC_RIGID_FTDX3000
-//#define ID NC_RIGID_FTDX3000DM
 
 int main(int argc, char *argv[])
 {
