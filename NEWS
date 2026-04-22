@@ -14,6 +14,20 @@ Version 5.x -- future
         * Change FT1000MP Mark V model names to align with FT1000MP
         * Internal data structures moved out of rig_struct to individual
           heap buffers
+        * FTDX-3000DM: Remove all traces of this model--per Yaesu tech support,
+          its command set is unchanged from the base model.  GitHub PR #2041
+          (TNX George Baltz)
+
+Version 4.7.2
+        * 2026-??-??
+        * FTX-1: Rewrite set_channel using VFO-B + BM workaround, also fix
+          the get_channel side, auto-exit Memory mode before VFO-state
+          setters, and MC cursor targeting in ftx1_set_channel.  GitHub
+          PR # 2035.  (TNX Terrell Deppe)
+        * IC-7600/IC-7610: Update clock routines; fix IC-7610 clock commands.
+          GitHub PR #2040 (TNX George Baltz)
+        * Icom: Add CWR to modes eligible for DSP filtering.  GitHub PR #2041.
+          (TNX George Baltz)
 
 Version 4.7.1
         * 2026-04-15
