@@ -28,6 +28,7 @@ Version 4.7.2
           GitHub PR #2040 (TNX George Baltz)
         * Icom: Add CWR to modes eligible for DSP filtering.  GitHub PR #2041.
           (TNX George Baltz)
+        * Kenwood: New model Hamgeek uSGX.  GitHub PR #2043  (TNX Leo Pizzolante)
 
 Version 4.7.1
         * 2026-04-15
