@@ -68,7 +68,7 @@
 /* Only VFO A is present on uSDX hardware (FB; returns '?;') */
 #define USDX_VFO       RIG_VFO_A
 
-#define BACKEND_VER "20260423"
+#define USDX_BACKEND_VER "20260423"
 
 /*
  * Minimal TS-480 subset: no slope filters, no special filter width table.
@@ -220,7 +220,7 @@ struct rig_caps hamgeek_usdx_caps =
     RIG_MODEL(RIG_MODEL_HAMGEEK_USDX),
     .model_name =       "uSDX",
     .mfg_name =         "Hamgeek",
-    .version =          BACKEND_VER ".0",
+    .version =          USDX_BACKEND_VER ".0",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_ALPHA,
     .rig_type =         RIG_TYPE_TRANSCEIVER,
