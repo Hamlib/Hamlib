@@ -6564,6 +6564,7 @@ DECLARE_INITRIG_BACKEND(kenwood)
     rig_register(&fx4_caps);
     rig_register(&thetis_caps);
     rig_register(&trudx_caps);
+    rig_register(&hamgeek_usdx_caps);
 
     return (RIG_OK);
 }
