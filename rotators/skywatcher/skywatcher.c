@@ -284,6 +284,16 @@ static int skywatcher_cleanup(ROT *rot)
     return RIG_OK;
 }
 
+static int skywatcher_open(ROT *rot)
+{
+    char str[16];
+
+    ERROR_CHECK(skywatcher_cmd(rot, ":F1\r", str, sizeof(str)));
+    ERROR_CHECK(skywatcher_cmd(rot, ":F2\r", str, sizeof(str)));
+
+    return RIG_OK;
+}
+
 /* ************************************************************************* */
 /*
  * Protocol documentation:
@@ -317,6 +327,7 @@ const struct rot_caps skywatcher_rot_caps =
 
     .rot_init     = skywatcher_init,
     .rot_cleanup  = skywatcher_cleanup,
+    .rot_open     = skywatcher_open,
     .get_position = skywatcher_get_position,
     .set_position = skywatcher_set_position,
     .stop         = skywatcher_stop,
