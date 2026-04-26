@@ -409,8 +409,6 @@ void frameParse(int fd, unsigned char *frame, int len)
 
         break;
 
-        break;
-
     case 0x15:
         switch (frame[5])
         {
