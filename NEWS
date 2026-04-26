@@ -29,6 +29,8 @@ Version 4.7.2
         * Icom: Add CWR to modes eligible for DSP filtering.  GitHub PR #2041.
           (TNX George Baltz)
         * Kenwood: New model Hamgeek uSGX.  GitHub PR #2043  (TNX Leo Pizzolante)
+        * Skywatcher: Now initialize motors on rot_open.  GitHub PR #2046
+          (TNX Mario Haustein)
 
 Version 4.7.1
         * 2026-04-15
