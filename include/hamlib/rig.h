@@ -2219,9 +2219,9 @@ struct rig_caps {
                                size_t frame_length,
                                const unsigned char *frame);
 // this will be used to check rigcaps structure is compatible with client
-    char *hamlib_check_rig_caps;   // a constant value we can check for hamlib integrity
+    char *hamlib_check_rig_caps;   /*!< a constant value we can check for hamlib integrity */
     int (*get_conf2)(RIG *rig, hamlib_token_t token, char *val, int val_len);
-    int (*password)(RIG *rig, const char *key1); /*< Send encrypted password if rigctld is secured with -A/--password */
+    int (*password)(RIG *rig, const char *key1); /*!< Send encrypted password if rigctld is secured with -A/--password */
     int (*set_lock_mode)(RIG *rig, int mode);
     int (*get_lock_mode)(RIG *rig, int *mode);
     short timeout_retry;    /*!< number of retries to make in case of read timeout errors, some serial interfaces may require this, 0 to use default value, -1 to disable */
@@ -2229,7 +2229,6 @@ struct rig_caps {
 //    int (*bandwidth2rig)(RIG  *rig, enum bandwidth_t bandwidth);
 //    enum bandwidth_t (*rig2bandwidth)(RIG  *rig, int rigbandwidth);
 };
-//! @endcond
 
 /**
  * \brief Enumeration of all rig_ functions
