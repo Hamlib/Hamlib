@@ -124,14 +124,14 @@ struct test_table
                        int,
                        const struct test_table *,
                        const char *,
-                       const char *,
+                       char *,
                        const char *,
                        const char *,
                        const char *,
                        const char *);
     int flags;
     const char *arg1;
-    const char *arg2;
+    char *arg2;
     const char *arg3;
     const char *arg4;
     const char *arg5;
@@ -146,7 +146,7 @@ struct test_table
                                                     int interactive,    \
                                                     const struct test_table *cmd, \
                                                     const char *arg1,   \
-                                                    const char *arg2,   \
+                                                    char *arg2,   \
                                                     const char *arg3,   \
                                                     const char *arg4,   \
                                                     const char *arg5,   \

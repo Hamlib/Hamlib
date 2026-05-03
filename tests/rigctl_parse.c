@@ -144,11 +144,11 @@ struct test_table
                        const struct test_table *,
                        vfo_t,
                        const char *,
-                       const char *,
+                       char *,
                        const char *);
     int flags;
     const char *arg1;
-    const char *arg2;
+    char *arg2;
     const char *arg3;
     const char *arg4;
     const char *arg5;
@@ -171,7 +171,7 @@ struct test_table
                                                     const struct test_table *cmd, \
                                                     vfo_t vfo,          \
                                                     const char *arg1,   \
-                                                    const char *arg2,   \
+                                                    char *arg2,   \
                                                     const char *arg3)
 
 declare_proto_rig(set_freq);
@@ -5325,7 +5325,7 @@ declare_proto_rig(send_cmd)
 
     if (strstr(arg1, ";") || arg2[0] == ';')
     {
-        char *p = strchr(arg1, ';');
+        const char *p = strchr(arg1, ';');
 
         while (p)
         {
