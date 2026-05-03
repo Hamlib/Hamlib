@@ -34,6 +34,7 @@
 static const struct newcat_width_info ft950_cw_widths =
 {
   .narrow_max = 500,
+  .defaults = { 500, 300 },
   .count = 14,
   .widths = { 0, 0, 0, 100, 200, 300, 400, 500, 800, 1200, 1400, 1700, 2000, 2400}
 };
@@ -41,6 +42,7 @@ static const struct newcat_width_info ft950_cw_widths =
 static const struct newcat_width_info ft950_ssb_widths =
 {
   .narrow_max = 1800,
+  .defaults = { 2400, 1800 },
   .count = 21,
   .widths = { 0, 200, 400, 600, 850, 1100, 1350, 1500, 1650, 1800, 1950, 2100, 2250, 2400,
 	      2450, 2500, 2600, 2700, 2800, 2900, 3000}

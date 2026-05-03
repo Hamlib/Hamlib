@@ -36,6 +36,7 @@
 // Shared with FTDX-3000
 const struct newcat_width_info ftdx1200_cw_widths =
 {
+    .defaults = { 2400, 500 },
     .narrow_max = 500,
     .count = 17,
     .widths = { 0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 800, 1200, 1400,
@@ -43,6 +44,7 @@ const struct newcat_width_info ftdx1200_cw_widths =
 };
 const struct newcat_width_info ftdx1200_ssb_widths =
 {
+    .defaults = { 2400, 1500 },
     .narrow_max = 1800,
     .count = 26,
     .widths = { 0, 200, 400, 600, 850, 1100, 1350, 1500, 1650, 1800, 1950, 2100, 2200, 2300,
