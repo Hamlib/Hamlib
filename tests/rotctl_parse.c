@@ -139,15 +139,15 @@ struct test_table
                        int,
                        char,
                        const struct test_table *,
-                       const char *,
-                       const char *,
+                       char *,
+                       char *,
                        const char *,
                        const char *,
                        const char *,
                        const char *);
     int flags;
-    const char *arg1;
-    const char *arg2;
+    char *arg1;
+    char *arg2;
     const char *arg3;
     const char *arg4;
     const char *arg5;
@@ -165,8 +165,8 @@ struct test_table
                                                     int ext_resp,       \
                                                     char resp_sep,      \
                                                     const struct test_table *cmd, \
-                                                    const char *arg1,   \
-                                                    const char *arg2,   \
+                                                    char *arg1,   \
+                                                    char *arg2,   \
                                                     const char *arg3,   \
                                                     const char *arg4,   \
                                                     const char *arg5,   \
