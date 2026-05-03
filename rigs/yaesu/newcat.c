@@ -212,6 +212,16 @@ static const rptr_offs_cmd_entry_t rptr_offs_cmd_table[] = {
 #define RPTR_OFFS_CMD_TABLE_SIZE \
     (sizeof(rptr_offs_cmd_table) / sizeof(rptr_offs_cmd_table[0]) - 1)
 
+/* Dummy entry for rigs/modes with no width information
+ * Really should not be needed/used, but just in case...
+ */
+static const struct newcat_width_info dummy_widths =
+{
+    .narrow_max = 0,       // Everything is wide
+    .count = 1,
+    .widths = { 0 },       // Default width
+};
+
 /*
  * ANTIVOX command lookup table.
  * Maps rig model ID to the command string for ANTIVOX control.
@@ -8664,6 +8674,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     struct newcat_priv_caps *priv_caps = (struct newcat_priv_caps *)rig->caps->priv;
+    const struct newcat_width_info *width_info = NULL;
     int err;
     int w = 0;
     char main_sub_vfo = '0';
@@ -8692,6 +8703,41 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     // NOTE: RIG_PASSBAND_NORMAL (0) should select the default filter width (SH00)
 
+    // Preselect set of possible widths
+    switch (mode)
+    {
+    case RIG_MODE_RTTY:
+    case RIG_MODE_RTTYR:
+        width_info = priv_caps->rtty_widths;  // Set RTTY data if different
+        HL_FALLTHROUGH                        // Fall into CW
+    case RIG_MODE_PKTUSB:
+    case RIG_MODE_PKTLSB:
+    case RIG_MODE_CW:
+    case RIG_MODE_CWR:
+        if (width_info == NULL)
+        {
+            width_info = priv_caps->cw_widths;
+        }
+        break;
+
+    case RIG_MODE_LSB:
+    case RIG_MODE_USB:
+        width_info = priv_caps->ssb_widths;
+        break;
+
+#if 0
+    case RIG_MODE_AM:
+    case RIG_MODE_FM:
+    case RIG_MODE_PKTFM:
+    case RIG_MODE_FMN:
+        //????
+        break;
+#endif
+    default:
+        width_info = &dummy_widths;  // Just in case...
+
+    }
+
     if (is_ft950)
     {
         switch (mode)
@@ -8702,30 +8748,17 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
-            // Narrow mode must be chosen correctly before filter width
-            err = newcat_set_narrow(rig, vfo, width <= 500);
-
-            if (err != RIG_OK)
-            {
-                RETURNFUNC(err);
-            }
-
-            w = newcat_get_index_from_width(width, priv_caps->cw_widths);
-            if (w < 0) { RETURNFUNC(w); }
-
-            break;
-
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
             // Narrow mode must be chosen correctly before filter width
-            err = newcat_set_narrow(rig, vfo, width <= 1800);
+            err = newcat_set_narrow(rig, vfo, width <= width_info->narrow_max);
 
             if (err != RIG_OK)
             {
                 RETURNFUNC(err);
             }
 
-            w = newcat_get_index_from_width(width, priv_caps->ssb_widths);
+            w = newcat_get_index_from_width(width, width_info);
             if (w < 0) { RETURNFUNC(w); }
 
             break;
@@ -8770,30 +8803,17 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
-            // Narrow mode must be chosen correctly before filter width
-            err = newcat_set_narrow(rig, vfo, width <= 500);
-
-            if (err != RIG_OK)
-            {
-                RETURNFUNC(err);
-            }
-
-            w = newcat_get_index_from_width(width, priv_caps->cw_widths);
-            if (w < 0) { RETURNFUNC(w); }
-
-            break;
-
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
             // Narrow mode must be chosen correctly before filter width
-            err = newcat_set_narrow(rig, vfo, width <= 1800);
+            err = newcat_set_narrow(rig, vfo, width <= width_info->narrow_max);
 
             if (err != RIG_OK)
             {
                 RETURNFUNC(err);
             }
 
-            w = newcat_get_index_from_width(width, priv_caps->ssb_widths);
+            w = newcat_get_index_from_width(width, width_info);
             if (w < 0) { RETURNFUNC(w); }
 
             break;
@@ -8823,30 +8843,17 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
-            // Narrow mode must be chosen correctly before filter width
-            err = newcat_set_narrow(rig, vfo, width <= 500);
-
-            if (err != RIG_OK)
-            {
-                RETURNFUNC(err);
-            }
-
-            w = newcat_get_index_from_width(width, priv_caps->cw_widths);
-            if (w < 0) { RETURNFUNC(w); }
-
-            break;
-
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
             // Narrow mode must be chosen correctly before filter width
-            err = newcat_set_narrow(rig, vfo, width <= 1800);
+            err = newcat_set_narrow(rig, vfo, width <= width_info->narrow_max);
 
             if (err != RIG_OK)
             {
                 RETURNFUNC(err);
             }
 
-            w = newcat_get_index_from_width(width, priv_caps->ssb_widths);
+            w = newcat_get_index_from_width(width, width_info);
             if (w < 0) { RETURNFUNC(w); }
 
             break;
@@ -9280,6 +9287,9 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     } /* end else */
 
+    /* At this point, we have the correct SH index.
+     * Now, all we have to do is format it appropriately
+     */
     if (is_ftdx101d || is_ftdx101mp || is_ft891)
     {
         // some rigs now require the bandwidth be turned "on"
