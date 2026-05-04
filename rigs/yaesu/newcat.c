@@ -9948,29 +9948,17 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
-            if (w > 0 && w < priv_caps->cw_widths->count)
-            {
-                *width = priv_caps->cw_widths->widths[w];
-            }
-            else if (w == 0)
-            {
-                break;   // use the roofing/default width
-            }
-            else {RETURNFUNC(-RIG_EPROTO);}  // Should not happen
-
-            break;
-
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
-            if (w > 0 && w < priv_caps->ssb_widths->count)
+            if (w > 0 && w < width_info->count)
             {
-                *width = priv_caps->ssb_widths->widths[w];
+                *width = width_info->widths[w];
             }
             else if (w == 0)
             {
                 break;  // Use the roofing/default value
             }
-            else {RETURNFUNC(-RIG_EPROTO);}
+            else {RETURNFUNC(-RIG_EPROTO);}  // Should not happen
 
             break;
 
@@ -10015,23 +10003,11 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
         case RIG_MODE_PSK:
-            if (w > 0 && w < priv_caps->cw_widths->count)
-            {
-                *width = priv_caps->cw_widths->widths[w];
-            }
-            else if (w == 0)
-            {
-                break;   // use the roofing/default width
-            }
-            else {RETURNFUNC(-RIG_EPROTO);}  // Should not happen
-
-            break;
-
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
-            if (w > 0 && w < priv_caps->ssb_widths->count)
+            if (w > 0 && w < width_info->count)
             {
-                *width = priv_caps->ssb_widths->widths[w];
+                *width = width_info->widths[w];
             }
             else if (w == 0)
             {
@@ -10236,14 +10212,7 @@ int newcat_set_faststep(RIG *rig, ncboolean fast_step)
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
-    if (fast_step == TRUE)
-    {
-        c = '1';
-    }
-    else
-    {
-        c = '0';
-    }
+    c = fast_step ? '1' : '0';
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FS%c%c", c, cat_term);
 
@@ -10257,7 +10226,6 @@ int newcat_get_faststep(RIG *rig, ncboolean *fast_step)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
-    char c;
     char command[] = "FS";
 
     ENTERFUNC;
@@ -10275,16 +10243,7 @@ int newcat_get_faststep(RIG *rig, ncboolean *fast_step)
         RETURNFUNC(err);
     }
 
-    c = priv->ret_data[2];
-
-    if (c == '1')
-    {
-        *fast_step = TRUE;
-    }
-    else
-    {
-        *fast_step = FALSE;
-    }
+    *fast_step = priv->ret_data[2] == '1';
 
     RETURNFUNC(RIG_OK);
 }
