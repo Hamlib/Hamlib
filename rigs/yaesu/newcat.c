@@ -8917,63 +8917,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             RETURNFUNC(-RIG_EINVAL);
         } // end switch(mode)
     } // end is_ft991
-    else if (is_ftdx1200 || is_ftdx3000)
-    {
-        // FTDX 1200 and FTDX 3000 have the same set of filter choices
-        switch (mode)
-        {
-        case RIG_MODE_PKTUSB:
-        case RIG_MODE_PKTLSB:
-        case RIG_MODE_RTTY:
-        case RIG_MODE_RTTYR:
-        case RIG_MODE_CW:
-        case RIG_MODE_CWR:
-        case RIG_MODE_LSB:
-        case RIG_MODE_USB:
-            // Narrow mode must be chosen correctly before filter width
-            err = newcat_set_narrow(rig, vfo, width <= width_info->narrow_max);
-
-            if (err != RIG_OK)
-            {
-                RETURNFUNC(err);
-            }
-
-            w = newcat_get_index_from_width(width, width_info);
-            if (w < 0) { RETURNFUNC(w); }
-
-            break;
-
-        case RIG_MODE_AM:
-        case RIG_MODE_AMN:
-        case RIG_MODE_FM:
-        case RIG_MODE_PKTFM:
-        case RIG_MODE_FMN:
-            // Set roofing filter and narrow mode
-            break;
-
-        default:
-            RETURNFUNC(-RIG_EINVAL);
-        } // end switch(mode)
-
-        if ((err = set_roofing_filter_for_width(rig, vfo, width)) != RIG_OK)
-        {
-            RETURNFUNC(err);
-        }
-
-        switch (mode)
-        {
-        case RIG_MODE_AM:
-        case RIG_MODE_AMN:
-        case RIG_MODE_FM:
-        case RIG_MODE_PKTFM:
-        case RIG_MODE_FMN:
-            is_narrow = width > 0 && width < rig_passband_normal(rig, mode);
-            err = newcat_set_narrow(rig, vfo, is_narrow);
-
-            RETURNFUNC(err);
-        }
-    } // end is_ftdx1200 and is_ftdx3000
-    else if (is_ftdx5000)
+    else if (is_ftdx1200 || is_ftdx3000 || is_ftdx5000)
     {
         switch (mode)
         {
@@ -9027,7 +8971,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
             RETURNFUNC(err);
         }
-    } // end is_ftdx5000
+    } // end is_ftdx1200 or is_ftdx3000 or is_ftdx5000
     else if (is_ftdx101d || is_ftdx101mp || is_ftdx10 || is_ft710)
     {
         switch (mode)
@@ -9812,7 +9756,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         }   /* end switch(mode) */
 
     } /* end if is_ft991 */
-    else if (is_ftdx1200 || is_ftdx3000)
+    else if (is_ftdx1200 || is_ftdx3000 || is_ftdx5000)
     {
         if ((narrow = get_narrow(rig, RIG_VFO_MAIN)) < 0)
         {
@@ -9865,61 +9809,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
             RETURNFUNC(-RIG_EINVAL);
         }   /* end switch(mode) */
 
-    } /* end if is_ftdx1200 or is_ftdx3000 */
-    else if (is_ftdx5000)
-    {
-        if ((narrow = get_narrow(rig, RIG_VFO_MAIN)) < 0)
-        {
-            RETURNFUNC(-RIG_EPROTO);
-        }
-
-        switch (mode)
-        {
-        case RIG_MODE_PKTUSB:
-        case RIG_MODE_PKTLSB:
-        case RIG_MODE_RTTY:
-        case RIG_MODE_RTTYR:
-        case RIG_MODE_CW:
-        case RIG_MODE_CWR:
-        case RIG_MODE_LSB:
-        case RIG_MODE_USB:
-            if (w > 0 && w < width_info->count)
-            {
-                *width = width_info->widths[w];
-            }
-            else if (w == 0)
-            {
-                *width = width_info->defaults[narrow];
-            }
-            else
-            {
-                RETURNFUNC(-RIG_EINVAL);
-            }
-
-            break;
-
-        case RIG_MODE_AM:
-            *width = narrow ? 6000 : 9000;
-            break;
-
-        case RIG_MODE_PKTFM:
-        case RIG_MODE_FM:
-            *width = narrow ? 9000 : 16000;
-            break;
-
-        case RIG_MODE_FMN:
-            *width = 9000;
-            break;
-
-        case RIG_MODE_AMN:
-            *width = 6000;
-            break;
-
-        default:
-            RETURNFUNC(-RIG_EINVAL);
-        }   /* end switch(mode) */
-
-    } /* end if is_ftdx5000 */
+    } /* end if is_ftdx1200 or is_ftdx3000 or is_ftdx5000 */
     else if (is_ftdx101d || is_ftdx101mp || is_ftdx10 || is_ft710)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: is_ftdx101 w=%d, mode=%s\n", __func__, w,
