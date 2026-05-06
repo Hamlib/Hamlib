@@ -22,6 +22,8 @@
 #ifndef _ROT_PSTROTATOR_H
 #define _ROT_PSTROTATOR_H 1
 
+#include <pthread.h>
+
 #include "rotator.h"
 #include "token.h"
 
