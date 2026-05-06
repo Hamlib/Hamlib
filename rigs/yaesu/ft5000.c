@@ -35,6 +35,8 @@
 /* FTDX-5000 CAT Operation Reference says index 14 not defined - 2400 duplicated as filler */
 static const struct newcat_width_info ftdx5000_ssb_widths =
 {
+    .defaults = { 2400, 1500 },
+    .narrow_max = 1800,
     .count = 26,
     .widths = { 0, 200, 400, 600, 850, 1100, 1350, 1500, 1650, 1800, 1950, 2100, 2250, 2400,
                 2400, 2500, 2600, 2700, 2800, 2900, 3000, 3200, 3400, 3600, 3800, 4000 }

@@ -34,7 +34,26 @@
 #include "ft2000.h"
 #include "tones.h"
 
-const struct newcat_priv_caps ft2000_priv_caps =
+static const struct newcat_width_info ft2000_cw_widths =
+{
+    .count = 32,
+    .widths = { 0, 50, 100, 150, 200, 350, 500, 700, 900, 1100, 1300, 1500, 1700, 1900, 2100, 2300, 2400,
+                2500, 2600, 2700, 2800, 2900, 3000, 3100, 3200, 3300, 3400, 3500, 3600, 3700, 3800, 4000 }
+};
+static const struct newcat_width_info ft2000_ssb_widths =
+{
+    .count = 32,
+    .widths = { 0, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 1900, 2000, 2100, 2150, 2200, 2300, 2350,
+                2400, 2500, 2600, 2700, 2800, 2900, 3000, 3100, 3200, 3300, 3400, 3500, 3600, 3700, 3800, 4000 }
+};
+static const struct newcat_width_info ft2000_rtty_widths =
+{
+    .count = 32,
+    .widths = { 0, 50, 100, 150, 200, 220, 240, 260, 300, 325, 350, 375, 400, 420, 450, 475, 500, 600,
+                700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1550, 1700, 1850, 2000, 2200, 2400 }
+};
+
+static const struct newcat_priv_caps ft2000_priv_caps =
 {
     .roofing_filter_count = 7,
     .roofing_filters =
@@ -47,10 +66,13 @@ const struct newcat_priv_caps ft2000_priv_caps =
         { .index = 4, .set_value = 0, .get_value = '4', .width = 15000, .optional = 0 },
         { .index = 5, .set_value = 0, .get_value = '5', .width = 6000, .optional = 0 },
         { .index = 6, .set_value = 0, .get_value = '6', .width = 3000, .optional = 0 },
-    }
+    },
+    .cw_widths = &ft2000_cw_widths,
+    .ssb_widths = &ft2000_ssb_widths,
+    .rtty_widths = &ft2000_rtty_widths,
 };
 
-const struct confparams ft2000_ext_levels[] =
+static const struct confparams ft2000_ext_levels[] =
 {
     {
         TOK_ROOFING_FILTER,
@@ -115,7 +137,7 @@ const struct confparams ft2000_ext_levels[] =
     { RIG_CONF_END, NULL, }
 };
 
-int ft2000_ext_tokens[] =
+static int ft2000_ext_tokens[] =
 {
     TOK_ROOFING_FILTER, TOK_KEYER,
     TOK_CONTOUR, TOK_CONTOUR_FREQ, TOK_CONTOUR_LEVEL, TOK_CONTOUR_WIDTH,
