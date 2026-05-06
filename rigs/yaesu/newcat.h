@@ -110,8 +110,10 @@ struct newcat_roofing_filter
 struct newcat_width_info
 {
     // New entries should go here
-    short count;       // Max value + 1
-    uint16_t widths[]; // Must have values for all indices from 0 to max and must be last in struct
+    uint16_t defaults[2]; // [0] = wide, [1] = narrow
+    uint16_t narrow_max;  // Max width for presetting narrow mode
+    short count;          // Max index value + 1
+    uint16_t widths[];    // Must have values for all indices from 0 to max and must be last in struct
 };
 
 struct newcat_priv_caps
@@ -120,6 +122,7 @@ struct newcat_priv_caps
     struct newcat_roofing_filter roofing_filters[NEWCAT_ROOFING_FILTER_COUNT];
     const struct newcat_width_info *ssb_widths;
     const struct newcat_width_info *cw_widths;
+    const struct newcat_width_info *rtty_widths;  // If NULL, use CW widths
 };
 
 /*

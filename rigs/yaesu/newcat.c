@@ -212,6 +212,16 @@ static const rptr_offs_cmd_entry_t rptr_offs_cmd_table[] = {
 #define RPTR_OFFS_CMD_TABLE_SIZE \
     (sizeof(rptr_offs_cmd_table) / sizeof(rptr_offs_cmd_table[0]) - 1)
 
+/* Dummy entry for rigs/modes with no width information
+ * Really should not be needed/used, but just in case...
+ */
+static const struct newcat_width_info dummy_widths =
+{
+    .narrow_max = 0,       // Everything is wide
+    .count = 1,
+    .widths = { 0 },       // Default width
+};
+
 /*
  * ANTIVOX command lookup table.
  * Maps rig model ID to the command string for ANTIVOX control.
@@ -8664,6 +8674,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     struct newcat_priv_caps *priv_caps = (struct newcat_priv_caps *)rig->caps->priv;
+    const struct newcat_width_info *width_info = NULL;
     int err;
     int w = 0;
     char main_sub_vfo = '0';
@@ -8692,6 +8703,42 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     // NOTE: RIG_PASSBAND_NORMAL (0) should select the default filter width (SH00)
 
+    // Preselect set of possible widths
+    switch (mode)
+    {
+    case RIG_MODE_RTTY:
+    case RIG_MODE_RTTYR:
+        width_info = priv_caps->rtty_widths;  // Set RTTY data if different
+        HL_FALLTHROUGH                        // Fall into CW
+    case RIG_MODE_PKTUSB:
+    case RIG_MODE_PKTLSB:
+    case RIG_MODE_CW:
+    case RIG_MODE_CWR:
+    case RIG_MODE_PSK:     // For FTX-1
+        if (width_info == NULL)
+        {
+            width_info = priv_caps->cw_widths;
+        }
+        break;
+
+    case RIG_MODE_LSB:
+    case RIG_MODE_USB:
+        width_info = priv_caps->ssb_widths;
+        break;
+
+#if 0
+    case RIG_MODE_AM:
+    case RIG_MODE_FM:
+    case RIG_MODE_PKTFM:
+    case RIG_MODE_FMN:
+        //????
+        break;
+#endif
+    default:
+        width_info = &dummy_widths;  // Just in case...
+
+    }
+
     if (is_ft950)
     {
         switch (mode)
@@ -8702,30 +8749,17 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
-            // Narrow mode must be chosen correctly before filter width
-            err = newcat_set_narrow(rig, vfo, width <= 500);
-
-            if (err != RIG_OK)
-            {
-                RETURNFUNC(err);
-            }
-
-            w = newcat_get_index_from_width(width, priv_caps->cw_widths);
-            if (w < 0) { RETURNFUNC(w); }
-
-            break;
-
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
             // Narrow mode must be chosen correctly before filter width
-            err = newcat_set_narrow(rig, vfo, width <= 1800);
+            err = newcat_set_narrow(rig, vfo, width <= width_info->narrow_max);
 
             if (err != RIG_OK)
             {
                 RETURNFUNC(err);
             }
 
-            w = newcat_get_index_from_width(width, priv_caps->ssb_widths);
+            w = newcat_get_index_from_width(width, width_info);
             if (w < 0) { RETURNFUNC(w); }
 
             break;
@@ -8770,30 +8804,17 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
-            // Narrow mode must be chosen correctly before filter width
-            err = newcat_set_narrow(rig, vfo, width <= 500);
-
-            if (err != RIG_OK)
-            {
-                RETURNFUNC(err);
-            }
-
-            w = newcat_get_index_from_width(width, priv_caps->cw_widths);
-            if (w < 0) { RETURNFUNC(w); }
-
-            break;
-
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
             // Narrow mode must be chosen correctly before filter width
-            err = newcat_set_narrow(rig, vfo, width <= 1800);
+            err = newcat_set_narrow(rig, vfo, width <= width_info->narrow_max);
 
             if (err != RIG_OK)
             {
                 RETURNFUNC(err);
             }
 
-            w = newcat_get_index_from_width(width, priv_caps->ssb_widths);
+            w = newcat_get_index_from_width(width, width_info);
             if (w < 0) { RETURNFUNC(w); }
 
             break;
@@ -8823,30 +8844,17 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
-            // Narrow mode must be chosen correctly before filter width
-            err = newcat_set_narrow(rig, vfo, width <= 500);
-
-            if (err != RIG_OK)
-            {
-                RETURNFUNC(err);
-            }
-
-            w = newcat_get_index_from_width(width, priv_caps->cw_widths);
-            if (w < 0) { RETURNFUNC(w); }
-
-            break;
-
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
             // Narrow mode must be chosen correctly before filter width
-            err = newcat_set_narrow(rig, vfo, width <= 1800);
+            err = newcat_set_narrow(rig, vfo, width <= width_info->narrow_max);
 
             if (err != RIG_OK)
             {
                 RETURNFUNC(err);
             }
 
-            w = newcat_get_index_from_width(width, priv_caps->ssb_widths);
+            w = newcat_get_index_from_width(width, width_info);
             if (w < 0) { RETURNFUNC(w); }
 
             break;
@@ -8909,9 +8917,8 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             RETURNFUNC(-RIG_EINVAL);
         } // end switch(mode)
     } // end is_ft991
-    else if (is_ftdx1200 || is_ftdx3000)
+    else if (is_ftdx1200 || is_ftdx3000 || is_ftdx5000)
     {
-        // FTDX 1200 and FTDX 3000 have the same set of filter choices
         switch (mode)
         {
         case RIG_MODE_PKTUSB:
@@ -8920,30 +8927,17 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
-            // Narrow mode must be chosen correctly before filter width
-            err = newcat_set_narrow(rig, vfo, width <= 500);
-
-            if (err != RIG_OK)
-            {
-                RETURNFUNC(err);
-            }
-
-            w = newcat_get_index_from_width(width, priv_caps->cw_widths);
-            if (w < 0) { RETURNFUNC(w); }
-
-            break;
-
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
             // Narrow mode must be chosen correctly before filter width
-            err = newcat_set_narrow(rig, vfo, width <= 1800);
+            err = newcat_set_narrow(rig, vfo, width <= width_info->narrow_max);
 
             if (err != RIG_OK)
             {
                 RETURNFUNC(err);
             }
 
-            w = newcat_get_index_from_width(width, priv_caps->ssb_widths);
+            w = newcat_get_index_from_width(width, width_info);
             if (w < 0) { RETURNFUNC(w); }
 
             break;
@@ -8977,75 +8971,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
             RETURNFUNC(err);
         }
-    } // end is_ftdx1200 and is_ftdx3000
-    else if (is_ftdx5000)
-    {
-        switch (mode)
-        {
-        case RIG_MODE_PKTUSB:
-        case RIG_MODE_PKTLSB:
-        case RIG_MODE_RTTY:
-        case RIG_MODE_RTTYR:
-        case RIG_MODE_CW:
-        case RIG_MODE_CWR:
-            // Narrow mode must be chosen correctly before filter width
-            err = newcat_set_narrow(rig, vfo, width <= 500 );
-
-            if (err != RIG_OK)
-            {
-                RETURNFUNC(err);
-            }
-
-            w = newcat_get_index_from_width(width, priv_caps->cw_widths);
-            if (w < 0) { RETURNFUNC(w); }
-
-            break;
-
-        case RIG_MODE_LSB:
-        case RIG_MODE_USB:
-            // Narrow mode must be chosen correctly before filter width
-            err = newcat_set_narrow(rig, vfo, width <= 1800);
-
-            if (err != RIG_OK)
-            {
-                RETURNFUNC(err);
-            }
-
-            w = newcat_get_index_from_width(width, priv_caps->ssb_widths);
-            if (w < 0) { RETURNFUNC(w); }
-
-            break;
-
-        case RIG_MODE_AM:
-        case RIG_MODE_AMN:
-        case RIG_MODE_FM:
-        case RIG_MODE_PKTFM:
-        case RIG_MODE_FMN:
-            // Set roofing filter and narrow mode
-            break;
-
-        default:
-            RETURNFUNC(-RIG_EINVAL);
-        } // end switch(mode)
-
-        if ((err = set_roofing_filter_for_width(rig, vfo, width)) != RIG_OK)
-        {
-            RETURNFUNC(err);
-        }
-
-        switch (mode)
-        {
-        case RIG_MODE_AM:
-        case RIG_MODE_AMN:
-        case RIG_MODE_FM:
-        case RIG_MODE_PKTFM:
-        case RIG_MODE_FMN:
-            is_narrow = width > 0 && width < rig_passband_normal(rig, mode);
-            err = newcat_set_narrow(rig, vfo, is_narrow);
-
-            RETURNFUNC(err);
-        }
-    } // end is_ftdx5000
+    } // end is_ftdx1200 or is_ftdx3000 or is_ftdx5000
     else if (is_ftdx101d || is_ftdx101mp || is_ftdx10 || is_ft710)
     {
         switch (mode)
@@ -9056,13 +8982,9 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
-            w = newcat_get_index_from_width(width, priv_caps->cw_widths);
-            if (w < 0) { RETURNFUNC(w); } // Out of bounds
-            break;
-
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
-            w = newcat_get_index_from_width(width, priv_caps->ssb_widths);
+            w = newcat_get_index_from_width(width, width_info);
             if (w < 0) { RETURNFUNC(w); }
             break;
 
@@ -9112,13 +9034,9 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
         case RIG_MODE_PSK:
-            w = newcat_get_index_from_width(width, priv_caps->cw_widths);
-            if (w < 0) { RETURNFUNC(w); } // Out of bounds
-            break;
-
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
-            w = newcat_get_index_from_width(width, priv_caps->ssb_widths);
+            w = newcat_get_index_from_width(width, width_info);
             if (w < 0) { RETURNFUNC(w); }
             break;
 
@@ -9280,6 +9198,9 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     } /* end else */
 
+    /* At this point, we have the correct SH index.
+     * Now, all we have to do is format it appropriately
+     */
     if (is_ftdx101d || is_ftdx101mp || is_ft891)
     {
         // some rigs now require the bandwidth be turned "on"
@@ -9477,6 +9398,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     struct newcat_priv_caps *priv_caps = (struct newcat_priv_caps *)rig->caps->priv;
+    const struct newcat_width_info *width_info = NULL;
     int err;
     int w;
     int narrow = 0;
@@ -9519,6 +9441,41 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
     if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
     {
         main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
+    }
+
+    // Preselect set of possible widths
+    switch (mode)
+    {
+    case RIG_MODE_RTTY:
+    case RIG_MODE_RTTYR:
+        width_info = priv_caps->rtty_widths;  // Set RTTY data if different
+        HL_FALLTHROUGH                        // Fall into CW
+    case RIG_MODE_PKTUSB:
+    case RIG_MODE_PKTLSB:
+    case RIG_MODE_CW:
+    case RIG_MODE_CWR:
+    case RIG_MODE_PSK:     // For FTX-1
+        if (width_info == NULL)
+        {
+            width_info = priv_caps->cw_widths;
+        }
+        break;
+
+    case RIG_MODE_LSB:
+    case RIG_MODE_USB:
+        width_info = priv_caps->ssb_widths;
+        break;
+
+#if 0
+    case RIG_MODE_AM:
+    case RIG_MODE_FM:
+    case RIG_MODE_PKTFM:
+    case RIG_MODE_FMN:
+        //????
+        break;
+#endif
+    default:
+        width_info = &dummy_widths;  // Just in case...
     }
 
     if (sh_command_valid)
@@ -9608,30 +9565,15 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
-            if (w > 0 && w < priv_caps->cw_widths->count)
-            {
-                *width = priv_caps->cw_widths->widths[w];
-            }
-            else if (w == 0)
-            {
-                *width = narrow ? 300 : 500;
-            }
-            else
-            {
-                RETURNFUNC(-RIG_EINVAL);
-            }
-
-            break;
-
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
-            if (w > 0 && w < priv_caps->ssb_widths->count)
+            if (w > 0 && w < width_info->count)
             {
-                *width = priv_caps->ssb_widths->widths[w];
+                *width = width_info->widths[w];
             }
             else if (w == 0)
             {
-                *width = narrow ? 1800 : 2400;
+                *width = width_info->defaults[narrow];
             }
             else
             {
@@ -9814,7 +9756,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         }   /* end switch(mode) */
 
     } /* end if is_ft991 */
-    else if (is_ftdx1200 || is_ftdx3000)
+    else if (is_ftdx1200 || is_ftdx3000 || is_ftdx5000)
     {
         if ((narrow = get_narrow(rig, RIG_VFO_MAIN)) < 0)
         {
@@ -9829,30 +9771,15 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
-            if (w > 0 && w < priv_caps->cw_widths->count)
-            {
-                *width = priv_caps->cw_widths->widths[w];
-            }
-            else if (w == 0)
-            {
-                *width = narrow ? 500 : 2400;
-            }
-            else
-            {
-                RETURNFUNC(-RIG_EPROTO);
-            }
-
-            break;
-
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
-            if (w > 0 && w < priv_caps->ssb_widths->count)
+            if (w > 0 && w < width_info->count)
             {
-                *width = priv_caps->ssb_widths->widths[w];
+                *width = width_info->widths[w];
             }
             else if (w == 0)
             {
-                *width = narrow ? 1500 : 2400;
+                *width = width_info->defaults[narrow];
             }
             else
             {
@@ -9882,76 +9809,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
             RETURNFUNC(-RIG_EINVAL);
         }   /* end switch(mode) */
 
-    } /* end if is_ftdx1200 or is_ftdx3000 */
-    else if (is_ftdx5000)
-    {
-        if ((narrow = get_narrow(rig, RIG_VFO_MAIN)) < 0)
-        {
-            RETURNFUNC(-RIG_EPROTO);
-        }
-
-        switch (mode)
-        {
-        case RIG_MODE_PKTUSB:
-        case RIG_MODE_PKTLSB:
-        case RIG_MODE_RTTY:
-        case RIG_MODE_RTTYR:
-        case RIG_MODE_CW:
-        case RIG_MODE_CWR:
-            if (w > 0 && w < priv_caps->cw_widths->count)
-            {
-                *width = priv_caps->cw_widths->widths[w];
-            }
-            else if (w == 0)
-            {
-                *width = narrow ? 500 : 2400;
-            }
-            else
-            {
-                RETURNFUNC(-RIG_EINVAL);
-            }
-
-            break;
-
-        case RIG_MODE_LSB:
-        case RIG_MODE_USB:
-            if (w > 0 && w < priv_caps->ssb_widths->count)
-            {
-                *width = priv_caps->ssb_widths->widths[w];
-            }
-            else if (w == 0)
-            {
-                *width = narrow ? 1500 : 2400;
-            }
-            else
-            {
-                RETURNFUNC(-RIG_EINVAL);
-            }
-
-            break;
-
-        case RIG_MODE_AM:
-            *width = narrow ? 6000 : 9000;
-            break;
-
-        case RIG_MODE_PKTFM:
-        case RIG_MODE_FM:
-            *width = narrow ? 9000 : 16000;
-            break;
-
-        case RIG_MODE_FMN:
-            *width = 9000;
-            break;
-
-        case RIG_MODE_AMN:
-            *width = 6000;
-            break;
-
-        default:
-            RETURNFUNC(-RIG_EINVAL);
-        }   /* end switch(mode) */
-
-    } /* end if is_ftdx5000 */
+    } /* end if is_ftdx1200 or is_ftdx3000 or is_ftdx5000 */
     else if (is_ftdx101d || is_ftdx101mp || is_ftdx10 || is_ft710)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: is_ftdx101 w=%d, mode=%s\n", __func__, w,
@@ -9980,29 +9838,17 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
-            if (w > 0 && w < priv_caps->cw_widths->count)
-            {
-                *width = priv_caps->cw_widths->widths[w];
-            }
-            else if (w == 0)
-            {
-                break;   // use the roofing/default width
-            }
-            else {RETURNFUNC(-RIG_EPROTO);}  // Should not happen
-
-            break;
-
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
-            if (w > 0 && w < priv_caps->ssb_widths->count)
+            if (w > 0 && w < width_info->count)
             {
-                *width = priv_caps->ssb_widths->widths[w];
+                *width = width_info->widths[w];
             }
             else if (w == 0)
             {
                 break;  // Use the roofing/default value
             }
-            else {RETURNFUNC(-RIG_EPROTO);}
+            else {RETURNFUNC(-RIG_EPROTO);}  // Should not happen
 
             break;
 
@@ -10047,23 +9893,11 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
         case RIG_MODE_PSK:
-            if (w > 0 && w < priv_caps->cw_widths->count)
-            {
-                *width = priv_caps->cw_widths->widths[w];
-            }
-            else if (w == 0)
-            {
-                break;   // use the roofing/default width
-            }
-            else {RETURNFUNC(-RIG_EPROTO);}  // Should not happen
-
-            break;
-
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
-            if (w > 0 && w < priv_caps->ssb_widths->count)
+            if (w > 0 && w < width_info->count)
             {
-                *width = priv_caps->ssb_widths->widths[w];
+                *width = width_info->widths[w];
             }
             else if (w == 0)
             {
@@ -10268,14 +10102,7 @@ int newcat_set_faststep(RIG *rig, ncboolean fast_step)
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
-    if (fast_step == TRUE)
-    {
-        c = '1';
-    }
-    else
-    {
-        c = '0';
-    }
+    c = fast_step ? '1' : '0';
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FS%c%c", c, cat_term);
 
@@ -10289,7 +10116,6 @@ int newcat_get_faststep(RIG *rig, ncboolean *fast_step)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
-    char c;
     char command[] = "FS";
 
     ENTERFUNC;
@@ -10307,16 +10133,7 @@ int newcat_get_faststep(RIG *rig, ncboolean *fast_step)
         RETURNFUNC(err);
     }
 
-    c = priv->ret_data[2];
-
-    if (c == '1')
-    {
-        *fast_step = TRUE;
-    }
-    else
-    {
-        *fast_step = FALSE;
-    }
+    *fast_step = priv->ret_data[2] == '1';
 
     RETURNFUNC(RIG_OK);
 }
