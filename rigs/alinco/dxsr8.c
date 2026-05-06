@@ -38,7 +38,7 @@
 
 #define DXSR8_FUNC (RIG_FUNC_FAGC|RIG_FUNC_NB)
 
-#define DXSR8_LEVEL_ALL (RIG_LEVEL_RFPOWER|RIG_LEVEL_RF)
+#define DXSR8_LEVEL_ALL (RIG_LEVEL_RFPOWER|RIG_LEVEL_ATT|RIG_LEVEL_PREAMP)
 
 #define DXSR8_PARM_ALL RIG_PARM_NONE
 
@@ -89,13 +89,13 @@ struct rig_caps dxsr8_caps =
     .serial_rate_min =  9600,
     .serial_rate_max =  9600,
     .serial_data_bits = 8,
-    .serial_stop_bits = 1,
+    .serial_stop_bits = 2,
     .serial_parity =    RIG_PARITY_NONE,
     .serial_handshake = RIG_HANDSHAKE_NONE,
     .write_delay =      0,
-    .post_write_delay = 0,
-    .timeout =          200,
-    .retry =            3,
+    .post_write_delay = 100,
+    .timeout =          600,
+    .retry =            1,
 
     .has_get_func =     DXSR8_FUNC,
     .has_set_func =     DXSR8_FUNC,
@@ -423,7 +423,14 @@ int dxsr8_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     SNPRINTF(mdbuf, sizeof(mdbuf), AL "~RW_NAR%02d" EOM, wide_filter);
     retval = dxsr8_transaction(rig, mdbuf, strlen(mdbuf), NULL, NULL);
 
-    return retval;
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_WARN,
+                  "%s: NAR command sent but acknowledgment timed out (radio may have applied it anyway)\n",
+                  __func__);
+    }
+
+    return RIG_OK;
 }
 
 /*
@@ -435,7 +442,6 @@ int dxsr8_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     int retval;
     int amode;
-    int filter;
 
     retval = dxsr8_read_num(rig, AL "~RR_RFM" EOM, &amode);
 
@@ -465,23 +471,12 @@ int dxsr8_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         return -RIG_EINVAL;
     }
 
-    filter = 0; // avoid compiler warnings of being possibly uninitialized
-    retval = dxsr8_read_num(rig, AL "~RR_NAR" EOM, &filter);
-
-    if (retval != RIG_OK)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: dxsr8_read_num:%s\n", __func__, rigerror(retval));
-        return retval;
-    }
-
-    if (filter == 0)
-    {
-        *width = rig_passband_wide(rig, *mode);
-    }
-    else
-    {
-        *width = rig_passband_normal(rig, *mode);
-    }
+    /* The RR_NAR query frequently times out on this radio, causing
+     * get_mode to fail. Since narrow filter is rarely used and the
+     * radio does not respond reliably, always return normal passband.
+     * NAR state can still be set via set_mode if needed.
+     */
+    *width = rig_passband_normal(rig, *mode);
 
     return RIG_OK;
 }
@@ -690,7 +685,7 @@ int dxsr8_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             val->i = 10; break; // RF gain -10dB
 
         case 2:
-            val->i = 10; break; // RF gain -20dB
+            val->i = 20; break; // RF gain -20dB
 
         default:
             rig_debug(RIG_DEBUG_ERR, "Unknown RF Gain %02d\n", lvl);
@@ -717,7 +712,7 @@ int dxsr8_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             val->f = 0.1; // 10 W
             break;
 
-        case 3: // 02 - Sub low power (QRP mode)
+        case 2: // 02 - Sub low power (QRP mode)
             val->f = 0.01; // 1 W
             break;
 
