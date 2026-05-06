@@ -9,7 +9,7 @@
 
 extern struct rig_caps anytone_d578_caps;
 
-#ifdef PTHREAD
+#ifdef HAVE_PTHREAD
 #include <pthread.h>
 #define MUTEX(var) static pthread_mutex_t var = PTHREAD_MUTEX_INITIALIZER
 #define MUTEX_LOCK(var) pthread_mutex_lock(var)

@@ -108,7 +108,7 @@ static void *anytone_thread(void *vrig)
     {
         char c[64];
         SNPRINTF(c, sizeof(c), "+ADATA:00,001\r\na\r\n");
-        MUTEX_LOCK(p->priv.mutex);
+        MUTEX_LOCK(&p->mutex);
         // if we don't have CACHE debug enabled then we only show WARN and higher for this rig
         enum rig_debug_level_e debug_level_save;
         rig_get_debug(&debug_level_save);
@@ -127,7 +127,7 @@ static void *anytone_thread(void *vrig)
             rig_set_debug(debug_level_save);
         }
 
-        MUTEX_UNLOCK(p->priv.mutex);
+        MUTEX_UNLOCK(&p->mutex);
         hl_usleep(1000 * 1000); // 1-second loop
     }
 
@@ -362,6 +362,7 @@ int anytone_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 // ---------------------------------------------------------------------------
 int anytone_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
+    anytone_priv_data_t *p = STATE(rig)->priv;
     int retval = RIG_OK;
 
     ENTERFUNC;
@@ -375,11 +376,10 @@ int anytone_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     //if (!ptt) { cmd = " (unsigned char*)+ADATA:00,023\r\nV\r\n"; }
 
-    MUTEX_LOCK(p->mutex);
+    MUTEX_LOCK(&p->mutex);
     anytone_transaction(rig, pttcmd, sizeof(ptton), NULL, 0, 0);
-    anytone_priv_data_t *p = STATE(rig)->priv;
     p->ptt = ptt;
-    MUTEX_UNLOCK(p->mutex);
+    MUTEX_UNLOCK(&p->mutex);
 
     RETURNFUNC(retval);
 }
@@ -389,6 +389,7 @@ int anytone_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     char cmd[32];
     int retval;
     hamlib_port_t *rp = RIGPORT(rig);
+    anytone_priv_data_t *p = STATE(rig)->priv;
 
     SNPRINTF(cmd, sizeof(cmd), "+ADATA:00,006\r\n");
     cmd[15] = 0x04;
@@ -404,7 +405,7 @@ int anytone_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     if (vfo == RIG_VFO_B) { cmd[16] = 0x2d; }
 
     int retry = 2;
-    MUTEX_LOCK(p->priv.mutex);
+    MUTEX_LOCK(&p->mutex);
     rig_flush(rp);
 
     do
@@ -422,7 +423,7 @@ int anytone_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
     while (retval != 138 && --retry > 0);
 
-    MUTEX_UNLOCK(p->priv.mutex);
+    MUTEX_UNLOCK(&p->mutex);
 
     return RIG_OK;
 }
@@ -431,6 +432,7 @@ int anytone_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     char cmd[64];
     hamlib_port_t *rp = RIGPORT(rig);
+    anytone_priv_data_t *p = STATE(rig)->priv;
 
     if (vfo == RIG_VFO_A)
     {
@@ -441,7 +443,7 @@ int anytone_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         snprintf(cmd, sizeof(cmd), "ADATA:00,005\r\n%c%c%c%c\r\n", 1, 0, 0, 0);
     }
 
-    MUTEX_LOCK(p->priv.mutex);
+    MUTEX_LOCK(&p->mutex);
     rig_flush(rp);
     write_block(rp, (unsigned char *) cmd, 20);
     unsigned char backend[] = { 0x2f, 0x03, 0x00, 0xff, 0xff, 0xff, 0xff, 0x15, 0x50, 0x00, 0x00, 0x0d, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xcf, 0x09, 0x00, 0x00, 0x0d, 0x0a};
@@ -450,7 +452,7 @@ int anytone_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     memcpy(&cmd[15], backend, sizeof(backend));
     hl_usleep(10 * 1000);
     write_block(rp, (unsigned char *)cmd, bytes);
-    MUTEX_UNLOCK(p->priv.mutex);
+    MUTEX_UNLOCK(&p->mutex);
 
     return -RIG_ENIMPL;
 }
