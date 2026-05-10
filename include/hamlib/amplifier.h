@@ -180,7 +180,7 @@ enum amp_level_e
   AMP_LEVEL_TEMP_METER    = CONSTANT_64BIT_FLAG(13), /*!< \c Temperature in degrees Celsius (C), type float */
   AMP_LEVEL_63            = CONSTANT_64BIT_FLAG(63), /*!< **Future use**, last level. */
 };
-///@}
+//! @endcond
 
 //! @cond Doxygen_Suppress
 #define AMP_LEVEL_FLOAT_LIST  (AMP_LEVEL_SWR|AMP_LEVEL_PWR|AMP_LEVEL_SWR_TUNER|AMP_LEVEL_VD_METER|AMP_LEVEL_ID_METER|AMP_LEVEL_TEMP_METER)
@@ -450,8 +450,8 @@ struct amp
 {
   struct amp_caps *caps;      /*!< Amplifier caps. */
 //  Private data below this line
-  HL_PRIVATE struct amp_state *ampstate_addr;
-  HL_PRIVATE hamlib_port_t *ampport_addr;
+  HL_PRIVATE struct amp_state *ampstate_addr; /*!< Address of amp_state */
+  HL_PRIVATE hamlib_port_t *ampport_addr;     /*!< Address of amplifier port control */
 };
 
 

@@ -24,7 +24,7 @@
 #define _HL_FIFO_H
 
 //#include "hamlib/rig.h"
-//#include <pthread.h>
+#include <pthread.h>
 
 __BEGIN_DECLS
 
