@@ -38,7 +38,7 @@ struct icm710_priv_data {
     unsigned char remote_id;  /* the remote equipment's ID */
     split_t split; /* current split mode */
     freq_t rxfreq, txfreq;
-    mode_t mode;
+    rmode_t mode;
     ptt_t ptt;
     unsigned afgain;
     unsigned rfgain;

@@ -67,7 +67,6 @@
 #if defined(_MSC_VER)
 #define HAVE_STRUCT_TIMESPEC
 #endif
-#include <pthread.h>
 
 /* Rig list is in a separate file so as not to mess up w/ this one */
 #include <hamlib/riglist.h>
@@ -1190,6 +1189,7 @@ enum cookie_e {
  * \brief Multicast data items
  * 3 different data item can be included in the multicast JSON
  */
+//TODO:  Shouldn't this be a mask{1, 2, 4}, not integers{1, 2, 3}???
 enum multicast_item_e {
     RIG_MULTICAST_POLL,         // hamlib will be polling the rig for all rig items
     RIG_MULTICAST_TRANSCEIVE,   // transceive will be turned on and processed
@@ -2219,9 +2219,9 @@ struct rig_caps {
                                size_t frame_length,
                                const unsigned char *frame);
 // this will be used to check rigcaps structure is compatible with client
-    char *hamlib_check_rig_caps;   // a constant value we can check for hamlib integrity
+    char *hamlib_check_rig_caps;   /*!< a constant value we can check for hamlib integrity */
     int (*get_conf2)(RIG *rig, hamlib_token_t token, char *val, int val_len);
-    int (*password)(RIG *rig, const char *key1); /*< Send encrypted password if rigctld is secured with -A/--password */
+    int (*password)(RIG *rig, const char *key1); /*!< Send encrypted password if rigctld is secured with -A/--password */
     int (*set_lock_mode)(RIG *rig, int mode);
     int (*get_lock_mode)(RIG *rig, int *mode);
     short timeout_retry;    /*!< number of retries to make in case of read timeout errors, some serial interfaces may require this, 0 to use default value, -1 to disable */
@@ -2229,7 +2229,6 @@ struct rig_caps {
 //    int (*bandwidth2rig)(RIG  *rig, enum bandwidth_t bandwidth);
 //    enum bandwidth_t (*rig2bandwidth)(RIG  *rig, int rigbandwidth);
 };
-//! @endcond
 
 /**
  * \brief Enumeration of all rig_ functions
@@ -2372,43 +2371,22 @@ struct hamlib_async_pipe;
 typedef struct hamlib_async_pipe hamlib_async_pipe_t;
 
 /* Macros to access data structures/pointers
- * Make it easier to change location in preparation
- *   for moving them out of rig->state.
- * See https://github.com/Hamlib/Hamlib/issues/1445
- *     https://github.com/Hamlib/Hamlib/issues/1452
- *     https://github.com/Hamlib/Hamlib/issues/1420
- *     https://github.com/Hamlib/Hamlib/issues/536
- *     https://github.com/Hamlib/Hamlib/issues/487
+ * See Github issues #487, #536, #1420, #1445, #1452
  */
-// Note: Work In Progress(WIP)
-//       All buffers now referenced via these macros
-//       Conversion to calloc() use is underway
 #if defined(IN_HAMLIB)
-/* These are for internal use only */
+/* Port access macros defined here for backend
+ *   pass-thru to basic I/O routines.
+ * For all others see the appropriate include files.
+ */
 #define RIGPORT(r) ((r)->rigport_addr)
 #define PTTPORT(r) ((r)->pttport_addr)
 #define DCDPORT(r) ((r)->dcdport_addr)
-//Moved to src/cache.h #define CACHE(r) ((r)->cache_addr)
 #define AMPPORT(a) ((a)->ampport_addr)
 #define ROTPORT(r) ((r)->rotport_addr)
 #define ROTPORT2(r) ((r)->rotport2_addr)
-//Moved to include/hamlib/rig_state.h #define STATE(r) (&r->state)
-//Moved to include/hamlib/amp_state.h #define AMPSTATE(a) (&(a)->state)
-//Moved to include/hamlib/rot_state.h #define ROTSTATE(r) (&(r)->state)
-#else
-/* Define external unique names */
-//#define HAMLIB_RIGPORT(r) ((hamlib_port_t *)rig_data_pointer(r, RIG_PTRX_RIGPORT))
-//#define HAMLIB_PTTPORT(r) ((hamlib_port_t *)rig_data_pointer(r, RIG_PTRX_PTTPORT))
-//#define HAMLIB_DCDPORT(r) ((hamlib_port_t *)rig_data_pointer(r, RIG_PTRX_DCDPORT))
-//#define HAMLIB_CACHE(r) ((struct rig_cache *)rig_data_pointer(r, RIG_PTRX_CACHE))
-//#define HAMLIB_AMPPORT(a) ((hamlib_port_t *)amp_data_pointer(a, RIG_PTRX_AMPPORT))
-//#define HAMLIB_ROTPORT(r) ((hamlib_port_t *)rot_data_pointer(r, RIG_PTRX_ROTPORT))
-//#define HAMLIB_ROTPORT2(r) ((hamlib_port_t *)rot_data_pointer(r, RIG_PTRX_ROTPORT2))
-//#define HAMLIB_STATE(r) ((struct rig_state *)rig_data_pointer(r, RIG_PTRX_STATE))
-//#define HAMLIB_AMPSTATE(a) ((struct amp_state *)amp_data_pointer(a, RIG_PTRX_AMPSTATE))
-//#define HAMLIB_ROTSTATE(r) ((struct rot_state *)rot_data_pointer(r, RIG_PTRX_ROTSTATE))
 #endif
 
+/* Index parameters for {rig|amp|rot}_data_pointer() */
 typedef enum {
     RIG_PTRX_NONE=0,
     RIG_PTRX_RIGPORT,
@@ -2446,30 +2424,6 @@ typedef enum {
     TWIDDLE_ON
 } twiddle_state_t;
 
-
-/**
- * \brief Multicast data items the are unique per rig instantiation
- * This is meant for internal Hamlib use only
- */
-#include <hamlib/multicast.h>
-struct multicast_s
-{
-    int multicast_running;
-    int sock;
-    int seqnumber;
-    volatile int runflag; // = 0;
-    pthread_t threadid;
-    // this mutex is needed to control serial access
-    // as of 2023-05-13 we have main thread and multicast thread needing it
-    // eventually we should be able to use cached info only in the main thread to avoid contention
-    pthread_mutex_t mutex;
-    int mutex_initialized;
-//#ifdef HAVE_ARPA_INET_H
-    //struct ip_mreq mreq; // = {0};
-    struct sockaddr_in dest_addr; // = {0};
-    int port;
-//#endif
-};
 
 typedef unsigned int rig_comm_status_t;
 

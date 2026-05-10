@@ -282,7 +282,7 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "SF", 2) == 0)
         {
-            mode_t tmpmode = buf[14];
+            char tmpmode = buf[14];
 
             if (buf[2] == '0') { modeA = tmpmode - '0'; }
             else { modeB = tmpmode - '0'; }

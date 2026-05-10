@@ -25,7 +25,7 @@
 #define _RIG_STATE_H 1
 
 //#include <hamlib/rig.h>
-//#include <pthread.h>
+#include <pthread.h>
 
 __BEGIN_DECLS
 
