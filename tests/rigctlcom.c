@@ -1539,7 +1539,7 @@ static int handle_ts2000(void *arg)
     }
     else if (strncmp(arg, "MD", 2) == 0)
     {
-        mode_t mode = 0;
+        rmode_t mode = 0;
         int imode = 0;
 
         sscanf((char *)arg + 2, "%d", &imode);

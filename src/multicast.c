@@ -408,8 +408,8 @@ void *multicast_thread(void *vrig)
 
     freq_t freqA, freqAsave = 0;
     freq_t freqB, freqBsave = 0;
-    mode_t modeA, modeAsave = 0;
-    mode_t modeB, modeBsave = 0;
+    rmode_t modeA, modeAsave = 0;
+    rmode_t modeB, modeBsave = 0;
     ptt_t ptt, pttsave = 0;
     struct rig_cache *cachep = CACHE(rig);
     struct rig_state *rs = STATE(rig);
