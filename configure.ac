@@ -69,7 +69,7 @@ dnl here but will be added later, e.g. "winradio".
 RIG_BACKEND_LIST="rigs/adat rigs/alinco rigs/aor rigs/barrett rigs/codan rigs/dorji rigs/drake rigs/dummy rigs/elad rigs/flexradio rigs/icom rigs/icmarine rigs/jrc rigs/kachina rigs/kenwood rigs/kit rigs/lowe rigs/pcr rigs/prm80 rigs/racal rigs/rft rigs/rs rigs/simplecat rigs/skanti rigs/tapr rigs/tentec rigs/tuner rigs/uniden rigs/wj rigs/yaesu rigs/gomspace rigs/mds rigs/anytone rigs/motorola rigs/commradio rigs/guohetec rigs/harris"
 RIG_BACKEND_OPTIONAL_LIST=""
 ROT_BACKEND_LIST="rotators/amsat rotators/apex rotators/ars rotators/celestron rotators/cnctrk rotators/grbltrk rotators/easycomm rotators/ether6 rotators/flir rotators/fodtrack rotators/gs232a rotators/heathkit rotators/m2 rotators/meade rotators/rotorez rotators/sartek rotators/saebrtrack rotators/spid rotators/ts7400 rotators/prosistel rotators/ioptron rotators/satel rotators/skywatcher rotators/radant"
-ROT_BACKEND_OPTIONAL_LIST=""
+ROT_BACKEND_OPTIONAL_LIST="rotators/androidsensor"
 # Amplifiers are all in the amplifiers directory
 AMP_BACKEND_LIST="amplifiers/elecraft amplifiers/gemini amplifiers/expert"
 
@@ -886,42 +886,20 @@ AC_SUBST([AM_CXXFLAGS])
 
 
 AC_CONFIG_FILES([Makefile
-macros/Makefile
+amplifiers/elecraft/Makefile
+amplifiers/expert/Makefile
+amplifiers/gemini/Makefile
+android/Makefile
+bindings/Makefile
+c++/Makefile
+doc/hamlib.cfg
+doc/Makefile
 include/Makefile
 lib/Makefile
-src/Makefile
-security/Makefile
-c++/Makefile
-bindings/Makefile
-doc/Makefile
-doc/hamlib.cfg
-rotators/amsat/Makefile
-rotators/apex/Makefile
-rotators/ars/Makefile
-rotators/celestron/Makefile
-rotators/cnctrk/Makefile
-rotators/grbltrk/Makefile
-rotators/easycomm/Makefile
-rotators/ether6/Makefile
-rotators/flir/Makefile
-rotators/fodtrack/Makefile
-rotators/gs232a/Makefile
-rotators/heathkit/Makefile
-rotators/ioptron/Makefile
-rotators/m2/Makefile
-rotators/meade/Makefile
-rotators/prosistel/Makefile
-rotators/rotorez/Makefile
-rotators/sartek/Makefile
-rotators/saebrtrack/Makefile
-rotators/spid/Makefile
-rotators/ts7400/Makefile
-rotators/indi/Makefile
-rotators/satel/Makefile
-rotators/skywatcher/Makefile
-rotators/radant/Makefile
+macros/Makefile
 rigs/adat/Makefile
 rigs/alinco/Makefile
+rigs/anytone/Makefile
 rigs/aor/Makefile
 rigs/barrett/Makefile
 rigs/codan/Makefile
@@ -931,6 +909,8 @@ rigs/drake/Makefile
 rigs/dummy/Makefile
 rigs/elad/Makefile
 rigs/flexradio/Makefile
+rigs/gomspace/Makefile
+rigs/guohetec/Makefile
 rigs/harris/Makefile
 rigs/icmarine/Makefile
 rigs/icom/Makefile
@@ -939,6 +919,8 @@ rigs/kachina/Makefile
 rigs/kenwood/Makefile
 rigs/kit/Makefile
 rigs/lowe/Makefile
+rigs/mds/Makefile
+rigs/motorola/Makefile
 rigs/pcr/Makefile
 rigs/prm80/Makefile
 rigs/racal/Makefile
@@ -953,18 +935,37 @@ rigs/uniden/Makefile
 rigs/winradio/Makefile
 rigs/wj/Makefile
 rigs/yaesu/Makefile
-rigs/guohetec/Makefile
-rigs/gomspace/Makefile
-rigs/mds/Makefile
-rigs/anytone/Makefile
-rigs/motorola/Makefile
-tests/Makefile
+rotators/amsat/Makefile
+rotators/androidsensor/Makefile
+rotators/apex/Makefile
+rotators/ars/Makefile
+rotators/celestron/Makefile
+rotators/cnctrk/Makefile
+rotators/easycomm/Makefile
+rotators/ether6/Makefile
+rotators/flir/Makefile
+rotators/fodtrack/Makefile
+rotators/grbltrk/Makefile
+rotators/gs232a/Makefile
+rotators/heathkit/Makefile
+rotators/indi/Makefile
+rotators/ioptron/Makefile
+rotators/m2/Makefile
+rotators/meade/Makefile
+rotators/prosistel/Makefile
+rotators/radant/Makefile
+rotators/rotorez/Makefile
+rotators/saebrtrack/Makefile
+rotators/sartek/Makefile
+rotators/satel/Makefile
+rotators/skywatcher/Makefile
+rotators/spid/Makefile
+rotators/ts7400/Makefile
 scripts/Makefile
-android/Makefile
-amplifiers/elecraft/Makefile
-amplifiers/gemini/Makefile
-amplifiers/expert/Makefile
+security/Makefile
 simulators/Makefile
+src/Makefile
+tests/Makefile
 hamlib.pc
 ])
 
