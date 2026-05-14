@@ -2676,7 +2676,7 @@ static int flrig_set_powerstat(RIG *rig, powerstat_t status) {
         break;
 
     default:
-        // Other parameter vaues are not valid.
+        // Other parameter values are not valid.
         retval = -RIG_EINVAL;
         break;
 
