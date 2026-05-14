@@ -28,7 +28,7 @@ versions are still very appreciated.  Please send them to the
 hamlib-developer@lists.sourceforge.net mailing list or open an issue on the
 GitHub site: https://github.com/Hamlib/Hamlib/issues.
 
-The development of Hamlib reamins very active, so it's better to test from the
+The development of Hamlib remains very active, so it's better to test from the
 latest Git version of the code.  And, depending on feedback you make, developers
 can commit a fix, so you can try out the change soon after, without waiting for
 the next official version.
