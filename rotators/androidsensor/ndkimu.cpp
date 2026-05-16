@@ -170,7 +170,7 @@ float *NdkImu::getOrientation(const float R[], size_t Rlength, float valuesBuf[]
 
 void NdkImu::update()
 {
-    ALooper_pollAll(0, NULL, NULL, NULL);
+    ALooper_pollOnce(0, NULL, NULL, NULL);
     ASensorEvent event;
     const float a = SENSOR_FILTER_ALPHA;
 

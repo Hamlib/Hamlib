@@ -26,6 +26,11 @@
 #include "hamlib/config.h"
 #include "hamlib/rig.h"
 
+#if defined(IN_HAMLIB) && defined(__ANDROID__)
+/* Android's Bionic doesn't support pthread_cancel, make it no-op. */
+#define pthread_cancel(x)  ((void)0)
+#endif
+
 #ifdef HAVE_PARALLEL
 #ifdef HAVE_LINUX_PARPORT_H
 #  include <linux/parport.h>

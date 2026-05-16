@@ -2,11 +2,11 @@ LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
 
-LOCAL_SRC_FILES := esmc.c eb200.c rs.c xk2100.c gp2000.c
+LOCAL_SRC_FILES := esmc.c eb200.c rs.c gp2000.c xk2100.c ek89x.c xk852.c
 LOCAL_MODULE := rs
 
-LOCAL_CFLAGS := 
-LOCAL_C_INCLUDES := android include src
+LOCAL_CFLAGS := -DIN_HAMLIB
+LOCAL_C_INCLUDES := android include include/hamlib lib src
 LOCAL_LDLIBS := -lhamlib -Lobj/local/$(TARGET_ARCH_ABI)
 
 include $(BUILD_STATIC_LIBRARY)
