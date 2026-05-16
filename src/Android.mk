@@ -4,31 +4,13 @@ include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES := \
         ../android/ltdl.c \
-        rig.c \
-        serial.c \
-        misc.c \
-        register.c \
-        event.c \
-        cal.c \
-        conf.c \
-        tones.c \
-        rotator.c \
-        locator.c \
-        rot_reg.c \
-        rot_conf.c \
-        iofunc.c \
-        ext.c \
-        mem.c \
-        settings.c \
-        parallel.c \
-        debug.c \
-        network.c \
-        sleep.c \
-        gpio.c \
-        microham.c \
-        rot_ext.c \
-        cm108.c \
-        sprintflst.c
+	rig.c serial.c misc.c register.c event.c \
+	cal.c conf.c tones.c rotator.c locator.c rot_reg.c \
+	rot_conf.c rot_settings.c rot_ext.c iofunc.c iofunc.h ext.c \
+	mem.c settings.c parallel.c usb_port.c debug.c \
+	network.c cm108.c gpio.c microham.c amplifier.c amp_reg.c amp_conf.c \
+	amp_settings.c amp_ext.c sleep.c sprintflst.c \
+	cache.c snapshot_data.c fifo.c
 
 
 LOCAL_MODULE := libhamlib
