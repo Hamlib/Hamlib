@@ -2,7 +2,7 @@ LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
 
-LOCAL_SRC_FILES := r8a.c r8b.c drake.c
+LOCAL_SRC_FILES := r8.c r8a.c r8b.c drake.c
 LOCAL_MODULE := drake
 
 LOCAL_CFLAGS := -DIN_HAMLIB
