@@ -16,12 +16,17 @@ LOCAL_SRC_FILES := \
 LOCAL_MODULE := libhamlib
 LOCAL_CFLAGS := -DIN_HAMLIB
 LOCAL_C_INCLUDES := android include lib
-LOCAL_STATIC_LIBRARIES := adat alinco amsat aor ars barrett celestron cnctrk \
-        dorji drake dummy easycomm elad ether6 flexradio fodtrack \
-        gs232a heathkit icmarine icom ioptron jrc kachina kenwood kit \
-        lowe m2 meade pcr prm80 prosistel racal rft \
-        rotorez rs sartek satel skanti spid tapr tentec ts7400 tuner \
-        uniden wj yaesu radant androidsensor misc
+
+# To find all the available libraries, run: find {rigs,rotators,amplifiers} -type f -name Android.mk -printf '%h\n' | awk -F/ '{print $NF}' | sort -u | tr '\n' ' '
+LOCAL_STATIC_LIBRARIES := \
+	misc \
+	adat alinco amsat androidsensor anytone aor apex ars barrett celestron \
+	cnctrk codan commradio dorji drake dummy easycomm elad elecraft ether6 \
+	expert flexradio flir fodtrack gemini gomspace grbltrk guohetec gs232a harris \
+	heathkit icmarine icom ioptron jrc kachina kenwood kit lowe m2 mds \
+	meade motorola pcr prm80 prosistel racal radant rft rotorez rs saebrtrack \
+	sartek satel simplecat skanti skywatcher spid tapr tentec ts7400 tuner \
+	uniden winradio wj yaesu
 
 LOCAL_LDLIBS := -llog -landroid
 

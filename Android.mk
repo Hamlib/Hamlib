@@ -27,6 +27,7 @@ include $(TOP_PATH)/rigs/dummy/Android.mk
 include $(TOP_PATH)/rigs/elad/Android.mk
 include $(TOP_PATH)/rigs/flexradio/Android.mk
 include $(TOP_PATH)/rigs/gomspace/Android.mk
+include $(TOP_PATH)/rigs/guohetec/Android.mk
 include $(TOP_PATH)/rigs/harris/Android.mk
 include $(TOP_PATH)/rigs/icmarine/Android.mk
 include $(TOP_PATH)/rigs/icom/Android.mk
@@ -64,7 +65,7 @@ include $(TOP_PATH)/rotators/fodtrack/Android.mk
 include $(TOP_PATH)/rotators/grbltrk/Android.mk
 include $(TOP_PATH)/rotators/gs232a/Android.mk
 include $(TOP_PATH)/rotators/heathkit/Android.mk
-include $(TOP_PATH)/rotators/indi/Android.mk
+#include $(TOP_PATH)/rotators/indi/Android.mk
 include $(TOP_PATH)/rotators/ioptron/Android.mk
 include $(TOP_PATH)/rotators/m2/Android.mk
 include $(TOP_PATH)/rotators/meade/Android.mk
