@@ -2,7 +2,7 @@ LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
 
-LOCAL_SRC_FILES := barrett.c barrett.h 950.c
+LOCAL_SRC_FILES := barrett.c 950.c 4050.c 4100.c
 LOCAL_MODULE := barrett
 
 LOCAL_CFLAGS := -DIN_HAMLIB
