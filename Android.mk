@@ -11,6 +11,8 @@ endif
 
 include $(TOP_PATH)/src/Android.mk
 
+include $(TOP_PATH)/lib/Android.mk
+
 include $(TOP_PATH)/rigs/adat/Android.mk
 include $(TOP_PATH)/rigs/alinco/Android.mk
 include $(TOP_PATH)/rigs/aor/Android.mk
