@@ -5,7 +5,7 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES := anytone.c d578.c
 LOCAL_MODULE := anytone
 
-LOCAL_CFLAGS := 
+LOCAL_CFLAGS := -DIN_HAMLIB
 LOCAL_C_INCLUDES := android include src
 LOCAL_LDLIBS := $(LOCAL_SHARED_LIBRARIES) -Lobj/local/$(TARGET_ARCH_ABI)
 

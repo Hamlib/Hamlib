@@ -32,7 +32,7 @@ LOCAL_SRC_FILES := \
 
 
 LOCAL_MODULE := libhamlib
-LOCAL_CFLAGS := 
+LOCAL_CFLAGS := -DIN_HAMLIB
 LOCAL_C_INCLUDES := android include
 LOCAL_STATIC_LIBRARIES := adat alinco amsat aor ars barrett celestron cnctrk \
         dorji drake dummy easycomm elad ether6 flexradio fodtrack \

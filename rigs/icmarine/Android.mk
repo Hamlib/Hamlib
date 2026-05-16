@@ -6,7 +6,7 @@ LOCAL_SRC_FILES := icm700pro.c icm710.c icm802.c icm803.c  \
 		icmarine.c
 LOCAL_MODULE := icmarine
 
-LOCAL_CFLAGS := 
+LOCAL_CFLAGS := -DIN_HAMLIB
 LOCAL_C_INCLUDES := android include src
 LOCAL_LDLIBS := -lhamlib -Lobj/local/$(TARGET_ARCH_ABI)
 
