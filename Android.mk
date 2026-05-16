@@ -1,5 +1,14 @@
 TOP_PATH := $(call my-dir)
 
+# Link hamlib/config.h to android/config.h, Windows doesn't like symbol link so use preprocessor instead.
+$(shell printf "#include \"../../android/config.h\"\n" > $(TOP_PATH)/include/hamlib/config.h)
+
+# Again, Windows shell isn't compatible with the automake rule. Leave it unknown for now.
+HAMLIB_DATETIME_H := $(TOP_PATH)/src/hamlibdatetime.h
+ifeq ($(wildcard $(HAMLIB_DATETIME_H)),)
+$(shell printf "#define HAMLIBDATETIME \"unknown\"\n" > $(HAMLIB_DATETIME_H))
+endif
+
 include $(TOP_PATH)/src/Android.mk
 
 include $(TOP_PATH)/rigs/adat/Android.mk
