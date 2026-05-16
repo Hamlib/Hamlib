@@ -6,7 +6,7 @@ LOCAL_SRC_FILES := skywatcher.c
 LOCAL_MODULE := skywatcher
 
 LOCAL_CFLAGS := -DIN_HAMLIB
-LOCAL_C_INCLUDES := android include src
+LOCAL_C_INCLUDES := android include include/hamlib lib src
 LOCAL_LDLIBS := -lhamlib -Lobj/local/$(TARGET_ARCH_ABI)
 
 include $(BUILD_STATIC_LIBRARY)

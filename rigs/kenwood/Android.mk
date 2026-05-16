@@ -12,7 +12,7 @@ LOCAL_SRC_FILES := ts850.c ts870s.c ts570.c ts450s.c ts950.c ts50s.c \
 LOCAL_MODULE := kenwood
 
 LOCAL_CFLAGS := -DIN_HAMLIB
-LOCAL_C_INCLUDES := android include src
+LOCAL_C_INCLUDES := android include include/hamlib lib src
 LOCAL_LDLIBS := -lhamlib -Lobj/local/$(TARGET_ARCH_ABI)
 
 include $(BUILD_STATIC_LIBRARY)

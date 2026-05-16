@@ -6,7 +6,7 @@ LOCAL_SRC_FILES := indi.c indi_wrapper.cpp
 LOCAL_MODULE := indi
 
 LOCAL_CFLAGS := -DIN_HAMLIB
-LOCAL_C_INCLUDES := android include src
+LOCAL_C_INCLUDES := android include include/hamlib lib src
 LOCAL_LDLIBS := -lhamlib -Lobj/local/$(TARGET_ARCH_ABI)
 
 include $(BUILD_STATIC_LIBRARY)

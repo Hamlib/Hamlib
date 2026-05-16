@@ -6,7 +6,7 @@ LOCAL_SRC_FILES := grbltrk.c
 LOCAL_MODULE := grbltrk
 
 LOCAL_CFLAGS := -DIN_HAMLIB-DHAVE_CONFIG_H
-LOCAL_C_INCLUDES := android include src
+LOCAL_C_INCLUDES := android include include/hamlib lib src
 LOCAL_LDLIBS := -lhamlib -Lobj/local/armeabi
 
 include $(BUILD_STATIC_LIBRARY)
