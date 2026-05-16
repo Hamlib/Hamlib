@@ -2,7 +2,7 @@ LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
 
-LOCAL_SRC_FILES := mds.c
+LOCAL_SRC_FILES := mds.c 4710.c 9710.c
 LOCAL_MODULE := mds
 
 LOCAL_CFLAGS := -DIN_HAMLIB
