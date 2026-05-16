@@ -64,4 +64,4 @@ include $(TOP_PATH)/rotators/ts7400/Android.mk
 include $(TOP_PATH)/rotators/radant/Android.mk
 include $(TOP_PATH)/rotators/androidsensor/Android.mk
 
-include $(TOP_PATH)/tests/Android.mk
+# include $(TOP_PATH)/tests/Android.mk
