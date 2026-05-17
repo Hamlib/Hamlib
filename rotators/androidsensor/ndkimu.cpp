@@ -168,9 +168,18 @@ float *NdkImu::getOrientation(const float R[], size_t Rlength, float valuesBuf[]
     return valuesBuf;
 }
 
+// Source - https://stackoverflow.com/a/34961306
+int ALooper_pollAllAlt(int timeoutMillis, int* outFd, int* outEvents, void** outData) {
+    int result;
+    do {
+	result = ALooper_pollOnce(timeoutMillis, outFd, outEvents, outData);
+    } while (result == ALOOPER_POLL_CALLBACK);
+    return result;
+}
+
 void NdkImu::update()
 {
-    ALooper_pollAll(0, NULL, NULL, NULL);
+    ALooper_pollAllAlt(0, NULL, NULL, NULL);
     ASensorEvent event;
     const float a = SENSOR_FILTER_ALPHA;
 
