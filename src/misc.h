@@ -33,6 +33,10 @@
 #define set_transaction_active(rig) {pthread_mutex_lock(&STATE(rig)->mutex_set_transaction);STATE(rig)->transaction_active = 1;}
 #define set_transaction_inactive(rig) {STATE(rig)->transaction_active = 0;pthread_mutex_unlock(&STATE(rig)->mutex_set_transaction);}
 
+#if defined(IN_HAMLIB) && defined(__ANDROID__)
+#define pthread_cancel(x) ((void)0)
+#endif
+
 __BEGIN_DECLS
 
 // a function to return just a string of stars for indenting rig debug lines
