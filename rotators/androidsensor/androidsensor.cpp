@@ -34,7 +34,7 @@
 #include "register.h"
 
 #include "androidsensor.h"
-#include "ndkimu.cpp"
+#include "ndkimu.h"
 
 /* ************************************************************************* */
 
