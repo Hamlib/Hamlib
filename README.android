@@ -1,0 +1,65 @@
+Android cross compilation
+=========================
+
+Android port was originally written by Ladislav Vaiz (OK1ZIA, 2012)
+using a standalone Android.mk build system with a custom ltdl/dl
+wrapper (since removed).  The present autotools-based cross-compile
+instructions supersede that approach.
+
+Hamlib can be cross-compiled for Android using the NDK's standalone
+toolchains.  API level 28 is the minimum supported version; the
+following example targets 64-bit ARM (aarch64) with API 28.
+
+
+Prerequisites
+-------------
+
+Install the Android NDK (e.g. via Android Studio's SDK Manager or
+`sdkmanager`).  The examples below use NDK r28 at the default install
+location under `~/Android/Sdk/ndk/`.
+
+The host toolchain used is `linux-x86_64`; adjust for other host
+platforms (e.g. `darwin-x86_64` or `windows-x86_64`).
+
+USB support (libusb) is not currently available in the Android cross
+build, so `--without-libusb` is required.
+
+
+Build script example
+--------------------
+
+The following environment variables set up the NDK toolchain for a
+64-bit ARM target:
+
+    export NDK=$HOME/Android/Sdk/ndk/28.0.12433566
+    export TOOLCHAIN=$NDK/toolchains/llvm/prebuilt/linux-x86_64
+    export TARGET=aarch64-linux-android
+    export API=28
+
+    export AR=$TOOLCHAIN/bin/llvm-ar
+    export AS=$TOOLCHAIN/bin/llvm-as
+    export CC=$TOOLCHAIN/bin/${TARGET}${API}-clang
+    export CXX=$TOOLCHAIN/bin/${TARGET}${API}-clang++
+    export LD=$TOOLCHAIN/bin/ld
+    export RANLIB=$TOOLCHAIN/bin/llvm-ranlib
+    export STRIP=$TOOLCHAIN/bin/llvm-strip
+
+    ./bootstrap
+    ./configure --host=$TARGET --without-libusb
+    make
+
+To build for 32-bit ARM, use `TARGET=armv7a-linux-androideabi` instead
+(also with `API=28`).
+
+To build for x86-64 Android emulators, use `TARGET=x86_64-linux-android`.
+
+
+Notes
+-----
+
+- `./bootstrap` is only needed when building from a Git checkout, not
+  from a release tarball.
+- The resulting binaries run on Android but must be deployed with the
+  NDK's libc++_shared.so or linked statically.
+- Only the Hamlib C/C++ library is built; language bindings (Python, Perl,
+  etc.) have not been tested in this configuration.
