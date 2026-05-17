@@ -22,4 +22,4 @@ NEWCATSRC = newcat.c newcat.h ft450.c ft450.h ft950.c ft950.h ft991.c ft991.h \
 noinst_LTLIBRARIES = libhamlib-yaesu.la
 libhamlib_yaesu_la_SOURCES = yaesu.c yaesu.h level_gran_yaesu.h $(YAESUSRC) $(NEWCATSRC)
 
-EXTRA_DIST = Android.mk
+EXTRA_DIST =

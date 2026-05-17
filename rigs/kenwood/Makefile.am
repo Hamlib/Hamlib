@@ -15,4 +15,4 @@ KENWOODSRC = kenwood.c kenwood.h th.c th.h ic10.c ic10.h elecraft.c elecraft.h \
 noinst_LTLIBRARIES = libhamlib-kenwood.la
 libhamlib_kenwood_la_SOURCES = $(TSSRC) $(THSRC) $(IC10SRC) $(KENWOODSRC)
 
-EXTRA_DIST = Android.mk
+EXTRA_DIST =

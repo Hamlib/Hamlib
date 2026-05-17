@@ -15,4 +15,4 @@ ICOMSRC = icom.c icom.h icom_defs.h icom_alt_agc.c icom_alt_agc.h frame.c frame.
 noinst_LTLIBRARIES = libhamlib-icom.la
 libhamlib_icom_la_SOURCES = $(ICOMSRC)
 
-EXTRA_DIST = README.icom TODO.icom Android.mk
+EXTRA_DIST = README.icom TODO.icom

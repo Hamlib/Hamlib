@@ -926,7 +926,6 @@ AC_CONFIG_FILES([Makefile
 amplifiers/elecraft/Makefile
 amplifiers/expert/Makefile
 amplifiers/gemini/Makefile
-android/Makefile
 bindings/Makefile
 c++/Makefile
 doc/hamlib.cfg

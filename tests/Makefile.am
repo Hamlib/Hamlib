@@ -112,7 +112,6 @@ endif
 
 
 EXTRA_DIST = \
-	Android.mk \
 	amptest.sh \
 	cachetest.sh \
 	hamlib_tuner_control \
