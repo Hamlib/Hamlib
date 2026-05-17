@@ -153,20 +153,42 @@ sys/select.h glob.h ])
 dnl set host_os variable
 AC_CANONICAL_HOST
 
+have_android=no
+have_android_sensor=no
 ANDROID_LIBS=""
-android=no
 
 case "$host_os" in
     linux-android*|android*)
-        android=yes
-        ANDROID_LIBS="-landroid -lc++"
-        ROT_BACKEND_LIST="$ROT_BACKEND_LIST rotators/androidsensor"
+        have_android=yes
         ;;
 esac
 
-AM_CONDITIONAL([ANDROID], [test "x$android" = "xyes"])
+if test "x$have_android" = "xyes"; then
+
+    AC_MSG_CHECKING([for Android sensor API])
+
+    AC_CHECK_HEADER([android/sensor.h],
+    [
+        have_android_sensor=yes
+    ],
+    [
+        have_android_sensor=no
+    ])
+
+fi
+
+if test "x$have_android_sensor" = "xyes"; then
+    AC_DEFINE([HAVE_ANDROID_SENSOR], [1],
+              [Define if Android sensor API is available])
+
+    ANDROID_LIBS="-landroid -lc++"
+    ROT_BACKEND_LIST="$ROT_BACKEND_LIST rotators/androidsensor"
+fi
 
 AC_SUBST([ANDROID_LIBS])
+
+AM_CONDITIONAL([ANDROID], [test "x$have_android" = "xyes"])
+AM_CONDITIONAL([HAVE_ANDROID_SENSOR], [test "x$have_android_sensor" = "xyes"])
 
 dnl ws2tcpip.h not provided by cygwin and its test causes a configure warning.
 dnl wspiapi.h provides needed freeaddrinfo function on W2k systems.

@@ -84,7 +84,7 @@ DEFINE_INITROT_BACKEND(radant);
 #if HAVE_LIBINDI
 DEFINE_INITROT_BACKEND(indi);
 #endif
-#if defined(ANDROID) || defined(__ANDROID__)
+#if HAVE_ANDROID_SENSOR
 DEFINE_INITROT_BACKEND(androidsensor);
 #endif
 DEFINE_INITROT_BACKEND(grbltrk);
