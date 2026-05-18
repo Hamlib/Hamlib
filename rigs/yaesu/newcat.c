@@ -1561,14 +1561,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         }
 
         rig_get_mode(rig, RIG_VFO_MAIN, &tmp_mode, &tmp_width);
-        // FT-710 does not advertise RIG_TARGETABLE_MODE, so reading mode
-        // on the non-current VFO forces a physical VFO swap (rig.c).
-        // Skip the post-BS cache refresh unless we are in split mode, where
-        // VFO_SUB is the TX VFO.
-        if (!is_ft710 || cachep->split)
-        {
-            rig_get_mode(rig, RIG_VFO_SUB, &tmp_mode, &tmp_width);
-        }
+        rig_get_mode(rig, RIG_VFO_SUB, &tmp_mode, &tmp_width);
 
         if ((target_vfo == 0 && tmp_freqA == freq)
                 || (target_vfo == 1 && tmp_freqB == freq))
@@ -9487,7 +9480,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
     if (sh_command_valid)
     {
-        if (is_ft2000 || is_ftdx10 || is_ftdx3000)
+        if (is_ft2000 || is_ftdx10 || is_ft710 || is_ftdx3000)
         {
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s0%c", cmd, cat_term);
         }
