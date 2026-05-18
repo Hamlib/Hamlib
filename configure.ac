@@ -175,13 +175,16 @@ if test "x$have_android" = "xyes"; then
         have_android_sensor=no
     ])
 
+    CXXFLAGS="$CXXFLAGS -stdlib=libc++"
+    LDFLAGS="$LDFLAGS -lc++"
+
 fi
 
 if test "x$have_android_sensor" = "xyes"; then
     AC_DEFINE([HAVE_ANDROID_SENSOR], [1],
               [Define if Android sensor API is available])
 
-    ANDROID_LIBS="-landroid -lc++"
+    ANDROID_LIBS="-landroid"
     ROT_BACKEND_LIST="$ROT_BACKEND_LIST rotators/androidsensor"
 fi
 
