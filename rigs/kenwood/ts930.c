@@ -20,7 +20,7 @@
  */
 
 #include "hamlib/rig.h"
-#include <bandplan.h>
+#include "bandplan.h"
 #include "kenwood.h"
 
 

@@ -27,7 +27,7 @@
 #ifndef _HARRIS_H
 #define _HARRIS_H
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 struct harris_priv_data {
     freq_t current_freq;
