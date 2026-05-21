@@ -14,4 +14,4 @@ endif
 noinst_LTLIBRARIES = libhamlib-winradio.la
 libhamlib_winradio_la_SOURCES = $(WRSRC)
 
-EXTRA_DIST = NOTES Android.mk
+EXTRA_DIST = NOTES

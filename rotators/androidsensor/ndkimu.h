@@ -2,7 +2,6 @@
 #define NDKIMU_H
 
 #include <dlfcn.h>
-#include <GLES2/gl2.h>
 
 #include <android/looper.h>
 #include <android/sensor.h>
@@ -36,9 +35,9 @@ private:
     ALooper *looper;
 
     struct SensorData {
-        GLfloat x;
-        GLfloat y;
-        GLfloat z;
+        float x;
+        float y;
+        float z;
     };
     SensorData sensorAccData[SENSOR_HISTORY_LENGTH*2];
     SensorData sensorAccDataFilter;

@@ -24,4 +24,4 @@ noinst_LTLIBRARIES = libhamlib-kit.la
 libhamlib_kit_la_SOURCES = $(KITSRC) $(KITROTSRC)
 libhamlib_kit_la_LIBADD = $(USRP_LIBS) $(LIBUSB_LIBS) $(MATH_LIBS)
 
-EXTRA_DIST = README.funcubedongle Android.mk
+EXTRA_DIST = README.funcubedongle

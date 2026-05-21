@@ -7,7 +7,6 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = hamlib.pc
 
 EXTRA_DIST = \
-	Android.mk \
 	README.betatester \
 	LICENSE \
 	PLAN \
@@ -41,7 +40,6 @@ DIST_SUBDIRS = \
 	$(RIG_BACKEND_OPTIONAL_LIST) \
 	$(ROT_BACKEND_LIST) \
 	$(ROT_BACKEND_OPTIONAL_LIST) \
-	android \
 	bindings \
 	c++ \
 	doc \

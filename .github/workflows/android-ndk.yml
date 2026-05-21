@@ -1,0 +1,64 @@
+name: Android NDK cross-compile
+
+on:
+  push:
+    branches: [ master, feature/* ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        target:
+          - tag: aarch64
+            host: aarch64-linux-android
+            api: 28
+          - tag: armv7a
+            host: armv7a-linux-androideabi
+            api: 28
+          - tag: x86_64
+            host: x86_64-linux-android
+            api: 28
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up NDK toolchain
+      run: |
+        echo "NDK=$ANDROID_NDK_LATEST_HOME" >> $GITHUB_ENV
+        echo "TOOLCHAIN=$ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64" >> $GITHUB_ENV
+
+    - name: Export toolchain variables
+      run: |
+        echo "AR=$TOOLCHAIN/bin/llvm-ar" >> $GITHUB_ENV
+        echo "AS=$TOOLCHAIN/bin/llvm-as" >> $GITHUB_ENV
+        echo "CC=$TOOLCHAIN/bin/${{ matrix.target.host }}${{ matrix.target.api }}-clang" >> $GITHUB_ENV
+        echo "CXX=$TOOLCHAIN/bin/${{ matrix.target.host }}${{ matrix.target.api }}-clang++" >> $GITHUB_ENV
+        echo "LD=$TOOLCHAIN/bin/ld" >> $GITHUB_ENV
+        echo "RANLIB=$TOOLCHAIN/bin/llvm-ranlib" >> $GITHUB_ENV
+        echo "STRIP=$TOOLCHAIN/bin/llvm-strip" >> $GITHUB_ENV
+
+    - name: bootstrap
+      run: ./bootstrap
+
+    - name: configure
+      run: >
+        ./configure --host=${{ matrix.target.host }}
+        --without-libusb
+
+    - name: make
+      run: make -j $(nproc) V=0 --no-print-directory
+
+    - name: make install DESTDIR
+      run: |
+        mkdir -p /tmp/hamlib-android-${{ matrix.target.tag }}
+        make install DESTDIR=/tmp/hamlib-android-${{ matrix.target.tag }}
+
+    - name: 'Upload build artifacts'
+      uses: actions/upload-artifact@v4.6.2
+      with:
+        name: hamlib-android-${{ matrix.target.tag }}
+        path: /tmp/hamlib-android-${{ matrix.target.tag }}

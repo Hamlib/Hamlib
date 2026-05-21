@@ -153,6 +153,46 @@ sys/select.h glob.h ])
 dnl set host_os variable
 AC_CANONICAL_HOST
 
+have_android=no
+have_android_sensor=no
+ANDROID_LIBS=""
+
+case "$host_os" in
+    linux-android*|android*)
+        have_android=yes
+        ;;
+esac
+
+if test "x$have_android" = "xyes"; then
+
+    AC_MSG_CHECKING([for Android sensor API])
+
+    AC_CHECK_HEADER([android/sensor.h],
+    [
+        have_android_sensor=yes
+    ],
+    [
+        have_android_sensor=no
+    ])
+
+    CXXFLAGS="$CXXFLAGS -stdlib=libc++"
+    LDFLAGS="$LDFLAGS -lc++"
+
+fi
+
+if test "x$have_android_sensor" = "xyes"; then
+    AC_DEFINE([HAVE_ANDROID_SENSOR], [1],
+              [Define if Android sensor API is available])
+
+    ANDROID_LIBS="-landroid"
+    ROT_BACKEND_LIST="$ROT_BACKEND_LIST rotators/androidsensor"
+fi
+
+AC_SUBST([ANDROID_LIBS])
+
+AM_CONDITIONAL([ANDROID], [test "x$have_android" = "xyes"])
+AM_CONDITIONAL([HAVE_ANDROID_SENSOR], [test "x$have_android_sensor" = "xyes"])
+
 dnl ws2tcpip.h not provided by cygwin and its test causes a configure warning.
 dnl wspiapi.h provides needed freeaddrinfo function on W2k systems.
 AS_IF([test "${host_os}" != "cygwin"], [
@@ -889,7 +929,6 @@ AC_CONFIG_FILES([Makefile
 amplifiers/elecraft/Makefile
 amplifiers/expert/Makefile
 amplifiers/gemini/Makefile
-android/Makefile
 bindings/Makefile
 c++/Makefile
 doc/hamlib.cfg
