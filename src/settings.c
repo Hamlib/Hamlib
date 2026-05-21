@@ -1161,9 +1161,14 @@ HAMLIB_EXPORT(int) rig_settings_save(const char *setting, void *value,
     }
 
     int fd = mkstemp(template);
-    close(fd);
-    fptmp = fopen(template, "w");
+    if (fd == -1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: error creating %s: %s\n", __func__,
+                  template, strerror(errno));
+        return -RIG_EIO;
+    }
 
+    fptmp = fdopen(fd, "w");
     if (fptmp == NULL)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: error opening for write %s: %s\n", __func__,
