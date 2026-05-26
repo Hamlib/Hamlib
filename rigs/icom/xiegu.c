@@ -444,14 +444,10 @@ struct rig_caps x6100_caps =
         {MHz(400), MHz(470), X108G_ALL_RX_MODES, -1, -1, X108G_VFOS}, RIG_FRNG_END,
     },
     .tx_range_list1 =   {
-        FRQ_RNG_HF(1, X108G_OTHER_TX_MODES, W(2), W(100), X108G_VFOS, RIG_ANT_1),
-        FRQ_RNG_6m(1, X108G_OTHER_TX_MODES, W(2), W(100), X108G_VFOS, RIG_ANT_1),
-        FRQ_RNG_2m(1, X108G_OTHER_TX_MODES, W(2), W(50), X108G_VFOS, RIG_ANT_2),
-        FRQ_RNG_70cm(1, X108G_OTHER_TX_MODES, W(2), W(35), X108G_VFOS, RIG_ANT_2),
-        FRQ_RNG_HF(1, X108G_AM_TX_MODES, W(1), W(40), X108G_VFOS, RIG_ANT_1), /* AM class */
-        FRQ_RNG_6m(1, X108G_AM_TX_MODES, W(1), W(40), X108G_VFOS, RIG_ANT_1), /* AM class */
-        FRQ_RNG_2m(1, X108G_AM_TX_MODES, W(2), W(20), X108G_VFOS, RIG_ANT_2),
-        FRQ_RNG_70cm(1, X108G_OTHER_TX_MODES, W(2), W(14), X108G_VFOS, RIG_ANT_2),
+        FRQ_RNG_HF(1, X108G_OTHER_TX_MODES, W(1), W(10), X108G_VFOS, RIG_ANT_1),
+        FRQ_RNG_6m(1, X108G_OTHER_TX_MODES, W(1), W(10), X108G_VFOS, RIG_ANT_1),
+        FRQ_RNG_HF(1, X108G_AM_TX_MODES, W(1), W(10), X108G_VFOS, RIG_ANT_1), /* AM class */
+        FRQ_RNG_6m(1, X108G_AM_TX_MODES, W(1), W(10), X108G_VFOS, RIG_ANT_1), /* AM class */
         RIG_FRNG_END,
     },
 
@@ -459,14 +455,10 @@ struct rig_caps x6100_caps =
         {MHz(400), MHz(470), X108G_ALL_RX_MODES, -1, -1, X108G_VFOS}, RIG_FRNG_END,
     },
     .tx_range_list2 =  { /* needs the 5 MHz channels added */
-        FRQ_RNG_HF(2, X108G_OTHER_TX_MODES, W(2), W(100), X108G_VFOS, RIG_ANT_1),
-        FRQ_RNG_6m(2, X108G_OTHER_TX_MODES, W(2), W(100), X108G_VFOS, RIG_ANT_1),
-        FRQ_RNG_2m(2, X108G_OTHER_TX_MODES, W(2), W(50), X108G_VFOS, RIG_ANT_2),
-        FRQ_RNG_70cm(2, X108G_OTHER_TX_MODES, W(2), W(35), X108G_VFOS, RIG_ANT_2),
-        FRQ_RNG_HF(2, X108G_AM_TX_MODES, W(1), W(40), X108G_VFOS, RIG_ANT_1), /* AM class */
-        FRQ_RNG_6m(2, X108G_AM_TX_MODES, W(1), W(40), X108G_VFOS, RIG_ANT_1), /* AM class */
-        FRQ_RNG_2m(2, X108G_AM_TX_MODES, W(2), W(20), X108G_VFOS, RIG_ANT_2),
-        FRQ_RNG_70cm(2, X108G_OTHER_TX_MODES, W(2), W(14), X108G_VFOS, RIG_ANT_2),
+        FRQ_RNG_HF(2, X108G_OTHER_TX_MODES, W(1), W(10), X108G_VFOS, RIG_ANT_1),
+        FRQ_RNG_6m(2, X108G_OTHER_TX_MODES, W(1), W(10), X108G_VFOS, RIG_ANT_1),
+        FRQ_RNG_HF(2, X108G_AM_TX_MODES, W(1), W(10), X108G_VFOS, RIG_ANT_1), /* AM class */
+        FRQ_RNG_6m(2, X108G_AM_TX_MODES, W(1), W(10), X108G_VFOS, RIG_ANT_1), /* AM class */
         RIG_FRNG_END,
     },
 
