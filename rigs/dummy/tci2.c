@@ -1571,7 +1571,7 @@ static int tci2_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         }
         else if (ptt == RIG_PTT_ON_DATA)
         {
-            src = ",Vac";
+            src = ",tci";
         }
         else if (strcasecmp(priv->txsource, "mic") == 0)
         {
@@ -1579,7 +1579,7 @@ static int tci2_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         }
         else if (strcasecmp(priv->txsource, "vac") == 0)
         {
-            src = ",Vac";
+            src = ",tci";
         }
         else
         {
