@@ -50,6 +50,16 @@
 #include "token.h"
 #include "dummy_common.h"
 
+/* Audio sidecar support */
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <poll.h>
+
 /* -------------------------------------------------------------------------
  * Constants
  * ---------------------------------------------------------------------- */
@@ -58,7 +68,12 @@
 #define TCI2_BUFLEN        8192
 #define TCI2_CMDLEN        512
 #define TCI2_INIT_MAX_MSGS 256   /* max frames to drain during open */
-#define TCI2_RECV_MAX      32    /* max frames to scan for a reply */
+#define TCI2_TEXT_Q_DEPTH  64    /* slots in reader-thread text frame queue */
+#define TCI2_RECV_MAX      256   /* max frames to scan for a reply.
+                                  * Generous to absorb sensor traffic
+                                  * (RX_SENSORS at 200ms) that piles up in
+                                  * the reader-thread queue between CAT
+                                  * commands. */
 #define TCI2_MAX_RT_MODES  64    /* runtime mode table slots */
 
 #define TCI2_MODES (RIG_MODE_USB | RIG_MODE_LSB | RIG_MODE_CW  | RIG_MODE_CWR  | \
@@ -85,6 +100,9 @@
 #define TOK_TCI2_TXSRC       TOKEN_BACKEND(2)
 #define TOK_TCI2_DIGL_OFFSET TOKEN_BACKEND(3)
 #define TOK_TCI2_DIGU_OFFSET TOKEN_BACKEND(4)
+#define TOK_TCI2_AUDIO_PORT  TOKEN_BACKEND(5)
+
+#define TCI2_AUDIO_BUFLEN 8192
 
 /* -------------------------------------------------------------------------
  * Static mode map: TCI mode string <-> Hamlib rmode_t
@@ -172,6 +190,31 @@ struct tci2_priv
     int     digl_offset;      /* DIGL mode frequency offset, Hz (0..4000) */
     int     digu_offset;      /* DIGU mode frequency offset, Hz (0..4000) */
 
+    /* Audio sidecar support */
+    int     audio_listen_fd;    /* -1 or listening socket */
+    int     audio_sidecar_fd;   /* -1 or connected sidecar */
+    int     audio_port;         /* 0=disabled, else TCP port */
+    char    audio_buf[TCI2_AUDIO_BUFLEN];
+    int     audio_buf_used;
+    int     tx_chrono_pending;
+    int     tx_chrono_samples;
+    pthread_t audio_thread;     /* Background thread for audio polling */
+    int     audio_thread_run;   /* Flag to stop thread */
+    pthread_mutex_t ws_mutex;   /* Serializes WebSocket writes only.
+                                 * The reader thread is the SOLE reader. */
+
+    /* Text-frame queue: when the reader thread is running it is the SOLE
+     * reader of the WebSocket, demultiplexing into binary -> sidecar and
+     * text -> this queue.  tci2_recv_until() pops from the queue instead
+     * of reading directly from the socket. */
+    pthread_mutex_t  q_mutex;
+    pthread_cond_t   q_cond;
+    char             text_q[TCI2_TEXT_Q_DEPTH][TCI2_BUFLEN];
+    int              text_q_head;     /* next slot to write */
+    int              text_q_tail;     /* next slot to read */
+    int              text_q_count;
+    int              reader_running;  /* 1 once tci2_audio_poll_thread is alive */
+
     /* Device info received during init */
     char    device[64];
     char    modulations_list[512]; /* raw MODULATIONS_LIST from server */
@@ -225,6 +268,11 @@ static const struct confparams tci2_cfg_params[] =
         "Frequency offset for DIGU (digital upper sideband) mode, Hz (0..4000). "
         "Sent to the server on connect.",
         "0", RIG_CONF_INT, { .n = { .min = 0, .max = 4000, .step = 1 } }
+    },
+    {
+        TOK_TCI2_AUDIO_PORT, "audio_port", "Audio Sidecar Port",
+        "TCP port for audio sidecar connection (0=disabled, auto-enables TCI audio)",
+        "0", RIG_CONF_INT, { .n = { .min = 0, .max = 65535, .step = 1 } }
     },
     { RIG_CONF_END, NULL, NULL, NULL, NULL, RIG_CONF_STRING, {} }
 };
@@ -280,6 +328,11 @@ static int tci2_set_conf(RIG *rig, hamlib_token_t token, const char *val)
         return RIG_OK;
     }
 
+    case TOK_TCI2_AUDIO_PORT:
+        priv->audio_port = atoi(val);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: audio_port=%d\n", __func__, priv->audio_port);
+        return RIG_OK;
+
     default:
         return -RIG_EINVAL;
     }
@@ -308,10 +361,20 @@ static int tci2_get_conf(RIG *rig, hamlib_token_t token, char *val)
         SNPRINTF(val, 8, "%d", priv->digu_offset);
         return RIG_OK;
 
+    case TOK_TCI2_AUDIO_PORT:
+        SNPRINTF(val, 8, "%d", priv->audio_port);
+        return RIG_OK;
+
     default:
         return -RIG_EINVAL;
     }
 }
+
+/* Forward declarations for audio sidecar functions */
+static int tci2_audio_init(RIG *rig);
+static int tci2_audio_cleanup(RIG *rig);
+static void tci2_audio_accept(RIG *rig);
+static void *tci2_audio_poll_thread(void *arg);
 
 /* -------------------------------------------------------------------------
  * WebSocket helpers
@@ -550,19 +613,47 @@ static int ws_recv_frame(RIG *rig, char *buf, int buflen)
         }
     }
 
-    /* Binary frames (IQ/audio) or oversized — drain and return 0 */
-    if (opcode == 0x02 || plen > (size_t)(buflen - 1))
+    /* Binary frames (IQ/audio) - read into buffer if it fits, otherwise drain */
+    if (opcode == 0x02)
+    {
+        if (plen <= (size_t)(buflen - 1))
+        {
+            /* Binary frame fits - read it */
+            retval = read_block(rp, (unsigned char *)buf, plen);
+            if (retval != (int)plen)
+            {
+                return -RIG_EIO;
+            }
+            buf[0] = '\0';  /* Mark as binary frame */
+            return (int)plen;
+        }
+        else
+        {
+            /* Binary frame too large - drain it */
+            unsigned char discard[256];
+            size_t remain = plen;
+            while (remain > 0)
+            {
+                size_t chunk = (remain > sizeof(discard)) ? sizeof(discard) : remain;
+                read_block(rp, discard, chunk);
+                remain -= chunk;
+            }
+            buf[0] = '\0';
+            return 0;
+        }
+    }
+
+    /* Text frame too large - drain it */
+    if (plen > (size_t)(buflen - 1))
     {
         unsigned char discard[256];
         size_t remain = plen;
-
         while (remain > 0)
         {
             size_t chunk = (remain > sizeof(discard)) ? sizeof(discard) : remain;
             read_block(rp, discard, chunk);
             remain -= chunk;
         }
-
         buf[0] = '\0';
         return 0;
     }
@@ -608,8 +699,16 @@ static int ws_recv_frame(RIG *rig, char *buf, int buflen)
 
 static int tci2_send(RIG *rig, const char *cmd)
 {
+    struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
+    int rc;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s: send: %s\n", __func__, cmd);
-    return ws_send_text(rig, cmd);
+    /* Serialize WebSocket writes -- the audio reader thread, the CAT
+     * thread, and tci2_audio_accept all call tci2_send concurrently. */
+    pthread_mutex_lock(&priv->ws_mutex);
+    rc = ws_send_text(rig, cmd);
+    pthread_mutex_unlock(&priv->ws_mutex);
+    return rc;
 }
 
 /*
@@ -625,6 +724,21 @@ static void tci2_process_message(RIG *rig, const char *msg)
 
     if (strncasecmp(msg, "READY", 5) == 0)
     {
+        /* Initialize audio sidecar if requested */
+        if (priv->audio_port > 0)
+        {
+            int retval = tci2_audio_init(rig);
+            if (retval == RIG_OK)
+            {
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: audio sidecar enabled, forcing TCI audio mode\n", __func__);
+                strncpy(priv->txsource, "tci", sizeof(priv->txsource) - 1);
+            }
+            else
+            {
+                rig_debug(RIG_DEBUG_WARN, "%s: audio sidecar init failed: %d\n", __func__, retval);
+            }
+        }
+
         priv->ready = 1;
     }
     else if (strncasecmp(msg, "VFO_LIMITS:", 11) == 0)
@@ -1020,22 +1134,162 @@ static void tci2_process_message(RIG *rig, const char *msg)
             priv->cw_speed_wpm = wpm;
         }
     }
+    else if (strncasecmp(msg, "TX_CHRONO:", 10) == 0)
+    {
+        /* TX_CHRONO:trx,samples; - forward to audio sidecar if connected */
+        if (priv->audio_sidecar_fd >= 0)
+        {
+            char fwd[256];
+            int trx, samples;
+
+            if (sscanf(msg + 10, "%d,%d", &trx, &samples) == 2)
+            {
+                snprintf(fwd, sizeof(fwd), "TX_CHRONO %d %d\n", trx, samples);
+                if (send(priv->audio_sidecar_fd, fwd, strlen(fwd), MSG_NOSIGNAL) < 0)
+                {
+                    rig_debug(RIG_DEBUG_WARN, "%s: TX_CHRONO forward failed: %s\n",
+                              __func__, strerror(errno));
+                }
+            }
+        }
+    }
+    else if (strncasecmp(msg, "RX_AUDIO_STREAM:", 16) == 0)
+    {
+        /* RX_AUDIO_STREAM:trx,channel,sample_rate,format; - forward to audio sidecar */
+        if (priv->audio_sidecar_fd >= 0)
+        {
+            char fwd[256];
+            snprintf(fwd, sizeof(fwd), "RX_AUDIO %s\n", msg + 16);
+            if (send(priv->audio_sidecar_fd, fwd, strlen(fwd), MSG_NOSIGNAL) < 0)
+            {
+                rig_debug(RIG_DEBUG_WARN, "%s: RX_AUDIO forward failed: %s\n",
+                          __func__, strerror(errno));
+            }
+        }
+    }
+}
+
+/*
+ * Push a text frame into the reader-thread -> CAT-thread queue.
+ * Called only from the audio reader thread.  If the queue is full the
+ * oldest entry is dropped (we'd rather lose stale sensor data than block
+ * the reader and back up the WebSocket).
+ */
+static void tci2_text_q_push(struct tci2_priv *priv, const char *frame)
+{
+    pthread_mutex_lock(&priv->q_mutex);
+
+    if (priv->text_q_count == TCI2_TEXT_Q_DEPTH)
+    {
+        /* Drop oldest */
+        priv->text_q_tail = (priv->text_q_tail + 1) % TCI2_TEXT_Q_DEPTH;
+        priv->text_q_count--;
+    }
+
+    /* Use a length-bounded memcpy + explicit NUL to avoid GCC's
+     * stringop-truncation false-positive on strncpy.  The source buffer
+     * is always NUL-terminated within TCI2_BUFLEN by ws_recv_frame(). */
+    {
+        size_t flen = strlen(frame);
+        if (flen > TCI2_BUFLEN - 1) { flen = TCI2_BUFLEN - 1; }
+        memcpy(priv->text_q[priv->text_q_head], frame, flen);
+        priv->text_q[priv->text_q_head][flen] = '\0';
+    }
+    priv->text_q_head = (priv->text_q_head + 1) % TCI2_TEXT_Q_DEPTH;
+    priv->text_q_count++;
+
+    pthread_cond_signal(&priv->q_cond);
+    pthread_mutex_unlock(&priv->q_mutex);
+}
+
+/*
+ * Pop a single text frame from the queue.  Blocks up to timeout_ms.
+ * Returns the frame length on success, -RIG_ETIMEOUT on timeout.
+ * Frame is copied into `out' (NUL-terminated, at most outlen-1 chars).
+ */
+static int tci2_text_q_pop(struct tci2_priv *priv, char *out, int outlen,
+                           int timeout_ms)
+{
+    int rc = RIG_OK;
+    struct timespec deadline;
+
+    clock_gettime(CLOCK_REALTIME, &deadline);
+    deadline.tv_sec  += timeout_ms / 1000;
+    deadline.tv_nsec += (long)(timeout_ms % 1000) * 1000000L;
+    if (deadline.tv_nsec >= 1000000000L)
+    {
+        deadline.tv_sec  += 1;
+        deadline.tv_nsec -= 1000000000L;
+    }
+
+    pthread_mutex_lock(&priv->q_mutex);
+
+    while (priv->text_q_count == 0)
+    {
+        rc = pthread_cond_timedwait(&priv->q_cond, &priv->q_mutex, &deadline);
+        if (rc == ETIMEDOUT)
+        {
+            pthread_mutex_unlock(&priv->q_mutex);
+            return -RIG_ETIMEOUT;
+        }
+    }
+
+    int n = (int)strlen(priv->text_q[priv->text_q_tail]);
+    if (n > outlen - 1) { n = outlen - 1; }
+    memcpy(out, priv->text_q[priv->text_q_tail], n);
+    out[n] = '\0';
+    priv->text_q_tail = (priv->text_q_tail + 1) % TCI2_TEXT_Q_DEPTH;
+    priv->text_q_count--;
+
+    pthread_mutex_unlock(&priv->q_mutex);
+    return n;
 }
 
 /*
  * Read frames until one whose command token matches `prefix' is received
  * (or TCI2_RECV_MAX frames scanned).  All frames update the state cache.
  * Pass prefix=NULL to consume exactly one frame.
+ *
+ * If the audio reader thread is running it is the SOLE WebSocket reader;
+ * we pop from its text-frame queue.  Otherwise we read directly.
  */
 static int tci2_recv_until(RIG *rig, const char *prefix,
                             char *reply, int replylen)
 {
+    struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
     char buf[TCI2_BUFLEN];
     int retval;
+    int reader_running = priv->reader_running;
 
     for (int i = 0; i < TCI2_RECV_MAX; i++)
     {
+        if (reader_running)
+        {
+            /* Reader thread is the sole WS reader; pop from queue. */
+            retval = tci2_text_q_pop(priv, buf, sizeof(buf), 2000);
+            if (retval < 0) { return retval; }
+
+            /* Reader thread already called tci2_process_message on this
+             * frame.  We just need to match against `prefix'. */
+            if (prefix == NULL ||
+                    strncasecmp(buf, prefix, strlen(prefix)) == 0)
+            {
+                if (reply && replylen > 0)
+                {
+                    strncpy(reply, buf, replylen - 1);
+                    reply[replylen - 1] = '\0';
+                }
+                return RIG_OK;
+            }
+            continue;
+        }
+
+        /* No reader thread - check for incoming audio sidecar connection. */
+        tci2_audio_accept(rig);
+
+        pthread_mutex_lock(&priv->ws_mutex);
         retval = ws_recv_frame(rig, buf, sizeof(buf));
+        pthread_mutex_unlock(&priv->ws_mutex);
 
         if (retval < 0)
         {
@@ -1044,7 +1298,17 @@ static int tci2_recv_until(RIG *rig, const char *prefix,
 
         if (buf[0] == '\0')
         {
-            continue;    /* binary frame, skip */
+            /* Binary frame (likely audio) - forward to sidecar if connected */
+            if (priv->audio_sidecar_fd >= 0 && retval > 0)
+            {
+                ssize_t sent = send(priv->audio_sidecar_fd, buf, retval, MSG_NOSIGNAL);
+                if (sent < 0 && errno != EAGAIN && errno != EWOULDBLOCK)
+                {
+                    rig_debug(RIG_DEBUG_WARN, "%s: audio forward failed: %s\n",
+                              __func__, strerror(errno));
+                }
+            }
+            continue;
         }
 
         tci2_process_message(rig, buf);
@@ -1216,6 +1480,454 @@ static const char *tci2_mode_to_str(RIG *rig, rmode_t mode)
 
 
 /* -------------------------------------------------------------------------
+ * Audio Sidecar Support
+ *
+ * Allows external audio handling process to connect via TCP socket and
+ * handle TCI audio routing while rigctld manages TX_CHRONO routing.
+ * ---------------------------------------------------------------------- */
+
+/**
+ * tci2_audio_init - Initialize audio sidecar listening socket
+ */
+static int tci2_audio_init(RIG *rig)
+{
+    struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
+    struct sockaddr_in addr;
+    int fd, opt = 1, flags;
+
+    ENTERFUNC;
+
+    if (priv->audio_port == 0)
+    {
+        RETURNFUNC(RIG_OK);
+    }
+
+    /* If the listen socket already exists (from a prior open of this same
+     * rig), reuse it -- but the audio reader thread, which referenced the
+     * old WebSocket FD, was torn down in tci2_close.  Skip the bind() and
+     * fall through to (re)start the thread. */
+    if (priv->audio_listen_fd >= 0)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: audio listen socket already up, restarting reader thread\n",
+                  __func__);
+        goto start_thread;
+    }
+
+    fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (fd < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: socket() failed: %s\n", __func__, strerror(errno));
+        RETURNFUNC(-RIG_EIO);
+    }
+
+    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    addr.sin_port = htons(priv->audio_port);
+
+    if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: bind(%d) failed: %s\n",
+                  __func__, priv->audio_port, strerror(errno));
+        close(fd);
+        RETURNFUNC(-RIG_EIO);
+    }
+
+    if (listen(fd, 1) < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: listen() failed: %s\n", __func__, strerror(errno));
+        close(fd);
+        RETURNFUNC(-RIG_EIO);
+    }
+
+    flags = fcntl(fd, F_GETFL, 0);
+    if (flags >= 0)
+    {
+        fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+    }
+
+    priv->audio_listen_fd = fd;
+    priv->audio_buf_used = 0;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: audio sidecar listening on localhost:%d\n",
+              __func__, priv->audio_port);
+
+start_thread:
+    /* Start background audio thread.  Set reader_running BEFORE creating
+     * the thread: tci2_recv_until() inspects this flag, and a subsequent
+     * call from the same thread that returned from this function must see
+     * it.  The thread will clear it on shutdown. */
+    priv->audio_thread_run = 1;
+    priv->reader_running = 1;
+    if (pthread_create(&priv->audio_thread, NULL, tci2_audio_poll_thread, rig) != 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to create audio thread\n", __func__);
+        priv->audio_thread_run = 0;
+        priv->reader_running = 0;
+        close(priv->audio_listen_fd);
+        priv->audio_listen_fd = -1;
+        RETURNFUNC(-RIG_EIO);
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: audio polling thread started\n", __func__);
+
+    RETURNFUNC(RIG_OK);
+}
+
+/**
+ * tci2_audio_cleanup - Close audio sidecar connections
+ */
+static int tci2_audio_cleanup(RIG *rig)
+{
+    struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
+
+    ENTERFUNC;
+
+    /* Stop audio polling thread */
+    if (priv->audio_thread_run)
+    {
+        priv->audio_thread_run = 0;
+        pthread_join(priv->audio_thread, NULL);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: audio thread stopped\n", __func__);
+    }
+
+    /* Close audio sidecar connection */
+    if (priv->audio_sidecar_fd >= 0)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: closing sidecar fd=%d\n",
+                  __func__, priv->audio_sidecar_fd);
+        close(priv->audio_sidecar_fd);
+        priv->audio_sidecar_fd = -1;
+    }
+
+    if (priv->audio_listen_fd >= 0)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: closing listen fd=%d\n",
+                  __func__, priv->audio_listen_fd);
+        close(priv->audio_listen_fd);
+        priv->audio_listen_fd = -1;
+    }
+
+    RETURNFUNC(RIG_OK);
+}
+
+/**
+ * tci2_audio_poll_thread - Background thread to continuously read from TCI
+ * and forward audio frames to sidecar
+ */
+static void *tci2_audio_poll_thread(void *arg)
+{
+    RIG *rig = (RIG *)arg;
+    struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
+    hamlib_port_t *rp = RIGPORT(rig);
+    char buf[TCI2_BUFLEN];
+    int retval;
+    struct pollfd pfd;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: started\n", "tci2_audio_poll_thread");
+
+    /* reader_running is set by tci2_audio_init before pthread_create so
+     * any caller racing this thread sees the queue path. */
+
+    /* Get the WebSocket file descriptor */
+    pfd.fd = rp->fd;
+    pfd.events = POLLIN;
+
+    while (priv->audio_thread_run)
+    {
+        /* Accept sidecar connection if pending (non-blocking).  Need to do
+         * this from the reader thread because there may be no CAT activity
+         * driving tci2_recv_until. */
+        tci2_audio_accept(rig);
+
+        /* Use poll() instead of select() to avoid FD_SETSIZE limit */
+        int poll_ret = poll(&pfd, 1, 200);  /* 200 ms - check audio_thread_run / accept fairly often */
+
+        if (poll_ret < 0)
+        {
+            if (errno == EINTR) continue;
+            rig_debug(RIG_DEBUG_ERR, "%s: poll() failed: %s\n",
+                      "tci2_audio_poll_thread", strerror(errno));
+            break;
+        }
+
+        /* Pump TX audio from the sidecar regardless of whether the WS
+         * has data.  With sensors streaming continuously, poll_ret is
+         * almost never 0 -- so this code MUST run every iteration, not
+         * only on timeout.
+         *
+         * The sidecar sends complete TCI frames (64-byte header + audio
+         * body).  We must reassemble them across recv() calls because
+         * TCP is a byte stream -- a single sendall() on the sidecar side
+         * may arrive split.  Forwarding a partial frame makes ExpertSDR3
+         * silently drop the audio (TX engages but emits 0 W). */
+        {
+            if (priv->audio_sidecar_fd >= 0)
+            {
+                /* Drain whatever bytes are available into priv->audio_buf */
+                while (priv->audio_buf_used < (int)sizeof(priv->audio_buf))
+                {
+                    ssize_t rx = recv(priv->audio_sidecar_fd,
+                                      priv->audio_buf + priv->audio_buf_used,
+                                      sizeof(priv->audio_buf) - priv->audio_buf_used,
+                                      MSG_DONTWAIT);
+                    if (rx == 0)
+                    {
+                        rig_debug(RIG_DEBUG_VERBOSE,
+                                  "%s: sidecar disconnected (EOF), closing fd=%d\n",
+                                  "tci2_audio_poll_thread", priv->audio_sidecar_fd);
+                        close(priv->audio_sidecar_fd);
+                        priv->audio_sidecar_fd = -1;
+                        priv->audio_buf_used = 0;
+                        break;
+                    }
+                    if (rx < 0)
+                    {
+                        if (errno != EAGAIN && errno != EWOULDBLOCK)
+                        {
+                            rig_debug(RIG_DEBUG_WARN,
+                                      "%s: sidecar recv failed: %s\n",
+                                      "tci2_audio_poll_thread", strerror(errno));
+                            close(priv->audio_sidecar_fd);
+                            priv->audio_sidecar_fd = -1;
+                            priv->audio_buf_used = 0;
+                        }
+                        break;
+                    }
+                    priv->audio_buf_used += (int)rx;
+                }
+
+                /* Emit complete TCI frames: header(64) + samples*bytes_per_sample
+                 * Header layout (little-endian uint32):
+                 *   [0]=receiver, [1]=sample_rate, [2]=format, [3]=,
+                 *   [4]=, [5]=length(samples), [6]=stream_type, [7]=channels
+                 * We only really need length + format + channels to compute body bytes. */
+                while (priv->audio_buf_used >= 64)
+                {
+                    uint32_t length, format, channels;
+                    memcpy(&length,   priv->audio_buf + 5*4, 4);
+                    memcpy(&format,   priv->audio_buf + 2*4, 4);
+                    memcpy(&channels, priv->audio_buf + 7*4, 4);
+
+                    int sample_bytes;
+                    switch (format)
+                    {
+                        case 0: sample_bytes = 2; break; /* int16 */
+                        case 1: sample_bytes = 3; break; /* int24 */
+                        case 2: sample_bytes = 4; break; /* int32 */
+                        case 3: sample_bytes = 4; break; /* float32 */
+                        default:
+                            rig_debug(RIG_DEBUG_WARN,
+                                      "%s: bad TCI audio format %u, dropping buffer\n",
+                                      "tci2_audio_poll_thread", format);
+                            priv->audio_buf_used = 0;
+                            goto sidecar_done;
+                    }
+                    if (channels == 0 || channels > 8 || length == 0 || length > 65536)
+                    {
+                        rig_debug(RIG_DEBUG_WARN,
+                                  "%s: bogus TCI frame len=%u ch=%u, dropping\n",
+                                  "tci2_audio_poll_thread", length, channels);
+                        priv->audio_buf_used = 0;
+                        break;
+                    }
+
+                    int frame_bytes = 64 + (int)(length * channels * sample_bytes);
+                    if (frame_bytes > (int)sizeof(priv->audio_buf))
+                    {
+                        rig_debug(RIG_DEBUG_WARN,
+                                  "%s: TCI frame %d > buf, dropping\n",
+                                  "tci2_audio_poll_thread", frame_bytes);
+                        priv->audio_buf_used = 0;
+                        break;
+                    }
+                    if (priv->audio_buf_used < frame_bytes)
+                    {
+                        /* incomplete -- wait for more bytes */
+                        break;
+                    }
+
+                    /* Have one full frame; ship it as a single WS binary frame */
+                    hamlib_port_t *rp_tx = RIGPORT(rig);
+                    unsigned char ws_hdr[8];
+                    int hdr_len;
+                    if (frame_bytes < 126)
+                    {
+                        ws_hdr[0] = 0x82;
+                        ws_hdr[1] = 0x80 | (unsigned char)frame_bytes;
+                        hdr_len = 2;
+                    }
+                    else if (frame_bytes < 65536)
+                    {
+                        ws_hdr[0] = 0x82;
+                        ws_hdr[1] = 0x80 | 126;
+                        ws_hdr[2] = (frame_bytes >> 8) & 0xFF;
+                        ws_hdr[3] = frame_bytes & 0xFF;
+                        hdr_len = 4;
+                    }
+                    else
+                    {
+                        /* TCI frames don't go this big in practice */
+                        ws_hdr[0] = 0x82;
+                        ws_hdr[1] = 0x80 | 127;
+                        memset(ws_hdr + 2, 0, 6);   /* high bits of 64-bit length */
+                        hdr_len = 10;  /* would need more bytes -- skip for now */
+                        rig_debug(RIG_DEBUG_WARN,
+                                  "%s: oversized TCI frame %d, skipping\n",
+                                  "tci2_audio_poll_thread", frame_bytes);
+                        memmove(priv->audio_buf,
+                                priv->audio_buf + frame_bytes,
+                                priv->audio_buf_used - frame_bytes);
+                        priv->audio_buf_used -= frame_bytes;
+                        continue;
+                    }
+
+                    /* Mask and emit (RFC 6455 client->server requires masking) */
+                    unsigned char mask[4] = {0x12, 0x34, 0x56, 0x78};
+                    /* Mask in-place into a temporary copy because we still
+                     * need to slide the original bytes out of audio_buf. */
+                    char masked[TCI2_BUFLEN];
+                    memcpy(masked, priv->audio_buf, frame_bytes);
+                    for (int i = 0; i < frame_bytes; i++)
+                    {
+                        masked[i] ^= mask[i & 3];
+                    }
+
+                    pthread_mutex_lock(&priv->ws_mutex);
+                    write_block(rp_tx, ws_hdr, hdr_len);
+                    write_block(rp_tx, mask, 4);
+                    write_block(rp_tx, (unsigned char *)masked, frame_bytes);
+                    pthread_mutex_unlock(&priv->ws_mutex);
+
+                    /* Slide remaining bytes down */
+                    memmove(priv->audio_buf,
+                            priv->audio_buf + frame_bytes,
+                            priv->audio_buf_used - frame_bytes);
+                    priv->audio_buf_used -= frame_bytes;
+                }
+            }
+sidecar_done:;
+        }
+
+        if (poll_ret == 0)
+        {
+            /* No WS data this round -- nothing else to do. */
+            continue;
+        }
+
+        /* Data available - read WebSocket frame.
+         * No need to lock ws_mutex for reads: this thread is the sole reader.
+         * Writes from other threads (tci2_send) are still serialized. */
+        retval = ws_recv_frame(rig, buf, sizeof(buf));
+
+        if (retval < 0)
+        {
+            rig_debug(RIG_DEBUG_WARN, "%s: ws_recv_frame failed: %d\n",
+                      "tci2_audio_poll_thread", retval);
+            usleep(100000);  /* Wait 100ms before retry */
+            continue;
+        }
+
+        if (buf[0] == '\0')
+        {
+            /* Binary frame (audio) from TCI - forward to sidecar */
+            if (priv->audio_sidecar_fd >= 0 && retval > 0)
+            {
+                ssize_t sent = send(priv->audio_sidecar_fd, buf, retval, MSG_NOSIGNAL);
+                if (sent < 0)
+                {
+                    if (errno == EPIPE || errno == ECONNRESET)
+                    {
+                        rig_debug(RIG_DEBUG_WARN, "%s: sidecar disconnected, closing fd=%d\n",
+                                  "tci2_audio_poll_thread", priv->audio_sidecar_fd);
+                        close(priv->audio_sidecar_fd);
+                        priv->audio_sidecar_fd = -1;
+                    }
+                    else
+                    {
+                        rig_debug(RIG_DEBUG_WARN, "%s: TCI->sidecar send failed: %s\n",
+                                  "tci2_audio_poll_thread", strerror(errno));
+                    }
+                }
+            }
+        }
+        else
+        {
+            /* Text frame - update cached state and queue for any waiting CAT
+             * thread.  Both must happen because tci2_process_message has
+             * side effects (forwards TX_CHRONO/RX_AUDIO_STREAM lines to the
+             * sidecar) that must run regardless of whether anyone reads. */
+            tci2_process_message(rig, buf);
+            tci2_text_q_push(priv, buf);
+        }
+    }
+
+    priv->reader_running = 0;
+    /* Wake any CAT thread blocked in tci2_text_q_pop so it sees the
+     * shutdown rather than waiting for the timeout. */
+    pthread_mutex_lock(&priv->q_mutex);
+    pthread_cond_broadcast(&priv->q_cond);
+    pthread_mutex_unlock(&priv->q_mutex);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: stopped\n", "tci2_audio_poll_thread");
+    return NULL;
+}
+
+/**
+ * tci2_audio_accept - Accept incoming sidecar connection (non-blocking)
+ */
+static void tci2_audio_accept(RIG *rig)
+{
+    struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
+    int fd, flags;
+
+    if (priv->audio_listen_fd < 0 || priv->audio_sidecar_fd >= 0)
+    {
+        return;  /* Not listening or already connected */
+    }
+
+    fd = accept(priv->audio_listen_fd, NULL, NULL);
+    if (fd < 0)
+    {
+        if (errno != EAGAIN && errno != EWOULDBLOCK)
+        {
+            rig_debug(RIG_DEBUG_WARN, "%s: accept() failed: %s\n",
+                      __func__, strerror(errno));
+        }
+        return;
+    }
+
+    /* Set non-blocking */
+    flags = fcntl(fd, F_GETFL, 0);
+    if (flags >= 0)
+    {
+        fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+    }
+
+    priv->audio_sidecar_fd = fd;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: audio sidecar connected, fd=%d\n",
+              __func__, fd);
+
+    /* Configure and enable TCI audio streaming */
+    char cmd[TCI2_CMDLEN];
+
+    /* Set audio format to match sidecar expectations */
+    tci2_send(rig, "AUDIO_SAMPLERATE:8000;");
+    tci2_send(rig, "AUDIO_STREAM_SAMPLE_TYPE:int16;");
+    tci2_send(rig, "AUDIO_STREAM_CHANNELS:1;");
+    tci2_send(rig, "AUDIO_STREAM_SAMPLES:512;");
+
+    /* Start audio streaming */
+    SNPRINTF(cmd, sizeof(cmd), "AUDIO_START:%d;", priv->trx_num);
+    tci2_send(rig, cmd);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: TCI audio streaming enabled\n", __func__);
+}
+
+/* -------------------------------------------------------------------------
  * Lifecycle
  * ---------------------------------------------------------------------- */
 
@@ -1247,6 +1959,24 @@ static int tci2_init(RIG *rig)
     priv->rt_mode_count   = 0;
     strncpy(priv->mode_str, "USB", sizeof(priv->mode_str) - 1);
     strncpy(priv->txsource, "default", sizeof(priv->txsource) - 1);
+
+    /* Initialize audio sidecar fields */
+    priv->audio_port = 0;
+    priv->audio_listen_fd = -1;
+    priv->audio_sidecar_fd = -1;
+    priv->audio_buf_used = 0;
+    priv->tx_chrono_pending = 0;
+    priv->tx_chrono_samples = 0;
+    priv->audio_thread_run = 0;
+    pthread_mutex_init(&priv->ws_mutex, NULL);
+
+    /* Text-frame queue */
+    pthread_mutex_init(&priv->q_mutex, NULL);
+    pthread_cond_init(&priv->q_cond, NULL);
+    priv->text_q_head = 0;
+    priv->text_q_tail = 0;
+    priv->text_q_count = 0;
+    priv->reader_running = 0;
 
     STATE(rig)->priv = priv;
 
@@ -1346,6 +2076,8 @@ static int tci2_open(RIG *rig)
 
 static int tci2_close(RIG *rig)
 {
+    struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
+
     ENTERFUNC;
 
     if (tci2_send(rig, "RX_SENSORS_ENABLE:false;") != RIG_OK)
@@ -1360,12 +2092,38 @@ static int tci2_close(RIG *rig)
                   "%s: TX_SENSORS_ENABLE:false failed\n", __func__);
     }
 
+    /* Stop the audio reader thread before Hamlib closes the WebSocket
+     * underneath us.  The thread holds a copy of rp->fd and would spin on
+     * POLLNVAL once the FD is closed.  Listen socket and any connected
+     * sidecar are kept across CAT reconnects -- only the WS-side reader
+     * gets torn down. */
+    if (priv->audio_thread_run)
+    {
+        priv->audio_thread_run = 0;
+        pthread_join(priv->audio_thread, NULL);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: audio reader thread stopped\n", __func__);
+    }
+
     RETURNFUNC(RIG_OK);
 }
 
 static int tci2_cleanup(RIG *rig)
 {
+    struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
+
+    /* Clean up audio sidecar */
+    tci2_audio_cleanup(rig);
+
     ENTERFUNC;
+
+    /* Destroy mutexes */
+    if (priv)
+    {
+        pthread_mutex_destroy(&priv->ws_mutex);
+        pthread_mutex_destroy(&priv->q_mutex);
+        pthread_cond_destroy(&priv->q_cond);
+    }
+
     free(STATE(rig)->priv);
     STATE(rig)->priv = NULL;
     RETURNFUNC(RIG_OK);
@@ -1565,6 +2323,9 @@ static int tci2_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     {
         const char *src;
 
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: ptt=%d, txsource='%s'\n",
+                  __func__, ptt, priv->txsource);
+
         if (ptt == RIG_PTT_ON_MIC)
         {
             src = ",Mic";
@@ -1578,6 +2339,10 @@ static int tci2_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
             src = ",Mic";
         }
         else if (strcasecmp(priv->txsource, "vac") == 0)
+        {
+            src = ",tci";
+        }
+        else if (strcasecmp(priv->txsource, "tci") == 0)
         {
             src = ",tci";
         }
@@ -2456,11 +3221,17 @@ static int tci2_stop_morse(RIG *rig, vfo_t vfo)
  * until the timeout expires.
  *
  * The TCI server pushes TRX:trx,true; when TX starts and TRX:trx,false; when
- * it ends.  We just drain frames until we see the PTT drop.
+ * it ends.  Both update priv->ptt via tci2_process_message().
  *
  * Phase 1 (up to 2 s): wait for TX to be asserted.  If it never engages the
  * CW was either trivially short or silently rejected — return OK either way.
  * Phase 2 (up to 300 s): wait for TX to be released.
+ *
+ * Two paths.  When the audio reader thread is running it owns the WebSocket
+ * and is already calling tci2_process_message() on every incoming text
+ * frame, so the priv->ptt cache stays fresh on its own; we just sleep-poll.
+ * When the reader thread is not running we read frames here ourselves and
+ * drive the cache the same way.
  */
 static int tci2_wait_morse(RIG *rig, vfo_t vfo)
 {
@@ -2469,17 +3240,23 @@ static int tci2_wait_morse(RIG *rig, vfo_t vfo)
     int retval;
     time_t start = time(NULL);
     int tx_seen = 0;
+    int reader_running = priv->reader_running;
 
     ENTERFUNC;
 
     /* Phase 1: wait up to 2 s for TX to engage */
     while (!tx_seen && time(NULL) - start < 2)
     {
-        retval = ws_recv_frame(rig, buf, sizeof(buf));
-
-        if (retval < 0) { RETURNFUNC(retval); }
-
-        if (buf[0] != '\0') { tci2_process_message(rig, buf); }
+        if (reader_running)
+        {
+            usleep(50000);  /* 50 ms */
+        }
+        else
+        {
+            retval = ws_recv_frame(rig, buf, sizeof(buf));
+            if (retval < 0) { RETURNFUNC(retval); }
+            if (buf[0] != '\0') { tci2_process_message(rig, buf); }
+        }
 
         if (priv->ptt != RIG_PTT_OFF) { tx_seen = 1; }
     }
@@ -2496,11 +3273,16 @@ static int tci2_wait_morse(RIG *rig, vfo_t vfo)
     {
         if (priv->ptt == RIG_PTT_OFF) { RETURNFUNC(RIG_OK); }
 
-        retval = ws_recv_frame(rig, buf, sizeof(buf));
-
-        if (retval < 0) { RETURNFUNC(retval); }
-
-        if (buf[0] != '\0') { tci2_process_message(rig, buf); }
+        if (reader_running)
+        {
+            usleep(50000);  /* 50 ms */
+        }
+        else
+        {
+            retval = ws_recv_frame(rig, buf, sizeof(buf));
+            if (retval < 0) { RETURNFUNC(retval); }
+            if (buf[0] != '\0') { tci2_process_message(rig, buf); }
+        }
     }
 
     RETURNFUNC(-RIG_ETIMEOUT);
@@ -2551,7 +3333,7 @@ struct rig_caps tci2_caps =
     RIG_MODEL(RIG_MODEL_TCI2),
     .model_name     = "TCI 2.0",
     .mfg_name       = "Expert Electronics",
-    .version        = "20240112.0",
+    .version        = "20260604.0",
     .copyright      = "LGPL",
     .status         = RIG_STATUS_BETA,
     .rig_type       = RIG_TYPE_TRANSCEIVER,
