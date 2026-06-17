@@ -104,6 +104,21 @@
 
 #define TCI2_AUDIO_BUFLEN 8192
 
+/* TCI binary frame stream_type field (header word [6]).
+ *
+ * Used both on the wire to/from ExpertSDR3 and on the rigctld<->sidecar
+ * sidechannel.  Keep these in sync with the sidecar's identical
+ * constants.  Values 1..3 are defined by the TCI protocol spec; higher
+ * values are reserved for hamlib-internal control frames between
+ * rigctld and the sidecar.
+ *
+ * Control frames carry no audio payload; the `length` field of the
+ * header conveys their state (e.g. PTT_STATE: 0=off, 1=on). */
+#define TCI_STREAM_RX_AUDIO  1
+#define TCI_STREAM_TX_AUDIO  2
+#define TCI_STREAM_TX_CHRONO 3
+#define TCI_STREAM_PTT_STATE 4   /* hamlib<->sidecar control frame */
+
 /* -------------------------------------------------------------------------
  * Static mode map: TCI mode string <-> Hamlib rmode_t
  *
@@ -1136,16 +1151,33 @@ static void tci2_process_message(RIG *rig, const char *msg)
     }
     else if (strncasecmp(msg, "TX_CHRONO:", 10) == 0)
     {
-        /* TX_CHRONO:trx,samples; - forward to audio sidecar if connected */
+        /* TX_CHRONO:trx,samples; - forward to audio sidecar as a binary
+         * TCI frame (stream_type = TCI_STREAM_TX_CHRONO = 3, no payload).
+         *
+         * The sidecar protocol is purely binary, length-framed TCI: 64-byte
+         * header followed by length*channels*sample_bytes of payload.  Audio
+         * payloads contain arbitrary bytes (including 0x0A), so any text-
+         * line framing here would corrupt the stream.  Control messages like
+         * TX_CHRONO travel as zero-length frames in the same format. */
         if (priv->audio_sidecar_fd >= 0)
         {
-            char fwd[256];
             int trx, samples;
 
             if (sscanf(msg + 10, "%d,%d", &trx, &samples) == 2)
             {
-                snprintf(fwd, sizeof(fwd), "TX_CHRONO %d %d\n", trx, samples);
-                if (send(priv->audio_sidecar_fd, fwd, strlen(fwd), MSG_NOSIGNAL) < 0)
+                uint32_t hdr[16] = {0};
+                hdr[0] = (uint32_t)trx;       /* receiver       */
+                hdr[1] = 0;                   /* sample_rate    (n/a for control) */
+                hdr[2] = 0;                   /* format         (n/a for control) */
+                hdr[3] = 0;                   /* codec          */
+                hdr[4] = 0;                   /* crc            */
+                hdr[5] = (uint32_t)samples;   /* length (samples requested) */
+                hdr[6] = TCI_STREAM_TX_CHRONO;
+                hdr[7] = 1;                   /* channels       */
+                /* hdr[8..15] reserved, zero-filled */
+
+                if (send(priv->audio_sidecar_fd, hdr, sizeof(hdr),
+                         MSG_NOSIGNAL) < 0)
                 {
                     rig_debug(RIG_DEBUG_WARN, "%s: TX_CHRONO forward failed: %s\n",
                               __func__, strerror(errno));
@@ -1153,20 +1185,11 @@ static void tci2_process_message(RIG *rig, const char *msg)
             }
         }
     }
-    else if (strncasecmp(msg, "RX_AUDIO_STREAM:", 16) == 0)
-    {
-        /* RX_AUDIO_STREAM:trx,channel,sample_rate,format; - forward to audio sidecar */
-        if (priv->audio_sidecar_fd >= 0)
-        {
-            char fwd[256];
-            snprintf(fwd, sizeof(fwd), "RX_AUDIO %s\n", msg + 16);
-            if (send(priv->audio_sidecar_fd, fwd, strlen(fwd), MSG_NOSIGNAL) < 0)
-            {
-                rig_debug(RIG_DEBUG_WARN, "%s: RX_AUDIO forward failed: %s\n",
-                          __func__, strerror(errno));
-            }
-        }
-    }
+    /* RX_AUDIO_STREAM: is a TCI configuration echo, not audio data.
+     * The sidecar infers everything it needs from the binary RX_AUDIO
+     * frame headers, so we deliberately do NOT forward it.  Keeping the
+     * rigctld<->sidecar channel binary-only makes the framing trivially
+     * correct and rules out a class of demux bugs. */
 }
 
 /*
@@ -2358,7 +2381,37 @@ static int tci2_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     if (retval == RIG_OK)
     {
+        ptt_t old_ptt = priv->ptt;
         priv->ptt = ptt;
+
+        /* On a PTT edge, emit a TCI_STREAM_PTT_STATE control frame to
+         * the audio sidecar so it can flush stale parec capture before
+         * the new transmission begins (or settle cleanly when TX
+         * ends).  rigctld is the authoritative source of PTT state on
+         * the rigctld<->sidecar sidechannel, regardless of whether the
+         * server echoes the TRX: state back to us. */
+        if (priv->audio_sidecar_fd >= 0)
+        {
+            int new_on = (ptt != RIG_PTT_OFF) ? 1 : 0;
+            int old_on = (old_ptt != RIG_PTT_OFF) ? 1 : 0;
+
+            if (new_on != old_on)
+            {
+                uint32_t hdr[16] = {0};
+                hdr[0] = (uint32_t)priv->trx_num;
+                hdr[5] = (uint32_t)new_on;
+                hdr[6] = TCI_STREAM_PTT_STATE;
+                hdr[7] = 1;
+
+                if (send(priv->audio_sidecar_fd, hdr, sizeof(hdr),
+                         MSG_NOSIGNAL) < 0)
+                {
+                    rig_debug(RIG_DEBUG_WARN,
+                              "%s: PTT_STATE forward failed: %s\n",
+                              __func__, strerror(errno));
+                }
+            }
+        }
     }
 
     RETURNFUNC(retval);
