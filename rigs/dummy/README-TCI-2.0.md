@@ -1,343 +1,273 @@
-# TCI 2.0 Backend for Expert Electronics SunSDR Radios
+# TCI 2.0 Audio and IQ Support via External Sidecars
 
-Hamlib backend (RIG_MODEL_TCI2, dummy family model 12) for the
-Transceiver Control Interface (TCI) protocol version 2.0.  Tested
-against the SunSDR2 Pro running ExpertSDR3 v1.1.7.  The same protocol
-is also implemented by other Expert Electronics SDRs (SunSDR2 DX, MB1,
-ColibriNANO running ExpertSDR2/3) and by Apache Labs ANAN radios when
-running TCI-capable firmware -- see "Other TCI devices" below.
+Full audio (bidirectional RX/TX) and IQ (RX-only) streaming for the TCI 2.0 backend.
 
-TCI is a WebSocket push protocol, so this backend lives in `rigs/dummy/`.
-The backend does an HTTP/1.1 upgrade handshake over Hamlib's existing
-TCP layer (no external WebSocket library), drains the server's READY
-dump on connect, and keeps a local state cache updated by every
-incoming push.  Reads come from the cache or issue explicit queries;
-writes send the appropriate TCI command.
+## Quick Start
 
-Default path: `127.0.0.1:50001`.
+```bash
+# Start rigctld with both audio and IQ sidechannels enabled
+rigctld -m 12 -r localhost:50001 -t 4532 \
+        -C audio_port=4534 \
+        -C iq_port=4535 -C iq_rate=192000
 
-## What works (CAT)
+# In separate terminals:
 
-- **Frequency**: VFO A and VFO B (set/get), split TX frequency
-- **Mode**: every mode in the server's MODULATIONS_LIST (AM, LSB,
-  USB, CW, NFM, WFM, RTTY, DIGL, DIGU on SunSDR2 Pro)
-- **PTT**: RIG_PTT_ON, RIG_PTT_ON_MIC, RIG_PTT_ON_DATA (TCI sources:
-  default, Mic, tci)
-- **Split** and VFO switching
-- **RIT and XIT** (enable/offset)
-- **Levels**: AF, RF drive, squelch, NB threshold, AGC (off/fast/
-  normal), CW keyer speed, S-meter, SWR, TX power
-- **Functions**: NB, NR, ANF, mute, tune (ATU)
-- **CW**: send_morse (CW_MACROS with TCI escape encoding), stop_morse,
-  wait_morse
-- **Config params**: `trx`, `txsource`, `digl_offset`, `digu_offset`,
-  `audio_port`
+# Audio sidecar (pick one style):
+python3 tci-audio-soundcard-sidecar.py \
+    --rigctld-host localhost --rigctld-port 4534 \
+    --name tci --tx-gain-db 20 --rx-gain-db 0
+# (or use tci-audio-gr-sidecar.py for GNU Radio instead)
 
-## Architecture: where the duties are split
+# IQ sidecar (optional; independent of audio)
+python3 tci-iq-sidecar.py \
+    --rigctld-host localhost --rigctld-port 4535 \
+    --zmq-bind 'tcp://*:5555'
+```
 
-There are two cooperating processes when audio is in the picture:
+Configure your ham-radio software:
+- **With `tci-audio-soundcard-sidecar.py` (PulseAudio)**:
+  - Audio input (RX): `tci-rx.monitor`
+  - Audio output (TX): `tci-tx`
+- **With `tci-audio-gr-sidecar.py` (GNU Radio)**:
+  - RX: `zmq_sub_source` on `tcp://localhost:5557` (float32 mono 8 kHz)
+  - TX: `zmq_push_sink` on `tcp://localhost:5558` (float32 mono 8 kHz)
+- **CAT**: Hamlib `rigctld` at `localhost:4532`
+- **IQ**: `zmq_sub_source` on `tcp://localhost:5555` (complex float32, rate set by `-C iq_rate=`)
 
-1. **rigctld** (this backend) -- owns the one allowed TCI WebSocket
-   connection to the radio.  Speaks CAT to applications on its normal
-   Hamlib port (default 4532).  Proxies audio and a small set of
-   control events to and from a sidecar over a documented TCP
-   sidechannel.
-2. **The audio sidecar** -- a separate, OS-specific process that owns
-   all platform audio plumbing.  Reads and writes the sidechannel,
-   exposes virtual audio devices that JS8Call / fldigi / WSJT-X / etc.
-   plug into as if they were soundcards.
+## Architecture
 
-The split exists because TCI carries CAT *and* audio over the same
-WebSocket and the radio will only stream audio to the single TCI
-client that asserted PTT.  rigctld must own that one connection; the
-audio path therefore *has* to flow through rigctld.  But Hamlib is a
-radio-control library, not an audio framework, and putting libpulse,
-CoreAudio and WASAPI inside it would balloon its dependency surface
-and split the codebase along per-OS audio boundaries.
+```
+       ┌──────────────┐    TCI         ┌─────────────┐
+       │  ExpertSDR3  │◀──WebSocket───▶│   rigctld   │◀── CAT (JS8Call, etc.) :4532
+       │  (port 50001)│                │             │
+       └──────────────┘                └──┬───────┬──┘
+                                          │       │
+                          audio :4534 ────┘       └──── iq :4535
+                                          │              │
+                                          ▼              ▼
+                              ┌──────────────────┐  ┌──────────────────┐
+                              │  audio sidecar   │  │ tci-iq-sidecar.py│
+                              │ (soundcard or GR)│  │                  │
+                              └────┬────────┬────┘  └─────────┬────────┘
+                       tci-rx ◀────┘        └───▶ tci-tx      │
+                       (sink)                     (sink)      │ ZMQ PUB :5555
+                          ▲                          ▲        │ (complex float32)
+                          │                          │        │
+                          │      modem reads RX,     │        │
+                          └─────  writes TX  ────────┘        ▼
+                                                       GR flowgraph,
+                                                       tci-iq-viewer.py,
+                                                       any ZMQ consumer
+```
 
-So:
+**rigctld** owns the one TCI WebSocket connection to ExpertSDR3. Audio and IQ are proxied as **length-framed binary TCI frames** over independent TCP sidechannels (4534 and 4535) to external Python sidecar processes.
 
-- **rigctld** stays portable C with no new audio dependencies.  It
-  forwards opaque audio bytes; it does not decode, resample, gain-
-  adjust, mix or otherwise interpret them.
-- **The sidecar** is per-OS, written in whatever language fits, and
-  fully replaceable.  It owns the platform-specific audio APIs and
-  the virtual-device creation.
+## Why External Sidecars?
 
-If `audio_port` is not configured, the backend behaves like a
-conventional CAT-only Hamlib driver: no listen socket, no audio
-thread, no sidechannel allocations, nothing for a reviewer to read
-beyond standard backend territory.
+- **No new Hamlib dependencies** — rigctld stays pure C; no libpulse/coreaudio/wasapi.
+- **Platform flexibility** — Linux, Windows, and macOS sidecars use completely different audio APIs without touching Hamlib code.
+- **Process isolation** — audio/IQ bugs don't crash rigctld.
+- **Fast iteration** — audio pipeline changes are Python edits + restart, not Hamlib rebuild.
 
-## The TCI WebSocket (radio <-> rigctld)
+## Wire Protocol (rigctld ↔ sidecar)
 
-Spoken at `127.0.0.1:50001` (the radio's TCI server).  Mixed text and
-binary on a single WebSocket connection:
+Pure binary, length-framed TCI frames in both directions:
 
-- **Text frames** -- CAT-like commands and responses
-  (`VFO:0,0,14078000;`, `MODULATION:0,DIGU;`, `TRX:0,true,tci;`,
-  `TX_CHRONO:0,512;`, etc.).  Handled inside the backend.
-- **Binary frames** -- 64-byte TCI header followed by audio (or
-  eventually IQ) payload.  rigctld forwards these to the sidecar
-  unchanged when `audio_port` is enabled.
+```
+64-byte header (16 little-endian uint32 words) + 0..N payload bytes
+```
 
-The backend's reader thread is the **sole reader** of this socket for
-the lifetime of the open: it queues text frames for the CAT thread to
-consume (preventing a race where audio code eats CAT replies) and
-forwards binary frames to the sidecar.  `tci2_send` is internally
-serialised so the reader thread (which sends AUDIO_START etc on
-sidecar-connect) and the CAT thread (which sends normal Hamlib
-commands) can both write to the WebSocket without colliding.
+| Offset | Field       | Audio/IQ frames         | Control frames |
+|--------|-------------|-------------------------|----------------|
+| 0      | receiver    | trx index               | trx index      |
+| 4      | sample_rate | Hz                      | 0              |
+| 8      | format      | 0=int16 1=int24 2=int32 3=float32 | 0 |
+| 20     | length      | samples in payload      | control value  |
+| 24     | stream_type | 0=IQ 1=RX_AUDIO 2=TX_AUDIO | 3=TX_CHRONO 4=PTT_STATE |
+| 28     | channels    | 1 (audio) or 2 (IQ)     | 1              |
+| 32..63 | reserved    | zero-filled             | zero-filled    |
 
-A few protocol quirks worth knowing:
+**stream_type dispatch:**
+- `STREAM_IQ (0)` — receiver IQ (rigctld → IQ sidecar, **RX-only — TCI 2.0 does not define TX IQ**)
+- `STREAM_RX_AUDIO (1)` — receiver audio (rigctld → audio sidecar)
+- `STREAM_TX_AUDIO (2)` — transmit audio (audio sidecar → rigctld)
+- `STREAM_TX_CHRONO (3)` — hamlib-internal: radio requests N samples (rigctld → audio sidecar)
+- `STREAM_PTT_STATE (4)` — hamlib-internal: PTT state change (rigctld → audio sidecar)
 
-- The server sends command keywords lowercase; the backend uppercases
-  them on receive so sscanf format strings work.
-- Mode strings come entirely from the server's `MODULATIONS_LIST`,
-  so we only ever ask for modes the server supports; an unknown mode
-  returns `-RIG_EINVAL`.
-- `set_mode` deliberately does *not* write `RX_FILTER_BAND`:
-  ExpertSDR3 auto-applies a sensible filter on `MODULATION` change,
-  and writing the filter immediately after `MODULATION` corrupts the
-  server's filter state.
-- `VFO_LOCK` (TCI 2.0) is server-to-client only; `set_func LOCK`
-  returns `-RIG_ENAVAIL`.
-- `CW_MACROS_SPEED` and `CW_KEYER_SPEED` are separate; `get_level
-  KEYSPD` returns the macro speed from the cache.
+Values 0..2 match TCI's `StreamType` enum; 3+ are hamlib-internal.
 
-## The sidechannel (rigctld <-> sidecar)
+**Why binary-only?** Audio/IQ payloads contain arbitrary bytes (including 0x0A). Text framing corrupts streams.
 
-Enabled by `-C audio_port=N`.  rigctld opens a TCP listen socket on
-`127.0.0.1:N` (loopback only), accepts one sidecar connection, and
-exchanges **length-framed binary TCI frames** with it -- in both
-directions, with no text framing of any kind.
+## Config Parameters
 
-A single binary protocol covers audio *and* control events.  This
-matters because audio payloads contain arbitrary bytes (including
-0x0A, ':', and whitespace).  Any text-line framing on this socket
-would shred frames the moment a sample value happened to be a
-newline byte.  Going all-binary with the same 64-byte TCI header the
-WebSocket already uses eliminates that whole class of bug.
+```bash
+rigctld -m 12 -r HOST:50001 -t 4532 \
+    -C trx=0 \                       # TRX index (0-based, for multi-RX rigs)
+    -C txsource=default \            # or 'mic', 'vac' (overridden by PTT type)
+    -C digl_offset=0 \               # DIGL freq offset, Hz (0..4000)
+    -C digu_offset=0 \               # DIGU freq offset, Hz (0..4000)
+    -C audio_port=4534 \             # audio sidechannel port (0=disabled)
+    -C iq_port=4535 \                # IQ sidechannel port (0=disabled)
+    -C iq_rate=192000                # IQ sample rate (48k/96k/192k/384k)
+```
 
-### Frame format
+- **`audio_port`** — TCP port for the audio sidechannel. Auto-enables TCI audio (`AUDIO_START`).
+- **`iq_port`** — TCP port for the IQ sidechannel. Auto-enables TCI IQ (`IQ_START`). **Independent of `audio_port`** — both can be enabled together.
+- **`iq_rate`** — sample rate (Hz) requested for the TCI IQ stream when `iq_port` is enabled. ExpertSDR3 supports 48000 / 96000 / 192000 / 384000. Default 192000.
 
-Every message is a 64-byte header followed by 0..N payload bytes.
+## Sidecar Implementations
 
-Header (16 little-endian uint32 words, total 64 bytes):
+**Three sidecars ship in `hamlib-tci-sidecar` repo:**
 
-| Offset | Word | Field        | Audio frames                          | Control frames |
-|--------|------|--------------|---------------------------------------|----------------|
-| 0      | [0]  | receiver     | trx index                             | trx index      |
-| 4      | [1]  | sample_rate  | Hz                                    | 0              |
-| 8      | [2]  | format       | 0=int16  1=int24  2=int32  3=float32  | 0              |
-| 12     | [3]  | codec        | 0                                     | 0              |
-| 16     | [4]  | crc          | 0                                     | 0              |
-| 20     | [5]  | length       | samples in payload                    | control value  |
-| 24     | [6]  | stream_type  | 1=RX_AUDIO  2=TX_AUDIO                | 3=TX_CHRONO  4=PTT_STATE |
-| 28     | [7]  | channels     | 1                                     | 1              |
-| 32..63 |      | reserved     | zero-filled                           | zero-filled    |
+### Audio Sidecars (choose one; both connect to `:4534`)
 
-Payload size = `length × channels × sample_bytes(format)` for audio
-frames, **0** for control frames.
+1. **`tci-audio-soundcard-sidecar.py`** — PulseAudio/PipeWire (Linux). RX/TX audio as null sinks (`tci-rx`, `tci-tx`) for JS8Call, fldigi, WSJT-X, etc. Bidirectional.
 
-### Stream types
+   ```bash
+   python3 tci-audio-soundcard-sidecar.py \
+       --rigctld-host localhost --rigctld-port 4534 \
+       --name tci --tx-gain-db 20 --rx-gain-db 0
+   ```
 
-| stream_type | name       | direction         | length means          | payload |
-|-------------|------------|-------------------|-----------------------|---------|
-| 1           | RX_AUDIO   | rigctld → sidecar | samples in payload    | yes     |
-| 2           | TX_AUDIO   | sidecar → rigctld | samples in payload    | yes     |
-| 3           | TX_CHRONO  | rigctld → sidecar | samples requested     | no      |
-| 4           | PTT_STATE  | rigctld → sidecar | 0=PTT off, 1=PTT on   | no      |
+   - **TX gain** (default +20 dB) — ExpertSDR3 silently drops TX audio below an internal threshold. JS8Call and other modems output ~-20 dBFS. +20 dB clipping brings it up to ExpertSDR3's expected level.
+   - **RX gain** (default 0 dB) — for symmetry. Use small positive values to boost RX into modems that want louder input.
 
-Stream types 5..255 are reserved for future hamlib-internal control
-frames -- VFO change events, mode change events, sample-rate
-negotiation, IQ stream start/stop, and anything else we encounter.
-The 32 reserved bytes in the header give room for parameters that
-don't fit in `length`.
+2. **`tci-audio-gr-sidecar.py`** — GNU Radio audio bridge. RX audio published as ZMQ PUB (float32 mono 8 kHz, `:5557`); TX audio accepted on ZMQ PULL (float32 mono 8 kHz, `:5558`). Alternative to the PulseAudio sidecar. Bidirectional.
 
-Receivers MUST silently skip unknown stream_type values.  This is the
-forward-compatibility contract: a newer rigctld emitting a
-stream_type the sidecar doesn't yet handle should not break the
-sidecar, and vice versa.
+   ```bash
+   python3 tci-audio-gr-sidecar.py \
+       --rigctld-host localhost --rigctld-port 4534 \
+       --zmq-rx-bind 'tcp://*:5557' \
+       --zmq-tx-bind 'tcp://*:5558' \
+       --tx-gain-db 20 --rx-gain-db 0
+   ```
 
-### What flows when
+   - GR flowgraphs: `zmq_sub_source` (RX) and `zmq_push_sink` (TX), item type `float`, vec length 1, sample rate 8000.
+   - Same TX/RX gain semantics as the PulseAudio sidecar.
 
-- On TCI READY, rigctld negotiates audio format with the server
-  (`AUDIO_SAMPLERATE`, `AUDIO_STREAM_SAMPLE_TYPE`,
-  `AUDIO_STREAM_CHANNELS`) and starts the stream (`AUDIO_START`).
-  This is rigctld-initiated and invisible to the sidecar.
-- Inbound RX_AUDIO_STREAM TCI binary frames from the radio are
-  forwarded verbatim to the sidecar as `STREAM_RX_AUDIO` frames.
-- The text command `TX_CHRONO:trx,samples;` from the radio is
-  rewritten as a `STREAM_TX_CHRONO` control frame (length = samples
-  requested, no payload) and sent to the sidecar.
-- The sidecar replies with a `STREAM_TX_AUDIO` frame whose payload
-  is exactly that many samples.  rigctld reassembles it across
-  recv() boundaries (TCP is a byte stream) and forwards it to the
-  radio as a TX_AUDIO_STREAM TCI binary frame.
-- When an application calls `tci2_set_ptt()`, on every PTT *edge*
-  (only on edges, not on every set_ptt call), rigctld emits a
-  `STREAM_PTT_STATE` control frame so the sidecar knows when a TX
-  cycle starts and ends.
+### IQ Sidecar (connects to `:4535`, independent of audio)
 
-### Why rigctld owns the PTT_STATE event
+3. **`tci-iq-sidecar.py`** — IQ bridge. Receiver IQ stream published as ZMQ PUB (complex float32, `:5555`). **RX-only** (TCI does not define TX IQ). For GNU Radio and other ZMQ-aware SDR consumers.
 
-rigctld is the authoritative PTT source on the sidechannel.  An
-application calls `set_ptt(1)` against rigctld; rigctld tells the
-radio to key.  We do not depend on the radio echoing TRX state back
-over the WebSocket (it sometimes does, sometimes doesn't, depending
-on configuration).  Emitting PTT_STATE from inside `tci2_set_ptt`
-makes the contract simple: PTT on the sidechannel is what rigctld
-just commanded, full stop.
+   ```bash
+   python3 tci-iq-sidecar.py \
+       --rigctld-host localhost --rigctld-port 4535 \
+       --zmq-bind 'tcp://*:5555'
+   ```
 
-The sidecar uses PTT_STATE: ON to flush its TX capture buffer at the
-start of every transmission.  Without this, audio captured by the
-sidecar's input pipeline while the radio was idle (silence on most
-platforms, but always *something*) would be queued and shipped to the
-radio on the next PTT-on, delaying the live audio.  With PTT_STATE
-the sidecar flushes that stale data the moment the user keys.
+   - GR: `zmq_sub_source`, Address `tcp://HOST:5555`, Type `complex float`.
+   - Sample rate set by rigctld's `-C iq_rate=` (default 192000).
+   - ZMQ PUB is lossy under backpressure — drops old samples rather than stalling the radio.
 
-## ExpertSDR3 quirks worth knowing
+### GR-side Tools (demonstrate the sidecars)
 
-- ExpertSDR3 silently drops TX audio frames whose payload is below
-  some internal level threshold.  TX engages, TX_CHRONO/TX_AUDIO
-  flow, the PA emits zero watts.  No error response.  This bites
-  JS8Call particularly hard because JS8Call writes audio at peak
-  ~3000 (about -20 dBFS), well below ExpertSDR3's threshold.  The
-  sidecar handles this with a configurable post-amplifier on its TX
-  path; the backend forwards bytes and does not modify levels.
-- After many fast disconnects/reconnects, ExpertSDR3 occasionally
-  wedges its audio engine; killing every ExpertSDR3 process and
-  letting it restart clears it.  Operational, not a backend issue.
+- **`tci-iq-viewer.py`** — Qt FFT + waterfall against the IQ sidecar. Polls rigctld for dial frequency every 500 ms. Left-click to retune.
+- **`tci-audio-gr-tester.py`** — Qt FFT + waveform of RX audio plus a 1 kHz tone generator gated by a PTT button. Demonstrates the full GR audio integration.
 
-## Other TCI devices
+Both require GNU Radio 3.10+ with `gr-zeromq` and `qtgui`, plus PyQt5.
 
-The TCI 2.0 spec is published by Expert Electronics, but the protocol
-itself is straightforward and documented; nothing about this backend
-is ExpertSDR3-specific beyond the small quirks listed above.  Devices
-that should work with this backend, in principle:
+## Surprising Detail: TCI 2.0 IQ is RX-Only
 
-- **Expert Electronics**: SunSDR2 Pro / DX (verified), MB1,
-  ColibriNANO running ExpertSDR2/3
-- **Apache Labs ANAN**: ANAN-7000DLE, ANAN-8000DLE, ANAN-G2 etc.
-  when running TCI-capable firmware (Thetis or compatible builds
-  that expose TCI on port 50001)
+The TCI 2.0 spec defines `IQ_STREAM` (stream_type=0) as **unidirectional** from radio to client. There is no `TX_IQ_STREAM` or any mechanism for a client to push IQ samples back to the radio for transmission. This is a protocol limitation, not a Hamlib choice.
 
-Adding support for a new TCI implementation should normally require
-no code change -- if the device follows the spec, it Just Works.
-What may need work:
+TX of arbitrary baseband signals remains possible via the audio path (`TX_AUDIO_STREAM`), which ExpertSDR3 accepts at 8 kHz mono for HF digital modes.
 
-- Additions to the modulation map if the radio reports modes the
-  current code doesn't recognise.  The runtime mode table is built
-  from the server's `MODULATIONS_LIST` and is intentionally generic;
-  rare vendor-specific mode names just need a mapping.
-- Per-vendor quirk handling, similar to the ExpertSDR3 quirks above.
-  These are easiest to add as small conditional branches once
-  observed; please file an issue with a packet capture if you find
-  one.
+Adding TX IQ outside the spec would break interop with non-Expert-Electronics TCI implementations (e.g. Apache Labs ANAN with TCI firmware).
 
-**Flex Radio is *not* a TCI device.**  Flex uses its own proprietary
-API (the SmartSDR network API) and is not addressed by this backend.
+## Lifecycle Management
 
-## Reference sidecars
+The `tci.sh` script in `hamlib-tci-sidecar` manages rigctld + sidecars as a unit:
 
-A reference Linux sidecar lives at
-`https://github.com/jfrancis42/hamlib-tci-sidecar`.  It creates two
-PulseAudio null sinks (`tci-rx`, `tci-tx`) using `pactl`, plays RX
-audio into the rx sink with `pacat`, captures TX audio from the tx
-sink's monitor with `parec`, and bridges both directions to rigctld
-over the audio sidechannel.  Modems point at standard PulseAudio
-device names and never know they're talking to a SunSDR2.  Works on
-any current desktop Linux that has either PulseAudio or PipeWire with
-the pipewire-pulse shim, which is essentially all of them.
+```bash
+./tci.sh start     # launch rigctld + enabled sidecars (idempotent)
+./tci.sh stop      # tear down everything, unload PulseAudio sinks
+./tci.sh restart   # stop + start
+./tci.sh status    # what's running, sinks, listening ports, last log lines
+./tci.sh log       # tail -F the audio sidecar log
+./tci.sh iqlog     # tail -F the IQ sidecar log
+```
 
-The protocol code in any sidecar is a few hundred lines: parse the
-64-byte header, dispatch on `stream_type`, push RX_AUDIO payloads to
-the platform's playback path, capture TX audio from the platform's
-recording path, ship TX_AUDIO frames in response to TX_CHRONO,
-respond to PTT_STATE edges by flushing the TX capture buffer.
-That's it.  Everything else is platform glue.
+Edit the variables at the top of `tci.sh` to point at your rigctld binary and Hamlib library locations, and to enable/disable audio and IQ sidecars.
 
-### Per-OS sidecars
+## Verified End-to-End
 
-Audio APIs differ between operating systems and there is no portable
-backend that works well across all three majors without compromise.
-The protocol design above puts the platform boundary cleanly between
-rigctld (one C codebase, all platforms) and the sidecar (one per
-platform, free to use whichever native API is best on that OS):
+- **JS8Call** (14.079 MHz, 40 m): CQ got replies. On-air decode confirmed by remote receivers.
+- **1 kHz tone TX** (pacat via PulseAudio sidecar): clean carrier at 14.0790 MHz, -27 to -33 dBm sustained. Zero silence frames mid-transmission.
+- **RX audio** (parec from `tci-rx.monitor`): 8000 samples/sec, 98% nonzero, peak ~1100.
+- **IQ stream** (via `tci-iq-sidecar.py`): ~280 ZMQ messages, ~580k complex samples in 3 s. Effective rate matches configured `iq_rate`.
 
-- **Linux**: PulseAudio / PipeWire null sinks plus `pacat` and
-  `parec`.  This is the reference implementation and the most
-  thoroughly tested today.
-- **Windows**: planned, likely targeting **WASAPI** for the audio
-  glue and **VB-Audio Cable** as the virtual device counterpart of
-  null sinks.  The Python `sounddevice` library covers WASAPI
-  cleanly; the protocol code is identical to the Linux sidecar.
-- **macOS**: planned, likely targeting **CoreAudio** with
-  **BlackHole** or a CoreAudio aggregate device for the virtual
-  audio.  Again, `sounddevice` is the natural choice.
+## Testing
 
-The decoupling means a Windows or macOS user gets the same rigctld
-binary the Linux user has and just runs a different sidecar.  No
-multi-platform `#ifdef` jungle in Hamlib.
+```bash
+# CAT
+echo 'f' | nc -w 1 localhost 4532    # dial freq
+echo 'm' | nc -w 1 localhost 4532    # mode + width
 
-### GNU Radio integration
+# Audio sidecar running: RX audio flows into tci-rx.monitor
+timeout 3 parec --device=tci-rx.monitor --rate=8000 --channels=1 \
+    --format=s16le > /tmp/rx_check.raw
+python3 -c "
+import struct
+d = open('/tmp/rx_check.raw','rb').read()
+s = struct.unpack('<' + str(len(d)//2) + 'h', d)
+peak = max(abs(x) for x in s) if s else 0
+nz = sum(1 for x in s if x != 0)
+print(f'samples={len(s)}, peak={peak}, nonzero={nz}')
+"
+# Expect 24000 samples, peak well above 100, fraction nonzero > 95%
 
-A future sidecar can present the TCI audio (and IQ -- see below) as a
-GNU Radio source/sink instead of as virtual soundcards.  This is a
-natural fit for the architecture: the protocol code stays the same,
-the sidecar exposes ZMQ or UDP ports (or a pair of native
-`gr-blocks`) so a GNU Radio flowgraph can pull RX audio/IQ and push
-TX audio/IQ as ordinary GR streams.  No changes to rigctld are
-required for this; only the sidecar needs to know about GR.
+# IQ sidecar running: IQ stream reachable on ZMQ
+python3 -c "
+import zmq, time, numpy as np
+s = zmq.Context.instance().socket(zmq.SUB)
+s.setsockopt(zmq.SUBSCRIBE, b'')
+s.setsockopt(zmq.RCVTIMEO, 2000)
+s.connect('tcp://localhost:5555')
+end = time.time() + 3
+msgs = samples = 0
+while time.time() < end:
+    try: m = s.recv()
+    except zmq.Again: continue
+    msgs += 1
+    samples += len(m) // 8   # complex64 = 8 bytes
+print(f'{msgs} ZMQ messages, {samples} complex samples in 3 s')
+print(f'effective rate: {samples/3:.0f} Hz')
+"
+# Expect ~280 messages, ~580k samples, effective rate ≈ iq_rate (default 192000)
 
-This opens up using a SunSDR2 (or ANAN) as a GNU Radio frontend with
-full CAT control, while still letting Hamlib see the same radio for
-non-GR clients on the same machine.
+# GR IQ viewer
+python3 tci-iq-viewer.py
 
-## IQ streaming (planned)
+# GR audio tester (only with tci-audio-gr-sidecar)
+python3 tci-audio-gr-tester.py
+```
 
-The current version handles audio only.  TCI also defines binary IQ
-streams.  Like audio, the IQ stream is delivered to whichever client
-asserted PTT, so the same proxy architecture applies: the radio sends
-IQ frames over the WebSocket, rigctld forwards them as a new
-stream_type to the sidecar, and the sidecar delivers them to whatever
-consumer wants them (a SDR application, GNU Radio, a recorder, ...).
+Ultimate test: **call CQ with JS8Call**. If you get replies, the audio pipeline is working on-air.
 
-Adding IQ on top of the current protocol is intentionally cheap:
+## JS8Call Audio Buffer Setting (Recommended)
 
-- A new constant, e.g. `STREAM_IQ_AUDIO = 5` (and `STREAM_IQ_TX` for
-  TX-side IQ if a future use case emerges).
-- A new dispatch arm in the sidecar that pushes IQ payloads to its
-  IQ sink (a UDP port, a named pipe, a GR block -- sidecar's
-  choice).
-- Negotiation: rigctld already speaks the relevant TCI text commands
-  (`IQ_SAMPLERATE`, `IQ_OUTPUT_SAMPLE_TYPE`, `IQ_START` / `IQ_STOP`).
-  Existing sidecars that don't know about stream_type 5 silently
-  skip it; a new sidecar that does will receive the frames.
+By default JS8Call lets Qt pick the PulseAudio buffer size (~2 s on Linux). Add this to `~/.config/JS8Call.ini`:
 
-No frame-format change is required.  The 32 reserved header bytes
-give room to add IQ-specific metadata (typical: nominal centre
-frequency, decimation, RX/TX direction flag) without breaking
-existing implementations.
+```ini
+[Tune]
+Audio\OutputBufferMs=200
+```
 
-## Verification
+Restart JS8Call. This shrinks the PA buffer to 200 ms (deterministic instead of Qt-default). It does NOT shrink the observed ~2 s TX pre-roll — that is intrinsic to JS8Call's slot alignment scheduler, not the PA buffer — but it does make the PA-side latency predictable.
 
-End-to-end on a SunSDR2 Pro running ExpertSDR3 v1.1.7:
+## Platform Status
 
-- **CAT via rigctld**: frequency / mode / split / PTT cycle with
-  cross-checks against ExpertSDR3's GUI.
-- **RX audio**: 8000 samples/sec captured cleanly from the sidecar's
-  `tci-rx.monitor` null source, full noise-floor signal at expected
-  amplitude.
-- **TX audio (bench tone)**: 1 kHz tone via pacat into `tci-tx`
-  produces a clean carrier 1 kHz above the dial frequency in USB on
-  a Siglent SSA3032X Plus, sustained throughout the transmission
-  with no silence frames inside the live audio region.
-- **TX audio (real JS8 frame)**: clean modulated carrier on the SSA
-  for the full ~13-second frame, no dropouts.
-- **PTT_STATE control frames**: confirmed firing on every PTT edge,
-  triggering the sidecar's pre-TX buffer flush.
-- **On-air decode**: 40 m JS8 CQ via this pipeline received and
-  replied to by remote stations, confirming end-to-end on-air
-  timing is within decoder tolerance.
+- **Linux** — working (PulseAudio / PipeWire audio sidecar, ZMQ-based GR audio sidecar, IQ sidecar).
+- **Windows** — planned (same wire protocol, different audio APIs: WASAPI loopback or VB-Audio Cable). GR audio sidecar and IQ sidecar already run on Windows as-is (ZMQ + numpy, no platform-specific audio).
+- **macOS** — planned (same wire protocol, BlackHole or CoreAudio aggregate device). GR audio sidecar and IQ sidecar already run on macOS as-is.
+
+## References
+
+- **TCI Protocol PDF:** `TCI_Protocol.pdf` in this repo
+- **Sidecar repo:** https://github.com/jfrancis42/hamlib-tci-sidecar (includes `PROTOCOL.md`, `README.md`, `tci.sh`)
+- **Working C++ TCI reference:** https://github.com/maksimus1210/TCI
+- **Working Python TCI reference:** eesdr-tci library (pip install eesdr-tci)
+
+## License
+
+Same as Hamlib (LGPL 2.1+).

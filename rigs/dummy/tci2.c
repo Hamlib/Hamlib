@@ -66,6 +66,12 @@
 
 #define TCI2_DEFAULTPATH   "127.0.0.1:50001"
 #define TCI2_BUFLEN        8192
+#define TCI2_WS_BUFLEN     32768  /* Sized to hold the largest binary
+                                   * TCI frame: TCI spec data[] is up
+                                   * to 16384 bytes; at 384 kHz IQ a
+                                   * typical frame is 8 KB and bursts
+                                   * can reach 16 KB.  32 KB gives
+                                   * comfortable headroom. */
 #define TCI2_CMDLEN        512
 #define TCI2_INIT_MAX_MSGS 256   /* max frames to drain during open */
 #define TCI2_TEXT_Q_DEPTH  64    /* slots in reader-thread text frame queue */
@@ -101,19 +107,22 @@
 #define TOK_TCI2_DIGL_OFFSET TOKEN_BACKEND(3)
 #define TOK_TCI2_DIGU_OFFSET TOKEN_BACKEND(4)
 #define TOK_TCI2_AUDIO_PORT  TOKEN_BACKEND(5)
+#define TOK_TCI2_IQ_PORT     TOKEN_BACKEND(6)
+#define TOK_TCI2_IQ_RATE     TOKEN_BACKEND(7)
 
 #define TCI2_AUDIO_BUFLEN 8192
 
 /* TCI binary frame stream_type field (header word [6]).
  *
  * Used both on the wire to/from ExpertSDR3 and on the rigctld<->sidecar
- * sidechannel.  Keep these in sync with the sidecar's identical
- * constants.  Values 1..3 are defined by the TCI protocol spec; higher
- * values are reserved for hamlib-internal control frames between
- * rigctld and the sidecar.
+ * sidechannels.  Keep these in sync with the sidecars' identical
+ * constants.  Values 0..4 are defined by the TCI protocol spec
+ * (StreamType enum); values 5+ are reserved for hamlib-internal
+ * control frames between rigctld and a sidecar.
  *
  * Control frames carry no audio payload; the `length` field of the
  * header conveys their state (e.g. PTT_STATE: 0=off, 1=on). */
+#define TCI_STREAM_IQ        0   /* receiver IQ (server -> client) */
 #define TCI_STREAM_RX_AUDIO  1
 #define TCI_STREAM_TX_AUDIO  2
 #define TCI_STREAM_TX_CHRONO 3
@@ -213,7 +222,16 @@ struct tci2_priv
     int     audio_buf_used;
     int     tx_chrono_pending;
     int     tx_chrono_samples;
-    pthread_t audio_thread;     /* Background thread for audio polling */
+
+    /* IQ sidecar support (parallel structure to audio sidecar; the
+     * reader thread dispatches inbound binary TCI frames to whichever
+     * sidecar matches the frame's stream_type field). */
+    int     iq_listen_fd;       /* -1 or listening socket */
+    int     iq_sidecar_fd;      /* -1 or connected sidecar */
+    int     iq_port;            /* 0=disabled, else TCP port */
+    int     iq_sample_rate;     /* 48000/96000/192000/384000 */
+
+    pthread_t audio_thread;     /* Background thread for audio + IQ polling */
     int     audio_thread_run;   /* Flag to stop thread */
     pthread_mutex_t ws_mutex;   /* Serializes WebSocket writes only.
                                  * The reader thread is the SOLE reader. */
@@ -289,6 +307,19 @@ static const struct confparams tci2_cfg_params[] =
         "TCP port for audio sidecar connection (0=disabled, auto-enables TCI audio)",
         "0", RIG_CONF_INT, { .n = { .min = 0, .max = 65535, .step = 1 } }
     },
+    {
+        TOK_TCI2_IQ_PORT, "iq_port", "IQ Sidecar Port",
+        "TCP port for IQ sidecar connection (0=disabled, auto-enables TCI RX IQ stream). "
+        "Independent of audio_port; both can be enabled together.",
+        "0", RIG_CONF_INT, { .n = { .min = 0, .max = 65535, .step = 1 } }
+    },
+    {
+        TOK_TCI2_IQ_RATE, "iq_rate", "IQ Sample Rate",
+        "Sample rate (Hz) requested for the TCI IQ stream when iq_port is enabled. "
+        "Supported by ExpertSDR3: 48000, 96000, 192000, 384000.",
+        "192000", RIG_CONF_INT,
+        { .n = { .min = 48000, .max = 384000, .step = 1 } }
+    },
     { RIG_CONF_END, NULL, NULL, NULL, NULL, RIG_CONF_STRING, {} }
 };
 
@@ -348,6 +379,24 @@ static int tci2_set_conf(RIG *rig, hamlib_token_t token, const char *val)
         rig_debug(RIG_DEBUG_VERBOSE, "%s: audio_port=%d\n", __func__, priv->audio_port);
         return RIG_OK;
 
+    case TOK_TCI2_IQ_PORT:
+        priv->iq_port = atoi(val);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: iq_port=%d\n", __func__, priv->iq_port);
+        return RIG_OK;
+
+    case TOK_TCI2_IQ_RATE:
+    {
+        int rate = atoi(val);
+        if (rate != 48000 && rate != 96000 && rate != 192000 && rate != 384000)
+        {
+            rig_debug(RIG_DEBUG_WARN,
+                      "%s: iq_rate=%d not in {48000,96000,192000,384000}, "
+                      "accepting anyway\n", __func__, rate);
+        }
+        priv->iq_sample_rate = rate;
+        return RIG_OK;
+    }
+
     default:
         return -RIG_EINVAL;
     }
@@ -380,6 +429,14 @@ static int tci2_get_conf(RIG *rig, hamlib_token_t token, char *val)
         SNPRINTF(val, 8, "%d", priv->audio_port);
         return RIG_OK;
 
+    case TOK_TCI2_IQ_PORT:
+        SNPRINTF(val, 8, "%d", priv->iq_port);
+        return RIG_OK;
+
+    case TOK_TCI2_IQ_RATE:
+        SNPRINTF(val, 8, "%d", priv->iq_sample_rate);
+        return RIG_OK;
+
     default:
         return -RIG_EINVAL;
     }
@@ -389,6 +446,9 @@ static int tci2_get_conf(RIG *rig, hamlib_token_t token, char *val)
 static int tci2_audio_init(RIG *rig);
 static int tci2_audio_cleanup(RIG *rig);
 static void tci2_audio_accept(RIG *rig);
+static int tci2_iq_init(RIG *rig);
+static int tci2_iq_cleanup(RIG *rig);
+static void tci2_iq_accept(RIG *rig);
 static void *tci2_audio_poll_thread(void *arg);
 
 /* -------------------------------------------------------------------------
@@ -644,7 +704,15 @@ static int ws_recv_frame(RIG *rig, char *buf, int buflen)
         }
         else
         {
-            /* Binary frame too large - drain it */
+            /* Binary frame too large for the caller's buffer.  This
+             * shouldn't happen for any documented TCI stream now that
+             * callers in this backend pass TCI2_WS_BUFLEN-sized
+             * buffers (sufficient for IQ at 384 kHz), but stays here
+             * as defence against future TCI extensions or unusually
+             * large frames. */
+            rig_debug(RIG_DEBUG_WARN,
+                      "%s: binary frame %zu bytes > buflen %d, DROPPING\n",
+                      __func__, plen, buflen);
             unsigned char discard[256];
             size_t remain = plen;
             while (remain > 0)
@@ -751,6 +819,21 @@ static void tci2_process_message(RIG *rig, const char *msg)
             else
             {
                 rig_debug(RIG_DEBUG_WARN, "%s: audio sidecar init failed: %d\n", __func__, retval);
+            }
+        }
+
+        /* Initialize IQ sidecar if requested.  Independent of audio_port:
+         * a user can have just IQ, just audio, or both.  tci2_iq_init
+         * piggybacks on the same poll thread that audio uses, so calling
+         * it AFTER tci2_audio_init is fine -- the poll thread is the sole
+         * WS reader and dispatches binary frames by stream_type. */
+        if (priv->iq_port > 0)
+        {
+            int retval = tci2_iq_init(rig);
+            if (retval != RIG_OK)
+            {
+                rig_debug(RIG_DEBUG_WARN, "%s: IQ sidecar init failed: %d\n",
+                          __func__, retval);
             }
         }
 
@@ -1280,7 +1363,9 @@ static int tci2_recv_until(RIG *rig, const char *prefix,
                             char *reply, int replylen)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
-    char buf[TCI2_BUFLEN];
+    /* Sized for the largest binary IQ frame.  Text frames never
+     * approach this size, but binary IQ frames can. */
+    char buf[TCI2_WS_BUFLEN];
     int retval;
     int reader_running = priv->reader_running;
 
@@ -1321,13 +1406,30 @@ static int tci2_recv_until(RIG *rig, const char *prefix,
 
         if (buf[0] == '\0')
         {
-            /* Binary frame (likely audio) - forward to sidecar if connected */
-            if (priv->audio_sidecar_fd >= 0 && retval > 0)
+            /* Binary frame -- dispatch to the right sidecar by
+             * stream_type (header word [6], byte 24).  See the
+             * matching block in tci2_audio_poll_thread for the full
+             * comment. */
+            int target_fd = -1;
+            if (retval >= 28)
             {
-                ssize_t sent = send(priv->audio_sidecar_fd, buf, retval, MSG_NOSIGNAL);
+                unsigned char stream_type = (unsigned char)buf[24];
+                if (stream_type == TCI_STREAM_IQ)
+                {
+                    target_fd = priv->iq_sidecar_fd;
+                }
+                else if (stream_type == TCI_STREAM_RX_AUDIO ||
+                         stream_type == TCI_STREAM_TX_CHRONO)
+                {
+                    target_fd = priv->audio_sidecar_fd;
+                }
+            }
+            if (target_fd >= 0 && retval > 0)
+            {
+                ssize_t sent = send(target_fd, buf, retval, MSG_NOSIGNAL);
                 if (sent < 0 && errno != EAGAIN && errno != EWOULDBLOCK)
                 {
-                    rig_debug(RIG_DEBUG_WARN, "%s: audio forward failed: %s\n",
+                    rig_debug(RIG_DEBUG_WARN, "%s: sidecar forward failed: %s\n",
                               __func__, strerror(errno));
                 }
             }
@@ -1646,7 +1748,9 @@ static void *tci2_audio_poll_thread(void *arg)
     RIG *rig = (RIG *)arg;
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
     hamlib_port_t *rp = RIGPORT(rig);
-    char buf[TCI2_BUFLEN];
+    /* Sized for the largest binary IQ frame -- TCI2_BUFLEN (8 KB) is
+     * not enough at 192/384 kHz IQ. */
+    char buf[TCI2_WS_BUFLEN];
     int retval;
     struct pollfd pfd;
 
@@ -1661,10 +1765,13 @@ static void *tci2_audio_poll_thread(void *arg)
 
     while (priv->audio_thread_run)
     {
-        /* Accept sidecar connection if pending (non-blocking).  Need to do
-         * this from the reader thread because there may be no CAT activity
-         * driving tci2_recv_until. */
+        /* Accept sidecar connections if pending (non-blocking).  We do
+         * this from the reader thread because there may be no CAT
+         * activity driving tci2_recv_until.  Each accept is a no-op if
+         * its corresponding listen fd is -1 or its sidecar is already
+         * connected. */
         tci2_audio_accept(rig);
+        tci2_iq_accept(rig);
 
         /* Use poll() instead of select() to avoid FD_SETSIZE limit */
         int poll_ret = poll(&pfd, 1, 200);  /* 200 ms - check audio_thread_run / accept fairly often */
@@ -1856,23 +1963,67 @@ sidecar_done:;
 
         if (buf[0] == '\0')
         {
-            /* Binary frame (audio) from TCI - forward to sidecar */
-            if (priv->audio_sidecar_fd >= 0 && retval > 0)
+            /* Binary frame from TCI -- dispatch to the right sidecar by
+             * the frame's stream_type field (header word [6], byte 24).
+             *
+             * ws_recv_frame writes the raw 64-byte TCI header + payload
+             * into buf and only mutates buf[0] (low byte of word [0],
+             * "receiver") to mark the frame as binary.  buf[24..27] is
+             * intact and holds stream_type.  We read just buf[24]
+             * because stream_type is known to fit in 8 bits for every
+             * value the protocol defines. */
+            int target_fd = -1;
+            const char *target_name = "?";
+
+            if (retval >= 28)
             {
-                ssize_t sent = send(priv->audio_sidecar_fd, buf, retval, MSG_NOSIGNAL);
+                unsigned char stream_type = (unsigned char)buf[24];
+
+                if (stream_type == TCI_STREAM_IQ)
+                {
+                    target_fd   = priv->iq_sidecar_fd;
+                    target_name = "iq";
+                }
+                else if (stream_type == TCI_STREAM_RX_AUDIO ||
+                         stream_type == TCI_STREAM_TX_CHRONO)
+                {
+                    /* TX_CHRONO is text on the WebSocket, but defensively
+                     * route binary stream_type 3 to audio in case some
+                     * future TCI version emits it as binary. */
+                    target_fd   = priv->audio_sidecar_fd;
+                    target_name = "audio";
+                }
+                /* Other stream_types (e.g. LINEOUT_STREAM=4 from TCI's
+                 * own enum) are unhandled today; silently skip. */
+            }
+
+            if (target_fd >= 0 && retval > 0)
+            {
+                ssize_t sent = send(target_fd, buf, retval, MSG_NOSIGNAL);
                 if (sent < 0)
                 {
                     if (errno == EPIPE || errno == ECONNRESET)
                     {
-                        rig_debug(RIG_DEBUG_WARN, "%s: sidecar disconnected, closing fd=%d\n",
-                                  "tci2_audio_poll_thread", priv->audio_sidecar_fd);
-                        close(priv->audio_sidecar_fd);
-                        priv->audio_sidecar_fd = -1;
+                        rig_debug(RIG_DEBUG_WARN,
+                                  "%s: %s sidecar disconnected, closing fd=%d\n",
+                                  "tci2_audio_poll_thread", target_name,
+                                  target_fd);
+                        close(target_fd);
+                        if (target_fd == priv->audio_sidecar_fd)
+                        {
+                            priv->audio_sidecar_fd = -1;
+                        }
+                        if (target_fd == priv->iq_sidecar_fd)
+                        {
+                            priv->iq_sidecar_fd = -1;
+                        }
                     }
                     else
                     {
-                        rig_debug(RIG_DEBUG_WARN, "%s: TCI->sidecar send failed: %s\n",
-                                  "tci2_audio_poll_thread", strerror(errno));
+                        rig_debug(RIG_DEBUG_WARN,
+                                  "%s: TCI->%s sidecar send failed: %s\n",
+                                  "tci2_audio_poll_thread", target_name,
+                                  strerror(errno));
                     }
                 }
             }
@@ -1951,6 +2102,195 @@ static void tci2_audio_accept(RIG *rig)
 }
 
 /* -------------------------------------------------------------------------
+ * IQ Sidecar Support
+ *
+ * Mirrors the audio sidecar plumbing.  Listens on its own TCP port
+ * (priv->iq_port), accepts one sidecar at a time, and the audio poll
+ * thread dispatches inbound TCI binary frames to this fd whenever the
+ * frame's stream_type field is TCI_STREAM_IQ.
+ *
+ * On sidecar connect, rigctld emits IQ_SAMPLERATE and IQ_START so the
+ * radio begins streaming.  On disconnect, IQ_STOP.  No reverse-direction
+ * traffic: TCI does not define a TX IQ stream.
+ * ---------------------------------------------------------------------- */
+
+/**
+ * tci2_iq_init - Initialize IQ sidecar listening socket and ensure the
+ * shared audio poll thread is running.
+ */
+static int tci2_iq_init(RIG *rig)
+{
+    struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
+    struct sockaddr_in addr;
+    int fd, opt = 1, flags;
+
+    ENTERFUNC;
+
+    if (priv->iq_port == 0)
+    {
+        RETURNFUNC(RIG_OK);
+    }
+
+    /* Reuse the listen socket on a re-open of the same rig, mirroring
+     * the audio_listen_fd idempotent path. */
+    if (priv->iq_listen_fd >= 0)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: IQ listen socket already up, reusing\n", __func__);
+        goto ensure_thread;
+    }
+
+    fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (fd < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: socket() failed: %s\n",
+                  __func__, strerror(errno));
+        RETURNFUNC(-RIG_EIO);
+    }
+
+    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    addr.sin_port = htons(priv->iq_port);
+
+    if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: bind(%d) failed: %s\n",
+                  __func__, priv->iq_port, strerror(errno));
+        close(fd);
+        RETURNFUNC(-RIG_EIO);
+    }
+
+    if (listen(fd, 1) < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: listen() failed: %s\n",
+                  __func__, strerror(errno));
+        close(fd);
+        RETURNFUNC(-RIG_EIO);
+    }
+
+    flags = fcntl(fd, F_GETFL, 0);
+    if (flags >= 0)
+    {
+        fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+    }
+
+    priv->iq_listen_fd = fd;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: IQ sidecar listening on localhost:%d\n",
+              __func__, priv->iq_port);
+
+ensure_thread:
+    /* The audio poll thread is the single WS reader -- it dispatches by
+     * stream_type, so it serves IQ as well as audio.  If audio_port is
+     * also configured the thread is already running; if only IQ is
+     * configured we need to start it ourselves.  reader_running and
+     * audio_thread_run are intentionally still named "audio_*" -- they
+     * gate the shared thread, not just the audio path. */
+    if (!priv->audio_thread_run)
+    {
+        priv->audio_thread_run = 1;
+        priv->reader_running   = 1;
+        if (pthread_create(&priv->audio_thread, NULL,
+                           tci2_audio_poll_thread, rig) != 0)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: failed to start poll thread\n",
+                      __func__);
+            priv->audio_thread_run = 0;
+            priv->reader_running = 0;
+            close(priv->iq_listen_fd);
+            priv->iq_listen_fd = -1;
+            RETURNFUNC(-RIG_EIO);
+        }
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: poll thread started for IQ-only operation\n",
+                  __func__);
+    }
+
+    RETURNFUNC(RIG_OK);
+}
+
+/**
+ * tci2_iq_cleanup - Close IQ sidecar connections.  The shared poll
+ * thread is owned by tci2_audio_cleanup.
+ */
+static int tci2_iq_cleanup(RIG *rig)
+{
+    struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
+
+    ENTERFUNC;
+
+    if (priv->iq_sidecar_fd >= 0)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: closing IQ sidecar fd=%d\n",
+                  __func__, priv->iq_sidecar_fd);
+        close(priv->iq_sidecar_fd);
+        priv->iq_sidecar_fd = -1;
+    }
+
+    if (priv->iq_listen_fd >= 0)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: closing IQ listen fd=%d\n",
+                  __func__, priv->iq_listen_fd);
+        close(priv->iq_listen_fd);
+        priv->iq_listen_fd = -1;
+    }
+
+    RETURNFUNC(RIG_OK);
+}
+
+/**
+ * tci2_iq_accept - Accept incoming IQ sidecar connection (non-blocking).
+ * On success, configure and start the IQ stream on the radio.
+ */
+static void tci2_iq_accept(RIG *rig)
+{
+    struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
+    int fd, flags;
+
+    if (priv->iq_listen_fd < 0 || priv->iq_sidecar_fd >= 0)
+    {
+        return;
+    }
+
+    fd = accept(priv->iq_listen_fd, NULL, NULL);
+    if (fd < 0)
+    {
+        if (errno != EAGAIN && errno != EWOULDBLOCK)
+        {
+            rig_debug(RIG_DEBUG_WARN, "%s: accept() failed: %s\n",
+                      __func__, strerror(errno));
+        }
+        return;
+    }
+
+    flags = fcntl(fd, F_GETFL, 0);
+    if (flags >= 0)
+    {
+        fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+    }
+
+    priv->iq_sidecar_fd = fd;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: IQ sidecar connected, fd=%d\n",
+              __func__, fd);
+
+    /* Configure the requested IQ rate and start the stream. */
+    char cmd[TCI2_CMDLEN];
+
+    SNPRINTF(cmd, sizeof(cmd), "IQ_SAMPLERATE:%d;", priv->iq_sample_rate);
+    tci2_send(rig, cmd);
+
+    SNPRINTF(cmd, sizeof(cmd), "IQ_START:%d;", priv->trx_num);
+    tci2_send(rig, cmd);
+
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "%s: TCI IQ streaming enabled at %d Hz\n",
+              __func__, priv->iq_sample_rate);
+}
+
+/* -------------------------------------------------------------------------
  * Lifecycle
  * ---------------------------------------------------------------------- */
 
@@ -1993,6 +2333,12 @@ static int tci2_init(RIG *rig)
     priv->audio_thread_run = 0;
     pthread_mutex_init(&priv->ws_mutex, NULL);
 
+    /* Initialize IQ sidecar fields (parallel to audio sidecar) */
+    priv->iq_port = 0;
+    priv->iq_listen_fd = -1;
+    priv->iq_sidecar_fd = -1;
+    priv->iq_sample_rate = 192000;
+
     /* Text-frame queue */
     pthread_mutex_init(&priv->q_mutex, NULL);
     pthread_cond_init(&priv->q_cond, NULL);
@@ -2012,7 +2358,9 @@ static int tci2_init(RIG *rig)
 static int tci2_open(RIG *rig)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
-    char buf[TCI2_BUFLEN];
+    /* Sized for the largest binary IQ frame; ws_recv_frame can be
+     * called here too if a binary frame arrives during READY drain. */
+    char buf[TCI2_WS_BUFLEN];
     int retval;
 
     ENTERFUNC;
@@ -2134,8 +2482,11 @@ static int tci2_cleanup(RIG *rig)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
 
-    /* Clean up audio sidecar */
+    /* Clean up audio sidecar.  This also stops the shared poll thread,
+     * so it must run before tci2_iq_cleanup (which doesn't touch the
+     * thread itself, only the IQ sockets). */
     tci2_audio_cleanup(rig);
+    tci2_iq_cleanup(rig);
 
     ENTERFUNC;
 
@@ -3289,7 +3640,9 @@ static int tci2_stop_morse(RIG *rig, vfo_t vfo)
 static int tci2_wait_morse(RIG *rig, vfo_t vfo)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
-    char buf[TCI2_BUFLEN];
+    /* Sized for the largest binary IQ frame; ws_recv_frame can return
+     * a binary frame here too. */
+    char buf[TCI2_WS_BUFLEN];
     int retval;
     time_t start = time(NULL);
     int tx_seen = 0;
