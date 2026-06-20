@@ -117,16 +117,21 @@
  * Used both on the wire to/from ExpertSDR3 and on the rigctld<->sidecar
  * sidechannels.  Keep these in sync with the sidecars' identical
  * constants.  Values 0..4 are defined by the TCI protocol spec
- * (StreamType enum); values 5+ are reserved for hamlib-internal
- * control frames between rigctld and a sidecar.
+ * (StreamType enum); values 5+ are hamlib-internal control frames
+ * between rigctld and a sidecar.
  *
- * Control frames carry no audio payload; the `length` field of the
- * header conveys their state (e.g. PTT_STATE: 0=off, 1=on). */
+ * Control frames carry no audio payload; the `length` and `channels`
+ * fields of the header convey their state or parameters. */
 #define TCI_STREAM_IQ        0   /* receiver IQ (server -> client) */
-#define TCI_STREAM_RX_AUDIO  1
-#define TCI_STREAM_TX_AUDIO  2
-#define TCI_STREAM_TX_CHRONO 3
-#define TCI_STREAM_PTT_STATE 4   /* hamlib<->sidecar control frame */
+#define TCI_STREAM_RX_AUDIO  1   /* demodulated audio (server -> client) */
+#define TCI_STREAM_TX_AUDIO  2   /* audio to modulate (client -> server) */
+#define TCI_STREAM_TX_CHRONO 3   /* TX pacing (server -> client) */
+#define TCI_STREAM_PTT_STATE 4   /* PTT edge: 0=off, 1=on (rigctld -> sidecar) */
+#define TCI_STREAM_TX_IQ     5   /* modulated IQ (sidecar -> rigctld) */
+#define TCI_STREAM_MODE      6   /* mode change: length=rmode_t, channels=pbwidth (rigctld -> sidecar) */
+#define TCI_STREAM_FREQ      7   /* freq change: length=freq_lo, channels=freq_hi (rigctld -> sidecar) */
+#define TCI_STREAM_SPLIT     8   /* split change: length=enabled, channels=tx_vfo (rigctld -> sidecar) */
+#define TCI_STREAM_FILTER    9   /* filter change: length=low_hz, channels=high_hz (rigctld -> sidecar) */
 
 /* -------------------------------------------------------------------------
  * Static mode map: TCI mode string <-> Hamlib rmode_t
@@ -270,6 +275,16 @@ struct tci2_priv
     int     trx_num;          /* which TRX to control (0-based) */
     vfo_t   current_vfo;
 };
+
+/* -------------------------------------------------------------------------
+ * Forward declarations
+ * ---------------------------------------------------------------------- */
+
+static rmode_t tci2_str_to_mode(const char *s);
+static void tci2_emit_mode_frame(RIG *rig, rmode_t mode, pbwidth_t width);
+static void tci2_emit_freq_frame(RIG *rig, vfo_t vfo, freq_t freq);
+static void tci2_emit_split_frame(RIG *rig, split_t split, vfo_t tx_vfo);
+static void tci2_emit_filter_frame(RIG *rig, int low_hz, int high_hz);
 
 /* -------------------------------------------------------------------------
  * Backend config parameters
@@ -892,6 +907,9 @@ static void tci2_process_message(RIG *rig, const char *msg)
         if (n == 3 && trx == trx_sel && ch >= 0 && ch <= 1)
         {
             priv->freq[ch] = (freq_t)freq;
+            /* Notify audio sidecar of frequency change (server-initiated) */
+            vfo_t vfo = (ch == 1) ? RIG_VFO_B : RIG_VFO_A;
+            tci2_emit_freq_frame(rig, vfo, (freq_t)freq);
         }
     }
     else if (strncasecmp(msg, "MODULATION:", 11) == 0)
@@ -907,6 +925,15 @@ static void tci2_process_message(RIG *rig, const char *msg)
 
             strncpy(priv->mode_str, mode, sizeof(priv->mode_str) - 1);
             priv->mode_str[sizeof(priv->mode_str) - 1] = '\0';
+
+            /* Notify audio sidecar of mode change (server-initiated) */
+            rmode_t rmode = tci2_str_to_mode(mode);
+            if (rmode != RIG_MODE_NONE)
+            {
+                /* Use cached filter width; server pushes RX_FILTER_BAND separately */
+                pbwidth_t width = abs(priv->filter_high - priv->filter_low);
+                tci2_emit_mode_frame(rig, rmode, width);
+            }
         }
     }
     else if (strncasecmp(msg, "RX_FILTER_BAND:", 15) == 0)
@@ -918,6 +945,8 @@ static void tci2_process_message(RIG *rig, const char *msg)
         {
             priv->filter_low  = lo;
             priv->filter_high = hi;
+            /* Notify audio sidecar of filter bandwidth change */
+            tci2_emit_filter_frame(rig, lo, hi);
         }
     }
     else if (strncasecmp(msg, "TRX:", 4) == 0)
@@ -951,6 +980,10 @@ static void tci2_process_message(RIG *rig, const char *msg)
 
             priv->split = (strcasecmp(val, "true") == 0)
                           ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
+
+            /* Notify audio sidecar of split state change (server-initiated) */
+            vfo_t tx_vfo = (priv->split == RIG_SPLIT_ON) ? RIG_VFO_B : RIG_VFO_A;
+            tci2_emit_split_frame(rig, priv->split, tx_vfo);
         }
     }
     else if (strncasecmp(msg, "RIT_ENABLE:", 11) == 0)
@@ -2528,6 +2561,8 @@ static int tci2_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     if (retval == RIG_OK)
     {
         priv->freq[ch] = freq;
+        /* Notify audio sidecar of frequency change for split/offset handling */
+        tci2_emit_freq_frame(rig, vfo, freq);
     }
 
     RETURNFUNC(retval);
@@ -2599,6 +2634,9 @@ static int tci2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (retval < 0) { RETURNFUNC(retval); }
 
+    /* Notify audio sidecar of mode change for demodulation adjustment */
+    tci2_emit_mode_frame(rig, mode, width);
+
     /* Note: RX_FILTER_BAND SET is intentionally NOT sent here.
      * ExpertSDR3 auto-applies a mode-appropriate filter on MODULATION change.
      * Sending an explicit RX_FILTER_BAND after MODULATION produces incorrect
@@ -2669,6 +2707,99 @@ static int tci2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     }
 
     RETURNFUNC(RIG_OK);
+}
+
+/* -------------------------------------------------------------------------
+ * Control frame emission to sidecars
+ *
+ * These functions emit CAT state change notifications to connected sidecars
+ * so they can adjust demodulation/modulation parameters in real-time.
+ * ---------------------------------------------------------------------- */
+
+static void tci2_emit_mode_frame(RIG *rig, rmode_t mode, pbwidth_t width)
+{
+    struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
+
+    if (priv->audio_sidecar_fd >= 0)
+    {
+        uint32_t hdr[16] = {0};
+        hdr[0] = (uint32_t)priv->trx_num;        // receiver
+        hdr[5] = (uint32_t)mode;                 // length = rmode_t
+        hdr[6] = TCI_STREAM_MODE;                // stream_type
+        hdr[7] = (uint32_t)width;                // channels = passband width
+
+        if (send(priv->audio_sidecar_fd, hdr, sizeof(hdr), MSG_NOSIGNAL) < 0)
+        {
+            rig_debug(RIG_DEBUG_WARN, "%s: MODE forward failed: %s\n",
+                      __func__, strerror(errno));
+        }
+    }
+}
+
+static void tci2_emit_freq_frame(RIG *rig, vfo_t vfo, freq_t freq)
+{
+    struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
+
+    if (priv->audio_sidecar_fd >= 0)
+    {
+        int ch = (vfo == RIG_VFO_B) ? 1 : 0;
+        uint64_t freq64 = (uint64_t)freq;
+        uint32_t hdr[16] = {0};
+
+        hdr[0] = (uint32_t)ch;                   // receiver = VFO index
+        hdr[5] = (uint32_t)(freq64 & 0xFFFFFFFF);  // length = freq low 32 bits
+        hdr[6] = TCI_STREAM_FREQ;                // stream_type
+        hdr[7] = (uint32_t)(freq64 >> 32);       // channels = freq high 32 bits
+
+        if (send(priv->audio_sidecar_fd, hdr, sizeof(hdr), MSG_NOSIGNAL) < 0)
+        {
+            rig_debug(RIG_DEBUG_WARN, "%s: FREQ forward failed: %s\n",
+                      __func__, strerror(errno));
+        }
+    }
+}
+
+static void tci2_emit_split_frame(RIG *rig, split_t split, vfo_t tx_vfo)
+{
+    struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
+
+    if (priv->audio_sidecar_fd >= 0)
+    {
+        int tx_ch = (tx_vfo == RIG_VFO_B) ? 1 : 0;
+        uint32_t hdr[16] = {0};
+
+        hdr[0] = (uint32_t)priv->trx_num;        // receiver
+        hdr[5] = (split == RIG_SPLIT_ON) ? 1 : 0; // length = enabled
+        hdr[6] = TCI_STREAM_SPLIT;               // stream_type
+        hdr[7] = (uint32_t)tx_ch;                // channels = TX VFO
+
+        if (send(priv->audio_sidecar_fd, hdr, sizeof(hdr), MSG_NOSIGNAL) < 0)
+        {
+            rig_debug(RIG_DEBUG_WARN, "%s: SPLIT forward failed: %s\n",
+                      __func__, strerror(errno));
+        }
+    }
+}
+
+static void tci2_emit_filter_frame(RIG *rig, int low_hz, int high_hz)
+{
+    struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
+
+    if (priv->audio_sidecar_fd >= 0)
+    {
+        uint32_t hdr[16] = {0};
+
+        hdr[0] = (uint32_t)priv->trx_num;        // receiver
+        hdr[5] = (uint32_t)low_hz;               // length = filter low (signed)
+        hdr[6] = TCI_STREAM_FILTER;              // stream_type
+        hdr[7] = (uint32_t)high_hz;              // channels = filter high (signed)
+
+        if (send(priv->audio_sidecar_fd, hdr, sizeof(hdr), MSG_NOSIGNAL) < 0)
+        {
+            rig_debug(RIG_DEBUG_WARN, "%s: FILTER forward failed: %s\n",
+                      __func__, strerror(errno));
+        }
+    }
 }
 
 /* -------------------------------------------------------------------------
@@ -2855,6 +2986,8 @@ static int tci2_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
     if (retval == RIG_OK)
     {
         priv->split = split;
+        /* Notify audio sidecar of split state change */
+        tci2_emit_split_frame(rig, split, tx_vfo);
     }
 
     RETURNFUNC(retval);
@@ -2918,6 +3051,8 @@ static int tci2_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     if (retval == RIG_OK)
     {
         priv->freq[1] = tx_freq;
+        /* Notify audio sidecar of TX frequency change (VFO B) */
+        tci2_emit_freq_frame(rig, RIG_VFO_B, tx_freq);
     }
 
     RETURNFUNC(retval);
