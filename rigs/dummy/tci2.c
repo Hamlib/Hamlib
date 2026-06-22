@@ -45,6 +45,7 @@
 #include "hamlib/rig.h"
 #include "hamlib/port.h"
 #include "hamlib/rig_state.h"
+#include "hamlib/sidecar.h"
 #include "iofunc.h"
 #include "misc.h"
 #include "token.h"
@@ -132,6 +133,16 @@
 #define TCI_STREAM_FREQ      7   /* freq change: length=freq_lo, channels=freq_hi (rigctld -> sidecar) */
 #define TCI_STREAM_SPLIT     8   /* split change: length=enabled, channels=tx_vfo (rigctld -> sidecar) */
 #define TCI_STREAM_FILTER    9   /* filter change: length=low_hz, channels=high_hz (rigctld -> sidecar) */
+#define TCI_STREAM_AGC_LEVEL 10  /* AGC level: length=agc_level_e (rigctld -> sidecar) */
+#define TCI_STREAM_NR_LEVEL  11  /* NR level: length=float_as_uint32 (rigctld -> sidecar) */
+#define TCI_STREAM_NB_LEVEL  12  /* NB level: length=float_as_uint32 (rigctld -> sidecar) */
+#define TCI_STREAM_NOTCH     13  /* Notch freq: length=freq_hz, channels=enable (rigctld -> sidecar) */
+#define TCI_STREAM_RF_GAIN   14  /* RF gain: length=float_as_uint32 (rigctld -> sidecar) */
+#define TCI_STREAM_SQUELCH   15  /* Squelch: length=float_as_uint32 (rigctld -> sidecar) */
+#define TCI_STREAM_PREAMP    16  /* Preamp: length=db (rigctld -> sidecar) */
+#define TCI_STREAM_ATT       17  /* Attenuator: length=db (rigctld -> sidecar) */
+#define TCI_STREAM_CW_PITCH  18  /* CW pitch: length=hz (rigctld -> sidecar) */
+#define TCI_STREAM_APF       19  /* APF level: length=float_as_uint32 (rigctld -> sidecar) */
 
 /* -------------------------------------------------------------------------
  * Static mode map: TCI mode string <-> Hamlib rmode_t
@@ -283,8 +294,19 @@ struct tci2_priv
 static rmode_t tci2_str_to_mode(const char *s);
 static void tci2_emit_mode_frame(RIG *rig, rmode_t mode, pbwidth_t width);
 static void tci2_emit_freq_frame(RIG *rig, vfo_t vfo, freq_t freq);
+static void tci2_emit_fm_state(RIG *rig, rmode_t mode);
 static void tci2_emit_split_frame(RIG *rig, split_t split, vfo_t tx_vfo);
 static void tci2_emit_filter_frame(RIG *rig, int low_hz, int high_hz);
+static void tci2_emit_agc_level_frame(RIG *rig, int agc_level);
+static void tci2_emit_nr_level_frame(RIG *rig, float nr_level);
+static void tci2_emit_nb_level_frame(RIG *rig, float nb_level);
+static void tci2_emit_notch_frame(RIG *rig, int notch_hz, int enable);
+static void tci2_emit_rf_gain_frame(RIG *rig, float rf_gain);
+static void tci2_emit_squelch_frame(RIG *rig, float squelch);
+static void tci2_emit_preamp_frame(RIG *rig, int preamp_db);
+static void tci2_emit_att_frame(RIG *rig, int att_db);
+static void tci2_emit_cw_pitch_frame(RIG *rig, int pitch_hz);
+static void tci2_emit_apf_frame(RIG *rig, float apf_level);
 
 /* -------------------------------------------------------------------------
  * Backend config parameters
@@ -1650,8 +1672,7 @@ static const char *tci2_mode_to_str(RIG *rig, rmode_t mode)
 static int tci2_audio_init(RIG *rig)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
-    struct sockaddr_in addr;
-    int fd, opt = 1, flags;
+    int fd;
 
     ENTERFUNC;
 
@@ -1672,46 +1693,15 @@ static int tci2_audio_init(RIG *rig)
         goto start_thread;
     }
 
-    fd = socket(AF_INET, SOCK_STREAM, 0);
+    /* Use sidecar library to initialize audio port */
+    fd = sidecar_init_port(priv->audio_port);
     if (fd < 0)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: socket() failed: %s\n", __func__, strerror(errno));
-        RETURNFUNC(-RIG_EIO);
-    }
-
-    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-
-    memset(&addr, 0, sizeof(addr));
-    addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    addr.sin_port = htons(priv->audio_port);
-
-    if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: bind(%d) failed: %s\n",
-                  __func__, priv->audio_port, strerror(errno));
-        close(fd);
-        RETURNFUNC(-RIG_EIO);
-    }
-
-    if (listen(fd, 1) < 0)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: listen() failed: %s\n", __func__, strerror(errno));
-        close(fd);
-        RETURNFUNC(-RIG_EIO);
-    }
-
-    flags = fcntl(fd, F_GETFL, 0);
-    if (flags >= 0)
-    {
-        fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+        RETURNFUNC(fd);  /* sidecar_init_port returns RIG_* error codes */
     }
 
     priv->audio_listen_fd = fd;
     priv->audio_buf_used = 0;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: audio sidecar listening on localhost:%d\n",
-              __func__, priv->audio_port);
 
 start_thread:
     /* Start background audio thread.  Set reader_running BEFORE creating
@@ -2131,6 +2121,9 @@ static void tci2_audio_accept(RIG *rig)
     SNPRINTF(cmd, sizeof(cmd), "AUDIO_START:%d;", priv->trx_num);
     tci2_send(rig, cmd);
 
+    /* Bring the new sidecar up to date with current state. */
+    tci2_emit_fm_state(rig, tci2_str_to_mode(priv->mode_str));
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s: TCI audio streaming enabled\n", __func__);
 }
 
@@ -2154,8 +2147,7 @@ static void tci2_audio_accept(RIG *rig)
 static int tci2_iq_init(RIG *rig)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
-    struct sockaddr_in addr;
-    int fd, opt = 1, flags;
+    int fd;
 
     ENTERFUNC;
 
@@ -2173,47 +2165,14 @@ static int tci2_iq_init(RIG *rig)
         goto ensure_thread;
     }
 
-    fd = socket(AF_INET, SOCK_STREAM, 0);
+    /* Use sidecar library to initialize IQ port */
+    fd = sidecar_init_port(priv->iq_port);
     if (fd < 0)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: socket() failed: %s\n",
-                  __func__, strerror(errno));
-        RETURNFUNC(-RIG_EIO);
-    }
-
-    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-
-    memset(&addr, 0, sizeof(addr));
-    addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    addr.sin_port = htons(priv->iq_port);
-
-    if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: bind(%d) failed: %s\n",
-                  __func__, priv->iq_port, strerror(errno));
-        close(fd);
-        RETURNFUNC(-RIG_EIO);
-    }
-
-    if (listen(fd, 1) < 0)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: listen() failed: %s\n",
-                  __func__, strerror(errno));
-        close(fd);
-        RETURNFUNC(-RIG_EIO);
-    }
-
-    flags = fcntl(fd, F_GETFL, 0);
-    if (flags >= 0)
-    {
-        fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+        RETURNFUNC(fd);  /* sidecar_init_port returns RIG_* error codes */
     }
 
     priv->iq_listen_fd = fd;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: IQ sidecar listening on localhost:%d\n",
-              __func__, priv->iq_port);
 
 ensure_thread:
     /* The audio poll thread is the single WS reader -- it dispatches by
@@ -2317,6 +2276,9 @@ static void tci2_iq_accept(RIG *rig)
 
     SNPRINTF(cmd, sizeof(cmd), "IQ_START:%d;", priv->trx_num);
     tci2_send(rig, cmd);
+
+    /* Bring the new IQ sidecar up to date with current state. */
+    tci2_emit_fm_state(rig, tci2_str_to_mode(priv->mode_str));
 
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s: TCI IQ streaming enabled at %d Hz\n",
@@ -2719,87 +2681,128 @@ static int tci2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 static void tci2_emit_mode_frame(RIG *rig, rmode_t mode, pbwidth_t width)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
-
-    if (priv->audio_sidecar_fd >= 0)
-    {
-        uint32_t hdr[16] = {0};
-        hdr[0] = (uint32_t)priv->trx_num;        // receiver
-        hdr[5] = (uint32_t)mode;                 // length = rmode_t
-        hdr[6] = TCI_STREAM_MODE;                // stream_type
-        hdr[7] = (uint32_t)width;                // channels = passband width
-
-        if (send(priv->audio_sidecar_fd, hdr, sizeof(hdr), MSG_NOSIGNAL) < 0)
-        {
-            rig_debug(RIG_DEBUG_WARN, "%s: MODE forward failed: %s\n",
-                      __func__, strerror(errno));
-        }
-    }
+    sidecar_emit_mode(priv->audio_sidecar_fd, priv->trx_num, mode, width);
+    sidecar_emit_mode(priv->iq_sidecar_fd, priv->trx_num, mode, width);
+    tci2_emit_fm_state(rig, mode);
 }
 
 static void tci2_emit_freq_frame(RIG *rig, vfo_t vfo, freq_t freq)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
+    int ch = (vfo == RIG_VFO_B) ? 1 : 0;
+    sidecar_emit_freq(priv->audio_sidecar_fd, ch, freq);
+    sidecar_emit_freq(priv->iq_sidecar_fd, ch, freq);
+}
 
-    if (priv->audio_sidecar_fd >= 0)
+/*
+ * Emit demod-side state derived from rmode_t. WFM = 75 kHz deviation +
+ * AGC OFF (broadcast already compressed); NBFM/FMN/PKTFM = 5 kHz + AGC
+ * MEDIUM. Standards-knowledge stays in the backend so sidecars remain
+ * generic.
+ */
+static void tci2_emit_fm_state(RIG *rig, rmode_t mode)
+{
+    struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
+
+    if (mode == RIG_MODE_WFM)
     {
-        int ch = (vfo == RIG_VFO_B) ? 1 : 0;
-        uint64_t freq64 = (uint64_t)freq;
-        uint32_t hdr[16] = {0};
-
-        hdr[0] = (uint32_t)ch;                   // receiver = VFO index
-        hdr[5] = (uint32_t)(freq64 & 0xFFFFFFFF);  // length = freq low 32 bits
-        hdr[6] = TCI_STREAM_FREQ;                // stream_type
-        hdr[7] = (uint32_t)(freq64 >> 32);       // channels = freq high 32 bits
-
-        if (send(priv->audio_sidecar_fd, hdr, sizeof(hdr), MSG_NOSIGNAL) < 0)
-        {
-            rig_debug(RIG_DEBUG_WARN, "%s: FREQ forward failed: %s\n",
-                      __func__, strerror(errno));
-        }
+        sidecar_emit_fm_deviation(priv->audio_sidecar_fd, priv->trx_num, 75000);
+        sidecar_emit_fm_deviation(priv->iq_sidecar_fd, priv->trx_num, 75000);
+        sidecar_emit_agc_level(priv->audio_sidecar_fd, priv->trx_num, RIG_AGC_OFF);
+        sidecar_emit_agc_level(priv->iq_sidecar_fd, priv->trx_num, RIG_AGC_OFF);
+    }
+    else if (mode == RIG_MODE_FM || mode == RIG_MODE_FMN
+             || mode == RIG_MODE_PKTFM)
+    {
+        sidecar_emit_fm_deviation(priv->audio_sidecar_fd, priv->trx_num, 5000);
+        sidecar_emit_fm_deviation(priv->iq_sidecar_fd, priv->trx_num, 5000);
+        sidecar_emit_agc_level(priv->audio_sidecar_fd, priv->trx_num, RIG_AGC_MEDIUM);
+        sidecar_emit_agc_level(priv->iq_sidecar_fd, priv->trx_num, RIG_AGC_MEDIUM);
     }
 }
 
 static void tci2_emit_split_frame(RIG *rig, split_t split, vfo_t tx_vfo)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
-
-    if (priv->audio_sidecar_fd >= 0)
-    {
-        int tx_ch = (tx_vfo == RIG_VFO_B) ? 1 : 0;
-        uint32_t hdr[16] = {0};
-
-        hdr[0] = (uint32_t)priv->trx_num;        // receiver
-        hdr[5] = (split == RIG_SPLIT_ON) ? 1 : 0; // length = enabled
-        hdr[6] = TCI_STREAM_SPLIT;               // stream_type
-        hdr[7] = (uint32_t)tx_ch;                // channels = TX VFO
-
-        if (send(priv->audio_sidecar_fd, hdr, sizeof(hdr), MSG_NOSIGNAL) < 0)
-        {
-            rig_debug(RIG_DEBUG_WARN, "%s: SPLIT forward failed: %s\n",
-                      __func__, strerror(errno));
-        }
-    }
+    sidecar_emit_split(priv->audio_sidecar_fd, priv->trx_num, split, tx_vfo);
+    sidecar_emit_split(priv->iq_sidecar_fd, priv->trx_num, split, tx_vfo);
 }
 
 static void tci2_emit_filter_frame(RIG *rig, int low_hz, int high_hz)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
+    sidecar_emit_filter(priv->audio_sidecar_fd, priv->trx_num, low_hz, high_hz);
+    sidecar_emit_filter(priv->iq_sidecar_fd, priv->trx_num, low_hz, high_hz);
+}
 
-    if (priv->audio_sidecar_fd >= 0)
-    {
-        uint32_t hdr[16] = {0};
+static void tci2_emit_agc_level_frame(RIG *rig, int agc_level)
+{
+    struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
+    sidecar_emit_agc_level(priv->audio_sidecar_fd, priv->trx_num, agc_level);
+    sidecar_emit_agc_level(priv->iq_sidecar_fd, priv->trx_num, agc_level);
+}
 
-        hdr[0] = (uint32_t)priv->trx_num;        // receiver
-        hdr[5] = (uint32_t)low_hz;               // length = filter low (signed)
-        hdr[6] = TCI_STREAM_FILTER;              // stream_type
-        hdr[7] = (uint32_t)high_hz;              // channels = filter high (signed)
+static void tci2_emit_nr_level_frame(RIG *rig, float nr_level)
+{
+    struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
+    sidecar_emit_nr_level(priv->audio_sidecar_fd, priv->trx_num, nr_level);
+    sidecar_emit_nr_level(priv->iq_sidecar_fd, priv->trx_num, nr_level);
+}
 
-        if (send(priv->audio_sidecar_fd, hdr, sizeof(hdr), MSG_NOSIGNAL) < 0)
-        {
-            rig_debug(RIG_DEBUG_WARN, "%s: FILTER forward failed: %s\n",
-                      __func__, strerror(errno));
-        }
-    }
+static void tci2_emit_nb_level_frame(RIG *rig, float nb_level)
+{
+    struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
+    sidecar_emit_nb_level(priv->audio_sidecar_fd, priv->trx_num, nb_level);
+    sidecar_emit_nb_level(priv->iq_sidecar_fd, priv->trx_num, nb_level);
+}
+
+static void tci2_emit_notch_frame(RIG *rig, int notch_hz, int enable)
+{
+    struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
+    sidecar_emit_notch(priv->audio_sidecar_fd, priv->trx_num, notch_hz, enable);
+    sidecar_emit_notch(priv->iq_sidecar_fd, priv->trx_num, notch_hz, enable);
+}
+
+static void tci2_emit_rf_gain_frame(RIG *rig, float rf_gain)
+{
+    struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
+    sidecar_emit_rf_gain(priv->audio_sidecar_fd, priv->trx_num, rf_gain);
+    sidecar_emit_rf_gain(priv->iq_sidecar_fd, priv->trx_num, rf_gain);
+}
+
+static void tci2_emit_squelch_frame(RIG *rig, float squelch)
+{
+    struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
+    sidecar_emit_squelch(priv->audio_sidecar_fd, priv->trx_num, squelch);
+    sidecar_emit_squelch(priv->iq_sidecar_fd, priv->trx_num, squelch);
+}
+
+static void tci2_emit_preamp_frame(RIG *rig, int preamp_db)
+{
+    struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
+    sidecar_emit_preamp(priv->audio_sidecar_fd, priv->trx_num, preamp_db);
+    sidecar_emit_preamp(priv->iq_sidecar_fd, priv->trx_num, preamp_db);
+}
+
+static void tci2_emit_att_frame(RIG *rig, int att_db)
+{
+    struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
+    sidecar_emit_att(priv->audio_sidecar_fd, priv->trx_num, att_db);
+    sidecar_emit_att(priv->iq_sidecar_fd, priv->trx_num, att_db);
+}
+
+static void tci2_emit_cw_pitch_frame(RIG *rig, int pitch_hz)
+{
+    struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
+    sidecar_emit_cw_pitch(priv->audio_sidecar_fd, priv->trx_num, pitch_hz);
+    sidecar_emit_cw_pitch(priv->iq_sidecar_fd, priv->trx_num, pitch_hz);
+}
+
+static void tci2_emit_apf_frame(RIG *rig, float apf_level)
+{
+    struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
+    sidecar_emit_apf(priv->audio_sidecar_fd, priv->trx_num, apf_level);
+    sidecar_emit_apf(priv->iq_sidecar_fd, priv->trx_num, apf_level);
 }
 
 /* -------------------------------------------------------------------------
@@ -3334,6 +3337,9 @@ static int tci2_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
         SNPRINTF(cmd, sizeof(cmd), "SQL_LEVEL:%d,%d;",
                  priv->trx_num, priv->squelch_level);
+
+        /* Emit control frame to sidecar */
+        tci2_emit_squelch_frame(rig, val.f);
         break;
 
     case RIG_LEVEL_NB:
@@ -3346,6 +3352,9 @@ static int tci2_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
         SNPRINTF(cmd, sizeof(cmd), "RX_NB_PARAM:%d,%d,%d;",
                  priv->trx_num, priv->nb_threshold, priv->nb_duration);
+
+        /* Emit control frame to sidecar */
+        tci2_emit_nb_level_frame(rig, val.f);
         break;
 
     case RIG_LEVEL_AGC:
@@ -3368,7 +3377,44 @@ static int tci2_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             break;
         }
 
+        /* Emit control frame to sidecar */
+        tci2_emit_agc_level_frame(rig, val.i);
         break;
+
+    case RIG_LEVEL_NR:
+        /* Noise reduction 0.0-1.0 */
+        tci2_emit_nr_level_frame(rig, val.f);
+        RETURNFUNC(RIG_OK);  /* No TCI command, sidecar-only */
+
+    case RIG_LEVEL_RF:
+        /* RF gain 0.0-1.0 */
+        tci2_emit_rf_gain_frame(rig, val.f);
+        RETURNFUNC(RIG_OK);  /* No TCI command, sidecar-only */
+
+    case RIG_LEVEL_PREAMP:
+        /* Preamp in dB (0, 10, 20) */
+        tci2_emit_preamp_frame(rig, val.i);
+        RETURNFUNC(RIG_OK);  /* No TCI command, sidecar-only */
+
+    case RIG_LEVEL_ATT:
+        /* Attenuator in dB (0, 6, 12, 18) */
+        tci2_emit_att_frame(rig, val.i);
+        RETURNFUNC(RIG_OK);  /* No TCI command, sidecar-only */
+
+    case RIG_LEVEL_CWPITCH:
+        /* CW pitch in Hz */
+        tci2_emit_cw_pitch_frame(rig, val.i);
+        RETURNFUNC(RIG_OK);  /* No TCI command, sidecar-only */
+
+    case RIG_LEVEL_NOTCHF:
+        /* Notch frequency in Hz (0 = off) */
+        tci2_emit_notch_frame(rig, val.i, val.i > 0 ? 1 : 0);
+        RETURNFUNC(RIG_OK);  /* No TCI command, sidecar-only */
+
+    case RIG_LEVEL_APF:
+        /* Audio peak filter 0.0-1.0 */
+        tci2_emit_apf_frame(rig, val.f);
+        RETURNFUNC(RIG_OK);  /* No TCI command, sidecar-only */
 
     case RIG_LEVEL_KEYSPD:
         /* CW_KEYER_SPEED controls the hardware iambic keyer (client → server

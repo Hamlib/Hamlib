@@ -4,60 +4,78 @@ Full audio (bidirectional RX/TX) and IQ (RX-only) streaming for the TCI 2.0 back
 
 ## Quick Start
 
+Easiest path (Linux, audio path): use the lifecycle script from the
+sidecar repo (https://github.com/jfrancis42/hamlib-audio-sidecar) — it
+starts rigctld, the sidecar, and the PulseAudio loopback in one command.
+
+```bash
+# Audio path: bidirectional 8 kHz mono RX/TX through virtual PulseAudio sinks
+./hamlib.sh start --radio tci --host 127.0.0.1 --port 50001 \
+                  --stream audio --sink <your-output-substring>
+
+# IQ path: TCI RX-only IQ stream
+./hamlib.sh start --radio tci --host 127.0.0.1 --port 50001 \
+                  --stream iq --rate 192000 --sink <your-output-substring>
+```
+
+Configure your ham-radio software:
+- **Audio input (RX):** `hamlib-rx.monitor` (PulseAudio)
+- **Audio output (TX):** `hamlib-tx` (PulseAudio)
+- **CAT:** Hamlib `rigctld` at `localhost:4532`
+
+By hand, without the lifecycle script:
+
 ```bash
 # Start rigctld with both audio and IQ sidechannels enabled
 rigctld -m 12 -r localhost:50001 -t 4532 \
         -C audio_port=4534 \
         -C iq_port=4535 -C iq_rate=192000
 
-# In separate terminals:
+# Linux sidecar — virtual PulseAudio audio devices
+python3 hamlib_sidecar_linux.py --rigctld-port 4534 --output-rate 48000
 
-# Audio sidecar (pick one style):
-python3 tci-audio-soundcard-sidecar.py \
-    --rigctld-host localhost --rigctld-port 4534 \
-    --name tci --tx-gain-db 20 --rx-gain-db 0
-# (or use tci-audio-gr-sidecar.py for GNU Radio instead)
-
-# IQ sidecar (optional; independent of audio)
-python3 tci-iq-sidecar.py \
-    --rigctld-host localhost --rigctld-port 4535 \
-    --zmq-bind 'tcp://*:5555'
+# Or, for IQ on a separate sidecar process
+python3 hamlib_sidecar_linux.py --rigctld-port 4535 \
+                                --user-backend pulseaudio-iq \
+                                --iq-rate 192000
 ```
 
-Configure your ham-radio software:
-- **With `tci-audio-soundcard-sidecar.py` (PulseAudio)**:
-  - Audio input (RX): `tci-rx.monitor`
-  - Audio output (TX): `tci-tx`
-- **With `tci-audio-gr-sidecar.py` (GNU Radio)**:
-  - RX: `zmq_sub_source` on `tcp://localhost:5557` (float32 mono 8 kHz)
-  - TX: `zmq_push_sink` on `tcp://localhost:5558` (float32 mono 8 kHz)
-- **CAT**: Hamlib `rigctld` at `localhost:4532`
-- **IQ**: `zmq_sub_source` on `tcp://localhost:5555` (complex float32, rate set by `-C iq_rate=`)
+For GNU Radio or SoapySDR (Linux / macOS / Windows):
+
+```bash
+python3 hamlib_sidecar_portable.py --rigctld-port 4534 \
+                                   --user-backend gnuradio
+# ZMQ endpoints: tcp://*:5550 RX audio, *:5551 TX audio,
+#                *:5552 RX IQ, *:5553 TX IQ
+```
 
 ## Architecture
 
 ```
        ┌──────────────┐    TCI         ┌─────────────┐
        │  ExpertSDR3  │◀──WebSocket───▶│   rigctld   │◀── CAT (JS8Call, etc.) :4532
-       │  (port 50001)│                │             │
+       │  (port 50001)│                │  (model 12) │
        └──────────────┘                └──┬───────┬──┘
                                           │       │
                           audio :4534 ────┘       └──── iq :4535
                                           │              │
                                           ▼              ▼
-                              ┌──────────────────┐  ┌──────────────────┐
-                              │  audio sidecar   │  │ tci-iq-sidecar.py│
-                              │ (soundcard or GR)│  │                  │
-                              └────┬────────┬────┘  └─────────┬────────┘
-                       tci-rx ◀────┘        └───▶ tci-tx      │
-                       (sink)                     (sink)      │ ZMQ PUB :5555
-                          ▲                          ▲        │ (complex float32)
-                          │                          │        │
-                          │      modem reads RX,     │        │
-                          └─────  writes TX  ────────┘        ▼
-                                                       GR flowgraph,
-                                                       tci-iq-viewer.py,
-                                                       any ZMQ consumer
+                          ┌──────────────────────────────────────────┐
+                          │       Sidecar (Python, separate repo)    │
+                          │                                          │
+                          │   hamlib_sidecar_linux.py   (PulseAudio  │
+                          │                              backends)   │
+                          │   hamlib_sidecar_portable.py  (ZMQ /     │
+                          │                              SoapySDR)   │
+                          └──────────────┬──────────────────┬────────┘
+                                         │                  │
+                                  PulseAudio sinks      ZMQ sockets
+                                  (hamlib-rx,           (audio + IQ
+                                   hamlib-tx)            RX / TX)
+                                         │                  │
+                                         ▼                  ▼
+                                 JS8Call, fldigi,    GNU Radio,
+                                 WSJT-X, gqrx        SDR apps
 ```
 
 **rigctld** owns the one TCI WebSocket connection to ExpertSDR3. Audio and IQ are proxied as **length-framed binary TCI frames** over independent TCP sidechannels (4534 and 4535) to external Python sidecar processes.
@@ -117,54 +135,76 @@ rigctld -m 12 -r HOST:50001 -t 4532 \
 
 ## Sidecar Implementations
 
-**Three sidecars ship in `hamlib-tci-sidecar` repo:**
+The Python sidecars live in `hamlib-audio-sidecar`
+(https://github.com/jfrancis42/hamlib-audio-sidecar). The repo ships
+two sidecar entry points, one runtime CLI, and one lifecycle script,
+all built on a shared library:
 
-### Audio Sidecars (choose one; both connect to `:4534`)
+### `hamlib_sidecar_linux.py` (connects to `:4534` for audio, `:4535` for IQ)
 
-1. **`tci-audio-soundcard-sidecar.py`** — PulseAudio/PipeWire (Linux). RX/TX audio as null sinks (`tci-rx`, `tci-tx`) for JS8Call, fldigi, WSJT-X, etc. Bidirectional.
+Linux-only. Two user-side backends, selected with `--user-backend`:
 
-   ```bash
-   python3 tci-audio-soundcard-sidecar.py \
-       --rigctld-host localhost --rigctld-port 4534 \
-       --name tci --tx-gain-db 20 --rx-gain-db 0
-   ```
+- **`pulseaudio`** (default) — demodulated audio in/out via virtual
+  PulseAudio null sinks `hamlib-rx` and `hamlib-tx`. With TCI, that's
+  bidirectional 8 kHz mono. With an IQ-only backend (KiwiSDR, RTL-SDR)
+  the sidecar's built-in demodulator (SSB / AM / FM mono+stereo / CW)
+  produces audio. Compatible with JS8Call, fldigi, WSJT-X, etc.
+- **`pulseaudio-iq`** — raw IQ as a stereo PulseAudio sink with L=I, R=Q.
+  For software that expects to pull IQ from a soundcard (fldigi IQ mode,
+  gqrx, HDSDR, PowerSDR).
 
-   - **TX gain** (default +20 dB) — ExpertSDR3 silently drops TX audio below an internal threshold. JS8Call and other modems output ~-20 dBFS. +20 dB clipping brings it up to ExpertSDR3's expected level.
-   - **RX gain** (default 0 dB) — for symmetry. Use small positive values to boost RX into modems that want louder input.
+```bash
+# Audio
+python3 hamlib_sidecar_linux.py --rigctld-port 4534 --output-rate 48000
 
-2. **`tci-audio-gr-sidecar.py`** — GNU Radio audio bridge. RX audio published as ZMQ PUB (float32 mono 8 kHz, `:5557`); TX audio accepted on ZMQ PULL (float32 mono 8 kHz, `:5558`). Alternative to the PulseAudio sidecar. Bidirectional.
+# IQ as stereo soundcard
+python3 hamlib_sidecar_linux.py --rigctld-port 4535 \
+                                --user-backend pulseaudio-iq \
+                                --iq-rate 192000
+```
 
-   ```bash
-   python3 tci-audio-gr-sidecar.py \
-       --rigctld-host localhost --rigctld-port 4534 \
-       --zmq-rx-bind 'tcp://*:5557' \
-       --zmq-tx-bind 'tcp://*:5558' \
-       --tx-gain-db 20 --rx-gain-db 0
-   ```
+### `hamlib_sidecar_portable.py` (any OS)
 
-   - GR flowgraphs: `zmq_sub_source` (RX) and `zmq_push_sink` (TX), item type `float`, vec length 1, sample rate 8000.
-   - Same TX/RX gain semantics as the PulseAudio sidecar.
+GNU Radio ZMQ bridge or direct SoapySDR hardware. Four ZMQ endpoints
+exposed (audio RX/TX + IQ RX/TX); the audio path is bidirectional, IQ
+TX is honored if the backend defines it (TCI does not — TX IQ is
+discarded for TCI).
 
-### IQ Sidecar (connects to `:4535`, independent of audio)
+```bash
+python3 hamlib_sidecar_portable.py --rigctld-port 4534 \
+                                   --user-backend gnuradio
+# ZMQ binds: tcp://*:5550 RX audio, *:5551 TX audio,
+#            *:5552 RX IQ,    *:5553 TX IQ
+```
 
-3. **`tci-iq-sidecar.py`** — IQ bridge. Receiver IQ stream published as ZMQ PUB (complex float32, `:5555`). **RX-only** (TCI does not define TX IQ). For GNU Radio and other ZMQ-aware SDR consumers.
+### `hamctl` (runtime CLI)
 
-   ```bash
-   python3 tci-iq-sidecar.py \
-       --rigctld-host localhost --rigctld-port 4535 \
-       --zmq-bind 'tcp://*:5555'
-   ```
+Drive frequency, mode, AGC, every DSP level, the one-shot or live
+bargraph S-meter, PulseAudio loopback routing, favorites, and a
+band-aware `tune <khz>` verb that consults a JSON band plan and
+auto-applies mode/width/AGC. Talks to rigctld over its CAT port.
 
-   - GR: `zmq_sub_source`, Address `tcp://HOST:5555`, Type `complex float`.
-   - Sample rate set by rigctld's `-C iq_rate=` (default 192000).
-   - ZMQ PUB is lossy under backpressure — drops old samples rather than stalling the radio.
+```bash
+./hamctl tune 14070        # tune; auto-apply 20 m SSB profile (USB 2.4 kHz)
+./hamctl smeter live       # realtime S-meter bargraph (q to quit)
+./hamctl show              # full radio + DSP + audio routing snapshot
+./hamctl audio attach <pulse-sink-substring>
+```
 
-### GR-side Tools (demonstrate the sidecars)
+### `hamlib.sh` (lifecycle script)
 
-- **`tci-iq-viewer.py`** — Qt FFT + waterfall against the IQ sidecar. Polls rigctld for dial frequency every 500 ms. Left-click to retune.
-- **`tci-audio-gr-tester.py`** — Qt FFT + waveform of RX audio plus a 1 kHz tone generator gated by a PTT button. Demonstrates the full GR audio integration.
+Wraps rigctld + sidecar + an optional PulseAudio loopback into a
+single `start` / `stop` / `restart` / `status` command. Has built-in
+defaults for each supported radio (`--radio tci`, `--radio kiwisdr`,
+`--radio rtlsdr`). The TCI form is shown in the Quick Start above.
 
-Both require GNU Radio 3.10+ with `gr-zeromq` and `qtgui`, plus PyQt5.
+### TX gain
+
+The sidecar's built-in SSB modulator and the demodulated-audio path
+both honor the radio's expected drive level. ExpertSDR3's silent
+threshold is mediated by the sidecar's SmartSidecar AGC and TX
+modulator; see the sidecar repo's `USERS.md` and `DEVELOPERS.md` if
+you need to adjust the TX gain envelope.
 
 ## Surprising Detail: TCI 2.0 IQ is RX-Only
 
@@ -176,25 +216,28 @@ Adding TX IQ outside the spec would break interop with non-Expert-Electronics TC
 
 ## Lifecycle Management
 
-The `tci.sh` script in `hamlib-tci-sidecar` manages rigctld + sidecars as a unit:
+The `hamlib.sh` script in `hamlib-audio-sidecar` manages rigctld + sidecar +
+audio routing as a unit:
 
 ```bash
-./tci.sh start     # launch rigctld + enabled sidecars (idempotent)
-./tci.sh stop      # tear down everything, unload PulseAudio sinks
-./tci.sh restart   # stop + start
-./tci.sh status    # what's running, sinks, listening ports, last log lines
-./tci.sh log       # tail -F the audio sidecar log
-./tci.sh iqlog     # tail -F the IQ sidecar log
+./hamlib.sh start --radio tci --host 127.0.0.1 --port 50001 \
+                  --stream audio --sink <pulse-sink-substring>
+./hamlib.sh stop                          # kill processes, unload sinks
+./hamlib.sh restart [opts...]             # stop + start
+./hamlib.sh status                        # processes, sinks, loopbacks
 ```
 
-Edit the variables at the top of `tci.sh` to point at your rigctld binary and Hamlib library locations, and to enable/disable audio and IQ sidecars.
+State is kept under `$XDG_RUNTIME_DIR/hamlib-sdr/`. The script handles
+the rigctld invocation (model 12, `-C audio_port=4534` or `-C iq_port=4535`
+depending on `--stream`), starts the sidecar, and creates the
+PulseAudio loopback if `--sink` is given.
 
 ## Verified End-to-End
 
 - **JS8Call** (14.079 MHz, 40 m): CQ got replies. On-air decode confirmed by remote receivers.
 - **1 kHz tone TX** (pacat via PulseAudio sidecar): clean carrier at 14.0790 MHz, -27 to -33 dBm sustained. Zero silence frames mid-transmission.
-- **RX audio** (parec from `tci-rx.monitor`): 8000 samples/sec, 98% nonzero, peak ~1100.
-- **IQ stream** (via `tci-iq-sidecar.py`): ~280 ZMQ messages, ~580k complex samples in 3 s. Effective rate matches configured `iq_rate`.
+- **RX audio** (parec from `hamlib-rx.monitor`): 8000 samples/sec, 98% nonzero, peak ~1100.
+- **IQ stream** (`hamlib_sidecar_portable.py --user-backend gnuradio`): effective rate matches configured `iq_rate`.
 
 ## Testing
 
@@ -203,8 +246,8 @@ Edit the variables at the top of `tci.sh` to point at your rigctld binary and Ha
 echo 'f' | nc -w 1 localhost 4532    # dial freq
 echo 'm' | nc -w 1 localhost 4532    # mode + width
 
-# Audio sidecar running: RX audio flows into tci-rx.monitor
-timeout 3 parec --device=tci-rx.monitor --rate=8000 --channels=1 \
+# Audio sidecar running: RX audio flows into hamlib-rx.monitor
+timeout 3 parec --device=hamlib-rx.monitor --rate=8000 --channels=1 \
     --format=s16le > /tmp/rx_check.raw
 python3 -c "
 import struct
@@ -216,13 +259,13 @@ print(f'samples={len(s)}, peak={peak}, nonzero={nz}')
 "
 # Expect 24000 samples, peak well above 100, fraction nonzero > 95%
 
-# IQ sidecar running: IQ stream reachable on ZMQ
+# Portable sidecar (gnuradio backend): RX IQ reachable on ZMQ
 python3 -c "
-import zmq, time, numpy as np
+import zmq, time
 s = zmq.Context.instance().socket(zmq.SUB)
 s.setsockopt(zmq.SUBSCRIBE, b'')
 s.setsockopt(zmq.RCVTIMEO, 2000)
-s.connect('tcp://localhost:5555')
+s.connect('tcp://localhost:5552')
 end = time.time() + 3
 msgs = samples = 0
 while time.time() < end:
@@ -233,13 +276,7 @@ while time.time() < end:
 print(f'{msgs} ZMQ messages, {samples} complex samples in 3 s')
 print(f'effective rate: {samples/3:.0f} Hz')
 "
-# Expect ~280 messages, ~580k samples, effective rate ≈ iq_rate (default 192000)
-
-# GR IQ viewer
-python3 tci-iq-viewer.py
-
-# GR audio tester (only with tci-audio-gr-sidecar)
-python3 tci-audio-gr-tester.py
+# Expect effective rate ≈ iq_rate (default 192000)
 ```
 
 Ultimate test: **call CQ with JS8Call**. If you get replies, the audio pipeline is working on-air.
@@ -257,16 +294,38 @@ Restart JS8Call. This shrinks the PA buffer to 200 ms (deterministic instead of 
 
 ## Platform Status
 
-- **Linux** — working (PulseAudio / PipeWire audio sidecar, ZMQ-based GR audio sidecar, IQ sidecar).
-- **Windows** — planned (same wire protocol, different audio APIs: WASAPI loopback or VB-Audio Cable). GR audio sidecar and IQ sidecar already run on Windows as-is (ZMQ + numpy, no platform-specific audio).
-- **macOS** — planned (same wire protocol, BlackHole or CoreAudio aggregate device). GR audio sidecar and IQ sidecar already run on macOS as-is.
+- **Linux** — working. PulseAudio audio path + IQ-as-stereo soundcard path
+  (`hamlib_sidecar_linux.py`); cross-platform GNU Radio ZMQ path and
+  SoapySDR direct-hardware path (`hamlib_sidecar_portable.py`).
+- **Windows** — same wire protocol, different audio APIs (planning notes
+  in `windows.md`, not yet built). `hamlib_sidecar_portable.py` (ZMQ +
+  SoapySDR) already runs on Windows as-is.
+- **macOS** — same wire protocol, different audio APIs (planning notes
+  in `osx.md`, not yet built). `hamlib_sidecar_portable.py` already runs
+  on macOS as-is.
 
 ## References
 
-- **TCI Protocol PDF:** `TCI_Protocol.pdf` in this repo
-- **Sidecar repo:** https://github.com/jfrancis42/hamlib-tci-sidecar (includes `PROTOCOL.md`, `README.md`, `tci.sh`)
+In this repo:
+
+- **TCI Protocol PDF:** `TCI_Protocol.pdf`
+- **TCI backend reference:** `rigs/dummy/README-TCI-2.0.md`
+- **Sidecar architecture (Hamlib side):** `README.audio-sidecar.md`
+- **Sidecar API:** `docs/sidecar-api.md`
+
+In the sidecar repo (https://github.com/jfrancis42/hamlib-audio-sidecar):
+
+- **`PROTOCOL.md`** — canonical wire-protocol specification
+- **`README.md`** — top-level overview, install, quick start
+- **`USERS.md`** — operator guide (`hamlib.sh` + `hamctl`, JS8Call / fldigi /
+  WSJT-X / gqrx setup, audio routing, troubleshooting)
+- **`DEVELOPERS.md`** — writing a new sidecar or extending the Python code
+- **`linux.md`** — Linux PulseAudio virtual-device internals
+
+External:
+
 - **Working C++ TCI reference:** https://github.com/maksimus1210/TCI
-- **Working Python TCI reference:** eesdr-tci library (pip install eesdr-tci)
+- **Working Python TCI reference:** eesdr-tci library (`pip install eesdr-tci`)
 
 ## License
 
