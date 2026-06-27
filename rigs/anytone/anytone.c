@@ -301,11 +301,10 @@ int anytone_open(RIG *rig)
     int retval = RIG_OK;
     hamlib_port_t *rp = RIGPORT(rig);
     anytone_priv_data_t *p = STATE(rig)->priv;
-    int i;
 
     ENTERFUNC;
 
-    // --- Step 1: Wake-up heartbeats (3x) ---
+    // --- Step 1: Wake-up heartbeat ---
     unsigned char wakeup[18] = {
         0x2B, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3A, 0x30,
         0x30, 0x2C, 0x30, 0x30, 0x31, 0x0D, 0x0A,
@@ -313,14 +312,8 @@ int anytone_open(RIG *rig)
         0x0D, 0x0A
     };
 
-    for (i = 0; i < 3; i++)
-    {
-        write_block(rp, wakeup, sizeof(wakeup));
-        hl_usleep(200 * 1000);
-    }
-
-    // Discard any heartbeat responses before proceeding
-    rig_flush(rp);
+    write_block(rp, wakeup, sizeof(wakeup));
+    hl_usleep(500 * 1000);
 
     // --- Step 2: Enter COM MODE ---
     // +ADATA:00,016\r\n + \x01 + "D578UV COM MODE" + \r\n = 33 bytes
@@ -335,33 +328,6 @@ int anytone_open(RIG *rig)
     write_block(rp, commode, sizeof(commode));
     hl_usleep(500 * 1000);
     rig_flush(rp);
-
-    // --- Step 3: Send COM CHECK END ---
-    // +ADATA:00,014\r\n + 'd' + "COM CHECK END" + \r\n = 31 bytes
-    unsigned char checkend[31] = {
-        0x2B, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3A, 0x30,
-        0x30, 0x2C, 0x30, 0x31, 0x34, 0x0D, 0x0A,
-        0x64,
-        'C', 'O', 'M', ' ', 'C', 'H', 'E', 'C', 'K', ' ', 'E', 'N', 'D',
-        0x0D, 0x0A
-    };
-
-    write_block(rp, checkend, sizeof(checkend));
-    hl_usleep(200 * 1000);
-    rig_flush(rp);
-
-    // --- Step 4: Release ---
-    // +ADATA:00,000\r\n\r\n = 17 bytes
-    unsigned char release[17] = {
-        0x2B, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3A, 0x30,
-        0x30, 0x2C, 0x30, 0x30, 0x30, 0x0D, 0x0A,
-        0x0D, 0x0A
-    };
-
-    write_block(rp, release, sizeof(release));
-    hl_usleep(200 * 1000);
-    write_block(rp, release, sizeof(release));
-    hl_usleep(200 * 1000);
 
     // --- Step 7: Start keep-alive thread ---
     int err = pthread_create(&p->thread_id, NULL, anytone_thread, (void *)rig);
