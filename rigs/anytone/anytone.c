@@ -118,7 +118,11 @@ static void *anytone_thread(void *vrig)
 
     while (p->runflag)
     {
-        MUTEX_LOCK(&p->mutex);
+        if (pthread_mutex_trylock(&p->mutex) != 0)
+        {
+            hl_usleep(1000 * 1000);
+            continue;
+        }
 
         enum rig_debug_level_e debug_level_save;
         rig_get_debug(&debug_level_save);
