@@ -557,6 +557,13 @@ int anytone_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     ENTERFUNC;
 
+    // Pad short entries with trailing zeros to 9 digits (Hz)
+    // e.g. 14652 -> 146520000 (146.520 MHz)
+    while (freq > 0 && freq < 100000000)
+    {
+        freq *= 10;
+    }
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s freq=%g\n", __func__,
               rig_strvfo(vfo), freq);
 
