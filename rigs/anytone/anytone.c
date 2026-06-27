@@ -495,36 +495,36 @@ int anytone_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 // ---------------------------------------------------------------------------
 int anytone_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    anytone_priv_data_t *p = STATE(rig)->priv;
+    char cmd[32];
     int retval;
-    int retry = 2;
+    hamlib_port_t *rp = RIGPORT(rig);
+    anytone_priv_data_t *p = STATE(rig)->priv;
 
     ENTERFUNC;
 
-    // +ADATA:00,006\r\n + \x04 \xSUB \x07 \x00 \x00 \x00 + \r\n = 23 bytes
-    unsigned char cmd[23] = {
-        0x2B, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3A, 0x30,
-        0x30, 0x2C, 0x30, 0x30, 0x36, 0x0D, 0x0A,
-        0x04, 0x2C, 0x07, 0x00, 0x00, 0x00,
-        0x0D, 0x0A
-    };
+    SNPRINTF(cmd, sizeof(cmd), "+ADATA:00,006\r\n");
+    cmd[15] = 0x04;
+    cmd[16] = 0x2c;
+    cmd[17] = 0x07;
+    cmd[18] = 0x00;
+    cmd[19] = 0x00;
+    cmd[20] = 0x00;
+    cmd[21] = 0x00;
+    cmd[22] = 0x00;
+    cmd[23] = 0x0d;
+    cmd[24] = 0x0a;
 
-    if (vfo == RIG_VFO_B)
-    {
-        cmd[16] = 0x2D;
-    }
+    if (vfo == RIG_VFO_B) { cmd[16] = 0x2d; }
 
+    int retry = 2;
     MUTEX_LOCK(&p->mutex);
-    rig_flush(RIGPORT(rig));
+    rig_flush(rp);
 
     do
     {
+        write_block(rp, (unsigned char *)cmd, 25);
         unsigned char buf[512];
-        retval = write_block(RIGPORT(rig), cmd, sizeof(cmd));
-
-        if (retval != RIG_OK) { break; }
-
-        retval = read_block(RIGPORT(rig), buf, 138);
+        retval = read_block(rp, buf, 138);
 
         if (retval == 138)
         {
@@ -542,53 +542,62 @@ int anytone_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 }
 
 // ---------------------------------------------------------------------------
-// anytone_set_freq — enter frequency via keypad button emulation
+// anytone_set_freq — direct frequency set via 0x5A/0x2F command pair
 //
-// Converts frequency (Hz) to an 8-digit string (10 Hz resolution) and
-// sends each digit as a button press/release via +ADATA-wrapped 0x41
-// commands. The radio must be in VFO mode for this to work.
+// Decoded from BT-01 protocol capture:
+//   Packet 1: +ADATA:00,005  0x5A [VFO] 0x00 0x00 0x00
+//   Packet 2: +ADATA:00,023  0x2F 0x03 0x00 [BCD freq 4 bytes] [constant data]
 //
-// This uses the same button protocol as the AT-D578UV-software-mic
-// console program, wrapped in BT-01 +ADATA framing.
+// VFO byte: 0x02 = VFO A, 0x01 = VFO B
+// Frequency: BCD big-endian, 10 Hz resolution (same encoding as get_freq)
 // ---------------------------------------------------------------------------
 int anytone_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     anytone_priv_data_t *p = STATE(rig)->priv;
-    char digits[16];
-    int i;
-    unsigned long freq_10hz;
 
     ENTERFUNC;
 
-    // Digit key codes: 0->0x01, 1->0x02, ... 9->0x0A
-    static const unsigned char digit_to_key[10] = {
-        ANYTONE_KEY_0, ANYTONE_KEY_1, ANYTONE_KEY_2, ANYTONE_KEY_3,
-        ANYTONE_KEY_4, ANYTONE_KEY_5, ANYTONE_KEY_6, ANYTONE_KEY_7,
-        ANYTONE_KEY_8, ANYTONE_KEY_9
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s freq=%g\n", __func__,
+              rig_strvfo(vfo), freq);
+
+    // Packet 1: VFO select — +ADATA:00,005\r\n + 5A VFO 00 00 00 + \r\n
+    unsigned char vfo_sel[22] = {
+        0x2B, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3A, 0x30,
+        0x30, 0x2C, 0x30, 0x30, 0x35, 0x0D, 0x0A,
+        0x5A, 0x02, 0x00, 0x00, 0x00,
+        0x0D, 0x0A
     };
 
-    freq_10hz = (unsigned long)(freq / 10.0 + 0.5);
-    SNPRINTF(digits, sizeof(digits), "%08lu", freq_10hz);
+    if (vfo == RIG_VFO_B)
+    {
+        vfo_sel[16] = 0x01;
+    }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: freq=%g digits=%s\n", __func__, freq,
-              digits);
+    // Packet 2: Frequency data — +ADATA:00,023\r\n + 23-byte payload + \r\n
+    unsigned char freq_data[40] = {
+        0x2B, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3A, 0x30,
+        0x30, 0x2C, 0x30, 0x32, 0x33, 0x0D, 0x0A,
+        0x2F, 0x03, 0x00,
+        0x00, 0x00, 0x00, 0x00,
+        0x15, 0x50, 0x00, 0x00,
+        0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0xCF, 0x09, 0x00,
+        0x0D, 0x0A
+    };
+
+    // BCD-encode frequency at payload bytes 3-6 (array offset 18-21)
+    to_bcd_be(&freq_data[18], (unsigned long long)(freq / 10), 8);
 
     MUTEX_LOCK(&p->mutex);
     rig_flush(RIGPORT(rig));
 
-    for (i = 0; i < 8; i++)
-    {
-        int d = digits[i] - '0';
+    write_block(RIGPORT(rig), vfo_sel, sizeof(vfo_sel));
+    hl_usleep(50 * 1000);
 
-        if (d < 0 || d > 9)
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: bad digit '%c'\n", __func__, digits[i]);
-            MUTEX_UNLOCK(&p->mutex);
-            RETURNFUNC(-RIG_EINVAL);
-        }
-
-        anytone_send_button(rig, digit_to_key[d]);
-    }
+    write_block(RIGPORT(rig), freq_data, sizeof(freq_data));
+    hl_usleep(50 * 1000);
+    rig_flush(RIGPORT(rig));
 
     MUTEX_UNLOCK(&p->mutex);
 
