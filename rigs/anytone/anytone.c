@@ -301,7 +301,6 @@ int anytone_open(RIG *rig)
     int retval = RIG_OK;
     hamlib_port_t *rp = RIGPORT(rig);
     anytone_priv_data_t *p = STATE(rig)->priv;
-    unsigned char reply[512];
     int i;
 
     ENTERFUNC;
@@ -320,6 +319,9 @@ int anytone_open(RIG *rig)
         hl_usleep(200 * 1000);
     }
 
+    // Discard any heartbeat responses before proceeding
+    rig_flush(rp);
+
     // --- Step 2: Enter COM MODE ---
     // +ADATA:00,016\r\n + \x01 + "D578UV COM MODE" + \r\n = 33 bytes
     unsigned char commode[33] = {
@@ -331,18 +333,10 @@ int anytone_open(RIG *rig)
     };
 
     write_block(rp, commode, sizeof(commode));
-
-    // --- Step 3: Read COM MODE response ---
-    // Expected: +ADATA:00,004\r\n\x03\x01\x00\x00\r\n = 21 bytes
     hl_usleep(500 * 1000);
-    retval = read_block(rp, reply, 21);
+    rig_flush(rp);
 
-    if (retval < 0)
-    {
-        rig_debug(RIG_DEBUG_WARN, "%s: no COM MODE response\n", __func__);
-    }
-
-    // --- Step 4: Send COM CHECK END ---
+    // --- Step 3: Send COM CHECK END ---
     // +ADATA:00,014\r\n + 'd' + "COM CHECK END" + \r\n = 31 bytes
     unsigned char checkend[31] = {
         0x2B, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3A, 0x30,
@@ -353,18 +347,10 @@ int anytone_open(RIG *rig)
     };
 
     write_block(rp, checkend, sizeof(checkend));
-
-    // --- Step 5: Read COM CHECK END response ---
-    // Expected: +ADATA:00,005\r\n\x03\x64\x00\x00\x67\r\n = 22 bytes
     hl_usleep(200 * 1000);
-    retval = read_block(rp, reply, 22);
+    rig_flush(rp);
 
-    if (retval < 0)
-    {
-        rig_debug(RIG_DEBUG_WARN, "%s: no COM CHECK END response\n", __func__);
-    }
-
-    // --- Step 6: Release ---
+    // --- Step 4: Release ---
     // +ADATA:00,000\r\n\r\n = 17 bytes
     unsigned char release[17] = {
         0x2B, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3A, 0x30,
