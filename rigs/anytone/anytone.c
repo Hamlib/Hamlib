@@ -129,9 +129,7 @@ static void *anytone_thread(void *vrig)
         }
 
         write_block(rp, keepalive, sizeof(keepalive));
-
-        unsigned char buf[32];
-        read_block(rp, buf, 22);
+        rig_flush(rp);
 
         if (rig_need_debug(RIG_DEBUG_CACHE) == 0)
         {
