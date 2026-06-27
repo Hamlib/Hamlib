@@ -24,7 +24,7 @@
 #include "anytone.h"
 
 #define D578_VFO (RIG_VFO_A|RIG_VFO_B)
-#define D578_MODES (RIG_MODE_USB|RIG_MODE_AM)
+#define D578_MODES (RIG_MODE_FM|RIG_MODE_AM)
 
 struct rig_caps anytone_d578_caps =
 {
@@ -59,7 +59,6 @@ struct rig_caps anytone_d578_caps =
     .rx_range_list1 =
     {
         { MHz(108), MHz(174), D578_MODES, -1, -1, D578_VFO },
-        { MHz(144), MHz(148), D578_MODES, -1, -1, D578_VFO },
         { MHz(222), MHz(225), D578_MODES, -1, -1, D578_VFO },
         { MHz(420), MHz(450), D578_MODES, -1, -1, D578_VFO },
         RIG_FRNG_END,
