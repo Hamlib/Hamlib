@@ -387,9 +387,12 @@ int anytone_get_vfo(RIG *rig, vfo_t *vfo)
     };
 
     MUTEX_LOCK(&p->mutex);
-    anytone_transaction(rig, cmd, sizeof(cmd), reply, sizeof(reply), 114);
+    anytone_transaction(rig, cmd, sizeof(cmd), reply, sizeof(reply), 116);
     MUTEX_UNLOCK(&p->mutex);
 
+    // VFO indicator is near the end of the 99-byte payload
+    // With 116-byte frame (15 header + 99 payload + 2 trailer),
+    // check byte 113 (payload offset 98) per original protocol analysis
     if (reply[113] == 0x9b)
     {
         *vfo = RIG_VFO_A;
