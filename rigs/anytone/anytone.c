@@ -132,8 +132,8 @@ static void *anytone_thread(void *vrig)
             rig_set_debug(RIG_DEBUG_WARN);
         }
 
-        write_block(rp, keepalive, sizeof(keepalive));
-        rig_flush(rp);
+        //write_block(rp, keepalive, sizeof(keepalive));
+        //rig_flush(rp);
 
         if (rig_need_debug(RIG_DEBUG_CACHE) == 0)
         {
