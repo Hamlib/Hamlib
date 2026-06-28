@@ -132,8 +132,8 @@ static void *anytone_thread(void *vrig)
             rig_set_debug(RIG_DEBUG_WARN);
         }
 
-        //write_block(rp, keepalive, sizeof(keepalive));
-        //rig_flush(rp);
+        write_block(rp, keepalive, sizeof(keepalive));
+        rig_flush(rp);
 
         if (rig_need_debug(RIG_DEBUG_CACHE) == 0)
         {
@@ -314,7 +314,7 @@ int anytone_open(RIG *rig)
         0x0D, 0x0A
     };
 
-    write_block(rp, wakeup, sizeof(wakeup));
+    //write_block(rp, wakeup, sizeof(wakeup));
     hl_usleep(500 * 1000);
 
     // --- Step 2: Enter COM MODE ---
