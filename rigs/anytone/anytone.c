@@ -314,7 +314,7 @@ int anytone_open(RIG *rig)
         0x0D, 0x0A
     };
 
-    //write_block(rp, wakeup, sizeof(wakeup));
+    write_block(rp, wakeup, sizeof(wakeup));
     hl_usleep(500 * 1000);
 
     // --- Step 2: Enter COM MODE ---
