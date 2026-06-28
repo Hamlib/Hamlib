@@ -528,9 +528,9 @@ int anytone_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     {
         write_block(rp, (unsigned char *)cmd, 25);
         unsigned char buf[512];
-        retval = read_block(rp, buf, 138);
+        retval = read_block(rp, buf, 135);
 
-        if (retval == 138)
+        if (retval == 135)
         {
             *freq = from_bcd_be(&buf[17], 8) * 10;
             rig_debug(RIG_DEBUG_VERBOSE, "%s: freq=%g\n", __func__, *freq);
