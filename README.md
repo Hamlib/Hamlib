@@ -1,186 +1,106 @@
-Hamlib
-======
+# AnyTone AT-D578UVIII Hamlib Fork
 
-(C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)  
-(C) Stephane Fillod 2000-2011  
-(C) The Hamlib Group 2000-2025  
+This is a fork of [Hamlib](https://github.com/Hamlib/Hamlib) with an updated backend driver for the AnyTone AT-D578UVIII (and AT-D578UV Pro) dual-band mobile radio. The upstream Hamlib project provides shared libraries for amateur radio equipment control across hundreds of supported radios — see the [official repository](https://github.com/Hamlib/Hamlib) for full documentation.
 
+This fork focuses on the `rigs/anytone/` backend, adding dual-mode operation, frequency/VFO control, and clock support via the radio's BT-01 Bluetooth microphone serial protocol.
 
-The purpose of this project is to provide stable, flexible, shared libraries
-that enable quicker development of amateur radio equipment control
-applications.
+---
 
-The master repository is https://github.com/Hamlib/Hamlib  
-The backup repository is https://sourceforge.net/projects/hamlib/  
+## Features
 
-Daily snapshots of the *master branch* are available at
-https://hamlib.sourceforge.net/snapshots/
+**Default mode** (`commode=0`) — direct serial mic protocol:
+- PTT on/off (used by VARA, fldigi, etc.)
+- No COM MODE handshake, no radio display lockout
+- Keys PTT on whichever VFO is currently selected on the radio, using the properties of that channel or VFO mode — behaves exactly like the physical mic PTT
 
-Daily snapshots of the *Hamlib-4.7 branch* are available at
-https://github.com/Hamlib/Hamlib/tree/Hamlib-4.7
+**COM mode** (`-C commode=1`) — BT-01 ADATA protocol:
+- PTT on/off
+- Get/set frequency
+- Get/set VFO (A/B)
+- Set clock (date/time)
+- Radio displays "EXTERNAL CABLE MODE" while connected
 
-> **Note:** Major changes are planned for Hamlib 5 (current *master branch*)
-> which will introduce incompatibilities with existing software that uses
-> Hamlib.  Until a given software application announces support for Hamlib 5,
-> use the snapshots and releases from the *Hamlib-4.7* branch.
+### COM mode limitations
 
-Development happens on the GitHub master (often by merging feature branches)
-and each release has a release branch.
+Frequency control in COM mode has specific requirements:
 
-Many amateur radio transceivers come with serial (RS-232, USB, etc.) or
-Ethernet/WiFi/Bluetooth interfaces that allow software to control the radio.
-This project will endeavour to provide shared libraries that greatly simplify
-the application programmer's interaction with radio equipment and other
-controllable devices such as rotators, amplifiers, etc.
+- **set_freq only works when Channel A is selected AND VFO A is in VFO mode.** If VFO A is in MR (memory) mode, the radio will report the frequency associated with the selected memory channel but will refuse to change it.
+- **If VFO B is selected**, get_freq will return the frequency of VFO A (either the VFO entry or the memory channel frequency), not VFO B. set_freq will also be refused in this state.
+- **PTT works regardless** — it will key whichever VFO is selected, even VFO B. Even when frequency changes are refused, PTT will still transmit on the currently selected channel.
 
-Supported Radios
-----------------
+## Usage
 
-The Hamlib Wiki page, Supported Radios, contains a snapshot of the supported
-radios at the time of the last Hamlib release.  Go to
-https://github.com/Hamlib/Hamlib/wiki to reach the Wiki.
+```bash
+# PTT only (default, no radio lockout)
+rigctl -m 37001 -s 115200 -r /dev/ttyUSB0
 
-Hamlib Design
--------------
+# Full control (freq/vfo/clock, locks radio display)
+rigctl -m 37001 -C commode=1 -s 115200 -r /dev/ttyUSB0
+```
 
-The library provides functions for radio, rotator and amplifier control,
-and data retrieval for supported devices.  A number of functions useful
-for calculating distance and bearing and grid square conversion are included.
+On macOS the serial device is typically `/dev/cu.usbserial-*` or `/dev/cu.SLAB_USBtoUART`.
 
-libhamlib.so -  library that provides generic API for all RIG types.
-    This is what application programs will "see".  Will have different
-    names on other platforms, e.g. libhamlib-4.dll on MS windows.  Also
-    contains all radio, rotator and amplifier "backends" provided by Hamlib.
+## Build from source
 
-Backend Examples are:
----------------------
+### Prerequisites
 
-1. `yaesu` will provide connectivity to Yaesu FT 747GX Transceiver, FT 847
-   "Earth Station", etc. via a unified API.
+```bash
+# Debian/Ubuntu
+sudo apt install git build-essential automake autoconf libtool pkg-config libusb-1.0-0-dev
 
-2. `xxxx` will provide connectivity to the Wiz-bang moon-melter 101A (yikes..)
+# macOS (Homebrew)
+brew install automake autoconf libtool pkg-config libusb
+```
 
-Hamlib will also enable developers to develop professional looking GUI's
-towards a unified control library API, and they will not have to worry about
-the underlying connection towards physical hardware.
+### Fresh clone and build
 
-Initially serial (RS232) connectivity will be handled, but we expect that IP
-(and other) connectivity will follow afterwards.  Connection via a USB port
-is accomplished via the Linux kernel support.  USB to serial converters are
-well supported.  Other such devices may be supported as long as they present
-a serial (RS-232) interface to Hamlib.
+```bash
+git clone https://github.com/CowboyPilot/Hamlib.git
+cd Hamlib
+./bootstrap
+./configure --prefix=/usr/local
+make -j"$(nproc 2>/dev/null || sysctl -n hw.ncpu)"
+sudo make install
+sudo ldconfig 2>/dev/null   # Linux only
+```
 
-Availability
-------------
+### Pull updates and rebuild
 
-Most distributions have the latest Hamlib release in their testing or alpha
-versions of their distribution.  Check your package manager for the Hamlib
-version included in your distribution.
+```bash
+cd Hamlib
+git pull
+make -j"$(nproc 2>/dev/null || sysctl -n hw.ncpu)"
+sudo make install
+sudo ldconfig 2>/dev/null   # Linux only
+```
 
-Developing with Hamlib API
---------------------------
+If `make` fails after a pull (new files or changed build config), do a full reconfigure:
 
-API documentation is at:
+```bash
+./bootstrap
+./configure --prefix=/usr/local
+make -j"$(nproc 2>/dev/null || sysctl -n hw.ncpu)"
+sudo make install
+sudo ldconfig 2>/dev/null   # Linux only
+```
 
-        https://github.com/Hamlib/Hamlib/wiki/Documentation
+## Verify installation
 
-Take a look at tests/README for more info on simple programming examples and
-test programs.
+```bash
+rigctl -l | grep -i anytone
+# Should show:
+#  37001  AnyTone  AT-D578UVIII  ...  Beta  RIG_MODEL_ATD578UVIII
+```
 
-C++ programming is supported and language bindings are available for Perl,
-Python, and TCL.  A network daemon utility is also available for any
-programming language that supports network sockets (even netcat!).
+## Protocol notes
 
+The radio exposes two distinct serial protocols on the same 115200 8N1 port:
 
-Compiling
----------
+- **Direct mic protocol**: raw byte commands (0x06 keepalive, 0x41 PTT). No initialization required, no display lockout. This is what `commode=0` uses.
+- **BT-01 ADATA protocol**: `+ADATA:00,NNN\r\n` framed commands. Requires a COM MODE handshake on open and causes "EXTERNAL CABLE MODE" display lockout. This is what `commode=1` enables.
 
-Hamlib is entirely developed using GNU tools, on various operating systems.
-The library may be compiled from a source "tarball" by the familiar "three
-step":
+Protocol analysis based on [jrobertfisher/AT-D578UV-software-mic](https://github.com/jrobertfisher/AT-D578UV-software-mic) and firmware reverse engineering of the D578UV v1.21 and BT-01 v1.02 firmware images.
 
-        ./configure
-        make
-        sudo make install
+---
 
-For debugging use this configure command:
-
-        ./configure CFLAGS=-g -O0 -fPIC --no-create --no-recursion
-
-See the `INSTALL` file for more information.
-
-To recompile Hamlib, run:
-
-        make clean
-
-to remove all object files and binaries, otherwise `make` won't do anything!
-
-Contributing
-------------
-
-Consult the `README.betatester` and `README.developer` files in this directory
-if you feel like testing or helping with Hamlib development.
-
-Contributions of rig specifications and protocol documentation are highly
-encouraged.  Do keep in mind that in some cases the manufacturer may not
-provide complete control information or it is only available under a
-Non-Disclosure Agreement (NDA).  Any documentation *must* be publicly
-available so we can legally write and distribute Free Software supporting a
-given device.
-
-The Hamlib team is very interested to hear from you, how Hamlib builds and
-works on your system, especially on non-Linux system or non-PC systems. We
-try to make Hamlib as portable as possible.
-
-Please report in case of problems at hamlib-developer@lists.sourceforge.net
-Git email formatted patches or in unified diff format are welcome!
-
-Also, take a look at http://sourceforge.net/projects/hamlib/ Here you will
-find a mail list, link to the Wiki, and the latest releases.  Feedback,
-questions, etc. about Hamlib are very welcome at the mail list:
-
-        <hamlib-developer@lists.sourceforge.net>
-
-Hamlib Version Numbers
-----------------------
-
-Like other software projects, Hamlib uses a version numbering scheme to help
-program authors and users understand which releases are compatible and which
-are not.  Hamlib releases now follow the format of:
-
-Major.minor.point
-
-Where
-
-Major:  Currently at 4, but can be advanced when changes to the API require
-client programs to be rewritten to take advantage of new features of Hamlib.
-This number has advanced several times throughout the life of Hamlib.
-Advancement of the major number signals frontend API changes that require
-modification of client source and Application Binary Interface changes that
-require relinking to the library (Note, the latter does not apply to
-applications using the `*ctld` daemons, but the command API may change).
-
-Minor:  This number advances when either new backend(s) or new rig model(s) to
-existing backend(s) are added.  Advancing this number informs client program
-authors (and users of those programs) that new model/backend support has been
-added.  Will also include bug fixes since the last point release.
-
-Point:  Formerly could be undefined (e.g. Hamlib 4.6) and would advance to 1
-(e.g.  Hamlib 4.6.1) for any bug fixes or feature additions to existing
-model(s) or backend(s), then to 2, etc.  New rig models or backends are not
-included in point releases.  When *major* or *minor* is advanced, *point* will
-reset to `0`.  **Note:** All future releases beginning with 4.7.0 will include
-all values to lessen confusion.
-
-Release schedule
-----------------
-
-Hamlib has a "ready when it's ready" philosophy.  There is no set schedule,
-though we'd like at least one *minor* release in a given year and a *major*
-release every several years.
-
-
-Have Fun / Frank S / Stephane F / The Hamlib Group
-
-  73's de vk3fcs/km5ws / f8cfe
-
+For general Hamlib documentation, API reference, and supported radios, see the [upstream project](https://github.com/Hamlib/Hamlib).
