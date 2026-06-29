@@ -669,15 +669,16 @@ int anytone_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     to_bcd_be(&freq_data[18], (unsigned long long)(freq / 10), 8);
 
+    unsigned char ack[22];
+
     MUTEX_LOCK(&p->mutex);
     rig_flush(RIGPORT(rig));
 
     write_block(RIGPORT(rig), vfo_sel, sizeof(vfo_sel));
-    hl_usleep(50 * 1000);
+    read_block(RIGPORT(rig), ack, 22);
 
     write_block(RIGPORT(rig), freq_data, sizeof(freq_data));
-    hl_usleep(50 * 1000);
-    rig_flush(RIGPORT(rig));
+    read_block(RIGPORT(rig), ack, 22);
 
     MUTEX_UNLOCK(&p->mutex);
 
@@ -726,10 +727,12 @@ int anytone_set_clock(RIG *rig, int year, int month, int day,
               __func__, year, month, day, hour, min,
               cmd[16], cmd[17], cmd[18], cmd[19], cmd[20]);
 
+    unsigned char ack[22];
+
     MUTEX_LOCK(&p->mutex);
-    anytone_transaction(rig, cmd, sizeof(cmd), NULL, 0, 0);
-    hl_usleep(50 * 1000);
     rig_flush(RIGPORT(rig));
+    write_block(RIGPORT(rig), cmd, sizeof(cmd));
+    read_block(RIGPORT(rig), ack, 22);
     MUTEX_UNLOCK(&p->mutex);
 
     RETURNFUNC(RIG_OK);
