@@ -7,6 +7,7 @@ Hamlib driver for the AnyTone AT-D578UVIII (and AT-D578UV Pro) dual-band mobile 
 **Default mode** (`commode=0`) — direct serial mic protocol:
 - PTT on/off (used by VARA, fldigi, etc.)
 - No COM MODE handshake, no radio display lockout
+- Keys PTT on whichever VFO is currently selected on the radio, using the properties of that channel or VFO mode — behaves exactly like the physical mic PTT
 
 **COM mode** (`-C commode=1`) — BT-01 ADATA protocol:
 - PTT on/off
@@ -14,6 +15,14 @@ Hamlib driver for the AnyTone AT-D578UVIII (and AT-D578UV Pro) dual-band mobile 
 - Get/set VFO (A/B)
 - Set clock (date/time)
 - Radio displays "EXTERNAL CABLE MODE" while connected
+
+### COM mode limitations
+
+Frequency control in COM mode has specific requirements:
+
+- **set_freq only works when Channel A is selected AND VFO A is in VFO mode.** If VFO A is in MR (memory) mode, the radio will report the frequency associated with the selected memory channel but will refuse to change it.
+- **If VFO B is selected**, get_freq will return the frequency of VFO A (either the VFO entry or the memory channel frequency), not VFO B. set_freq will also be refused in this state.
+- **PTT works regardless** — it will key whichever VFO is selected, even VFO B. Even when frequency changes are refused, PTT will still transmit on the currently selected channel.
 
 ## Usage
 
