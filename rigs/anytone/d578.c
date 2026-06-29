@@ -26,10 +26,35 @@
 #define D578_VFO (RIG_VFO_A|RIG_VFO_B)
 #define D578_MODES (RIG_MODE_FM|RIG_MODE_AM)
 
+// ---------------------------------------------------------------------------
+// Backend configuration parameters
+//
+// commode=0 (default): direct serial mic protocol — PTT only, no lockout
+// commode=1: BT-01 ADATA/COM MODE — adds freq, VFO, clock control but
+//            locks the radio display to "EXTERNAL CABLE MODE"
+//
+// Usage: rigctl -m 37001 -C commode=1 -s 115200 -r /dev/ttyUSB0
+// ---------------------------------------------------------------------------
+const struct confparams anytone_cfg_params[] =
+{
+    {
+        TOK_COMMODE, "commode", "COM Mode",
+        "Enable ADATA/COM MODE for freq/vfo/clock (locks radio display)",
+        "0", RIG_CONF_CHECKBUTTON, { }
+    },
+    { RIG_CONF_END, NULL, }
+};
+
+// ---------------------------------------------------------------------------
+// Rig 37001 — AT-D578UVIII
+//
+// Default: direct serial mic protocol with PTT only.
+// With -C commode=1: enters BT-01 COM MODE for freq/vfo/clock control.
+// ---------------------------------------------------------------------------
 struct rig_caps anytone_d578_caps =
 {
     RIG_MODEL(RIG_MODEL_ATD578UVIII),
-    .model_name         =  "D578A",
+    .model_name         =  "AT-D578UVIII",
     .mfg_name           =  "AnyTone",
     .version            =  BACKEND_VER ".0",
     .copyright          =  "Michael Black W9MDB: GNU LGPL",
@@ -72,6 +97,10 @@ struct rig_caps anytone_d578_caps =
         RIG_FRNG_END,
     },
 
+    .cfgparams          =  anytone_cfg_params,
+    .set_conf           =  anytone_set_conf,
+    .get_conf           =  anytone_get_conf,
+
     .rig_init           =  anytone_init,
     .rig_cleanup        =  anytone_cleanup,
     .rig_open           =  anytone_open,
@@ -85,6 +114,9 @@ struct rig_caps anytone_d578_caps =
 
     .set_freq           =  anytone_set_freq,
     .get_freq           =  anytone_get_freq,
+
+    .set_clock          =  anytone_set_clock,
+    .get_clock          =  anytone_get_clock,
 
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };

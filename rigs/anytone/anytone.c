@@ -97,7 +97,10 @@ DECLARE_PROBERIG_BACKEND(anytone)
 }
 
 // ---------------------------------------------------------------------------
-// Keep-alive thread — sends BT-01 heartbeat every second
+// Keep-alive thread — branches on commode flag
+//
+// commode=0: sends raw 0x06 byte every second
+// commode=1: sends +ADATA:00,001\r\n a \r\n every second
 // ---------------------------------------------------------------------------
 static void *anytone_thread(void *vrig)
 {
@@ -105,16 +108,23 @@ static void *anytone_thread(void *vrig)
     hamlib_port_t *rp = RIGPORT(rig);
     anytone_priv_data_t *p = STATE(rig)->priv;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: anytone_thread started\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: anytone_thread started (commode=%d)\n",
+              __func__, p->commode);
     p->runflag = 1;
 
-    // Heartbeat: +ADATA:00,001\r\na\r\n (18 bytes)
-    unsigned char keepalive[] = {
+    // ADATA heartbeat: +ADATA:00,001\r\na\r\n (18 bytes)
+    unsigned char keepalive_adata[] = {
         0x2B, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3A, 0x30,
         0x30, 0x2C, 0x30, 0x30, 0x31, 0x0D, 0x0A,
         0x61,
         0x0D, 0x0A
     };
+
+    // Raw mic heartbeat: single 0x06 byte
+    unsigned char keepalive_mic[] = { 0x06 };
+
+    unsigned char *ka = p->commode ? keepalive_adata : keepalive_mic;
+    int ka_len = p->commode ? (int)sizeof(keepalive_adata) : (int)sizeof(keepalive_mic);
 
     while (p->runflag)
     {
@@ -132,7 +142,7 @@ static void *anytone_thread(void *vrig)
             rig_set_debug(RIG_DEBUG_WARN);
         }
 
-        write_block(rp, keepalive, sizeof(keepalive));
+        write_block(rp, ka, ka_len);
         rig_flush(rp);
 
         if (rig_need_debug(RIG_DEBUG_CACHE) == 0)
@@ -210,16 +220,11 @@ static int anytone_transaction(RIG *rig, unsigned char *cmd, int cmd_len,
 
 // ---------------------------------------------------------------------------
 // anytone_send_button — send a button press+release via +ADATA framing
-//
-// Wraps the direct serial protocol's 0x41 button command inside +ADATA.
-// The radio may or may not accept this while in BT-01 COM MODE — this is
-// the mechanism the BT-01 Bluetooth microphone uses for its own buttons.
 // ---------------------------------------------------------------------------
 static int anytone_send_button(RIG *rig, unsigned char key)
 {
     hamlib_port_t *rp = RIGPORT(rig);
 
-    // +ADATA:00,008\r\n + 0x41 button packet + \r\n
     unsigned char press[25] = {
         0x2B, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3A, 0x30,
         0x30, 0x2C, 0x30, 0x30, 0x38, 0x0D, 0x0A,
@@ -262,6 +267,7 @@ int anytone_init(RIG *rig)
 
         STATE(rig)->priv = p;
         p->vfo_curr = RIG_VFO_NONE;
+        p->commode = 0;
         pthread_mutex_init(&p->mutex, NULL);
     }
 
@@ -287,51 +293,88 @@ int anytone_cleanup(RIG *rig)
 }
 
 // ---------------------------------------------------------------------------
-// anytone_open — full BT-01 handshake per the captured protocol
+// anytone_set_conf / anytone_get_conf — backend configuration
+// ---------------------------------------------------------------------------
+int anytone_set_conf(RIG *rig, hamlib_token_t token, const char *val)
+{
+    anytone_priv_data_t *p = STATE(rig)->priv;
+
+    ENTERFUNC;
+
+    switch (token)
+    {
+    case TOK_COMMODE:
+        p->commode = atoi(val) ? 1 : 0;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: commode=%d\n", __func__, p->commode);
+        break;
+
+    default:
+        RETURNFUNC(-RIG_EINVAL);
+    }
+
+    RETURNFUNC(RIG_OK);
+}
+
+int anytone_get_conf(RIG *rig, hamlib_token_t token, char *val)
+{
+    anytone_priv_data_t *p = STATE(rig)->priv;
+
+    ENTERFUNC;
+
+    switch (token)
+    {
+    case TOK_COMMODE:
+        SNPRINTF(val, 128, "%d", p->commode);
+        break;
+
+    default:
+        RETURNFUNC(-RIG_EINVAL);
+    }
+
+    RETURNFUNC(RIG_OK);
+}
+
+// ---------------------------------------------------------------------------
+// anytone_open
 //
-// Sequence from the working BT-01 software mic:
-//   1. Send wake-up heartbeat 3x with delays
-//   2. Send "\x01D578UV COM MODE" — radio enters external cable mode
-//   3. Read COM MODE acknowledgment
-//   4. Send "\x64COM CHECK END" — complete the handshake
-//   5. Read acknowledgment
-//   6. Send +ADATA:00,000 release
-//   7. Start keep-alive thread
+// commode=0: no handshake, just start keepalive thread
+// commode=1: BT-01 COM MODE handshake, then keepalive thread
 // ---------------------------------------------------------------------------
 int anytone_open(RIG *rig)
 {
-    int retval = RIG_OK;
     hamlib_port_t *rp = RIGPORT(rig);
     anytone_priv_data_t *p = STATE(rig)->priv;
 
     ENTERFUNC;
 
-    // --- Step 1: Wake-up heartbeat ---
-    unsigned char wakeup[18] = {
-        0x2B, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3A, 0x30,
-        0x30, 0x2C, 0x30, 0x30, 0x31, 0x0D, 0x0A,
-        0x61,
-        0x0D, 0x0A
-    };
+    if (p->commode)
+    {
+        // --- Wake-up heartbeat ---
+        unsigned char wakeup[18] = {
+            0x2B, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3A, 0x30,
+            0x30, 0x2C, 0x30, 0x30, 0x31, 0x0D, 0x0A,
+            0x61,
+            0x0D, 0x0A
+        };
 
-    write_block(rp, wakeup, sizeof(wakeup));
-    hl_usleep(500 * 1000);
+        write_block(rp, wakeup, sizeof(wakeup));
+        hl_usleep(500 * 1000);
 
-    // --- Step 2: Enter COM MODE ---
-    // +ADATA:00,016\r\n + \x01 + "D578UV COM MODE" + \r\n = 33 bytes
-    unsigned char commode[33] = {
-        0x2B, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3A, 0x30,
-        0x30, 0x2C, 0x30, 0x31, 0x36, 0x0D, 0x0A,
-        0x01,
-        'D', '5', '7', '8', 'U', 'V', ' ', 'C', 'O', 'M', ' ', 'M', 'O', 'D', 'E',
-        0x0D, 0x0A
-    };
+        // --- Enter COM MODE ---
+        unsigned char commode[33] = {
+            0x2B, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3A, 0x30,
+            0x30, 0x2C, 0x30, 0x31, 0x36, 0x0D, 0x0A,
+            0x01,
+            'D', '5', '7', '8', 'U', 'V', ' ', 'C', 'O', 'M', ' ', 'M', 'O', 'D', 'E',
+            0x0D, 0x0A
+        };
 
-    write_block(rp, commode, sizeof(commode));
-    hl_usleep(500 * 1000);
-    rig_flush(rp);
+        write_block(rp, commode, sizeof(commode));
+        hl_usleep(500 * 1000);
+        rig_flush(rp);
+    }
 
-    // --- Step 7: Start keep-alive thread ---
+    // Start keep-alive thread (both modes)
     int err = pthread_create(&p->thread_id, NULL, anytone_thread, (void *)rig);
 
     if (err)
@@ -356,19 +399,22 @@ int anytone_close(RIG *rig)
     p->runflag = 0;
     pthread_join(p->thread_id, NULL);
 
-    unsigned char release[17] = {
-        0x2B, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3A, 0x30,
-        0x30, 0x2C, 0x30, 0x30, 0x30, 0x0D, 0x0A,
-        0x0D, 0x0A
-    };
+    if (p->commode)
+    {
+        unsigned char release[17] = {
+            0x2B, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3A, 0x30,
+            0x30, 0x2C, 0x30, 0x30, 0x30, 0x0D, 0x0A,
+            0x0D, 0x0A
+        };
 
-    anytone_transaction(rig, release, sizeof(release), NULL, 0, 0);
+        anytone_transaction(rig, release, sizeof(release), NULL, 0, 0);
+    }
 
     RETURNFUNC(RIG_OK);
 }
 
 // ---------------------------------------------------------------------------
-// anytone_get_vfo
+// anytone_get_vfo — requires commode=1
 // ---------------------------------------------------------------------------
 int anytone_get_vfo(RIG *rig, vfo_t *vfo)
 {
@@ -378,7 +424,12 @@ int anytone_get_vfo(RIG *rig, vfo_t *vfo)
 
     ENTERFUNC;
 
-    // +ADATA:00,006\r\n + \x04\x05\x00\x00\x00\x00 + \r\n = 23 bytes
+    if (!p->commode)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: requires -C commode=1\n", __func__);
+        RETURNFUNC(-RIG_ENAVAIL);
+    }
+
     unsigned char cmd[23] = {
         0x2B, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3A, 0x30,
         0x30, 0x2C, 0x30, 0x30, 0x36, 0x0D, 0x0A,
@@ -390,9 +441,6 @@ int anytone_get_vfo(RIG *rig, vfo_t *vfo)
     anytone_transaction(rig, cmd, sizeof(cmd), reply, sizeof(reply), 116);
     MUTEX_UNLOCK(&p->mutex);
 
-    // VFO indicator is near the end of the 99-byte payload
-    // With 116-byte frame (15 header + 99 payload + 2 trailer),
-    // check byte 113 (payload offset 98) per original protocol analysis
     if (reply[113] == 0x9b)
     {
         *vfo = RIG_VFO_A;
@@ -414,7 +462,7 @@ int anytone_get_vfo(RIG *rig, vfo_t *vfo)
 }
 
 // ---------------------------------------------------------------------------
-// anytone_set_vfo — toggle VFO via Sub A/B button press
+// anytone_set_vfo — toggle VFO via Sub A/B button press, requires commode=1
 // ---------------------------------------------------------------------------
 int anytone_set_vfo(RIG *rig, vfo_t vfo)
 {
@@ -422,6 +470,12 @@ int anytone_set_vfo(RIG *rig, vfo_t vfo)
     vfo_t curr_vfo;
 
     ENTERFUNC;
+
+    if (!p->commode)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: requires -C commode=1\n", __func__);
+        RETURNFUNC(-RIG_ENAVAIL);
+    }
 
     anytone_get_vfo(rig, &curr_vfo);
 
@@ -453,11 +507,15 @@ int anytone_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 }
 
 // ---------------------------------------------------------------------------
-// anytone_set_ptt — corrected PTT using the 0x56 (V) command
+// anytone_set_ptt
 //
-// Working protocol from BT-01 capture:
-//   PTT ON:  +ADATA:00,023\r\n V \x01 + 21 zero bytes \r\n
-//   PTT OFF: +ADATA:00,023\r\n V \x00 + 21 zero bytes \r\n
+// commode=0: raw 8-byte 0x41 button command, no ADATA framing
+//   ON:  0x41 0x01 0x00 0x00 0x00 0x00 0x00 0x06
+//   OFF: 0x41 0x00 0x00 0x00 0x00 0x00 0x00 0x06
+//
+// commode=1: ADATA-wrapped 0x56 command (40 bytes)
+//   ON:  +ADATA:00,023\r\n 0x56 0x01 + 21 zeros \r\n
+//   OFF: +ADATA:00,023\r\n 0x56 0x00 + 21 zeros \r\n
 // ---------------------------------------------------------------------------
 int anytone_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
@@ -465,29 +523,40 @@ int anytone_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     ENTERFUNC;
 
-    // +ADATA:00,023\r\n (15) + V + on/off + 21 zeros (23) + \r\n (2) = 40 bytes
-    unsigned char ptton[40] = {
-        0x2B, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3A, 0x30,
-        0x30, 0x2C, 0x30, 0x32, 0x33, 0x0D, 0x0A,
-        0x56, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x0D, 0x0A
-    };
-
-    unsigned char pttoff[40] = {
-        0x2B, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3A, 0x30,
-        0x30, 0x2C, 0x30, 0x32, 0x33, 0x0D, 0x0A,
-        0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x0D, 0x0A
-    };
-
-    unsigned char *cmd = ptt ? ptton : pttoff;
-
     MUTEX_LOCK(&p->mutex);
-    anytone_transaction(rig, cmd, 40, NULL, 0, 0);
+
+    if (p->commode)
+    {
+        unsigned char ptton[40] = {
+            0x2B, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3A, 0x30,
+            0x30, 0x2C, 0x30, 0x32, 0x33, 0x0D, 0x0A,
+            0x56, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x0D, 0x0A
+        };
+
+        unsigned char pttoff[40] = {
+            0x2B, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3A, 0x30,
+            0x30, 0x2C, 0x30, 0x32, 0x33, 0x0D, 0x0A,
+            0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x0D, 0x0A
+        };
+
+        unsigned char *cmd = ptt ? ptton : pttoff;
+        anytone_transaction(rig, cmd, 40, NULL, 0, 0);
+    }
+    else
+    {
+        unsigned char ptton[8]  = { 0x41, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06 };
+        unsigned char pttoff[8] = { 0x41, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06 };
+
+        unsigned char *cmd = ptt ? ptton : pttoff;
+        write_block(RIGPORT(rig), cmd, 8);
+    }
+
     p->ptt = ptt;
     MUTEX_UNLOCK(&p->mutex);
 
@@ -495,10 +564,7 @@ int anytone_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 }
 
 // ---------------------------------------------------------------------------
-// anytone_get_freq — query VFO frequency via BT-01 0x04 subcommand
-//
-// Subcommand 0x2c = VFO A channel data, 0x2d = VFO B channel data.
-// Response is 138 bytes; frequency is BCD-encoded at offset 17 (4 bytes).
+// anytone_get_freq — requires commode=1
 // ---------------------------------------------------------------------------
 int anytone_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
@@ -508,6 +574,12 @@ int anytone_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     anytone_priv_data_t *p = STATE(rig)->priv;
 
     ENTERFUNC;
+
+    if (!p->commode)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: requires -C commode=1\n", __func__);
+        RETURNFUNC(-RIG_ENAVAIL);
+    }
 
     SNPRINTF(cmd, sizeof(cmd), "+ADATA:00,006\r\n");
     cmd[15] = 0x04;
@@ -549,14 +621,7 @@ int anytone_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 }
 
 // ---------------------------------------------------------------------------
-// anytone_set_freq — direct frequency set via 0x5A/0x2F command pair
-//
-// Decoded from BT-01 protocol capture:
-//   Packet 1: +ADATA:00,005  0x5A [VFO] 0x00 0x00 0x00
-//   Packet 2: +ADATA:00,023  0x2F 0x03 0x00 [BCD freq 4 bytes] [constant data]
-//
-// VFO byte: 0x02 = VFO A, 0x01 = VFO B
-// Frequency: BCD big-endian, 10 Hz resolution (same encoding as get_freq)
+// anytone_set_freq — requires commode=1
 // ---------------------------------------------------------------------------
 int anytone_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
@@ -564,8 +629,12 @@ int anytone_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     ENTERFUNC;
 
-    // Pad short entries with trailing zeros to 9 digits (Hz)
-    // e.g. 14652 -> 146520000 (146.520 MHz)
+    if (!p->commode)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: requires -C commode=1\n", __func__);
+        RETURNFUNC(-RIG_ENAVAIL);
+    }
+
     while (freq > 0 && freq < 100000000)
     {
         freq *= 10;
@@ -574,7 +643,6 @@ int anytone_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s freq=%g\n", __func__,
               rig_strvfo(vfo), freq);
 
-    // Packet 1: VFO select — +ADATA:00,005\r\n + 5A VFO 00 00 00 + \r\n
     unsigned char vfo_sel[22] = {
         0x2B, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3A, 0x30,
         0x30, 0x2C, 0x30, 0x30, 0x35, 0x0D, 0x0A,
@@ -587,7 +655,6 @@ int anytone_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         vfo_sel[16] = 0x01;
     }
 
-    // Packet 2: Frequency data — +ADATA:00,023\r\n + 23-byte payload + \r\n
     unsigned char freq_data[40] = {
         0x2B, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3A, 0x30,
         0x30, 0x2C, 0x30, 0x32, 0x33, 0x0D, 0x0A,
@@ -600,7 +667,6 @@ int anytone_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         0x0D, 0x0A
     };
 
-    // BCD-encode frequency at payload bytes 3-6 (array offset 18-21)
     to_bcd_be(&freq_data[18], (unsigned long long)(freq / 10), 8);
 
     MUTEX_LOCK(&p->mutex);
@@ -616,6 +682,86 @@ int anytone_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     MUTEX_UNLOCK(&p->mutex);
 
     RETURNFUNC(RIG_OK);
+}
+
+// ---------------------------------------------------------------------------
+// anytone_set_clock — requires commode=1
+//
+// Probe confirmed: 0x55 with 6-byte payload modifies the radio's clock.
+// Sending all zeros set the date to 2070-01-01 00:00, suggesting the firmware
+// may apply a +70 year offset or use a non-standard epoch. The encoding
+// below uses straight BCD (YY MM DD HH MM) — if the radio shows the wrong
+// year, adjust the offset in the year byte calculation.
+// ---------------------------------------------------------------------------
+int anytone_set_clock(RIG *rig, int year, int month, int day,
+                      int hour, int min, int sec, double msec, int utc_offset)
+{
+    anytone_priv_data_t *p = STATE(rig)->priv;
+
+    ENTERFUNC;
+
+    if (!p->commode)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: requires -C commode=1\n", __func__);
+        RETURNFUNC(-RIG_ENAVAIL);
+    }
+
+    // +ADATA:00,006\r\n  0x55 YY MM DD HH MM  \r\n  = 23 bytes
+    unsigned char cmd[23] = {
+        0x2B, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3A, 0x30,
+        0x30, 0x2C, 0x30, 0x30, 0x36, 0x0D, 0x0A,
+        0x55, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x0D, 0x0A
+    };
+
+    int yy = year % 100;
+    cmd[16] = (unsigned char)(((yy / 10) << 4) | (yy % 10));
+    cmd[17] = (unsigned char)(((month / 10) << 4) | (month % 10));
+    cmd[18] = (unsigned char)(((day / 10) << 4) | (day % 10));
+    cmd[19] = (unsigned char)(((hour / 10) << 4) | (hour % 10));
+    cmd[20] = (unsigned char)(((min / 10) << 4) | (min % 10));
+
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "%s: setting clock to %04d-%02d-%02d %02d:%02d (BCD: %02X %02X %02X %02X %02X)\n",
+              __func__, year, month, day, hour, min,
+              cmd[16], cmd[17], cmd[18], cmd[19], cmd[20]);
+
+    MUTEX_LOCK(&p->mutex);
+    anytone_transaction(rig, cmd, sizeof(cmd), NULL, 0, 0);
+    hl_usleep(50 * 1000);
+    rig_flush(RIGPORT(rig));
+    MUTEX_UNLOCK(&p->mutex);
+
+    RETURNFUNC(RIG_OK);
+}
+
+// ---------------------------------------------------------------------------
+// anytone_get_clock — requires commode=1
+//
+// Not yet confirmed by probe. Command 0x58 (same len==6 check as 0x55) is
+// the most likely getter candidate but returned only a 5-byte ACK during
+// probing (possibly because the zero payload was invalid). Needs testing
+// with the radio to confirm the response format.
+// ---------------------------------------------------------------------------
+int anytone_get_clock(RIG *rig, int *year, int *month, int *day,
+                      int *hour, int *min, int *sec, double *msec,
+                      int *utc_offset)
+{
+    anytone_priv_data_t *p = STATE(rig)->priv;
+
+    ENTERFUNC;
+
+    if (!p->commode)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: requires -C commode=1\n", __func__);
+        RETURNFUNC(-RIG_ENAVAIL);
+    }
+
+    rig_debug(RIG_DEBUG_WARN,
+              "%s: get_clock not yet confirmed — command 0x58 needs radio testing\n",
+              __func__);
+
+    RETURNFUNC(-RIG_ENIMPL);
 }
 
 // ---------------------------------------------------------------------------

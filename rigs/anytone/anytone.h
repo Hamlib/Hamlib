@@ -25,12 +25,16 @@
 #define _ANYTONE_H 1
 
 #include "hamlib/rig.h"
+#include "token.h"
 
-#define BACKEND_VER "20260627"
+#define BACKEND_VER "20260629"
 
 #define ANYTONE_RESPSZ 64
 
+#define TOK_COMMODE TOKEN_BACKEND(1)
+
 extern struct rig_caps anytone_d578_caps;
+extern const struct confparams anytone_cfg_params[];
 
 #include <pthread.h>
 #define MUTEX(var) static pthread_mutex_t var = PTHREAD_MUTEX_INITIALIZER
@@ -59,6 +63,7 @@ typedef struct _anytone_priv_data
     ptt_t         ptt;
     vfo_t         vfo_curr;
     volatile int  runflag;
+    int           commode;
     char          buf[64];
     pthread_mutex_t mutex;
     pthread_t     thread_id;
@@ -71,6 +76,9 @@ extern int anytone_cleanup(RIG *rig);
 extern int anytone_open(RIG *rig);
 extern int anytone_close(RIG *rig);
 
+extern int anytone_set_conf(RIG *rig, hamlib_token_t token, const char *val);
+extern int anytone_get_conf(RIG *rig, hamlib_token_t token, char *val);
+
 extern int anytone_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 extern int anytone_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 
@@ -79,5 +87,12 @@ extern int anytone_get_vfo(RIG *rig, vfo_t *vfo);
 
 extern int anytone_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 extern int anytone_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+
+extern int anytone_set_clock(RIG *rig, int year, int month, int day,
+                             int hour, int min, int sec, double msec,
+                             int utc_offset);
+extern int anytone_get_clock(RIG *rig, int *year, int *month, int *day,
+                             int *hour, int *min, int *sec, double *msec,
+                             int *utc_offset);
 
 #endif /* _ANYTONE_H */
