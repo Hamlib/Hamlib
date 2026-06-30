@@ -52,8 +52,7 @@
 #include "hamlib/rig_state.h"
 #include "iofunc.h"
 #include "misc.h"
-#include "token.h"
-#include "dummy_common.h"
+#include "tci2.h"
 
 /* -------------------------------------------------------------------------
  * Constants
@@ -70,30 +69,7 @@
 #define TCI2_RECV_MAX      256   /* max frames to scan for a reply */
 #define TCI2_MAX_RT_MODES  64    /* runtime mode table slots */
 
-#define TCI2_MODES (RIG_MODE_USB | RIG_MODE_LSB | RIG_MODE_CW  | RIG_MODE_CWR  | \
-                    RIG_MODE_AM  | RIG_MODE_SAM  | RIG_MODE_SAL | RIG_MODE_SAH  | \
-                    RIG_MODE_DSB | RIG_MODE_FM   | RIG_MODE_FMN | RIG_MODE_WFM  | \
-                    RIG_MODE_RTTY | RIG_MODE_RTTYR | \
-                    RIG_MODE_PKTUSB | RIG_MODE_PKTLSB | RIG_MODE_C4FM)
-
-#define TCI2_VFOS  (RIG_VFO_A | RIG_VFO_B)
-
-#define TCI2_LEVELS_GET (RIG_LEVEL_AF | RIG_LEVEL_RFPOWER | RIG_LEVEL_SQL | \
-                         RIG_LEVEL_STRENGTH | RIG_LEVEL_AGC | RIG_LEVEL_NB | \
-                         RIG_LEVEL_KEYSPD | RIG_LEVEL_SWR | RIG_LEVEL_RFPOWER_METER)
-#define TCI2_LEVELS_SET (RIG_LEVEL_AF | RIG_LEVEL_RFPOWER | RIG_LEVEL_SQL | \
-                         RIG_LEVEL_AGC | RIG_LEVEL_NB | RIG_LEVEL_KEYSPD)
-
-#define TCI2_FUNCS (RIG_FUNC_NB | RIG_FUNC_NR | RIG_FUNC_ANF | RIG_FUNC_LOCK | \
-                    RIG_FUNC_MUTE | RIG_FUNC_TUNER)
-
 #define TCI2_MAX_TX_MW 100000u  /* assume 100 W max output */
-
-/* Config tokens */
-#define TOK_TCI2_TRX         TOKEN_BACKEND(1)
-#define TOK_TCI2_TXSRC       TOKEN_BACKEND(2)
-#define TOK_TCI2_DIGL_OFFSET TOKEN_BACKEND(3)
-#define TOK_TCI2_DIGU_OFFSET TOKEN_BACKEND(4)
 
 /* -------------------------------------------------------------------------
  * Static mode map: TCI mode string <-> Hamlib rmode_t
@@ -214,7 +190,7 @@ static rmode_t tci2_str_to_mode(const char *s);
  * Backend config parameters
  * ---------------------------------------------------------------------- */
 
-static const struct confparams tci2_cfg_params[] =
+const struct confparams tci2_cfg_params[] =
 {
     {
         TOK_TCI2_TRX, "trx", "Transceiver Number",
@@ -244,7 +220,7 @@ static const struct confparams tci2_cfg_params[] =
     { RIG_CONF_END, NULL, NULL, NULL, NULL, RIG_CONF_STRING, {} }
 };
 
-static int tci2_set_conf(RIG *rig, hamlib_token_t token, const char *val)
+int tci2_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
 
@@ -300,7 +276,7 @@ static int tci2_set_conf(RIG *rig, hamlib_token_t token, const char *val)
     }
 }
 
-static int tci2_get_conf(RIG *rig, hamlib_token_t token, char *val)
+int tci2_get_conf(RIG *rig, hamlib_token_t token, char *val)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
 
@@ -1316,7 +1292,7 @@ static const char *tci2_mode_to_str(RIG *rig, rmode_t mode)
  * Lifecycle
  * ---------------------------------------------------------------------- */
 
-static int tci2_init(RIG *rig)
+int tci2_init(RIG *rig)
 {
     struct tci2_priv *priv;
 
@@ -1353,7 +1329,7 @@ static int tci2_init(RIG *rig)
     RETURNFUNC(RIG_OK);
 }
 
-static int tci2_open(RIG *rig)
+int tci2_open(RIG *rig)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
     char buf[TCI2_WS_BUFLEN];
@@ -1441,7 +1417,7 @@ static int tci2_open(RIG *rig)
     RETURNFUNC(RIG_OK);
 }
 
-static int tci2_close(RIG *rig)
+int tci2_close(RIG *rig)
 {
     ENTERFUNC;
 
@@ -1460,7 +1436,7 @@ static int tci2_close(RIG *rig)
     RETURNFUNC(RIG_OK);
 }
 
-static int tci2_cleanup(RIG *rig)
+int tci2_cleanup(RIG *rig)
 {
     ENTERFUNC;
 
@@ -1473,7 +1449,7 @@ static int tci2_cleanup(RIG *rig)
  * Frequency
  * ---------------------------------------------------------------------- */
 
-static int tci2_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
+int tci2_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
     char cmd[TCI2_CMDLEN];
@@ -1507,7 +1483,7 @@ static int tci2_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     RETURNFUNC(retval);
 }
 
-static int tci2_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
+int tci2_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
     char cmd[TCI2_CMDLEN];
@@ -1549,7 +1525,7 @@ static int tci2_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  * Mode
  * ---------------------------------------------------------------------- */
 
-static int tci2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
+int tci2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
     char cmd[TCI2_CMDLEN];
@@ -1583,7 +1559,7 @@ static int tci2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     RETURNFUNC(RIG_OK);
 }
 
-static int tci2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+int tci2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
     char cmd[TCI2_CMDLEN];
@@ -1646,7 +1622,7 @@ static int tci2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  * PTT
  * ---------------------------------------------------------------------- */
 
-static int tci2_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
+int tci2_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
     char cmd[TCI2_CMDLEN];
@@ -1705,7 +1681,7 @@ static int tci2_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     RETURNFUNC(retval);
 }
 
-static int tci2_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
+int tci2_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
     char cmd[TCI2_CMDLEN];
@@ -1750,7 +1726,7 @@ static int tci2_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
  * VFO / Split
  * ---------------------------------------------------------------------- */
 
-static int tci2_set_vfo(RIG *rig, vfo_t vfo)
+int tci2_set_vfo(RIG *rig, vfo_t vfo)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
 
@@ -1765,7 +1741,7 @@ static int tci2_set_vfo(RIG *rig, vfo_t vfo)
     RETURNFUNC(RIG_OK);
 }
 
-static int tci2_get_vfo(RIG *rig, vfo_t *vfo)
+int tci2_get_vfo(RIG *rig, vfo_t *vfo)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
 
@@ -1774,7 +1750,7 @@ static int tci2_get_vfo(RIG *rig, vfo_t *vfo)
     RETURNFUNC(RIG_OK);
 }
 
-static int tci2_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
+int tci2_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
                                vfo_t tx_vfo)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
@@ -1797,7 +1773,7 @@ static int tci2_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
     RETURNFUNC(retval);
 }
 
-static int tci2_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
+int tci2_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
                                vfo_t *tx_vfo)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
@@ -1841,7 +1817,7 @@ static int tci2_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
  * Split frequency
  * ---------------------------------------------------------------------- */
 
-static int tci2_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
+int tci2_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
     char cmd[TCI2_CMDLEN];
@@ -1860,7 +1836,7 @@ static int tci2_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     RETURNFUNC(retval);
 }
 
-static int tci2_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
+int tci2_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
     char cmd[TCI2_CMDLEN];
@@ -1895,7 +1871,7 @@ static int tci2_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
  * RIT / XIT
  * ---------------------------------------------------------------------- */
 
-static int tci2_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
+int tci2_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
     char cmd[TCI2_CMDLEN];
@@ -1935,7 +1911,7 @@ static int tci2_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     RETURNFUNC(retval);
 }
 
-static int tci2_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
+int tci2_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
     char cmd[TCI2_CMDLEN];
@@ -1995,7 +1971,7 @@ static int tci2_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
     RETURNFUNC(RIG_OK);
 }
 
-static int tci2_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
+int tci2_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
     char cmd[TCI2_CMDLEN];
@@ -2035,7 +2011,7 @@ static int tci2_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
     RETURNFUNC(retval);
 }
 
-static int tci2_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
+int tci2_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
     char cmd[TCI2_CMDLEN];
@@ -2099,7 +2075,7 @@ static int tci2_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
  * Levels
  * ---------------------------------------------------------------------- */
 
-static int tci2_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+int tci2_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
     char cmd[TCI2_CMDLEN];
@@ -2193,7 +2169,7 @@ static int tci2_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     RETURNFUNC(retval);
 }
 
-static int tci2_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+int tci2_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
     char cmd[TCI2_CMDLEN];
@@ -2371,7 +2347,7 @@ static int tci2_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
  * Functions (NB, NR, ANF, VFO_LOCK)
  * ---------------------------------------------------------------------- */
 
-static int tci2_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+int tci2_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
     char cmd[TCI2_CMDLEN];
@@ -2421,7 +2397,7 @@ static int tci2_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     RETURNFUNC(retval);
 }
 
-static int tci2_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
+int tci2_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
     char cmd[TCI2_CMDLEN];
@@ -2521,7 +2497,7 @@ static int tci2_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
  * CW keying
  * ---------------------------------------------------------------------- */
 
-static int tci2_send_morse(RIG *rig, vfo_t vfo, const char *msg)
+int tci2_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
     char cmd[TCI2_CMDLEN];
@@ -2551,7 +2527,7 @@ static int tci2_send_morse(RIG *rig, vfo_t vfo, const char *msg)
     RETURNFUNC(tci2_send(rig, cmd));
 }
 
-static int tci2_stop_morse(RIG *rig, vfo_t vfo)
+int tci2_stop_morse(RIG *rig, vfo_t vfo)
 {
     ENTERFUNC;
     RETURNFUNC(tci2_send(rig, "CW_MACROS_STOP;"));
@@ -2568,7 +2544,7 @@ static int tci2_stop_morse(RIG *rig, vfo_t vfo)
  * CW was either trivially short or silently rejected — return OK either way.
  * Phase 2 (up to 300 s): wait for TX to be released.
  */
-static int tci2_wait_morse(RIG *rig, vfo_t vfo)
+int tci2_wait_morse(RIG *rig, vfo_t vfo)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
     char buf[TCI2_WS_BUFLEN];
@@ -2612,7 +2588,7 @@ static int tci2_wait_morse(RIG *rig, vfo_t vfo)
  * Power conversion  (assumes 100 W max; actual max is hardware-dependent)
  * ---------------------------------------------------------------------- */
 
-static int tci2_power2mW(RIG *rig, unsigned int *mwpower,
+int tci2_power2mW(RIG *rig, unsigned int *mwpower,
                           float power, freq_t freq, rmode_t mode)
 {
     ENTERFUNC;
@@ -2620,7 +2596,7 @@ static int tci2_power2mW(RIG *rig, unsigned int *mwpower,
     RETURNFUNC(RIG_OK);
 }
 
-static int tci2_mW2power(RIG *rig, float *power,
+int tci2_mW2power(RIG *rig, float *power,
                           unsigned int mwpower, freq_t freq, rmode_t mode)
 {
     ENTERFUNC;
@@ -2635,7 +2611,7 @@ static int tci2_mW2power(RIG *rig, float *power,
  * Info
  * ---------------------------------------------------------------------- */
 
-static const char *tci2_get_info(RIG *rig)
+const char *tci2_get_info(RIG *rig)
 {
     struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
     static char info[128];
@@ -2646,95 +2622,8 @@ static const char *tci2_get_info(RIG *rig)
 
 /* -------------------------------------------------------------------------
  * Capabilities
+ *
+ * Per-radio rig_caps definitions live in sibling files (e.g. sunsdr2-pro.c),
+ * which wire their .rig_init/.set_freq/etc. callbacks to the tci2_* functions
+ * exported above via tci2.h.
  * ---------------------------------------------------------------------- */
-
-struct rig_caps tci2_caps =
-{
-    RIG_MODEL(RIG_MODEL_TCI2),
-    .model_name     = "TCI 2.0",
-    .mfg_name       = "Expert Electronics",
-    .version        = "20260604.0",
-    .copyright      = "LGPL",
-    .status         = RIG_STATUS_BETA,
-    .rig_type       = RIG_TYPE_TRANSCEIVER,
-    .targetable_vfo = RIG_TARGETABLE_FREQ,
-    .ptt_type       = RIG_PTT_RIG_MICDATA,
-    .dcd_type       = RIG_DCD_NONE,
-    .port_type      = RIG_PORT_NETWORK,
-    .timeout        = 2000,
-    .retry          = 3,
-
-    .has_get_func   = TCI2_FUNCS,
-    .has_set_func   = TCI2_FUNCS,
-    .has_get_level  = TCI2_LEVELS_GET,
-    .has_set_level  = RIG_LEVEL_SET(TCI2_LEVELS_SET),
-    .has_get_parm   = RIG_PARM_NONE,
-    .has_set_parm   = RIG_PARM_NONE,
-
-    .rx_range_list1 =
-    {
-        { kHz(1), GHz(2), TCI2_MODES, -1, -1, TCI2_VFOS, RIG_ANT_NONE },
-        RIG_FRNG_END,
-    },
-    .tx_range_list1 =
-    {
-        { kHz(1), GHz(2), TCI2_MODES, mW(1), W(200), TCI2_VFOS, RIG_ANT_NONE },
-        RIG_FRNG_END,
-    },
-    .tuning_steps =
-    {
-        { TCI2_MODES, 1 },
-        { TCI2_MODES, RIG_TS_ANY },
-        RIG_TS_END,
-    },
-    .filters =
-    {
-        { RIG_MODE_SSB | RIG_MODE_CW | RIG_MODE_CWR | RIG_MODE_RTTY | \
-          RIG_MODE_RTTYR, kHz(2.7) },
-        { RIG_MODE_AM  | RIG_MODE_SAM | RIG_MODE_DSB, kHz(6) },
-        { RIG_MODE_FM  | RIG_MODE_FMN, kHz(12) },
-        { RIG_MODE_WFM, kHz(180) },
-        { TCI2_MODES, RIG_FLT_ANY },
-        RIG_FLT_END,
-    },
-
-    .cfgparams      = tci2_cfg_params,
-    .set_conf       = tci2_set_conf,
-    .get_conf       = tci2_get_conf,
-
-    .priv = NULL,
-
-    .rig_init       = tci2_init,
-    .rig_open       = tci2_open,
-    .rig_close      = tci2_close,
-    .rig_cleanup    = tci2_cleanup,
-
-    .set_freq       = tci2_set_freq,
-    .get_freq       = tci2_get_freq,
-    .set_mode       = tci2_set_mode,
-    .get_mode       = tci2_get_mode,
-    .set_vfo        = tci2_set_vfo,
-    .get_vfo        = tci2_get_vfo,
-    .set_ptt        = tci2_set_ptt,
-    .get_ptt        = tci2_get_ptt,
-    .set_split_vfo  = tci2_set_split_vfo,
-    .get_split_vfo  = tci2_get_split_vfo,
-    .set_split_freq = tci2_set_split_freq,
-    .get_split_freq = tci2_get_split_freq,
-    .set_rit        = tci2_set_rit,
-    .get_rit        = tci2_get_rit,
-    .set_xit        = tci2_set_xit,
-    .get_xit        = tci2_get_xit,
-    .set_level      = tci2_set_level,
-    .get_level      = tci2_get_level,
-    .set_func       = tci2_set_func,
-    .get_func       = tci2_get_func,
-    .power2mW       = tci2_power2mW,
-    .mW2power       = tci2_mW2power,
-    .send_morse     = tci2_send_morse,
-    .stop_morse     = tci2_stop_morse,
-    .wait_morse     = tci2_wait_morse,
-    .get_info       = tci2_get_info,
-
-    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
-};
