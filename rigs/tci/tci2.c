@@ -625,6 +625,7 @@ static int ws_recv_frame(RIG *rig, char *buf, int buflen)
  * the same recv path, but the recv loop below uses tci2_process_message
  * directly, so we forward-declare it for tci2_drain. */
 static void tci2_process_message(RIG *rig, const char *msg);
+static void tci2_build_mode_list(RIG *rig);
 
 /*
  * Drain any frames sitting in the socket buffer right now.  TCI is
@@ -666,6 +667,96 @@ static int tci2_drain(RIG *rig)
         rig_debug(RIG_DEBUG_TRACE, "%s: drained %d stale frame(s)\n",
                   __func__, drained);
     }
+
+    return RIG_OK;
+}
+
+/*
+ * Reconnect to the TCI server after a connection failure.
+ * Closes the socket, reopens TCP, performs WebSocket handshake, drains
+ * until READY, rebuilds mode table, and re-subscribes to sensors.
+ * Returns RIG_OK on success or a negative error code.
+ */
+static int tci2_reconnect(RIG *rig)
+{
+    struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
+    hamlib_port_t *rp = RIGPORT(rig);
+    char buf[TCI2_WS_BUFLEN];
+    int retval;
+
+    rig_debug(RIG_DEBUG_WARN, "%s: attempting reconnect\n", __func__);
+
+    port_close(rp, RIG_PORT_NETWORK);
+
+    hl_usleep(100 * 1000);
+
+    retval = port_open(rp);
+
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: port_open failed: %s\n",
+                  __func__, rigerror(retval));
+        return retval;
+    }
+
+    retval = ws_handshake(rig);
+
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: WebSocket handshake failed: %s\n",
+                  __func__, rigerror(retval));
+        return retval;
+    }
+
+    priv->ready = 0;
+
+    for (int i = 0; i < TCI2_INIT_MAX_MSGS && !priv->ready; i++)
+    {
+        retval = ws_recv_frame(rig, buf, sizeof(buf));
+
+        if (retval < 0)
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: recv error waiting for READY: %s\n",
+                      __func__, rigerror(retval));
+            return retval;
+        }
+
+        if (buf[0] != '\0')
+        {
+            tci2_process_message(rig, buf);
+        }
+    }
+
+    if (!priv->ready)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: READY not received after reconnect\n",
+                  __func__);
+        return -RIG_ETIMEOUT;
+    }
+
+    tci2_build_mode_list(rig);
+
+    ws_send_text(rig, "RX_SENSORS_ENABLE:true,200;");
+    ws_send_text(rig, "TX_SENSORS_ENABLE:true,200;");
+
+    if (priv->digl_offset != 0)
+    {
+        char cmd[TCI2_CMDLEN];
+        SNPRINTF(cmd, sizeof(cmd), "DIGL_OFFSET:%d;", priv->digl_offset);
+        ws_send_text(rig, cmd);
+    }
+
+    if (priv->digu_offset != 0)
+    {
+        char cmd[TCI2_CMDLEN];
+        SNPRINTF(cmd, sizeof(cmd), "DIGU_OFFSET:%d;", priv->digu_offset);
+        ws_send_text(rig, cmd);
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "%s: reconnected — device=%s trx=%d\n",
+              __func__, priv->device, priv->trx_num);
 
     return RIG_OK;
 }
@@ -1139,6 +1230,88 @@ static int tci2_recv_until(RIG *rig, const char *prefix,
     return -RIG_ETIMEOUT;
 }
 
+/*
+ * High-level transaction: send a command and optionally wait for a reply
+ * matching `prefix'.  Retries on I/O errors with automatic reconnection.
+ *
+ * For queries:  pass prefix, reply buffer, and replylen.
+ * For fire-and-forget sets:  pass prefix=NULL, reply=NULL, replylen=0.
+ *
+ * Uses RIGPORT(rig)->retry (set from rig_caps.retry) as the maximum
+ * number of reconnect attempts per transaction.
+ */
+static int tci2_transaction(RIG *rig, const char *cmd,
+                            const char *prefix,
+                            char *reply, int replylen)
+{
+    hamlib_port_t *rp = RIGPORT(rig);
+    int retval;
+    int attempts = rp->retry;
+
+    if (attempts < 1)
+    {
+        attempts = 1;
+    }
+
+    for (int try = 0; try < attempts; try++)
+    {
+        if (try > 0)
+        {
+            rig_debug(RIG_DEBUG_WARN,
+                      "%s: retry %d/%d for cmd '%s'\n",
+                      __func__, try, attempts - 1, cmd);
+
+            retval = tci2_reconnect(rig);
+
+            if (retval != RIG_OK)
+            {
+                rig_debug(RIG_DEBUG_ERR,
+                          "%s: reconnect failed: %s\n",
+                          __func__, rigerror(retval));
+                hl_usleep(500 * 1000);
+                continue;
+            }
+        }
+
+        retval = tci2_send(rig, cmd);
+
+        if (retval < 0)
+        {
+            rig_debug(RIG_DEBUG_WARN,
+                      "%s: send failed: %s\n",
+                      __func__, rigerror(retval));
+            continue;
+        }
+
+        if (prefix == NULL)
+        {
+            return RIG_OK;
+        }
+
+        retval = tci2_recv_until(rig, prefix, reply, replylen);
+
+        if (retval == RIG_OK)
+        {
+            return RIG_OK;
+        }
+
+        if (retval == -RIG_ETIMEOUT)
+        {
+            rig_debug(RIG_DEBUG_WARN,
+                      "%s: recv timeout waiting for '%s'\n",
+                      __func__, prefix);
+        }
+        else
+        {
+            rig_debug(RIG_DEBUG_WARN,
+                      "%s: recv error: %s\n",
+                      __func__, rigerror(retval));
+        }
+    }
+
+    return retval;
+}
+
 /* -------------------------------------------------------------------------
  * Mode / filter helpers
  * ---------------------------------------------------------------------- */
@@ -1385,13 +1558,15 @@ int tci2_open(RIG *rig)
     tci2_build_mode_list(rig);
 
     /* Subscribe to per-channel signal level and TX sensors at 200 ms interval */
-    if (tci2_send(rig, "RX_SENSORS_ENABLE:true,200;") != RIG_OK)
+    if (tci2_transaction(rig, "RX_SENSORS_ENABLE:true,200;",
+                         NULL, NULL, 0) != RIG_OK)
     {
         rig_debug(RIG_DEBUG_WARN,
                   "%s: RX_SENSORS_ENABLE failed\n", __func__);
     }
 
-    if (tci2_send(rig, "TX_SENSORS_ENABLE:true,200;") != RIG_OK)
+    if (tci2_transaction(rig, "TX_SENSORS_ENABLE:true,200;",
+                         NULL, NULL, 0) != RIG_OK)
     {
         rig_debug(RIG_DEBUG_WARN,
                   "%s: TX_SENSORS_ENABLE failed\n", __func__);
@@ -1402,14 +1577,14 @@ int tci2_open(RIG *rig)
     {
         char cmd[TCI2_CMDLEN];
         SNPRINTF(cmd, sizeof(cmd), "DIGL_OFFSET:%d;", priv->digl_offset);
-        tci2_send(rig, cmd);
+        tci2_transaction(rig, cmd, NULL, NULL, 0);
     }
 
     if (priv->digu_offset != 0)
     {
         char cmd[TCI2_CMDLEN];
         SNPRINTF(cmd, sizeof(cmd), "DIGU_OFFSET:%d;", priv->digu_offset);
-        tci2_send(rig, cmd);
+        tci2_transaction(rig, cmd, NULL, NULL, 0);
     }
 
     STATE(rig)->current_vfo = RIG_VFO_A;
@@ -1421,17 +1596,9 @@ int tci2_close(RIG *rig)
 {
     ENTERFUNC;
 
-    if (tci2_send(rig, "RX_SENSORS_ENABLE:false;") != RIG_OK)
-    {
-        rig_debug(RIG_DEBUG_WARN,
-                  "%s: RX_SENSORS_ENABLE:false failed\n", __func__);
-    }
-
-    if (tci2_send(rig, "TX_SENSORS_ENABLE:false;") != RIG_OK)
-    {
-        rig_debug(RIG_DEBUG_WARN,
-                  "%s: TX_SENSORS_ENABLE:false failed\n", __func__);
-    }
+    /* Best-effort unsubscribe; don't retry on failure since we're closing. */
+    ws_send_text(rig, "RX_SENSORS_ENABLE:false;");
+    ws_send_text(rig, "TX_SENSORS_ENABLE:false;");
 
     RETURNFUNC(RIG_OK);
 }
@@ -1468,12 +1635,12 @@ int tci2_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
      * (cursor inside the panorama).  Send DDS first to move the panorama
      * center, then VFO so the cursor lands at the requested freq. */
     SNPRINTF(cmd, sizeof(cmd), "DDS:%d,%.0f;", priv->trx_num, freq);
-    retval = tci2_send(rig, cmd);
+    retval = tci2_transaction(rig, cmd, NULL, NULL, 0);
 
     if (retval < 0) { RETURNFUNC(retval); }
 
     SNPRINTF(cmd, sizeof(cmd), "VFO:%d,%d,%.0f;", priv->trx_num, ch, freq);
-    retval = tci2_send(rig, cmd);
+    retval = tci2_transaction(rig, cmd, NULL, NULL, 0);
 
     if (retval == RIG_OK)
     {
@@ -1504,11 +1671,7 @@ int tci2_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     SNPRINTF(cmd, sizeof(cmd), "VFO:%d,%d;", priv->trx_num, ch);
     SNPRINTF(prefix, sizeof(prefix), "VFO:%d,%d,", priv->trx_num, ch);
 
-    retval = tci2_send(rig, cmd);
-
-    if (retval < 0) { RETURNFUNC(retval); }
-
-    retval = tci2_recv_until(rig, prefix, reply, sizeof(reply));
+    retval = tci2_transaction(rig, cmd, prefix, reply, sizeof(reply));
 
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
@@ -1544,7 +1707,7 @@ int tci2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
 
     SNPRINTF(cmd, sizeof(cmd), "MODULATION:%d,%s;", priv->trx_num, modestr);
-    retval = tci2_send(rig, cmd);
+    retval = tci2_transaction(rig, cmd, NULL, NULL, 0);
 
     if (retval < 0) { RETURNFUNC(retval); }
 
@@ -1573,11 +1736,7 @@ int tci2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     SNPRINTF(cmd, sizeof(cmd), "MODULATION:%d;", priv->trx_num);
     SNPRINTF(prefix, sizeof(prefix), "MODULATION:%d,", priv->trx_num);
 
-    retval = tci2_send(rig, cmd);
-
-    if (retval < 0) { RETURNFUNC(retval); }
-
-    retval = tci2_recv_until(rig, prefix, reply, sizeof(reply));
+    retval = tci2_transaction(rig, cmd, prefix, reply, sizeof(reply));
 
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
@@ -1671,7 +1830,7 @@ int tci2_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         SNPRINTF(cmd, sizeof(cmd), "TRX:%d,true%s;", priv->trx_num, src);
     }
 
-    retval = tci2_send(rig, cmd);
+    retval = tci2_transaction(rig, cmd, NULL, NULL, 0);
 
     if (retval == RIG_OK)
     {
@@ -1695,11 +1854,7 @@ int tci2_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     SNPRINTF(cmd, sizeof(cmd), "TRX:%d;", priv->trx_num);
     SNPRINTF(prefix, sizeof(prefix), "TRX:%d,", priv->trx_num);
 
-    retval = tci2_send(rig, cmd);
-
-    if (retval < 0) { RETURNFUNC(retval); }
-
-    retval = tci2_recv_until(rig, prefix, reply, sizeof(reply));
+    retval = tci2_transaction(rig, cmd, prefix, reply, sizeof(reply));
 
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
@@ -1763,7 +1918,7 @@ int tci2_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
              priv->trx_num,
              (split == RIG_SPLIT_ON) ? "true" : "false");
 
-    retval = tci2_send(rig, cmd);
+    retval = tci2_transaction(rig, cmd, NULL, NULL, 0);
 
     if (retval == RIG_OK)
     {
@@ -1788,11 +1943,7 @@ int tci2_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
     SNPRINTF(cmd, sizeof(cmd), "SPLIT_ENABLE:%d;", priv->trx_num);
     SNPRINTF(prefix, sizeof(prefix), "SPLIT_ENABLE:%d,", priv->trx_num);
 
-    retval = tci2_send(rig, cmd);
-
-    if (retval < 0) { RETURNFUNC(retval); }
-
-    retval = tci2_recv_until(rig, prefix, reply, sizeof(reply));
+    retval = tci2_transaction(rig, cmd, prefix, reply, sizeof(reply));
 
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
@@ -1826,7 +1977,7 @@ int tci2_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     ENTERFUNC;
 
     SNPRINTF(cmd, sizeof(cmd), "VFO:%d,1,%.0f;", priv->trx_num, tx_freq);
-    retval = tci2_send(rig, cmd);
+    retval = tci2_transaction(rig, cmd, NULL, NULL, 0);
 
     if (retval == RIG_OK)
     {
@@ -1850,11 +2001,7 @@ int tci2_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     SNPRINTF(cmd, sizeof(cmd), "VFO:%d,1;", priv->trx_num);
     SNPRINTF(prefix, sizeof(prefix), "VFO:%d,1,", priv->trx_num);
 
-    retval = tci2_send(rig, cmd);
-
-    if (retval < 0) { RETURNFUNC(retval); }
-
-    retval = tci2_recv_until(rig, prefix, reply, sizeof(reply));
+    retval = tci2_transaction(rig, cmd, prefix, reply, sizeof(reply));
 
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
@@ -1882,7 +2029,7 @@ int tci2_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     if (rit == 0)
     {
         SNPRINTF(cmd, sizeof(cmd), "RIT_ENABLE:%d,false;", priv->trx_num);
-        retval = tci2_send(rig, cmd);
+        retval = tci2_transaction(rig, cmd, NULL, NULL, 0);
 
         if (retval == RIG_OK)
         {
@@ -1895,12 +2042,12 @@ int tci2_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 
     SNPRINTF(cmd, sizeof(cmd), "RIT_OFFSET:%d,%ld;",
              priv->trx_num, (long)rit);
-    retval = tci2_send(rig, cmd);
+    retval = tci2_transaction(rig, cmd, NULL, NULL, 0);
 
     if (retval < 0) { RETURNFUNC(retval); }
 
     SNPRINTF(cmd, sizeof(cmd), "RIT_ENABLE:%d,true;", priv->trx_num);
-    retval = tci2_send(rig, cmd);
+    retval = tci2_transaction(rig, cmd, NULL, NULL, 0);
 
     if (retval == RIG_OK)
     {
@@ -1925,11 +2072,7 @@ int tci2_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
     SNPRINTF(cmd, sizeof(cmd), "RIT_ENABLE:%d;", priv->trx_num);
     SNPRINTF(prefix, sizeof(prefix), "RIT_ENABLE:%d,", priv->trx_num);
 
-    retval = tci2_send(rig, cmd);
-
-    if (retval < 0) { RETURNFUNC(retval); }
-
-    retval = tci2_recv_until(rig, prefix, reply, sizeof(reply));
+    retval = tci2_transaction(rig, cmd, prefix, reply, sizeof(reply));
 
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
@@ -1954,11 +2097,7 @@ int tci2_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
     SNPRINTF(cmd, sizeof(cmd), "RIT_OFFSET:%d;", priv->trx_num);
     SNPRINTF(prefix, sizeof(prefix), "RIT_OFFSET:%d,", priv->trx_num);
 
-    retval = tci2_send(rig, cmd);
-
-    if (retval < 0) { RETURNFUNC(retval); }
-
-    retval = tci2_recv_until(rig, prefix, reply, sizeof(reply));
+    retval = tci2_transaction(rig, cmd, prefix, reply, sizeof(reply));
 
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
@@ -1982,7 +2121,7 @@ int tci2_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
     if (xit == 0)
     {
         SNPRINTF(cmd, sizeof(cmd), "XIT_ENABLE:%d,false;", priv->trx_num);
-        retval = tci2_send(rig, cmd);
+        retval = tci2_transaction(rig, cmd, NULL, NULL, 0);
 
         if (retval == RIG_OK)
         {
@@ -1995,12 +2134,12 @@ int tci2_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 
     SNPRINTF(cmd, sizeof(cmd), "XIT_OFFSET:%d,%ld;",
              priv->trx_num, (long)xit);
-    retval = tci2_send(rig, cmd);
+    retval = tci2_transaction(rig, cmd, NULL, NULL, 0);
 
     if (retval < 0) { RETURNFUNC(retval); }
 
     SNPRINTF(cmd, sizeof(cmd), "XIT_ENABLE:%d,true;", priv->trx_num);
-    retval = tci2_send(rig, cmd);
+    retval = tci2_transaction(rig, cmd, NULL, NULL, 0);
 
     if (retval == RIG_OK)
     {
@@ -2025,11 +2164,7 @@ int tci2_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
     SNPRINTF(cmd, sizeof(cmd), "XIT_ENABLE:%d;", priv->trx_num);
     SNPRINTF(prefix, sizeof(prefix), "XIT_ENABLE:%d,", priv->trx_num);
 
-    retval = tci2_send(rig, cmd);
-
-    if (retval < 0) { RETURNFUNC(retval); }
-
-    retval = tci2_recv_until(rig, prefix, reply, sizeof(reply));
+    retval = tci2_transaction(rig, cmd, prefix, reply, sizeof(reply));
 
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
@@ -2054,11 +2189,7 @@ int tci2_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
     SNPRINTF(cmd, sizeof(cmd), "XIT_OFFSET:%d;", priv->trx_num);
     SNPRINTF(prefix, sizeof(prefix), "XIT_OFFSET:%d,", priv->trx_num);
 
-    retval = tci2_send(rig, cmd);
-
-    if (retval < 0) { RETURNFUNC(retval); }
-
-    retval = tci2_recv_until(rig, prefix, reply, sizeof(reply));
+    retval = tci2_transaction(rig, cmd, prefix, reply, sizeof(reply));
 
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
@@ -2108,7 +2239,7 @@ int tci2_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             SNPRINTF(en, sizeof(en), "SQL_ENABLE:%d,%s;",
                      priv->trx_num,
                      val.f > 0.0f ? "true" : "false");
-            tci2_send(rig, en);
+            tci2_transaction(rig, en, NULL, NULL, 0);
         }
         SNPRINTF(cmd, sizeof(cmd), "SQL_LEVEL:%d,%d;",
                  priv->trx_num, priv->squelch_level);
@@ -2165,7 +2296,7 @@ int tci2_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    retval = tci2_send(rig, cmd);
+    retval = tci2_transaction(rig, cmd, NULL, NULL, 0);
     RETURNFUNC(retval);
 }
 
@@ -2183,11 +2314,8 @@ int tci2_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     {
     case RIG_LEVEL_AF:
         /* VOLUME has no TRX argument */
-        retval = tci2_send(rig, "VOLUME;");
-
-        if (retval < 0) { RETURNFUNC(retval); }
-
-        retval = tci2_recv_until(rig, "VOLUME:", reply, sizeof(reply));
+        retval = tci2_transaction(rig, "VOLUME;", "VOLUME:",
+                                  reply, sizeof(reply));
 
         if (retval != RIG_OK) { RETURNFUNC(retval); }
 
@@ -2203,11 +2331,7 @@ int tci2_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         SNPRINTF(cmd, sizeof(cmd), "DRIVE:%d;", priv->trx_num);
         SNPRINTF(prefix, sizeof(prefix), "DRIVE:%d,", priv->trx_num);
 
-        retval = tci2_send(rig, cmd);
-
-        if (retval < 0) { RETURNFUNC(retval); }
-
-        retval = tci2_recv_until(rig, prefix, reply, sizeof(reply));
+        retval = tci2_transaction(rig, cmd, prefix, reply, sizeof(reply));
 
         if (retval != RIG_OK) { RETURNFUNC(retval); }
 
@@ -2223,11 +2347,7 @@ int tci2_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         SNPRINTF(cmd, sizeof(cmd), "SQL_LEVEL:%d;", priv->trx_num);
         SNPRINTF(prefix, sizeof(prefix), "SQL_LEVEL:%d,", priv->trx_num);
 
-        retval = tci2_send(rig, cmd);
-
-        if (retval < 0) { RETURNFUNC(retval); }
-
-        retval = tci2_recv_until(rig, prefix, reply, sizeof(reply));
+        retval = tci2_transaction(rig, cmd, prefix, reply, sizeof(reply));
 
         if (retval != RIG_OK) { RETURNFUNC(retval); }
 
@@ -2243,11 +2363,7 @@ int tci2_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         SNPRINTF(cmd, sizeof(cmd), "RX_NB_PARAM:%d;", priv->trx_num);
         SNPRINTF(prefix, sizeof(prefix), "RX_NB_PARAM:%d,", priv->trx_num);
 
-        retval = tci2_send(rig, cmd);
-
-        if (retval < 0) { RETURNFUNC(retval); }
-
-        retval = tci2_recv_until(rig, prefix, reply, sizeof(reply));
+        retval = tci2_transaction(rig, cmd, prefix, reply, sizeof(reply));
 
         if (retval != RIG_OK) { RETURNFUNC(retval); }
 
@@ -2276,11 +2392,7 @@ int tci2_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         SNPRINTF(cmd, sizeof(cmd), "AGC_MODE:%d;", priv->trx_num);
         SNPRINTF(prefix, sizeof(prefix), "AGC_MODE:%d,", priv->trx_num);
 
-        retval = tci2_send(rig, cmd);
-
-        if (retval < 0) { RETURNFUNC(retval); }
-
-        retval = tci2_recv_until(rig, prefix, reply, sizeof(reply));
+        retval = tci2_transaction(rig, cmd, prefix, reply, sizeof(reply));
 
         if (retval != RIG_OK) { RETURNFUNC(retval); }
 
@@ -2393,7 +2505,7 @@ int tci2_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    retval = tci2_send(rig, cmd);
+    retval = tci2_transaction(rig, cmd, NULL, NULL, 0);
     RETURNFUNC(retval);
 }
 
@@ -2446,11 +2558,7 @@ int tci2_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    retval = tci2_send(rig, cmd);
-
-    if (retval < 0) { RETURNFUNC(retval); }
-
-    retval = tci2_recv_until(rig, prefix, reply, sizeof(reply));
+    retval = tci2_transaction(rig, cmd, prefix, reply, sizeof(reply));
 
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
@@ -2524,13 +2632,13 @@ int tci2_send_morse(RIG *rig, vfo_t vfo, const char *msg)
     escaped[j] = '\0';
 
     SNPRINTF(cmd, sizeof(cmd), "CW_MACROS:%d,%s;", priv->trx_num, escaped);
-    RETURNFUNC(tci2_send(rig, cmd));
+    RETURNFUNC(tci2_transaction(rig, cmd, NULL, NULL, 0));
 }
 
 int tci2_stop_morse(RIG *rig, vfo_t vfo)
 {
     ENTERFUNC;
-    RETURNFUNC(tci2_send(rig, "CW_MACROS_STOP;"));
+    RETURNFUNC(tci2_transaction(rig, "CW_MACROS_STOP;", NULL, NULL, 0));
 }
 
 /*
