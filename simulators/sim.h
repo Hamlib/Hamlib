@@ -4,6 +4,26 @@
 #include <unistd.h>
 #include <string.h>
 
+/* Define macros for handling attributes, if the compiler implements them
+ *   Should be available in c23-capable compilers, or c++11 ones
+ */
+// From ISO/IEC 9899:202y n3301 working draft
+#ifndef __has_c_attribute
+#define __has_c_attribute(x) 0
+#endif
+
+// Macro for allowing unused variables/functions to go unmentioned
+// This is really a C23 feature, so older compilers may still produce
+//   a warning - please ignore it.
+#if __has_c_attribute(maybe_unused)
+#define MAY_BE_UNUSED [[maybe_unused]]
+#else
+#define MAY_BE_UNUSED
+#endif
+
+// Size of command buffer
+#define BUFSIZE 256
+
 /* ID 0310 == 310, Must drop leading zero */
 typedef enum nc_rigid_e
 {
@@ -92,9 +112,6 @@ int openPort(char *comport) // doesn't matter for using pts devices
 }
 #endif
 
-// Size of command buffer
-#define BUFSIZE 256
-
 int
 getmyline(int fd, char *buf)
 {
@@ -140,3 +157,27 @@ getmyline5(int fd, unsigned char *buf)
 
     return i;
 }
+
+/* Vendor specific data and routines
+ *
+ * Some may be re-implementation of Hamlib, but let's keep them disjoint
+ */
+#if SIM == Icom
+
+#include "../rigs/icom/icom_defs.h"
+
+MAY_BE_UNUSED
+static const char *mode_names[] = {
+  "LSB", "USB", "AM", "CW", "RTTY", "FM", "WFM", "CW-R", "RTTY-R" };
+
+MAY_BE_UNUSED
+static int acknak(int fd, unsigned char *frame, unsigned char status)
+{
+  frame[4] = status;
+  frame[5] = FI;
+  return write(fd, frame, ACKFRMLEN);
+}
+
+#elif SIM == Kenwood
+#elif SIM == Yaesu
+#endif

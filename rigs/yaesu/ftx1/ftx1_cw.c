@@ -261,11 +261,10 @@ static const int ftx1_sd_code_to_ms[] = {
  */
 static int ftx1_ms_to_sd_code(int ms)
 {
-    int i;
     int best = 0;
     int best_diff = abs(ms - ftx1_sd_code_to_ms[0]);
 
-    for (i = 1; i < (int)FTX1_SD_CODE_COUNT; i++)
+    for (int i = 1; i < (int)FTX1_SD_CODE_COUNT; i++)
     {
         int diff = abs(ms - ftx1_sd_code_to_ms[i]);
 

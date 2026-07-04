@@ -73,9 +73,8 @@ void rig_make_key(char key[33])
     const char *all =
         "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123467890!@#$%^&*()_=~<>/?";
     int max = strlen(all);
-    int i;
 
-    for (i = 0; i < 32; ++i)
+    for (int i = 0; i < 32; ++i)
     {
         key[i] = all[my_rand(max)];
     }

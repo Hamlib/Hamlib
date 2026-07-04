@@ -208,11 +208,10 @@ static void init_chan(RIG *rig, vfo_t vfo, channel_t *chan)
 static void copy_chan(channel_t *dest, const channel_t *src)
 {
     struct ext_list *saved_ext_levels;
-    int i;
 
     /* TODO: ext_levels[] of different sizes */
 
-    for (i = 0; !RIG_IS_EXT_END(src->ext_levels[i]) &&
+    for (int i = 0; !RIG_IS_EXT_END(src->ext_levels[i]) &&
             !RIG_IS_EXT_END(dest->ext_levels[i]); i++)
     {
         dest->ext_levels[i] = src->ext_levels[i];
@@ -226,7 +225,6 @@ static void copy_chan(channel_t *dest, const channel_t *src)
 static int dummy_init(RIG *rig)
 {
     struct dummy_priv_data *priv;
-    int i;
 
     ENTERFUNC;
     priv = (struct dummy_priv_data *)calloc(1, sizeof(struct dummy_priv_data));
@@ -250,7 +248,7 @@ static int dummy_init(RIG *rig)
 
     memset(priv->mem, 0, sizeof(priv->mem));
 
-    for (i = 0; i < NB_CHAN; i++)
+    for (int i = 0; i < NB_CHAN; i++)
     {
         priv->mem[i].channel_num = i;
         priv->mem[i].vfo = RIG_VFO_MEM;
@@ -338,11 +336,10 @@ static int dummy_cleanup(RIG *rig)
 {
     struct rig_state *rs = STATE(rig);
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rs->priv;
-    int i;
 
     ENTERFUNC;
 
-    for (i = 0; i < NB_CHAN; i++)
+    for (int i = 0; i < NB_CHAN; i++)
     {
         free(priv->mem[i].ext_levels);
     }
@@ -2076,9 +2073,8 @@ static int dummy_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
         {
             struct ext_list *saved_ext_levels = curr->ext_levels;
             int saved_ch = curr->channel_num;
-            int i;
 
-            for (i = 0; !RIG_IS_EXT_END(curr->ext_levels[i]); i++)
+            for (int i = 0; !RIG_IS_EXT_END(curr->ext_levels[i]); i++)
             {
                 curr->ext_levels[i].val.i = 0;
             }
@@ -2092,9 +2088,8 @@ static int dummy_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
         {
             struct ext_list *saved_ext_levels = curr->ext_levels;
             channel_t *mem_chan = &priv->mem[curr->channel_num];
-            int i;
 
-            for (i = 0; !RIG_IS_EXT_END(mem_chan->ext_levels[i]); i++)
+            for (int i = 0; !RIG_IS_EXT_END(mem_chan->ext_levels[i]); i++)
             {
                 mem_chan->ext_levels[i].val.i = 0;
             }

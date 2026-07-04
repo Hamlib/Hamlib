@@ -28,7 +28,7 @@
 struct ext_list *alloc_init_ext(const struct confparams *cfp)
 {
     struct ext_list *elp;
-    int i, nb_ext;
+    int nb_ext;
 
     if (cfp == NULL)
     {
@@ -45,7 +45,7 @@ struct ext_list *alloc_init_ext(const struct confparams *cfp)
         return NULL;
     }
 
-    for (i = 0; !RIG_IS_EXT_END(cfp[i]); i++)
+    for (int i = 0; !RIG_IS_EXT_END(cfp[i]); i++)
     {
         elp[i].token = cfp[i].token;
         /* value reset already by calloc */
@@ -58,14 +58,12 @@ struct ext_list *alloc_init_ext(const struct confparams *cfp)
 
 struct ext_list *find_ext(struct ext_list *elp, hamlib_token_t token)
 {
-    int i;
-
     if (elp == NULL)
     {
         return NULL;
     }
 
-    for (i = 0; elp[i].token != 0; i++)
+    for (int i = 0; elp[i].token != 0; i++)
     {
         if (elp[i].token == token)
         {

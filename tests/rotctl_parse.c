@@ -341,8 +341,6 @@ static void hash_delete_all()
  */
 static void rp_getline(const char *s)
 {
-    int i;
-
     /* free allocated memory and set pointers to NULL */
     if (input_line)
     {
@@ -358,7 +356,7 @@ static void rp_getline(const char *s)
     /* cmd, arg1, arg2, arg3, arg4, arg5, arg6
      * arg5 and arg 6 are currently unused.
      */
-    for (i = 0; i < 7; i++)
+    for (int i = 0; i < 7; i++)
     {
         parsed_input[i] = NULL;
     }
@@ -374,9 +372,7 @@ static void rp_getline(const char *s)
  */
 static char parse_arg(const char *arg)
 {
-    int i;
-
-    for (i = 0; test_list[i].cmd != 0; i++)
+    for (int i = 0; test_list[i].cmd != 0; i++)
     {
         if (!strncmp(arg, test_list[i].name, MAXNAMSIZ))
         {
@@ -1532,11 +1528,9 @@ void version()
 
 void usage_rot(FILE *fout)
 {
-    int i;
-
     fprintf(fout, "Commands (some may not be available for this rotator):\n");
 
-    for (i = 0; test_list[i].cmd != 0; i++)
+    for (int i = 0; test_list[i].cmd != 0; i++)
     {
         fprintf(fout,
                 "%c: %-12s(",

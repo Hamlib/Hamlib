@@ -25,6 +25,7 @@
 #include "hamlib/config.h"
 
 #include <stddef.h>
+#include <stdbool.h>
 
 #include "hamlib/rig.h"
 #include "hamlib/rig_state.h"
@@ -254,14 +255,14 @@ struct icom_priv_caps
     struct icom_spectrum_scope_caps spectrum_scope_caps; /*!< Icom spectrum scope capabilities, if supported by the rig. Main/Sub scopes in Icom rigs have the same caps. */
     struct icom_spectrum_edge_frequency_range spectrum_edge_frequency_ranges[ICOM_MAX_SPECTRUM_FREQ_RANGES]; /*!< Icom spectrum scope edge frequencies, if supported by the rig. Last entry should have zeros in all fields. */
     const struct cmdparams *extcmds;  /*!< Pointer to extended operations array */
-    int dualwatch_split;        /*!< Rig supports dual watch for split ops -- e.g. ID-5100 */
-    int x25x26_always;          /*!< Rig should use 0x25 and 0x26 commands always */
-    int x25x26_possibly;        /*!< Rig might support 0x25 and 0x26 commands if the firmware is upgraded */
-    int x1cx03_always;          /*!< Rig should use 0x1C 0x03 command for getting TX frequency */
-    int x1cx03_possibly;        /*!< Rig might support 0x1C 0x03 command if the firmware is upgraded TODO: is this added by FW upgrade ever? */
-    int x1ax03_supported;       /*!< Rig supports setting/getting filter width */
-    int mode_with_filter;       /*!< Rig mode commands include filter selection */
-    int data_mode_supported;    /*!< Rig supports data mode flag */
+    bool dualwatch_split;       /*!< Rig supports dual watch for split ops -- e.g. ID-5100 */
+    bool x25x26_always;         /*!< Rig should use 0x25 and 0x26 commands always */
+    bool x25x26_possibly;       /*!< Rig might support 0x25 and 0x26 commands if the firmware is upgraded */
+    bool x1cx03_always;         /*!< Rig should use 0x1C 0x03 command for getting TX frequency */
+    bool x1cx03_possibly;       /*!< Rig might support 0x1C 0x03 command if the firmware is upgraded TODO: is this added by FW upgrade ever? */
+    bool x1ax03_supported;      /*!< Rig supports setting/getting filter width */
+    bool mode_with_filter;      /*!< Rig mode commands include filter selection */
+    bool data_mode_supported;   /*!< Rig supports data mode flag */
     int fm_filters[3];          /*!< For models with FIL1/2/3 for FM low-to-high fixed filters -- IC7300/9700 */
     const struct icom_clock_cmds *clock_cmds; /*!< Pointer to clock ops commands */
 };

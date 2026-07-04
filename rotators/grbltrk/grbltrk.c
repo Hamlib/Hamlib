@@ -169,7 +169,6 @@ grbl_request(ROT *rot, char *request, uint32_t req_size, char *response,
 static int
 grbl_init(ROT *rot)
 {
-    int i;
     uint32_t init_count;
     char rsp[RSIZE];
     uint32_t resp_size;
@@ -187,7 +186,7 @@ grbl_init(ROT *rot)
 
     init_count = sizeof(grbl_init_list) / sizeof(grbl_init_list[0]);
 
-    for (i = 0; i < init_count; i++)
+    for (int i = 0; i < init_count; i++)
     {
         int retval;
 
@@ -340,13 +339,11 @@ grbltrk_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     char dummy0[256];
     char dummy1[256];
 
-    int i;
-
     rot_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     //snprintf(req, sizeof(req), "?\r\n");
 
-    for (i = 0; i < 5; i++)
+    for (int i = 0; i < 5; i++)
     {
         int retval;
         retval = grbl_request(rot, grbl_get_pos, strlen(grbl_get_pos), rsp, &rsp_size);

@@ -428,9 +428,7 @@ static int sdrsharp_cleanup(RIG *rig)
     // model_sdrsharp was not getting refilled
     // if we can figure out that one we can re-enable this
 #if 0
-    int i;
-
-    for (i = 0; modeMap[i].mode_hamlib != 0; ++i)
+    for (int i = 0; modeMap[i].mode_hamlib != 0; ++i)
     {
         if (modeMap[i].mode_sdrsharp)
         {

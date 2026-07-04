@@ -46,7 +46,6 @@
 static int rig_has_ext_token(RIG *rig, hamlib_token_t token)
 {
     const int *ext_tokens = rig->caps->ext_tokens;
-    int i;
 
     if (ext_tokens == NULL)
     {
@@ -55,7 +54,7 @@ static int rig_has_ext_token(RIG *rig, hamlib_token_t token)
         return 1;
     }
 
-    for (i = 0; ext_tokens[i] != TOK_BACKEND_NONE; i++)
+    for (int i = 0; ext_tokens[i] != TOK_BACKEND_NONE; i++)
     {
         if (ext_tokens[i] == token)
         {

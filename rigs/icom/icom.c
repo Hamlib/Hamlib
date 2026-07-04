@@ -607,7 +607,6 @@ int icom_init(RIG *rig)
     struct icom_priv_caps *priv_caps;
     struct rig_caps *caps;
     struct rig_state *rs = STATE(rig);
-    int i;
 
     ENTERFUNC;
 
@@ -639,7 +638,7 @@ int icom_init(RIG *rig)
 
     priv->spectrum_scope_count = 0;
 
-    for (i = 0; caps->spectrum_scopes[i].name != NULL; i++)
+    for (int i = 0; caps->spectrum_scopes[i].name != NULL; i++)
     {
         priv->spectrum_scope_cache[i].spectrum_data = NULL;
 
@@ -689,13 +688,12 @@ int icom_init(RIG *rig)
 int icom_cleanup(RIG *rig)
 {
     struct icom_priv_data *priv;
-    int i;
 
     ENTERFUNC;
 
     priv = STATE(rig)->priv;
 
-    for (i = 0; rig->caps->spectrum_scopes[i].name != NULL; i++)
+    for (int i = 0; rig->caps->spectrum_scopes[i].name != NULL; i++)
     {
         if (priv->spectrum_scope_cache[i].spectrum_data)
         {
@@ -2057,9 +2055,7 @@ int icom_set_dsp_flt(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         if (!rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_RF, &rfstatus)
                 && (rfstatus))
         {
-            int i;
-
-            for (i = 0; i < RTTY_FIL_NB; i++)
+            for (int i = 0; i < RTTY_FIL_NB; i++)
             {
                 if (rtty_fil[i] == width)
                 {
@@ -2234,7 +2230,7 @@ static int icom_get_mode_x26(RIG *rig, vfo_t vfo, int *mode_len,
     const struct icom_priv_caps *priv_caps = rig->caps->priv;
     int retval;
 
-    if (priv->x26cmdfails > 0 && priv_caps->x25x26_always == 0)
+    if (priv->x26cmdfails > 0 && !priv_caps->x25x26_always)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: x26cmdfails=%d, x25x26_always=%d\n", __func__,
                   priv->x26cmdfails, priv_caps->x25x26_always);
@@ -3353,12 +3349,11 @@ static int icom_set_cmd(RIG *rig, vfo_t vfo, struct cmdparams *par, value_t val)
     }
 
     int wrd = val.i;
-    int i;
 
     switch (par->dattyp)
     {
     case CMD_DAT_WRD:
-        for (i = 1; i <= par->datlen; i++)
+        for (int i = 1; i <= par->datlen; i++)
         {
             cmdbuf[cmdlen + par->datlen - i] = wrd & 0xff;
             wrd >>= 8;
@@ -3431,9 +3426,8 @@ static int icom_get_cmd(RIG *rig, vfo_t vfo, struct cmdparams *par, value_t *val
     case CMD_DAT_WRD:
     {
         int wrd = 0;
-        int i;
 
-        for (i = 0; i < par->datlen; i++)
+        for (int i = 0; i < par->datlen; i++)
         {
             wrd = (wrd << 8) + resbuf[i];
         }
@@ -5036,9 +5030,8 @@ int icom_set_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token, int status)
 
     const struct confparams *cfp = rig->caps->extfuncs;
     cfp = (cfp == NULL) ? icom_ext_funcs : cfp;
-    int i;
 
-    for (i = 0; (cfp[i].token != RIG_CONF_END) || (cfp != icom_ext_funcs);)
+    for (int i = 0; (cfp[i].token != RIG_CONF_END) || (cfp != icom_ext_funcs);)
     {
         if (cfp[i].token == RIG_CONF_END)
         {
@@ -5062,9 +5055,8 @@ int icom_get_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token, int *status)
 
     const struct confparams *cfp = rig->caps->extfuncs;
     cfp = (cfp == NULL) ? icom_ext_funcs : cfp;
-    int i;
 
-    for (i = 0; (cfp[i].token != RIG_CONF_END) || (cfp != icom_ext_funcs);)
+    for (int i = 0; (cfp[i].token != RIG_CONF_END) || (cfp != icom_ext_funcs);)
     {
         if (cfp[i].token == RIG_CONF_END)
         {
@@ -5095,9 +5087,8 @@ int icom_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val)
 
     const struct confparams *cfp = rig->caps->extparms;
     cfp = (cfp == NULL) ? icom_ext_parms : cfp;
-    int i;
 
-    for (i = 0; (cfp[i].token != RIG_CONF_END) || (cfp != icom_ext_parms);)
+    for (int i = 0; (cfp[i].token != RIG_CONF_END) || (cfp != icom_ext_parms);)
     {
         if (cfp[i].token == RIG_CONF_END)
         {
@@ -5120,9 +5111,8 @@ int icom_get_ext_parm(RIG *rig, hamlib_token_t token, value_t *val)
 
     const struct confparams *cfp = rig->caps->extparms;
     cfp = (cfp == NULL) ? icom_ext_parms : cfp;
-    int i;
 
-    for (i = 0; (cfp[i].token != RIG_CONF_END) || (cfp != icom_ext_parms);)
+    for (int i = 0; (cfp[i].token != RIG_CONF_END) || (cfp != icom_ext_parms);)
     {
         if (cfp[i].token == RIG_CONF_END)
         {
@@ -5141,11 +5131,9 @@ int icom_get_ext_parm(RIG *rig, hamlib_token_t token, value_t *val)
 
 int icom_get_ext_cmd(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val)
 {
-    int i;
-
     ENTERFUNC;
 
-    for (i = 0; rig->caps->ext_tokens
+    for (int i = 0; rig->caps->ext_tokens
             && rig->caps->ext_tokens[i] != TOK_BACKEND_NONE; i++)
     {
         if (rig->caps->ext_tokens[i] == token)
@@ -7528,11 +7516,10 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
 {
     ENTERFUNC;
 
-    int i;
     const struct icom_priv_caps *priv = rig->caps->priv;
     const struct cmdparams *extcmds = priv->extcmds;
 
-    for (i = 0; extcmds && extcmds[i].id.s != 0; i++)
+    for (int i = 0; extcmds && extcmds[i].id.s != 0; i++)
     {
         if (extcmds[i].cmdparamtype == CMD_PARAM_TYPE_PARM && extcmds[i].id.s == parm)
         {
@@ -7606,9 +7593,8 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 
     const struct icom_priv_caps *priv = rig->caps->priv;
     const struct cmdparams *cmd = priv->extcmds;
-    int i;
 
-    for (i = 0; cmd && cmd[i].id.s != 0; i++)
+    for (int i = 0; cmd && cmd[i].id.s != 0; i++)
     {
         if (cmd[i].cmdparamtype == CMD_PARAM_TYPE_PARM && cmd[i].id.s == parm)
         {
@@ -7698,7 +7684,6 @@ int icom_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
     const struct rig_caps *caps;
     unsigned char tonebuf[MAXFRAMELEN];
     int tone_len, retval;
-    int i;
 
     ENTERFUNC;
     caps = rig->caps;
@@ -7728,7 +7713,7 @@ int icom_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
     }
 
     /* check this tone exists. That's better than nothing. */
-    for (i = 0; caps->ctcss_list[i] != 0; i++)
+    for (int i = 0; caps->ctcss_list[i] != 0; i++)
     {
         if (caps->ctcss_list[i] == *tone)
         {
@@ -7797,7 +7782,6 @@ int icom_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
     const struct rig_caps *caps;
     unsigned char tonebuf[MAXFRAMELEN];
     int tone_len, retval;
-    int i;
 
     ENTERFUNC;
     caps = rig->caps;
@@ -7821,7 +7805,7 @@ int icom_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
     *tone = from_bcd_be(tonebuf + 2, tone_len * 2);
 
     /* check this tone exists. That's better than nothing. */
-    for (i = 0; caps->ctcss_list[i] != 0; i++)
+    for (int i = 0; caps->ctcss_list[i] != 0; i++)
     {
         if (caps->ctcss_list[i] == *tone)
         {
@@ -7889,7 +7873,6 @@ int icom_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
     const struct rig_caps *caps;
     unsigned char codebuf[MAXFRAMELEN];
     int code_len, retval;
-    int i;
 
     ENTERFUNC;
     caps = rig->caps;
@@ -7918,7 +7901,7 @@ int icom_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
     *code = from_bcd_be(codebuf + 3, code_len * 2);
 
     /* check this code exists. That's better than nothing. */
-    for (i = 0; caps->dcs_list[i] != 0; i++)
+    for (int i = 0; caps->dcs_list[i] != 0; i++)
     {
         if (caps->dcs_list[i] == *code)
         {
@@ -7986,7 +7969,6 @@ int icom_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
     const struct rig_caps *caps;
     unsigned char codebuf[MAXFRAMELEN];
     int code_len, retval;
-    int i;
 
     ENTERFUNC;
     caps = rig->caps;
@@ -8015,7 +7997,7 @@ int icom_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
     *code = from_bcd_be(codebuf + 3, code_len * 2);
 
     /* check this code exists. That's better than nothing. */
-    for (i = 0; caps->dcs_list[i] != 0; i++)
+    for (int i = 0; caps->dcs_list[i] != 0; i++)
     {
         if (caps->dcs_list[i] == *code)
         {
@@ -9767,7 +9749,7 @@ static int icom_get_spectrum_edge_frequency_range(RIG *rig, vfo_t vfo,
     rmode_t mode;
     pbwidth_t width;
     int cache_ms_freq, cache_ms_mode, cache_ms_width;
-    int i, retval;
+    int retval;
     struct icom_priv_caps *priv_caps = (struct icom_priv_caps *) rig->caps->priv;
 
     retval = rig_get_cache(rig, vfo, &freq, &cache_ms_freq, &mode, &cache_ms_mode,
@@ -9789,7 +9771,7 @@ static int icom_get_spectrum_edge_frequency_range(RIG *rig, vfo_t vfo,
         }
     }
 
-    for (i = 0; i < ICOM_MAX_SPECTRUM_FREQ_RANGES; i++)
+    for (int i = 0; i < ICOM_MAX_SPECTRUM_FREQ_RANGES; i++)
     {
         int id = priv_caps->spectrum_edge_frequency_ranges[i].range_id;
 

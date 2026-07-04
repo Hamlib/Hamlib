@@ -267,7 +267,6 @@ int kpa_get_level(AMP *amp, setting_t level, value_t *val)
     char *cmd;
     int retval;
     int fault;
-    int i;
     int nargs;
     int antenna;
     int pwrpeak;
@@ -469,7 +468,7 @@ int kpa_get_level(AMP *amp, setting_t level, value_t *val)
             return -RIG_EPROTO;
         }
 
-        for (i = 0; kpa_fault_list[i].errmsg != NULL; ++i)
+        for (int i = 0; kpa_fault_list[i].errmsg != NULL; ++i)
         {
             if (kpa_fault_list[i].code == fault)
             {

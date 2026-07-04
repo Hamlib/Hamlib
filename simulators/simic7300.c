@@ -9,15 +9,15 @@
 #include <errno.h>
 #include <sys/types.h>
 
-#include "hamlib/rig.h"
 #include "misc.h"
-#include "sim.h"
 
+#define SIM Icom
+#include "sim.h"
 
 #define X25
 
 int civ_731_mode = 0;
-vfo_t current_vfo = RIG_VFO_A;
+int current_vfo = S_VFOA;
 int split = 0;
 int keyspd = 85; // 85=20WPM
 int band = 8;
@@ -25,12 +25,14 @@ int band = 8;
 // we make B different from A to ensure we see a difference at startup
 float freqA = 14074000;
 float freqB = 14074500;
-mode_t modeA = RIG_MODE_PKTUSB;
-mode_t modeB = RIG_MODE_PKTUSB;
-int datamodeA = 0;
-int datamodeB = 0;
-pbwidth_t widthA = 1;
-pbwidth_t widthB = 2;
+int modeA = S_USB;
+int modeB = S_USB;
+int datamodeA = 1;
+int datamodeB = 1;
+unsigned char widthA = 1;
+unsigned char widthB = 2;
+unsigned char filterA = 2;
+unsigned char filterB = 2;
 ant_t ant_curr = 0;
 int ant_option = 0;
 int ptt = 0;
@@ -39,6 +41,7 @@ int agc_time = 1;
 int ovf_status = 0;
 int powerstat = 1;
 int keyertype = 0;
+unsigned char civ_addr = 0x94;  // 94=IC7300, B6=IC7300MK2 (defaults)
 
 int
 frameGet(int fd, unsigned char *buf)
@@ -50,14 +53,12 @@ frameGet(int fd, unsigned char *buf)
     while (read(fd, &c, 1) > 0)
     {
         buf[i++] = c;
-        printf("i=%d, c=0x%02x\n", i, c);
 
         if (c == 0xfd)
         {
             char mytime[256];
             date_strget(mytime, sizeof(mytime), 1);
-            printf("%s:", mytime); dumphex(buf, i);
-            printf("\n");
+            printf("\n%s:", mytime); dumphex(buf, i);
             // echo
             //n = write(fd, buf, i);
             //if (n != i) { printf("%s: error on write: %s\n", __func__, strerror(errno)); }
@@ -89,6 +90,8 @@ void frameParse(int fd, unsigned char *frame, int len)
 {
     double freq;
     int n = 0;
+    unsigned char response = ACK;
+    int target_vfo;
 
     if (len == 0)
     {
@@ -96,9 +99,7 @@ void frameParse(int fd, unsigned char *frame, int len)
         return;
     }
 
-    dumphex(frame, len);
-
-    if (frame[0] != 0xfe && frame[1] != 0xfe)
+    if (frame[0] != 0xfe || frame[1] != 0xfe)
     {
         printf("expected fe fe, got ");
         dumphex(frame, len);
@@ -112,7 +113,7 @@ void frameParse(int fd, unsigned char *frame, int len)
         if (frame[5] == 0xfd)
         {
             //from_bcd(frameackbuf[2], (civ_731_mode ? 4 : 5) * 2);
-            if (current_vfo == RIG_VFO_A || current_vfo == RIG_VFO_MAIN)
+            if (current_vfo == S_VFOA || current_vfo == S_MAIN)
             {
                 printf("get_freqA\n");
                 to_bcd(&frame[5], (long long)freqA, (civ_731_mode ? 4 : 5) * 2);
@@ -127,7 +128,7 @@ void frameParse(int fd, unsigned char *frame, int len)
 
             if (powerstat)
             {
-                dump_hex(frame, 11);
+                dumphex(frame, 11);
                 n = write(fd, frame, 11);
 
                 if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
@@ -135,7 +136,7 @@ void frameParse(int fd, unsigned char *frame, int len)
         }
         else
         {
-            if (current_vfo == RIG_VFO_A)
+            if (current_vfo == S_VFOA)
             {
                 freqA = from_bcd(&frame[5], (civ_731_mode ? 4 : 5) * 2);
             }
@@ -144,16 +145,14 @@ void frameParse(int fd, unsigned char *frame, int len)
                 freqB = from_bcd(&frame[5], (civ_731_mode ? 4 : 5) * 2);
             }
 
-            frame[4] = 0xfb;
-            frame[5] = 0xfd;
-            n = write(fd, frame, 6);
+            n = acknak(fd, frame, ACK);
         }
 
 
         break;
 
     case 0x04:
-        if (current_vfo == RIG_VFO_A || current_vfo == RIG_VFO_MAIN)
+        if (current_vfo == S_VFOA || current_vfo == S_MAIN)
         {
             printf("get_modeA\n");
             frame[5] = modeA;
@@ -177,24 +176,20 @@ void frameParse(int fd, unsigned char *frame, int len)
         freq = from_bcd(&frame[5], (civ_731_mode ? 4 : 5) * 2);
         printf("set_freq to %.0f\n", freq);
 
-        if (current_vfo == RIG_VFO_A || current_vfo == RIG_VFO_MAIN) { freqA = freq; }
+        if (current_vfo == S_VFOA || current_vfo == S_MAIN) { freqA = freq; }
         else { freqB = freq; }
 
-        frame[4] = 0xfb;
-        frame[5] = 0xfd;
-        n = write(fd, frame, 6);
+        n = acknak(fd, frame, ACK);
 
         if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
 
         break;
 
     case 0x06:
-        if (current_vfo == RIG_VFO_A || current_vfo == RIG_VFO_MAIN) { modeA = frame[6]; }
+        if (current_vfo == S_VFOA || current_vfo == S_MAIN) { modeA = frame[6]; }
         else { modeB = frame[6]; }
 
-        frame[4] = 0xfb;
-        frame[5] = 0xfd;
-        n = write(fd, frame, 6);
+        n = acknak(fd, frame, ACK);
 
         if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
 
@@ -204,20 +199,18 @@ void frameParse(int fd, unsigned char *frame, int len)
 
         switch (frame[5])
         {
-        case 0x00: current_vfo = RIG_VFO_A; break;
+        case 0x00:
+        case 0x01: current_vfo = frame[5]; break;
 
-        case 0x01: current_vfo = RIG_VFO_B; break;
+        case 0xa0: freqB = freqA; break;
 
-        case 0xd0: current_vfo = RIG_VFO_MAIN; break;
+        case 0xb0: freq = freqA; freqA = freqB; freqB = freq; break;
 
-        case 0xd1: current_vfo = RIG_VFO_SUB; break;
+        default: response = NAK;
+
         }
 
-        printf("set_vfo to %s\n", rig_strvfo(current_vfo));
-
-        frame[4] = 0xfb;
-        frame[5] = 0xfd;
-        n = write(fd, frame, 6);
+        n = acknak(fd, frame, response);
 
         if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
 
@@ -237,9 +230,7 @@ void frameParse(int fd, unsigned char *frame, int len)
         {
             printf("set split %d\n", 1);
             split = frame[5];
-            frame[4] = 0xfb;
-            frame[5] = 0xfd;
-            n = write(fd, frame, 6);
+            n = acknak(fd, frame, ACK);
 
             if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
         }
@@ -252,7 +243,7 @@ void frameParse(int fd, unsigned char *frame, int len)
             printf("Set ant %d\n", -1);
             ant_curr = frame[5];
             ant_option = frame[6];
-            dump_hex(frame, 8);
+            dumphex(frame, 8);
         }
         else
         {
@@ -263,7 +254,7 @@ void frameParse(int fd, unsigned char *frame, int len)
         frame[6] = ant_option;
         frame[7] = 0xfd;
         printf("write 8 bytes\n");
-        dump_hex(frame, 8);
+        dumphex(frame, 8);
         n = write(fd, frame, 8);
 
         if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
@@ -318,21 +309,17 @@ void frameParse(int fd, unsigned char *frame, int len)
             break;
 
         case 0x0c:
-            dumphex(frame, 10);
-            printf("subcmd=0x0c #1\n");
-
             if (frame[6] != 0xfd) // then we have data
             {
                 printf("subcmd=0x0c #1\n");
                 keyspd = from_bcd(&frame[6], 2);
-                frame[6] = 0xfb;
-                n = write(fd, frame, 7);
+                n = acknak(fd, frame, ACK);
 
                 if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
             }
             else
             {
-                printf("subcmd=0x0c #1\n");
+                printf("subcmd=0x0c #2\n");
                 to_bcd(&frame[6], keyspd, 2);
                 frame[8] = 0xfd;
                 n = write(fd, frame, 9);
@@ -416,8 +403,8 @@ void frameParse(int fd, unsigned char *frame, int len)
 
         break;
 
-    case 0x19: // miscellaneous things
-        frame[5] = 0x94;
+    case 0x19: // Read Transceiver ID
+        frame[5] = civ_addr;
         frame[6] = 0xfd;
         n = write(fd, frame, 7);
 
@@ -441,9 +428,7 @@ void frameParse(int fd, unsigned char *frame, int len)
             {
                 band = frame[6];
                 printf("Band select=%d\n", band);
-                frame[4] = 0xfb;
-                frame[5] = 0xfe;
-                n = write(fd, frame, 6);
+                n = acknak(fd, frame, ACK);
 
                 if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
             }
@@ -451,14 +436,23 @@ void frameParse(int fd, unsigned char *frame, int len)
             break;
 
         case 0x03:  // width
-            if (current_vfo == RIG_VFO_A || current_vfo == RIG_VFO_MAIN) { frame[6] = widthA; }
-            else { frame[6] = widthB; }
+            if (frame[6] == 0xfd)
+            {
+                if (current_vfo == S_VFOA || current_vfo == S_MAIN) { frame[6] = widthA; }
+                else { frame[6] = widthB; }
 
-            frame[7] = 0xfd;
-            n = write(fd, frame, 8);
+                frame[7] = 0xfd;
+                n = write(fd, frame, 8);
 
-            if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
+                if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
 
+            }
+            else
+            {
+                if (current_vfo == S_VFOA || current_vfo == S_MAIN) { widthA = frame[6]; }
+                else { widthB = frame[6]; }
+                n = acknak(fd, frame, ACK);
+            }
             break;
 
         case 0x04: // AGC TIME
@@ -476,9 +470,7 @@ void frameParse(int fd, unsigned char *frame, int len)
             {
                 printf("AGC_TIME RESPONSE******************************");
                 agc_time = frame[6];
-                frame[4] = 0xfb;
-                frame[5] = 0xfd;
-                n = write(fd, frame, 6);
+                n = acknak(fd, frame, ACK);
 
                 if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
             }
@@ -499,9 +491,7 @@ void frameParse(int fd, unsigned char *frame, int len)
                     break;
                 }
 
-                frame[4] = 0xfb;
-                frame[5] = 0xfd;
-                n = write(fd, frame, 6);
+                n = acknak(fd, frame, ACK);
 
                 if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
             }
@@ -553,9 +543,10 @@ case 0x1c:
 #ifdef X25
 
 case 0x25:
+    target_vfo = frame[5] ^ current_vfo;
     if (frame[6] == 0xfd)
     {
-        if (frame[5] == 0x00)
+        if (target_vfo == 0x00)
         {
             to_bcd(&frame[6], (long long)freqA, (civ_731_mode ? 4 : 5) * 2);
             printf("X25 get_freqA=%.0f\n", freqA);
@@ -597,12 +588,10 @@ case 0x25:
         freq = from_bcd(&frame[6], (civ_731_mode ? 4 : 5) * 2);
         printf("set_freq to %.0f\n", freq);
 
-        if (frame[5] == 0x00) { freqA = freq; }
+        if (target_vfo == 0x00) { freqA = freq; }
         else { freqB = freq; }
 
-        frame[4] = 0xfb;
-        frame[5] = 0xfd;
-        n = write(fd, frame, 6);
+        n = acknak(fd, frame, ACK);
 
         if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
 
@@ -627,50 +616,43 @@ case 0x25:
     break;
 
 case 0x26:
-    for (int i = 0; i < 6; ++i) { printf("%02x:", frame[i]); }
-
+    target_vfo = frame[5] ^ current_vfo;
     if (frame[6] == 0xfd) // then a query
     {
-        for (int i = 0; i < 6; ++i) { printf("%02x:", frame[i]); }
-
-        frame[6] = frame[5] == 0 ? modeA : modeB;
-        frame[7] = frame[5] == 0 ? datamodeA : datamodeB;
-        frame[8] = 0xfd;
-        n = write(fd, frame, 9);
+        frame[6] = target_vfo == 0 ? modeA : modeB;
+        frame[7] = target_vfo == 0 ? datamodeA : datamodeB;
+        frame[8] = target_vfo == 0 ? filterA : filterB;
+        frame[9] = 0xfd;
+        n = write(fd, frame, 10);
 
         if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
     }
     else
     {
-        for (int i = 0; i < 12; ++i) { printf("%02x:", frame[i]); }
-
-        if (frame[6] == 0)
+        if (target_vfo == 0)
         {
-            modeA = frame[7];
-            datamodeA = frame[8];
+            modeA = frame[6];
+            datamodeA = frame[7];
+            filterA = frame[8];
         }
         else
         {
-            modeB = frame[7];
-            datamodeB = frame[8];
+            modeB = frame[6];
+            datamodeB = frame[7];
+            filterB = frame[8];
         }
 
-        frame[4] = 0xfb;
-        frame[5] = 0xfd;
-        n = write(fd, frame, 6);
+        n = acknak(fd, frame, ACK);
 
         if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
     }
 
-    printf("\n");
     break;
 #else
 
 case 0x25:
     printf("x25 send nak\n");
-    frame[4] = 0xfa;
-    frame[5] = 0xfd;
-    n = write(fd, frame, 6);
+    n = acknak(fd, frame, NAK);
 
     if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
 
@@ -678,9 +660,7 @@ case 0x25:
 
 case 0x26:
     printf("x26 send nak\n");
-    frame[4] = 0xfa;
-    frame[5] = 0xfd;
-    n = write(fd, frame, 6);
+    n = acknak(fd, frame, NAK);
 
     if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
 
@@ -698,13 +678,13 @@ if (n == 0) { printf("Write failed=%s\n", strerror(errno)); }
 
 void rigStatus()
 {
-char vfoa = current_vfo == RIG_VFO_A ? '*' : ' ';
-char vfob = current_vfo == RIG_VFO_B ? '*' : ' ';
-printf("%cVFOA: mode=%d datamode=%d width=%ld freq=%.0f\n", vfoa, modeA,
+char vfoa = current_vfo == S_VFOA ? '*' : ' ';
+char vfob = current_vfo == S_VFOB ? '*' : ' ';
+printf("%cVFOA: mode=%s datamode=%d width=%02x freq=%.0f\n", vfoa, mode_names[modeA],
        datamodeA,
        widthA,
        freqA);
-printf("%cVFOB: mode=%d datamode=%d width=%ld freq=%.0f\n", vfob, modeB,
+printf("%cVFOB: mode=%s datamode=%d width=%02x freq=%.0f\n", vfob, mode_names[modeB],
        datamodeB,
        widthB,
        freqB);

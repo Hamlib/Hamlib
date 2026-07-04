@@ -241,10 +241,10 @@ struct confparams kenwood_cfg_params[] =
 // [1]: https://github.com/Hamlib/Hamlib/issues/1652
 static int remove_nonprint(char *s)
 {
-    int i, j = 0;
+    int j = 0;
     if (s == NULL) return 0;
 
-    for (i = 0; s[i] != '\0'; ++i)
+    for (int i = 0; s[i] != '\0'; ++i)
     {
         if (isprint((unsigned char)s[i]))
         {
@@ -821,9 +821,7 @@ char rmode2kenwood(rmode_t mode, const rmode_t mode_table[])
 
     if (mode != RIG_MODE_NONE)
     {
-        int i;
-
-        for (i = 0; i < KENWOOD_MODE_TABLE_MAX; i++)
+        for (int i = 0; i < KENWOOD_MODE_TABLE_MAX; i++)
         {
             if (mode_table[i] == mode)
             {
@@ -966,7 +964,7 @@ int kenwood_open(RIG *rig)
 {
     struct kenwood_priv_data *priv = STATE(rig)->priv;
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
-    int err, i;
+    int err;
     char *idptr;
     char id[KENWOOD_MAX_BUF_LEN];
     int retry_save = RIGPORT(rig)->retry;
@@ -1000,19 +998,19 @@ int kenwood_open(RIG *rig)
         rig_debug(RIG_DEBUG_TRACE, "%s: got ID so try PS\n", __func__);
         err = rig_get_powerstat(rig, &powerstat);
 
-        if (err == RIG_OK && powerstat == 0 && priv->poweron == 0
+        if (err == RIG_OK && powerstat == 0 && !priv->poweron
                 && STATE(rig)->auto_power_on)
         {
-            priv->has_ps = 1;
+            priv->has_ps = true;
             rig_debug(RIG_DEBUG_TRACE, "%s: got PS0 so powerup\n", __func__);
             rig_set_powerstat(rig, 1);
         }
         else if (err == -RIG_ETIMEOUT) // Some rigs like TS-450 don't have PS cmd
         {
-            priv->has_ps = 0;
+            priv->has_ps = false;
         }
 
-        priv->poweron = 1;
+        priv->poweron = true;
 
         err = RIG_OK;  // reset our err back to OK for later checks
     }
@@ -1140,7 +1138,7 @@ int kenwood_open(RIG *rig)
     }
 
     /* compare id string */
-    for (i = 0; kenwood_id_string_list[i].model != RIG_MODEL_NONE; i++)
+    for (int i = 0; kenwood_id_string_list[i].model != RIG_MODEL_NONE; i++)
     {
         //rig_debug(RIG_DEBUG_ERR, "%s: comparing '%s'=='%s'\n", __func__, kenwood_id_string_list[i].id, idptr);
         if (strcmp(kenwood_id_string_list[i].id, idptr) != 0)
@@ -1230,7 +1228,7 @@ int kenwood_close(RIG *rig)
 
     ENTERFUNC;
 
-    if (priv->poweron == 0) { RETURNFUNC(RIG_OK); } // nothing to do
+    if (!priv->poweron) { RETURNFUNC(RIG_OK); } // nothing to do
 
     if (!no_restore_ai && priv->trn_state >= 0)
     {
@@ -2238,7 +2236,7 @@ int kenwood_get_rit_new(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 int kenwood_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
     char buf[32];
-    int retval, i;
+    int retval;
     int diff;
     int rit_enabled;
     int xit_enabled;
@@ -2319,7 +2317,7 @@ int kenwood_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
                   rit, curr_rit, diff);
         rig_debug(RIG_DEBUG_TRACE, "%s: rit change loop=%d\n", __func__, diff);
 
-        for (i = 0; i < diff; i++)
+        for (int i = 0; i < diff; i++)
         {
             retval = kenwood_transaction(rig, buf, NULL, 0);
         }
@@ -2431,7 +2429,6 @@ static int kenwood_set_filter_width(RIG *rig, rmode_t mode, pbwidth_t width)
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
     struct kenwood_filter_width *selected_filter_width = NULL;
     char cmd[20];
-    int i;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, width=%ld\n", __func__, width);
 
@@ -2440,7 +2437,7 @@ static int kenwood_set_filter_width(RIG *rig, rmode_t mode, pbwidth_t width)
         RETURNFUNC2(-RIG_ENAVAIL);
     }
 
-    for (i = 0; caps->filter_width[i].value >= 0; i++)
+    for (int i = 0; caps->filter_width[i].value >= 0; i++)
     {
         if (caps->filter_width[i].modes & mode)
         {
@@ -2793,7 +2790,6 @@ static int kenwood_get_filter_width(RIG *rig, rmode_t mode, pbwidth_t *width)
 {
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
     char ackbuf[20];
-    int i;
     int retval;
     int filter_value;
 
@@ -2813,7 +2809,7 @@ static int kenwood_get_filter_width(RIG *rig, rmode_t mode, pbwidth_t *width)
 
     sscanf(ackbuf, "FW%d", &filter_value);
 
-    for (i = 0; caps->filter_width[i].value >= 0; i++)
+    for (int i = 0; caps->filter_width[i].value >= 0; i++)
     {
         if (caps->filter_width[i].modes & mode)
         {
@@ -3268,7 +3264,6 @@ static int kenwood_find_slope_filter_for_frequency(RIG *rig, vfo_t vfo,
         struct kenwood_slope_filter *filter, int frequency_hz, int *value)
 {
     int retval;
-    int i;
     struct kenwood_slope_filter *last_filter = NULL;
     freq_t freq;
     int cache_ms_freq;
@@ -3300,7 +3295,7 @@ static int kenwood_find_slope_filter_for_frequency(RIG *rig, vfo_t vfo,
         data_mode_filter_active = 0;
     }
 
-    for (i = 0; filter[i].value >= 0; i++)
+    for (int i = 0; filter[i].value >= 0; i++)
     {
         if (filter[i].modes & mode
                 && filter[i].data_mode_filter == data_mode_filter_active)
@@ -3328,7 +3323,6 @@ static int kenwood_find_slope_filter_for_value(RIG *rig, vfo_t vfo,
         struct kenwood_slope_filter *filter, int value, int *frequency_hz)
 {
     int retval;
-    int i;
     freq_t freq;
     int cache_ms_freq;
     rmode_t mode;
@@ -3359,7 +3353,7 @@ static int kenwood_find_slope_filter_for_value(RIG *rig, vfo_t vfo,
         data_mode_filter_active = 0;
     }
 
-    for (i = 0; filter[i].value >= 0; i++)
+    for (int i = 0; filter[i].value >= 0; i++)
     {
         if (filter[i].modes & mode
                 && filter[i].data_mode_filter == data_mode_filter_active)
@@ -4732,7 +4726,7 @@ int kenwood_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
     struct kenwood_priv_data *priv = STATE(rig)->priv;
     struct rig_caps *caps;
     char tonebuf[3];
-    int i, retval;
+    int retval;
     unsigned int tone_idx;
 
     ENTERFUNC;
@@ -4802,7 +4796,7 @@ int kenwood_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
     }
 
     /* check this tone exists. That's better than nothing. */
-    for (i = 0; i < tone_idx; i++)
+    for (int i = 0; i < tone_idx; i++)
     {
         if (caps->ctcss_list[i] == 0)
         {
@@ -4880,7 +4874,7 @@ int kenwood_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
     char cmd[4];
     char tonebuf[6];
     int offs;
-    int i, retval;
+    int retval;
     unsigned int tone_idx;
 
     ENTERFUNC;
@@ -4941,7 +4935,7 @@ int kenwood_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
     }
 
     /* check this tone exists. That's better than nothing. */
-    for (i = 0; i < tone_idx; i++)
+    for (int i = 0; i < tone_idx; i++)
     {
         if (caps->ctcss_list[i] == 0)
         {

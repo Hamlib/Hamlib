@@ -302,7 +302,6 @@ static int set_band(RIG *rig, freq_t freq)
 int sdr1k_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     struct sdr1k_priv_data *priv = (struct sdr1k_priv_data *)STATE(rig)->priv;
-    int i;
     double ftw;
     double DDS_step_size;
     freq_t frqval;
@@ -347,7 +346,7 @@ int sdr1k_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     /*** */
     ftw = (double)frqval / priv->xtal ;
 
-    for (i = 0; i < 6; i++)
+    for (int i = 0; i < 6; i++)
     {
         unsigned word;
 

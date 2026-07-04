@@ -130,22 +130,19 @@ struct newcat_priv_caps
  */
 struct newcat_priv_data
 {
-    char                cmd_str[NEWCAT_DATA_LEN];       /* command string buffer */
-    char
-    ret_data[NEWCAT_DATA_LEN];      /* returned data--max value, most are less */
-    int
-    current_mem;                    /* private memory channel number */
-    int
-    rig_id;                         /* rig id from CAT Command ID; */
-    int trn_state;  /* AI state found at startup */
-    int fast_set_commands; /* do not check for ACK/NAK; needed for high throughput > 100 commands/s */
-    int width_frequency; /* found at startup */
+    char cmd_str[NEWCAT_DATA_LEN]; /* command string buffer */
+    char ret_data[NEWCAT_DATA_LEN];/* returned data--max value, most are less */
+    int current_mem;               /* private memory channel number */
+    int rig_id;                    /* rig id from CAT Command ID; */
+    int trn_state;                 /* AI state found at startup */
+    int fast_set_commands;         /* do not check for ACK/NAK; needed for high throughput > 100 commands/s */
+    int width_frequency;           /* found at startup */
     struct timespec cache_start;
     char last_if_response[NEWCAT_DATA_LEN];
-    int poweron; /* to prevent powering on more than once */
-    int question_mark_response_means_rejected; /* the question mark response has multiple meanings */
-    char front_rear_status; /* e.g. FTDX5000 EX103 status */
-    int split_st_command_missing; /* is ST command gone?  assume not until proven otherwise */
+    char front_rear_status;        /* e.g. FTDX5000 EX103 status */
+    bool poweron;                  /* to prevent powering on more than once */
+    bool split_st_command_missing; /* is ST command gone?  assume not until proven otherwise */
+    bool question_mark_response_means_rejected; /* the question mark response has multiple meanings */
     int band_index;
     /* FTX-1 specific fields - per-rig instance storage */
     int ftx1_head_type;          /* FTX1_HEAD_FIELD_BATTERY/12V/SPA1/UNKNOWN */

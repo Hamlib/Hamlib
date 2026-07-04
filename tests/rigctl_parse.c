@@ -518,8 +518,6 @@ static void strip_quotes(char *s)
  */
 static void rp_getline(const char *s)
 {
-    int i;
-
     /* free allocated memory and set pointers to NULL */
     if (input_line)
     {
@@ -532,7 +530,7 @@ static void rp_getline(const char *s)
         result = (char *)NULL;
     }
 
-    for (i = 0; i < 5; i++)
+    for (int i = 0; i < 5; i++)
     {
         parsed_input[i] = NULL;
     }
@@ -547,9 +545,7 @@ static void rp_getline(const char *s)
  */
 static char parse_arg(const char *arg)
 {
-    int i;
-
-    for (i = 0; test_list[i].cmd != 0x00; i++)
+    for (int i = 0; test_list[i].cmd != 0x00; i++)
     {
         if (!strncmp(arg, test_list[i].name, MAXNAMSIZ))
         {
@@ -1982,13 +1978,12 @@ declare_proto_rig(client_version)
 
 void usage_rig(FILE *fout)
 {
-    int i;
     int column = 1;
     int wrapped = 0;
 
     fprintf(fout, "Commands (some may not be available for this rig):\n");
 
-    for (i = 0; test_list[i].cmd != 0; i++)
+    for (int i = 0; test_list[i].cmd != 0; i++)
     {
         int nbspaces = 20; // longest arguments are 32 chars: "TX Frequency,TX Mode,TX Passband"
         fprintf(fout,
@@ -2046,7 +2041,6 @@ void usage_rig(FILE *fout)
 int print_conf_list(const struct confparams *cfp, rig_ptr_t data)
 {
     RIG *rig = (RIG *) data;
-    int i;
     char buf[128] = "";
 
     rig_get_conf2(rig, cfp->token, buf, sizeof(buf));
@@ -2080,7 +2074,7 @@ int print_conf_list(const struct confparams *cfp, rig_ptr_t data)
 
         printf("\tCombo: %s", cfp->u.c.combostr[0]);
 
-        for (i = 1 ; i < RIG_COMBO_MAX && cfp->u.c.combostr[i]; i++)
+        for (int i = 1 ; i < RIG_COMBO_MAX && cfp->u.c.combostr[i]; i++)
         {
             printf(", %s", cfp->u.c.combostr[i]);
         }
@@ -2577,7 +2571,6 @@ declare_proto_rig(test)
 declare_proto_rig(get_modes)
 {
     static char prntbuf[1024];
-    int i;
     char freqbuf[32];
 
     ENTERFUNC2;
@@ -2593,7 +2586,7 @@ declare_proto_rig(get_modes)
 
     fprintf(fout, "\nBandwidths:");
 
-    for (i = 1; i < RIG_MODE_TESTS_MAX; i <<= 1)
+    for (int i = 1; i < RIG_MODE_TESTS_MAX; i <<= 1)
     {
         pbwidth_t pbnorm = rig_passband_normal(rig, i);
 
@@ -2618,14 +2611,13 @@ declare_proto_rig(get_modes)
 
 declare_proto_rig(get_mode_bandwidths)
 {
-    int i;
     char freqbuf[32];
 
     ENTERFUNC2;
 
     rmode_t mode = rig_parse_mode(arg1);
 
-    for (i = 1; i < RIG_MODE_TESTS_MAX; i <<= 1)
+    for (int i = 1; i < RIG_MODE_TESTS_MAX; i <<= 1)
     {
         if (i != mode) { continue; }
 
@@ -5142,9 +5134,7 @@ declare_proto_rig(get_powerstat)
 
 static int hasbinary(char *s, int len)
 {
-    int i;
-
-    for (i = 0; i < len; ++i)
+    for (int i = 0; i < len; ++i)
     {
         if (!isascii(s[i])) { return (1); }
     }
@@ -5439,7 +5429,6 @@ declare_proto_rig(send_cmd)
 
         if (binary)   // convert our buf to a hex representation
         {
-            int i;
             char hex[8];
             int hexbufbytes = retval * 6;
             char *hexbuf = calloc(hexbufbytes, 1);
@@ -5447,7 +5436,7 @@ declare_proto_rig(send_cmd)
                       hexbufbytes);
             hexbuf[0] = 0;
 
-            for (i = 0; i < retval; ++i)
+            for (int i = 0; i < retval; ++i)
             {
                 SNPRINTF(hex, sizeof(hex), "\\0x%02X", (unsigned char)buf[i]);
 
@@ -5557,7 +5546,7 @@ declare_proto_rig(pause)
 static int rigctld_password_check(RIG *rig, const char *md5)
 {
     int retval;
-    int i, len, hits;
+    int len, hits = 0;
     char padded[HAMLIB_SECRET_LENGTH + 1];
     //fprintf(fout, "password %s\n", password);
     //rig_debug(RIG_DEBUG_TRACE, "%s: %s == %s\n", __func__, md5, rigctld_password);
@@ -5569,7 +5558,7 @@ static int rigctld_password_check(RIG *rig, const char *md5)
     padded[HAMLIB_SECRET_LENGTH] = '\0';     // Make sure it's a terminated string
 
     /* Brute force, constant time comparison */
-    for (i = hits = 0; i <= len; i++)
+    for (int i = 0; i <= len; i++)
     {
 	hits += (int)(padded[i] == mymd5[i]);
     }
@@ -6008,9 +5997,7 @@ declare_proto_rig(send_raw)
     }
     else if (is_binary)
     {
-        int i;
-
-        for (i = 0; i < reply_len; ++i)
+        for (int i = 0; i < reply_len; ++i)
         {
             fprintf(fout, "0x%02x ", buf[i]);
         }

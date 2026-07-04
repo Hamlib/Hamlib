@@ -644,9 +644,7 @@ int set_vr5000(RIG *rig, vfo_t vfo, freq_t freq, rmode_t mode, pbwidth_t width,
  */
 int find_tuning_step(RIG *rig, vfo_t vfo, rmode_t mode, shortfreq_t *ts)
 {
-    int i;
-
-    for (i = 0; i < HAMLIB_TSLSTSIZ; i++)
+    for (int i = 0; i < HAMLIB_TSLSTSIZ; i++)
     {
         if ((rig->caps->tuning_steps[i].modes & mode) != 0)
         {
@@ -663,9 +661,7 @@ int find_tuning_step(RIG *rig, vfo_t vfo, rmode_t mode, shortfreq_t *ts)
  */
 int check_tuning_step(RIG *rig, vfo_t vfo, rmode_t mode, shortfreq_t ts)
 {
-    int i;
-
-    for (i = 0; i < HAMLIB_TSLSTSIZ; i++)
+    for (int i = 0; i < HAMLIB_TSLSTSIZ; i++)
     {
         if (rig->caps->tuning_steps[i].ts == ts &&
                 ((rig->caps->tuning_steps[i].modes & mode) != 0))

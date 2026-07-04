@@ -271,9 +271,7 @@ struct rig_caps *HAMLIB_API rig_get_caps(rig_model_t rig_model)
 //! @cond Doxygen_Suppress
 static int rig_lookup_backend(rig_model_t rig_model)
 {
-    int i;
-
-    for (i = 0; i < RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++)
+    for (int i = 0; i < RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++)
     {
         if (RIG_BACKEND_NUM(rig_model) ==
                 rig_backend_list[i].be_num)
@@ -403,14 +401,13 @@ int HAMLIB_API rig_list_foreach(int (*cfunc)(const struct rig_caps *,
                                 rig_ptr_t data)
 {
     struct rig_list *p;
-    int i;
 
     if (!cfunc)
     {
         return -RIG_EINVAL;
     }
 
-    for (i = 0; i < RIGLSTHASHSZ; i++)
+    for (int i = 0; i < RIGLSTHASHSZ; i++)
     {
         struct rig_list *next = NULL;
 
@@ -439,14 +436,13 @@ int HAMLIB_API rig_list_foreach_model(int (*cfunc)(const rig_model_t rig_model,
                                       rig_ptr_t data)
 {
     struct rig_list *p;
-    int i;
 
     if (!cfunc)
     {
         return -RIG_EINVAL;
     }
 
-    for (i = 0; i < RIGLSTHASHSZ; i++)
+    for (int i = 0; i < RIGLSTHASHSZ; i++)
     {
         struct rig_list *next = NULL;
 
@@ -484,10 +480,9 @@ static int dummy_rig_probe(const hamlib_port_t *p,
 //! @cond Doxygen_Suppress
 rig_model_t rig_probe_first(hamlib_port_t *p)
 {
-    int i;
     rig_model_t model;
 
-    for (i = 0; i < RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++)
+    for (int i = 0; i < RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++)
     {
         if (rig_backend_list[i].be_probe_all)
         {
@@ -516,9 +511,7 @@ int rig_probe_all_backends(hamlib_port_t *p,
                            rig_probe_func_t cfunc,
                            rig_ptr_t data)
 {
-    int i;
-
-    for (i = 0; i < RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++)
+    for (int i = 0; i < RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++)
     {
         if (rig_backend_list[i].be_probe_all)
         {
@@ -534,11 +527,9 @@ int rig_probe_all_backends(hamlib_port_t *p,
 //! @cond Doxygen_Suppress
 int rig_load_all_backends()
 {
-    int i;
-
     memset(rig_hash_table, 0, sizeof(rig_hash_table));
 
-    for (i = 0; i < RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++)
+    for (int i = 0; i < RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++)
     {
         rig_load_backend(rig_backend_list[i].be_name);
     }
@@ -559,10 +550,9 @@ typedef int (*backend_init_t)(rig_ptr_t);
 //! @cond Doxygen_Suppress
 int HAMLIB_API rig_load_backend(const char *be_name)
 {
-    int i;
     backend_init_t be_init;
 
-    for (i = 0; i < RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++)
+    for (int i = 0; i < RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++)
     {
         if (!strcmp(be_name, rig_backend_list[i].be_name))
         {

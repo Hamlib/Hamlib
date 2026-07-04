@@ -48,9 +48,7 @@ static const unsigned int ftx1_ctcss_tones[] = {
 /* Convert CTCSS frequency (in 0.1 Hz) to tone number (0-based per spec) */
 int ftx1_freq_to_tone_num(unsigned int freq)
 {
-    int i;
-
-    for (i = 0; i <= FTX1_CTCSS_MAX; i++)
+    for (int i = 0; i <= FTX1_CTCSS_MAX; i++)
     {
         if (ftx1_ctcss_tones[i] == freq)
         {

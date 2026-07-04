@@ -763,9 +763,7 @@ int dttsp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 static enum dttsp_mode_e rmode2dttsp(rmode_t mode)
 {
-    int i;
-
-    for (i = 0; i < HAMLIB_VS_DTTSP_MODES_COUNT; i++)
+    for (int i = 0; i < HAMLIB_VS_DTTSP_MODES_COUNT; i++)
     {
         if (hamlib_vs_dttsp_modes[i].hamlib_mode == mode)
         {

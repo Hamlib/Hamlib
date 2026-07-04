@@ -370,9 +370,7 @@ int ic7800_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         if (val.i != 0)
         {
             /* Convert dB to index */
-            int i;
-
-            for (i = 0; i < 7; i++)
+            for (int i = 0; i < 7; i++)
             {
                 if (val.i == STATE(rig)->attenuator[i])
                 {

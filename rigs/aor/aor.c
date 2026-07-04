@@ -1207,8 +1207,6 @@ static int parse_chan_line(RIG *rig, channel_t *chan, char *basep,
     /* channel desc */
     if (mem_caps->channel_desc)
     {
-        int i;
-
         tagp = strstr(basep, "TM");
 
         if (!tagp)
@@ -1222,7 +1220,7 @@ static int parse_chan_line(RIG *rig, channel_t *chan, char *basep,
         chan->channel_desc[12] = '\0';
 
         /* chop off trailing spaces */
-        for (i = 11; i > 0 && chan->channel_desc[i] == ' '; i--)
+        for (int i = 11; i > 0 && chan->channel_desc[i] == ' '; i--)
         {
             chan->channel_desc[i] = '\0';
         }
@@ -1261,9 +1259,7 @@ int aor_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
         /*
          * find mem_caps in caps, we'll need it later
          */
-        int i;
-
-        for (i = 0; i < HAMLIB_CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++)
+        for (int i = 0; i < HAMLIB_CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++)
         {
             if (channel_num >= chan_list[i].startc &&
                     channel_num <= chan_list[i].endc)

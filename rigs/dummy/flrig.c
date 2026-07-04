@@ -702,11 +702,9 @@ static int flrig_init(RIG *rig)
 */
 static const char *modeMapGetFLRig(rmode_t modeHamlib)
 {
-    int i;
-
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    for (i = 0; modeMap[i].mode_hamlib != 0; ++i)
+    for (int i = 0; modeMap[i].mode_hamlib != 0; ++i)
     {
         if (modeMap[i].mode_flrig == NULL) { continue; }
 
@@ -734,12 +732,11 @@ static const char *modeMapGetFLRig(rmode_t modeHamlib)
 */
 static rmode_t modeMapGetHamlib(const char *modeFLRig)
 {
-    int i;
     char modeFLRigCheck[64];
 
     SNPRINTF(modeFLRigCheck, sizeof(modeFLRigCheck), "|%s|", modeFLRig);
 
-    for (i = 0; modeMap[i].mode_hamlib != 0; ++i)
+    for (int i = 0; modeMap[i].mode_hamlib != 0; ++i)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: find '%s' in '%s'\n", __func__,
                   modeFLRigCheck, modeMap[i].mode_flrig);
@@ -763,7 +760,6 @@ static rmode_t modeMapGetHamlib(const char *modeFLRig)
 */
 static void modeMapAdd(rmode_t *modes, rmode_t mode_hamlib, char *mode_flrig, int force)
 {
-    int i;
     int len1;
 
     rig_debug(RIG_DEBUG_TRACE, "%s:mode_flrig=%s\n", __func__, mode_flrig);
@@ -777,7 +773,7 @@ static void modeMapAdd(rmode_t *modes, rmode_t mode_hamlib, char *mode_flrig, in
 
     len1 = strlen(mode_flrig) + 3; /* bytes needed for allocating */
 
-    for (i = 0; modeMap[i].mode_hamlib != 0; ++i)
+    for (int i = 0; modeMap[i].mode_hamlib != 0; ++i)
     {
         if (modeMap[i].mode_hamlib == mode_hamlib)
         {
@@ -1205,9 +1201,7 @@ static int flrig_cleanup(RIG *rig)
     // model_flrig was not getting refilled
     // if we can figure out that one we can re-enable this
 #if 0
-    int i;
-
-    for (i = 0; modeMap[i].mode_hamlib != 0; ++i)
+    for (int i = 0; modeMap[i].mode_hamlib != 0; ++i)
     {
         if (modeMap[i].mode_flrig)
         {
@@ -2315,9 +2309,7 @@ static swrpair swrtbl[] =
 // Function to interpolate SWR from MTR
 float interpolateSWR(float mtr)
 {
-    int i;
-
-    for (i = 0; i < sizeof(swrtbl) / sizeof(swrpair) - 1; i++)
+    for (int i = 0; i < sizeof(swrtbl) / sizeof(swrpair) - 1; i++)
     {
         if (mtr == swrtbl[i].mtr)
         {

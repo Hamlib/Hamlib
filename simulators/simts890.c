@@ -1466,9 +1466,9 @@ int main(int argc, char *argv[])
  */
 static int freq2band(int freq)
 {
-    int i, retval = -1;  // Assume the worst
+    int retval = -1;  // Assume the worst
 
-    for (i = 0; i < NBANDS; i++)
+    for (int i = 0; i < NBANDS; i++)
     {
         if (freq >= band_limits[i].low && freq <= band_limits[i].high)
         {

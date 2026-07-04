@@ -610,7 +610,6 @@ static ssize_t port_read_generic(hamlib_port_t *p, void *buf, size_t count,
                                  int direct)
 {
     int fd = p->fd;
-    int i;
     ssize_t bytes_read;
 
     if (!direct)
@@ -638,7 +637,7 @@ static ssize_t port_read_generic(hamlib_port_t *p, void *buf, size_t count,
             unsigned char *pbuf = buf;
 
             /* clear MSB */
-            for (i = 0; i < bytes_read; i++)
+            for (int i = 0; i < bytes_read; i++)
             {
                 pbuf[i] &= ~0x80;
             }
@@ -817,9 +816,7 @@ static ssize_t port_read_generic(hamlib_port_t *p, void *buf, size_t count,
         ssize_t ret = read(fd, buf, count);
 
         /* clear MSB */
-        ssize_t i;
-
-        for (i = 0; i < ret; i++)
+        for (ssize_t i = 0; i < ret; i++)
         {
             pbuf[i] &= ~0x80;
         }
@@ -1101,9 +1098,7 @@ int HAMLIB_API write_block(hamlib_port_t *p, const unsigned char *txbuffer,
 
     if (p->write_delay > 0)
     {
-        int i;
-
-        for (i = 0; i < count; i++)
+        for (int i = 0; i < count; i++)
         {
             ret = port_write(p, txbuffer + i, 1);
 

@@ -141,7 +141,7 @@ DECLARE_PROBERIG_BACKEND(yaesu)
 {
     unsigned char idbuf[YAESU_CMD_LENGTH + 1];
     static const unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0xfa};
-    int id_len = -1, i, id1, id2;
+    int id_len = -1, id1, id2;
     int retval = -1;
     static const int rates[] = { 4800, 57600, 9600, 38400, 0 };  /* possible baud rates */
     int rates_idx;
@@ -207,7 +207,7 @@ DECLARE_PROBERIG_BACKEND(yaesu)
     id2 = idbuf[4];
 
 
-    for (i = 0; yaesu_id_list[i].model != RIG_MODEL_NONE; i++)
+    for (int i = 0; yaesu_id_list[i].model != RIG_MODEL_NONE; i++)
     {
         if (id1 == yaesu_id_list[i].id1 && id2 == yaesu_id_list[i].id2)
         {

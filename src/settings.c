@@ -981,11 +981,9 @@ int HAMLIB_API rig_get_ext_parm(RIG *rig, hamlib_token_t token, value_t *val)
  */
 int HAMLIB_API rig_setting2idx(setting_t s)
 {
-    int i;
-
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    for (i = 0; i < RIG_SETTING_MAX; i++)
+    for (int i = 0; i < RIG_SETTING_MAX; i++)
     {
         if (s & rig_idx2setting(i))
         {

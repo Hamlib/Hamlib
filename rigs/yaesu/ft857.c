@@ -980,7 +980,6 @@ int ft857_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 int ft857_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     unsigned char data[YAESU_CMD_LENGTH - 1];
-    int i;
     ptt_t ptt = RIG_PTT_ON;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
@@ -988,7 +987,7 @@ int ft857_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_debug(RIG_DEBUG_VERBOSE, "ft857: requested freq = %"PRIfreq" Hz\n", freq);
 
     // cannot set freq while PTT is on
-    for (i = 0; i < 10 && ptt == RIG_PTT_ON; ++i)
+    for (int i = 0; i < 10 && ptt == RIG_PTT_ON; ++i)
     {
         int retval = ft857_get_ptt(rig, vfo, &ptt);
 

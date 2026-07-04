@@ -541,9 +541,7 @@ static const struct ftx1_menu_item ftx1_menu_table[] = {
  */
 const struct ftx1_menu_item *ftx1_menu_find_token(token_t token)
 {
-    size_t i;
-
-    for (i = 0; i < FTX1_MENU_TABLE_SIZE; i++)
+    for (size_t i = 0; i < FTX1_MENU_TABLE_SIZE; i++)
     {
         if (ftx1_menu_table[i].token == token)
         {
@@ -757,14 +755,12 @@ static int ftx1_ext_parms_initialized = 0;
  */
 static void ftx1_init_ext_parms(void)
 {
-    size_t i;
-
     if (ftx1_ext_parms_initialized)
     {
         return;
     }
 
-    for (i = 0; i < FTX1_MENU_TABLE_SIZE; i++)
+    for (size_t i = 0; i < FTX1_MENU_TABLE_SIZE; i++)
     {
         const struct ftx1_menu_item *item = &ftx1_menu_table[i];
 

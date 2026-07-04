@@ -69,10 +69,9 @@ void drake_fix_string(char* inStr)
     const char* chPos;
     int   newLen;
     int   offset;
-    int   i;
     int   j;
 
-    for (i = 0; i < 3; i++)
+    for (int i = 0; i < 3; i++)
     {
         do {
             chPos = strchr(inStr, chChkAry[i]); 

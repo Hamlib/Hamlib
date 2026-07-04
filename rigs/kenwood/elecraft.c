@@ -105,10 +105,10 @@ int elecraft_open(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, rig version=%s\n", __func__,
               rig->caps->version);
 
-    if (rs->auto_power_on && priv->poweron == 0)
+    if (rs->auto_power_on && !priv->poweron)
     {
         rig_set_powerstat(rig, 1);
-        priv->poweron = 1;
+        priv->poweron = true;
     }
 
 
@@ -210,7 +210,7 @@ int elecraft_open(RIG *rig)
         rig_debug(RIG_DEBUG_VERBOSE, "%s: K2 level is %d, %s\n", __func__,
                   priv->k2_ext_lvl, elec_ext_id_str_lst[priv->k2_ext_lvl].id);
 
-        priv->is_k2 = 1;
+        priv->is_k2 = true;
         break;
 
     case RIG_MODEL_K3:
@@ -224,35 +224,35 @@ int elecraft_open(RIG *rig)
         if (err != RIG_OK) { return err; }
 
         rig_debug(RIG_DEBUG_TRACE, "%s: OM=%s\n", __func__, buf);
-        priv->has_kpa3 = 0;
+        priv->has_kpa3 = false;
 
         if (strstr(buf, "P")) { priv->has_kpa3 = 1; }
 
         // could also use K4; command
-        priv->is_k3 = 1;  // default to K3
+        priv->is_k3 = true;  // default to K3
 
         if (rig->caps->rig_model == RIG_MODEL_K4)
         {
-            priv->is_k3 = 0;
-            priv->is_k4 = 1;
+            priv->is_k3 = false;
+            priv->is_k4 = true;
         }
         else if (strstr(buf, "R"))
         {
-            priv->is_k3 = 0;
-            priv->is_k3s = 1;
+            priv->is_k3 = false;
+            priv->is_k3s = true;
         }
 
         // combination of OM flags determines model
         if (strstr(buf, "S") && strstr(buf, "4") && strstr(buf, "H"))
         {
             // new firmware should recognize k4hd now
-            priv->is_k4 = priv->is_k3 = 0;
-            priv->is_k4hd = 1;
+            priv->is_k4 = priv->is_k3 = false;
+            priv->is_k4hd = true;
         }
         else if (strstr(buf, "S") && strstr(buf, "4"))
         {
-            priv->is_k4 = priv->is_k3 = 0;
-            priv->is_k4d = 1;
+            priv->is_k4 = priv->is_k3 = false;
+            priv->is_k4d = true;
         }
 
         if (buf[13] == '0') // then we have a KX3 or KX2
@@ -263,15 +263,15 @@ int elecraft_open(RIG *rig)
             switch (modelnum)
             {
             case '1':
-                priv->is_k2 = 0;
+                priv->is_k2 = false;
                 model = "KX2";
-                priv->is_kx2 = 1;
+                priv->is_kx2 = true;
                 break;
 
             case '2':
                 model = "KX3";
-                priv->is_k3 = 0;
-                priv->is_kx3 = 1;
+                priv->is_k3 = false;
+                priv->is_kx3 = true;
                 break;
 
             default:

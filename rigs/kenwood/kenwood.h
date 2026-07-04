@@ -25,6 +25,7 @@
 #define _KENWOOD_H 1
 
 #include <string.h>
+#include <stdbool.h>
 
 #include "hamlib/rig_state.h"
 #include "token.h"
@@ -158,26 +159,26 @@ struct kenwood_priv_data
     unsigned fw_rev_uint; /* firmware revision as a number 1.07 -> 107 */
     char verify_cmd[4];   /* command used to verify set commands */
     int verify_cmd_len;   /* length of above command - set when cmd built */
-    int is_emulation;     /* flag for TS-2000 emulations */
     void *data;           /* model specific data */
     rmode_t curr_mode;    /* used for is_emulation to avoid get_mode on VFOB */
     struct timespec cache_start;
     char last_if_response[KENWOOD_MAX_BUF_LEN];
-    int poweron;   /* to avoid powering on more than once */
-    int has_ps;    /* rig has PS cmd */
     int ag_format; /* which AG command is being used...see LEVEL_AF in kenwood.c*/
     int has_rit2; /* rig has set 2 rit command -- can set rit 0-99999 directly */
     int micgain_min, micgain_max; /* varies by rig so we figure it out automagically */
-    int is_k2;
-    int is_k3;
-    int is_k3s;
-    int is_kx3;
-    int is_kx2;
-    int is_k4;
-    int is_k4d;
-    int is_k4hd;
+    bool poweron;        /* to avoid powering on more than once */
+    bool is_emulation;   /* flag for TS-2000 emulations */
+    bool has_ps;         /* rig has PS cmd */
+    bool is_k2;
+    bool is_k3;
+    bool is_k3s;
+    bool is_kx3;
+    bool is_kx2;
+    bool is_k4;
+    bool is_k4d;
+    bool is_k4hd;
     int no_id;  // if true will not send ID; with every set command
-    int opened; // true once rig_open is called to avoid setting VFOA every open call
+    //int opened; // true once rig_open is called to avoid setting VFOA every open call
     rmode_t modeA;
     rmode_t modeB;
     int datamodeA; // datamode status from get_mode or set_mode
@@ -189,7 +190,7 @@ struct kenwood_priv_data
     short voice_mem_min, voice_mem_max; // Voice channel range
     const char *voice_mem_start, *voice_mem_stop; // Commands to do the thing to do
     rmode_t last_mode_pc; // last mode memory for PC command
-    int power_now,power_min,power_max;
+    int power_now, power_min, power_max;
 };
 
 

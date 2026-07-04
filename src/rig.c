@@ -3173,7 +3173,6 @@ int HAMLIB_API rig_get_mode(RIG *rig,
 pbwidth_t HAMLIB_API rig_passband_normal(RIG *rig, rmode_t mode)
 {
     const struct rig_state *rs;
-    int i;
 
     if (!rig)
     {
@@ -3190,7 +3189,7 @@ pbwidth_t HAMLIB_API rig_passband_normal(RIG *rig, rmode_t mode)
 
     if (mode == RIG_MODE_RTTYR) { mode = RIG_MODE_RTTY; }
 
-    for (i = 0; i < HAMLIB_FLTLSTSIZ && rs->filters[i].modes; i++)
+    for (int i = 0; i < HAMLIB_FLTLSTSIZ && rs->filters[i].modes; i++)
     {
         if (rs->filters[i].modes & mode)
         {
@@ -3225,7 +3224,6 @@ pbwidth_t HAMLIB_API rig_passband_narrow(RIG *rig, rmode_t mode)
 {
     const struct rig_state *rs;
     pbwidth_t normal;
-    int i;
 
     if (!rig)
     {
@@ -3237,7 +3235,7 @@ pbwidth_t HAMLIB_API rig_passband_narrow(RIG *rig, rmode_t mode)
 
     rs = STATE(rig);
 
-    for (i = 0; i < HAMLIB_FLTLSTSIZ - 1 && rs->filters[i].modes; i++)
+    for (int i = 0; i < HAMLIB_FLTLSTSIZ - 1 && rs->filters[i].modes; i++)
     {
         if (rs->filters[i].modes & mode)
         {
@@ -3278,7 +3276,6 @@ pbwidth_t HAMLIB_API rig_passband_wide(RIG *rig, rmode_t mode)
 {
     const struct rig_state *rs;
     pbwidth_t normal;
-    int i;
 
     if (!rig)
     {
@@ -3290,7 +3287,7 @@ pbwidth_t HAMLIB_API rig_passband_wide(RIG *rig, rmode_t mode)
 
     rs = STATE(rig);
 
-    for (i = 0; i < HAMLIB_FLTLSTSIZ - 1 && rs->filters[i].modes; i++)
+    for (int i = 0; i < HAMLIB_FLTLSTSIZ - 1 && rs->filters[i].modes; i++)
     {
         if (rs->filters[i].modes & mode)
         {
@@ -6813,7 +6810,6 @@ int HAMLIB_API rig_mW2power(RIG *rig,
 shortfreq_t HAMLIB_API rig_get_resolution(RIG *rig, rmode_t mode)
 {
     const struct rig_state *rs;
-    int i;
 
     if (!rig || !rig->caps || !mode)
     {
@@ -6825,7 +6821,7 @@ shortfreq_t HAMLIB_API rig_get_resolution(RIG *rig, rmode_t mode)
 
     rs = STATE(rig);
 
-    for (i = 0; i < HAMLIB_TSLSTSIZ && rs->tuning_steps[i].ts; i++)
+    for (int i = 0; i < HAMLIB_TSLSTSIZ && rs->tuning_steps[i].ts; i++)
     {
         if (rs->tuning_steps[i].modes & mode)
         {
@@ -7825,14 +7821,12 @@ const freq_range_t *HAMLIB_API rig_get_range(const freq_range_t *range_list,
         freq_t freq,
         rmode_t mode)
 {
-    int i;
-
     if (range_list == NULL)
     {
         return (NULL);
     }
 
-    for (i = 0; i < HAMLIB_FRQRANGESIZ; i++)
+    for (int i = 0; i < HAMLIB_FRQRANGESIZ; i++)
     {
         if (range_list[i].startf == 0 && range_list[i].endf == 0)
         {
@@ -7944,11 +7938,10 @@ static unsigned long crcTable[256];
 static unsigned long gen_crc(unsigned char *p, size_t n)
 {
     unsigned long crc = 0xfffffffful;
-    size_t i;
 
     if (crcTable[0] == 0) { make_crc_table(crcTable); }
 
-    for (i = 0; i < n; i++)
+    for (size_t i = 0; i < n; i++)
     {
         crc = crcTable[*p++ ^ (crc & 0xff)] ^ (crc >> 8);
     }

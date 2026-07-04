@@ -476,11 +476,9 @@ static int tci1x_init(RIG *rig)
 */
 static const char *modeMapGetTCI(rmode_t modeHamlib)
 {
-    int i;
-
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    for (i = 0; modeMap[i].mode_hamlib != 0; ++i)
+    for (int i = 0; modeMap[i].mode_hamlib != 0; ++i)
     {
         if (modeMap[i].mode_tci1x == NULL) { continue; }
 
@@ -508,12 +506,11 @@ static const char *modeMapGetTCI(rmode_t modeHamlib)
 */
 static rmode_t modeMapGetHamlib(const char *modeTCI)
 {
-    int i;
     char modeTCICheck[MAXBUFLEN + 2];
 
     SNPRINTF(modeTCICheck, sizeof(modeTCICheck), "|%s|", modeTCI);
 
-    for (i = 0; modeMap[i].mode_hamlib != 0; ++i)
+    for (int i = 0; modeMap[i].mode_hamlib != 0; ++i)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: find '%s' in '%s'\n", __func__,
                   modeTCICheck, modeMap[i].mode_tci1x);
@@ -537,7 +534,6 @@ static rmode_t modeMapGetHamlib(const char *modeTCI)
 */
 static void modeMapAdd(rmode_t *modes, rmode_t mode_hamlib, char *mode_tci1x)
 {
-    int i;
     int len1;
 
     rig_debug(RIG_DEBUG_TRACE, "%s:mode_tci1x=%s\n", __func__, mode_tci1x);
@@ -548,7 +544,7 @@ static void modeMapAdd(rmode_t *modes, rmode_t mode_hamlib, char *mode_tci1x)
 
     len1 = strlen(mode_tci1x) + 3; /* bytes needed for allocating */
 
-    for (i = 0; modeMap[i].mode_hamlib != 0; ++i)
+    for (int i = 0; modeMap[i].mode_hamlib != 0; ++i)
     {
         if (modeMap[i].mode_hamlib == mode_hamlib)
         {

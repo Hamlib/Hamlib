@@ -15,7 +15,6 @@
 int main(int argc, char **argv)
 {
     volatile unsigned int *PEDR, *PEDDR, *PBDR, *PBDDR, *GPIOBDB;
-    int i;
     unsigned char state;
     unsigned char *start;
     int fd = open("/dev/mem", O_RDWR | O_SYNC);
@@ -41,7 +40,7 @@ int main(int argc, char **argv)
 
 
     // blink 5 times, sleep 1 second so it's visible
-    for (i = 0; i < 5; i++)
+    for (int i = 0; i < 5; i++)
     {
         *PEDR = 0xff;
         sleep(1);

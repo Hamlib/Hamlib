@@ -39,7 +39,7 @@ if100_set_position(ROT *rot, azimuth_t az, elevation_t el)
     int retval;
     int az_i;
     int el_i;
-    int dataout, i;
+    int dataout;
     double az_scale, el_scale;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
@@ -68,7 +68,7 @@ if100_set_position(ROT *rot, azimuth_t az, elevation_t el)
         return retval;
     }
 
-    for (i = 0; i < 16; i++)
+    for (int i = 0; i < 16; i++)
     {
         if (dataout & 0x8000)
         {
