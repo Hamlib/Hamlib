@@ -128,6 +128,14 @@ static void *anytone_thread(void *vrig)
 
     while (p->runflag)
     {
+        // Skip keepalive if a raw command (rig_send_raw / rigctld 'w')
+        // or a backend transaction is in progress
+        if (STATE(rig)->transaction_active)
+        {
+            hl_usleep(1000 * 1000);
+            continue;
+        }
+
         if (pthread_mutex_trylock(&p->mutex) != 0)
         {
             hl_usleep(1000 * 1000);

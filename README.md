@@ -101,6 +101,25 @@ The radio exposes two distinct serial protocols on the same 115200 8N1 port:
 
 Protocol analysis based on [jrobertfisher/AT-D578UV-software-mic](https://github.com/jrobertfisher/AT-D578UV-software-mic) and firmware reverse engineering of the D578UV v1.21 and BT-01 v1.02 firmware images.
 
+## Raw command passthrough
+
+When `rigctld` is running in COM mode (`commode=1`), third-party software can send arbitrary ADATA commands to the radio using Hamlib's `w` (send_cmd) interface — even for functions the driver doesn't explicitly support. The driver handles COM MODE session management and keepalive automatically; the keepalive thread yields to raw commands so they won't collide.
+
+Example from `rigctl`:
+
+```bash
+# Send raw ADATA command 0x57 (1-byte payload) and read 22-byte ACK
+w +ADATA:00,001\r\nW\r\n 22
+```
+
+From `rigctld` over TCP (port 4532 by default):
+
+```
+w +ADATA:00,001\r\nW\r\n 22
+```
+
+This lets any ADATA-aware software leverage the driver's session without needing to manage the serial port, COM MODE handshake, or keepalive directly. The radio's firmware supports 34 ADATA command bytes — see the protocol map spreadsheet for the full list.
+
 ---
 
 For general Hamlib documentation, API reference, and supported radios, see the [upstream project](https://github.com/Hamlib/Hamlib).

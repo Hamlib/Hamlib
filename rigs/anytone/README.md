@@ -95,4 +95,8 @@ The radio exposes two distinct serial protocols on the same 115200 8N1 port:
 - **Direct mic protocol**: raw byte commands (0x06 keepalive, 0x41 PTT). No initialization required, no display lockout. This is what `commode=0` uses.
 - **BT-01 ADATA protocol**: `+ADATA:00,NNN\r\n` framed commands. Requires a COM MODE handshake on open and causes "EXTERNAL CABLE MODE" display lockout. This is what `commode=1` enables.
 
+## Raw command passthrough
+
+When running in COM mode, third-party software can send arbitrary ADATA commands through `rigctld`'s `w` (send_cmd) interface. The driver's keepalive thread automatically yields to raw commands so they won't collide. This lets any ADATA-aware software leverage the driver's session without managing the serial port, COM MODE handshake, or keepalive directly.
+
 Protocol analysis based on [jrobertfisher/AT-D578UV-software-mic](https://github.com/jrobertfisher/AT-D578UV-software-mic) and firmware reverse engineering of the D578UV v1.21 and BT-01 v1.02 firmware images.
