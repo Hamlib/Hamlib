@@ -212,7 +212,22 @@ int ftx1_set_tuner(RIG *rig, int mode)
 
     if (mode == 0)
     {
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AC000;");
+        /*
+         * Stop / bypass.  The general AC000 stop is REJECTED with '?' when an
+         * ATAS is the selected tuner (hardware-verified on an FTX-1 + ATAS-120A)
+         * — an ATAS must be stopped with AC120.  Route by the active antenna's
+         * tuner type, mirroring rad-con (Power.stopTune=AC000, ATAS stop=AC120).
+         */
+        int type;
+        const char *stop = "AC000;";
+
+        if (ftx1_get_effective_tuner_type(rig, &type) == RIG_OK &&
+            type == FTX1_TUNER_TYPE_ATAS)
+        {
+            stop = "AC120;";
+        }
+
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", stop);
         return newcat_set_cmd(rig);
     }
 
