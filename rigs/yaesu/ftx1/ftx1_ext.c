@@ -277,6 +277,43 @@ int ftx1_get_tuner_select(RIG *rig, int *tuner_type)
 }
 
 /*
+ * ftx1_get_effective_tuner_type - tuner type of the currently active HF antenna
+ *
+ * Reads the active antenna (EX030704: 0=ANT1, 1=ANT2), then the per-antenna
+ * tuner type (EX030701 for ANT1, EX030702 for ANT2).
+ * Returns 0=INT, 1=INT(FAST), 2=EXT, 3=ATAS.
+ *
+ * Mirrors the hardware-verified rad-con Power.getTuner(): the effective tuner
+ * is the per-antenna type of the active antenna, independent of the general
+ * TUNER SELECT (EX030104).
+ */
+int ftx1_get_effective_tuner_type(RIG *rig, int *type)
+{
+    int ret, ant, item;
+
+    /* Active HF antenna: EX030704 (0=ANT1, 1=ANT2) */
+    ret = ftx1_get_ex_menu(rig, 3, 7, 4, &ant);
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    /* ANT1 -> EX030701 (item 1), ANT2 -> EX030702 (item 2) */
+    item = (ant == 1) ? 2 : 1;
+
+    ret = ftx1_get_ex_menu(rig, 3, 7, item, type);
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: active ant=%d, tuner type=%d\n",
+              __func__, ant, *type);
+
+    return RIG_OK;
+}
+
+/*
  * ftx1_set_max_power - Set max power limit with head type awareness
  *
  * TX GENERAL (field head) EX0305xx:
