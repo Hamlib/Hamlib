@@ -220,6 +220,23 @@ extern int ftx1_has_spa1(RIG *rig);
 extern int ftx1_get_head_type(RIG *rig);
 
 /*
+ * FTX-1 antenna tuner types (per-antenna, EX030701 for ANT1 / EX030702 for
+ * ANT2).  The active HF antenna is EX030704 (0=ANT1, 1=ANT2).  INT / INT(FAST)
+ * require the SPA-1/Optima amplifier; EXT and ATAS work on any head type.
+ * Hardware-verified against the rad-con model.
+ */
+#define FTX1_TUNER_TYPE_INT       0   /* Internal (SPA-1)      */
+#define FTX1_TUNER_TYPE_INT_FAST  1   /* Internal fast (SPA-1) */
+#define FTX1_TUNER_TYPE_EXT       2   /* External tuner        */
+#define FTX1_TUNER_TYPE_ATAS      3   /* ATAS motorized antenna */
+
+/*
+ * ftx1_get_effective_tuner_type - tuner type of the active HF antenna
+ * (defined in ftx1_ext.c).  Returns 0=INT, 1=INT(FAST), 2=EXT, 3=ATAS.
+ */
+extern int ftx1_get_effective_tuner_type(RIG *rig, int *type);
+
+/*
  * ftx1_ensure_vfo_mode - force the radio out of Memory mode if the driver
  * knows it entered via a prior set_mem.  Call at the top of any VFO-state
  * setter that would otherwise fail or behave transiently in Memory mode.
