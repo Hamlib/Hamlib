@@ -187,7 +187,7 @@ static const struct ftx1_menu_item ftx1_menu_table[] = {
     { TOK_GEN_BEEP_LEVEL,    "GEN_BEEP_LEVEL",     3, 0, 100, 0 },
     { TOK_GEN_RF_SQL_VR,     "GEN_RF_SQL_VR",      1, 0, 2, 0 },
     { TOK_GEN_TUN_LIN_PORT,  "GEN_TUN_LIN_PORT",   1, 0, 3, 0 },
-    { TOK_GEN_TUNER_SELECT,  "GEN_TUNER_SELECT",   1, 0, 3, 0 },
+    { TOK_GEN_TUNER_SELECT,  "GEN_TUNER_SELECT",   1, 0, 1, 0 },  /* EX030104: 0=Option, 1=ATAS */
     { TOK_GEN_CAT1_RATE,     "GEN_CAT1_RATE",      1, 0, 4, 0 },
     { TOK_GEN_CAT1_TIMEOUT,  "GEN_CAT1_TIMEOUT",   1, 0, 3, 0 },
     { TOK_GEN_CAT1_STOP_BIT, "GEN_CAT1_STOP_BIT",  1, 0, 1, 0 },
@@ -268,11 +268,12 @@ static const struct ftx1_menu_item ftx1_menu_table[] = {
     { TOK_DIAL_MIC_DOWN,     "DIAL_MIC_DOWN",      2, 0, 20, 0 },
     { TOK_DIAL_MIC_SCAN,     "DIAL_MIC_SCAN",      1, 0, 1, 0 },
 
-    /* EX0307: OPTION (SPA-1) */
-    { TOK_OPT_TUNER_ANT1,    "OPT_TUNER_ANT1",     1, 0, 3, FTX1_MENU_FLAG_SPA1 },
-    { TOK_OPT_TUNER_ANT2,    "OPT_TUNER_ANT2",     1, 0, 3, FTX1_MENU_FLAG_SPA1 },
+    /* EX0307: OPTION — tuner type & ANT select work on any head type
+     * (only INT/INT_FAST are SPA-1-only, radio-enforced); power limits SPA-1. */
+    { TOK_OPT_TUNER_ANT1,    "OPT_TUNER_ANT1",     1, 0, 3, 0 },  /* 0=INT,1=INT_FAST,2=EXT,3=ATAS */
+    { TOK_OPT_TUNER_ANT2,    "OPT_TUNER_ANT2",     1, 0, 3, 0 },  /* 0=INT,1=INT_FAST,2=EXT,3=ATAS */
     { TOK_OPT_ANT2_OP,       "OPT_ANT2_OP",        1, 0, 2, FTX1_MENU_FLAG_SPA1 },
-    { TOK_OPT_HF_ANT_SEL,    "OPT_HF_ANT_SEL",     1, 0, 1, FTX1_MENU_FLAG_SPA1 },
+    { TOK_OPT_HF_ANT_SEL,    "OPT_HF_ANT_SEL",     1, 0, 1, 0 },  /* 0=ANT1, 1=ANT2 */
     { TOK_OPT_HF_MAX_PWR,    "OPT_HF_MAX_PWR",     3, 5, 100, FTX1_MENU_FLAG_SPA1 },
     { TOK_OPT_50M_MAX_PWR,   "OPT_50M_MAX_PWR",    3, 5, 100, FTX1_MENU_FLAG_SPA1 },
     { TOK_OPT_70M_MAX_PWR,   "OPT_70M_MAX_PWR",    3, 5, 50, FTX1_MENU_FLAG_SPA1 },

@@ -324,7 +324,7 @@ static const struct confparams ftx1_ext_parms[] = {
     { TOK_GEN_BEEP_LEVEL, "GEN_BEEP_LEVEL", "GEN_BEEP_LEVEL", "GEN_BEEP_LEVEL (0-100)", "0", RIG_CONF_NUMERIC, { .n = { 0, 100, 1 } } },
     { TOK_GEN_RF_SQL_VR, "GEN_RF_SQL_VR", "GEN_RF_SQL_VR", "GEN_RF_SQL_VR (0-2)", "0", RIG_CONF_NUMERIC, { .n = { 0, 2, 1 } } },
     { TOK_GEN_TUN_LIN_PORT, "GEN_TUN_LIN_PORT", "GEN_TUN_LIN_PORT", "GEN_TUN_LIN_PORT (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
-    { TOK_GEN_TUNER_SELECT, "GEN_TUNER_SELECT", "GEN_TUNER_SELECT", "GEN_TUNER_SELECT (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_GEN_TUNER_SELECT, "GEN_TUNER_SELECT", "GEN_TUNER_SELECT", "General tuner select: 0=Option, 1=ATAS", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
     { TOK_GEN_CAT1_RATE, "GEN_CAT1_RATE", "GEN_CAT1_RATE", "GEN_CAT1_RATE (0-4)", "0", RIG_CONF_NUMERIC, { .n = { 0, 4, 1 } } },
     { TOK_GEN_CAT1_TIMEOUT, "GEN_CAT1_TIMEOUT", "GEN_CAT1_TIMEOUT", "GEN_CAT1_TIMEOUT (0-3)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
     { TOK_GEN_CAT1_STOP_BIT, "GEN_CAT1_STOP_BIT", "GEN_CAT1_STOP_BIT", "GEN_CAT1_STOP_BIT (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
@@ -543,10 +543,10 @@ static const struct confparams ftx1_ext_parms[] = {
     { TOK_VMI_COLOR_CLAR, "VMI_COLOR_CLAR", "VMI_COLOR_CLAR", "VMI_COLOR_CLAR (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
 
     /* SPA-1 Amplifier Settings (EX0307) - Require SPA-1 hardware */
-    { TOK_OPT_TUNER_ANT1, "OPT_TUNER_ANT1", "OPT_TUNER_ANT1", "Tuner ANT1 (0-3, SPA-1 only)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
-    { TOK_OPT_TUNER_ANT2, "OPT_TUNER_ANT2", "OPT_TUNER_ANT2", "Tuner ANT2 (0-3, SPA-1 only)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_OPT_TUNER_ANT1, "OPT_TUNER_ANT1", "OPT_TUNER_ANT1", "Tuner type ANT1: 0=INT,1=INT_FAST,2=EXT,3=ATAS (INT needs SPA-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+    { TOK_OPT_TUNER_ANT2, "OPT_TUNER_ANT2", "OPT_TUNER_ANT2", "Tuner type ANT2: 0=INT,1=INT_FAST,2=EXT,3=ATAS (INT needs SPA-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
     { TOK_OPT_ANT2_OP, "OPT_ANT2_OP", "OPT_ANT2_OP", "ANT2 operation (0-2, SPA-1 only)", "0", RIG_CONF_NUMERIC, { .n = { 0, 2, 1 } } },
-    { TOK_OPT_HF_ANT_SEL, "OPT_HF_ANT_SEL", "OPT_HF_ANT_SEL", "HF antenna select (0-1, SPA-1 only)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
+    { TOK_OPT_HF_ANT_SEL, "OPT_HF_ANT_SEL", "OPT_HF_ANT_SEL", "HF antenna select: 0=ANT1, 1=ANT2", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
     { TOK_OPT_HF_MAX_PWR, "OPT_HF_MAX_PWR", "OPT_HF_MAX_PWR", "HF max power 5-100W (SPA-1 only)", "100", RIG_CONF_NUMERIC, { .n = { 5, 100, 1 } } },
     { TOK_OPT_50M_MAX_PWR, "OPT_50M_MAX_PWR", "OPT_50M_MAX_PWR", "50MHz max power 5-100W (SPA-1 only)", "100", RIG_CONF_NUMERIC, { .n = { 5, 100, 1 } } },
     { TOK_OPT_70M_MAX_PWR, "OPT_70M_MAX_PWR", "OPT_70M_MAX_PWR", "70MHz max power 5-50W (SPA-1 only)", "50", RIG_CONF_NUMERIC, { .n = { 5, 50, 1 } } },
