@@ -239,6 +239,14 @@ extern int ftx1_get_head_type(RIG *rig);
 extern int ftx1_get_effective_tuner_type(RIG *rig, int *type);
 
 /*
+ * FTX-1 antenna-tuner AC operations (defined in ftx1_tx.c).
+ * ftx1_atas_ctrl action: 0=stop(AC120) 1=up(AC121) 2=down(AC122) 3=start(AC123).
+ */
+extern int ftx1_set_tuner(RIG *rig, int mode);
+extern int ftx1_get_tuner(RIG *rig, int *mode);
+extern int ftx1_atas_ctrl(RIG *rig, int action);
+
+/*
  * ftx1_ensure_vfo_mode - force the radio out of Memory mode if the driver
  * knows it entered via a prior set_mem.  Call at the top of any VFO-state
  * setter that would otherwise fail or behave transiently in Memory mode.

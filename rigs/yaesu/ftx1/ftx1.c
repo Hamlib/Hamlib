@@ -571,6 +571,9 @@ static const struct confparams ftx1_ext_parms[] = {
     { TOK_OPT_GPS_PINNING, "OPT_GPS_PINNING", "OPT_GPS_PINNING", "GPS pinning (0-1)", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } } },
     { TOK_OPT_GPS_BAUDRATE, "OPT_GPS_BAUDRATE", "OPT_GPS_BAUDRATE", "GPS baudrate (0-4)", "0", RIG_CONF_NUMERIC, { .n = { 0, 4, 1 } } },
 
+    /* ATAS motor control (write): 0=stop, 1=up, 2=down, 3=auto-tune start */
+    { TOK_ATAS_CTRL, "ATAS_CTRL", "ATAS_CTRL", "ATAS control (write): 0=stop,1=up,2=down,3=start", "0", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } } },
+
     /* Terminating entry */
     { RIG_CONF_END, NULL, }
 };
@@ -977,6 +980,12 @@ static int ftx1_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: token=0x%lx val=%.0f\n", __func__,
               (unsigned long)token, val.f);
 
+    /* Synthetic control tokens are dispatched directly, not via the EX table */
+    if (token == TOK_ATAS_CTRL)
+    {
+        return ftx1_atas_ctrl(rig, (int)val.f);
+    }
+
     return ftx1_menu_set_token(rig, token, val);
 }
 
@@ -995,6 +1004,15 @@ static int ftx1_get_ext_parm(RIG *rig, hamlib_token_t token, value_t *val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: token=0x%lx\n", __func__,
               (unsigned long)token);
+
+    /* ATAS_CTRL is write-only; report tune activity (0/1) so a read succeeds */
+    if (token == TOK_ATAS_CTRL)
+    {
+        int active = 0;
+        int ret = ftx1_get_tuner(rig, &active);
+        val->f = (float)active;
+        return ret;
+    }
 
     return ftx1_menu_get_token(rig, token, val);
 }
