@@ -130,6 +130,7 @@ static int gemini_status_parse(AMP *amp)
 {
     int retval, n = 0;
     char *p;
+    char *saveptr = NULL;
     char responsebuf[GEMINIBUFSZ];
     struct gemini_priv_data *priv = AMPSTATE(amp)->priv;
 
@@ -140,7 +141,7 @@ static int gemini_status_parse(AMP *amp)
         rig_debug(RIG_DEBUG_ERR, "%s: error sending command 'S'\n", __func__);
     }
 
-    p = strtok(responsebuf, ",\n");
+    p = strtok_r(responsebuf, ",\n", &saveptr);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: responsebuf=%s\n", __func__, responsebuf);
 
     while (p)
@@ -167,6 +168,8 @@ static int gemini_status_parse(AMP *amp)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: unknown status item=%s\n", __func__, p);
         }
+
+        p = strtok_r(NULL, ",\n", &saveptr);
     }
 
     if (n == 0) { return -RIG_EPROTO; }
