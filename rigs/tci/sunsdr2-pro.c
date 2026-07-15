@@ -26,8 +26,8 @@
 
 struct rig_caps sunsdr2_pro_caps =
 {
-    RIG_MODEL(RIG_MODEL_SUNSDR2_PRO),
-    .model_name     = "SunSDR2 PRO",
+    RIG_MODEL(RIG_MODEL_SUNSDR2_PRO_TCI),
+    .model_name     = "SunSDR2 PRO (TCI)",
     .mfg_name       = "Expert Electronics",
     .version        = "20260630.0",
     .copyright      = "LGPL",

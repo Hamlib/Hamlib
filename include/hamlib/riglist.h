@@ -1175,7 +1175,7 @@
  */
 ///@{
 /// Model of the `RIG_TCI` backend family.
-#define RIG_MODEL_SUNSDR2_PRO RIG_MAKE_MODEL(RIG_TCI, 1)
+#define RIG_MODEL_SUNSDR2_PRO_TCI RIG_MAKE_MODEL(RIG_TCI, 1)
 ///@}
 
 /** Convenience type definition for rig model. */
