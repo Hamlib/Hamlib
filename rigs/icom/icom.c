@@ -7276,6 +7276,11 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
         break;
 
+    case RIG_FUNC_SYNC:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_SYNC;
+        break;
+
     case RIG_FUNC_SATMODE:
         if (RIG_IS_IC910)
         {
@@ -7525,6 +7530,11 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
             fct_sc = S_DUAL;
         }
 
+        break;
+
+    case RIG_FUNC_SYNC:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_SYNC;
         break;
 
     case RIG_FUNC_SATMODE:
