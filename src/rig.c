@@ -425,51 +425,49 @@ MUTEX(mutex_debugmsgsave);
  */
 void add2debugmsgsave(const char *s)
 {
-    const char *p;
-    char stmp[DEBUGMSGSAVE_SIZE];
-    int i, nlines;
-    int maxmsg = DEBUGMSGSAVE_SIZE / 2;
-    MUTEX_LOCK(mutex_debugmsgsave);
-    memset(stmp, 0, sizeof(stmp));
+    const size_t maxmsg = DEBUGMSGSAVE_SIZE / 2;
+    size_t append_len;
+    size_t current_len;
+    size_t i;
+    size_t nlines;
+    char *keep;
 
-    // we'll keep 20 lines including this one
-    // so count the lines
-    for (i = 0, nlines = 0; debugmsgsave[i] != 0; ++i)
+    MUTEX_LOCK(mutex_debugmsgsave);
+
+    current_len = strlen(debugmsgsave);
+    keep = debugmsgsave;
+
+    for (i = 0, nlines = 0; i < current_len; ++i)
     {
         if (debugmsgsave[i] == '\n') { ++nlines; }
     }
 
-    // strip the last 19 lines
-    p =  debugmsgsave;
-
-    while ((nlines > 19 || strlen(debugmsgsave) > maxmsg) && p != NULL)
+    while (nlines > 19 || current_len > maxmsg)
     {
-        p = strchr(debugmsgsave, '\n');
+        char *newline = strchr(keep, '\n');
 
-        if (p && strlen(p + 1) > 0)
+        if (newline == NULL)
         {
-            strcpy(stmp, p + 1);
-            strcpy(debugmsgsave, stmp);
-        }
-        else
-        {
-            debugmsgsave[0] = '\0';
+            keep += current_len;
+            current_len = 0;
+            break;
         }
 
+        size_t remove_len = (size_t)(newline + 1 - keep);
+        keep = newline + 1;
+        current_len -= remove_len;
         --nlines;
-
-        if (nlines == 0 && strlen(debugmsgsave) > maxmsg) { strcpy(debugmsgsave, "!!!!debugmsgsave too long\n"); }
     }
 
-    if (strlen(stmp) + strlen(s) + 1 < DEBUGMSGSAVE_SIZE)
+    if (keep != debugmsgsave)
     {
-        strcat(debugmsgsave, s);
+        memmove(debugmsgsave, keep, current_len + 1);
     }
-    else
+
+    append_len = strlen(s);
+    if (append_len <= sizeof(debugmsgsave) - current_len - 1)
     {
-        rig_debug(RIG_DEBUG_BUG,
-                  "%s: debugmsgsave overflow!! len of debugmsgsave=%d, len of add=%d\n", __func__,
-                  (int)strlen(debugmsgsave), (int)strlen(s));
+        memmove(debugmsgsave + current_len, s, append_len + 1);
     }
 
     MUTEX_UNLOCK(mutex_debugmsgsave);

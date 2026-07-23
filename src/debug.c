@@ -34,6 +34,7 @@
 
 #include <stdarg.h>
 #include <stdio.h>  /* Standard input/output definitions */
+#include <stdlib.h>
 #include <string.h> /* String function definitions */
 #include <errno.h>
 
@@ -56,6 +57,7 @@
 
 /** \brief Sets the number of hexadecimal pairs to print per line. */
 #define DUMP_HEX_WIDTH 16
+#define DEBUG_HISTORY_STACK_SIZE 1024
 
 
 static int rig_debug_level = RIG_DEBUG_TRACE;
@@ -201,15 +203,50 @@ void HAMLIB_API rig_set_debug_time_stamp(int flag)
  * The formatted character string is passed to the `vfprintf`(3) C library
  * call and follows its format specification.
  */
-#undef rig_debug
 void HAMLIB_API rig_debug(enum rig_debug_level_e debug_level,
                           const char *fmt, ...)
 {
     static pthread_mutex_t client_debug_lock = PTHREAD_MUTEX_INITIALIZER;
+    char history_stack[DEBUG_HISTORY_STACK_SIZE];
+    char *history_msg = history_stack;
+    size_t history_capacity = sizeof(history_stack);
+    int history_len;
     va_list ap;
+
+    history_msg[0] = '\0';
+    va_start(ap, fmt);
+    history_len = vsnprintf(history_msg, history_capacity, fmt, ap);
+    va_end(ap);
+
+    if (history_len >= 0
+            && (size_t)history_len >= history_capacity
+            && (size_t)history_len < DEBUGMSGSAVE_SIZE)
+    {
+        history_capacity = (size_t)history_len + 1;
+        history_msg = malloc(history_capacity);
+
+        if (history_msg != NULL)
+        {
+            va_start(ap, fmt);
+            history_len = vsnprintf(history_msg, history_capacity, fmt, ap);
+            va_end(ap);
+
+            if (history_len != (int)history_capacity - 1)
+            {
+                history_len = -1;
+            }
+        }
+    }
 
     if (!rig_need_debug(debug_level))
     {
+        if (history_msg != NULL && history_len >= 0
+                && (size_t)history_len < history_capacity)
+        {
+            add2debugmsgsave(history_msg);
+        }
+
+        if (history_msg != history_stack) { free(history_msg); }
         return;
     }
 
@@ -275,6 +312,14 @@ void HAMLIB_API rig_debug(enum rig_debug_level_e debug_level,
     va_end(ap);
 #endif
     pthread_mutex_unlock(&client_debug_lock);
+
+    if (history_msg != NULL && history_len >= 0
+            && (size_t)history_len < history_capacity)
+    {
+        add2debugmsgsave(history_msg);
+    }
+
+    if (history_msg != history_stack) { free(history_msg); }
 }
 
 
