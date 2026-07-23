@@ -3167,9 +3167,19 @@ rig_set_debug_time_stamp(int flag);
 extern HAMLIB_EXPORT(int)
 rig_need_debug(enum rig_debug_level_e debug_level);
 
+#if defined(__MINGW_PRINTF_FORMAT)
+#define HAMLIB_ATTRIBUTE_FORMAT_PRINTF \
+    __attribute__((__format__(__MINGW_PRINTF_FORMAT, 2, 3)))
+#elif defined(__GNUC__) || defined(__clang__)
+#define HAMLIB_ATTRIBUTE_FORMAT_PRINTF \
+    __attribute__((__format__(__printf__, 2, 3)))
+#else
+#define HAMLIB_ATTRIBUTE_FORMAT_PRINTF
+#endif
+
 extern HAMLIB_EXPORT(void)
 rig_debug(enum rig_debug_level_e debug_level,
-          const char *fmt, ...);
+          const char *fmt, ...) HAMLIB_ATTRIBUTE_FORMAT_PRINTF;
 
 
 extern HAMLIB_EXPORT(void)add2debugmsgsave(const char *s);
@@ -3179,12 +3189,6 @@ extern HAMLIB_EXPORT_VAR(char) debugmsgsave2[DEBUGMSGSAVE_SIZE];  // last-1 debu
 // debugmsgsave3 is deprecated
 extern HAMLIB_EXPORT_VAR(char) debugmsgsave3[DEBUGMSGSAVE_SIZE];  // last-2 debug msg
 #define rig_debug_clear() { debugmsgsave[0] = debugmsgsave2[0] = debugmsgsave3[0] = 0; };
-#ifndef __cplusplus
-#ifdef __GNUC__
-// doing the debug macro with a dummy sprintf allows gcc to check the format string
-#define rig_debug(debug_level,fmt,...) do { snprintf(debugmsgsave2,sizeof(debugmsgsave2),fmt,__VA_ARGS__);rig_debug(debug_level,fmt,##__VA_ARGS__); add2debugmsgsave(debugmsgsave2); } while(0)
-#endif
-#endif
 
 // Measuring elapsed time -- local variable inside function when macro is used
 #define ELAPSED1 struct timespec __begin; elapsed_ms(&__begin, HAMLIB_ELAPSED_SET);
