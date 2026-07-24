@@ -182,118 +182,127 @@ int ftx1_get_monitor(RIG *rig, int *status)
 }
 
 /*
- * FTX-1 AC command format: AC P1 P2 P3;
- *   P1 = Tuner on/off (0=off, 1=on)
- *   P2 = Tune start (0=no action, 1=start tune) - write only
- *   P3 = Unknown
+ * FTX-1 antenna-tuner AC command: AC P1 P2 P3;
+ *   P1  0=internal tuner / 1=external tuner port
+ *   P2  0=normal          / 2=ATAS
+ *   P3  0=off/stop  1=ON(or ATAS up)  2=ATAS down  3=tuning START
  *
- * Response format: AC P1 P2 P3; (3 digits)
- * Set format for tuner on/off: AC P1 0 0; (turn on/off without starting tune)
- * Set format for tune: AC 1 1 0; (turn on and start tune)
- *
- * IMPORTANT: The internal antenna tuner is ONLY available when the SPA-1
- * amplifier is connected (FTX-1 Optima configuration). When using the field
- * head only, this command will return an error from the radio.
+ * Read "AC;" returns "AC P1 P2 P3;", with P3 != '0' while a tune is active.
+ * AC set commands DO work (hardware-verified on an FTX-1 + ATAS-120A):
+ * AC103/AC123 start a tune, AC000/AC120 stop, AC121/AC122 nudge an ATAS motor.
+ * (The prior driver's AC110 was rejected with '?' — P3=0 is a stop, not a
+ * start.)  The tuner type is selected via GEN_TUNER_SELECT (EX030104) plus the
+ * per-antenna type OPT_TUNER_ANT1/ANT2; only INT/INT(FAST) need the SPA-1
+ * amplifier, so no SPA-1 gate is applied here.
  */
 
 /*
- * Set Antenna Tuner - SPA-1 REQUIRED
+ * ftx1_set_tuner - RIG_FUNC_TUNER on/off
  *
- * The AC command is STATUS-ONLY on FTX-1 (set returns '?').
- * Use GEN_TUNER_SELECT (EX030104) to control tuner:
- *   0 = OFF (bypass), 1 = INT, 2 = EXT, 3 = ATAS
- *
- * mode: 0=off (bypass), 1=on (internal tuner)
- * Note: mode=2 (start tune) is not supported via CAT.
+ * mode 0 = stop / bypass the tuner (AC000; rad-con Power.stopTune).
+ * mode 1 = "on": the FTX-1 has no persistent tuner-on state distinct from a
+ *          tune cycle, and the tuner type is chosen via the ext-parms, so this
+ *          is accepted as a no-op.  Start an actual tune with RIG_OP_TUNE.
  */
 int ftx1_set_tuner(RIG *rig, int mode)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int tuner_select;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: mode=%d\n", __func__, mode);
 
-    /*
-     * GUARDRAIL: Internal tuner requires SPA-1 amplifier
-     */
-    if (!ftx1_has_spa1(rig))
+    if (mode == 0)
     {
-        rig_debug(RIG_DEBUG_WARN,
-                  "%s: internal tuner requires SPA-1 amplifier (not detected)\n",
-                  __func__);
-        return -RIG_ENAVAIL;
+        /*
+         * Stop / bypass.  The general AC000 stop is REJECTED with '?' when an
+         * ATAS is the selected tuner (hardware-verified on an FTX-1 + ATAS-120A)
+         * — an ATAS must be stopped with AC120.  Route by the active antenna's
+         * tuner type, mirroring rad-con (Power.stopTune=AC000, ATAS stop=AC120).
+         */
+        int type;
+        const char *stop = "AC000;";
+
+        if (ftx1_get_effective_tuner_type(rig, &type) == RIG_OK &&
+            type == FTX1_TUNER_TYPE_ATAS)
+        {
+            stop = "AC120;";
+        }
+
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", stop);
+        return newcat_set_cmd(rig);
     }
 
-    /* mode: 0=off, 1=on, 2=tune (not supported) */
-    switch (mode)
-    {
-    case 0:  /* Tuner off (bypass) */
-        tuner_select = 0;  /* EX030104 = 0 (OFF) */
-        break;
-
-    case 1:  /* Tuner on (internal) */
-        tuner_select = 1;  /* EX030104 = 1 (INT) */
-        break;
-
-    case 2:  /* Start tune - not supported via CAT */
-        rig_debug(RIG_DEBUG_WARN,
-                  "%s: start tune (mode=2) not supported via CAT\n", __func__);
-        return -RIG_ENIMPL;
-
-    default:
-        return -RIG_EINVAL;
-    }
-
-    /* Use EX030104 (GEN_TUNER_SELECT) instead of AC command */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX030104%d;", tuner_select);
-    return newcat_set_cmd(rig);
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "%s: FTX-1 has no tuner-on toggle; select the type via the "
+              "*_TUNER_* ext-parms and tune with RIG_OP_TUNE\n", __func__);
+    return RIG_OK;
 }
 
 /*
- * Get Antenna Tuner status - SPA-1 REQUIRED
+ * ftx1_get_tuner - RIG_FUNC_TUNER status
  *
- * Uses GEN_TUNER_SELECT (EX030104) to determine if tuner is enabled.
- * Returns: 0=off/bypass, 1=on (INT or other tuner selected)
+ * Reports whether a tune cycle is active by reading AC (P3 != '0'), mirroring
+ * rad-con Power.isTuning().  Works on any head type.
+ * Returns: *mode = 1 if tuning/active, 0 otherwise.
  */
 int ftx1_get_tuner(RIG *rig, int *mode)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret, tuner_select;
+    int ret;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
-    /*
-     * GUARDRAIL: Internal tuner requires SPA-1 amplifier
-     */
-    if (!ftx1_has_spa1(rig))
-    {
-        rig_debug(RIG_DEBUG_VERBOSE,
-                  "%s: no SPA-1 detected, tuner not available\n", __func__);
-        *mode = 0;
-        return RIG_OK;
-    }
-
-    /* Query GEN_TUNER_SELECT (EX030104) */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX030104;");
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AC;");
 
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    /* Parse value from EX030104N; (N = 0-3) */
-    if (sscanf(priv->ret_data + 8, "%1d", &tuner_select) != 1)
+    /* Response "AC P1 P2 P3;": P3 (offset 4) != '0' means a tune is active */
+    if (strlen(priv->ret_data) < 5)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
+        rig_debug(RIG_DEBUG_ERR, "%s: short AC response '%s'\n", __func__,
                   priv->ret_data);
         return -RIG_EPROTO;
     }
 
-    /* 0=OFF(bypass), 1=INT, 2=EXT, 3=ATAS - report 0 as off, others as on */
-    *mode = (tuner_select > 0) ? 1 : 0;
+    *mode = (priv->ret_data[4] != '0') ? 1 : 0;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: mode=%d (tuner_select=%d)\n",
-              __func__, *mode, tuner_select);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: mode=%d (AC='%s')\n", __func__, *mode,
+              priv->ret_data);
 
     return RIG_OK;
+}
+
+/*
+ * ftx1_atas_ctrl - ATAS motor / tune control (write-only)
+ *
+ * Mirrors the hardware-tested rad-con AtasTunerProvider AC opcodes:
+ *   0 = stop            (AC120)
+ *   1 = manual up       (AC121, ~50 ms motor extend)
+ *   2 = manual down     (AC122, ~50 ms motor retract)
+ *   3 = auto-tune start (AC123)
+ * Exposed via the ATAS_CTRL ext-parm.  No SPA-1 required.
+ */
+int ftx1_atas_ctrl(RIG *rig, int action)
+{
+    struct newcat_priv_data *priv = STATE(rig)->priv;
+    const char *cmd;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: action=%d\n", __func__, action);
+
+    switch (action)
+    {
+    case 0: cmd = "AC120;"; break;  /* stop  */
+    case 1: cmd = "AC121;"; break;  /* up    */
+    case 2: cmd = "AC122;"; break;  /* down  */
+    case 3: cmd = "AC123;"; break;  /* start */
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid action %d (0-3)\n", __func__,
+                  action);
+        return -RIG_EINVAL;
+    }
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", cmd);
+    return newcat_set_cmd(rig);
 }
 
 /* Set Break-In on/off (BI P1;) - type (semi/full) is EX020115 */
