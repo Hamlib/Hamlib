@@ -15,6 +15,7 @@ DISTCLEANFILES = rigctl.log rigctl.sum testbcd.log testbcd.sum
 bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld rigctlcom rigctltcp rigctlsync ampctl ampctld rigtestmcast rigtestmcastrx $(TESTLIBUSB)
 
 check_PROGRAMS = dumpmem testrig testrigopen testrigcaps testbcd testfreq listrigs testloc rig_bench testcache cachetest cachetest2 testcookie testdebug testgrid hamlibmodels testmW2power test2038
+check_PROGRAMS += testnetrigctl
 # Document building testsecurity
 ### check_PROGRAMS += testsecurity
 
@@ -74,6 +75,7 @@ rigctlcom_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rigctltcp_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rigctlsync_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 testdebug_LDADD = $(PTHREAD_LIBS) $(LDADD)
+testnetrigctl_LDADD = $(top_builddir)/rigs/dummy/libhamlib-dummy.la
 if TESTS_HAVE_LIBUSB
     rigtestlibusb_LDADD = $(LIBUSB_LIBS)
 endif
@@ -126,6 +128,7 @@ EXTRA_DIST = \
 # Support 'make check' target for simple tests
 # Omitting cachetest.sh because it needs 2 instances of rigctld running
 check_SCRIPTS = amptest.sh test2038.sh testbcd.sh testcache.sh testcaps.sh testcookie.sh testfreq.sh testgrid.sh testloc.sh testrig.sh testrigcaps.sh
+check_SCRIPTS += testnetrigctl.sh
 
 TESTS = $(check_SCRIPTS) testdebug
 
@@ -135,9 +138,16 @@ $(top_builddir)/src/libhamlib.la:
 $(top_builddir)/lib/libmisc.la:
 	$(MAKE) -C $(top_builddir)/lib/ libmisc.la
 
+$(top_builddir)/rigs/dummy/libhamlib-dummy.la:
+	$(MAKE) -C $(top_builddir)/rigs/dummy/ libhamlib-dummy.la
+
 testrig.sh:
 	echo 'LD_LIBRARY_PATH=$(top_builddir)/src/.libs:$(top_builddir)/dummy/.libs ./testrig 1' > testrig.sh
 	chmod +x ./testrig.sh
+
+testnetrigctl.sh:
+	echo './testnetrigctl' > testnetrigctl.sh
+	chmod +x ./testnetrigctl.sh
 
 testfreq.sh:
 	echo './testfreq' > testfreq.sh
@@ -171,4 +181,4 @@ test2038.sh:
 	echo 'LD_LIBRARY_PATH=$(top_builddir)/src/.libs:$(top_builddir)/dummy/.libs ./test2038 1' > test2038.sh
 	chmod +x ./test2038.sh
 
-CLEANFILES = rigmatrix testrig.sh testfreq.sh testbcd.sh testloc.sh testrigcaps.sh testcache.sh testcookie.sh rigtestlibusb build-w32.sh build-w64.sh build-w64-jtsdk.sh testgrid.sh testrigcaps.sh test2038.sh tuner_control.log
+CLEANFILES = rigmatrix testrig.sh testfreq.sh testbcd.sh testloc.sh testrigcaps.sh testcache.sh testcookie.sh rigtestlibusb build-w32.sh build-w64.sh build-w64-jtsdk.sh testgrid.sh testrigcaps.sh test2038.sh testnetrigctl.sh tuner_control.log
