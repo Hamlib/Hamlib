@@ -188,6 +188,17 @@ const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
 // Rig lock for all front side thread control
 #define LOCK(n) rig_lock(rig,n)
 
+static bool morse_busy_load(const struct rig_state *rs)
+{
+    return __atomic_load_n(&rs->morse_busy, __ATOMIC_RELAXED);
+}
+
+static void morse_busy_store(struct rig_state *rs, bool busy)
+{
+    // The busy hint does not publish any other state, so relaxed ordering is sufficient.
+    __atomic_store_n(&rs->morse_busy, busy, __ATOMIC_RELAXED);
+}
+
 /*
  * Data structure to track the opened rig (by rig_open)
  */
@@ -2520,7 +2531,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
      * It is copied to use_cache so the value is consistent throughout, and
      *   in case we ever need to add other conditions.
      */
-    use_cache = rs->morse_busy;
+    use_cache = morse_busy_load(rs);
 
     if (vfo == RIG_VFO_CURR) { vfo = curr_vfo; }
 
@@ -3059,7 +3070,7 @@ int HAMLIB_API rig_get_mode(RIG *rig,
     rig_cache_show(rig, __func__, __LINE__);
 
     // See comments in rig_get_freq
-    use_cache = rs->morse_busy || (rs->use_cached_mode != 0);
+    use_cache = morse_busy_load(rs) || (rs->use_cached_mode != 0);
 
     if (cachep->timeout_ms == HAMLIB_CACHE_ALWAYS || use_cache)
     {
@@ -3511,7 +3522,7 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
     //rig_debug(RIG_DEBUG_TRACE, "%s: cache check age=%dms\n", __func__, cache_ms);
 
     // See comments in rig_get_freq
-    use_cache = rs->morse_busy;
+    use_cache = morse_busy_load(rs);
 
     if (cache_ms < cachep->timeout_ms || use_cache)
     {
@@ -5978,7 +5989,7 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
     cachep = CACHE(rig);
 
     // See comments in rig_get_freq
-    use_cache = rs->morse_busy;
+    use_cache = morse_busy_load(rs);
 
     if (caps->get_split_vfo == NULL || use_cache)
     {
@@ -8785,7 +8796,7 @@ static void *morse_data_handler(void *arg)
             {
                 int nloops = 10;
 
-                rs->morse_busy = true;   // Give others a hint that we're using the port
+                morse_busy_store(rs, true);
                 rig_lock(rig, 1);        // Do the actual lockout
 
                 do
@@ -8812,7 +8823,7 @@ static void *morse_data_handler(void *arg)
                 while (result != RIG_OK && rs->fifo_morse->flush == 0 && --nloops > 0);
 
                 rig_lock(rig, 0);
-                rs->morse_busy = false;
+                morse_busy_store(rs, false);
 
                 if (nloops == 0)
                 {
