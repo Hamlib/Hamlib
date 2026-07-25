@@ -345,6 +345,7 @@
 #define S_FUNC_SUBB    0x59		/* Sub band */
 #define S_FUNC_SATM    0x5A		/* Satellite mode */
 #define S_FUNC_DSSQL   0x5B		/* D-STAR DSQL */
+#define S_FUNC_SYNC    0x5E		/* VFO Tracking (Sub tracks Main) */
 #define S_FUNC_DPSQL   0x5F		/* dPMR DSQL */
 #define S_FUNC_NXSQL   0x60		/* NXDN DSQL */
 #define S_FUNC_DCSQL   0x61		/* DCR DSQL */
