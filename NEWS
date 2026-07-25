@@ -22,6 +22,13 @@ Version 4.7.3
         * 2026-??-??
         * TS-790: Fix split operation and correct cache invalidation.
           GitHub issue #2084 and GitHub PR #2086.  (TNX George Baltz)
+        * README.developer: Update section on LLMs and other updates.
+          GitHub PR #2096.
+        * FTX-1: Fix RIG_OP_TUNE to send AC123 (ATAS)/AC103, not the rejected
+          AC110.  Correct the antenna-tuner menu model (EX030104 vs per-antenna
+          type).  Rework RIG_FUNC_TUNER to real AC status + add ATAS manual
+          control.  Stop an ATAS tuner with AC120, not the rejected AC000.
+          GitHub PR #2092.  (TNX Terrell Deppe)
 
 Version 4.7.2
         * 2026-06-21
