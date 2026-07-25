@@ -285,6 +285,13 @@
 #define TOK_OPT_TUNER_ANT2      FTX1_TOKEN(3, 7, 2)
 #define TOK_OPT_ANT2_OP         FTX1_TOKEN(3, 7, 3)
 #define TOK_OPT_HF_ANT_SEL      FTX1_TOKEN(3, 7, 4)
+
+/*
+ * Synthetic control token (NOT an EX menu item): group 0xFF marks it as
+ * dispatched directly in ftx1_set_ext_parm/ftx1_get_ext_parm, never looked up
+ * in the EX menu table.  Write-only ATAS motor control.
+ */
+#define TOK_ATAS_CTRL           FTX1_TOKEN(0xFF, 0, 1)
 #define TOK_OPT_HF_MAX_PWR      FTX1_TOKEN(3, 7, 5)
 #define TOK_OPT_50M_MAX_PWR     FTX1_TOKEN(3, 7, 6)
 #define TOK_OPT_70M_MAX_PWR     FTX1_TOKEN(3, 7, 7)

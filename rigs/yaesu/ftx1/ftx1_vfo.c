@@ -322,22 +322,40 @@ int ftx1_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
         break;
 
     case RIG_OP_TUNE:
+    {
         /*
-         * AC command format: AC P1 P2 P3;
-         *   P1=1 (tuner on), P2=1 (start tune), P3=0 (antenna)
+         * Start an antenna-tuner tune cycle.  AC command: AC P1 P2 P3;
+         *   P1 0=internal / 1=external tuner port
+         *   P2 0=normal   / 2=ATAS
+         *   P3 0=off/stop  1=ON(or ATAS up)  2=ATAS down  3=tuning START
          *
-         * Note: Current FTX-1 firmware returns '?' for AC set commands.
-         * We try anyway in case future firmware updates fix this.
-         * Tuner is only available on SPA-1/Optima configuration.
+         * The tune form depends on the tuner type selected for the active
+         * antenna (hardware-verified against the rad-con model):
+         *   ATAS  -> AC123 (P2=2 ATAS, P3=3 start)
+         *   other -> AC103 (external-port start; drives INT/INT_FAST/EXT)
+         *
+         * The old AC110 (P3=0) was a no-op the radio rejects with '?'.  The
+         * tuner *type* must already be selected (front panel, RIG_FUNC_TUNER,
+         * or the *_TUNER_* ext-parms); RIG_OP_TUNE only starts the cycle.
+         *
+         * No SPA-1 gate here: EXT and ATAS tune on any head type; only INT/
+         * INT(FAST) need SPA-1, and the radio rejects those itself if absent.
          */
-        if (!ftx1_has_spa1(rig))
+        int tuner_type;
+        int tret = ftx1_get_effective_tuner_type(rig, &tuner_type);
+
+        if (tret == RIG_OK && tuner_type == FTX1_TUNER_TYPE_ATAS)
         {
-            rig_debug(RIG_DEBUG_WARN, "%s: TUNE requires SPA-1 amplifier\n",
-                      __func__);
-            return -RIG_ENAVAIL;
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AC123;");
         }
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AC110;");
+        else
+        {
+            /* default (including read failure): external-port start */
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AC103;");
+        }
+
         break;
+    }
 
     case RIG_OP_TO_VFO:
         /* Copy current memory channel to VFO (MEM→VFO) */

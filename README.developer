@@ -544,14 +544,26 @@ GitHub.
 
 The Hamlib project accepts contributions on the "honor system".  It is implied
 that contributions are the original works of their respective authors and
-offered under the license terms of the GPL 2.0 or LGPL 2.1.  Use of LLM
-generated code breaks this model.  The contributors of such code cannot claim it
-as their own original work.
+offered under the license terms of the GPL 2.0 or LGPL 2.1.  The Project's
+original stance was that use of LLM generated code breaks this model and that
+contributors of such code cannot claim it as their own original work.  However,
+recent contributions have clearly disclosed the use of LLMs such as Claude or
+security LLMs to assist with development of code contributed to Hamlib and this
+code has been reviewed, accepted, and committed to the repository.
+
+Consensus from discussions by Hamlib contributors have leaned toward regarding
+LLMs as a tool much like other tools used to aid development.  That said, LLMs
+have the appearance of being able to offer complete code contributions but this
+is often not the case.  Such code needs to be carefully examined and tested.
+All code contributions are reviewed by the core Hamlib team and many other
+contributors.  We strongly recommend that the use of LLM assistance be
+disclosed in commit messages.
 
 Finally, Hamlib is a hobby project for hobbyists and as such all contributors
 should take pride in having their original work included for the benefit of many
-other radio hobbyists.  Against that backdrop, using LLM generated code seems
-like cheating.
+other radio hobbyists.  Against that backdrop, using LLM generated code needs to
+be carefully considered, however, the project understands that these are tools that
+are available and will be used to assist in improving Hamlib.
 
 
 2. How to add a new backend
@@ -628,8 +640,8 @@ like cheating.
          composed.
 
     2.10 If you have developer access to the Git repository hosted at Source
-         Forge, you can do the following:
-         $ git push origin
+         Forge or GitHub, you can do the following:
+         $ git push origin master
 
          Your changes will now be available to others.
 
@@ -647,6 +659,9 @@ like cheating.
     3.5. Add "extern const struct rig_caps <mymodel>_caps;" to mybackend.h
     3.6. In initrigs_<mybackend> of mybackend.c,
          add "rig_register(&<mymodel>_caps);"
+
+    3.6a Add RIG_NODEL_XXXXXX to bindings/python/test_Hamlib_class.py (do observe
+         this file is maintained in ASCII alphabetical order)
 
     3.7. Run 'make' if you have dependencies, or the following to regenerate
          the makefile:
@@ -670,7 +685,7 @@ like cheating.
                 needed) as needed for a good description of the commit.
 
                 Assuming your working tree was cloned from the SF.net repository
-                or N0NB's GitHub repository, you can now issue a pull request
+                or the GitHub repository, you can now issue a pull request for
                 inclusion of your new model into Hamlib.
 
 
