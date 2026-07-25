@@ -25,8 +25,7 @@ extern struct rig_caps ats_mini_caps;
 
 #define MINI_BANDNAME_LEN 8
 
-struct ats_mini_mon_data
-{
+struct ats_mini_mon_data {
     freq_t freq;
     char bandname[MINI_BANDNAME_LEN];
     rmode_t mode;

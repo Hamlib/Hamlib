@@ -80,7 +80,7 @@ static int p_ats_update_state(RIG *rig) {
     }
 
     struct ats_mini_mon_data *tmp_mon_data = (struct ats_mini_mon_data *)
-                                            calloc(1, sizeof(struct ats_mini_mon_data));
+            calloc(1, sizeof(struct ats_mini_mon_data));
     if (!tmp_mon_data) {
         return RIG_ENOMEM;
     }
@@ -142,7 +142,8 @@ static int p_ats_update_state(RIG *rig) {
                 tmp_mon_data->seq_no = (int) strtol(token, NULL, 10);
                 break;
             }
-            default: break;
+            default:
+                break;
         }
         if (idx > MINI_UART_MAX_TOKEN) {
             rig_debug(RIG_DEBUG_ERR, "%s: parse failure\n", __func__);
@@ -155,7 +156,7 @@ static int p_ats_update_state(RIG *rig) {
 
     if (tmp_mon_data->seq_no != mon_data->seq_no) {
         mon_data->freq = tmp_mon_data->freq;
-        strncpy(mon_data->bandname, tmp_mon_data->bandname, 7);
+        strncpy(mon_data->bandname, tmp_mon_data->bandname, (MINI_BANDNAME_LEN - 1));
         mon_data->mode = tmp_mon_data->mode;
         mon_data->step = tmp_mon_data->step;
         mon_data->bandwidth = tmp_mon_data->bandwidth;
@@ -250,12 +251,12 @@ static int ats_mini_init(RIG *rig) {
     rig_debug(RIG_DEBUG_VERBOSE, "%s version %s\n", __func__, rig->caps->version);
 
     struct ats_mini_mon_data *priv = (struct ats_mini_mon_data *)
-                                    calloc(1, sizeof(struct ats_mini_mon_data));
+                                     calloc(1, sizeof(struct ats_mini_mon_data));
     if (!priv) {
         return -RIG_ENOMEM;
     }
 
-    memset(priv->bandname, 0, 8);
+    memset(priv->bandname, 0, MINI_BANDNAME_LEN);
     priv->mode = RIG_MODE_NONE;
     STATE(rig)->priv = priv;
 
@@ -412,8 +413,7 @@ static int ats_mini_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *widt
     return RIG_OK;
 }
 
-struct rig_caps ats_mini_caps =
-{
+struct rig_caps ats_mini_caps = {
     RIG_MODEL(RIG_MODEL_ATS_MINI),
     .model_name = "ATS Mini",
     .mfg_name = "AMNVOLT",
