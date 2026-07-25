@@ -1445,7 +1445,8 @@ static int dummy_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
     }
 
-    memcpy(val, &curr->levels[idx], sizeof(value_t));
+    memcpy(val, &curr->levels[idx], RIG_LEVEL_IS_FLOAT(level)
+           ? sizeof(curr->levels[idx].f) : sizeof(curr->levels[idx].i));
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__,
               rig_strlevel(level));
 
