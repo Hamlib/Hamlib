@@ -31,7 +31,9 @@ Version 4.7.3
           GitHub PR #2092.  (TNX Terrell Deppe)
         * IC-7610/IC-7760: Implement SYNC (menu name "Tracking").  GitHub PR
           #2098.  (TNX Christoph Berg)
-        * fix: Remove debug history race.  GitHub PR #2107 (TNX David Christie)
+        * Fix: Remove debug history race.  GitHub PR #2107 (TNX David Christie)
+        * Fix: Prevent dummy level buffer overflow. GitHub PR #2108 (TNX David
+          Christie)
 
 Version 4.7.2
         * 2026-06-21
