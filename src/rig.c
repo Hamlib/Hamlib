@@ -201,21 +201,16 @@ const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
 #define LOCK(n) if (STATE(rig)->depth == 1) { rig_debug(RIG_DEBUG_CACHE, "%s: %s\n", n?"lock":"unlock", __func__);  rig_lock(rig,n); }
 #endif
 
-MUTEX(morse_mutex);
-
-// returns true if mutex is busy
-int MUTEX_CHECK(pthread_mutex_t *m)
+static bool morse_busy_load(const struct rig_state *rs)
 {
-    int trylock = pthread_mutex_trylock(m);
-
-    if (trylock != EBUSY)
-    {
-        pthread_mutex_unlock(m);
-    }
-
-    return trylock == EBUSY;
+    return __atomic_load_n(&rs->morse_busy, __ATOMIC_RELAXED);
 }
 
+static void morse_busy_store(struct rig_state *rs, bool busy)
+{
+    // The busy hint does not publish any other state, so relaxed ordering is sufficient.
+    __atomic_store_n(&rs->morse_busy, busy, __ATOMIC_RELAXED);
+}
 
 /*
  * Data structure to track the opened rig (by rig_open)
@@ -2546,10 +2541,13 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d) vfo=%s, curr_vfo=%s\n", __FILE__, __LINE__,
               rig_strvfo(vfo), rig_strvfo(curr_vfo));
 
-    if (MUTEX_CHECK(&morse_mutex))
-    {
-        use_cache = 1;
-    }
+    /* morse_busy is a hint that the port may be busy - this reduces
+     *   the chance that we get stalled on the api_mutex.
+     *   But it still may happen(just not very often.)
+     * It is copied to use_cache so the value is consistent throughout, and
+     *   in case we ever need to add other conditions.
+     */
+    use_cache = morse_busy_load(rs);
 
     if (vfo == RIG_VFO_CURR) { vfo = curr_vfo; }
 
@@ -3087,10 +3085,8 @@ int HAMLIB_API rig_get_mode(RIG *rig,
 
     rig_cache_show(rig, __func__, __LINE__);
 
-    if (MUTEX_CHECK(&morse_mutex))
-    {
-        use_cache = 1;
-    }
+    // See comments in rig_get_freq
+    use_cache = morse_busy_load(rs);
 
     if (cachep->timeout_ms == HAMLIB_CACHE_ALWAYS
             || rs->use_cached_mode || use_cache)
@@ -3545,10 +3541,8 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
     cache_ms = elapsed_ms(&cachep->time_vfo, HAMLIB_ELAPSED_GET);
     //rig_debug(RIG_DEBUG_TRACE, "%s: cache check age=%dms\n", __func__, cache_ms);
 
-    if (MUTEX_CHECK(&morse_mutex))
-    {
-        use_cache = 1;
-    }
+    // See comments in rig_get_freq
+    use_cache = morse_busy_load(rs);
 
     if (cache_ms < cachep->timeout_ms || use_cache)
     {
@@ -6027,10 +6021,8 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
     rs = STATE(rig);
     cachep = CACHE(rig);
 
-    if (MUTEX_CHECK(&morse_mutex))
-    {
-        use_cache = 1;
-    }
+    // See comments in rig_get_freq
+    use_cache = morse_busy_load(rs);
 
     if (caps->get_split_vfo == NULL || use_cache)
     {
@@ -8751,7 +8743,7 @@ static void *morse_data_handler(void *arg)
     struct morse_data_handler_args_s *args =
         (struct morse_data_handler_args_s *) arg;
     RIG *rig = args->rig;
-    const struct rig_state *rs = STATE(rig);
+    struct rig_state *rs = STATE(rig);
     int result;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: Starting morse data handler thread\n",
@@ -8841,9 +8833,9 @@ static void *morse_data_handler(void *arg)
             if (strlen(c) > 0)
             {
                 int nloops = 10;
-                MUTEX_LOCK(morse_mutex); // wait until the write is idle
+                morse_busy_store(rs, true);
+                rig_lock(rig, 1);        // Do the actual lockout
 
-		        rig_lock(rig, 1);
                 do
                 {
                     result = rig->caps->send_morse(rig, RIG_VFO_CURR, c);
@@ -8867,9 +8859,8 @@ static void *morse_data_handler(void *arg)
 
                 }
                 while (result != RIG_OK && STATE(rig)->fifo_morse->flush == 0 && --nloops > 0);
-		rig_lock(rig,0);
-
-                MUTEX_UNLOCK(morse_mutex);
+                rig_lock(rig, 0);
+                morse_busy_store(rs, false);
 
                 if (nloops == 0)
                 {
