@@ -17,6 +17,7 @@
  */
 
 #include <errno.h>
+#include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -222,7 +223,7 @@ static int p_ats_set_mode(RIG *rig, rmode_t mode_id) {
     }
 
     rmode_t start_mode_id = mon_data->mode;
-    rig_debug(RIG_DEBUG_WARN, "%s: start %lu, requested %lu\n", __func__, start_mode_id, mode_id);
+    rig_debug(RIG_DEBUG_WARN, "%s: start %" PRIu64 ", requested %" PRIu64 "\n", __func__, start_mode_id, mode_id);
     while (1) {
         if (mon_data->mode == mode_id) {
             break;
