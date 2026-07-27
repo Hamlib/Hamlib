@@ -6851,6 +6851,46 @@ int icom_mem_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
     RETURNFUNC(RIG_OK);
 }
 
+int icom_ts_to_sc(const struct ts_sc_list *list, shortfreq_t ts,
+                  unsigned char *sc)
+{
+    if (list == NULL || sc == NULL)
+    {
+        return -RIG_EINVAL;
+    }
+
+    for (int i = 0; list[i].ts != 0; i++)
+    {
+        if (list[i].ts == ts)
+        {
+            *sc = list[i].sc;
+            return RIG_OK;
+        }
+    }
+
+    return -RIG_EINVAL;
+}
+
+int icom_sc_to_ts(const struct ts_sc_list *list, unsigned char sc,
+                  shortfreq_t *ts)
+{
+    if (list == NULL || ts == NULL)
+    {
+        return -RIG_EPROTO;
+    }
+
+    for (int i = 0; list[i].ts != 0; i++)
+    {
+        if (list[i].sc == sc)
+        {
+            *ts = list[i].ts;
+            return RIG_OK;
+        }
+    }
+
+    return -RIG_EPROTO;
+}
+
 /*
  * icom_set_ts
  * Assumes rig!=NULL, rig->caps->priv!=NULL
@@ -6859,25 +6899,15 @@ int icom_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 {
     const struct icom_priv_caps *priv_caps;
     unsigned char ackbuf[MAXFRAMELEN];
-    int i, ack_len = sizeof(ackbuf), retval;
-    int ts_sc = 0;
+    unsigned char ts_sc;
+    int ack_len = sizeof(ackbuf), retval;
 
     ENTERFUNC;
     priv_caps = (const struct icom_priv_caps *) rig->caps->priv;
 
-    for (i = 0; i < HAMLIB_TSLSTSIZ; i++)
-    {
-        if (priv_caps->ts_sc_list[i].ts == ts)
-        {
-            ts_sc = priv_caps->ts_sc_list[i].sc;
-            break;
-        }
-    }
+    retval = icom_ts_to_sc(priv_caps->ts_sc_list, ts, &ts_sc);
 
-    if (i >= HAMLIB_TSLSTSIZ)
-    {
-        RETURNFUNC(-RIG_EINVAL);   /* not found, unsupported */
-    }
+    if (retval != RIG_OK) { RETURNFUNC(retval); }
 
     retval = icom_transaction(rig, C_SET_TS, ts_sc, NULL, 0, ackbuf, &ack_len);
 
@@ -6903,10 +6933,15 @@ int icom_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 {
     const struct icom_priv_caps *priv_caps;
     unsigned char tsbuf[MAXFRAMELEN];
-    int ts_len, i, retval;
+    int ts_len, retval;
 
     ENTERFUNC;
     priv_caps = (const struct icom_priv_caps *) rig->caps->priv;
+
+    if (priv_caps->ts_sc_list == NULL)
+    {
+        RETURNFUNC(-RIG_EPROTO);
+    }
 
     retval = icom_transaction(rig, C_SET_TS, -1, NULL, 0, tsbuf, &ts_len);
 
@@ -6926,21 +6961,9 @@ int icom_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
         RETURNFUNC(-RIG_ERJCTED);
     }
 
-    for (i = 0; i < HAMLIB_TSLSTSIZ; i++)
-    {
-        if (priv_caps->ts_sc_list[i].sc == tsbuf[1])
-        {
-            *ts = priv_caps->ts_sc_list[i].ts;
-            break;
-        }
-    }
+    retval = icom_sc_to_ts(priv_caps->ts_sc_list, tsbuf[1], ts);
 
-    if (i >= HAMLIB_TSLSTSIZ)
-    {
-        RETURNFUNC(-RIG_EPROTO);   /* not found, unsupported */
-    }
-
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC(retval);
 }
 
 
