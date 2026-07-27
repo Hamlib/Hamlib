@@ -5998,31 +5998,60 @@ declare_proto_rig(get_lock_mode)
 static int parse_hex(const char *s, unsigned char *buf, int len)
 {
     int i = 0;
-    buf[0] = 0;
-    char *s2 = strdup(s);
-    char *p = strtok(s2, ";:");
+    const char *p = s;
 
-    while (p)
+    while (*p != '\0')
     {
-        unsigned int val;
-        int n;
-
-        if ((n = sscanf(p, "0x%2x", &val)) != 1)
+        while (*p == ';' || *p == ':')
         {
-            n = sscanf(p, "x%2x", &val);
+            ++p;
         }
 
-        if (n == 0)
+        if (*p == '\0')
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: unable to parse 0x??; or x??; from '%s'\n",
+            break;
+        }
+
+        const char *token_end = p + strcspn(p, ";:");
+        const char *digits;
+
+        if (token_end - p >= 2 && strncmp(p, "0x", 2) == 0)
+        {
+            digits = p + 2;
+        }
+        else if (p[0] == 'x')
+        {
+            digits = p + 1;
+        }
+        else
+        {
+            digits = NULL;
+        }
+
+        size_t digits_len = digits == NULL ? 0 : token_end - digits;
+
+        if (digits_len == 0 || digits_len > 2 || i >= len)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: invalid or oversized binary data '%s'\n",
                       __func__, s);
+            return -RIG_EINVAL;
         }
 
-        buf[i++] = val;
-        p = strtok(NULL, ";:");
+        char *endptr;
+        errno = 0;
+        unsigned long val = strtoul(digits, &endptr, 16);
+
+        if (!isxdigit((unsigned char) digits[0]) || errno == ERANGE ||
+                endptr != token_end || val > 0xff)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: invalid binary data '%s'\n", __func__, s);
+            return -RIG_EINVAL;
+        }
+
+        buf[i++] = (unsigned char) val;
+        p = token_end;
     }
 
-    free(s2);
     return i;
 }
 
@@ -6085,6 +6114,12 @@ declare_proto_rig(send_raw)
     if (strncmp(arg2, "0x", 2)  == 0 || arg2[0] == 'x')
     {
         arg2_len = parse_hex(arg2, send, sizeof(send));
+
+        if (arg2_len < 0)
+        {
+            return arg2_len;
+        }
+
         sendp = send;
         is_binary = 1;
     }
