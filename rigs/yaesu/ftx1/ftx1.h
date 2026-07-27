@@ -266,4 +266,12 @@ extern int ftx1_get_band_select(RIG *rig, vfo_t vfo, int *band);
 extern int ftx1_freq_to_tone_num(unsigned int freq);
 extern unsigned int ftx1_tone_num_to_freq(int num);
 
+extern int ftx1_parse_clar_state(const char *response, char vfo,
+                                 char *rx_enabled, char *tx_enabled);
+extern int ftx1_parse_clar_offset(const char *response, char vfo,
+                                  shortfreq_t *offset);
+extern int ftx1_parse_ex_menu_response(const char *response, int group,
+                                       int section, int item, int *value);
+extern int ftx1_parse_smeter_response(const char *response, int *value);
+
 #endif /* _FTX1_H */
