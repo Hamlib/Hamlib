@@ -145,6 +145,24 @@
 #define TOK_FREQ_SKIP  TOKEN_FRONTEND(136)
 /** \brief rig: Client ID of WSJTX or GPREDICT */
 #define TOK_CLIENT  TOKEN_FRONTEND(137)
+/** \brief rig: Default staleness threshold (ms) for stream time accuracy downgrade */
+#define TOK_STREAM_TIME_STALE_COARSE  TOKEN_FRONTEND(138)
+/** \brief rig: Default staleness threshold (ms) for stream time invalidation */
+#define TOK_STREAM_TIME_STALE_INVALIDATE  TOKEN_FRONTEND(139)
+/** \brief rig: Default transport buffer as ms of stream data (0 = built-in 250 ms) */
+#define TOK_STREAM_TRANSPORT_BUFFER_MS  TOKEN_FRONTEND(140)
+/** \brief rig: Default transport buffer explicit size in bytes (0 = derive from rate) */
+#define TOK_STREAM_TRANSPORT_BUFFER_BYTES  TOKEN_FRONTEND(141)
+/** \brief rig: Default stream metadata unconditional-refresh cadence in ms (0 = built-in default) */
+#define TOK_STREAM_METADATA_REFRESH  TOKEN_FRONTEND(142)
+/** \brief rig: Default stream metadata change-poll interval in ms (0 = built-in default) */
+#define TOK_STREAM_METADATA_INTERVAL  TOKEN_FRONTEND(143)
+/** \brief rig: Stream source ID carried in every stream packet (-1 = derive, 0 = unset) */
+#define TOK_STREAM_SOURCE_ID  TOKEN_FRONTEND(144)
+/** \brief rig: Seconds of stream silence before the server drops a client (0 = built-in default) */
+#define TOK_STREAM_KEEPALIVE_TIMEOUT  TOKEN_FRONTEND(145)
+/** \brief rig: Stream keepalive ping interval in seconds (0 = built-in default) */
+#define TOK_STREAM_KEEPALIVE_INTERVAL  TOKEN_FRONTEND(146)
 
 /*
  * rotator specific tokens

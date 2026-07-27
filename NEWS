@@ -9,6 +9,12 @@ Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 +
 Version 5.x -- future
+        * New data streaming subsystem (experimental): audio and I/Q streams
+          between a backend and an application through the rig_stream_* API,
+          or over the network from rigctld via a UDP wire protocol.  Includes
+          a dummy reference backend, the rigstreamtest diagnostic tool, and
+          the stream_* rigctld commands.  See HAMLIB_STREAMING.md and
+          HAMLIB_STREAMING_BACKEND_GUIDE.md.
         * rig_get_conf deprecated and replaced by rig_get_conf2
         * rot_get_conf deprecated and replaced by rot_get_conf2
         * Change FT1000MP Mark V model names to align with FT1000MP

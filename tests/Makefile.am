@@ -19,7 +19,12 @@ check_PROGRAMS += testnetrigctl
 # Document building testsecurity
 ### check_PROGRAMS += testsecurity
 
-RIGCOMMONSRC = rigctl_parse.c rigctl_parse.h dumpcaps.c dumpstate.c uthash.h rig_tests.c rig_tests.h dumpcaps.h
+# rigstreamtest is a streaming diagnostic tool rather than a unit test, so it is
+# built with everything else instead of only under "make check". It is not
+# installed: it drives a radio's audio/IQ streams from the build tree.
+noinst_PROGRAMS = rigstreamtest
+
+RIGCOMMONSRC = rigctl_parse.c rigctl_parse.h rigctld_stream.c rigctld_stream.h rigctld_client.h dumpcaps.c dumpstate.c uthash.h rig_tests.c rig_tests.h dumpcaps.h
 ROTCOMMONSRC = rotctl_parse.c rotctl_parse.h dumpcaps_rot.c uthash.h dumpcaps_rot.h
 AMPCOMMONSRC = ampctl_parse.c ampctl_parse.h dumpcaps_amp.c uthash.h 
 
@@ -33,12 +38,13 @@ rotctld_SOURCES = rotctld.c $(ROTCOMMONSRC)
 ampctl_SOURCES = ampctl.c $(AMPCOMMONSRC)
 ampctld_SOURCES = ampctld.c $(AMPCOMMONSRC)
 rigmem_SOURCES = rigmem.c memsave.c memload.c memcsv.c
+rigstreamtest_SOURCES = rigstreamtest.c rigstreamtest_util.c rigstreamtest_util.h
 if TESTS_HAVE_LIBUSB
     rigtestlibusb_SOURCES = rigtestlibusb.c
 endif
 
 # include generated include files ahead of any in sources
-rigctl_CPPFLAGS = -I$(top_builddir)/tests -I$(top_builddir)/src -I$(srcdir) -I$(top_builddir)/security $(AM_CPPFLAGS) 
+rigctl_CPPFLAGS = -I$(top_builddir)/tests -I$(top_srcdir)/src -I$(top_builddir)/src -I$(srcdir) -I$(top_builddir)/security $(AM_CPPFLAGS)
 
 # all the programs need this
 LDADD = $(top_builddir)/src/libhamlib.la $(top_builddir)/lib/libmisc.la $(DL_LIBS) -lm
@@ -48,14 +54,14 @@ LDADD += $(ANDROID_LIBS)
 endif
 
 rigmem_CFLAGS = $(AM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_builddir)/src
-rigctld_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/src -I$(top_builddir)/security
+rigctld_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_srcdir)/src -I$(top_builddir)/src -I$(top_builddir)/security
 rotctl_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/src
 rotctld_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/src
 ampctl_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/src
 ampctld_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/src
-rigctlcom_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/security
-rigctltcp_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/security
-rigctlsync_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/security
+rigctlcom_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_srcdir)/src -I$(top_builddir)/security
+rigctltcp_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_srcdir)/src -I$(top_builddir)/security
+rigctlsync_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_srcdir)/src -I$(top_builddir)/security
 testdebug_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 if TESTS_HAVE_LIBUSB
     rigtestlibusb_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) $(LIBUSB_CFLAGS)
@@ -75,6 +81,10 @@ rigctlcom_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rigctltcp_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rigctlsync_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 testdebug_LDADD = $(PTHREAD_LIBS) $(LDADD)
+rigstreamtest_LDADD = $(PTHREAD_LIBS) $(LDADD)
+rigstreamtest_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+rigstreamtest_CPPFLAGS = -I$(top_srcdir)/src -I$(top_builddir)/src \
+    $(AM_CPPFLAGS)
 testnetrigctl_LDADD = $(top_builddir)/rigs/dummy/libhamlib-dummy.la
 if TESTS_HAVE_LIBUSB
     rigtestlibusb_LDADD = $(LIBUSB_LIBS)
@@ -121,13 +131,14 @@ EXTRA_DIST = \
 	hamlib_tuner_control \
 	rig_split_lst.awk \
 	rigmatrix_head.html \
+	rigstreamtest.sh \
 	testcaps.sh \
 	testctld.pl \
 	testrotctld.pl
 
 # Support 'make check' target for simple tests
 # Omitting cachetest.sh because it needs 2 instances of rigctld running
-check_SCRIPTS = amptest.sh test2038.sh testbcd.sh testcache.sh testcaps.sh testcookie.sh testfreq.sh testgrid.sh testloc.sh testrig.sh testrigcaps.sh
+check_SCRIPTS = amptest.sh test2038.sh testbcd.sh testcache.sh testcaps.sh testcookie.sh testfreq.sh testgrid.sh testloc.sh testrig.sh testrigcaps.sh rigstreamtest.sh
 check_SCRIPTS += testnetrigctl.sh
 
 TESTS = $(check_SCRIPTS) testdebug

@@ -424,6 +424,133 @@ Will make
 try to bind to first network device available.
 .
 .TP
+.BR \-M ", " \-\-stream\-metadata\-interval = \fIms\fP
+Set the default stream metadata change-poll interval in milliseconds
+(25\(en1000, default 100) -- the ceiling on how long a rig-state change
+(frequency, VFO, PTT) waits before reaching a streaming client.
+.IP
+A per-stream
+.I metadata_interval
+key on
+.B \\\\stream_open
+or the rig configuration token
+.I stream_metadata_interval
+takes precedence over this default.
+.
+.TP
+.BR \-\-stream\-metadata\-refresh = \fIms\fP
+Set the default unconditional stream metadata refresh cadence, measured in
+milliseconds of stream data (default 100; 0 sends metadata with every data
+packet) -- a floor on send frequency so a lost metadata frame heals without
+waiting for the next change.
+.IP
+A per-stream
+.I metadata_refresh
+key on
+.B \\\\stream_open
+or the rig configuration token
+.I stream_metadata_refresh
+takes precedence over this default.
+.
+.TP
+.BR \-\-stream\-transport\-buffer\-ms = \fIms\fP
+Set the default stream transport buffer size as milliseconds of stream data
+(default 250); the byte size is derived from each stream's sample rate.
+.IP
+A per-stream
+.I transport_buffer_ms
+key on
+.B \\\\stream_open
+or the rig configuration token
+.I stream_transport_buffer_ms
+takes precedence over this default.
+.
+.TP
+.BR \-\-stream\-transport\-buffer\-bytes = \fIn\fP
+Override the stream transport buffer size in bytes (0, the default, derives
+the size from the stream rate via the
+.B \-\-stream\-transport\-buffer\-ms
+duration).
+.IP
+A per-stream
+.I transport_buffer_bytes
+key on
+.B \\\\stream_open
+or the rig configuration token
+.I stream_transport_buffer_bytes
+takes precedence over this default.
+.
+.TP
+.BR \-\-stream\-keepalive\-timeout = \fIs\fP
+Set the seconds of stream silence after which a subscribed client is dropped
+(5\(en3600, default 30).
+Dividing this by the client's ping interval gives the number of consecutive
+lost keepalives a stream survives, so raise it on a lossy link rather than
+shortening the ping interval.
+.IP
+A per-stream
+.I keepalive_timeout
+key on
+.B \\\\stream_open
+or the rig configuration token
+.I stream_keepalive_timeout
+takes precedence over this default.
+.
+.TP
+.BR \-G ", " \-\-stream\-multicast\-ttl = \fIn\fP
+Set the default TTL / hop limit for multicast streams (1\(en255, default 1 =
+subnet-local).
+.IP
+A per-stream
+.I ttl
+key on
+.B \\\\stream_open
+takes precedence over this default.
+.
+.TP
+.BR \-\-stream\-time\-stale\-coarse = \fIms\fP
+Set the staleness threshold in milliseconds after which stream time-stamp
+accuracy is downgraded to COARSE (0, the default, selects the built-in
+threshold).
+.IP
+A per-stream
+.I time_stale_coarse
+key on
+.B \\\\stream_open
+or the rig configuration token
+.I stream_time_stale_coarse
+takes precedence over this default.
+.
+.TP
+.BR \-\-stream\-time\-stale\-invalidate = \fIms\fP
+Set the staleness threshold in milliseconds after which stream time stamps
+are marked invalid (0, the default, selects the built-in threshold).
+.IP
+A per-stream
+.I time_stale_invalidate
+key on
+.B \\\\stream_open
+or the rig configuration token
+.I stream_time_stale_invalidate
+takes precedence over this default.
+.
+.TP
+.BR \-\-stream\-source\-id = \fIn\fP
+Set the stream source ID, a 16-bit identifier of the signal source stamped on
+every stream packet (0\(en65535).  The default \-1 derives a stable ID from
+static configuration (hostname, listen port, rig model, device pathname), so
+it survives daemon restarts; 0 disables the ID, falling back to transport
+tuple identity.  Manual assignment conventionally uses 1\(en4095; derived IDs
+occupy the remaining range and never collide with that convention.
+.IP
+The rig configuration token
+.I stream_source_id
+takes precedence over this option.  The effective value is reported by
+.B \\\\stream_open
+and
+.B \\\\stream_list.
+.
+.TP
 .BR \-h ", " \-\-help
 Show a summary of these options and exit.
 .
@@ -1691,6 +1818,120 @@ Can also use 1,2,3,4
 .TP
 .BR skip_init
 Skips rig initialization -- useful when executing commands with rigctl to speed up things
+.
+.PP
+The following streaming commands manage the UDP sample-data streaming
+subsystem, which carries audio and I/Q streams between the rig backend and
+network clients.  They are only available inside
+.BR rigctld ;
+invoked through local
+.BR rigctl (1)
+they return \-RIG_ENAVAIL.  All streaming commands must be sent with the
+Extended Response \(oq+\(cq prefix and the long command name (see
+.BR PROTOCOL ),
+as they have no single-character form.  Sample data itself does not flow over
+the TCP connection: each stream gets its own UDP socket, and the UDP wire
+protocol (packet header, subscribe handshake, keepalive, metadata and time
+blocks) is specified in
+.I HAMLIB_STREAMING.md
+in the
+.B Hamlib
+source distribution.  Streams are owned by the TCP connection that created
+them: operations on a stream from another connection fail with \-RIG_EACCESS,
+and all of a client's streams are closed when it disconnects.
+.
+.TP
+.BR stream_caps
+Get the backend streaming capabilities, one line per supported stream type:
+type, supported sample formats, sample-rate limits, and channel count.
+.
+.TP
+.BR stream_open " \(aq" \fIType\fP "\(aq \(aq" \fIFormat\fP "\(aq \(aq" \fIRate\fP "\(aq [\fIkey=value\fP ...]"
+Open a stream and allocate its UDP socket.
+.RI \(aq Type \(aq
+is one of AUDIO_RX, AUDIO_TX, IQ_RX, IQ_TX;
+.RI \(aq Format \(aq
+is one of PCM_S8, PCM_U8, PCM_S16, PCM_F32, IQ_CS8, IQ_CU8, IQ_CS16, IQ_CF32;
+.RI \(aq Rate \(aq
+is the sample rate in Hz.
+.IP
+Optional
+.I key=value
+arguments:
+.I metadata_interval
+(ms),
+.I metadata_refresh
+(ms),
+.IR transport_buffer_ms ,
+.IR transport_buffer_bytes ,
+.I mtu
+(bytes, for datagram sizing),
+.I multicast=ADDR:PORT
+(RX only, publish to a multicast group),
+.I ttl
+(1\(en255),
+.I channels
+(1\(en2),
+.I time_stale_coarse
+(ms), and
+.I time_stale_invalidate
+(ms).
+.IP
+The response reports
+.IR stream_id ,
+.IR source_id ,
+.IR udp_port ,
+.IR subscribe_token ,
+.IR max_payload ,
+and, for multicast streams,
+.IR multicast .
+The client drives the UDP session with
+.I udp_port
+and
+.I subscribe_token
+and sizes its own transmit packets to
+.IR max_payload .
+.
+.TP
+.BR stream_close " \(aq" \fIStreamId\fP \(aq
+Close a stream and release its UDP socket.
+.
+.TP
+.BR stream_status " \(aq" \fIStreamId\fP \(aq
+Get per-stream state and counters: packet counts, per-cause sample losses,
+overruns, underruns, late timed transmissions, and the latest time anchor.
+.
+.TP
+.BR stream_pause " \(aq" \fIStreamId\fP \(aq
+Pause backend stream I/O.
+.
+.TP
+.BR stream_resume " \(aq" \fIStreamId\fP \(aq
+Resume backend stream I/O.
+.
+.TP
+.BR stream_mute " \(aq" \fIStreamId\fP \(aq
+Mute a stream: received samples are discarded (RX) or zeroed (TX).
+.
+.TP
+.BR stream_unmute " \(aq" \fIStreamId\fP \(aq
+Unmute a stream.
+.
+.TP
+.BR stream_metadata_read " \(aq" \fIStreamId\fP \(aq
+Get the latest stream metadata (frequencies, VFO, PTT).
+.
+.TP
+.BR stream_drain " \(aq" \fIStreamId\fP \(aq
+Drain a TX stream's buffer.
+.
+.TP
+.BR stream_list
+List all active streams:
+.IR stream_id ,
+.IR source_id ,
+type, format, sample rate, channels, UDP port, paused/muted state, and
+ownership.  The UDP port of streams owned by other clients is hidden.
 .
 .SH PROTOCOL
 .

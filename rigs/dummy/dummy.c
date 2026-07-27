@@ -49,46 +49,9 @@
 #include "cache.h"
 
 #include "dummy.h"
-
-#define NB_CHAN 22      /* see caps->chan_list */
-
+#include "dummy_stream.h"
 
 #define CMDSLEEP 20*1000  /* ms for each command */
-
-struct dummy_priv_data
-{
-    /* current vfo already in rig_state ? */
-    vfo_t curr_vfo;
-    vfo_t last_vfo; /* VFO A or VFO B, when in MEM mode */
-
-    split_t split;
-    vfo_t tx_vfo;
-    ptt_t ptt;
-    powerstat_t powerstat;
-    int bank;
-    value_t parms[RIG_SETTING_MAX];
-    int ant_option[4]; /* simulate 4 antennas */
-    int trn; /* transceive */
-
-    channel_t *curr;    /* points to vfo_a, vfo_b or mem[] */
-
-    // we're trying to emulate all sorts of vfo possibilities so this looks redundant
-    channel_t vfo_maina;
-    channel_t vfo_mainb;
-    channel_t vfo_suba;
-    channel_t vfo_subb;
-    channel_t vfo_c;
-    channel_t mem[NB_CHAN];
-
-    struct ext_list *ext_funcs;
-    struct ext_list *ext_parms;
-
-    char *magic_conf;
-    int static_data;
-
-    //freq_t freq_vfoa;
-    //freq_t freq_vfob;
-};
 
 /* levels pertain to each VFO */
 static const struct confparams dummy_ext_levels[] =
@@ -141,6 +104,27 @@ static const struct confparams dummy_cfg_params[] =
     {
         TOK_CFG_STATIC_DATA, "static_data", "Static data", "Output only static data, no randomization of meter values",
         "0", RIG_CONF_CHECKBUTTON, { }
+    },
+    {
+        TOK_CFG_STREAM_MODE, "stream_mode", "Stream mode", "Streaming mode: tone, silence, or loopback",
+        "tone", RIG_CONF_STRING, { }
+    },
+    {
+        TOK_CFG_STREAM_TONE_FREQ, "stream_tone_freq", "Tone freq", "Audio tone frequency in Hz",
+        "1000.0", RIG_CONF_NUMERIC, { .n = { 20.0, 20000.0, 1.0 } }
+    },
+    {
+        TOK_CFG_STREAM_TONE_AMP, "stream_tone_amp", "Tone amplitude", "Tone amplitude 0.0 to 1.0",
+        "0.5", RIG_CONF_NUMERIC, { .n = { 0.0, 1.0, 0.01 } }
+    },
+    {
+        TOK_CFG_STREAM_IQ_OFFSET, "stream_iq_offset", "IQ offset", "I/Q offset frequency in Hz",
+        "1000.0", RIG_CONF_NUMERIC, { .n = { -100000.0, 100000.0, 1.0 } }
+    },
+    {
+        TOK_CFG_STREAM_SYNTH_GAP, "stream_synth_gap", "Synthetic gap",
+        "Inject one RX gap of N samples for testing (0 = off)",
+        "0", RIG_CONF_NUMERIC, { .n = { 0, 10000000, 1 } }
     },
     { RIG_CONF_END, NULL, }
 };
@@ -236,6 +220,8 @@ static int dummy_init(RIG *rig)
 
     STATE(rig)->priv = (void *)priv;
 
+    pthread_mutex_init(&priv->stream_states_lock, NULL);
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     RIGPORT(rig)->type.rig = RIG_PORT_NONE;
 
@@ -329,6 +315,12 @@ static int dummy_init(RIG *rig)
 
     priv->magic_conf = strdup("DX");
 
+    priv->stream_mode = DUMMY_STREAM_TONE;
+    priv->stream_tone_freq = 1000.0f;
+    priv->stream_tone_amp = 0.5f;
+    priv->stream_iq_offset = 1000.0f;
+    priv->stream_synth_gap = 0;
+
     RETURNFUNC(RIG_OK);
 }
 
@@ -352,6 +344,8 @@ static int dummy_cleanup(RIG *rig)
     free(priv->ext_funcs);
     free(priv->ext_parms);
     free(priv->magic_conf);
+
+    pthread_mutex_destroy(&priv->stream_states_lock);
 
     free(priv);
 
@@ -409,6 +403,46 @@ static int dummy_set_conf(RIG *rig, hamlib_token_t token, const char *val)
         priv->static_data = atoi(val) ? 1 : 0;
         break;
 
+    case TOK_CFG_STREAM_MODE:
+        if (strcmp(val, "tone") == 0)
+        {
+            priv->stream_mode = DUMMY_STREAM_TONE;
+        }
+        else if (strcmp(val, "silence") == 0)
+        {
+            priv->stream_mode = DUMMY_STREAM_SILENCE;
+        }
+        else if (strcmp(val, "loopback") == 0)
+        {
+            priv->stream_mode = DUMMY_STREAM_LOOPBACK;
+        }
+        else if (strcmp(val, "counter") == 0)
+        {
+            priv->stream_mode = DUMMY_STREAM_COUNTER;
+        }
+        else
+        {
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        break;
+
+    case TOK_CFG_STREAM_TONE_FREQ:
+        priv->stream_tone_freq = (float)atof(val);
+        break;
+
+    case TOK_CFG_STREAM_TONE_AMP:
+        priv->stream_tone_amp = (float)atof(val);
+        break;
+
+    case TOK_CFG_STREAM_IQ_OFFSET:
+        priv->stream_iq_offset = (float)atof(val);
+        break;
+
+    case TOK_CFG_STREAM_SYNTH_GAP:
+        priv->stream_synth_gap = atol(val);
+        break;
+
     default:
         RETURNFUNC(-RIG_EINVAL);
     }
@@ -431,6 +465,34 @@ static int dummy_get_conf(RIG *rig, hamlib_token_t token, char *val)
 
     case TOK_CFG_STATIC_DATA:
         SNPRINTF(val, 128, "%d", priv->static_data);
+        break;
+
+    case TOK_CFG_STREAM_MODE:
+        switch (priv->stream_mode)
+        {
+        case DUMMY_STREAM_TONE:     strcpy(val, "tone");     break;
+        case DUMMY_STREAM_SILENCE:  strcpy(val, "silence");  break;
+        case DUMMY_STREAM_LOOPBACK: strcpy(val, "loopback"); break;
+        case DUMMY_STREAM_COUNTER:  strcpy(val, "counter");  break;
+        default:                    strcpy(val, "unknown");   break;
+        }
+
+        break;
+
+    case TOK_CFG_STREAM_TONE_FREQ:
+        SNPRINTF(val, 128, "%.1f", priv->stream_tone_freq);
+        break;
+
+    case TOK_CFG_STREAM_TONE_AMP:
+        SNPRINTF(val, 128, "%.2f", priv->stream_tone_amp);
+        break;
+
+    case TOK_CFG_STREAM_IQ_OFFSET:
+        SNPRINTF(val, 128, "%.1f", priv->stream_iq_offset);
+        break;
+
+    case TOK_CFG_STREAM_SYNTH_GAP:
+        SNPRINTF(val, 128, "%ld", priv->stream_synth_gap);
         break;
 
     default:
@@ -2452,6 +2514,63 @@ static int dummy_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
     .ext_levels = 1,    \
     }
 
+static const struct rig_stream_caps dummy_stream_caps[] =
+{
+    {
+        .type = RIG_STREAM_TYPE_AUDIO_RX,
+        .formats = RIG_STREAM_FORMAT_PCM_S8
+                 | RIG_STREAM_FORMAT_PCM_U8
+                 | RIG_STREAM_FORMAT_PCM_S16
+                 | RIG_STREAM_FORMAT_PCM_F32,
+        .sample_rates = { 8000, 16000, 24000, 48000, 96000, 0 },
+        .channels_min = 1,
+        .channels_max = 2,
+        .max_streams = DUMMY_MAX_STREAMS_PER_TYPE,
+    },
+    {
+        .type = RIG_STREAM_TYPE_AUDIO_TX,
+        .formats = RIG_STREAM_FORMAT_PCM_S8
+                 | RIG_STREAM_FORMAT_PCM_U8
+                 | RIG_STREAM_FORMAT_PCM_S16
+                 | RIG_STREAM_FORMAT_PCM_F32,
+        .sample_rates = { 8000, 16000, 24000, 48000, 96000, 0 },
+        .channels_min = 1,
+        .channels_max = 2,
+        .max_streams = DUMMY_MAX_STREAMS_PER_TYPE,
+        .caps_flags = RIG_STREAM_CAP_TIMED_TX_COARSE
+                    | RIG_STREAM_CAP_TIMED_TX_SAMPLE
+                    | RIG_STREAM_CAP_BURST_PTT,
+        .tx_schedule_horizon_ms = 30000,
+    },
+    {
+        .type = RIG_STREAM_TYPE_IQ_RX,
+        .formats = RIG_STREAM_FORMAT_IQ_CU8
+                 | RIG_STREAM_FORMAT_IQ_CS8
+                 | RIG_STREAM_FORMAT_IQ_CS16
+                 | RIG_STREAM_FORMAT_IQ_CF32,
+        .sample_rates = { 24000, 48000, 96000, 192000, 0 },
+        .channels_min = 1,
+        .channels_max = 4,  /* coherent multi-channel I/Q (interleaved) */
+        .max_streams = DUMMY_MAX_STREAMS_PER_TYPE,
+    },
+    {
+        .type = RIG_STREAM_TYPE_IQ_TX,
+        .formats = RIG_STREAM_FORMAT_IQ_CU8
+                 | RIG_STREAM_FORMAT_IQ_CS8
+                 | RIG_STREAM_FORMAT_IQ_CS16
+                 | RIG_STREAM_FORMAT_IQ_CF32,
+        .sample_rates = { 24000, 48000, 96000, 192000, 0 },
+        .channels_min = 1,
+        .channels_max = 4,  /* coherent multi-channel I/Q (interleaved) */
+        .max_streams = DUMMY_MAX_STREAMS_PER_TYPE,
+        .caps_flags = RIG_STREAM_CAP_TIMED_TX_COARSE
+                    | RIG_STREAM_CAP_TIMED_TX_SAMPLE
+                    | RIG_STREAM_CAP_BURST_PTT,
+        .tx_schedule_horizon_ms = 30000,
+    },
+    { 0 },  /* sentinel */
+};
+
 struct rig_caps dummy_caps =
 {
     RIG_MODEL(RIG_MODEL_DUMMY),
@@ -2605,6 +2724,8 @@ struct rig_caps dummy_caps =
     },
     .spectrum_attenuator = { 10, 20, 30, RIG_DBLST_END, },
 
+    .stream_caps = dummy_stream_caps,
+
     .priv =  NULL,    /* priv */
 
     .extlevels =    dummy_ext_levels,
@@ -2691,6 +2812,10 @@ struct rig_caps dummy_caps =
     .mW2power =   dummy_mW2power,
     .set_clock = dummy_set_clock,
     .get_clock = dummy_get_clock,
+
+    .stream_open =  dummy_stream_open,
+    .stream_close = dummy_stream_close,
+
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 

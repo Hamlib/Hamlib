@@ -405,6 +405,26 @@ support some commands. In that case, the operation will fail with a
 .B Hamlib
 error message.
 .
+.IP
+.BR Note :
+The streaming commands of the UDP sample-data streaming subsystem
+.RB ( stream_caps ,
+.BR stream_open ,
+.BR stream_close ,
+.BR stream_status ,
+.BR stream_pause ,
+.BR stream_resume ,
+.BR stream_mute ,
+.BR stream_unmute ,
+.BR stream_metadata_read ,
+.BR stream_drain ,
+.BR stream_list )
+are only functional inside
+.BR rigctld (1),
+where they are documented; invoked through
+.B rigctl
+they return \-RIG_ENAVAIL.
+.
 .
 .SS Standard Input
 .
