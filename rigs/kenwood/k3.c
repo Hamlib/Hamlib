@@ -2347,8 +2347,7 @@ static int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_SWR:
         if (RIG_IS_K4)
         {
-            retval = k4_get_bar_graph_level(rig, &val->f, NULL, NULL, NULL);
-            return RIG_OK;
+            return k4_get_bar_graph_level(rig, &val->f, NULL, NULL, NULL);
         }
         else
         {
@@ -2359,7 +2358,10 @@ static int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                 return retval;
             }
 
-            sscanf(levelbuf + 2, "%d", &lvl);
+            if (sscanf(levelbuf + 2, "%d", &lvl) != 1)
+            {
+                return -RIG_EPROTO;
+            }
         }
 
         val->f = (float) lvl / 10.0f;
@@ -2746,7 +2748,10 @@ int k4_get_bar_graph_level(RIG *rig, float *swr, float *pwr, float *alc,
         return retval;
     }
 
-    sscanf(levelbuf, "TM%03d%03d%03d%03d", &ialc, &icmp, &ifwd, &iswr);
+    if (sscanf(levelbuf, "TM%03d%03d%03d%03d", &ialc, &icmp, &ifwd, &iswr) != 4)
+    {
+        return -RIG_EPROTO;
+    }
 
     if (swr) { *swr = iswr / 10.0; }
 
