@@ -179,14 +179,14 @@ int ftx1_get_mic_gain(RIG *rig, float *val)
 
 int ftx1_parse_smeter_response(const char *response, int *val)
 {
-    int p1_resp, level;
+    int level;
 
     /* Response: SM P1 P2P3P4; (P2-P4 is 3 digits 000-255 per spec) */
     if (strlen(response) < 6
             || response[3] < '0' || response[3] > '9'
             || response[4] < '0' || response[4] > '9'
             || response[5] < '0' || response[5] > '9'
-            || sscanf(response + 2, "%1d%3d", &p1_resp, &level) != 2)
+            || sscanf(response + 2, "%*1d%3d", &level) != 1)
     {
         return -RIG_EPROTO;
     }
