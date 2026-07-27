@@ -407,9 +407,8 @@ static int scanfc(FILE *fin, const char *format, void *p)
 
             if (!feof(fin))
             {
-                rig_debug(RIG_DEBUG_TRACE, "%s fscanf of:", __func__);
-                dump_hex((unsigned char *)p, strlen(p));
-                rig_debug(RIG_DEBUG_TRACE, " failed with format '%s'\n", format);
+                rig_debug(RIG_DEBUG_TRACE, "%s: fscanf failed with format '%s'\n",
+                          __func__, format);
             }
 
         }
@@ -2946,4 +2945,3 @@ int print_conf_list2(const struct confparams *cfp, rig_ptr_t data, FILE *fout)
 
     return 1;  /* !=0, we want them all ! */
 }
-
