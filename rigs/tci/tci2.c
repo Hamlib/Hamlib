@@ -45,7 +45,21 @@
 #include <ctype.h>
 #include <time.h>
 #include <unistd.h>
-#include <poll.h>
+
+/* select() lives in different headers on POSIX vs Windows.
+ * Match the pattern the rest of Hamlib uses (see src/network.c). */
+#if defined (HAVE_SYS_SOCKET_H)
+#  include <sys/socket.h>
+#endif
+#if defined (HAVE_SYS_SELECT_H)
+#  include <sys/select.h>
+#endif
+#if defined (HAVE_SYS_TIME_H)
+#  include <sys/time.h>
+#endif
+#if defined (HAVE_WINSOCK2_H)
+#  include <winsock2.h>
+#endif
 
 #include "hamlib/rig.h"
 #include "hamlib/port.h"
@@ -69,7 +83,11 @@
 #define TCI2_RECV_MAX      256   /* max frames to scan for a reply */
 #define TCI2_MAX_RT_MODES  64    /* runtime mode table slots */
 
-#define TCI2_MAX_TX_MW 100000u  /* assume 100 W max output */
+/* Fallback TX max power in mW if the caps table has no TX range list
+ * (e.g. RX-only rig or a caps file that forgot to populate tx_range_list1).
+ * Priv->tx_max_mw is normally initialized from caps->tx_range_list at
+ * open time — see tci2_open. */
+#define TCI2_DEFAULT_TX_MW 100000u  /* 100 W */
 
 /* -------------------------------------------------------------------------
  * Static mode map: TCI mode string <-> Hamlib rmode_t
@@ -178,6 +196,12 @@ struct tci2_priv
     /* Configuration */
     int     trx_num;          /* which TRX to control (0-based) */
     vfo_t   current_vfo;
+
+    /* Per-radio maximum TX power in mW, derived from caps->tx_range_list
+     * at open time.  Used by tci2_power2mW / tci2_mW2power so the 0..1
+     * normalized value is relative to *this* rig's max, not a hardcoded
+     * global constant. */
+    unsigned int tx_max_mw;
 };
 
 /* -------------------------------------------------------------------------
@@ -428,14 +452,17 @@ static int ws_handshake(RIG *rig)
 }
 
 /*
- * Send a text WebSocket frame.  Applies RFC 6455 client-side masking.
- * Handles payloads up to 65535 bytes.
+ * Send one masked WebSocket frame with FIN=1.  Generic — used for text
+ * (opcode 0x1), Pong (0xA), and Close (0x8).  Control frames per
+ * RFC 6455 §5.5 must have payload ≤125 bytes; text/binary can be larger
+ * but this helper caps at TCI2_CMDLEN (no fragmentation on the send path
+ * — every message we generate fits in one frame).
  */
-static int ws_send_text(RIG *rig, const char *text)
+static int ws_send_frame(RIG *rig, unsigned char opcode,
+                         const unsigned char *payload, size_t plen)
 {
     unsigned char frame[TCI2_CMDLEN + 16];
     unsigned char mask[4];
-    size_t plen = strlen(text);
     size_t flen;
 
     if (plen + 16 > sizeof(frame))
@@ -448,7 +475,7 @@ static int ws_send_text(RIG *rig, const char *text)
     mask[2] = (unsigned char)(rand() & 0xFF);
     mask[3] = (unsigned char)(rand() & 0xFF);
 
-    frame[0] = 0x81; /* FIN=1, opcode=1 (text) */
+    frame[0] = (unsigned char)(0x80 | (opcode & 0x0F)); /* FIN=1 + opcode */
 
     if (plen <= 125)
     {
@@ -457,7 +484,7 @@ static int ws_send_text(RIG *rig, const char *text)
 
         for (size_t i = 0; i < plen; i++)
         {
-            frame[6 + i] = (unsigned char)text[i] ^ mask[i & 3];
+            frame[6 + i] = payload[i] ^ mask[i & 3];
         }
 
         flen = 6 + plen;
@@ -471,7 +498,7 @@ static int ws_send_text(RIG *rig, const char *text)
 
         for (size_t i = 0; i < plen; i++)
         {
-            frame[8 + i] = (unsigned char)text[i] ^ mask[i & 3];
+            frame[8 + i] = payload[i] ^ mask[i & 3];
         }
 
         flen = 8 + plen;
@@ -480,29 +507,74 @@ static int ws_send_text(RIG *rig, const char *text)
     return write_block(RIGPORT(rig), frame, flen);
 }
 
+/* Convenience: send a text (opcode 0x1) frame. */
+static int ws_send_text(RIG *rig, const char *text)
+{
+    return ws_send_frame(rig, 0x1, (const unsigned char *)text, strlen(text));
+}
+
+/* Send an RFC 6455 §5.5.1 Close frame with an optional status code.
+ * A status of 0 means send an empty payload (allowed by the spec). */
+static int ws_send_close(RIG *rig, unsigned short status)
+{
+    unsigned char payload[2];
+
+    if (status == 0)
+    {
+        return ws_send_frame(rig, 0x8, NULL, 0);
+    }
+
+    payload[0] = (unsigned char)((status >> 8) & 0xFF);
+    payload[1] = (unsigned char)(status & 0xFF);
+    return ws_send_frame(rig, 0x8, payload, 2);
+}
+
+/* Send an RFC 6455 §5.5.3 Pong frame echoing the received Ping payload. */
+static int ws_send_pong(RIG *rig, const unsigned char *payload, size_t plen)
+{
+    return ws_send_frame(rig, 0xA, payload, plen);
+}
+
 /*
- * Receive one WebSocket frame from the server.
- * Returns payload length on success (buf is NUL-terminated text),
- * 0 for a binary frame (audio/IQ — drained and discarded; buf is empty),
- * or a negative Hamlib error code.
+ * Read one raw WebSocket frame from the socket into `buf` (up to buflen
+ * bytes; larger payloads are drained and truncated).  Returns the *actual*
+ * payload length read into buf (which may equal `plen_full` on success
+ * or 0 on truncation), with the frame header state exposed via the out
+ * params.  Applies mask unmasking to bytes stored in buf.
+ *
+ * This is the low-level primitive.  ws_recv_frame() below composes calls
+ * to this into a full RFC 6455 message-assembly loop, dispatching
+ * control frames inline (Ping→Pong, Close handshake).
+ *
+ * Out params:
+ *   *opcode_out    — WebSocket opcode (0x0 continuation, 0x1 text,
+ *                    0x2 binary, 0x8 close, 0x9 ping, 0xA pong)
+ *   *fin_out       — 1 if this is the last frame of the message, else 0
+ *   *plen_full_out — original payload length on the wire (may exceed
+ *                    what actually fits in buf)
  */
-static int ws_recv_frame(RIG *rig, char *buf, int buflen)
+static int ws_read_one_frame(RIG *rig,
+                             unsigned char *buf, size_t buflen,
+                             int *opcode_out, int *fin_out,
+                             size_t *plen_full_out)
 {
     unsigned char hdr[2];
     unsigned char ext[8];
     unsigned char mask[4];
+    unsigned char discard[256];
+    hamlib_port_t *rp = RIGPORT(rig);
     int retval;
     size_t plen;
-    int masked, opcode;
-    hamlib_port_t *rp = RIGPORT(rig);
+    size_t stored;
+    int masked, opcode, fin;
 
     retval = read_block(rp, hdr, 2);
-
     if (retval != 2)
     {
         return (retval < 0) ? retval : -RIG_EIO;
     }
 
+    fin    = (hdr[0] & 0x80) != 0;
     opcode = hdr[0] & 0x0F;
     masked = (hdr[1] & 0x80) != 0;
     plen   = hdr[1] & 0x7F;
@@ -510,23 +582,13 @@ static int ws_recv_frame(RIG *rig, char *buf, int buflen)
     if (plen == 126)
     {
         retval = read_block(rp, ext, 2);
-
-        if (retval != 2)
-        {
-            return -RIG_EIO;
-        }
-
+        if (retval != 2) { return -RIG_EIO; }
         plen = ((size_t)ext[0] << 8) | ext[1];
     }
     else if (plen == 127)
     {
         retval = read_block(rp, ext, 8);
-
-        if (retval != 8)
-        {
-            return -RIG_EIO;
-        }
-
+        if (retval != 8) { return -RIG_EIO; }
         plen = ((size_t)ext[4] << 24) | ((size_t)ext[5] << 16) |
                ((size_t)ext[6] << 8)  | ext[7];
     }
@@ -534,87 +596,181 @@ static int ws_recv_frame(RIG *rig, char *buf, int buflen)
     if (masked)
     {
         retval = read_block(rp, mask, 4);
+        if (retval != 4) { return -RIG_EIO; }
+    }
 
-        if (retval != 4)
+    /* Read as much as fits into buf, drain the rest. */
+    stored = (plen > buflen) ? buflen : plen;
+
+    if (stored > 0)
+    {
+        retval = read_block(rp, buf, stored);
+        if (retval != (int)stored) { return -RIG_EIO; }
+
+        if (masked)
         {
-            return -RIG_EIO;
+            for (size_t i = 0; i < stored; i++)
+            {
+                buf[i] ^= mask[i & 3];
+            }
         }
     }
 
-    /* Binary frames carry audio/IQ -- not used by this CAT-only backend.
-     * Drain the bytes off the socket and return 0 to signal "skip this". */
-    if (opcode == 0x02)
+    /* Drain any overflow that didn't fit. */
     {
-        unsigned char discard[256];
-        size_t remain = plen;
-
+        size_t remain = plen - stored;
         while (remain > 0)
         {
             size_t chunk = (remain > sizeof(discard)) ? sizeof(discard) : remain;
             retval = read_block(rp, discard, chunk);
+            if (retval != (int)chunk) { return -RIG_EIO; }
+            remain -= chunk;
+        }
+    }
 
-            if (retval != (int)chunk)
+    *opcode_out    = opcode;
+    *fin_out       = fin;
+    *plen_full_out = plen;
+    return (int)stored;
+}
+
+/*
+ * Receive one complete WebSocket message from the server.
+ * Handles per RFC 6455:
+ *   §5.4  fragmentation reassembly (FIN bit + continuation opcode 0x0)
+ *   §5.5.2 Ping (0x9) → Pong (0xA) auto-response
+ *   §5.5.1 Close (0x8) handshake — echo Close back and return -RIG_EIO
+ *   binary frames (0x2) — drained/discarded (CAT-only backend)
+ *
+ * Returns payload length on success (buf is NUL-terminated text),
+ * 0 for a binary message (audio/IQ — buf is empty),
+ * or a negative Hamlib error code (on Close, transport error, etc.).
+ */
+static int ws_recv_frame(RIG *rig, char *buf, int buflen)
+{
+    unsigned char frame_buf[TCI2_WS_BUFLEN];
+    size_t assembled = 0;      /* bytes accumulated in buf across frames */
+    int msg_opcode = -1;       /* opcode of the message being assembled  */
+    int is_binary = 0;
+    int truncated = 0;
+    int frames_seen = 0;
+
+    /* Cap total frames per message to bound worst-case latency if a peer
+     * sends a pathological continuation chain. */
+    while (frames_seen++ < TCI2_RECV_MAX)
+    {
+        int opcode, fin;
+        size_t plen_full;
+        int stored = ws_read_one_frame(rig, frame_buf, sizeof(frame_buf),
+                                       &opcode, &fin, &plen_full);
+        if (stored < 0) { return stored; }
+
+        /* --- Control frames (§5.5): opcodes 0x8, 0x9, 0xA.  May be
+         * interleaved with data-frame fragments and MUST be handled
+         * without disturbing the reassembly buffer. */
+        if (opcode & 0x08)
+        {
+            if (opcode == 0x09)  /* Ping */
             {
+                ws_send_pong(rig, frame_buf, (size_t)stored);
+                continue;
+            }
+            if (opcode == 0x0A)  /* Pong — nothing to do */
+            {
+                continue;
+            }
+            if (opcode == 0x08)  /* Close */
+            {
+                /* Echo back a Close if we haven't already sent one.
+                 * Best-effort — ignore write errors. */
+                ws_send_close(rig, 0);
                 return -RIG_EIO;
             }
-
-            remain -= chunk;
+            /* Unknown control opcode — ignore */
+            continue;
         }
 
-        buf[0] = '\0';
-        return 0;
-    }
-
-    /* Text frame too large for caller buffer -- drain it */
-    if (plen > (size_t)(buflen - 1))
-    {
-        unsigned char discard[256];
-        size_t remain = plen;
-
-        while (remain > 0)
+        /* --- Data frames: 0x0 (continuation), 0x1 (text), 0x2 (binary). */
+        if (opcode == 0x0)
         {
-            size_t chunk = (remain > sizeof(discard)) ? sizeof(discard) : remain;
-            read_block(rp, discard, chunk);
-            remain -= chunk;
+            /* Continuation of an in-progress message */
+            if (msg_opcode < 0)
+            {
+                rig_debug(RIG_DEBUG_WARN,
+                          "%s: continuation frame with no message in progress\n",
+                          __func__);
+                return -RIG_EPROTO;
+            }
         }
-
-        buf[0] = '\0';
-        return 0;
-    }
-
-    /* Connection close */
-    if (opcode == 0x08)
-    {
-        return -RIG_EPROTO;
-    }
-
-    retval = read_block(rp, (unsigned char *)buf, plen);
-
-    if (retval != (int)plen)
-    {
-        return -RIG_EIO;
-    }
-
-    buf[plen] = '\0';
-
-    if (masked)
-    {
-        for (size_t i = 0; i < plen; i++)
+        else
         {
-            buf[i] ^= mask[i & 3];
+            /* Start of a new message */
+            if (msg_opcode >= 0)
+            {
+                rig_debug(RIG_DEBUG_WARN,
+                          "%s: new data frame before previous FIN\n", __func__);
+                return -RIG_EPROTO;
+            }
+            msg_opcode = opcode;
+            is_binary = (opcode == 0x02);
         }
+
+        if (is_binary)
+        {
+            /* CAT-only — silently discard. */
+            if (fin)
+            {
+                buf[0] = '\0';
+                return 0;
+            }
+            continue;
+        }
+
+        /* Text — accumulate into caller buf. */
+        if (stored < (int)plen_full)
+        {
+            /* This fragment was already truncated by ws_read_one_frame
+             * because our internal frame_buf overflowed.  Skip it. */
+            truncated = 1;
+        }
+        else if (!truncated)
+        {
+            size_t space = (size_t)buflen - 1 - assembled;
+            size_t take = ((size_t)stored > space) ? space : (size_t)stored;
+            memcpy(buf + assembled, frame_buf, take);
+            assembled += take;
+            if (take < (size_t)stored) { truncated = 1; }
+        }
+
+        if (!fin) { continue; }
+
+        /* End of message */
+        if (truncated)
+        {
+            rig_debug(RIG_DEBUG_WARN,
+                      "%s: dropped oversized text message\n", __func__);
+            buf[0] = '\0';
+            return 0;
+        }
+
+        buf[assembled] = '\0';
+
+        /* Normalize: uppercase the command keyword (before the first ':') so
+         * sscanf format strings and prefix comparisons work regardless of
+         * whether the server sends "VFO:" or "vfo:". */
+        for (size_t i = 0; i < assembled &&
+                           buf[i] != ':' && buf[i] != ';'; i++)
+        {
+            buf[i] = (char)toupper((unsigned char)buf[i]);
+        }
+
+        rig_debug(RIG_DEBUG_TRACE, "%s: recv: %s\n", __func__, buf);
+        return (int)assembled;
     }
 
-    /* Normalize: uppercase the command keyword (before the first ':') so that
-     * sscanf format strings and prefix comparisons work regardless of whether
-     * the server sends "VFO:" or "vfo:". */
-    for (size_t i = 0; i < plen && buf[i] != ':' && buf[i] != ';'; i++)
-    {
-        buf[i] = (char)toupper((unsigned char)buf[i]);
-    }
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: recv: %s\n", __func__, buf);
-    return (int)plen;
+    rig_debug(RIG_DEBUG_ERR,
+              "%s: message exceeded %d frames\n", __func__, TCI2_RECV_MAX);
+    return -RIG_EPROTO;
 }
 
 /* -------------------------------------------------------------------------
@@ -642,14 +798,20 @@ static int tci2_drain(RIG *rig)
 {
     hamlib_port_t *rp = RIGPORT(rig);
     char buf[TCI2_WS_BUFLEN];
-    struct pollfd pfd = { .fd = rp->fd, .events = POLLIN };
     int drained = 0;
 
     while (drained < TCI2_RECV_MAX)
     {
-        int pr = poll(&pfd, 1, 0);  /* non-blocking */
+        fd_set rfds;
+        struct timeval tv = { 0, 0 };  /* non-blocking poll */
+        int pr;
+
+        FD_ZERO(&rfds);
+        FD_SET(rp->fd, &rfds);
+
+        pr = select(rp->fd + 1, &rfds, NULL, NULL, &tv);
         if (pr <= 0) { break; }
-        if (!(pfd.revents & POLLIN)) { break; }
+        if (!FD_ISSET(rp->fd, &rfds)) { break; }
 
         int retval = ws_recv_frame(rig, buf, sizeof(buf));
         if (retval < 0) { return retval; }
@@ -1494,6 +1656,23 @@ int tci2_init(RIG *rig)
     strncpy(priv->mode_str, "USB", sizeof(priv->mode_str) - 1);
     strncpy(priv->txsource, "default", sizeof(priv->txsource) - 1);
 
+    /* Derive max TX power in mW from caps->tx_range_list1.  Takes the
+     * largest high_power across all ranges (all bands on a TCI radio
+     * usually have the same TX ceiling anyway).  Falls back to a
+     * generous default if the caps table has no TX list. */
+    priv->tx_max_mw = 0;
+    for (int i = 0; i < HAMLIB_FRQRANGESIZ; i++)
+    {
+        const freq_range_t *r = &rig->caps->tx_range_list1[i];
+        if (RIG_IS_FRNG_END(*r)) { break; }
+        if (r->high_power > 0 &&
+            (unsigned int)r->high_power > priv->tx_max_mw)
+        {
+            priv->tx_max_mw = (unsigned int)r->high_power;
+        }
+    }
+    if (priv->tx_max_mw == 0) { priv->tx_max_mw = TCI2_DEFAULT_TX_MW; }
+
     STATE(rig)->priv = priv;
 
     strncpy(RIGPORT(rig)->pathname, TCI2_DEFAULTPATH,
@@ -1599,6 +1778,10 @@ int tci2_close(RIG *rig)
     /* Best-effort unsubscribe; don't retry on failure since we're closing. */
     ws_send_text(rig, "RX_SENSORS_ENABLE:false;");
     ws_send_text(rig, "TX_SENSORS_ENABLE:false;");
+
+    /* RFC 6455 §5.5.1: send a Close frame before dropping the TCP.
+     * 1000 = Normal Closure.  Best-effort; errors are non-fatal. */
+    ws_send_close(rig, 1000);
 
     RETURNFUNC(RIG_OK);
 }
@@ -2441,8 +2624,9 @@ int tci2_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_RFPOWER_METER:
-        /* TX power is pushed asynchronously; return normalised 0..1. */
-        val->f = priv->tx_power_w / ((float)(TCI2_MAX_TX_MW) / 1000.0f);
+        /* TX power is pushed asynchronously; return normalised 0..1.
+         * tx_power_w is in watts; tx_max_mw is per-rig in milliwatts. */
+        val->f = priv->tx_power_w / ((float)priv->tx_max_mw / 1000.0f);
 
         if (val->f > 1.0f) { val->f = 1.0f; }
 
@@ -2693,22 +2877,27 @@ int tci2_wait_morse(RIG *rig, vfo_t vfo)
 }
 
 /* -------------------------------------------------------------------------
- * Power conversion  (assumes 100 W max; actual max is hardware-dependent)
+ * Power conversion.  Uses per-rig priv->tx_max_mw (derived from caps at
+ * init time) so 1.0 == this rig's rated TX ceiling.  The SunSDR2 PRO is
+ * 15 W; a hypothetical 100 W TCI rig would set high_power = W(100) in
+ * its caps and everything scales automatically.
  * ---------------------------------------------------------------------- */
 
 int tci2_power2mW(RIG *rig, unsigned int *mwpower,
                           float power, freq_t freq, rmode_t mode)
 {
+    struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
     ENTERFUNC;
-    *mwpower = (unsigned int)(power * (float)TCI2_MAX_TX_MW);
+    *mwpower = (unsigned int)(power * (float)priv->tx_max_mw);
     RETURNFUNC(RIG_OK);
 }
 
 int tci2_mW2power(RIG *rig, float *power,
                           unsigned int mwpower, freq_t freq, rmode_t mode)
 {
+    struct tci2_priv *priv = (struct tci2_priv *)STATE(rig)->priv;
     ENTERFUNC;
-    *power = (float)mwpower / (float)TCI2_MAX_TX_MW;
+    *power = (float)mwpower / (float)priv->tx_max_mw;
 
     if (*power > 1.0f) { *power = 1.0f; }
 
