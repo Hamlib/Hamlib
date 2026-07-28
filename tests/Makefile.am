@@ -20,6 +20,7 @@ DIRECT_TESTS = \
 	testbandmetadata \
 	testctlparser \
 	testdebug \
+	testdummyparm \
 	testid5100 \
 	testicomfallback \
 	testft991idmeter \
