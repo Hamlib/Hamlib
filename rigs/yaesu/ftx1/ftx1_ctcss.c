@@ -23,6 +23,23 @@
  *   07=85.4   17=118.8  27=162.2  37=192.8  47=241.8
  *   08=88.5   18=123.0  28=165.5  38=196.6  48=250.3
  *   09=91.5   19=127.3  29=167.9  39=199.5  49=254.1
+ *
+ * DCS Code Table (00-103 per spec, 0-based indexing):
+ * 000=023  015=074  030=165  045=261  060=356  075=462  090=627
+ * 001=025  016=114  031=172  046=263  061=364  076=464  091=631
+ * 002=026  017=115  032=174  047=265  062=365  077=465  092=632
+ * 003=031  018=116  033=205  048=266  063=371  078=466  093=654
+ * 004=032  019=122  034=212  049=271  064=411  079=503  094=662
+ * 005=036  020=125  035=223  050=274  065=412  080=506  095=664
+ * 006=043  021=131  036=225  051=306  066=413  081=516  096=703
+ * 007=047  022=132  037=226  052=311  067=423  082=523  097=712
+ * 008=051  023=134  038=243  053=315  068=431  083=526  098=723
+ * 009=053  024=143  039=244  054=325  069=432  084=532  099=731
+ * 010=054  025=145  040=245  055=331  070=445  085=546  100=732
+ * 011=065  026=152  041=246  056=332  071=446  086=565  101=734
+ * 012=071  027=155  042=251  057=343  072=452  087=606  102=743
+ * 013=072  028=156  043=252  058=346  073=454  088=612  103=754
+ * 014=073  029=162  044=255  059=351  074=455  089=624
  */
 
 #include <stdlib.h>
@@ -43,6 +60,26 @@ static const unsigned int ftx1_ctcss_tones[] = {
     1318, 1365, 1413, 1462, 1514, 1567, 1598, 1622, 1655, 1679,  /* 20-29 */
     1713, 1738, 1773, 1799, 1835, 1862, 1899, 1928, 1966, 1995,  /* 30-39 */
     2035, 2065, 2107, 2181, 2257, 2291, 2336, 2418, 2503, 2541   /* 40-49 */
+};
+
+#define FTX1_DCS_MIN 0
+#define FTX1_DCS_MAX 103
+
+static const unsigned int ftx1_dcs_codes[] = {
+     /* 000-014 */
+    23,  25,  26,  31,  32,  36,  43,  47,  51,  53,  54,  65,  71,  72,  73,
+     /* 015-029 */
+    74,  114, 115, 116, 122, 125, 131, 132, 134, 143, 145, 152, 155, 156, 162,
+     /* 030-044 */
+    165, 172, 174, 205, 212, 223, 225, 226, 243, 244, 245, 246, 251, 252, 255,
+      /* 045-059 */
+    261, 263, 265, 266, 271, 274, 306, 311, 315, 325, 331, 332, 343, 346, 351,
+      /* 060-074 */
+    356, 364, 365, 371, 411, 412, 413, 423, 431, 432, 445, 446, 452, 454, 455,
+      /* 075-089 */
+    462, 464, 465, 466, 503, 506, 516, 523, 526, 532, 546, 565, 606, 612, 624,
+      /* 090-103 */
+    627, 631, 632, 654, 662, 664, 703, 712, 723, 731, 732, 734, 743, 754
 };
 
 /* Convert CTCSS frequency (in 0.1 Hz) to tone number (0-based per spec) */
@@ -70,6 +107,29 @@ unsigned int ftx1_tone_num_to_freq(int num)
     }
 
     return ftx1_ctcss_tones[num];
+}
+
+int ftx1_code_to_dcs_num(unsigned int code)
+{
+    for (int i = 0; i <= FTX1_DCS_MAX; i++)
+    {
+        if (ftx1_dcs_codes[i] == code)
+        {
+            return i;  /* DCS numbers are 0-based (000-103) per spec */
+        }
+    }
+
+    return -1;  /* Not found */
+}
+
+unsigned int ftx1_dcs_num_to_code(int num)
+{
+    if (num < FTX1_DCS_MIN || num > FTX1_DCS_MAX)
+    {
+        return 0;
+    }
+
+    return ftx1_dcs_codes[num];
 }
 
 /*
@@ -175,7 +235,7 @@ int ftx1_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
     /* CN on Main is a transient overlay in Memory mode — exit first. */
     ftx1_ensure_vfo_mode(rig);
 
-    /* P1=0 for TX tone, P2P3P4 is 3-digit tone number */
+    /* P1=0 for Main VFO, P2=0 for CTCSS TONE, P3 is 3-digit tone number */
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN00%03d;", tone_num);
     return newcat_set_cmd(rig);
 }
@@ -190,13 +250,13 @@ int ftx1_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
-    /* P1=0 for TX tone, need CN00; to query */
+    /* P1=0 for Main VFO, P2=0 for CTCSS TONE, need CN00; to query */
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN00;");
 
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    /* Response format: CN P1 P2P3P4 (e.g., CN00012 for TX tone 12) */
+    /* Response format: CN P1 P2P3 (e.g., CN00012 for tone 12) */
     if (sscanf(priv->ret_data + 2, "%2d%3d", &p1, &tone_num) != 2)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
@@ -212,63 +272,16 @@ int ftx1_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
     return RIG_OK;
 }
 
-/* Set CTCSS Squelch Tone (CN P1 P2P3P4; with P1=1 for RX) */
+/* Set CTCSS Squelch Tone: the rig doesn't support separate tones */
 int ftx1_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 {
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int tone_num;
-
-    (void)vfo;  /* Unused */
-
-    tone_num = ftx1_freq_to_tone_num(tone);
-
-    if (tone_num < 0)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: tone %u not found in table\n", __func__,
-                  tone);
-        return -RIG_EINVAL;
-    }
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: tone=%u tone_num=%d\n", __func__, tone,
-              tone_num);
-
-    /* P1=1 for RX tone, P2P3P4 is 3-digit tone number.  CN10 targets
-     * Sub VFO, which is not affected by Main's Memory mode, so no
-     * VM000 injection is needed here. */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN10%03d;", tone_num);
-    return newcat_set_cmd(rig);
+    return ftx1_set_ctcss_tone(rig, vfo, tone);
 }
 
 /* Get CTCSS Squelch Tone */
 int ftx1_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 {
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret, p1, tone_num;
-
-    (void)vfo;  /* Unused */
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
-
-    /* P1=1 for RX tone, need CN10; to query */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN10;");
-
-    ret = newcat_get_cmd(rig);
-    if (ret != RIG_OK) return ret;
-
-    /* Response format: CN P1 P2P3P4 (e.g., CN10012 for RX tone 12) */
-    if (sscanf(priv->ret_data + 2, "%2d%3d", &p1, &tone_num) != 2)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    *tone = ftx1_tone_num_to_freq(tone_num);
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: tone_num=%d tone=%u\n", __func__,
-              tone_num, *tone);
-
-    return RIG_OK;
+    return ftx1_get_ctcss_tone(rig, vfo, tone);
 }
 
 /*
@@ -284,16 +297,26 @@ int ftx1_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 int ftx1_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
+    int code_num;
 
     (void)vfo;  /* Unused - always Main for now */
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: code=%u\n", __func__, code);
+    code_num = ftx1_code_to_dcs_num(code);
+    if (code_num < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: code %u not found in table\n", __func__,
+                  code);
+        return -RIG_EINVAL;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: code=%u code_num=%d\n", __func__, code,
+              code_num);
 
     /* CN on Main is a transient overlay in Memory mode — exit first. */
     ftx1_ensure_vfo_mode(rig);
 
     /* CN01XXX: Main VFO (0), DCS (1), code index */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN01%03u;", code);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN01%03d;", code_num);
     return newcat_set_cmd(rig);
 }
 
@@ -302,7 +325,7 @@ int ftx1_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret, p1p2;
-    unsigned int dcs;
+    unsigned int dcs_num;
 
     (void)vfo;  /* Unused */
 
@@ -315,67 +338,31 @@ int ftx1_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
     if (ret != RIG_OK) return ret;
 
     /* Response format: CN01XXX (e.g., CN01023) */
-    if (sscanf(priv->ret_data + 2, "%2d%3u", &p1p2, &dcs) != 2)
+    if (sscanf(priv->ret_data + 2, "%2d%3d", &p1p2, &dcs_num) != 2)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
                   priv->ret_data);
         return -RIG_EPROTO;
     }
 
-    *code = dcs;
+    *code = ftx1_dcs_num_to_code(dcs_num);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: code=%u\n", __func__, *code);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: code_num=%d code=%u\n", __func__,
+              dcs_num, *code);
 
     return RIG_OK;
 }
 
 /*
- * Set DCS Squelch Code (CN P1 P2 P3P4P5;)
- *
- * For RX squelch, we use Sub VFO DCS: CN11XXX
- * Note: This may need adjustment based on actual radio behavior.
+ * Set DCS Squelch Code: the rig doesn't support separate codes
  */
 int ftx1_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
 {
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-
-    (void)vfo;  /* Unused */
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: code=%u\n", __func__, code);
-
-    /* CN11XXX: Sub VFO (1), DCS (1), code index */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN11%03u;", code);
-    return newcat_set_cmd(rig);
+    return ftx1_set_dcs_code(rig, vfo, code);
 }
 
-/* Get DCS Squelch Code (CN P1 P2;) */
+/* Get DCS Squelch Code */
 int ftx1_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
 {
-    struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret, p1p2;
-    unsigned int dcs;
-
-    (void)vfo;  /* Unused */
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
-
-    /* Query Sub DCS: CN11; */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN11;");
-
-    ret = newcat_get_cmd(rig);
-    if (ret != RIG_OK) return ret;
-
-    /* Response format: CN11XXX (e.g., CN11023) */
-    if (sscanf(priv->ret_data + 2, "%2d%3u", &p1p2, &dcs) != 2)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    *code = dcs;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: code=%u\n", __func__, *code);
-
-    return RIG_OK;
+    return ftx1_get_dcs_code(rig, vfo, code);
 }
