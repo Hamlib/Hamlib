@@ -302,7 +302,14 @@ size_t HAMLIB_API to_hex(size_t source_length, const unsigned char *source_data,
     const unsigned char *source = source_data;
     char *dest = dest_data;
 
-    if (source_length == 0 || dest_length == 0)
+    if (dest_length == 0)
+    {
+        return 0;
+    }
+
+    dest_data[0] = '\0';
+
+    if (source_length == 0)
     {
         return 0;
     }
