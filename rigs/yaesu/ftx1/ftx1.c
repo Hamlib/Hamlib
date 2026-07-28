@@ -85,6 +85,7 @@ extern int ftx1_get_att_helper(RIG *rig, vfo_t vfo, value_t *val);
 
 /* Wrappers from ftx1_func.c for rig caps */
 extern int ftx1_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+extern int ftx1_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 extern int ftx1_set_ptt_func(RIG *rig, vfo_t vfo, ptt_t ptt);
 extern int ftx1_get_ptt_func(RIG *rig, vfo_t vfo, ptt_t *ptt);
 extern int ftx1_set_powerstat_func(RIG *rig, powerstat_t status);
@@ -1245,7 +1246,7 @@ struct rig_caps ftx1_caps = {
     .set_freq = ftx1_set_freq,
     .get_freq = ftx1_get_freq,
     .set_mode = ftx1_set_mode,
-    .get_mode = newcat_get_mode,
+    .get_mode = ftx1_get_mode,
     .set_vfo = ftx1_set_vfo,
     .get_vfo = ftx1_get_vfo,
     .set_ptt = ftx1_set_ptt_func,
