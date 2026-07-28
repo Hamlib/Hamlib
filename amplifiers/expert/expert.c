@@ -1262,8 +1262,24 @@ retry:
     return RIG_OK;
 }
 
+static int expert_status_ant_to_value(char status, int count, ant_t *ant)
+{
+    int index;
+
+    if (status < '0' || status > '0' + count)
+    {
+        return -RIG_EPROTO;
+    }
+
+    index = status - '0';
+    *ant = index == 0 ? RIG_ANT_NONE : RIG_ANT_N(index - 1);
+
+    return RIG_OK;
+}
+
 int expert_get_input(AMP *amp, ant_t *input)
 {
+    const struct expert_priv_caps *priv_caps = amp->caps->priv;
     struct expert_priv_data *priv = AMPSTATE(amp)->priv;
     expert_status_response *status_response = &priv->status_response;
     int result;
@@ -1274,17 +1290,8 @@ int expert_get_input(AMP *amp, ant_t *input)
         return result;
     }
 
-    int input_value = status_response->input - '0';
-
-    if (input_value == 0)
-    {
-        *input = RIG_ANT_NONE;
-        return RIG_OK;
-    }
-
-    *input = RIG_ANT_N(input_value - 1);
-
-    return RIG_OK;
+    return expert_status_ant_to_value(status_response->input,
+                                      priv_caps->input_count, input);
 }
 
 static int expert_ant_to_idx(ant_t ant)
@@ -1327,7 +1334,14 @@ change_again:
         return result;
     }
 
-    ant_t current_input_value = RIG_ANT_N(status_response->input - '0' - 1);
+    ant_t current_input_value;
+
+    result = expert_status_ant_to_value(status_response->input,
+                                        priv_caps->input_count, &current_input_value);
+    if (result != RIG_OK)
+    {
+        return result;
+    }
 
     if (input != current_input_value)
     {
@@ -1358,6 +1372,7 @@ change_again:
 
 int expert_get_ant(AMP *amp, ant_t *ant)
 {
+    const struct expert_priv_caps *priv_caps = amp->caps->priv;
     struct expert_priv_data *priv = AMPSTATE(amp)->priv;
     expert_status_response *status_response = &priv->status_response;
     int result;
@@ -1368,17 +1383,8 @@ int expert_get_ant(AMP *amp, ant_t *ant)
         return result;
     }
 
-    int tx_antenna_value = status_response->tx_antenna - '0';
-
-    if (tx_antenna_value == 0)
-    {
-        *ant = RIG_ANT_NONE;
-        return RIG_OK;
-    }
-
-    *ant = RIG_ANT_N(tx_antenna_value - 1);
-
-    return RIG_OK;
+    return expert_status_ant_to_value(status_response->tx_antenna,
+                                      priv_caps->antenna_count, ant);
 }
 
 int expert_set_ant(AMP *amp, ant_t ant)
@@ -1410,16 +1416,13 @@ change_again:
         return result;
     }
 
-    int tx_antenna_value = status_response->tx_antenna - '0';
     ant_t current_ant_value;
 
-    if (tx_antenna_value == 0)
+    result = expert_status_ant_to_value(status_response->tx_antenna,
+                                        priv_caps->antenna_count, &current_ant_value);
+    if (result != RIG_OK)
     {
-        current_ant_value = RIG_ANT_NONE;
-    }
-    else
-    {
-        current_ant_value = RIG_ANT_N(tx_antenna_value - 1);
+        return result;
     }
 
     if (ant != current_ant_value)
