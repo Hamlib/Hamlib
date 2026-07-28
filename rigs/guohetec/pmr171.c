@@ -297,6 +297,7 @@ static int pmr171_init(RIG *rig)
     {
         return -RIG_ENOMEM;
     }
+    data->filterBW = RIG_PASSBAND_NORMAL;
     STATE(rig)->priv = data;
     
     return RIG_OK;
