@@ -177,21 +177,26 @@ int ftx1_get_mic_gain(RIG *rig, float *val)
     return RIG_OK;
 }
 
-int ftx1_parse_smeter_response(const char *response, int *val)
+int ftx1_parse_smeter_response(const char *response, int p1, int *val)
 {
     int level;
 
     /* Response: SM P1 P2P3P4; (P2-P4 is 3 digits 000-255 per spec) */
-    if (strlen(response) < 6
+    if (p1 < 0 || p1 > 1 || strlen(response) != 7
+            || response[0] != 'S' || response[1] != 'M'
+            || response[2] != '0' + p1
             || response[3] < '0' || response[3] > '9'
             || response[4] < '0' || response[4] > '9'
             || response[5] < '0' || response[5] > '9'
-            || sscanf(response + 2, "%*1d%3d", &level) != 1)
+            || response[6] != ';')
     {
         return -RIG_EPROTO;
     }
 
-    if (level < 0 || level > FTX1_SMETER_MAX)
+    level = (response[3] - '0') * 100 + (response[4] - '0') * 10
+            + response[5] - '0';
+
+    if (level > FTX1_SMETER_MAX)
     {
         return -RIG_EPROTO;
     }
@@ -215,7 +220,7 @@ int ftx1_get_smeter(RIG *rig, vfo_t vfo, int *val)
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    ret = ftx1_parse_smeter_response(priv->ret_data, val);
+    ret = ftx1_parse_smeter_response(priv->ret_data, p1, val);
 
     if (ret != RIG_OK)
     {
