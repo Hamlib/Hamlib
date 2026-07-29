@@ -2930,7 +2930,7 @@ const char *rig_get_band_str(RIG *rig, hamlib_band_t band, int which)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: unable to find open paren in '%s'\n", __func__,
                       bandlist);
-            return 0;
+            return "BANDGEN";
         }
 
         p++;
