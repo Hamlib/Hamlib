@@ -11,6 +11,7 @@ int main(void)
 
 #include <errno.h>
 #include <fcntl.h>
+#include <math.h>
 #include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -30,6 +31,20 @@ enum reply_fault
     FAULT_MALFORMED,
     FAULT_WRONG_CHANNEL,
     FAULT_REJECT_ONCE,
+    FAULT_SM_WRONG_BAND,
+    FAULT_SM_OUT_OF_RANGE,
+    FAULT_BY_WRONG_BAND,
+    FAULT_BY_OUT_OF_RANGE,
+    FAULT_AG_OUT_OF_RANGE,
+    FAULT_VG_MALFORMED,
+    FAULT_VD_OUT_OF_RANGE,
+    FAULT_VX_OUT_OF_RANGE,
+    FAULT_VX_MISMATCH_ACK,
+    FAULT_RT_INVALID_DATE,
+    FAULT_RT_NON_DECIMAL,
+    FAULT_RT_TRUNCATED,
+    FAULT_RT_WRONG_PREFIX,
+    FAULT_RT_MISMATCH_ACK,
 };
 
 static const char fo_zero[] =
@@ -89,11 +104,22 @@ static int emulate(int master)
 {
     char command[MEMORY_RECORD_MAX];
     char memory[MEMORY_RECORD_MAX] = "";
+    char reply[MEMORY_RECORD_MAX];
+    char clock_record[MEMORY_RECORD_MAX] = "RT 260729095824";
     enum reply_fault next_fault = FAULT_NONE;
     unsigned int memory_queries = 0;
+    int audio_gain = 46;
+    int busy[2] = { 0, 1 };
     int canonicalize_next_write = 0;
     int mode[2] = { 0, 0 };
+    int power[2] = { 0, 3 };
+    int selected_band = 0;
+    int signal[2] = { 0, 5 };
+    int squelch[2] = { 1, 2 };
     int stress = 0;
+    int vox_delay = 1;
+    int vox_enabled = 0;
+    int vox_gain = 4;
 
     while (read_command(master, command, sizeof(command)) == 0)
     {
@@ -103,7 +129,13 @@ static int emulate(int master)
         }
         else if (strcmp(command, "BC") == 0)
         {
-            send_reply(master, "BC 0");
+            snprintf(reply, sizeof(reply), "BC %d", selected_band);
+            send_reply(master, reply);
+        }
+        else if (strcmp(command, "BC 0") == 0 || strcmp(command, "BC 1") == 0)
+        {
+            selected_band = command[3] - '0';
+            send_reply(master, command);
         }
         else if (strcmp(command, "AI") == 0)
         {
@@ -126,6 +158,207 @@ static int emulate(int master)
             int band = command[3] - '0';
             mode[band] = command[5] - '0';
             send_reply(master, command);
+        }
+        else if (strcmp(command, "SM 0") == 0 || strcmp(command, "SM 1") == 0)
+        {
+            int band = command[3] - '0';
+
+            if (next_fault == FAULT_SM_OUT_OF_RANGE)
+            {
+                next_fault = FAULT_NONE;
+                snprintf(reply, sizeof(reply), "SM %d,6", band);
+                send_reply(master, reply);
+                continue;
+            }
+            else if (next_fault == FAULT_SM_WRONG_BAND)
+            {
+                next_fault = FAULT_NONE;
+                band = 1 - band;
+            }
+
+            snprintf(reply, sizeof(reply), "SM %d,%d", band, signal[band]);
+            send_reply(master, reply);
+        }
+        else if (strcmp(command, "BY 0") == 0 || strcmp(command, "BY 1") == 0)
+        {
+            int band = command[3] - '0';
+
+            if (next_fault == FAULT_BY_OUT_OF_RANGE)
+            {
+                next_fault = FAULT_NONE;
+                snprintf(reply, sizeof(reply), "BY %d,2", band);
+                send_reply(master, reply);
+                continue;
+            }
+            else if (next_fault == FAULT_BY_WRONG_BAND)
+            {
+                next_fault = FAULT_NONE;
+                band = 1 - band;
+            }
+
+            snprintf(reply, sizeof(reply), "BY %d,%d", band, busy[band]);
+            send_reply(master, reply);
+        }
+        else if (strcmp(command, "PC 0") == 0 || strcmp(command, "PC 1") == 0)
+        {
+            int band = command[3] - '0';
+            snprintf(reply, sizeof(reply), "PC %d,%d", band, power[band]);
+            send_reply(master, reply);
+        }
+        else if (strlen(command) == 6 && strncmp(command, "PC ", 3) == 0
+                 && (command[3] == '0' || command[3] == '1')
+                 && command[4] == ',' && command[5] >= '0' && command[5] <= '3')
+        {
+            power[command[3] - '0'] = command[5] - '0';
+            send_reply(master, command);
+        }
+        else if (strcmp(command, "SQ 0") == 0 || strcmp(command, "SQ 1") == 0)
+        {
+            int band = command[3] - '0';
+            snprintf(reply, sizeof(reply), "SQ %d,%d", band, squelch[band]);
+            send_reply(master, reply);
+        }
+        else if (strlen(command) == 6 && strncmp(command, "SQ ", 3) == 0
+                 && (command[3] == '0' || command[3] == '1')
+                 && command[4] == ',' && command[5] >= '0' && command[5] <= '5')
+        {
+            squelch[command[3] - '0'] = command[5] - '0';
+            send_reply(master, command);
+        }
+        else if (strcmp(command, "AG") == 0)
+        {
+            if (next_fault == FAULT_AG_OUT_OF_RANGE)
+            {
+                next_fault = FAULT_NONE;
+                send_reply(master, "AG 201");
+            }
+            else
+            {
+                snprintf(reply, sizeof(reply), "AG %03d", audio_gain);
+                send_reply(master, reply);
+            }
+        }
+        else if (strlen(command) == 6 && strncmp(command, "AG ", 3) == 0
+                 && command[3] >= '0' && command[3] <= '9'
+                 && command[4] >= '0' && command[4] <= '9'
+                 && command[5] >= '0' && command[5] <= '9')
+        {
+            int value = 100 * (command[3] - '0') + 10 * (command[4] - '0')
+                        + command[5] - '0';
+
+            if (value <= 200)
+            {
+                audio_gain = value;
+                send_reply(master, command);
+            }
+            else
+            {
+                send_reply(master, "N");
+            }
+        }
+        else if (strcmp(command, "VG") == 0)
+        {
+            if (next_fault == FAULT_VG_MALFORMED)
+            {
+                next_fault = FAULT_NONE;
+                send_reply(master, "VG 10");
+            }
+            else
+            {
+                snprintf(reply, sizeof(reply), "VG %d", vox_gain);
+                send_reply(master, reply);
+            }
+        }
+        else if (strlen(command) == 4 && strncmp(command, "VG ", 3) == 0
+                 && command[3] >= '0' && command[3] <= '9')
+        {
+            vox_gain = command[3] - '0';
+            send_reply(master, command);
+        }
+        else if (strcmp(command, "VD") == 0)
+        {
+            if (next_fault == FAULT_VD_OUT_OF_RANGE)
+            {
+                next_fault = FAULT_NONE;
+                send_reply(master, "VD 7");
+            }
+            else
+            {
+                snprintf(reply, sizeof(reply), "VD %d", vox_delay);
+                send_reply(master, reply);
+            }
+        }
+        else if (strlen(command) == 4 && strncmp(command, "VD ", 3) == 0
+                 && command[3] >= '0' && command[3] <= '6')
+        {
+            vox_delay = command[3] - '0';
+            send_reply(master, command);
+        }
+        else if (strcmp(command, "VX") == 0)
+        {
+            if (next_fault == FAULT_VX_OUT_OF_RANGE)
+            {
+                next_fault = FAULT_NONE;
+                send_reply(master, "VX 2");
+            }
+            else
+            {
+                snprintf(reply, sizeof(reply), "VX %d", vox_enabled);
+                send_reply(master, reply);
+            }
+        }
+        else if (strlen(command) == 4 && strncmp(command, "VX ", 3) == 0
+                 && (command[3] == '0' || command[3] == '1'))
+        {
+            if (next_fault == FAULT_VX_MISMATCH_ACK)
+            {
+                next_fault = FAULT_NONE;
+                send_reply(master, command[3] == '0' ? "VX 1" : "VX 0");
+            }
+            else
+            {
+                vox_enabled = command[3] - '0';
+                send_reply(master, command);
+            }
+        }
+        else if (strcmp(command, "RT") == 0)
+        {
+            if (next_fault == FAULT_RT_INVALID_DATE)
+            {
+                next_fault = FAULT_NONE;
+                send_reply(master, "RT 260230246060");
+            }
+            else if (next_fault == FAULT_RT_NON_DECIMAL)
+            {
+                next_fault = FAULT_NONE;
+                send_reply(master, "RT 26072909X824");
+            }
+            else if (next_fault == FAULT_RT_TRUNCATED)
+            {
+                next_fault = FAULT_NONE;
+                send_reply(master, "RT 26072909582");
+            }
+            else if (next_fault == FAULT_RT_WRONG_PREFIX)
+            {
+                send_reply(master, "RX 260729095824");
+            }
+            else
+            {
+                send_reply(master, clock_record);
+            }
+        }
+        else if (strlen(command) == 15 && strncmp(command, "RT ", 3) == 0)
+        {
+            if (next_fault == FAULT_RT_MISMATCH_ACK)
+            {
+                next_fault = FAULT_NONE;
+                send_reply(master, "RT 240229235958");
+            }
+            else
+            {
+                snprintf(clock_record, sizeof(clock_record), "%s", command);
+                send_reply(master, clock_record);
+            }
         }
         else if (strcmp(command, "ZZ STRESS") == 0)
         {
@@ -150,6 +383,76 @@ static int emulate(int master)
         else if (strcmp(command, "ZZ CANONICALIZE") == 0)
         {
             canonicalize_next_write = 1;
+            send_reply(master, command);
+        }
+        else if (strcmp(command, "ZZ SM_WRONG_BAND") == 0)
+        {
+            next_fault = FAULT_SM_WRONG_BAND;
+            send_reply(master, command);
+        }
+        else if (strcmp(command, "ZZ SM_OUT_OF_RANGE") == 0)
+        {
+            next_fault = FAULT_SM_OUT_OF_RANGE;
+            send_reply(master, command);
+        }
+        else if (strcmp(command, "ZZ BY_WRONG_BAND") == 0)
+        {
+            next_fault = FAULT_BY_WRONG_BAND;
+            send_reply(master, command);
+        }
+        else if (strcmp(command, "ZZ BY_OUT_OF_RANGE") == 0)
+        {
+            next_fault = FAULT_BY_OUT_OF_RANGE;
+            send_reply(master, command);
+        }
+        else if (strcmp(command, "ZZ AG_OUT_OF_RANGE") == 0)
+        {
+            next_fault = FAULT_AG_OUT_OF_RANGE;
+            send_reply(master, command);
+        }
+        else if (strcmp(command, "ZZ VG_MALFORMED") == 0)
+        {
+            next_fault = FAULT_VG_MALFORMED;
+            send_reply(master, command);
+        }
+        else if (strcmp(command, "ZZ VD_OUT_OF_RANGE") == 0)
+        {
+            next_fault = FAULT_VD_OUT_OF_RANGE;
+            send_reply(master, command);
+        }
+        else if (strcmp(command, "ZZ VX_OUT_OF_RANGE") == 0)
+        {
+            next_fault = FAULT_VX_OUT_OF_RANGE;
+            send_reply(master, command);
+        }
+        else if (strcmp(command, "ZZ VX_MISMATCH_ACK") == 0)
+        {
+            next_fault = FAULT_VX_MISMATCH_ACK;
+            send_reply(master, command);
+        }
+        else if (strcmp(command, "ZZ RT_INVALID_DATE") == 0)
+        {
+            next_fault = FAULT_RT_INVALID_DATE;
+            send_reply(master, command);
+        }
+        else if (strcmp(command, "ZZ RT_TRUNCATED") == 0)
+        {
+            next_fault = FAULT_RT_TRUNCATED;
+            send_reply(master, command);
+        }
+        else if (strcmp(command, "ZZ RT_NON_DECIMAL") == 0)
+        {
+            next_fault = FAULT_RT_NON_DECIMAL;
+            send_reply(master, command);
+        }
+        else if (strcmp(command, "ZZ RT_WRONG_PREFIX") == 0)
+        {
+            next_fault = FAULT_RT_WRONG_PREFIX;
+            send_reply(master, command);
+        }
+        else if (strcmp(command, "ZZ RT_MISMATCH_ACK") == 0)
+        {
+            next_fault = FAULT_RT_MISMATCH_ACK;
             send_reply(master, command);
         }
         else if (strcmp(command, "ME 999") == 0)
@@ -279,11 +582,15 @@ int main(void)
     const char *slave_name;
     channel_t channel, received;
     char reply[MEMORY_RECORD_MAX];
+    dcd_t dcd;
+    double msec;
+    int year, month, day, hour, minute, second, utc_offset;
     int master, guard, status;
     pid_t child;
     pbwidth_t width;
     RIG *rig;
     rmode_t mode;
+    value_t value;
     int failures = 0;
 
     master = posix_openpt(O_RDWR | O_NOCTTY);
@@ -346,6 +653,25 @@ int main(void)
         return 1;
     }
 
+    failures += expect((rig->caps->has_get_level & RIG_LEVEL_RAWSTR) != 0,
+                       "advertise raw signal strength");
+    failures += expect(rig_has_get_level(rig, RIG_LEVEL_STRENGTH) == 0,
+                       "do not synthesize uncalibrated signal strength");
+    failures += expect((rig->caps->has_get_level & RIG_LEVEL_AF) != 0
+                       && (rig->caps->has_get_level & RIG_LEVEL_VOXGAIN) != 0
+                       && (rig->caps->has_get_level & RIG_LEVEL_VOXDELAY) != 0,
+                       "advertise receiver and VOX levels");
+    failures += expect((rig->caps->has_get_level & RIG_LEVEL_ATT) == 0,
+                       "leave boolean attenuator unadvertised");
+    failures += expect(rig->caps->dcd_type == RIG_DCD_RIG
+                       && rig->caps->get_dcd != NULL,
+                       "advertise radio carrier detect");
+    failures += expect((rig->caps->has_get_parm & RIG_PARM_TIME) == 0
+                       && (rig->caps->has_set_parm & RIG_PARM_TIME) == 0,
+                       "omit time-only clock parameter");
+    failures += expect(rig->caps->get_clock != NULL
+                       && rig->caps->set_clock != NULL,
+                       "advertise full clock access");
     failures += expect(rig_set_mode(rig, RIG_VFO_A, RIG_MODE_DSTAR,
                                     RIG_PASSBAND_NOCHANGE) == RIG_OK,
                        "set supported D-STAR mode");
@@ -361,6 +687,250 @@ int main(void)
     failures += expect(rig_set_mode(rig, RIG_VFO_A, RIG_MODE_FM,
                                     RIG_PASSBAND_NOCHANGE) == RIG_OK,
                        "restore supported FM mode");
+    failures += expect(rig_has_get_func(rig, RIG_FUNC_VOX) != 0
+                       && rig_has_set_func(rig, RIG_FUNC_VOX) != 0,
+                       "advertise VOX status and control");
+    failures += expect(rig_get_func(rig, RIG_VFO_A, RIG_FUNC_VOX,
+                                    &status) == RIG_OK && status == 0,
+                       "read disabled VOX status");
+    failures += expect(raw_command(rig, "ZZ VX_OUT_OF_RANGE", reply,
+                                   sizeof(reply)) == RIG_OK,
+                       "arm out-of-range VOX status reply");
+    failures += expect(rig_get_func(rig, RIG_VFO_A, RIG_FUNC_VOX,
+                                    &status) == -RIG_EPROTO,
+                       "reject out-of-range VOX status reply");
+    failures += expect(rig_set_func(rig, RIG_VFO_A, RIG_FUNC_VOX, 1)
+                       == RIG_OK,
+                       "enable VOX");
+    failures += expect(rig_get_func(rig, RIG_VFO_A, RIG_FUNC_VOX,
+                                    &status) == RIG_OK && status == 1,
+                       "read enabled VOX status");
+    failures += expect(rig_set_func(rig, RIG_VFO_A, RIG_FUNC_VOX, 0)
+                       == RIG_OK,
+                       "disable VOX");
+    failures += expect(rig_set_func(rig, RIG_VFO_A, RIG_FUNC_VOX, 2)
+                       == -RIG_EINVAL,
+                       "reject invalid VOX state");
+    failures += expect(raw_command(rig, "ZZ VX_MISMATCH_ACK", reply,
+                                   sizeof(reply)) == RIG_OK,
+                       "arm mismatched VOX acknowledgment");
+    failures += expect(rig_set_func(rig, RIG_VFO_A, RIG_FUNC_VOX, 1)
+                       == -RIG_EPROTO,
+                       "reject mismatched VOX acknowledgment");
+    failures += expect(rig_get_func(rig, RIG_VFO_A, RIG_FUNC_VOX,
+                                    &status) == RIG_OK && status == 0,
+                       "preserve VOX state after rejected acknowledgment");
+
+    failures += expect(rig_get_level(rig, RIG_VFO_A, RIG_LEVEL_RAWSTR,
+                                     &value) == RIG_OK && value.i == 0,
+                       "read Band A raw signal strength");
+    failures += expect(rig_get_level(rig, RIG_VFO_B, RIG_LEVEL_RAWSTR,
+                                     &value) == RIG_OK && value.i == 5,
+                       "read Band B raw signal strength");
+    failures += expect(rig_get_dcd(rig, RIG_VFO_A, &dcd) == RIG_OK
+                       && dcd == RIG_DCD_OFF,
+                       "read Band A carrier detect off");
+    failures += expect(rig_get_dcd(rig, RIG_VFO_B, &dcd) == RIG_OK
+                       && dcd == RIG_DCD_ON,
+                       "read Band B carrier detect on");
+
+    failures += expect(raw_command(rig, "ZZ SM_WRONG_BAND", reply,
+                                   sizeof(reply)) == RIG_OK,
+                       "arm wrong-band signal reply");
+    failures += expect(rig_get_level(rig, RIG_VFO_A, RIG_LEVEL_RAWSTR,
+                                     &value) == -RIG_EPROTO,
+                       "reject wrong-band signal reply");
+    failures += expect(raw_command(rig, "ZZ SM_OUT_OF_RANGE", reply,
+                                   sizeof(reply)) == RIG_OK,
+                       "arm out-of-range signal reply");
+    failures += expect(rig_get_level(rig, RIG_VFO_A, RIG_LEVEL_RAWSTR,
+                                     &value) == -RIG_EPROTO,
+                       "reject out-of-range signal reply");
+    failures += expect(raw_command(rig, "ZZ BY_WRONG_BAND", reply,
+                                   sizeof(reply)) == RIG_OK,
+                       "arm wrong-band carrier reply");
+    failures += expect(rig_get_dcd(rig, RIG_VFO_A, &dcd) == -RIG_EPROTO,
+                       "reject wrong-band carrier reply");
+    failures += expect(raw_command(rig, "ZZ BY_OUT_OF_RANGE", reply,
+                                   sizeof(reply)) == RIG_OK,
+                       "arm out-of-range carrier reply");
+    failures += expect(rig_get_dcd(rig, RIG_VFO_A, &dcd) == -RIG_EPROTO,
+                       "reject out-of-range carrier reply");
+
+    failures += expect(rig_get_level(rig, RIG_VFO_A, RIG_LEVEL_SQL,
+                                     &value) == RIG_OK
+                       && fabsf(value.f - 0.2f) < 0.001f,
+                       "read normalized squelch level");
+    value.f = 0.6f;
+    failures += expect(rig_set_level(rig, RIG_VFO_A, RIG_LEVEL_SQL,
+                                     value) == RIG_OK,
+                       "set normalized squelch level");
+    failures += expect(rig_get_level(rig, RIG_VFO_A, RIG_LEVEL_SQL,
+                                     &value) == RIG_OK
+                       && fabsf(value.f - 0.6f) < 0.001f,
+                       "read canonical squelch level");
+
+    failures += expect(rig_get_level(rig, RIG_VFO_A, RIG_LEVEL_AF,
+                                     &value) == RIG_OK
+                       && fabsf(value.f - 0.23f) < 0.001f,
+                       "read normalized audio gain");
+    value.f = 0.5f;
+    failures += expect(rig_set_level(rig, RIG_VFO_A, RIG_LEVEL_AF,
+                                     value) == RIG_OK,
+                       "set normalized audio gain");
+    failures += expect(rig_get_level(rig, RIG_VFO_A, RIG_LEVEL_AF,
+                                     &value) == RIG_OK
+                       && fabsf(value.f - 0.5f) < 0.001f,
+                       "read canonical audio gain");
+    failures += expect(raw_command(rig, "ZZ AG_OUT_OF_RANGE", reply,
+                                   sizeof(reply)) == RIG_OK,
+                       "arm out-of-range audio gain reply");
+    failures += expect(rig_get_level(rig, RIG_VFO_A, RIG_LEVEL_AF,
+                                     &value) == -RIG_EPROTO,
+                       "reject out-of-range audio gain reply");
+
+    failures += expect(rig_get_level(rig, RIG_VFO_A, RIG_LEVEL_VOXGAIN,
+                                     &value) == RIG_OK
+                       && fabsf(value.f - 4.0f / 9.0f) < 0.001f,
+                       "read normalized VOX gain");
+    value.f = 5.0f / 9.0f;
+    failures += expect(rig_set_level(rig, RIG_VFO_A, RIG_LEVEL_VOXGAIN,
+                                     value) == RIG_OK,
+                       "set normalized VOX gain");
+    failures += expect(rig_get_level(rig, RIG_VFO_A, RIG_LEVEL_VOXGAIN,
+                                     &value) == RIG_OK
+                       && fabsf(value.f - 5.0f / 9.0f) < 0.001f,
+                       "read canonical VOX gain");
+    failures += expect(raw_command(rig, "ZZ VG_MALFORMED", reply,
+                                   sizeof(reply)) == RIG_OK,
+                       "arm malformed VOX gain reply");
+    failures += expect(rig_get_level(rig, RIG_VFO_A, RIG_LEVEL_VOXGAIN,
+                                     &value) == -RIG_EPROTO,
+                       "reject malformed VOX gain reply");
+
+    failures += expect(rig_get_level(rig, RIG_VFO_A, RIG_LEVEL_VOXDELAY,
+                                     &value) == RIG_OK && value.i == 5,
+                       "read VOX delay in tenths of seconds");
+    value.i = 8;
+    failures += expect(rig_set_level(rig, RIG_VFO_A, RIG_LEVEL_VOXDELAY,
+                                     value) == RIG_OK,
+                       "set nearest VOX delay");
+    failures += expect(rig_get_level(rig, RIG_VFO_A, RIG_LEVEL_VOXDELAY,
+                                     &value) == RIG_OK && value.i == 8,
+                       "read canonical VOX delay");
+    failures += expect(raw_command(rig, "ZZ VD_OUT_OF_RANGE", reply,
+                                   sizeof(reply)) == RIG_OK,
+                       "arm out-of-range VOX delay reply");
+    failures += expect(rig_get_level(rig, RIG_VFO_A, RIG_LEVEL_VOXDELAY,
+                                     &value) == -RIG_EPROTO,
+                       "reject out-of-range VOX delay reply");
+
+    value.f = NAN;
+    failures += expect(rig_set_level(rig, RIG_VFO_A, RIG_LEVEL_AF,
+                                     value) == -RIG_EINVAL,
+                       "reject non-finite normalized level");
+    value.i = 31;
+    failures += expect(rig_set_level(rig, RIG_VFO_A, RIG_LEVEL_VOXDELAY,
+                                     value) == -RIG_EINVAL,
+                       "reject out-of-range VOX delay");
+
+    failures += expect(rig_get_clock(rig, &year, &month, &day, &hour, &minute,
+                                     &second, &msec, &utc_offset) == RIG_OK
+                       && year == 2026 && month == 7 && day == 29
+                       && hour == 9 && minute == 58 && second == 24
+                       && msec == 0.0 && utc_offset == 0,
+                       "read full clock record");
+    failures += expect(rig_set_clock(rig, 2024, 2, 29, 23, 59, 59, 0.0, 0)
+                       == RIG_OK,
+                       "write leap-day clock record");
+    failures += expect(rig_get_clock(rig, &year, &month, &day, &hour, &minute,
+                                     &second, &msec, &utc_offset) == RIG_OK
+                       && year == 2024 && month == 2 && day == 29
+                       && hour == 23 && minute == 59 && second == 59,
+                       "read updated full clock record");
+    failures += expect(rig_set_clock(rig, 2024, 2, 29, 23, 59, 58, -1.0, 0)
+                       == RIG_OK,
+                       "accept omitted-milliseconds sentinel");
+    failures += expect(rig_set_clock(rig, 2024, 2, 29, 23, 59, 58,
+                                     0.123456, 0) == RIG_OK,
+                       "accept rigctl-style fractional seconds");
+    failures += expect(rig_set_clock(rig, 2024, 2, 29, 23, 59, 58,
+                                     999.999, 0) == RIG_OK,
+                       "accept millisecond upper boundary");
+    failures += expect(rig_get_clock(rig, &year, &month, &day, &hour, &minute,
+                                     &second, &msec, &utc_offset) == RIG_OK
+                       && year == 2024 && month == 2 && day == 29
+                       && hour == 23 && minute == 59 && second == 58
+                       && msec == 0.0,
+                       "discard unsupported subsecond precision");
+
+    failures += expect(rig_set_clock(rig, 2025, 2, 29, 12, 0, 0, 0.0, 0)
+                       == -RIG_EINVAL,
+                       "reject non-leap February 29");
+    failures += expect(rig_set_clock(rig, 2100, 1, 1, 12, 0, 0, 0.0, 0)
+                       == -RIG_EINVAL,
+                       "reject year outside two-digit protocol range");
+    failures += expect(rig_set_clock(rig, 2026, 12, 31, 24, 0, 0, 0.0, 0)
+                       == -RIG_EINVAL,
+                       "reject out-of-range clock time");
+    failures += expect(rig_set_clock(rig, 2026, 12, 31, 23, 59, 59, -0.5, 0)
+                       == -RIG_EINVAL,
+                       "reject negative milliseconds");
+    failures += expect(rig_set_clock(rig, 2026, 12, 31, 23, 59, 59, 1000.0, 0)
+                       == -RIG_EINVAL,
+                       "reject out-of-range milliseconds");
+    failures += expect(rig_set_clock(rig, 2026, 12, 31, 23, 59, 59, NAN, 0)
+                       == -RIG_EINVAL,
+                       "reject non-finite milliseconds");
+    failures += expect(rig_set_clock(rig, 2026, 12, 31, 23, 59, 59, 0.0, -500)
+                       == -RIG_ENAVAIL,
+                       "reject unavailable UTC-offset update");
+    failures += expect(rig_get_clock(rig, &year, &month, &day, &hour, &minute,
+                                     &second, &msec, &utc_offset) == RIG_OK
+                       && year == 2024 && month == 2 && day == 29
+                       && hour == 23 && minute == 59 && second == 58,
+                       "preserve clock after invalid clock requests");
+
+    failures += expect(raw_command(rig, "ZZ RT_INVALID_DATE", reply,
+                                   sizeof(reply)) == RIG_OK,
+                       "arm invalid calendar reply");
+    failures += expect(rig_get_clock(rig, &year, &month, &day, &hour, &minute,
+                                     &second, &msec, &utc_offset)
+                       == -RIG_EPROTO,
+                       "reject invalid calendar reply");
+    failures += expect(raw_command(rig, "ZZ RT_NON_DECIMAL", reply,
+                                   sizeof(reply)) == RIG_OK,
+                       "arm non-decimal clock reply");
+    failures += expect(rig_get_clock(rig, &year, &month, &day, &hour, &minute,
+                                     &second, &msec, &utc_offset)
+                       == -RIG_EPROTO,
+                       "reject non-decimal clock reply");
+    failures += expect(raw_command(rig, "ZZ RT_TRUNCATED", reply,
+                                   sizeof(reply)) == RIG_OK,
+                       "arm truncated clock reply");
+    failures += expect(rig_get_clock(rig, &year, &month, &day, &hour, &minute,
+                                     &second, &msec, &utc_offset)
+                       == -RIG_EPROTO,
+                       "reject truncated clock reply");
+    failures += expect(raw_command(rig, "ZZ RT_WRONG_PREFIX", reply,
+                                   sizeof(reply)) == RIG_OK,
+                       "arm wrong-prefix clock reply");
+    status = rig_get_clock(rig, &year, &month, &day, &hour, &minute,
+                           &second, &msec, &utc_offset);
+    failures += expect(status == -RIG_ETIMEOUT,
+                       "reject wrong-prefix clock reply");
+
+    failures += expect(raw_command(rig, "ZZ RT_MISMATCH_ACK", reply,
+                                   sizeof(reply)) == RIG_OK,
+                       "arm mismatched clock acknowledgment");
+    failures += expect(rig_set_clock(rig, 2026, 7, 29, 10, 0, 0, 0.0, 0)
+                       == -RIG_EPROTO,
+                       "reject mismatched clock acknowledgment");
+    failures += expect(rig_get_clock(rig, &year, &month, &day, &hour, &minute,
+                                     &second, &msec, &utc_offset) == RIG_OK
+                       && year == 2024 && month == 2 && day == 29
+                       && hour == 23 && minute == 59 && second == 58,
+                       "preserve clock state after rejected acknowledgment");
 
     channel = base_channel();
     channel.width = 6000;
