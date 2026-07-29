@@ -54,7 +54,7 @@
 
 #define THD72_VFO (RIG_VFO_A|RIG_VFO_B)
 
-static rmode_t thd72_mode_table[3] =
+static rmode_t thd72_mode_table[KENWOOD_MODE_TABLE_MAX] =
 {
     [0] = RIG_MODE_FM,  /* normal, but narrow compared to broadcast */
     [1] = RIG_MODE_FMN, /* what kenwood calls narrow */
