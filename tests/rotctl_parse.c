@@ -2559,17 +2559,24 @@ declare_proto_rot(send_cmd)
 
     if (send_cmd_term == -1 || backend_num == -1)
     {
-        const char *p = arg1, *pp = NULL;
+        const char *p = arg1;
         int i;
 
-        for (i = 0; i < BUFSZ - 1 && p != pp; i++)
+        for (i = 0; i < BUFSZ - 1 && *p == '\\'; i++)
         {
-            pp = p + 1;
-            bufcmd[i] = strtol(p + 1, (char **) &p, 0);
+            char *end;
+
+            bufcmd[i] = strtol(p + 1, &end, 0);
+            if (end == p + 1)
+            {
+                break;
+            }
+
+            p = end;
         }
 
         /* must save length to allow 0x00 to be sent as part of a command */
-        cmd_len = i - 1;
+        cmd_len = i;
 
         /* no End Of Message chars */
         eom_buf[0] = '\0';
