@@ -101,11 +101,11 @@ static int expect_ex(const char *response, int expected, int expected_value)
     return 0;
 }
 
-static int expect_smeter(const char *response, int expected,
+static int expect_smeter(const char *response, int p1, int expected,
                          int expected_value)
 {
     int value = 42;
-    int ret = ftx1_parse_smeter_response(response, &value);
+    int ret = ftx1_parse_smeter_response(response, p1, &value);
 
     if (ret != expected)
     {
@@ -187,12 +187,17 @@ int main(void)
         }
     }
 
-    if (expect_smeter("SM0000;", RIG_OK, 0) != 0
-            || expect_smeter("SM0255;", RIG_OK, 255) != 0
-            || expect_smeter("SM0-01;", -RIG_EPROTO, 0) != 0
-            || expect_smeter("SM0+01;", -RIG_EPROTO, 0) != 0
-            || expect_smeter("SM0256;", -RIG_EPROTO, 0) != 0
-            || expect_smeter("SM0999;", -RIG_EPROTO, 0) != 0)
+    if (expect_smeter("SM0000;", 0, RIG_OK, 0) != 0
+            || expect_smeter("SM1255;", 1, RIG_OK, 255) != 0
+            || expect_smeter("RM0123;", 0, -RIG_EPROTO, 0) != 0
+            || expect_smeter("SM1123;", 0, -RIG_EPROTO, 0) != 0
+            || expect_smeter("SM2123;", 2, -RIG_EPROTO, 0) != 0
+            || expect_smeter("SM0123", 0, -RIG_EPROTO, 0) != 0
+            || expect_smeter("SM0123;x", 0, -RIG_EPROTO, 0) != 0
+            || expect_smeter("SM0-01;", 0, -RIG_EPROTO, 0) != 0
+            || expect_smeter("SM0+01;", 0, -RIG_EPROTO, 0) != 0
+            || expect_smeter("SM0256;", 0, -RIG_EPROTO, 0) != 0
+            || expect_smeter("SM0999;", 0, -RIG_EPROTO, 0) != 0)
     {
         return 1;
     }
