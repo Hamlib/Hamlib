@@ -34,6 +34,8 @@ Version 4.7.3
         * Fix: Remove debug history race.  GitHub PR #2107 (TNX David Christie)
         * Fix: Prevent dummy level buffer overflow. GitHub PR #2108 (TNX David
           Christie)
+        * FTX-1: Fix get/set_rptr_offs to use correct unit. GitHub PR #2110
+          (TNX Miao Wang)
 
 Version 4.7.2
         * 2026-06-21
