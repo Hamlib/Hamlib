@@ -17,7 +17,8 @@ bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld rigctlcom rig
 # Keep test registries sorted and one entry per line.
 # This keeps independent additions from editing shared lines.
 DIRECT_TESTS = \
-	testdebug
+	testdebug \
+	testthd7x
 
 GENERATED_TEST_WRAPPERS = \
 	test2038.sh \

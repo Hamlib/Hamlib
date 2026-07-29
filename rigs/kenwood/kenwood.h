@@ -92,6 +92,7 @@ extern struct confparams kenwood_cfg_params[];
 #define RIG_IS_K4        (rig->caps->rig_model == RIG_MODEL_K4)
 #define RIG_IS_THD7A     (rig->caps->rig_model == RIG_MODEL_THD7A)
 #define RIG_IS_THD74     (rig->caps->rig_model == RIG_MODEL_THD74)
+#define RIG_IS_THD75     (rig->caps->rig_model == RIG_MODEL_THD75)
 #define RIG_IS_TMD700    (rig->caps->rig_model == RIG_MODEL_TMD700)
 #define RIG_IS_TS2000    (rig->caps->rig_model == RIG_MODEL_TS2000)
 #define RIG_IS_TS50      (rig->caps->rig_model == RIG_MODEL_TS50)
@@ -205,7 +206,7 @@ int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
                              size_t buf_size, size_t expected);
 
 rmode_t kenwood2rmode(unsigned char mode, const rmode_t mode_table[]);
-char rmode2kenwood(rmode_t mode, const rmode_t mode_table[]);
+int rmode2kenwood(rmode_t mode, const rmode_t mode_table[]);
 
 int kenwood_init(RIG *rig);
 int kenwood_cleanup(RIG *rig);
@@ -307,6 +308,7 @@ extern struct rig_caps sdrconsole_caps;
 extern struct rig_caps thd7a_caps;
 extern struct rig_caps thd72a_caps;
 extern struct rig_caps thd74_caps;
+extern struct rig_caps thd75_caps;
 extern struct rig_caps tmd700_caps;
 extern struct rig_caps thf7a_caps;
 extern struct rig_caps thf7e_caps;

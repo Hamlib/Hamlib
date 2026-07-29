@@ -129,6 +129,7 @@ static const struct kenwood_id_string kenwood_id_string_list[] =
     { RIG_MODEL_TMD710, "TM-D710" },
     { RIG_MODEL_THD72A, "TH-D72" },
     { RIG_MODEL_THD74, "TH-D74" },
+    { RIG_MODEL_THD75, "TH-D75" },
     { RIG_MODEL_TMV7, "TM-V7" },
     { RIG_MODEL_TMV71,  "TM-V71" },
     { RIG_MODEL_THF6A,  "TH-F6" },
@@ -814,7 +815,7 @@ rmode_t kenwood2rmode(unsigned char mode, const rmode_t mode_table[])
     return (mode_table[mode]);
 }
 
-char rmode2kenwood(rmode_t mode, const rmode_t mode_table[])
+int rmode2kenwood(rmode_t mode, const rmode_t mode_table[])
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, mode=%s\n", __func__,
               rig_strrmode(mode));
@@ -1169,7 +1170,7 @@ int kenwood_open(RIG *rig)
                                                       it's not supported */
             }
 
-            if (!RIG_IS_THD74 && !RIG_IS_THD7A && !RIG_IS_TMD700)
+            if (!RIG_IS_THD74 && !RIG_IS_THD75 && !RIG_IS_THD7A && !RIG_IS_TMD700)
             {
                 int retval;
                 // call get_split to fill in current split and tx_vfo status
@@ -2462,7 +2463,7 @@ static int kenwood_set_filter_width(RIG *rig, rmode_t mode, pbwidth_t width)
 int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     char c;
-    char kmode;
+    int kmode;
     char buf[6];
     char data_mode = '0';
     char *data_cmd = "DA";
@@ -5293,6 +5294,7 @@ int kenwood_set_trn(RIG *rig, int trn)
 
     case RIG_MODEL_THD7A:
     case RIG_MODEL_THD74:
+    case RIG_MODEL_THD75:
         RETURNFUNC(kenwood_transaction(rig, (trn == RIG_TRN_RIG) ? "AI 1" : "AI 0", buf,
                                        sizeof buf));
 
@@ -5324,7 +5326,7 @@ int kenwood_get_trn(RIG *rig, int *trn)
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
-    if (RIG_IS_THD74 || RIG_IS_THD7A || RIG_IS_TMD700)
+    if (RIG_IS_THD74 || RIG_IS_THD75 || RIG_IS_THD7A || RIG_IS_TMD700)
     {
         retval = kenwood_safe_transaction(rig, "AI", trnbuf, 6, 4);
     }
@@ -5338,7 +5340,7 @@ int kenwood_get_trn(RIG *rig, int *trn)
         RETURNFUNC(retval);
     }
 
-    if (RIG_IS_THD74 || RIG_IS_THD7A || RIG_IS_TMD700)
+    if (RIG_IS_THD74 || RIG_IS_THD75 || RIG_IS_THD7A || RIG_IS_TMD700)
     {
         *trn = trnbuf[3] != '0' ? RIG_TRN_RIG : RIG_TRN_OFF;
     }
@@ -6016,7 +6018,7 @@ int kenwood_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 int kenwood_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
     char buf[128];
-    char mode, tx_mode = 0;
+    int mode, tx_mode = 0;
     char bank = ' ';
     int err;
     int tone = 0;
@@ -6533,6 +6535,7 @@ DECLARE_INITRIG_BACKEND(kenwood)
     rig_register(&thd7a_caps);
     rig_register(&thd72a_caps);
     rig_register(&thd74_caps);
+    rig_register(&thd75_caps);
     rig_register(&thf7e_caps);
     rig_register(&thg71_caps);
     rig_register(&tmv7_caps);

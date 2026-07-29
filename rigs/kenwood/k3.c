@@ -1569,7 +1569,7 @@ static int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_
 {
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
     char buf[32];
-    char kmode;
+    int kmode;
     int err;
     char cmd_m[16];
     const struct kenwood_priv_data *priv = STATE(rig)->priv;

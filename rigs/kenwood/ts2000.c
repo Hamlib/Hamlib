@@ -1479,7 +1479,7 @@ int ts2000_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
     char sqltype = '0';
     char buf[128];
-    char mode, tx_mode = 0;
+    int mode, tx_mode = 0;
     char shift = '0';
     short dcscode = 0;
     short code = 0;
