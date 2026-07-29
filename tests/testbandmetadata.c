@@ -30,9 +30,9 @@ int main(void)
         return 1;
     }
 
-    if (rig_get_band_str(&rig, 0, 1) != NULL)
+    if (strcmp(rig_get_band_str(&rig, 0, 1), "BANDGEN") != 0)
     {
-        fprintf(stderr, "missing metadata returned a band name\n");
+        fprintf(stderr, "missing metadata did not return the generic band\n");
         return 1;
     }
 
