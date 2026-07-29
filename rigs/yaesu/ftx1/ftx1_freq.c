@@ -394,8 +394,21 @@ int ftx1_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
         return -RIG_ENAVAIL;
     }
 
-    /* Convert Hz offset to menu value (use val.f for RIG_CONF_NUMERIC) */
-    val.f = (float)(offs / multiplier);
+    /* The offset is a magnitude; direction comes from set_rptr_shift. A
+     * negative value would truncate towards zero below and could be silently
+     * accepted as "no offset", so reject it explicitly. */
+    if (offs < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: negative offset %ld not supported, "
+                  "use set_rptr_shift for direction\n", __func__, offs);
+        return -RIG_EINVAL;
+    }
+
+    /* Convert Hz offset to menu value, rounding to the nearest representable
+     * step (use val.f for RIG_CONF_NUMERIC). The menu granularity is coarse --
+     * tens of kHz on the VHF/UHF bands -- so truncating here silently programs
+     * a different offset than the caller asked for. */
+    val.f = (float)((offs + multiplier / 2) / multiplier);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: freq=%.0f token=0x%lx val=%.0f (offs=%ld, mult=%d)\n",
               __func__, freq, (unsigned long)token, val.f, offs, multiplier);
