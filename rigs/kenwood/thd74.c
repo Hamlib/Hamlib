@@ -22,6 +22,7 @@
 #include <stdint.h>
 #include <limits.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <math.h>
 
@@ -42,13 +43,17 @@
 #define THD74_FUNC_ALL (RIG_FUNC_TSQL|   \
                        RIG_FUNC_TONE)
 
+#define THD75_FUNC_ALL (THD74_FUNC_ALL|RIG_FUNC_VOX)
+
 #define THD74_LEVEL_ALL (RIG_LEVEL_RFPOWER|\
             RIG_LEVEL_SQL|\
             RIG_LEVEL_ATT|\
             RIG_LEVEL_VOXGAIN|\
                         RIG_LEVEL_VOXDELAY)
 
-#define THD75_LEVEL_ALL (RIG_LEVEL_RFPOWER|RIG_LEVEL_SQL)
+#define THD75_LEVEL_ALL (RIG_LEVEL_RFPOWER|RIG_LEVEL_SQL|RIG_LEVEL_AF|\
+                         RIG_LEVEL_VOXGAIN|RIG_LEVEL_VOXDELAY|\
+                         RIG_LEVEL_RAWSTR)
 
 #define THD74_PARMS (RIG_PARM_TIME)
 
@@ -140,6 +145,17 @@ static int thd74voxdelay[7] =
     [4] = 15000,
     [5] = 20000,
     [6] = 30000
+};
+
+static int thd75voxdelay[7] =
+{
+    [0] = 3,
+    [1] = 5,
+    [2] = 8,
+    [3] = 10,
+    [4] = 15,
+    [5] = 20,
+    [6] = 30
 };
 
 static float thd74sqlevel[6] =
@@ -1011,6 +1027,69 @@ int thd74_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     }
 }
 
+static int thd75_parse_band_digit(const char *reply, const char *command,
+                                  char expected_band, int maximum, int *value)
+{
+    if (strlen(reply) != 6 || reply[0] != command[0]
+            || reply[1] != command[1] || reply[2] != ' '
+            || reply[3] != expected_band || reply[4] != ','
+            || reply[5] < '0' || reply[5] > '0' + maximum)
+    {
+        return -RIG_EPROTO;
+    }
+
+    *value = reply[5] - '0';
+    return RIG_OK;
+}
+
+static int thd75_parse_global_digit(const char *reply, const char *command,
+                                    int maximum, int *value)
+{
+    if (strlen(reply) != 4 || reply[0] != command[0]
+            || reply[1] != command[1] || reply[2] != ' '
+            || reply[3] < '0' || reply[3] > '0' + maximum)
+    {
+        return -RIG_EPROTO;
+    }
+
+    *value = reply[3] - '0';
+    return RIG_OK;
+}
+
+static int thd75_parse_audio_gain(const char *reply, int *value)
+{
+    if (strlen(reply) != 6 || strncmp(reply, "AG ", 3) != 0
+            || reply[3] < '0' || reply[3] > '9'
+            || reply[4] < '0' || reply[4] > '9'
+            || reply[5] < '0' || reply[5] > '9')
+    {
+        return -RIG_EPROTO;
+    }
+
+    *value = 100 * (reply[3] - '0') + 10 * (reply[4] - '0')
+             + reply[5] - '0';
+    return *value <= 200 ? RIG_OK : -RIG_EPROTO;
+}
+
+static int thd75_nearest_vox_delay(int tenths)
+{
+    int nearest = 0;
+    int difference = abs(tenths - thd75voxdelay[0]);
+
+    for (int i = 1; i < 7; i++)
+    {
+        int candidate = abs(tenths - thd75voxdelay[i]);
+
+        if (candidate < difference)
+        {
+            nearest = i;
+            difference = candidate;
+        }
+    }
+
+    return nearest;
+}
+
 static int thd74_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     int retval, lvl;
@@ -1197,6 +1276,294 @@ static int thd74_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     return RIG_OK;
 }
 
+static int thd75_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
+    int retval, lvl;
+    char c, lvlc, cmd[11];
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: level: %s\n", __func__, rig_strlevel(level));
+    rig_debug(RIG_DEBUG_TRACE, "%s: value.i: %d\n", __func__, val.i);
+    rig_debug(RIG_DEBUG_TRACE, "%s: value.f: %lf\n", __func__, val.f);
+
+    retval = thd74_vfoc(rig, vfo, &c);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    switch (level)
+    {
+    case RIG_LEVEL_RFPOWER:
+        if (!isfinite(val.f) || val.f < 0.0f || val.f > 1.0f)
+        {
+            return -RIG_EINVAL;
+        }
+
+        if (val.f <= 0.01) { lvlc = '3'; }
+        else if (val.f <= 0.1) { lvlc = '2'; }
+        else if (val.f <= 0.4) { lvlc = '1'; }
+        else { lvlc = '0'; }
+
+        SNPRINTF(cmd, sizeof(cmd), "PC %c,%c", c, lvlc);
+        return kenwood_simple_transaction(rig, cmd, 6);
+
+    case RIG_LEVEL_VOXGAIN:
+        if (!isfinite(val.f) || val.f < 0.0f || val.f > 1.0f)
+        {
+            return -RIG_EINVAL;
+        }
+
+        SNPRINTF(cmd, sizeof(cmd), "VG %d", (int)lroundf(val.f * 9.0f));
+        return kenwood_simple_transaction(rig, cmd, 4);
+
+    case RIG_LEVEL_VOXDELAY:
+        if (val.i < thd75voxdelay[0] || val.i > thd75voxdelay[6])
+        {
+            return -RIG_EINVAL;
+        }
+
+        SNPRINTF(cmd, sizeof(cmd), "VD %d", thd75_nearest_vox_delay(val.i));
+        return kenwood_simple_transaction(rig, cmd, 4);
+
+    case RIG_LEVEL_AF:
+        if (!isfinite(val.f) || val.f < 0.0f || val.f > 1.0f)
+        {
+            return -RIG_EINVAL;
+        }
+
+        lvl = (int)lroundf(val.f * 200.0f);
+        SNPRINTF(cmd, sizeof(cmd), "AG %03d", lvl);
+        return kenwood_simple_transaction(rig, cmd, 6);
+
+    case RIG_LEVEL_SQL:
+        if (!isfinite(val.f) || val.f < 0.0f || val.f > 1.0f)
+        {
+            return -RIG_EINVAL;
+        }
+
+        lvl = (int)round(val.f * 5.0);
+        SNPRINTF(cmd, sizeof(cmd), "SQ %c,%d", c, lvl);
+        return kenwood_simple_transaction(rig, cmd, 6);
+
+    case RIG_LEVEL_ATT:
+        SNPRINTF(cmd, sizeof(cmd), "RA %c,%d", c, val.i ? 1 : 0);
+        return kenwood_simple_transaction(rig, cmd, 6);
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported level %s\n", __func__,
+                  rig_strlevel(level));
+        return -RIG_EINVAL;
+    }
+
+    return retval;
+}
+
+static int thd75_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+    int retval, l;
+    char c, cmd[10], buf[128];
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+    retval = thd74_vfoc(rig, vfo, &c);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    switch (level)
+    {
+    case RIG_LEVEL_RFPOWER:
+        SNPRINTF(cmd, sizeof(cmd), "PC %c", c);
+        retval = kenwood_transaction(rig, cmd, buf, sizeof(buf));
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        retval = thd75_parse_band_digit(buf, "PC", c, 3, &l);
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, buf);
+            return retval;
+        }
+
+        switch (l)
+        {
+        case 0: val->f = 1.00; break;   /* 5.0 W */
+
+        case 1: val->f = 0.40; break;   /* 2.0 W */
+
+        case 2: val->f = 0.1; break;    /* 500 mW */
+
+        case 3: val->f = 0.01; break;   /* 50 mW */
+        }
+
+        break;
+
+    case RIG_LEVEL_VOXGAIN:
+        retval = kenwood_transaction(rig, "VG", buf, sizeof(buf));
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        retval = thd75_parse_global_digit(buf, "VG", 9, &l);
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, buf);
+            return retval;
+        }
+
+        val->f = l / 9.0f;
+        break;
+
+    case RIG_LEVEL_VOXDELAY:
+        retval = kenwood_transaction(rig, "VD", buf, sizeof(buf));
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        retval = thd75_parse_global_digit(buf, "VD", 6, &l);
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, buf);
+            return retval;
+        }
+
+        val->i = thd75voxdelay[l];
+        break;
+
+    case RIG_LEVEL_AF:
+        retval = kenwood_transaction(rig, "AG", buf, sizeof(buf));
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        retval = thd75_parse_audio_gain(buf, &l);
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, buf);
+            return retval;
+        }
+
+        val->f = l / 200.0f;
+        break;
+
+    case RIG_LEVEL_RAWSTR:
+        SNPRINTF(cmd, sizeof(cmd), "SM %c", c);
+        retval = kenwood_transaction(rig, cmd, buf, sizeof(buf));
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        retval = thd75_parse_band_digit(buf, "SM", c, 5, &l);
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, buf);
+            return retval;
+        }
+
+        val->i = l;
+        break;
+
+    case RIG_LEVEL_SQL:
+        SNPRINTF(cmd, sizeof(cmd), "SQ %c", c);
+        retval = kenwood_transaction(rig, cmd, buf, sizeof(buf));
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        retval = thd75_parse_band_digit(buf, "SQ", c, 5, &l);
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, buf);
+            return retval;
+        }
+
+        val->f = thd74sqlevel[l];
+        break;
+
+    case RIG_LEVEL_ATT:
+        SNPRINTF(cmd, sizeof(cmd), "RA %c", c);
+        retval = kenwood_transaction(rig, cmd, buf, sizeof(buf));
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        retval = thd75_parse_band_digit(buf, "RA", c, 1, &l);
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, buf);
+            return retval;
+        }
+
+        val->i = l;
+        break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported level %s\n", __func__,
+                  rig_strlevel(level));
+        return -RIG_EINVAL;
+    }
+
+    return RIG_OK;
+}
+
+static int thd75_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
+{
+    char band, command[8], reply[16];
+    int retval, busy;
+
+    retval = thd74_vfoc(rig, vfo, &band);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    SNPRINTF(command, sizeof(command), "BY %c", band);
+    retval = kenwood_transaction(rig, command, reply, sizeof(reply));
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    retval = thd75_parse_band_digit(reply, "BY", band, 1, &busy);
+
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, reply);
+        return retval;
+    }
+
+    *dcd = busy ? RIG_DCD_ON : RIG_DCD_OFF;
+    return RIG_OK;
+}
+
 static int thd74_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
     struct thd7x_fo_record record;
@@ -1264,6 +1631,61 @@ static int thd74_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     return RIG_OK;
 }
 
+static int thd75_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+{
+    char command[5], reply[16];
+    int retval;
+
+    if (func != RIG_FUNC_VOX)
+    {
+        return thd74_set_func(rig, vfo, func, status);
+    }
+
+    if (status != 0 && status != 1)
+    {
+        return -RIG_EINVAL;
+    }
+
+    SNPRINTF(command, sizeof(command), "VX %d", status);
+    retval = kenwood_transaction(rig, command, reply, sizeof(reply));
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    return strcmp(command, reply) == 0 ? RIG_OK : -RIG_EPROTO;
+}
+
+static int thd75_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
+{
+    char reply[16];
+    int retval, value;
+
+    if (func != RIG_FUNC_VOX)
+    {
+        return thd74_get_func(rig, vfo, func, status);
+    }
+
+    retval = kenwood_transaction(rig, "VX", reply, sizeof(reply));
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    retval = thd75_parse_global_digit(reply, "VX", 1, &value);
+
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, reply);
+        return retval;
+    }
+
+    *status = value;
+    return RIG_OK;
+}
+
 static int thd74_set_parm(RIG *rig, setting_t parm, value_t val)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
@@ -1302,6 +1724,164 @@ static int thd74_get_parm(RIG *rig, setting_t parm, value_t *val)
     default:
         return -RIG_EINVAL;
     }
+
+    return RIG_OK;
+}
+
+struct thd75_clock
+{
+    int year;
+    int month;
+    int day;
+    int hour;
+    int minute;
+    int second;
+};
+
+static int thd75_days_in_month(int year, int month)
+{
+    static const int month_lengths[] =
+    {
+        31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
+    };
+    int days;
+
+    if (year < 2000 || year > 2099 || month < 1 || month > 12)
+    {
+        return 0;
+    }
+
+    days = month_lengths[month - 1];
+
+    if (month == 2
+            && (year % 400 == 0 || (year % 4 == 0 && year % 100 != 0)))
+    {
+        days++;
+    }
+
+    return days;
+}
+
+static int thd75_validate_clock(const struct thd75_clock *clock)
+{
+    int days = thd75_days_in_month(clock->year, clock->month);
+
+    return days != 0 && clock->day >= 1 && clock->day <= days
+           && clock->hour >= 0 && clock->hour <= 23
+           && clock->minute >= 0 && clock->minute <= 59
+           && clock->second >= 0 && clock->second <= 59
+           ? RIG_OK : -RIG_EINVAL;
+}
+
+static int thd75_parse_pair(const char *digits)
+{
+    return 10 * (digits[0] - '0') + digits[1] - '0';
+}
+
+static int thd75_parse_clock(const char *reply, struct thd75_clock *clock)
+{
+    if (strlen(reply) != 15 || strncmp(reply, "RT ", 3) != 0)
+    {
+        return -RIG_EPROTO;
+    }
+
+    for (int i = 3; i < 15; i++)
+    {
+        if (reply[i] < '0' || reply[i] > '9')
+        {
+            return -RIG_EPROTO;
+        }
+    }
+
+    clock->year = 2000 + thd75_parse_pair(reply + 3);
+    clock->month = thd75_parse_pair(reply + 5);
+    clock->day = thd75_parse_pair(reply + 7);
+    clock->hour = thd75_parse_pair(reply + 9);
+    clock->minute = thd75_parse_pair(reply + 11);
+    clock->second = thd75_parse_pair(reply + 13);
+
+    return thd75_validate_clock(clock) == RIG_OK ? RIG_OK : -RIG_EPROTO;
+}
+
+static int thd75_set_clock(RIG *rig, int year, int month, int day, int hour,
+                           int minute, int second, double msec, int utc_offset)
+{
+    const struct thd75_clock requested =
+    {
+        year, month, day, hour, minute, second
+    };
+    struct thd75_clock acknowledged;
+    char command[16], reply[48];
+    int retval;
+
+    if (!isfinite(msec)
+            || (msec != -1.0 && (msec < 0.0 || msec >= 1000.0))
+            || thd75_validate_clock(&requested) != RIG_OK)
+    {
+        return -RIG_EINVAL;
+    }
+
+    if (utc_offset != 0)
+    {
+        return -RIG_ENAVAIL;
+    }
+
+    SNPRINTF(command, sizeof(command), "RT %02d%02d%02d%02d%02d%02d",
+             year % 100, month, day, hour, minute, second);
+    retval = kenwood_transaction(rig, command, reply, sizeof(reply));
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    retval = thd75_parse_clock(reply, &acknowledged);
+
+    if (retval != RIG_OK || strcmp(command, reply) != 0)
+    {
+        return -RIG_EPROTO;
+    }
+
+    return RIG_OK;
+}
+
+static int thd75_get_clock(RIG *rig, int *year, int *month, int *day,
+                           int *hour, int *minute, int *second, double *msec,
+                           int *utc_offset)
+{
+    struct thd75_clock clock;
+    char reply[48];
+    int retval;
+
+    if (year == NULL || month == NULL || day == NULL || hour == NULL
+            || minute == NULL || second == NULL || msec == NULL
+            || utc_offset == NULL)
+    {
+        return -RIG_EINVAL;
+    }
+
+    retval = kenwood_transaction(rig, "RT", reply, sizeof(reply));
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    retval = thd75_parse_clock(reply, &clock);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    *year = clock.year;
+    *month = clock.month;
+    *day = clock.day;
+    *hour = clock.hour;
+    *minute = clock.minute;
+    *second = clock.second;
+    *msec = 0.0;
+    *utc_offset = 0;
 
     return RIG_OK;
 }
@@ -2276,12 +2856,12 @@ struct rig_caps thd75_caps =
     RIG_MODEL(RIG_MODEL_THD75),
     .model_name = "TH-D75",
     .mfg_name = "Kenwood",
-    .version = BACKEND_VER ".2",
+    .version = BACKEND_VER ".3",
     .copyright = "LGPL",
     .status = RIG_STATUS_BETA,
     .rig_type = RIG_TYPE_HANDHELD | RIG_FLAG_APRS | RIG_FLAG_TNC | RIG_FLAG_DXCLUSTER,
     .ptt_type = RIG_PTT_RIG,
-    .dcd_type = RIG_DCD_NONE,
+    .dcd_type = RIG_DCD_RIG,
     .port_type = RIG_PORT_SERIAL,
     .serial_rate_min = 9600,
     .serial_rate_max = 9600,
@@ -2294,10 +2874,12 @@ struct rig_caps thd75_caps =
     .timeout = 500,
     .retry = 3,
 
-    .has_get_func = THD74_FUNC_ALL,
-    .has_set_func = THD74_FUNC_ALL,
+    .has_get_func = THD75_FUNC_ALL,
+    .has_set_func = THD75_FUNC_ALL,
     .has_get_level = THD75_LEVEL_ALL,
     .has_set_level = RIG_LEVEL_SET(THD75_LEVEL_ALL),
+    .has_get_parm = RIG_PARM_NONE,
+    .has_set_parm = RIG_PARM_NONE,
     .level_gran =
     {
         [LVL_SQL] = {
@@ -2310,8 +2892,23 @@ struct rig_caps thd75_caps =
             .max = { .f = 1.0f },
             .step = { .f = 0.0f },
         },
+        [LVL_AF] = {
+            .min = { .f = 0.0f },
+            .max = { .f = 1.0f },
+            .step = { .f = 1.0f / 200.0f },
+        },
+        [LVL_VOXGAIN] = {
+            .min = { .f = 0.0f },
+            .max = { .f = 1.0f },
+            .step = { .f = 1.0f / 9.0f },
+        },
+        [LVL_VOXDELAY] = {
+            .min = { .i = 3 }, .max = { .i = 30 }, .step = { .i = 1 },
+        },
+        [LVL_RAWSTR] = {
+            .min = { .i = 0 }, .max = { .i = 5 }, .step = { .i = 1 },
+        },
     },
-
     .ctcss_list = kenwood42_ctcss_list,
     .dcs_list = thd74dcs_list,
     .preamp = { RIG_DBLST_END, },
@@ -2320,7 +2917,7 @@ struct rig_caps thd75_caps =
     .max_xit = Hz(0),
     .max_ifshift = Hz(0),
     .vfo_ops = THD74_VFO_OP,
-    .targetable_vfo = RIG_TARGETABLE_FREQ,
+    .targetable_vfo = RIG_TARGETABLE_FREQ | RIG_TARGETABLE_LEVEL,
     .transceive = RIG_TRN_OFF,
     .bank_qty = 0,
     .chan_desc_sz = 0,
@@ -2405,6 +3002,7 @@ struct rig_caps thd75_caps =
     .set_vfo = thd74_set_vfo,
     .get_vfo = thd74_get_vfo,
     .set_ptt = thd74_set_ptt,
+    .get_dcd = thd75_get_dcd,
     .set_rptr_shift = thd74_set_rptr_shft,
     .get_rptr_shift = thd74_get_rptr_shft,
     .set_rptr_offs = thd74_set_rptr_offs,
@@ -2417,10 +3015,12 @@ struct rig_caps thd75_caps =
     .get_dcs_code = thd74_get_dcs_code,
     .set_ctcss_sql = thd74_set_ctcss_sql,
     .get_ctcss_sql = thd74_get_ctcss_sql,
-    .set_level = thd74_set_level,
-    .get_level = thd74_get_level,
-    .set_func = thd74_set_func,
-    .get_func = thd74_get_func,
+    .set_level = thd75_set_level,
+    .get_level = thd75_get_level,
+    .set_func = thd75_set_func,
+    .get_func = thd75_get_func,
+    .set_clock = thd75_set_clock,
+    .get_clock = thd75_get_clock,
     .set_mem = thd74_set_mem,
     .get_mem = thd74_get_mem,
     .set_channel = thd74_set_channel,
