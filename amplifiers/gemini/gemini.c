@@ -126,52 +126,109 @@ const char *gemini_get_info(AMP *amp)
     return rc->model_name;
 }
 
-static int gemini_status_parse(AMP *amp)
+int gemini_parse_status_response(struct gemini_priv_data *priv, char *response)
 {
-    int retval, n = 0;
+    int n = 0;
     char *p;
-    char responsebuf[GEMINIBUFSZ];
-    struct gemini_priv_data *priv = AMPSTATE(amp)->priv;
 
-    retval = gemini_transaction(amp, "S\n", responsebuf, sizeof(responsebuf));
-
-    if (retval != RIG_OK)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: error sending command 'S'\n", __func__);
-    }
-
-    p = strtok(responsebuf, ",\n");
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: responsebuf=%s\n", __func__, responsebuf);
+    p = strtok(response, ",\n");
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: response=%s\n", __func__, response);
 
     while (p)
     {
-        char tmp[8];
+        int matched = 0;
+        int fields;
+        int power_current;
+        int power_peak;
+        char tmp[8] = { 0 };
         double freq;
-        n += sscanf(p, "BAND=%lf%7s", &freq, tmp);
+        fields = sscanf(p, "BAND=%lf%7s", &freq, tmp);
 
-        if (tmp[0] == 'K') { priv->band = freq * 1000; }
+        if (fields == 2 && tmp[0] == 'K')
+        {
+            priv->band = freq * 1000;
+            matched++;
+        }
 
-        if (tmp[0] == 'M') { priv->band = freq * 1000000; }
+        if (fields == 2 && tmp[0] == 'M')
+        {
+            priv->band = freq * 1000000;
+            matched++;
+        }
 
-        n += sscanf(p, "ANTENNA=%c", &priv->antenna);
-        n += sscanf(p, "POWER=%dW%d", &priv->power_current, &priv->power_peak);
-        n += sscanf(p, "VSWR=%lf", &priv->vswr);
-        n += sscanf(p, "CURRENT=%d", &priv->current);
-        n += sscanf(p, "TEMPERATURE=%d", &priv->temperature);
-        n += sscanf(p, "STATE=%7s", priv->state);
-        n += sscanf(p, "PTT=%7s", tmp);
-        priv->ptt = tmp[0] == 'T';
-        n += sscanf(p, "TRIP=%7s", priv->trip);
+        fields = sscanf(p, "ANTENNA=%c", &priv->antenna);
 
-        if (n == 0)
+        if (fields == 1) { matched++; }
+
+        fields = sscanf(p, "POWER=%dW%d", &power_current, &power_peak);
+
+        if (fields == 2)
+        {
+            priv->power_current = power_current;
+            priv->power_peak = power_peak;
+            matched += fields;
+        }
+
+        fields = sscanf(p, "VSWR=%lf", &priv->vswr);
+
+        if (fields == 1) { matched++; }
+
+        fields = sscanf(p, "CURRENT=%d", &priv->current);
+
+        if (fields == 1) { matched++; }
+
+        fields = sscanf(p, "TEMPERATURE=%d", &priv->temperature);
+
+        if (fields == 1) { matched++; }
+
+        fields = sscanf(p, "STATE=%7s", priv->state);
+
+        if (fields == 1) { matched++; }
+
+        fields = sscanf(p, "PTT=%7s", tmp);
+
+        if (fields == 1 && strcmp(tmp, "TX") == 0)
+        {
+            priv->ptt = 1;
+            matched++;
+        }
+        else if (fields == 1 && strcmp(tmp, "RX") == 0)
+        {
+            priv->ptt = 0;
+            matched++;
+        }
+
+        fields = sscanf(p, "TRIP=%7s", priv->trip);
+
+        if (fields == 1) { matched++; }
+
+        if (matched == 0)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: unknown status item=%s\n", __func__, p);
         }
+
+        n += matched;
+        p = strtok(NULL, ",\n");
     }
 
     if (n == 0) { return -RIG_EPROTO; }
 
     return RIG_OK;
+}
+
+static int gemini_status_parse(AMP *amp)
+{
+    char responsebuf[GEMINIBUFSZ];
+    struct gemini_priv_data *priv = AMPSTATE(amp)->priv;
+    int retval = gemini_transaction(amp, "S\n", responsebuf, sizeof(responsebuf));
+
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: error sending command 'S'\n", __func__);
+        return retval;
+    }
+
+    return gemini_parse_status_response(priv, responsebuf);
 }
 
 int gemini_get_freq(AMP *amp, freq_t *freq)

@@ -16,6 +16,7 @@ bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld rigctlcom rig
 
 check_PROGRAMS = dumpmem testrig testrigopen testrigcaps testbcd testfreq listrigs testloc rig_bench testcache cachetest cachetest2 testcookie testdebug testgrid hamlibmodels testmW2power test2038
 check_PROGRAMS += testnetrigctl
+check_PROGRAMS += testctlparser testbandmetadata testicomts testgeministatus testgs100 testftx1parsers
 # Document building testsecurity
 ### check_PROGRAMS += testsecurity
 
@@ -57,6 +58,12 @@ rigctlcom_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/security
 rigctltcp_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/security
 rigctlsync_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/security
 testdebug_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testctlparser_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testgeministatus_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testgs100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testicomts_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+testgeministatus_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/amplifiers/gemini
+testftx1parsers_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/yaesu/ftx1
 if TESTS_HAVE_LIBUSB
     rigtestlibusb_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) $(LIBUSB_CFLAGS)
 endif
@@ -76,6 +83,12 @@ rigctltcp_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rigctlsync_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 testdebug_LDADD = $(PTHREAD_LIBS) $(LDADD)
 testnetrigctl_LDADD = $(top_builddir)/rigs/dummy/libhamlib-dummy.la
+testctlparser_SOURCES = testctlparser.c $(RIGCOMMONSRC)
+testctlparser_LDADD = $(PTHREAD_LIBS) $(READLINE_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
+testicomts_LDADD = $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+testgeministatus_LDADD = $(PTHREAD_LIBS) $(top_builddir)/amplifiers/gemini/libhamlib-gemini.la $(LDADD)
+testgs100_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/gomspace/libhamlib-gomspace.la $(LDADD)
+testftx1parsers_LDADD = $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
 if TESTS_HAVE_LIBUSB
     rigtestlibusb_LDADD = $(LIBUSB_LIBS)
 endif
@@ -122,15 +135,16 @@ EXTRA_DIST = \
 	rig_split_lst.awk \
 	rigmatrix_head.html \
 	testcaps.sh \
+	testctlbounds.sh \
 	testctld.pl \
 	testrotctld.pl
 
 # Support 'make check' target for simple tests
 # Omitting cachetest.sh because it needs 2 instances of rigctld running
 check_SCRIPTS = amptest.sh test2038.sh testbcd.sh testcache.sh testcaps.sh testcookie.sh testfreq.sh testgrid.sh testloc.sh testrig.sh testrigcaps.sh
-check_SCRIPTS += testnetrigctl.sh
+check_SCRIPTS += testnetrigctl.sh testctlbounds.sh
 
-TESTS = $(check_SCRIPTS) testdebug
+TESTS = $(check_SCRIPTS) testdebug testctlparser testbandmetadata testicomts testgeministatus testgs100 testftx1parsers
 
 $(top_builddir)/src/libhamlib.la:
 	$(MAKE) -C $(top_builddir)/src/ libhamlib.la
@@ -140,6 +154,18 @@ $(top_builddir)/lib/libmisc.la:
 
 $(top_builddir)/rigs/dummy/libhamlib-dummy.la:
 	$(MAKE) -C $(top_builddir)/rigs/dummy/ libhamlib-dummy.la
+
+$(top_builddir)/rigs/icom/libhamlib-icom.la:
+	$(MAKE) -C $(top_builddir)/rigs/icom/ libhamlib-icom.la
+
+$(top_builddir)/amplifiers/gemini/libhamlib-gemini.la:
+	$(MAKE) -C $(top_builddir)/amplifiers/gemini/ libhamlib-gemini.la
+
+$(top_builddir)/rigs/gomspace/libhamlib-gomspace.la:
+	$(MAKE) -C $(top_builddir)/rigs/gomspace/ libhamlib-gomspace.la
+
+$(top_builddir)/rigs/yaesu/libhamlib-yaesu.la:
+	$(MAKE) -C $(top_builddir)/rigs/yaesu/ libhamlib-yaesu.la
 
 testrig.sh:
 	echo 'LD_LIBRARY_PATH=$(top_builddir)/src/.libs:$(top_builddir)/dummy/.libs ./testrig 1' > testrig.sh

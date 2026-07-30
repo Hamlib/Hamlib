@@ -35,6 +35,7 @@
 #define FTX1_RF_GAIN_MAX 255
 #define FTX1_MIC_GAIN_MIN 0
 #define FTX1_MIC_GAIN_MAX 100
+#define FTX1_SMETER_MAX 255
 
 /*
  * Power ranges by head type:
@@ -176,13 +177,40 @@ int ftx1_get_mic_gain(RIG *rig, float *val)
     return RIG_OK;
 }
 
+int ftx1_parse_smeter_response(const char *response, int p1, int *val)
+{
+    int level;
+
+    /* Response: SM P1 P2P3P4; (P2-P4 is 3 digits 000-255 per spec) */
+    if (p1 < 0 || p1 > 1 || strlen(response) != 7
+            || response[0] != 'S' || response[1] != 'M'
+            || response[2] != '0' + p1
+            || response[3] < '0' || response[3] > '9'
+            || response[4] < '0' || response[4] > '9'
+            || response[5] < '0' || response[5] > '9'
+            || response[6] != ';')
+    {
+        return -RIG_EPROTO;
+    }
+
+    level = (response[3] - '0') * 100 + (response[4] - '0') * 10
+            + response[5] - '0';
+
+    if (level > FTX1_SMETER_MAX)
+    {
+        return -RIG_EPROTO;
+    }
+
+    *val = level;
+    return RIG_OK;
+}
+
 /* Get S-Meter (SM P1;) */
 int ftx1_get_smeter(RIG *rig, vfo_t vfo, int *val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
     int p1 = ftx1_vfo_to_p1(rig, vfo);
-    int p1_resp, level;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
               rig_strvfo(vfo), p1);
@@ -192,16 +220,15 @@ int ftx1_get_smeter(RIG *rig, vfo_t vfo, int *val)
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    /* Response: SM P1 P2P3P4; (P2-P4 is 3 digits 000-255 per spec) */
-    if (sscanf(priv->ret_data + 2, "%1d%3d", &p1_resp, &level) != 2)
+    ret = ftx1_parse_smeter_response(priv->ret_data, p1, val);
+
+    if (ret != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
                   priv->ret_data);
-        return -RIG_EPROTO;
     }
 
-    *val = level;
-    return RIG_OK;
+    return ret;
 }
 
 /* Get Meter (RM P1;) - various meters */
