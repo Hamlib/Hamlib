@@ -36,7 +36,9 @@ Version 4.7.3
           Christie)
         * FTX-1: Fix get/set_rptr_offs to use correct unit. GitHub PR #2110
           (TNX Miao Wang)
-        * K3/K4: Validate Elecraft K3/K4 SWR responses. Git Hub PR #2111
+        * K3/K4: Validate Elecraft K3/K4 SWR responses. GitHub PR #2111
+          (TNX David Christie)
+        * Fix(guohetec): Initialize fallback filter width. GitHub PR #2113
           (TNX David Christie)
 
 Version 4.7.2
