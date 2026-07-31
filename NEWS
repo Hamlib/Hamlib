@@ -22,6 +22,8 @@ Version 5.x -- future
           (TNX David Christie)
         * Harden command and backend parser bounds. GitHub PR #2112
           (TNX David Christie)
+        * ATS Mini: New backend and model.  GitHub PR #2089.  (TNX
+          Jon Snow)
 
 Version 4.7.2
         * 2026-06-21
