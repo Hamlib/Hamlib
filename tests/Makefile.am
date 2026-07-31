@@ -107,6 +107,7 @@ rigctlcom_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_srcdir)/src -I$(top_bu
 rigctltcp_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_srcdir)/src -I$(top_builddir)/security
 rigctlsync_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_srcdir)/src -I$(top_builddir)/security
 testdebug_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testnetrigctl_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testctlparser_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testgeministatus_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testgs100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
@@ -135,7 +136,7 @@ rigstreamtest_LDADD = $(PTHREAD_LIBS) $(LDADD)
 rigstreamtest_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 rigstreamtest_CPPFLAGS = -I$(top_srcdir)/src -I$(top_builddir)/src \
     $(AM_CPPFLAGS)
-testnetrigctl_LDADD = $(top_builddir)/rigs/dummy/libhamlib-dummy.la
+testnetrigctl_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
 testctlparser_SOURCES = testctlparser.c $(RIGCOMMONSRC)
 testctlparser_LDADD = $(PTHREAD_LIBS) $(READLINE_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
 testicomts_LDADD = $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
