@@ -28,6 +28,7 @@ rigctld \- TCP radio control daemon
 .OP \-S char
 .OP \-T IPADDR
 .OP \-t number
+.OP \-N number
 .OP \-C parm=val
 .OP \-X seconds
 .RB [ \-v [ \-Z ]]
@@ -289,6 +290,14 @@ As
 default port is 4533, it is advisable to use even numbered ports for
 .BR rigctld ,
 e.g. 4532, 4534, 4536, etc.
+.
+.TP
+.BR \-N ", " \-\-max\-clients = \fInumber\fP
+Limit the number of concurrent TCP clients to
+.IR number .
+.IP
+The value must be a positive integer. The default is 32. Connections accepted
+while the limit is reached are closed immediately.
 .
 .TP
 .BR \-L ", " \-\-show\-conf
