@@ -346,7 +346,7 @@
 #define RIG_MODEL_X6100 RIG_MAKE_MODEL(RIG_ICOM, 87)    /* Xiegu X6100 */
 #define RIG_MODEL_G90 RIG_MAKE_MODEL(RIG_ICOM, 88)    /* Xiegu G90 */
 #define RIG_MODEL_X5105 RIG_MAKE_MODEL(RIG_ICOM, 89)    /* Xiegu X5105 -- G90 compatible */
-#define RIG_MODEL_IC905 RIG_MAKE_MODEL(RIG_ICOM, 90)    
+#define RIG_MODEL_IC905 RIG_MAKE_MODEL(RIG_ICOM, 90)
 #define RIG_MODEL_X6200 RIG_MAKE_MODEL(RIG_ICOM, 91)    /* Xiegu X6200 */
 #define RIG_MODEL_IC7760 RIG_MAKE_MODEL(RIG_ICOM, 92)
 #define RIG_MODEL_ID52PLUS RIG_MAKE_MODEL(RIG_ICOM, 93)
@@ -1156,6 +1156,22 @@
 ///@{
 /// Model of the `RIG_HARRIS` backend family.
 #define RIG_MODEL_PRC138 RIG_MAKE_MODEL(RIG_HARRIS, 1)
+///@}
+
+/*
+ * ATS
+ */
+#define RIG_ATS_MINI 44
+/** Used in register.c for the `be_name`. */
+#define RIG_BACKEND_ATS_MINI "atsmini"
+
+/**
+ * \name MINI
+ * ATS Mini models.
+ */
+///@{
+/// Model of the `RIG_ATS` backend family.
+#define RIG_MODEL_ATS_MINI RIG_MAKE_MODEL(RIG_ATS_MINI, 1)
 ///@}
 
 /** Convenience type definition for rig model. */
