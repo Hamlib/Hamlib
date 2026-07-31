@@ -19,6 +19,8 @@ bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld rigctlcom rig
 DIRECT_TESTS = \
 	testbandmetadata \
 	testctlparser \
+	testdaemonclient \
+	testdaemonclients \
 	testdebug \
 	testdummyparm \
 	testid5100 \
@@ -75,16 +77,17 @@ check_PROGRAMS = \
 RIGCOMMONSRC = rigctl_parse.c rigctl_parse.h dumpcaps.c dumpstate.c uthash.h rig_tests.c rig_tests.h dumpcaps.h
 ROTCOMMONSRC = rotctl_parse.c rotctl_parse.h dumpcaps_rot.c uthash.h dumpcaps_rot.h
 AMPCOMMONSRC = ampctl_parse.c ampctl_parse.h dumpcaps_amp.c uthash.h 
+DAEMONCLIENTSRC = daemon_client.c daemon_client.h
 
 rigctl_SOURCES = rigctl.c $(RIGCOMMONSRC)
-rigctld_SOURCES = rigctld.c $(RIGCOMMONSRC)
+rigctld_SOURCES = rigctld.c $(RIGCOMMONSRC) $(DAEMONCLIENTSRC)
 rigctlcom_SOURCES = rigctlcom.c $(RIGCOMMONSRC)
-rigctltcp_SOURCES = rigctltcp.c $(RIGCOMMONSRC)
+rigctltcp_SOURCES = rigctltcp.c $(RIGCOMMONSRC) $(DAEMONCLIENTSRC)
 rigctlsync_SOURCES = rigctlsync.c $(RIGCOMMONSRC)
 rotctl_SOURCES = rotctl.c $(ROTCOMMONSRC)
-rotctld_SOURCES = rotctld.c $(ROTCOMMONSRC)
+rotctld_SOURCES = rotctld.c $(ROTCOMMONSRC) $(DAEMONCLIENTSRC)
 ampctl_SOURCES = ampctl.c $(AMPCOMMONSRC)
-ampctld_SOURCES = ampctld.c $(AMPCOMMONSRC)
+ampctld_SOURCES = ampctld.c $(AMPCOMMONSRC) $(DAEMONCLIENTSRC)
 rigmem_SOURCES = rigmem.c memsave.c memload.c memcsv.c
 if TESTS_HAVE_LIBUSB
     rigtestlibusb_SOURCES = rigtestlibusb.c
@@ -112,6 +115,7 @@ rigctlsync_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/security
 testdebug_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testnetrigctl_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testsendraw_CFLAGS = $(AM_CFLAGS)
+testdaemonclient_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testid5100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testid5100_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testicomfallback_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
@@ -148,6 +152,8 @@ testid5100_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhaml
 testicomfallback_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testsendraw_SOURCES = testsendraw.c
 testsendraw_LDADD = $(NET_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
+testdaemonclient_SOURCES = testdaemonclient.c $(DAEMONCLIENTSRC)
+testdaemonclient_LDADD = $(PTHREAD_LIBS) $(LDADD)
 testctlparser_SOURCES = testctlparser.c $(RIGCOMMONSRC)
 testctlparser_LDADD = $(PTHREAD_LIBS) $(READLINE_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
 testmodecompat_LDADD = $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
