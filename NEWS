@@ -7,7 +7,7 @@ Copyright (C) 2000-2026  The Hamlib Group
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
-+
+
 Version 5.x -- future
         * rig_get_conf deprecated and replaced by rig_get_conf2
         * rot_get_conf deprecated and replaced by rot_get_conf2
@@ -16,6 +16,12 @@ Version 5.x -- future
           heap buffers - Github issues #487 & #1445 (n3gb)
         * Update bandwidth handling in rigs/yaesu/newcat.c to use data in
           priv_caps. Moves lots of hard-coded data into tables.  (n3gb)
+        * Fix: Remove debug history race. GitHub PR #2105  (TNX David
+          Christie)
+        * Fix: Prevent network AGC parser overflow. GitHub PR #2106
+          (TNX David Christie)
+        * Harden command and backend parser bounds. GitHub PR #2112
+          (TNX David Christie)
 
 Version 4.7.2
         * 2026-06-21
