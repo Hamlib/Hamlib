@@ -24,7 +24,8 @@ DIRECT_TESTS = \
 	testftx1parsers \
 	testgeministatus \
 	testgs100 \
-	testicomts
+	testicomts \
+	testnewcatset
 
 GENERATED_TEST_WRAPPERS = \
 	test2038.sh \
@@ -102,6 +103,7 @@ testdebug_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testctlparser_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testgeministatus_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testgs100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testnewcatset_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testicomts_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testgeministatus_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/amplifiers/gemini
 testftx1parsers_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/yaesu/ftx1
@@ -130,6 +132,7 @@ testicomts_LDADD = $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testgeministatus_LDADD = $(PTHREAD_LIBS) $(top_builddir)/amplifiers/gemini/libhamlib-gemini.la $(LDADD)
 testgs100_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/gomspace/libhamlib-gomspace.la $(LDADD)
 testftx1parsers_LDADD = $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
+testnewcatset_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
 if TESTS_HAVE_LIBUSB
     rigtestlibusb_LDADD = $(LIBUSB_LIBS)
 endif
