@@ -12,7 +12,7 @@ RIGSRC = hamlibdatetime.h rig.c serial.c serial.h misc.c misc.h register.c regis
    	par_nt.h microham.c microham.h amplifier.c amp_reg.c amp_conf.c \
    	amp_conf.h amp_settings.c amp_ext.c sleep.c sleep.h sprintflst.c \
    	sprintflst.h cache.c cache.h snapshot_data.c snapshot_data.h fifo.c fifo.h \
-    serial_cfg_params.h mutex.h
+	serial_cfg_params.h mutex.h rigctl_protocol.c rigctl_protocol.h
 
 if VERSIONDLL
 RIGSRC +=	\
