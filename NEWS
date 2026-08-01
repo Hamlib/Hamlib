@@ -40,6 +40,8 @@ Version 4.7.3
           (TNX David Christle)
         * Fix(guohetec): Initialize fallback filter width. GitHub PR #2113
           (TNX David Christle)
+        * Fix(core): Terminate empty hexadecimal output. GitHub PR #2114
+          (TNX David Christle)
 
 Version 4.7.2
         * 2026-06-21
