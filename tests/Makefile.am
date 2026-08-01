@@ -24,7 +24,8 @@ DIRECT_TESTS = \
 	testftx1parsers \
 	testgeministatus \
 	testgs100 \
-	testicomts
+	testicomts \
+	testmodecompat
 
 GENERATED_TEST_WRAPPERS = \
 	test2038.sh \
@@ -126,6 +127,7 @@ testdebug_LDADD = $(PTHREAD_LIBS) $(LDADD)
 testnetrigctl_LDADD = $(top_builddir)/rigs/dummy/libhamlib-dummy.la
 testctlparser_SOURCES = testctlparser.c $(RIGCOMMONSRC)
 testctlparser_LDADD = $(PTHREAD_LIBS) $(READLINE_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
+testmodecompat_LDADD = $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
 testicomts_LDADD = $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testgeministatus_LDADD = $(PTHREAD_LIBS) $(top_builddir)/amplifiers/gemini/libhamlib-gemini.la $(LDADD)
 testgs100_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/gomspace/libhamlib-gomspace.la $(LDADD)
