@@ -14,7 +14,7 @@ DISTCLEANFILES = rigctl.log rigctl.sum testbcd.log testbcd.sum
 
 bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld rigctlcom rigctltcp rigctlsync ampctl ampctld rigtestmcast rigtestmcastrx $(TESTLIBUSB)
 
-check_PROGRAMS = dumpmem testrig testrigopen testrigcaps testbcd testfreq listrigs testloc rig_bench testcache cachetest cachetest2 testcookie testdebug testgrid hamlibmodels testmW2power test2038
+check_PROGRAMS = dumpmem testrig testrigopen testrigcaps testbcd testfreq listrigs testloc rig_bench testcache cachetest cachetest2 testcookie testdebug testdummyparm testgrid hamlibmodels testmW2power test2038
 check_PROGRAMS += testnetrigctl
 check_PROGRAMS += testctlparser testbandmetadata testicomts testgeministatus testgs100 testftx1parsers
 # Document building testsecurity
@@ -144,7 +144,7 @@ EXTRA_DIST = \
 check_SCRIPTS = amptest.sh test2038.sh testbcd.sh testcache.sh testcaps.sh testcookie.sh testfreq.sh testgrid.sh testloc.sh testrig.sh testrigcaps.sh
 check_SCRIPTS += testnetrigctl.sh testctlbounds.sh
 
-TESTS = $(check_SCRIPTS) testdebug testctlparser testbandmetadata testicomts testgeministatus testgs100 testftx1parsers
+TESTS = $(check_SCRIPTS) testdebug testdummyparm testctlparser testbandmetadata testicomts testgeministatus testgs100 testftx1parsers
 
 $(top_builddir)/src/libhamlib.la:
 	$(MAKE) -C $(top_builddir)/src/ libhamlib.la
