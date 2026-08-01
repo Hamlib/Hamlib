@@ -31,15 +31,15 @@ Version 4.7.3
           GitHub PR #2092.  (TNX Terrell Deppe)
         * IC-7610/IC-7760: Implement SYNC (menu name "Tracking").  GitHub PR
           #2098.  (TNX Christoph Berg)
-        * Fix: Remove debug history race.  GitHub PR #2107 (TNX David Christie)
+        * Fix: Remove debug history race.  GitHub PR #2107 (TNX David Christle)
         * Fix: Prevent dummy level buffer overflow. GitHub PR #2108 (TNX David
-          Christie)
+          Christle)
         * FTX-1: Fix get/set_rptr_offs to use correct unit. GitHub PR #2110
           (TNX Miao Wang)
         * K3/K4: Validate Elecraft K3/K4 SWR responses. GitHub PR #2111
-          (TNX David Christie)
+          (TNX David Christle)
         * Fix(guohetec): Initialize fallback filter width. GitHub PR #2113
-          (TNX David Christie)
+          (TNX David Christle)
 
 Version 4.7.2
         * 2026-06-21
