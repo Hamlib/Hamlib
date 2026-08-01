@@ -17,11 +17,11 @@ Version 5.x -- future
         * Update bandwidth handling in rigs/yaesu/newcat.c to use data in
           priv_caps. Moves lots of hard-coded data into tables.  (n3gb)
         * Fix: Remove debug history race. GitHub PR #2105  (TNX David
-          Christie)
+          Christle)
         * Fix: Prevent network AGC parser overflow. GitHub PR #2106
-          (TNX David Christie)
+          (TNX David Christle)
         * Harden command and backend parser bounds. GitHub PR #2112
-          (TNX David Christie)
+          (TNX David Christle)
         * ATS Mini: New backend and model.  GitHub PR #2089.  (TNX
           Jon Snow)
 
