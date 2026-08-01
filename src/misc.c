@@ -2023,7 +2023,9 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
         {
             if (vfo == RIG_VFO_TX || vfo == RIG_VFO_MAIN) { return RIG_VFO_MAIN; }
 
-            return RIG_VFO_SUB;
+            if (vfo == RIG_VFO_OTHER || vfo == RIG_VFO_SUB) { return RIG_VFO_SUB; }
+
+            return vfo;
         }
 
         return vfo; // no change to requested vfo
