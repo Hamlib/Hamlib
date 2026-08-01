@@ -24,7 +24,8 @@ DIRECT_TESTS = \
 	testftx1parsers \
 	testgeministatus \
 	testgs100 \
-	testicomts
+	testicomts \
+	testrigctlprotocol
 
 GENERATED_TEST_WRAPPERS = \
 	test2038.sh \
@@ -35,6 +36,7 @@ GENERATED_TEST_WRAPPERS = \
 	testgrid.sh \
 	testloc.sh \
 	testnetrigctl.sh \
+	testnetrigctllocale.sh \
 	testrig.sh \
 	testrigcaps.sh
 
@@ -127,6 +129,7 @@ testdebug_LDADD = $(PTHREAD_LIBS) $(LDADD)
 testnetrigctl_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
 testctlparser_SOURCES = testctlparser.c $(RIGCOMMONSRC)
 testctlparser_LDADD = $(PTHREAD_LIBS) $(READLINE_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
+testrigctlprotocol_LDADD = $(LDADD)
 testicomts_LDADD = $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testgeministatus_LDADD = $(PTHREAD_LIBS) $(top_builddir)/amplifiers/gemini/libhamlib-gemini.la $(LDADD)
 testgs100_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/gomspace/libhamlib-gomspace.la $(LDADD)
@@ -219,6 +222,10 @@ testrig.sh:
 testnetrigctl.sh:
 	echo './testnetrigctl' > testnetrigctl.sh
 	chmod +x ./testnetrigctl.sh
+
+testnetrigctllocale.sh:
+	echo './testnetrigctl --locale' > testnetrigctllocale.sh
+	chmod +x ./testnetrigctllocale.sh
 
 testfreq.sh:
 	echo './testfreq' > testfreq.sh

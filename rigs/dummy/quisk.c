@@ -20,6 +20,8 @@
  */
 
 #include "hamlib/config.h"
+#include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
@@ -30,7 +32,7 @@
 #include "hamlib/rig_state.h"
 #include "iofunc.h"
 #include "misc.h"
-#include "num_stdio.h"
+#include "rigctl_protocol.h"
 
 #include "dummy.h"
 #include "dummy_common.h"
@@ -38,7 +40,111 @@
 #define CMD_MAX 64
 #define BUF_MAX 1024
 
-#define CHKSCN1ARG(a) if ((a) != 1) return -RIG_EPROTO; else do {} while(0)
+static int quisk_parse_unsigned_int(const char *token, unsigned int *value)
+{
+    char *end;
+    unsigned long parsed;
+
+    if (token == NULL || value == NULL || token[0] == '-')
+    {
+        return -RIG_EPROTO;
+    }
+
+    errno = 0;
+    parsed = strtoul(token, &end, 10);
+
+    if (errno == ERANGE || end == token || parsed > UINT_MAX)
+    {
+        return -RIG_EPROTO;
+    }
+
+    while (*end == ' ' || *end == '\t' || *end == '\r' || *end == '\n'
+            || *end == '\f' || *end == '\v')
+    {
+        ++end;
+    }
+
+    if (*end != '\0')
+    {
+        return -RIG_EPROTO;
+    }
+
+    *value = (unsigned int)parsed;
+    return RIG_OK;
+}
+
+static int quisk_parse_gran_list(const char *value, int parm,
+                                  const gran_t source[RIG_SETTING_MAX],
+                                  gran_t parsed[RIG_SETTING_MAX])
+{
+    const char *entry = value;
+    int seen[RIG_SETTING_MAX] = { 0 };
+
+    if (value == NULL || value[0] == '\0')
+    {
+        return -RIG_EPROTO;
+    }
+
+    memcpy(parsed, source, sizeof(gran_t) * RIG_SETTING_MAX);
+
+    while (*entry != '\0')
+    {
+        const char *separator = strchr(entry, ';');
+        size_t length = separator == NULL ? strlen(entry) : (size_t)(separator - entry);
+        char record[BUF_MAX];
+        gran_t gran;
+        setting_t setting;
+        char *index_end;
+        long parsed_index;
+        int index;
+        int floating;
+
+        if (length == 0 || length >= sizeof(record))
+        {
+            return -RIG_EPROTO;
+        }
+
+        memcpy(record, entry, length);
+        record[length] = '\0';
+
+        errno = 0;
+        parsed_index = strtol(record, &index_end, 10);
+
+        if (errno == ERANGE || index_end == record || *index_end != '='
+                || parsed_index < 0 || parsed_index >= RIG_SETTING_MAX)
+        {
+            return -RIG_EPROTO;
+        }
+
+        index = (int)parsed_index;
+
+        if (seen[index])
+        {
+            return -RIG_EPROTO;
+        }
+
+        setting = rig_idx2setting(index);
+        floating = parm ? RIG_PARM_IS_FLOAT(setting) : RIG_LEVEL_IS_FLOAT(setting);
+
+        if ((parm && RIG_PARM_IS_STRING(setting))
+                || dummy_parse_rigctl_gran(record, floating, &index, &gran) != RIG_OK)
+        {
+            return -RIG_EPROTO;
+        }
+
+        seen[index] = 1;
+        parsed[index] = gran;
+
+        if (separator == NULL)
+        {
+            break;
+        }
+
+        entry = separator + 1;
+    }
+
+    return RIG_OK;
+}
 
 struct quisk_priv_data
 {
@@ -205,8 +311,6 @@ static int quisk_cleanup(RIG *rig)
 // these are in netrigctl.c
 extern int parse_array_int(const char *s, const char *delim, int *array,
                            int array_len);
-extern int parse_array_double(const char *s, const char *delim, double *array,
-                              int array_len);
 
 static int quisk_open(RIG *rig)
 {
@@ -260,6 +364,8 @@ static int quisk_open(RIG *rig)
 
     for (i = 0; i < HAMLIB_FRQRANGESIZ; i++)
     {
+        freq_range_t range;
+
         ret = read_string(rp, (unsigned char *) buf, BUF_MAX, "\n", 1, 0, 1);
 
         if (ret <= 0)
@@ -267,20 +373,14 @@ static int quisk_open(RIG *rig)
             RETURNFUNC((ret < 0) ? ret : -RIG_EPROTO);
         }
 
-        ret = num_sscanf(buf, "%"SCNfreq"%"SCNfreq"%"SCNXll"%d%d%x%x",
-                         &(rs->rx_range_list[i].startf),
-                         &(rs->rx_range_list[i].endf),
-                         &(rs->rx_range_list[i].modes),
-                         &(rs->rx_range_list[i].low_power),
-                         &(rs->rx_range_list[i].high_power),
-                         &(rs->rx_range_list[i].vfo),
-                         &(rs->rx_range_list[i].ant)
-                        );
+        ret = dummy_parse_rigctl_range(buf, &range);
 
-        if (ret != 7)
+        if (ret != RIG_OK)
         {
             RETURNFUNC(-RIG_EPROTO);
         }
+
+        rs->rx_range_list[i] = range;
 
         if (RIG_IS_FRNG_END(rs->rx_range_list[i]))
         {
@@ -290,6 +390,8 @@ static int quisk_open(RIG *rig)
 
     for (i = 0; i < HAMLIB_FRQRANGESIZ; i++)
     {
+        freq_range_t range;
+
         ret = read_string(rp, (unsigned char *) buf, BUF_MAX, "\n", 1, 0, 1);
 
         if (ret <= 0)
@@ -297,20 +399,14 @@ static int quisk_open(RIG *rig)
             RETURNFUNC((ret < 0) ? ret : -RIG_EPROTO);
         }
 
-        ret = num_sscanf(buf, "%"SCNfreq"%"SCNfreq"%"SCNXll"%d%d%x%x",
-                         &rs->tx_range_list[i].startf,
-                         &rs->tx_range_list[i].endf,
-                         &rs->tx_range_list[i].modes,
-                         &rs->tx_range_list[i].low_power,
-                         &rs->tx_range_list[i].high_power,
-                         &rs->tx_range_list[i].vfo,
-                         &rs->tx_range_list[i].ant
-                        );
+        ret = dummy_parse_rigctl_range(buf, &range);
 
-        if (ret != 7)
+        if (ret != RIG_OK)
         {
             RETURNFUNC(-RIG_EPROTO);
         }
+
+        rs->tx_range_list[i] = range;
 
         if (RIG_IS_FRNG_END(rs->tx_range_list[i]))
         {
@@ -723,14 +819,50 @@ static int quisk_open(RIG *rig)
             }
             else if (strcmp(setting, "ctcss_list") == 0)
             {
-                int n;
+                tone_t parsed_tones[CTCSS_LIST_SIZE] = { 0 };
                 double ctcss[CTCSS_LIST_SIZE];
-                rig->caps->ctcss_list = calloc(CTCSS_LIST_SIZE, sizeof(tone_t));
-                n = parse_array_double(value, " \n\r", ctcss, CTCSS_LIST_SIZE);
+                tone_t *tones;
+                int n;
 
-                for (i = 0; i < CTCSS_LIST_SIZE && ctcss[i] != 0; ++i) { rig->caps->ctcss_list[i] = ctcss[i] * 10; }
+                n = dummy_parse_rigctl_double_list(value, " \t\n\r", ctcss,
+                                                   CTCSS_LIST_SIZE);
 
-                if (n < CTCSS_LIST_SIZE) { rig->caps->ctcss_list[n] = 0; }
+                if (n < 0)
+                {
+                    rig_debug(RIG_DEBUG_ERR,
+                              "%s: ignoring invalid ctcss_list field '%s'\n",
+                              __func__, buf);
+                    continue;
+                }
+
+                for (i = 0; i < n; ++i)
+                {
+                    if (ctcss[i] < 0.0 || ctcss[i] > UINT_MAX / 10.0)
+                    {
+                        break;
+                    }
+
+                    parsed_tones[i] = (tone_t)(ctcss[i] * 10.0);
+                }
+
+                if (i != n)
+                {
+                    rig_debug(RIG_DEBUG_ERR,
+                              "%s: ignoring out-of-range ctcss_list field '%s'\n",
+                              __func__, buf);
+                    continue;
+                }
+
+                tones = calloc(CTCSS_LIST_SIZE, sizeof(*tones));
+
+                if (tones == NULL)
+                {
+                    RETURNFUNC(-RIG_ENOMEM);
+                }
+
+                memcpy(tones, parsed_tones, sizeof(parsed_tones));
+                free(rig->caps->ctcss_list);
+                rig->caps->ctcss_list = tones;
             }
             else if (strcmp(setting, "dcs_list") == 0)
             {
@@ -768,61 +900,37 @@ static int quisk_open(RIG *rig)
             }
             else if (strcmp(setting, "level_gran") == 0)
             {
-                char *p = strtok(value, ";");
+                gran_t parsed[RIG_SETTING_MAX];
 
-                for (i = 0; p != NULL && i < RIG_SETTING_MAX; ++i)
+                ret = quisk_parse_gran_list(value, 0, rs->level_gran, parsed);
+
+                if (ret != RIG_OK)
                 {
-                    int level;
-                    sscanf(p, "%d", &level);
-
-                    if (RIG_LEVEL_IS_FLOAT(level))
-                    {
-                        double min, max, step;
-                        sscanf(p, "%*d=%lf,%lf,%lf", &min, &max, &step);
-                        rig->caps->level_gran[i].min.f = rs->level_gran[i].min.f = min;
-                        rig->caps->level_gran[i].max.f = rs->level_gran[i].max.f = max;
-                        rig->caps->level_gran[i].step.f = rs->level_gran[i].step.f = step;
-                    }
-                    else
-                    {
-                        int min, max, step;
-                        sscanf(p, "%*d=%d,%d,%d", &min, &max, &step);
-                        rig->caps->level_gran[i].min.i = rs->level_gran[i].min.i = min;
-                        rig->caps->level_gran[i].max.i = rs->level_gran[i].max.i = max;
-                        rig->caps->level_gran[i].step.i = rs->level_gran[i].step.i = step;
-                    }
-
-                    p = strtok(NULL, ";");
+                    rig_debug(RIG_DEBUG_ERR,
+                              "%s: ignoring invalid level_gran field '%s'\n",
+                              __func__, buf);
+                    continue;
                 }
+
+                memcpy(rs->level_gran, parsed, sizeof(parsed));
+                memcpy(rig->caps->level_gran, parsed, sizeof(parsed));
             }
             else if (strcmp(setting, "parm_gran") == 0)
             {
-                char *p = strtok(value, ";");
+                gran_t parsed[RIG_SETTING_MAX];
 
-                for (i = 0; p != NULL && i < RIG_SETTING_MAX; ++i)
+                ret = quisk_parse_gran_list(value, 1, rs->parm_gran, parsed);
+
+                if (ret != RIG_OK)
                 {
-                    int level;
-                    sscanf(p, "%d", &level);
-
-                    if (RIG_LEVEL_IS_FLOAT(level))
-                    {
-                        double min, max, step;
-                        sscanf(p, "%*d=%lf,%lf,%lf", &min, &max, &step);
-                        rig->caps->parm_gran[i].min.f = rs->parm_gran[i].min.f = min;
-                        rig->caps->parm_gran[i].max.f = rs->parm_gran[i].max.f = max;
-                        rig->caps->parm_gran[i].step.f = rs->parm_gran[i].step.f = step;
-                    }
-                    else
-                    {
-                        int min, max, step;
-                        sscanf(p, "%*d=%d,%d,%d", &min, &max, &step);
-                        rig->caps->parm_gran[i].min.i = rs->parm_gran[i].min.i = min;
-                        rig->caps->parm_gran[i].max.i = rs->parm_gran[i].max.i = max;
-                        rig->caps->parm_gran[i].step.i = rs->parm_gran[i].step.i = step;
-                    }
-
-                    p = strtok(NULL, ";");
+                    rig_debug(RIG_DEBUG_ERR,
+                              "%s: ignoring invalid parm_gran field '%s'\n",
+                              __func__, buf);
+                    continue;
                 }
+
+                memcpy(rs->parm_gran, parsed, sizeof(parsed));
+                memcpy(rig->caps->parm_gran, parsed, sizeof(parsed));
             }
 
             else
@@ -882,6 +990,7 @@ static int quisk_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     int ret;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
+    char freqstr[32];
     char vfostr[16] = "";
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -891,9 +1000,17 @@ static int quisk_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (ret != RIG_OK) { return ret; }
 
-    SNPRINTF(cmd, sizeof(cmd), "F%s %"FREQFMT"\n", vfostr, freq);
+    ret = rigctl_format_decimal(freqstr, sizeof(freqstr), "%"FREQFMT, freq);
+
+    if (ret != RIG_OK) { return ret; }
+
+    SNPRINTF(cmd, sizeof(cmd), "F%s %s\n", vfostr, freqstr);
 #else
-    SNPRINTF(cmd, sizeof(cmd), "F %"FREQFMT"\n", freq);
+    ret = rigctl_format_decimal(freqstr, sizeof(freqstr), "%"FREQFMT, freq);
+
+    if (ret != RIG_OK) { return ret; }
+
+    SNPRINTF(cmd, sizeof(cmd), "F %s\n", freqstr);
 #endif
 
     ret = quisk_transaction(rig, cmd, strlen(cmd), buf);
@@ -938,7 +1055,12 @@ static int quisk_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    CHKSCN1ARG(num_sscanf(buf, "%"SCNfreq, freq));
+    ret = rigctl_parse_double(buf, RIGCTL_DECIMAL_DOT_ONLY, freq);
+
+    if (ret != RIG_OK)
+    {
+        return -RIG_EPROTO;
+    }
 
 #if 0 // implement set_freq VFO later if it can be detected
     ret = read_string(RIGPORT(rig), buf, BUF_MAX, "\n", 1, 0, 1);
@@ -1525,6 +1647,7 @@ static int quisk_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     int ret;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
+    char freqstr[32];
     char vfostr[16] = "";
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -1533,7 +1656,11 @@ static int quisk_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     if (ret != RIG_OK) { return ret; }
 
-    SNPRINTF(cmd, sizeof(cmd), "I%s %"FREQFMT"\n", vfostr, tx_freq);
+    ret = rigctl_format_decimal(freqstr, sizeof(freqstr), "%"FREQFMT, tx_freq);
+
+    if (ret != RIG_OK) { return ret; }
+
+    SNPRINTF(cmd, sizeof(cmd), "I%s %s\n", vfostr, freqstr);
 
     ret = quisk_transaction(rig, cmd, strlen(cmd), buf);
 
@@ -1570,7 +1697,12 @@ static int quisk_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    CHKSCN1ARG(num_sscanf(buf, "%"SCNfreq, tx_freq));
+    ret = rigctl_parse_double(buf, RIGCTL_DECIMAL_DOT_ONLY, tx_freq);
+
+    if (ret != RIG_OK)
+    {
+        return -RIG_EPROTO;
+    }
 
     return RIG_OK;
 }
@@ -1957,7 +2089,9 @@ static int quisk_set_level(RIG *rig, vfo_t vfo, setting_t level,
 
     if (RIG_LEVEL_IS_FLOAT(level))
     {
-        SNPRINTF(lstr, sizeof(lstr), "%f", val.f);
+        ret = rigctl_format_decimal(lstr, sizeof(lstr), "%f", val.f);
+
+        if (ret != RIG_OK) { return ret; }
     }
     else
     {
@@ -2010,7 +2144,12 @@ static int quisk_get_level(RIG *rig, vfo_t vfo, setting_t level,
 
     if (RIG_LEVEL_IS_FLOAT(level))
     {
-        val->f = atof(buf);
+        ret = rigctl_parse_float(buf, RIGCTL_DECIMAL_DOT_ONLY, &val->f);
+
+        if (ret != RIG_OK)
+        {
+            return -RIG_EPROTO;
+        }
     }
     else
     {
@@ -2102,7 +2241,9 @@ static int quisk_set_parm(RIG *rig, setting_t parm, value_t val)
 
     if (RIG_PARM_IS_FLOAT(parm))
     {
-        SNPRINTF(pstr, sizeof(pstr), "%f", val.f);
+        ret = rigctl_format_decimal(pstr, sizeof(pstr), "%f", val.f);
+
+        if (ret != RIG_OK) { return ret; }
     }
     else
     {
@@ -2143,7 +2284,12 @@ static int quisk_get_parm(RIG *rig, setting_t parm, value_t *val)
 
     if (RIG_PARM_IS_FLOAT(parm))
     {
-        val->f = atoi(buf);
+        ret = rigctl_parse_float(buf, RIGCTL_DECIMAL_DOT_ONLY, &val->f);
+
+        if (ret != RIG_OK)
+        {
+            return -RIG_EPROTO;
+        }
     }
     else
     {
@@ -2639,13 +2785,21 @@ static int quisk_get_trn(RIG *rig, int *trn)
 static int quisk_mW2power(RIG *rig, float *power, unsigned int mwpower,
                           freq_t freq, rmode_t mode)
 {
-    char cmdbuf[32];
+    char cmdbuf[CMD_MAX];
     char buf[BUF_MAX];
+    char freqstr[32];
     int ret;
 
     ENTERFUNC;
 
-    SNPRINTF(cmdbuf, sizeof(cmdbuf), "\\mW2power %u %.0f %s\n", mwpower, freq,
+    ret = rigctl_format_decimal(freqstr, sizeof(freqstr), "%.0f", freq);
+
+    if (ret != RIG_OK)
+    {
+        RETURNFUNC(ret);
+    }
+
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "\\mW2power %u %s %s\n", mwpower, freqstr,
              rig_strrmode(mode));
     ret = quisk_transaction(rig, cmdbuf, strlen(cmdbuf), buf);
 
@@ -2654,7 +2808,12 @@ static int quisk_mW2power(RIG *rig, float *power, unsigned int mwpower,
         RETURNFUNC(-RIG_EPROTO);
     }
 
-    *power = atof(buf);
+    ret = rigctl_parse_float(buf, RIGCTL_DECIMAL_DOT_ONLY, power);
+
+    if (ret != RIG_OK)
+    {
+        RETURNFUNC(-RIG_EPROTO);
+    }
 
     RETURNFUNC(RIG_OK);
 }
@@ -2665,12 +2824,27 @@ static int quisk_power2mW(RIG *rig, unsigned int *mwpower, float power,
 {
     char cmdbuf[64];
     char buf[BUF_MAX];
+    char powerstr[32];
+    char freqstr[32];
     int ret;
 
     ENTERFUNC;
 
-    // we shouldn't need any precision than microwatts
-    SNPRINTF(cmdbuf, sizeof(cmdbuf), "\\power2mW %.3f %.0f %s\n", power, freq,
+    ret = rigctl_format_decimal(powerstr, sizeof(powerstr), "%.3f", power);
+
+    if (ret != RIG_OK)
+    {
+        RETURNFUNC(ret);
+    }
+
+    ret = rigctl_format_decimal(freqstr, sizeof(freqstr), "%.0f", freq);
+
+    if (ret != RIG_OK)
+    {
+        RETURNFUNC(ret);
+    }
+
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "\\power2mW %s %s %s\n", powerstr, freqstr,
              rig_strrmode(mode));
     ret = quisk_transaction(rig, cmdbuf, strlen(cmdbuf), buf);
 
@@ -2679,7 +2853,12 @@ static int quisk_power2mW(RIG *rig, unsigned int *mwpower, float power,
         RETURNFUNC(-RIG_EPROTO);
     }
 
-    *mwpower = atof(buf);
+    ret = quisk_parse_unsigned_int(buf, mwpower);
+
+    if (ret != RIG_OK)
+    {
+        RETURNFUNC(-RIG_EPROTO);
+    }
 
     RETURNFUNC(RIG_OK);
 }
