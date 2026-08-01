@@ -24,6 +24,7 @@ DIRECT_TESTS = \
 	testftx1parsers \
 	testgeministatus \
 	testgs100 \
+	testguohetec \
 	testicomts
 
 GENERATED_TEST_WRAPPERS = \
@@ -102,9 +103,11 @@ testdebug_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testctlparser_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testgeministatus_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testgs100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testguohetec_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testicomts_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testgeministatus_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/amplifiers/gemini
 testftx1parsers_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/yaesu/ftx1
+testguohetec_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/guohetec
 if TESTS_HAVE_LIBUSB
     rigtestlibusb_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) $(LIBUSB_CFLAGS)
 endif
@@ -130,6 +133,7 @@ testicomts_LDADD = $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testgeministatus_LDADD = $(PTHREAD_LIBS) $(top_builddir)/amplifiers/gemini/libhamlib-gemini.la $(LDADD)
 testgs100_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/gomspace/libhamlib-gomspace.la $(LDADD)
 testftx1parsers_LDADD = $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
+testguohetec_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/guohetec/libhamlib-guohetec.la $(LDADD)
 if TESTS_HAVE_LIBUSB
     rigtestlibusb_LDADD = $(LIBUSB_LIBS)
 endif
@@ -207,6 +211,9 @@ $(top_builddir)/amplifiers/gemini/libhamlib-gemini.la:
 
 $(top_builddir)/rigs/gomspace/libhamlib-gomspace.la:
 	$(MAKE) -C $(top_builddir)/rigs/gomspace/ libhamlib-gomspace.la
+
+$(top_builddir)/rigs/guohetec/libhamlib-guohetec.la:
+	$(MAKE) -C $(top_builddir)/rigs/guohetec/ libhamlib-guohetec.la
 
 $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la:
 	$(MAKE) -C $(top_builddir)/rigs/yaesu/ libhamlib-yaesu.la

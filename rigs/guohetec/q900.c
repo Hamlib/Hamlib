@@ -354,63 +354,25 @@ static int q900_open(RIG *rig)
     return RIG_OK;
 }
 
- static int q900_send_cmd1(RIG *rig, unsigned char cmd, unsigned char *reply)
- {
-     hamlib_port_t *rp = RIGPORT(rig);
-     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
-     unsigned char buf[8] = { 0xa5, 0xa5, 0xa5, 0xa5, 0x03, 0x00, 0x00, 0x00 };
- 
-     buf[5] = cmd;
-     unsigned int crc = CRC16Check(&buf[4], 2);
-     buf[6] = crc >> 8;
-     buf[7] = crc & 0xff;
-     rig_flush(rp);
-     write_block(rp, buf, 8);
-     return RIG_OK;
- }
- 
-
 /* ---------------------------------------------------------------------- */
  
 static int q900_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    unsigned char cmd[8] = {
-        0xA5, 0xA5, 0xA5, 0xA5, 
-        0x03,                    
-        0x0B,                  
-        0x00, 0x00            
-    };
+    struct guohetec_status status;
 
-    uint16_t crc = CRC16Check(&cmd[4], 2);
-    cmd[6] = crc >> 8;
-    cmd[7] = crc & 0xFF;
-
+    if (guohetec_get_status(rig, &status, __func__) < 0)
     {
-        unsigned char reply[40];
-        q900_send(rig, cmd, sizeof(cmd), reply, sizeof(reply));
-        // Validate response using common function
-        if (validate_freq_response(rig, reply, sizeof(reply), __func__) < 0) {
-            RETURN_CACHED_FREQ(rig, vfo, freq);
-        }
-        // Parse frequency (big-endian)
-        int freq_a_offset = 9;  // VFOA frequency starting position
-        int freq_b_offset = 13; // VFOB frequency starting position
-        uint32_t freq_a = (reply[freq_a_offset] << 24) | 
-                         (reply[freq_a_offset+1] << 16) | 
-                         (reply[freq_a_offset+2] << 8) | 
-                         reply[freq_a_offset+3];
-        uint32_t freq_b = (reply[freq_b_offset] << 24) | 
-                         (reply[freq_b_offset+1] << 16) | 
-                         (reply[freq_b_offset+2] << 8) | 
-                         reply[freq_b_offset+3];
-        // Update cache
-        CACHE(rig)->freqMainA = (freq_t)freq_a;
-        CACHE(rig)->freqMainB = (freq_t)freq_b;
-        // Return requested VFO frequency
-        *freq = (vfo == RIG_VFO_A) ? CACHE(rig)->freqMainA : CACHE(rig)->freqMainB;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: Successfully got VFOA=%.0f Hz, VFOB=%.0f Hz\n",
-                 __func__, CACHE(rig)->freqMainA, CACHE(rig)->freqMainB);
+        RETURN_CACHED_FREQ(rig, vfo, freq);
     }
+
+    CACHE(rig)->freqMainA = (freq_t)status.freq_a;
+    CACHE(rig)->freqMainB = (freq_t)status.freq_b;
+    *freq = vfo == RIG_VFO_A ? CACHE(rig)->freqMainA : CACHE(rig)->freqMainB;
+
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "%s: Successfully got VFOA=%.0f Hz, VFOB=%.0f Hz\n",
+              __func__, CACHE(rig)->freqMainA, CACHE(rig)->freqMainB);
+
     return RIG_OK;
 }
  
@@ -418,25 +380,27 @@ static int q900_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  {
     struct rig_cache *cachep = CACHE(rig);
     const q900_data_t *p = (q900_data_t *) STATE(rig)->priv;
+    struct guohetec_status status;
+
+    if (guohetec_get_status(rig, &status, __func__) < 0)
     {
-        unsigned char reply[255];
-        // Get latest status from hardware
-        q900_send_cmd1(rig, 0x0b, 0);
-        // Read and validate response using common function
-        if (read_rig_response(rig, reply, sizeof(reply), __func__) < 0) {
-            RETURN_CACHED_MODE(rig, vfo, mode, width, cachep, p);
-        }
-        // Validate mode response using common function
-        if (validate_mode_response(rig, reply, sizeof(reply), __func__, 5) < 0) {
-            RETURN_CACHED_MODE(rig, vfo, mode, width, cachep, p);
-        }
-        // Update cache
-        cachep->modeMainA = guohe2rmode(reply[7], q900_modes);
-        cachep->modeMainB = guohe2rmode(reply[8], q900_modes);
-        // Return requested mode
-        *mode = (vfo == RIG_VFO_A) ? cachep->modeMainA : cachep->modeMainB;
-        *width = p->filterBW;
+        RETURN_CACHED_MODE(rig, vfo, mode, width, cachep, p);
     }
+
+    if (status.mode_a >= GUOHE_MODE_TABLE_MAX ||
+            status.mode_b >= GUOHE_MODE_TABLE_MAX)
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: Invalid mode indices %u/%u, using cached values\n",
+                  __func__, status.mode_a, status.mode_b);
+        RETURN_CACHED_MODE(rig, vfo, mode, width, cachep, p);
+    }
+
+    cachep->modeMainA = guohe2rmode(status.mode_a, q900_modes);
+    cachep->modeMainB = guohe2rmode(status.mode_b, q900_modes);
+    *mode = vfo == RIG_VFO_A ? cachep->modeMainA : cachep->modeMainB;
+    *width = p->filterBW;
+
     return RIG_OK;
  }
  
@@ -453,22 +417,15 @@ static int q900_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
  static int q900_get_vfo(RIG *rig, vfo_t *vfo)
  {
+    struct guohetec_status status;
+
+    if (guohetec_get_status(rig, &status, __func__) < 0)
     {
-        unsigned char reply[255];
-        // Send status sync command to get current VFO state
-        q900_send_cmd1(rig, 0x0b, 0);
-        // Read and validate response using common function
-        if (read_rig_response(rig, reply, sizeof(reply), __func__) < 0) {
-            RETURN_CACHED_VFO(rig, vfo);
-        }
-        // Validate VFO status field index won't overflow
-        if (reply[4] < 13) { // Need at least 13 bytes to access reply[17]
-            rig_debug(RIG_DEBUG_ERR, "%s: Response too short for VFO data, using cached values\n", __func__);
-            RETURN_CACHED_VFO(rig, vfo);
-        }
-        // According to protocol doc, reply[17] is A/B frequency status
-        *vfo = (reply[17] == 1) ? RIG_VFO_B : RIG_VFO_A;
+        RETURN_CACHED_VFO(rig, vfo);
     }
+
+    *vfo = status.vfo;
+
     return RIG_OK;
  }
 
@@ -476,22 +433,16 @@ static int q900_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 static int q900_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
     struct rig_cache *cachep = CACHE(rig);
+    struct guohetec_status status;
+
+    if (guohetec_get_status(rig, &status, __func__) < 0)
     {
-        unsigned char reply[255];
-        q900_send_cmd1(rig, 0x0b, 0);
-        // Read and validate response using common function
-        if (read_rig_response(rig, reply, sizeof(reply), __func__) < 0) {
-            RETURN_CACHED_PTT(rig, ptt, cachep);
-        }
-        // Validate PTT status field index won't overflow
-        if (reply[4] < 2) { // Need at least 2 bytes to access reply[6]
-            rig_debug(RIG_DEBUG_ERR, "%s: Response too short for PTT data, using cached values\n", __func__);
-            RETURN_CACHED_PTT(rig, ptt, cachep);
-        }
-        // Get PTT status
-        cachep->ptt = reply[6];
-        *ptt = cachep->ptt;
+        RETURN_CACHED_PTT(rig, ptt, cachep);
     }
+
+    cachep->ptt = status.ptt;
+    *ptt = cachep->ptt;
+
     return RIG_OK;
 }
  
@@ -544,7 +495,7 @@ static int q900_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
      {
          unsigned char reply[256];
          // Use common response reading function
-         if (read_rig_response(rig, reply, sizeof(reply), __func__) < 0) {
+         if (guohetec_read_response(rig, reply, sizeof(reply), __func__) < 0) {
              return RIG_OK; // Return OK to use cached values
          }
      }
@@ -648,7 +599,7 @@ static int q900_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
      write_block(rp, cmd, 10);
      
      // Use common response reading function
-     if (read_rig_response(rig, reply, sizeof(reply), __func__) < 0) {
+     if (guohetec_read_response(rig, reply, sizeof(reply), __func__) < 0) {
          // Update cache with requested mode even if response failed
          if (vfo == RIG_VFO_B)
          {
@@ -790,4 +741,3 @@ static int q900_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
  }
  
  /* ---------------------------------------------------------------------- */
-
