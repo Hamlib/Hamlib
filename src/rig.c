@@ -2368,6 +2368,16 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         rig_debug(RIG_DEBUG_TRACE, "%s: not a TARGETABLE_FREQ vfo=%s\n", __func__,
                   rig_strvfo(vfo));
 
+        // The ID-5100 cannot report its current A/B side, so an unknown side
+        // cannot be restored after a targeted write.
+        if (rig->caps->rig_model == RIG_MODEL_ID5100 &&
+                (vfo_save == RIG_VFO_CURR || vfo_save == RIG_VFO_NONE))
+        {
+            ELAPSED2;
+            LOCK(0);
+            RETURNFUNC(-RIG_ENTARGET);
+        }
+
         if (!caps->set_vfo)
         {
             ELAPSED2;
@@ -2696,25 +2706,22 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     {
         int rc2;
 
+        // The ID-5100 cannot report its current A/B side, so an unknown side
+        // cannot be restored after a targeted read.
+        if (rig->caps->rig_model == RIG_MODEL_ID5100 &&
+                (curr_vfo == RIG_VFO_CURR || curr_vfo == RIG_VFO_NONE))
+        {
+            ELAPSED2;
+            LOCK(0);
+            RETURNFUNC(-RIG_ENTARGET);
+        }
+
         if (!caps->set_vfo)
         {
             ELAPSED2;
             LOCK(0);
             RETURNFUNC(-RIG_ENAVAIL);
         }
-
-#if 1 // this seems redundant as we ask for freq a few lines below
-        HAMLIB_TRACE;
-        retcode = caps->get_freq(rig, vfo, freq);
-
-        if (retcode != RIG_OK)
-        {
-            ELAPSED2;
-            LOCK(0);
-            RETURNFUNC(retcode);
-        }
-
-#endif
 
         retcode = caps->set_vfo(rig, vfo);
 
