@@ -16,6 +16,7 @@
 int main(int argc, char *argv[])
 {
     unsigned char b[(MAXDIGITS + 1) / 2];
+    char hex[] = "x";
     freq_t f = 0;
     int digits = 10;
     int i;
@@ -23,6 +24,12 @@ int main(int argc, char *argv[])
     if (argc != 2 && argc != 3)
     {
         fprintf(stderr, "Usage: %s <freq> [digits]\n", argv[0]);
+        exit(1);
+    }
+
+    if (to_hex(0, NULL, sizeof(hex), hex) != 0 || hex[0] != '\0')
+    {
+        fprintf(stderr, "Empty hexadecimal output is not terminated\n");
         exit(1);
     }
 
