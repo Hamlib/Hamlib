@@ -5,7 +5,7 @@
 .\"
 .\" Note: Please keep this page in sync with the source, rigctl.c
 .\"
-.TH RIGCTL "1" "2026-01-06" "Hamlib" "Hamlib Utilities"
+.TH RIGCTL "1" "2026-07-31" "Hamlib" "Hamlib Utilities"
 .
 .
 .SH NAME
@@ -41,6 +41,16 @@ accepts
 .B commands
 from the command line as well as in interactive mode if none are provided on
 the command line.
+.
+.PP
+Numeric command arguments and numeric values printed by
+.B rigctl
+use a locale-independent decimal format.  Canonical output uses the ASCII
+dot (\fB.\fP) as the decimal separator.  A decimal number is a complete,
+finite token with an optional sign, at least one digit, an optional fractional
+part, and an optional exponent, for example \fB-12.5e+3\fP.  Existing
+command-specific formats and precision are unchanged, and frequencies retain
+their \fBfreq_t\fP representation.
 .
 .PP
 Keep in mind that Hamlib is BETA level software.  While a lot of backend
