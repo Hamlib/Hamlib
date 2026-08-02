@@ -24,6 +24,8 @@ Version 5.x -- future
           (TNX David Christle)
         * ATS Mini: New backend and model.  GitHub PR #2089.  (TNX
           Jon Snow)
+        * Fix(dummy): Copy string parameter values. GitHub PR #2115
+          (TNX David Christle)
 
 Version 4.7.2
         * 2026-06-21
