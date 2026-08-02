@@ -265,6 +265,8 @@ extern int ftx1_get_band_select(RIG *rig, vfo_t vfo, int *band);
  */
 extern int ftx1_freq_to_tone_num(unsigned int freq);
 extern unsigned int ftx1_tone_num_to_freq(int num);
+extern int ftx1_code_to_dcs_num(unsigned int code);
+extern unsigned int ftx1_dcs_num_to_code(int num);
 
 extern int ftx1_parse_clar_state(const char *response, char vfo,
                                  char *rx_enabled, char *tx_enabled);
