@@ -7,7 +7,7 @@ Copyright (C) 2000-2026  The Hamlib Group
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
-+
+
 Version 5.x -- future
         * New data streaming subsystem (experimental): audio and I/Q streams
           between a backend and an application through the rig_stream_* API,
@@ -22,6 +22,16 @@ Version 5.x -- future
           heap buffers - Github issues #487 & #1445 (n3gb)
         * Update bandwidth handling in rigs/yaesu/newcat.c to use data in
           priv_caps. Moves lots of hard-coded data into tables.  (n3gb)
+        * Fix: Remove debug history race. GitHub PR #2105  (TNX David
+          Christle)
+        * Fix: Prevent network AGC parser overflow. GitHub PR #2106
+          (TNX David Christle)
+        * Harden command and backend parser bounds. GitHub PR #2112
+          (TNX David Christle)
+        * ATS Mini: New backend and model.  GitHub PR #2089.  (TNX
+          Jon Snow)
+        * Fix(dummy): Copy string parameter values. GitHub PR #2115
+          (TNX David Christle)
 
 Version 4.7.2
         * 2026-06-21

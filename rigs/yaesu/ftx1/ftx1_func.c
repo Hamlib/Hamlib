@@ -231,6 +231,8 @@ int ftx1_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             return ftx1_set_ctcss_mode(rig, status ? FTX1_CTCSS_MODE_ENC : FTX1_CTCSS_MODE_OFF);
         case RIG_FUNC_TSQL:
             return ftx1_set_ctcss_mode(rig, status ? FTX1_CTCSS_MODE_TSQ : FTX1_CTCSS_MODE_OFF);
+        case RIG_FUNC_CSQL:
+            return ftx1_set_ctcss_mode(rig, status ? FTX1_CTCSS_MODE_DCS : FTX1_CTCSS_MODE_OFF);
         case RIG_FUNC_RIT:
             /* FTX-1: Setting RX CLAR to 0 disables it; to enable, use set_rit with offset */
             if (!status) return ftx1_set_rx_clar(rig, vfo, 0);
@@ -311,6 +313,13 @@ int ftx1_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
                 tone_t ctcss_mode;
                 ret = ftx1_get_ctcss_mode(rig, &ctcss_mode);
                 if (ret == RIG_OK) *status = (ctcss_mode == FTX1_CTCSS_MODE_TSQ) ? 1 : 0;
+                return ret;
+            }
+        case RIG_FUNC_CSQL:
+            {
+                tone_t ctcss_mode;
+                ret = ftx1_get_ctcss_mode(rig, &ctcss_mode);
+                if (ret == RIG_OK) *status = (ctcss_mode == FTX1_CTCSS_MODE_DCS) ? 1 : 0;
                 return ret;
             }
         case RIG_FUNC_RIT:

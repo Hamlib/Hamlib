@@ -46,8 +46,6 @@
 
 // Buffer size for serial transfers
 #define BUFSZ                                                            256
-// Last character on each line received from RIG
-#define GOM_STOPSET                                                     "\n"
 // Exact character sequence on the RIG's command prompt
 #define GOM_PROMPT         "\x1B[1;32mnanocom-ax\x1B[1;30m # \x1B[0m\x1B[0m"
 // Maximum number of lines parsed from GS100 response
@@ -85,7 +83,7 @@ static int gomx_set(RIG *rig, int table, char *varname, char *varvalue);
 /**
  * Get variable from the GS100 configuration table
  */
-static int gomx_get(RIG *rig, int table, char *varname, const char *varvalue,
+static int gomx_get(RIG *rig, int table, char *varname, char *varvalue,
                     int varvalue_len);
 
 /**
@@ -477,14 +475,14 @@ static int gomx_set(RIG *rig, int table, char *varname, char *varvalue)
 
 
 /* Get variable from the GS100 configuration table */
-static int gomx_get(RIG *rig, int table, char *varname, const char *varvalue,
+static int gomx_get(RIG *rig, int table, char *varname, char *varvalue,
                     int varvalue_len)
 {
     __attribute__((unused)) struct gs100_priv_data *priv = (struct gs100_priv_data
             *)STATE(rig)->priv;
     int retval;
     char msg[BUFSZ], resp[BUFSZ], *c;
-    char fmt[32];
+    size_t value_len;
 
     assert(rig != NULL);
     assert(varname != NULL);
@@ -511,9 +509,17 @@ static int gomx_get(RIG *rig, int table, char *varname, const char *varvalue,
     // check response and extract the value
     if ((c = strchr(resp, '=')) == NULL) { return (-RIG_EPROTO); }
 
-    snprintf(fmt, sizeof(fmt), "%%%ds", varvalue_len);
+    if (varvalue_len <= 0) { return (-RIG_EINVAL); }
 
-    if (sscanf(c + 1, fmt, varvalue_len) != 1) { return (-RIG_EPROTO); }
+    value_len = strcspn(c + 1, " \t\r\n");
+
+    if (value_len == 0 || value_len >= (size_t)varvalue_len)
+    {
+        return (-RIG_EPROTO);
+    }
+
+    memcpy(varvalue, c + 1, value_len);
+    varvalue[value_len] = '\0';
 
     return (RIG_OK);
 }
@@ -525,6 +531,9 @@ static int gomx_transaction(RIG *rig, char *message, char *response)
     hamlib_port_t *rp;
     int retval, n = 0;
     char buf[BUFSZ];
+    size_t line_len = 0;
+    const size_t prompt_len = strlen(GOM_PROMPT);
+    unsigned char c;
 
     assert(rig != NULL);
     assert(message != NULL);
@@ -541,26 +550,40 @@ static int gomx_transaction(RIG *rig, char *message, char *response)
 
     if (retval != RIG_OK) { return (retval); }
 
+    *response = '\0';
+
     while (1)
     {
-        // read the response line
-        retval = read_string(rp, (unsigned char *)buf, BUFSZ,
-                             (const char *)GOM_STOPSET, 0, strlen(GOM_STOPSET), 0);
+        retval = read_block(rp, &c, 1);
 
         if (retval < 0) { return (retval); }
 
-        if (retval == 0) { return (-RIG_ETIMEOUT); }
+        if (retval != 1) { return (-RIG_ETIMEOUT); }
 
-        n++;
+        if (c == '\n')
+        {
+            buf[line_len] = '\0';
+            buf[strcspn(buf, "\r")] = '\0';
+            line_len = 0;
+            n++;
 
-        // prompt is always the last line
-        if (strcmp(buf, GOM_PROMPT) == 0) { break; }
+            if (n > GOM_MAXLINES) { return (-RIG_EPROTO); }
 
-        // before last line would be the response
-        if (n > 1) { strcpy(response, buf); }
-        else { *response = '\0'; }  // don't return command echo
+            // before the prompt would be the response
+            if (n > 1) { strcpy(response, buf); }
 
-        if (n > GOM_MAXLINES) { return (-RIG_EPROTO); }
+            continue;
+        }
+
+        if (line_len + 1 >= sizeof(buf)) { return (-RIG_EPROTO); }
+
+        buf[line_len++] = (char)c;
+
+        if (line_len == prompt_len &&
+                memcmp(buf, GOM_PROMPT, prompt_len) == 0)
+        {
+            break;
+        }
     }
 
     // report the response

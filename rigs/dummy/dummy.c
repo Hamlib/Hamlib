@@ -345,6 +345,14 @@ static int dummy_cleanup(RIG *rig)
     free(priv->ext_parms);
     free(priv->magic_conf);
 
+    for (int i = 0; i < RIG_SETTING_MAX; i++)
+    {
+        if (RIG_PARM_IS_STRING(rig_idx2setting(i)))
+        {
+            free(priv->parms[i].s);
+        }
+    }
+
     pthread_mutex_destroy(&priv->stream_states_lock);
 
     free(priv);
@@ -1751,6 +1759,7 @@ static int dummy_set_parm(RIG *rig, setting_t parm, value_t val)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     int idx;
     char pstr[32];
+    char *string_value = NULL;
 
     ENTERFUNC;
     idx = rig_setting2idx(parm);
@@ -1758,6 +1767,21 @@ static int dummy_set_parm(RIG *rig, setting_t parm, value_t val)
     if (idx >= RIG_SETTING_MAX)
     {
         RETURNFUNC(-RIG_EINVAL);
+    }
+
+    if (RIG_PARM_IS_STRING(parm))
+    {
+        if (val.cs == NULL)
+        {
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        string_value = strdup(val.cs);
+
+        if (string_value == NULL)
+        {
+            RETURNFUNC(-RIG_ENOMEM);
+        }
     }
 
     if (RIG_PARM_IS_FLOAT(parm))
@@ -1776,7 +1800,16 @@ static int dummy_set_parm(RIG *rig, setting_t parm, value_t val)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s\n", __func__,
               rig_strparm(parm), pstr);
-    priv->parms[idx] = val;
+
+    if (string_value != NULL)
+    {
+        free(priv->parms[idx].s);
+        priv->parms[idx].s = string_value;
+    }
+    else
+    {
+        priv->parms[idx] = val;
+    }
 
     RETURNFUNC(RIG_OK);
 }

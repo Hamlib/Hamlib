@@ -97,6 +97,11 @@ struct ts_sc_list
     unsigned char sc;   /* sub command */
 };
 
+int icom_ts_to_sc(const struct ts_sc_list *list, shortfreq_t ts,
+                  unsigned char *sc);
+int icom_sc_to_ts(const struct ts_sc_list *list, unsigned char sc,
+                  shortfreq_t *ts);
+
 /**
  * \brief Pipelined tuning state data structure.
  */

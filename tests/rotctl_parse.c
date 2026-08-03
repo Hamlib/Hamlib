@@ -404,9 +404,8 @@ static int scanfc(FILE *fin, const char *format, void *p)
 
             if (!feof(fin))
             {
-                rig_debug(RIG_DEBUG_TRACE, "%s fscanf of:", __func__);
-                dump_hex((unsigned char *)p, strlen(p));
-                rig_debug(RIG_DEBUG_TRACE, " failed with format '%s'\n", format);
+                rig_debug(RIG_DEBUG_TRACE, "%s: fscanf failed with format '%s'\n",
+                          __func__, format);
             }
 
         }
@@ -2555,17 +2554,24 @@ declare_proto_rot(send_cmd)
 
     if (send_cmd_term == -1 || backend_num == -1)
     {
-        const char *p = arg1, *pp = NULL;
+        const char *p = arg1;
         int i;
 
-        for (i = 0; i < BUFSZ - 1 && p != pp; i++)
+        for (i = 0; i < BUFSZ - 1 && *p == '\\'; i++)
         {
-            pp = p + 1;
-            bufcmd[i] = strtol(p + 1, (char **) &p, 0);
+            char *end;
+
+            bufcmd[i] = strtol(p + 1, &end, 0);
+            if (end == p + 1)
+            {
+                break;
+            }
+
+            p = end;
         }
 
         /* must save length to allow 0x00 to be sent as part of a command */
-        cmd_len = i - 1;
+        cmd_len = i;
 
         /* no End Of Message chars */
         eom_buf[0] = '\0';
@@ -2941,4 +2947,3 @@ int print_conf_list2(const struct confparams *cfp, rig_ptr_t data, FILE *fout)
 
     return 1;  /* !=0, we want them all ! */
 }
-

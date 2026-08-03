@@ -314,8 +314,8 @@ int ftx1_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *shift)
  * FTX-1 stores repeater offset frequencies in EX menu items per band:
  *   EX010316 (TOK_FM_RPT_SHIFT_28)  - 28 MHz band (0-1000 kHz)
  *   EX010317 (TOK_FM_RPT_SHIFT_50)  - 50 MHz band (0-4000 kHz)
- *   EX010318 (TOK_FM_RPT_SHIFT_144) - 144 MHz band (0-100 x 10 kHz = 0-1000 kHz)
- *   EX010319 (TOK_FM_RPT_SHIFT_430) - 430 MHz band (0-100 x 100 kHz = 0-10000 kHz)
+ *   EX010318 (TOK_FM_RPT_SHIFT_144) - 144 MHz band (0-2000 x 50 kHz = 0-100,000 kHz)
+ *   EX010319 (TOK_FM_RPT_SHIFT_430) - 430 MHz band (0-2000 x 50 kHz = 0-100,000 kHz)
  *
  * The menu values are in different units per band.
  */
@@ -333,14 +333,14 @@ static hamlib_token_t ftx1_get_band_offset_token(freq_t freq, int *multiplier)
 {
     if (freq >= MHz(420) && freq <= MHz(470))
     {
-        /* 430 MHz band - menu value is in 100 kHz units */
-        *multiplier = 100000;
+        /* 430 MHz band - menu value is in 50 kHz units */
+        *multiplier = 50000;
         return TOK_FM_RPT_SHIFT_430;
     }
     else if (freq >= MHz(144) && freq <= MHz(148))
     {
-        /* 144 MHz band - menu value is in 10 kHz units */
-        *multiplier = 10000;
+        /* 144 MHz band - menu value is in 50 kHz units */
+        *multiplier = 50000;
         return TOK_FM_RPT_SHIFT_144;
     }
     else if (freq >= MHz(50) && freq <= MHz(54))
