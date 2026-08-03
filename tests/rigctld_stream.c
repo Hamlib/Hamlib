@@ -64,67 +64,67 @@ int rigctld_client_id_get(void)
 }
 
 
+/* Extract the family and raw IP bytes from a sockaddr_storage, folding
+ * IPv4-mapped IPv6 (::ffff:A.B.C.D) to plain IPv4 so dual-stack sockets
+ * compare correctly across TCP/UDP boundaries. Returns the address length
+ * in bytes, or 0 for unsupported/unset families. All field access goes
+ * through memcpy into properly typed locals: an earlier version wrote the
+ * normalized address through a sockaddr_in pointer into a
+ * sockaddr_storage object and re-read it as sockaddr_storage, a strict-
+ * aliasing violation GCC miscompiles at -O2 (the re-read family became
+ * AF_UNSPEC, so an IPv4 TCP client never matched its own IPv4-mapped UDP
+ * source and every subscribe was rejected). */
+static size_t sockaddr_ip_bytes(const struct sockaddr_storage *ss,
+                                sa_family_t *family, unsigned char ip[16])
+{
+    if (ss->ss_family == AF_INET)
+    {
+        struct sockaddr_in s4;
+        memcpy(&s4, ss, sizeof(s4));
+        memcpy(ip, &s4.sin_addr, 4);
+        *family = AF_INET;
+        return 4;
+    }
+
+    if (ss->ss_family == AF_INET6)
+    {
+        struct sockaddr_in6 s6;
+        memcpy(&s6, ss, sizeof(s6));
+
+        if (IN6_IS_ADDR_V4MAPPED(&s6.sin6_addr))
+        {
+            memcpy(ip, &s6.sin6_addr.s6_addr[12], 4);
+            *family = AF_INET;
+            return 4;
+        }
+
+        memcpy(ip, &s6.sin6_addr, 16);
+        *family = AF_INET6;
+        return 16;
+    }
+
+    *family = AF_UNSPEC;
+    return 0;
+}
+
+
 /* Compare IP addresses only (ignoring port) from two sockaddr_storage.
  * Returns 0 if they match, non-zero otherwise.
- * Returns non-zero if either address has family AF_UNSPEC (zeroed).
- * Normalizes IPv4-mapped IPv6 addresses (::ffff:A.B.C.D) to plain IPv4
- * so dual-stack sockets compare correctly across TCP/UDP boundaries. */
+ * Returns non-zero if either address has family AF_UNSPEC (zeroed). */
 static int sockaddr_ip_cmp(const struct sockaddr_storage *a,
                            const struct sockaddr_storage *b)
 {
-    struct sockaddr_storage na, nb;
-    const struct sockaddr_storage *pa = a;
-    const struct sockaddr_storage *pb = b;
+    unsigned char ia[16], ib[16];
+    sa_family_t fa, fb;
+    size_t la = sockaddr_ip_bytes(a, &fa, ia);
+    size_t lb = sockaddr_ip_bytes(b, &fb, ib);
 
-    /* Normalize IPv4-mapped IPv6 to plain IPv4 */
-    if (a->ss_family == AF_INET6)
-    {
-        const struct sockaddr_in6 *a6 = (const struct sockaddr_in6 *)a;
-
-        if (IN6_IS_ADDR_V4MAPPED(&a6->sin6_addr))
-        {
-            struct sockaddr_in *mapped = (struct sockaddr_in *)&na;
-            memset(&na, 0, sizeof(na));
-            mapped->sin_family = AF_INET;
-            memcpy(&mapped->sin_addr, &a6->sin6_addr.s6_addr[12], 4);
-            pa = &na;
-        }
-    }
-
-    if (b->ss_family == AF_INET6)
-    {
-        const struct sockaddr_in6 *b6 = (const struct sockaddr_in6 *)b;
-
-        if (IN6_IS_ADDR_V4MAPPED(&b6->sin6_addr))
-        {
-            struct sockaddr_in *mapped = (struct sockaddr_in *)&nb;
-            memset(&nb, 0, sizeof(nb));
-            mapped->sin_family = AF_INET;
-            memcpy(&mapped->sin_addr, &b6->sin6_addr.s6_addr[12], 4);
-            pb = &nb;
-        }
-    }
-
-    if (pa->ss_family != pb->ss_family)
+    if (la == 0 || lb == 0 || fa != fb)
     {
         return -1;
     }
 
-    if (pa->ss_family == AF_INET)
-    {
-        const struct sockaddr_in *a4 = (const struct sockaddr_in *)pa;
-        const struct sockaddr_in *b4 = (const struct sockaddr_in *)pb;
-        return memcmp(&a4->sin_addr, &b4->sin_addr, sizeof(a4->sin_addr));
-    }
-
-    if (pa->ss_family == AF_INET6)
-    {
-        const struct sockaddr_in6 *a6 = (const struct sockaddr_in6 *)pa;
-        const struct sockaddr_in6 *b6 = (const struct sockaddr_in6 *)pb;
-        return memcmp(&a6->sin6_addr, &b6->sin6_addr, sizeof(a6->sin6_addr));
-    }
-
-    return -1;
+    return memcmp(ia, ib, la);
 }
 
 
