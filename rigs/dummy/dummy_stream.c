@@ -313,7 +313,8 @@ static void *dummy_stream_loopback_thread(void *arg)
     /* RX output frame size in bytes (channels × per-channel sample size;
      * for I/Q the sample size is one complex I+Q pair). */
     int rx_sample_size = rig_stream_format_sample_size(rx_cfg->format);
-    size_t rx_frame_bytes = DUMMY_FRAME_SAMPLES * rx_channels * rx_sample_size;
+    size_t rx_frame_bytes = (size_t)DUMMY_FRAME_SAMPLES * rx_channels
+                            * rx_sample_size;
 
     /* Sleep interval */
     struct timespec sleep_ts;

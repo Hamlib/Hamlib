@@ -69,6 +69,7 @@ struct rigctld_proc
 {
     pid_t pid;
     int port;
+    char log_path[64];
 };
 
 
@@ -186,6 +187,8 @@ static int start_rigctld_opt(struct rigctld_proc *proc,
 
     rigctld_path = find_rigctld();
     snprintf(port_str, sizeof(port_str), "%d", proc->port);
+    snprintf(proc->log_path, sizeof(proc->log_path),
+             "rigctld-%d.log", proc->port);
 
     proc->pid = fork();
 
@@ -196,18 +199,26 @@ static int start_rigctld_opt(struct rigctld_proc *proc,
 
     if (proc->pid == 0)
     {
-        /* Child: redirect stdout/stderr to /dev/null */
+        /* Child: silence stdout, but capture stderr in a per-daemon log.
+         * -vvv puts the daemon at WARN level so dropped subscribes and
+         * events (token/IP validation) leave a trace the parent can dump
+         * when a test fails; /dev/null here made those undiagnosable. */
         freopen("/dev/null", "w", stdout);
-        freopen("/dev/null", "w", stderr);
+
+        if (freopen(proc->log_path, "w", stderr) == NULL)
+        {
+            freopen("/dev/null", "w", stderr);
+        }
 
         if (source_id_opt)
         {
-            execlp(rigctld_path, "rigctld", "-m", "1", "-t", port_str,
+            execlp(rigctld_path, "rigctld", "-m", "1", "-t", port_str, "-vvv",
                    "--stream-source-id", source_id_opt, NULL);
         }
         else
         {
-            execlp(rigctld_path, "rigctld", "-m", "1", "-t", port_str, NULL);
+            execlp(rigctld_path, "rigctld", "-m", "1", "-t", port_str, "-vvv",
+                   NULL);
         }
 
         _exit(127);
@@ -231,6 +242,39 @@ static int start_rigctld(struct rigctld_proc *proc)
 }
 
 
+/* Replay the daemon's captured stderr into ours so a CI log shows why a
+ * subscribe or event was dropped; silent when the daemon logged nothing. */
+static void dump_rigctld_log(const char *path)
+{
+    FILE *fp = fopen(path, "r");
+    char line[512];
+    int banner = 0;
+
+    if (!fp)
+    {
+        return;
+    }
+
+    while (fgets(line, sizeof(line), fp))
+    {
+        if (!banner)
+        {
+            fprintf(stderr, "--- rigctld stderr (%s) ---\n", path);
+            banner = 1;
+        }
+
+        fputs(line, stderr);
+    }
+
+    if (banner)
+    {
+        fprintf(stderr, "--- end rigctld stderr ---\n");
+    }
+
+    fclose(fp);
+}
+
+
 static void stop_rigctld(struct rigctld_proc *proc)
 {
     if (proc->pid > 0)
@@ -238,6 +282,13 @@ static void stop_rigctld(struct rigctld_proc *proc)
         kill(proc->pid, SIGTERM);
         waitpid(proc->pid, NULL, 0);
         proc->pid = 0;
+    }
+
+    if (proc->log_path[0] != '\0')
+    {
+        dump_rigctld_log(proc->log_path);
+        unlink(proc->log_path);
+        proc->log_path[0] = '\0';
     }
 }
 

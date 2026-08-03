@@ -34,6 +34,7 @@
 #include "../tests/rigctld_client.h"
 #include <hamlib/rig.h>
 #include "../src/stream.h"
+#include "../src/stream_proto.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -4444,6 +4445,38 @@ void test_cmd_stream_open_kv_config_params(void)
 }
 
 
+/* SO_SNDBUF actually granted by the kernel for a request of `bytes` on a
+ * scratch UDP socket, or -1 if the probe fails. Linux silently clamps
+ * requests to net.core.wmem_max (and reports doubled values), so the
+ * granted size is the only reliable signal of the OS ceiling. */
+static int probe_sndbuf(size_t bytes)
+{
+    int fd = socket(AF_INET, SOCK_DGRAM, 0);
+    int val = (int)bytes;
+    int granted = -1;
+
+    if (fd < 0)
+    {
+        return -1;
+    }
+
+    if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF,
+                   (const void *)&val, sizeof(val)) == 0)
+    {
+        socklen_t len = sizeof(granted);
+
+        if (getsockopt(fd, SOL_SOCKET, SO_SNDBUF,
+                       (void *)&granted, &len) != 0)
+        {
+            granted = -1;
+        }
+    }
+
+    close(fd);
+    return granted;
+}
+
+
 /* Socket buffer of the stream's UDP socket. RX streams are served by the
  * daemon, so the send buffer is the one sized from transport_buffer_*. */
 static int stream_sndbuf(const struct rigctld_stream *s)
@@ -4466,6 +4499,28 @@ static int stream_sndbuf(const struct rigctld_stream *s)
  * given. Both requests are far above the 250 ms default at this rate. */
 void test_cmd_stream_open_kv_transport_buffer(void)
 {
+    /* On stock Linux net.core.wmem_max (212992) sits below even the
+     * default request (the 256 KB floor), so every open is clamped to the
+     * same ceiling and the ms/bytes comparisons below can never hold.
+     * Probe before any TEST_CHECK (TEST_SKIP requires it) and skip on
+     * such hosts; raising net.core.wmem_max re-enables the test. */
+    {
+        size_t def_req = stream_transport_buffer_bytes(
+                             48000, 2, RIG_STREAM_TRANSPORT_BUFFER_DURATION_MS,
+                             0);
+        int def_granted = probe_sndbuf(def_req);
+        int big_granted = probe_sndbuf(4000000);
+
+        if (def_granted > 0 && big_granted > 0
+                && big_granted <= def_granted)
+        {
+            TEST_SKIP("kernel grants SO_SNDBUF %d for a 4 MB request vs %d "
+                      "for the default; raise net.core.wmem_max",
+                      big_granted, def_granted);
+            return;
+        }
+    }
+
     RIG *rig = stream_test_begin();
     char buf[1024];
     int id_default = -1, id_ms = -1, id_bytes = -1, udp_port = -1;

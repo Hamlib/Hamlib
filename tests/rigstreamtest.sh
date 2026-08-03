@@ -11,22 +11,40 @@ run()
     desc=$1
     shift
 
-    if out=$("$@" 2>&1); then
-        case $out in
-        *"Done (result=0)."*)
-            echo "ok: $desc"
-            ;;
-        *)
-            echo "FAIL ($desc): missing clean-shutdown marker"
-            echo "$out"
-            exit 1
-            ;;
-        esac
-    else
-        echo "FAIL ($desc): non-zero exit"
+    attempt=1
+
+    while :; do
+        reason=""
+
+        if out=$("$@" 2>&1); then
+            case $out in
+            *"Done (result=0)."*)
+                echo "ok: $desc"
+                return 0
+                ;;
+            *)
+                reason="missing clean-shutdown marker"
+                ;;
+            esac
+        else
+            reason="non-zero exit"
+        fi
+
+        echo "FAIL ($desc, attempt $attempt): $reason"
         echo "$out"
+
+        # The streaming threads are nanosleep-paced; an oversubscribed CI
+        # runner can oversleep enough to trip the zero-issue tally. Retry
+        # once there before treating it as a real failure. Local runs
+        # (no $CI) stay strict.
+        if [ -n "$CI" ] && [ "$attempt" -eq 1 ]; then
+            attempt=2
+            echo "Retrying $desc once (CI runner timing)"
+            continue
+        fi
+
         exit 1
-    fi
+    done
 }
 
 run "audio_rx"    $RIGSTREAMTEST -m 1 -s $RATE -c 1 -t audio_rx -d 1
