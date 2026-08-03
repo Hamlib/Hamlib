@@ -52,11 +52,15 @@ run "audio_tx"    $RIGSTREAMTEST -m 1 -s $RATE -c 1 -t audio_tx -d 1 -P
 run "iq_rx"       $RIGSTREAMTEST -m 1 -s $RATE      -t iq_rx    -d 1
 run "iq_tx"       $RIGSTREAMTEST -m 1 -s $RATE      -t iq_tx    -d 1 -P
 run "loopback"    $RIGSTREAMTEST -m 1 -s $RATE -c 1 -t loopback -d 1
-run "alternating" $RIGSTREAMTEST -m 1 -s $RATE -c 1 --rx-secs 1 --tx-secs 1 --cycles 1
+# The alternating and full-duplex runs get a 2 s ring (--buffer-ms) so a
+# CI VM stalling the writer or the consumer for hundreds of ms does not
+# overrun the default 250 ms TX ring; capacity is jitter headroom, not
+# added latency, so the zero-issue bar stays meaningful.
+run "alternating" $RIGSTREAMTEST -m 1 -s $RATE -c 1 --rx-secs 1 --tx-secs 1 --cycles 1 --buffer-ms 2000
 # Full-duplex uses I/Q: the dummy backend's audio TX loopback consumer cannot
 # keep pace with the mode's free-running writer, so audio full-duplex overruns
 # against the dummy (real hardware drains un-keyed TX cleanly). The I/Q loopback
 # keeps pace, so it exercises the concurrent RX+TX path with a zero issue tally.
-run "full-duplex" $RIGSTREAMTEST -m 1 -s $RATE --full-duplex --iq --rx-secs 1 --tx-secs 1 -d 2
+run "full-duplex" $RIGSTREAMTEST -m 1 -s $RATE --full-duplex --iq --rx-secs 1 --tx-secs 1 -d 2 --buffer-ms 2000
 
 echo "All rigstreamtest smoke tests passed."

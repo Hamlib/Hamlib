@@ -1062,11 +1062,13 @@ static int run_alternating(RIG *rig, const struct alt_opts *o)
            (unsigned long long)rx.underruns, (unsigned long long)rx.link_loss,
            (unsigned long long)rx.dropped_gap, (unsigned long long)rx.dropped_overrun,
            (unsigned long long)rx.dropped_link);
-    printf("TX: phases=%llu fail=%llu bytes=%llu tx_late=%llu und=%llu "
+    printf("TX: phases=%llu fail=%llu bytes=%llu gaps=%llu ovr=%llu "
+           "und=%llu link=%llu tx_late=%llu "
            "rem(ovr/und)=%llu/%llu write_events_dropped=%llu\n",
            (unsigned long long)tx.phases, (unsigned long long)tx.phase_failures,
-           (unsigned long long)tx.bytes, (unsigned long long)tx.tx_late,
-           (unsigned long long)tx.underruns,
+           (unsigned long long)tx.bytes, (unsigned long long)tx.gaps,
+           (unsigned long long)tx.overruns, (unsigned long long)tx.underruns,
+           (unsigned long long)tx.link_loss, (unsigned long long)tx.tx_late,
            (unsigned long long)tx.remote_overruns,
            (unsigned long long)tx.remote_underruns,
            (unsigned long long)tx.write_events_dropped);
@@ -1472,11 +1474,11 @@ static int run_full_duplex(RIG *rig, const struct duplex_opts *o)
            (unsigned long long)rs.dropped_samples_gap,
            (unsigned long long)rs.dropped_samples_overrun,
            (unsigned long long)rs.dropped_samples_link);
-    printf("TX: bytes=%llu tx_late=%llu und=%llu ovr=%llu "
-           "rem(ovr/und)=%llu/%llu write_events_dropped=%llu\n",
-           (unsigned long long)txa.bytes,
+    printf("TX: bytes=%llu gaps=%llu tx_late=%llu und=%llu ovr=%llu "
+           "link=%llu rem(ovr/und)=%llu/%llu write_events_dropped=%llu\n",
+           (unsigned long long)txa.bytes, (unsigned long long)ts.gaps,
            (unsigned long long)ts.tx_late, (unsigned long long)ts.underruns,
-           (unsigned long long)ts.overruns,
+           (unsigned long long)ts.overruns, (unsigned long long)ts.link_loss,
            (unsigned long long)ts.remote_overruns,
            (unsigned long long)ts.remote_underruns,
            (unsigned long long)ts.write_events_dropped);
