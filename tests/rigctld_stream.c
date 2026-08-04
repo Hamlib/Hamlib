@@ -49,23 +49,18 @@
 /* Global stream registry (initialized by rigctld main). */
 struct rigctld_stream_registry g_stream_registry;
 
-/* socket() fails with WSANOTINITIALISED until Winsock is started. rigctld
- * initializes it when opening its TCP listener, but the unit tests call
- * the socket helpers directly, so they must self-initialize. */
-static void stream_socket_sys_init(void)
-{
 #ifdef _WIN32
-    static int done;
-
-    if (!done)
-    {
-        WSADATA wsadata;
-        WSAStartup(MAKEWORD(2, 2), &wsadata);
-        done = 1;
-    }
-
-#endif
+/* Winsock rejects every socket/getaddrinfo call with WSANOTINITIALISED
+ * until WSAStartup has run. This constructor runs before main() in each
+ * program that links this file (rigctld and the unit-test binaries), so
+ * it is the single initialization point; rigctld's own WSAStartup for
+ * its TCP listener is refcounted alongside it harmlessly. */
+static void __attribute__((constructor)) stream_socket_sys_init(void)
+{
+    WSADATA wsadata;
+    WSAStartup(MAKEWORD(2, 2), &wsadata);
 }
+#endif
 
 /* Thread-local client ID storage. */
 static pthread_key_t client_id_key;
@@ -550,8 +545,6 @@ int rigctld_stream_udp_socket_create(int *sock_fd, int *port)
         return -1;
     }
 
-    stream_socket_sys_init();
-
     fd = socket(AF_INET6, SOCK_DGRAM, 0);
 
     if (fd < 0)
@@ -842,8 +835,6 @@ int rigctld_stream_multicast_socket_create(
     {
         return -1;
     }
-
-    stream_socket_sys_init();
 
     fd = socket(mcast_addr->ss_family, SOCK_DGRAM, 0);
 

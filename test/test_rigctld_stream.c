@@ -39,15 +39,9 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#ifdef _WIN32
-/* Several tests below create raw sockets directly, which on Winsock fails
- * with WSANOTINITIALISED until WSAStartup has run. */
-static void __attribute__((constructor)) winsock_ctor(void)
-{
-    WSADATA wsadata;
-    WSAStartup(MAKEWORD(2, 2), &wsadata);
-}
-#endif
+/* On Windows, Winsock initialization for the raw-socket tests below comes
+ * from the constructor in rigctld_stream.c, which is linked into this
+ * binary and runs before main(). */
 
 
 /* --- Packet header tests --- */
@@ -1828,7 +1822,7 @@ void test_net_send_ping_packet_format(void)
 
     /* Receive and verify the packet */
     unsigned char buf[64];
-    ssize_t n = recvfrom(recv_sock, buf, sizeof(buf), 0, NULL, NULL);
+    ssize_t n = recvfrom(recv_sock, (char *)buf, sizeof(buf), 0, NULL, NULL);
     TEST_CHECK(n == RIG_STREAM_HEADER_SIZE);
 
     struct rig_stream_packet_header hdr;
@@ -1873,12 +1867,12 @@ void test_jumbo_datagram_received_intact(void)
         out[i] = (unsigned char)(i & 0xFF);
     }
 
-    ssize_t sent = sendto(tx, out, sizeof(out), 0,
+    ssize_t sent = sendto(tx, (const char *)out, sizeof(out), 0,
                           (struct sockaddr *)&addr, addrlen);
     TEST_CHECK(sent == (ssize_t)sizeof(out));
 
     unsigned char buf[RIG_STREAM_MAX_DATAGRAM];
-    ssize_t n = recvfrom(rx, buf, sizeof(buf), 0, NULL, NULL);
+    ssize_t n = recvfrom(rx, (char *)buf, sizeof(buf), 0, NULL, NULL);
     TEST_CHECK(n == (ssize_t)sizeof(out));  /* not truncated to the MTU */
     TEST_CHECK(memcmp(buf, out, sizeof(out)) == 0);
 
@@ -1930,7 +1924,7 @@ void test_net_send_data_packet_format(void)
 
     /* Receive and verify */
     unsigned char buf[1500];
-    ssize_t n = recvfrom(recv_sock, buf, sizeof(buf), 0, NULL, NULL);
+    ssize_t n = recvfrom(recv_sock, (char *)buf, sizeof(buf), 0, NULL, NULL);
     TEST_CHECK(n == RIG_STREAM_HEADER_SIZE + (ssize_t)sizeof(data));
 
     struct rig_stream_packet_header hdr;
@@ -2424,7 +2418,7 @@ static ssize_t recv_timeout(int fd, unsigned char *buf, size_t len, int ms)
         return -1;
     }
 
-    return recvfrom(fd, buf, len, 0, NULL, NULL);
+    return recvfrom(fd, (char *)buf, len, 0, NULL, NULL);
 }
 
 /* Receive a TX_STATUS datagram and assert its header framing, returning the
