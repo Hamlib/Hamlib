@@ -8,6 +8,21 @@
  * version 2.1 of the License, or (at your option) any later version.
  */
 
+#ifdef _WIN32
+
+#include <stdio.h>
+
+/* The peer harness below drives the GS100 backend through socketpair(),
+ * which Windows does not provide, so the test cannot run there.
+ * Exit code 77 makes the automake test harness report SKIP. */
+int main(void)
+{
+    printf("testgs100: skipped, requires socketpair()\n");
+    return 77;
+}
+
+#else
+
 #include <pthread.h>
 #include <stdio.h>
 #include <string.h>
@@ -240,3 +255,5 @@ int main(void)
     return run_case("excess-lines", NULL, -RIG_EPROTO, 0, 0,
                     PEER_EXCESS_LINES);
 }
+
+#endif /* !_WIN32 */

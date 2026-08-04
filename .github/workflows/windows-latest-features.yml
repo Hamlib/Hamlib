@@ -54,7 +54,7 @@ jobs:
           git
         pacboy: >-
           gcc:p
-          gd:p
+          libgd:p
           libsamplerate:p
           libusb:p
           libxml2:p

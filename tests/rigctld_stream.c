@@ -1022,7 +1022,7 @@ static int wait_for_subscribe(struct rigctld_stream *stream)
         }
 
         addr_len = sizeof(client_addr);
-        ssize_t n = recvfrom(stream->udp_sock, buf, sizeof(buf), 0,
+        ssize_t n = recvfrom(stream->udp_sock, (char *)buf, sizeof(buf), 0,
                              (struct sockaddr *)&client_addr, &addr_len);
 
         if (n < RIG_STREAM_HEADER_SIZE)
@@ -1085,7 +1085,8 @@ int rigctld_stream_send_control_reply(struct rigctld_stream *stream,
 
     stream_packet_header_pack(&hdr, pkt);
 
-    ssize_t sent = sendto(stream->udp_sock, pkt, RIG_STREAM_HEADER_SIZE, 0,
+    ssize_t sent = sendto(stream->udp_sock, (const char *)pkt,
+                          RIG_STREAM_HEADER_SIZE, 0,
                           (struct sockaddr *)&stream->client_addr,
                           stream->client_addr_len);
 
@@ -1157,7 +1158,7 @@ static void stream_fill_header(struct rigctld_stream *stream,
 static int send_to_client(struct rigctld_stream *stream,
                           const unsigned char *pkt, size_t len)
 {
-    ssize_t sent = sendto(stream->udp_sock, pkt, len, 0,
+    ssize_t sent = sendto(stream->udp_sock, (const char *)pkt, len, 0,
                           (struct sockaddr *)&stream->client_addr,
                           stream->client_addr_len);
 
@@ -1395,7 +1396,8 @@ static void *rigctld_stream_feeder_tx(void *arg)
 
         struct sockaddr_storage from_addr;
         socklen_t from_len = sizeof(from_addr);
-        ssize_t n = recvfrom(stream->udp_sock, pkt_buf, sizeof(pkt_buf), 0,
+        ssize_t n = recvfrom(stream->udp_sock, (char *)pkt_buf,
+                             sizeof(pkt_buf), 0,
                              (struct sockaddr *)&from_addr, &from_len);
 
         if (n < RIG_STREAM_HEADER_SIZE)
@@ -1582,7 +1584,7 @@ static void poll_incoming_control(struct rigctld_stream *stream,
                    &ctrl_tv) > 0)
         {
             ctrl_n = recvfrom(stream->udp_sock,
-                              ctrl_buf, sizeof(ctrl_buf),
+                              (char *)ctrl_buf, sizeof(ctrl_buf),
                               MSG_DONTWAIT,
                               (struct sockaddr *)&from_addr,
                               &from_len);
