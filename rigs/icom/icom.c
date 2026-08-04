@@ -1742,12 +1742,14 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct rig_state *rs = STATE(rig);
     struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
+    const struct icom_priv_caps *priv_caps = rig->caps->priv;
     unsigned char freqbuf[MAXFRAMELEN];
     int freq_len = sizeof(freqbuf);
     int freqbuf_offset = 1;
     int retval = RIG_OK;
     int civ_731_mode_save = 0;
     int force_vfo_swap = 0;
+    int probing_x25 = 0;
     vfo_t vfo_save = rs->current_vfo;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called for %s, curr_vfo=%s\n", __func__,
@@ -1812,6 +1814,9 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if ((rs->targetable_vfo & RIG_TARGETABLE_FREQ) && !force_vfo_swap)
     {
+        probing_x25 = priv->x25cmdfails < 0
+                      && !priv_caps->x25x26_always;
+
         retval = icom_get_freq_x25(rig, vfo, &freq_len, freqbuf, &freqbuf_offset);
 
         if (freq_len == 3 && freqbuf[2] == 0xff)
@@ -1829,7 +1834,9 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
     // If the command 0x25 is not supported, swap VFO (if required) and read the frequency
-    if (!(rs->targetable_vfo & RIG_TARGETABLE_FREQ) || retval == -RIG_ENAVAIL
+    if (!(rs->targetable_vfo & RIG_TARGETABLE_FREQ)
+            || retval == -RIG_ENAVAIL
+            || (probing_x25 && retval == -RIG_ERJCTED)
             || force_vfo_swap)
     {
         freqbuf_offset = 1;
@@ -2766,6 +2773,9 @@ static int icom_get_mode_without_data(RIG *rig, vfo_t vfo, rmode_t *mode,
     if ((rs->targetable_vfo & RIG_TARGETABLE_MODE) && !RIG_IS_IC7800
             && !force_vfo_swap)
     {
+        int probing_x26 = priv_data->x26cmdfails < 0
+                          && !priv_caps->x25x26_always;
+
         retval = icom_get_mode_x26(rig, vfo, &mode_len, modebuf);
 
         if (retval == RIG_OK)
@@ -2778,7 +2788,8 @@ static int icom_get_mode_without_data(RIG *rig, vfo_t vfo, rmode_t *mode,
             modebuf[2] = modebuf[4]; // copy filter to 2-byte format
             mode_len = 2;
         }
-        else if (retval == -RIG_ENAVAIL) // In case it's been disabled
+        else if (retval == -RIG_ENAVAIL
+                 || (probing_x26 && retval == -RIG_ERJCTED))
         {
             retval = icom_transaction(rig, C_RD_MODE, -1, NULL, 0, modebuf, &mode_len);
         }
@@ -2786,6 +2797,11 @@ static int icom_get_mode_without_data(RIG *rig, vfo_t vfo, rmode_t *mode,
     else
     {
         retval = icom_transaction(rig, C_RD_MODE, -1, NULL, 0, modebuf, &mode_len);
+    }
+
+    if (retval != RIG_OK)
+    {
+        RETURNFUNC2(retval);
     }
 
     if (--mode_len == 3)
@@ -2806,11 +2822,6 @@ static int icom_get_mode_without_data(RIG *rig, vfo_t vfo, rmode_t *mode,
                   "%s(%d): modebuf[0]=0x%02x, modebuf[1]=0x%02x, mode_len=%d\n", __func__,
                   __LINE__, modebuf[0],
                   modebuf[1], mode_len);
-    }
-
-    if (retval != RIG_OK)
-    {
-        RETURNFUNC2(retval);
     }
 
     /*
@@ -2978,10 +2989,10 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     case RIG_MODE_FM:
 
         // Check data mode state for the modes above
-        if ((rs->targetable_vfo & RIG_TARGETABLE_MODE) && !force_vfo_swap)
+        if ((rs->targetable_vfo & RIG_TARGETABLE_MODE) && !force_vfo_swap
+                && priv->x26cmdfails <= 0)
         {
-            // The data mode state is already read using command 0x26 for rigs with targetable mode
-            // Fake the response in databuf
+            // Command 0x26 includes the data mode state.
             databuf[2] = priv->datamode;
             data_len = 3;
         }
