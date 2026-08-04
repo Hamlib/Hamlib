@@ -367,7 +367,11 @@ AS_CASE(["$host_os"],
 
     [mingw* | pw32* | cygwin*], [
 	AM_CONDITIONAL([VERSIONDLL], true)
-	WINLDFLAGS="-Wl,--output-def,libhamlib.def -Wl,--add-stdcall-alias"
+	# --export-all-symbols matches ELF/Mach-O visibility, where every
+	# extern symbol is available: rigctld and the test programs link
+	# internal stream_* helpers that HAMLIB_EXPORT does not cover, and
+	# any explicit dllexport otherwise disables binutils auto-export.
+	WINLDFLAGS="-Wl,--output-def,libhamlib.def -Wl,--add-stdcall-alias -Wl,--export-all-symbols"
     VERSIONDLL="version_dll.rc"
 	AC_SUBST([WINLDFLAGS])
 

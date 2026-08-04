@@ -651,7 +651,7 @@ static void test_samples_written(void)
 static void test_tx_target_push_pop(void)
 {
     struct rig_stream s;
-    struct rig_stream_time_anchor t, out;
+    struct rig_stream_tx_target t, out;
     stream_setup(&s, 1024);
 
     /* Empty: nothing pending */
@@ -661,14 +661,12 @@ static void test_tx_target_push_pop(void)
     t.sample_index = 100;
     t.seconds = 2000;
     t.picoseconds = 250000000000ULL;
-    t.source = RIG_STREAM_TIME_SRC_HOST;
     t.flags = RIG_STREAM_TIME_FLAG_SOB;
     TEST_CHECK(stream_push_tx_target(&s, &t) == RIG_OK);
 
     t.sample_index = 500;
-    t.seconds = 0;
+    t.seconds = 0;                         /* unscheduled boundary */
     t.picoseconds = 0;
-    t.source = RIG_STREAM_TIME_SRC_NONE;   /* unscheduled boundary */
     t.flags = RIG_STREAM_TIME_FLAG_EOB;
     TEST_CHECK(stream_push_tx_target(&s, &t) == RIG_OK);
 
@@ -684,7 +682,6 @@ static void test_tx_target_push_pop(void)
 
     TEST_CHECK(rig_stream_pop_tx_target(&s, 600, &out) == 1);
     TEST_CHECK(out.sample_index == 500);
-    TEST_CHECK(out.source == RIG_STREAM_TIME_SRC_NONE);
     TEST_CHECK(out.flags == RIG_STREAM_TIME_FLAG_EOB);
 
     stream_teardown(&s);
@@ -694,7 +691,7 @@ static void test_tx_target_push_pop(void)
 static void test_tx_target_drop_oldest(void)
 {
     struct rig_stream s;
-    struct rig_stream_time_anchor t, out;
+    struct rig_stream_tx_target t, out;
     stream_setup(&s, 1024);
 
     memset(&t, 0, sizeof(t));

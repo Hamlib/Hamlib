@@ -39,6 +39,16 @@
 #include <fcntl.h>
 #include <errno.h>
 
+#ifdef _WIN32
+/* Several tests below create raw sockets directly, which on Winsock fails
+ * with WSANOTINITIALISED until WSAStartup has run. */
+static void __attribute__((constructor)) winsock_ctor(void)
+{
+    WSADATA wsadata;
+    WSAStartup(MAKEWORD(2, 2), &wsadata);
+}
+#endif
+
 
 /* --- Packet header tests --- */
 
@@ -1330,7 +1340,8 @@ void test_multicast_socket_create_ipv4(void)
     /* Verify TTL was set */
     int ttl_val = 0;
     socklen_t ttl_len = sizeof(ttl_val);
-    getsockopt(fd, IPPROTO_IP, IP_MULTICAST_TTL, &ttl_val, &ttl_len);
+    getsockopt(fd, IPPROTO_IP, IP_MULTICAST_TTL,
+               (char *)&ttl_val, &ttl_len);
     TEST_CHECK(ttl_val == 4);
     TEST_MSG("TTL: got %d, expected 4", ttl_val);
 
@@ -1363,7 +1374,8 @@ void test_multicast_socket_create_ipv6(void)
     /* Verify hop limit was set */
     int hops = 0;
     socklen_t hops_len = sizeof(hops);
-    getsockopt(fd, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, &hops, &hops_len);
+    getsockopt(fd, IPPROTO_IPV6, IPV6_MULTICAST_HOPS,
+               (char *)&hops, &hops_len);
     TEST_CHECK(hops == 2);
     TEST_MSG("hops: got %d, expected 2", hops);
 
@@ -1950,19 +1962,21 @@ void test_net_session_cleanup(void)
 
     int fd = sess->udp_sock;
 
-    /* The fd is open before cleanup. */
-    TEST_CHECK(fcntl(fd, F_GETFD) != -1);
+    /* The fd is open before cleanup. SO_TYPE succeeds only on an open
+     * socket, and unlike fcntl(F_GETFD) it is also valid on Winsock. */
+    int so_type = 0;
+    socklen_t so_len = sizeof(so_type);
+    TEST_CHECK(getsockopt(fd, SOL_SOCKET, SO_TYPE,
+                          (char *)&so_type, &so_len) == 0);
 
     /* cleanup() frees sess, so capture the fd first. After cleanup the
-     * underlying socket must be closed: querying the fd fails with EBADF. */
+     * underlying socket must be closed: querying the fd fails. */
     rig_stream_net_session_cleanup(sess);
 
-    errno = 0;
-    int rc = fcntl(fd, F_GETFD);
+    so_len = sizeof(so_type);
+    int rc = getsockopt(fd, SOL_SOCKET, SO_TYPE, (char *)&so_type, &so_len);
     TEST_CHECK(rc == -1);
-    TEST_CHECK(errno == EBADF);
-    TEST_MSG("post-cleanup fcntl(F_GETFD) returned %d, errno=%d (expected -1/EBADF)",
-             rc, errno);
+    TEST_MSG("post-cleanup getsockopt(SO_TYPE) returned %d (expected -1)", rc);
 }
 
 

@@ -80,7 +80,11 @@ extern int read_history();
 #include "rigctld_stream.h"
 #include "stream_convert.h"
 #include "rigctld_client.h"
-#include <netdb.h>
+
+#ifdef HAVE_NETDB_H
+#  include <netdb.h>
+#endif
+
 #include "stream.h"
 #include "kvparse.h"
 

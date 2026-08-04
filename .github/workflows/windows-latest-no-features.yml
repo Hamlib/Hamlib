@@ -1,4 +1,4 @@
-name: Ubuntu latest C/C++ (no features)
+name: Windows latest C/C++ (no features)
 
 on:
   push:
@@ -9,9 +9,10 @@ on:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 150
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [windows-latest]
         configure_args:
           - >-
             --enable-html-matrix=no
@@ -33,20 +34,26 @@ jobs:
             --with-tcl-binding=no
             --with-xml-support=no
 
+    defaults:
+      run:
+        shell: msys2 {0}
+
     steps:
     - uses: actions/checkout@v4
-    - name: Raise kernel socket buffer ceiling for stream tests
-      run: sudo sysctl -w net.core.wmem_max=8388608 net.core.rmem_max=8388608
-    - name: Install dependencies on Ubuntu latest
-      run: |
-        sudo apt update
-        sudo apt -y install libusb-1.0-0-dev
-        sudo apt -y install libgd-dev
-        sudo apt -y install libgpiod-dev
-        sudo apt -y install libindi-dev libnova-dev
-        sudo apt -y install grep
-        sudo apt -y install python3-dev python3-pytest
-        sudo apt -y install lua5.4 liblua5.4-dev libperl-dev tcl-dev
+    - name: Set up MSYS2 (MINGW64)
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW64
+        update: false
+        install: >-
+          autoconf
+          automake
+          libtool
+          make
+          pkgconf
+          git
+        pacboy: >-
+          gcc:p
     - name: bootstrap
       run: |
         pwd
@@ -54,14 +61,14 @@ jobs:
     - name: configure
       run: ./configure ${{ matrix.configure_args }}
     - name: make distcheck
-      run: make distcheck V=0 --no-print-directory AM_DISTCHECK_CONFIGURE_FLAGS="${{ matrix.configure_args }} --without-perl-binding"
+      run: make distcheck V=0 --no-print-directory AM_DISTCHECK_CONFIGURE_FLAGS="${{ matrix.configure_args }}"
     - name: Dump test logs on failure
       if: failure()
       run: find . -name test-suite.log -print -exec cat {} \;
     - name: 'tar files'
-      run: tar -cvf ubuntu_latest_no_features.tar $(pwd)
+      run: tar -cvf windows_latest_no_features.tar $(pwd)
     - name: 'Upload Build Artifact'
       uses: actions/upload-artifact@v4.6.2
       with:
-        name: 'Ubuntu_latest_no_features'
-        path: ubuntu_latest_no_features.tar
+        name: 'Windows_latest_no_features'
+        path: windows_latest_no_features.tar

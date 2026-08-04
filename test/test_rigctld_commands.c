@@ -45,6 +45,17 @@
 #include <pthread.h>
 
 
+/* True while fd refers to an open socket. SO_TYPE succeeds only on an
+ * open socket, and unlike fcntl(F_GETFD) it is also valid on Winsock. */
+static int socket_is_open(int fd)
+{
+    int so_type = 0;
+    socklen_t so_len = sizeof(so_type);
+    return getsockopt(fd, SOL_SOCKET, SO_TYPE,
+                      (char *)&so_type, &so_len) == 0;
+}
+
+
 /* A data packet may carry the embedded time block (CTRL_TIME); any other
  * control bit marks a non-data frame. */
 static int pkt_is_data(const struct rig_stream_packet_header *hdr)
@@ -734,7 +745,7 @@ void test_cmd_stream_open_audio(void)
 
         /* Verify UDP socket is valid (#7 partial) */
         TEST_CHECK(s->udp_sock >= 0);
-        TEST_CHECK(fcntl(s->udp_sock, F_GETFD) != -1);
+        TEST_CHECK(socket_is_open(s->udp_sock));
         TEST_MSG("UDP socket fd %d is not valid", s->udp_sock);
     }
 
@@ -1075,7 +1086,7 @@ void test_cmd_stream_close_happy_path(void)
     TEST_CHECK(saved_fd >= 0);
 
     /* Verify fd is valid before close */
-    TEST_CHECK(fcntl(saved_fd, F_GETFD) != -1);
+    TEST_CHECK(socket_is_open(saved_fd));
 
     /* Close it */
     char close_cmd[64];
@@ -1095,8 +1106,7 @@ void test_cmd_stream_close_happy_path(void)
     TEST_CHECK(rigctld_stream_registry_count(&g_stream_registry) == 0);
 
     /* Verify socket fd was closed (#9) */
-    TEST_CHECK(fcntl(saved_fd, F_GETFD) == -1);
-    TEST_CHECK(errno == EBADF);
+    TEST_CHECK(!socket_is_open(saved_fd));
     TEST_MSG("socket fd %d should be closed after stream_close", saved_fd);
 
     stream_test_end(rig);
@@ -1354,15 +1364,31 @@ void test_cmd_stream_open_udp_socket_usable(void)
     TEST_CHECK(s->udp_sock >= 0);
     TEST_MSG("udp_sock=%d, expected >= 0", s->udp_sock);
 
-    /* Verify socket is bound to the reported port */
-    struct sockaddr_in bound_addr;
+    /* Verify socket is bound to the reported port. The socket is
+     * dual-stack IPv6, so the buffer must fit a sockaddr_in6: Winsock
+     * fails getsockname outright on a too-small buffer where POSIX
+     * would truncate. */
+    struct sockaddr_storage bound_addr;
     socklen_t addr_len = sizeof(bound_addr);
     int gret = getsockname(s->udp_sock, (struct sockaddr *)&bound_addr,
                            &addr_len);
     TEST_CHECK(gret == 0);
     TEST_MSG("getsockname returned %d", gret);
 
-    int bound_port = ntohs(bound_addr.sin_port);
+    int bound_port = 0;
+
+    if (bound_addr.ss_family == AF_INET6)
+    {
+        struct sockaddr_in6 a6;
+        memcpy(&a6, &bound_addr, sizeof(a6));
+        bound_port = ntohs(a6.sin6_port);
+    }
+    else
+    {
+        struct sockaddr_in a4;
+        memcpy(&a4, &bound_addr, sizeof(a4));
+        bound_port = ntohs(a4.sin_port);
+    }
     TEST_CHECK(bound_port == udp_port);
     TEST_MSG("bound port=%d, reported port=%d", bound_port, udp_port);
 

@@ -22,6 +22,10 @@
 /* UDP streaming protocol for rigctld — registry, feeders, lifecycle management. */
 /* Wire format pack/unpack functions are in src/stream_proto.c (part of libhamlib). */
 
+/* Must precede the first (transitive) <stdlib.h> so the Windows CRT
+ * declares rand_s(), used for the subscribe token. */
+#define _CRT_RAND_S
+
 #ifdef HAVE_CONFIG_H
 #  include "hamlib/config.h"
 #endif
@@ -44,6 +48,24 @@
 
 /* Global stream registry (initialized by rigctld main). */
 struct rigctld_stream_registry g_stream_registry;
+
+/* socket() fails with WSANOTINITIALISED until Winsock is started. rigctld
+ * initializes it when opening its TCP listener, but the unit tests call
+ * the socket helpers directly, so they must self-initialize. */
+static void stream_socket_sys_init(void)
+{
+#ifdef _WIN32
+    static int done;
+
+    if (!done)
+    {
+        WSADATA wsadata;
+        WSAStartup(MAKEWORD(2, 2), &wsadata);
+        done = 1;
+    }
+
+#endif
+}
 
 /* Thread-local client ID storage. */
 static pthread_key_t client_id_key;
@@ -75,7 +97,7 @@ int rigctld_client_id_get(void)
  * AF_UNSPEC, so an IPv4 TCP client never matched its own IPv4-mapped UDP
  * source and every subscribe was rejected). */
 static size_t sockaddr_ip_bytes(const struct sockaddr_storage *ss,
-                                sa_family_t *family, unsigned char ip[16])
+                                int *family, unsigned char ip[16])
 {
     if (ss->ss_family == AF_INET)
     {
@@ -115,7 +137,7 @@ static int sockaddr_ip_cmp(const struct sockaddr_storage *a,
                            const struct sockaddr_storage *b)
 {
     unsigned char ia[16], ib[16];
-    sa_family_t fa, fb;
+    int fa, fb;
     size_t la = sockaddr_ip_bytes(a, &fa, ia);
     size_t lb = sockaddr_ip_bytes(b, &fb, ib);
 
@@ -528,6 +550,8 @@ int rigctld_stream_udp_socket_create(int *sock_fd, int *port)
         return -1;
     }
 
+    stream_socket_sys_init();
+
     fd = socket(AF_INET6, SOCK_DGRAM, 0);
 
     if (fd < 0)
@@ -537,7 +561,8 @@ int rigctld_stream_udp_socket_create(int *sock_fd, int *port)
 
     /* Allow IPv4 connections on IPv6 socket */
     int off = 0;
-    setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &off, sizeof(off));
+    setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY,
+               (const char *)&off, sizeof(off));
 
     memset(&addr, 0, sizeof(addr));
     addr.sin6_family = AF_INET6;
@@ -818,6 +843,8 @@ int rigctld_stream_multicast_socket_create(
         return -1;
     }
 
+    stream_socket_sys_init();
+
     fd = socket(mcast_addr->ss_family, SOCK_DGRAM, 0);
 
     if (fd < 0)
@@ -825,14 +852,15 @@ int rigctld_stream_multicast_socket_create(
         return -1;
     }
 
-    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
+    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR,
+               (const char *)&reuse, sizeof(reuse));
 
     /* Set multicast TTL / hop limit */
     if (mcast_addr->ss_family == AF_INET)
     {
         unsigned char ttl_val = (unsigned char)ttl;
         setsockopt(fd, IPPROTO_IP, IP_MULTICAST_TTL,
-                   &ttl_val, sizeof(ttl_val));
+                   (const char *)&ttl_val, sizeof(ttl_val));
 
         /* Bind to INADDR_ANY on the multicast port */
         struct sockaddr_in bind_addr;
@@ -853,7 +881,7 @@ int rigctld_stream_multicast_socket_create(
     {
         int hops = ttl;
         setsockopt(fd, IPPROTO_IPV6, IPV6_MULTICAST_HOPS,
-                   &hops, sizeof(hops));
+                   (const char *)&hops, sizeof(hops));
 
         /* Bind to in6addr_any on the multicast port */
         struct sockaddr_in6 bind_addr;

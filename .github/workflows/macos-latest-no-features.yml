@@ -29,6 +29,7 @@ jobs:
             --with-perl-binding=no
             --with-python-binding=no
             --with-readline=no
+            --with-samplerate=no
             --with-tcl-binding=no
             --with-xml-support=no
 
