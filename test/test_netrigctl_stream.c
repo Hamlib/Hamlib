@@ -279,9 +279,25 @@ static void stop_rigctld(struct rigctld_proc *proc)
 {
     if (proc->pid > 0)
     {
+        int status = 0;
+
         kill(proc->pid, SIGTERM);
-        waitpid(proc->pid, NULL, 0);
+        waitpid(proc->pid, &status, 0);
         proc->pid = 0;
+
+        /* A daemon that died before our SIGTERM stays a zombie until the
+         * waitpid above, which then reports the original death status: a
+         * crash shows up here even though the kill() still succeeded. */
+        if (WIFSIGNALED(status) && WTERMSIG(status) != SIGTERM)
+        {
+            fprintf(stderr, "stop_rigctld: rigctld died on signal %d\n",
+                    WTERMSIG(status));
+        }
+        else if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
+        {
+            fprintf(stderr, "stop_rigctld: rigctld exited with code %d\n",
+                    WEXITSTATUS(status));
+        }
     }
 
     if (proc->log_path[0] != '\0')
@@ -296,26 +312,41 @@ static void stop_rigctld(struct rigctld_proc *proc)
 /* Open a netrigctl RIG connected to the subprocess rigctld. */
 static RIG *open_netrigctl(int port)
 {
-    RIG *rig;
-    char pathname[64];
-
-    rig = rig_init(RIG_MODEL_NETRIGCTL);
-
-    if (!rig)
+    /* A freshly spawned rigctld can stall for hundreds of ms on a loaded
+     * CI runner between accepting the TCP connection and serving it, which
+     * makes a single rig_open attempt time out and fail the whole test.
+     * Retry a few times before declaring the daemon unusable. */
+    for (int attempt = 0; attempt < 3; attempt++)
     {
-        return NULL;
-    }
+        RIG *rig;
+        char pathname[64];
 
-    snprintf(pathname, sizeof(pathname), "127.0.0.1:%d", port);
-    rig_set_conf(rig, rig_token_lookup(rig, "rig_pathname"), pathname);
+        if (attempt > 0)
+        {
+            fprintf(stderr, "open_netrigctl: retrying (attempt %d)\n",
+                    attempt + 1);
+            usleep(250000);
+        }
 
-    if (rig_open(rig) != RIG_OK)
-    {
+        rig = rig_init(RIG_MODEL_NETRIGCTL);
+
+        if (!rig)
+        {
+            return NULL;
+        }
+
+        snprintf(pathname, sizeof(pathname), "127.0.0.1:%d", port);
+        rig_set_conf(rig, rig_token_lookup(rig, "rig_pathname"), pathname);
+
+        if (rig_open(rig) == RIG_OK)
+        {
+            return rig;
+        }
+
         rig_cleanup(rig);
-        return NULL;
     }
 
-    return rig;
+    return NULL;
 }
 
 

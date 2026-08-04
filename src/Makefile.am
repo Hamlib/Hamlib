@@ -4,6 +4,10 @@ BUILT_SOURCES = hamlibdatetime.h
 
 DISTCLEANFILES = hamlibdatetime.h
 
+# The Windows DLL link emits libhamlib.def (WINLDFLAGS --output-def);
+# remove it so distcleancheck passes on MinGW builds.
+CLEANFILES = libhamlib.def
+
 RIGSRC = hamlibdatetime.h rig.c serial.c serial.h misc.c misc.h register.c register.h event.c \
 	event.h cal.c cal.h conf.c tones.c tones.h rotator.c locator.c rot_reg.c \
 	rot_conf.c rot_conf.h rot_settings.c rot_ext.c iofunc.c iofunc.h ext.c \
