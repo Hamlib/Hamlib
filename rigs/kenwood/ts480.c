@@ -37,6 +37,9 @@
 #define SDRUNO_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTUSB)
 #define PS8000A_ALL_MODES (RIG_MODE_AM|RIG_MODE_AMS|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR)
 #define QMX_ALL_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_PKTUSB|RIG_MODE_PKTLSB)
+#define QMX_LEVEL_GET (RIG_LEVEL_SWR|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS)
+/* QMX is a 5W class radio -- used to scale RFPOWER_METER to 0.0..1.0 */
+#define QMX_MAX_POWER 5.0f
 
 #define TS480_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
 #define TS480_AM_TX_MODES RIG_MODE_AM
@@ -1296,6 +1299,89 @@ static int qrplabs_get_clock(RIG *rig, int *year, int *month, int *day, int *hou
     return retval;
 }
 
+/*
+ * QMX-specific meter readings.
+ * SW; returns the SWR in hundredths, e.g. SW121; means 1.21:1
+ * PC; returns measured output power in tenths of a watt, e.g. PC45; means 4.5W
+ * Both are only measured while transmitting -- in receive the QMX answers with
+ * a bare SW; or PC; and we report zero rather than a stale reading.
+ */
+static int qrplabs_qmx_get_level(RIG *rig, vfo_t vfo, setting_t level,
+                                 value_t *val)
+{
+    char lvlbuf[16];
+    int retval;
+    int raw;
+
+    ENTERFUNC;
+
+    if (!val)
+    {
+        RETURNFUNC(-RIG_EINVAL);
+    }
+
+    switch (level)
+    {
+    case RIG_LEVEL_SWR:
+        retval = kenwood_transaction(rig, "SW", lvlbuf, sizeof(lvlbuf));
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
+        if (strlen(lvlbuf) <= 2)   /* not transmitting, no reading available */
+        {
+            val->f = 0.0;
+            RETURNFUNC(RIG_OK);
+        }
+
+        if (sscanf(lvlbuf + 2, "%d", &raw) != 1)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: unable to parse SWR from '%s'\n", __func__,
+                      lvlbuf);
+            RETURNFUNC(-RIG_EPROTO);
+        }
+
+        val->f = raw / 100.0f;
+        RETURNFUNC(RIG_OK);
+
+    case RIG_LEVEL_RFPOWER_METER:
+    case RIG_LEVEL_RFPOWER_METER_WATTS:
+        retval = kenwood_transaction(rig, "PC", lvlbuf, sizeof(lvlbuf));
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
+        if (strlen(lvlbuf) <= 2)   /* not transmitting, no reading available */
+        {
+            val->f = 0.0;
+            RETURNFUNC(RIG_OK);
+        }
+
+        if (sscanf(lvlbuf + 2, "%d", &raw) != 1)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: unable to parse power from '%s'\n", __func__,
+                      lvlbuf);
+            RETURNFUNC(-RIG_EPROTO);
+        }
+
+        val->f = raw / 10.0f;   /* watts */
+
+        if (level == RIG_LEVEL_RFPOWER_METER)
+        {
+            val->f /= QMX_MAX_POWER;    /* 0.0..1.0 */
+        }
+
+        RETURNFUNC(RIG_OK);
+
+    default:
+        RETURNFUNC(-RIG_EINVAL);
+    }
+}
+
 static int qrplabs_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
                       int sec, double msec, int utc_offset)
 {
@@ -1949,7 +2035,7 @@ struct rig_caps qrplabs_qmx_caps =
     RIG_MODEL(RIG_MODEL_QRPLABS_QMX),
     .model_name = "QMX",
     .mfg_name = "QRPLabs",
-    .version = BACKEND_VER ".2",
+    .version = BACKEND_VER ".3",
     .copyright = "LGPL",
     .status = RIG_STATUS_BETA,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -1968,6 +2054,8 @@ struct rig_caps qrplabs_qmx_caps =
     .retry = 3,
     .preamp = {12, RIG_DBLST_END,},
     .attenuator = {12, RIG_DBLST_END,},
+    .has_get_level = QMX_LEVEL_GET,
+    .has_set_level = RIG_LEVEL_NONE,
     .targetable_vfo = RIG_TARGETABLE_FREQ,
     .transceive = RIG_TRN_RIG,
 
@@ -1985,6 +2073,17 @@ struct rig_caps qrplabs_qmx_caps =
         {RIG_MODE_CW | RIG_MODE_CWR, Hz(300)},
         RIG_FLT_END,
     },
+    .level_gran =
+    {
+#define NO_LVL_SWR
+#define NO_LVL_RFPOWER_METER_WATTS
+#include "level_gran_kenwood.h"
+#undef NO_LVL_SWR
+#undef NO_LVL_RFPOWER_METER_WATTS
+        /* SW; and PC; report in hundredths and tenths respectively */
+        [LVL_SWR] = {.min = {.f = 0}, .max = {.f = 99.99f}, .step = {.f = 0.01f}},
+        [LVL_RFPOWER_METER_WATTS] = {.min = {.f = 0}, .max = {.f = QMX_MAX_POWER}, .step = {.f = 0.1f}},
+    },
 
     .priv = (void *)& ts480_priv_caps,
 
@@ -2001,6 +2100,7 @@ struct rig_caps qrplabs_qmx_caps =
     .get_split_vfo = kenwood_get_split_vfo_if,
     .get_ptt = kenwood_get_ptt,
     .set_ptt = kenwood_set_ptt,
+    .get_level = qrplabs_qmx_get_level,
     .get_info = kenwood_ts480_get_info,
     .get_clock = qrplabs_get_clock,
     .set_clock = qrplabs_set_clock,
