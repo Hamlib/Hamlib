@@ -591,10 +591,28 @@ static int elecraft_get_firmware_revision_level(RIG *rig, const char *cmd,
 
 //  FR;FT;TQ; is faster than IF;
 //  Works on K4
+static int parse_binary_response(const char *response, const char *command,
+                                 int *value)
+{
+    if (response[0] != command[0] || response[1] != command[1]
+            || (response[2] != '0' && response[2] != '1')
+            || response[3] != '\0')
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid %s response '%s'\n", __func__,
+                  command, response);
+        return -RIG_EPROTO;
+    }
+
+    *value = response[2] - '0';
+    return RIG_OK;
+}
+
 int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
 {
     int retval;
-    int fr, ft, tq;
+    int fr = 0;
+    int ft = 0;
+    int tq = 0;
     char cmdbuf[10];
     char splitbuf[12];
 
@@ -609,9 +627,11 @@ int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
         RETURNFUNC2(retval);
     }
 
-    if (sscanf(splitbuf, "FR%1d", &fr) != 1)
+    retval = parse_binary_response(splitbuf, "FR", &fr);
+
+    if (retval != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: unable to parse FR '%s'\n", __func__, splitbuf);
+        RETURNFUNC2(retval);
     }
 
     SNPRINTF(cmdbuf, sizeof(cmdbuf), "FT;");
@@ -622,9 +642,11 @@ int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
         RETURNFUNC2(retval);
     }
 
-    if (sscanf(splitbuf, "FT%1d", &ft) != 1)
+    retval = parse_binary_response(splitbuf, "FT", &ft);
+
+    if (retval != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: unable to parse FT '%s'\n", __func__, splitbuf);
+        RETURNFUNC2(retval);
     }
 
 // We can use the TQX; command but we have to check that we have R32 firmware or higher
@@ -651,10 +673,11 @@ int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
         RETURNFUNC2(retval);
     }
 
-    if (sscanf(splitbuf, "TQ%1d", &tq) != 1)
+    retval = parse_binary_response(splitbuf, "TQ", &tq);
+
+    if (retval != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: unable to parse TQ or TQX response of '%s'\n",
-                  __func__, splitbuf);
+        RETURNFUNC2(retval);
     }
 
     *vfo = STATE(rig)->tx_vfo = RIG_VFO_A;
