@@ -2093,29 +2093,40 @@ double HAMLIB_API elapsed_ms(struct timespec *start, int option)
 }
 //! @endcond
 
-static char *funcname = "Unknown";
-static int linenum = 0;
-
 #undef vfo_fixup
 vfo_t HAMLIB_API vfo_fixup2a(RIG *rig, vfo_t vfo, split_t split,
                              const char *func, int line)
 {
-    funcname = (char *)func;
-    linenum = (int)line;
-    return vfo_fixup(rig, vfo, split);
+    struct rig_cache_routing_snapshot routing;
+
+    rig_get_cache_routing_snapshot(rig, &routing);
+    return vfo_fixup_from_snapshot(rig, vfo, split, &routing, func, line);
+}
+
+vfo_t HAMLIB_API vfo_fixup_current2a(RIG *rig, vfo_t vfo,
+                                     const char *func, int line)
+{
+    struct rig_cache_routing_snapshot routing;
+
+    rig_get_cache_routing_snapshot(rig, &routing);
+    return vfo_fixup_from_snapshot(rig, vfo, routing.split, &routing,
+                                   func, line);
 }
 
 // we're mapping our VFO here to work with either VFO A/B rigs or Main/Sub
 // Hamlib uses VFO_A  and VFO_B as TX/RX as of 2021-04-13
 // So we map these to Main/Sub as required
 // We need to add some exceptions to this like the ID-5100
-vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
+vfo_t HAMLIB_API vfo_fixup_from_snapshot(
+    RIG *rig, vfo_t vfo, split_t split,
+    const struct rig_cache_routing_snapshot *routing,
+    const char *func, int line)
 {
-    struct rig_state *rs = STATE(rig);
-    vfo_t currvfo = rs->current_vfo;
+    const struct rig_state *rs = STATE(rig);
+    vfo_t currvfo = routing->current_vfo;
 
     rig_debug(RIG_DEBUG_TRACE, "%s:(from %s:%d) vfo=%s, vfo_curr=%s, split=%d\n",
-              __func__, funcname, linenum,
+              __func__, func, line,
               rig_strvfo(vfo), rig_strvfo(currvfo), split);
 
     if (rig->caps->rig_model == RIG_MODEL_ID5100
@@ -2140,7 +2151,7 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
             vfo = RIG_VFO_MAIN_A;
 
             // only have Main/Sub when in satmode
-            if (CACHE(rig)->satmode) { vfo = RIG_VFO_MAIN; }
+            if (routing->satmode) { vfo = RIG_VFO_MAIN; }
         }
         else if (vfo == RIG_VFO_B && (currvfo == RIG_VFO_MAIN
                                       || currvfo == RIG_VFO_MAIN_A))
@@ -2169,7 +2180,7 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
 
     if (vfo == RIG_VFO_OTHER)
     {
-        switch (rs->current_vfo)
+        switch (routing->current_vfo)
         {
         case RIG_VFO_A:
             return RIG_VFO_B;
@@ -2193,7 +2204,7 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
 
     if (vfo == RIG_VFO_RX)
     {
-        vfo = rs->rx_vfo;
+        vfo = routing->rx_vfo;
     }
     else if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN)
     {
@@ -2203,10 +2214,10 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
     }
     else if (vfo == RIG_VFO_TX)
     {
-        int satmode = CACHE(rig)->satmode;
+        int satmode = routing->satmode;
 
         rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): split=%d, vfo==%s tx_vfo=%s\n", __func__,
-                  __LINE__, split, rig_strvfo(vfo), rig_strvfo(rs->tx_vfo));
+                  __LINE__, split, rig_strvfo(vfo), rig_strvfo(routing->tx_vfo));
 
         if (VFO_HAS_MAIN_SUB_ONLY && !split && !satmode && vfo != RIG_VFO_B) { vfo = RIG_VFO_MAIN; }
 
@@ -2232,6 +2243,15 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
     rig_debug(RIG_DEBUG_TRACE, "%s: final vfo=%s\n", __func__, rig_strvfo(vfo));
 
     return vfo;
+}
+
+vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
+{
+    struct rig_cache_routing_snapshot routing;
+
+    rig_get_cache_routing_snapshot(rig, &routing);
+    return vfo_fixup_from_snapshot(rig, vfo, split, &routing,
+                                   "Unknown", 0);
 }
 
 int HAMLIB_API parse_hoststr(char *hoststr, int hoststr_len, char host[256],

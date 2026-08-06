@@ -473,7 +473,7 @@ int ft100_init(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     STATE(rig)->priv = (struct ft100_priv_data *) calloc(1,
-                       sizeof(struct ft100_priv_data));
+        sizeof(struct ft100_priv_data));
 
     if (!STATE(rig)->priv) { return -RIG_ENOMEM; }
 
@@ -915,7 +915,12 @@ int ft100_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
 
     unsigned char cmd_index;
-    int split = CACHE(rig)->split;
+    int cache_ms;
+    int timeout_ms;
+    split_t split;
+    vfo_t split_vfo;
+
+    rig_get_cache_split(rig, &split, &split_vfo, &cache_ms, &timeout_ms);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -971,6 +976,7 @@ int ft100_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 int ft100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
 
+    struct rig_cache_routing_snapshot routing;
     int ret;
     int split, ptt;
 
@@ -980,8 +986,9 @@ int ft100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     if (!val) { return -RIG_EINVAL; }
 
-    split = CACHE(rig)->split;
-    ptt = CACHE(rig)->ptt;
+    rig_get_cache_routing_snapshot(rig, &routing);
+    split = routing.split;
+    ptt = routing.ptt;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: %s\n", __func__, rig_strlevel(level));
 

@@ -31,6 +31,7 @@
 #include "hamlib/port.h"
 #include "hamlib/rig_state.h"
 #include "iofunc.h"
+#include "cache.h"
 #include "misc.h"
 
 #include "kenwood.h"
@@ -453,7 +454,7 @@ int ic10_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (vfo == RIG_VFO_CURR)
     {
-        tvfo = STATE(rig)->current_vfo;
+        tvfo = rig_get_current_vfo_state(rig);
     }
     else
     {

@@ -30,6 +30,7 @@
 #include "hamlib/rig_state.h"
 #include "iofunc.h"
 #include "misc.h"
+#include "cache.h"
 
 #define BACKEND_VER "20230127.0"
 
@@ -50,7 +51,7 @@
 
 struct sdrsharp_priv_data
 {
-    freq_t	curr_freq;
+    freq_t  curr_freq;
 };
 
 
@@ -247,9 +248,9 @@ static int sdrsharp_transaction(RIG *rig, char *cmd, char *value,
     if (value && strlen(value) == 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: no value returned\n", __func__);
-        
+
         set_transaction_inactive(rig);
-        
+
         RETURNFUNC(-RIG_EPROTO);
     }
 
@@ -271,7 +272,8 @@ static int sdrsharp_init(RIG *rig)
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __func__, rig->caps->version);
 
-    STATE(rig)->priv  = (struct sdrsharp_priv_data *)calloc(1, sizeof(struct sdrsharp_priv_data));
+    STATE(rig)->priv  = (struct sdrsharp_priv_data *)calloc(1,
+        sizeof(struct sdrsharp_priv_data));
 
     if (!STATE(rig)->priv)
     {
@@ -285,7 +287,7 @@ static int sdrsharp_init(RIG *rig)
     /*
      * set arbitrary initial status
      */
-    STATE(rig)->current_vfo = RIG_VFO_A;
+    rig_set_current_vfo_state(rig, RIG_VFO_A);
     priv->curr_freq = 0.0;
 
     if (!rig->caps)
@@ -308,7 +310,8 @@ static int sdrsharp_init(RIG *rig)
 static int sdrsharp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     char value[MAXARGLEN];
-    struct sdrsharp_priv_data *priv = (struct sdrsharp_priv_data *) STATE(rig)->priv;
+    struct sdrsharp_priv_data *priv = (struct sdrsharp_priv_data *) STATE(
+                                          rig)->priv;
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
@@ -323,7 +326,7 @@ static int sdrsharp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = STATE(rig)->current_vfo;
+        vfo = rig_get_current_vfo_state(rig);
         rig_debug(RIG_DEBUG_TRACE, "%s: get_freq vfo=%s\n",
                   __func__, rig_strvfo(vfo));
     }
@@ -385,9 +388,9 @@ static int sdrsharp_open(RIG *rig)
         RETURNFUNC(-RIG_EPROTO);
     }
 
-    STATE(rig)->current_vfo = RIG_VFO_A;
+    rig_set_current_vfo_state(rig, RIG_VFO_A);
     rig_debug(RIG_DEBUG_TRACE, "%s: currvfo=%s value=%s\n", __func__,
-              rig_strvfo(STATE(rig)->current_vfo), value);
+              rig_strvfo(RIG_VFO_A), value);
 
     RETURNFUNC(retval);
 }
@@ -428,6 +431,7 @@ static int sdrsharp_cleanup(RIG *rig)
     // model_sdrsharp was not getting refilled
     // if we can figure out that one we can re-enable this
 #if 0
+
     for (int i = 0; modeMap[i].mode_hamlib != 0; ++i)
     {
         if (modeMap[i].mode_sdrsharp)
@@ -483,7 +487,7 @@ static int sdrsharp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = STATE(rig)->current_vfo;
+        vfo = rig_get_current_vfo_state(rig);
         rig_debug(RIG_DEBUG_TRACE, "%s: set_freq vfo=%s\n",
                   __func__, rig_strvfo(vfo));
     }
@@ -556,7 +560,8 @@ struct rig_caps sdrsharp_caps =
     .tuning_steps =  {
         {SDRSHARP_MODES, 1},
         {SDRSHARP_MODES, RIG_TS_ANY},
-        RIG_TS_END, },
+        RIG_TS_END,
+    },
     .filters =  {
         {RIG_MODE_ALL, RIG_FLT_ANY},
         RIG_FLT_END
