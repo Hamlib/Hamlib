@@ -37,6 +37,7 @@
 #include "newcat.h"
 #include "yaesu.h"
 #include "ft891.h"
+#include "misc.h"
 
 /* Prototypes */
 static int ft891_init(RIG *rig);
@@ -640,6 +641,6 @@ static int ft891_init(RIG *rig)
 
     if (ret != RIG_OK) { return ret; }
 
-    STATE(rig)->current_vfo = RIG_VFO_A;
+    rig_set_current_vfo_state(rig, RIG_VFO_A);
     return RIG_OK;
 }

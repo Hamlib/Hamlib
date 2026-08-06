@@ -150,6 +150,7 @@ int ftx1_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
     struct newcat_priv_data *priv;
     int p1;
+    int ret;
 
     if (!rig)
     {
@@ -177,10 +178,10 @@ int ftx1_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
      *   2. This overwrites the MAIN cache with the TX frequency
      *   3. rig_get_freq returns TX freq instead of RX freq
      *
-     * By forcing tx_vfo=SUB here, and updating STATE(rig)->tx_vfo, we ensure
+     * By forcing tx_vfo=SUB here, and publishing the TX VFO, we ensure
      * that subsequent rig_set_split_freq calls cache for SUB (not VFOA/MAIN).
      *
-     * Note: The core will overwrite rs->tx_vfo after this function returns,
+     * Note: The core may overwrite the TX routing state after this returns,
      * but we also fix it in ftx1_set_split_freq as a backup.
      */
     if (split == RIG_SPLIT_ON)
@@ -195,18 +196,20 @@ int ftx1_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: normalized tx_vfo=%s\n", __func__,
               rig_strvfo(tx_vfo));
 
-    /* Fix rs->tx_vfo - the core may overwrite this, but try anyway */
-    STATE(rig)->tx_vfo = tx_vfo;
-
-    /* Store virtual split state - do NOT send ST command to radio */
-    priv->ftx1_virtual_split = (split == RIG_SPLIT_ON) ? 1 : 0;
-    priv->ftx1_tx_vfo = tx_vfo;
-
     /* Set TX VFO using FT command: 0=MAIN TX, 1=SUB TX */
     p1 = (tx_vfo == RIG_VFO_SUB) ? 1 : 0;
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FT%d;", p1);
 
-    return newcat_set_cmd(rig);
+    ret = newcat_set_cmd(rig);
+
+    if (ret == RIG_OK)
+    {
+        priv->ftx1_virtual_split = (split == RIG_SPLIT_ON) ? 1 : 0;
+        priv->ftx1_tx_vfo = tx_vfo;
+        rig_set_tx_vfo_state(rig, tx_vfo);
+    }
+
+    return ret;
 }
 
 /*
@@ -461,7 +464,6 @@ int ftx1_get_dual_receive(RIG *rig, int *dual)
 int ftx1_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
     struct newcat_priv_data *priv;
-    struct rig_cache *cachep;
     freq_t saved_main_freq;
     int ret;
 
@@ -471,8 +473,7 @@ int ftx1_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     }
 
     priv = STATE(rig)->priv;
-    cachep = CACHE(rig);
-    if (!priv || !cachep)
+    if (!priv)
     {
         return -RIG_EINTERNAL;
     }
@@ -485,7 +486,12 @@ int ftx1_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
      * which corrupts the Main cache (they share freqMainA slot).
      * We save it here so we can restore it below.
      */
-    saved_main_freq = cachep->freqMainA;
+    ret = rig_get_cache_freq(rig, RIG_VFO_A, &saved_main_freq, NULL);
+
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
 
     /* Set VFO-B (TX VFO) frequency */
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FB%09.0f;", tx_freq);
@@ -494,10 +500,10 @@ int ftx1_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     if (ret == RIG_OK)
     {
         /*
-         * Fix rs->tx_vfo for future operations.
+         * Publish the TX VFO for future operations.
          * The core set it to VFOA in rig_set_split_vfo, but FTX1 uses SUB.
          */
-        STATE(rig)->tx_vfo = RIG_VFO_SUB;
+        rig_set_tx_vfo_state(rig, RIG_VFO_SUB);
 
         /*
          * Cache the TX freq for SUB (where we actually set it).
@@ -529,7 +535,6 @@ int ftx1_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 int ftx1_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
     struct newcat_priv_data *priv;
-    struct rig_cache *cachep;
     int ret;
 
     if (!rig || !tx_freq)
@@ -538,8 +543,7 @@ int ftx1_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     }
 
     priv = STATE(rig)->priv;
-    cachep = CACHE(rig);
-    if (!priv || !cachep)
+    if (!priv)
     {
         return -RIG_EINTERNAL;
     }
@@ -557,8 +561,7 @@ int ftx1_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         rig_debug(RIG_DEBUG_VERBOSE,
                   "%s: restoring Main cache to %.0f Hz\n",
                   __func__, priv->ftx1_cache_fix_freq);
-        cachep->freqMainA = priv->ftx1_cache_fix_freq;
-        elapsed_ms(&cachep->time_freqMainA, HAMLIB_ELAPSED_SET);
+        rig_set_cache_freq(rig, RIG_VFO_A, priv->ftx1_cache_fix_freq);
         priv->ftx1_cache_fix_needed = 0;
     }
 

@@ -227,7 +227,7 @@ int ft736_open(RIG *rig)
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     STATE(rig)->priv = (struct ft736_priv_data *) calloc(1,
-                       sizeof(struct ft736_priv_data));
+        sizeof(struct ft736_priv_data));
 
     if (!STATE(rig)->priv)
     {
@@ -298,10 +298,7 @@ int ft736_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
-    if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN) { *freq = CACHE(rig)->freqMainA; }
-    else { rig_get_cache_freq(rig, vfo, freq, NULL); }
-
-    return RIG_OK;
+    return rig_get_cache_freq(rig, vfo, freq, NULL);
 }
 
 
@@ -315,9 +312,12 @@ int ft736_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 #define MD_FMN  0x88
 static int ft736_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
+    struct rig_cache_snapshot cache;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
-    *mode = CACHE(rig)->modeMainA;
+    rig_get_cache_snapshot(rig, &cache);
+    *mode = cache.modeMainA;
 
     switch (*mode)
     {
@@ -651,4 +651,3 @@ int ft736_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
     /* same opcode as tone */
     return ft736_set_ctcss_tone(rig, vfo, tone);
 }
-

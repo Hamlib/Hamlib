@@ -218,6 +218,7 @@ static int ts590_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
     int kmode = rmode2kenwood(mode, caps->mode_table);
     char cmd[32], c;
+    freq_t freq;
     int retval = -RIG_EINTERNAL;
     int hwidth = 0;
     // int lwidth; // not implemented yet until new API is created
@@ -240,10 +241,16 @@ static int ts590_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (!sf_fails)
     {
-        SNPRINTF(cmd, sizeof(cmd), "SF%d%011.0f%c", vfo == RIG_VFO_A ? 0 : 1,
-                 vfo == RIG_VFO_A ? CACHE(rig)->freqMainA : CACHE(rig)->freqMainB,
-                 c);
-        retval = kenwood_transaction(rig, cmd, NULL, 0);
+        retval = rig_get_cache_freq(rig,
+                                    vfo == RIG_VFO_A ? RIG_VFO_A : RIG_VFO_B,
+                                    &freq, NULL);
+
+        if (retval == RIG_OK)
+        {
+            SNPRINTF(cmd, sizeof(cmd), "SF%d%011.0f%c",
+                     vfo == RIG_VFO_A ? 0 : 1, freq, c);
+            retval = kenwood_transaction(rig, cmd, NULL, 0);
+        }
     }
 
     if (retval != RIG_OK || sf_fails)
@@ -327,9 +334,12 @@ static int ts590_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     char cmd[32], ackbuf[32];
     int retval;
 
-    if (vfo == RIG_VFO_CURR) { vfo = STATE(rig)->current_vfo; }
+    if (vfo == RIG_VFO_CURR) { vfo = rig_get_current_vfo_state(rig); }
 
-    if (vfo == RIG_VFO_TX || vfo == RIG_VFO_RX) { vfo = vfo_fixup(rig, vfo, CACHE(rig)->split); }
+    if (vfo == RIG_VFO_TX || vfo == RIG_VFO_RX)
+    {
+        vfo = vfo_fixup_current(rig, vfo);
+    }
 
     retval = RIG_OK;
 
@@ -738,6 +748,9 @@ static int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     int levelint = 0;
     int retval;
     int cmd;
+    int cache_ms;
+    int timeout_ms;
+    ptt_t ptt;
 
     ENTERFUNC;
 
@@ -876,7 +889,9 @@ static int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         RETURNFUNC(RIG_OK);
 
     case RIG_LEVEL_STRENGTH:
-        if (CACHE(rig)->ptt != RIG_PTT_OFF)
+        rig_get_cache_ptt(rig, &ptt, &cache_ms, &timeout_ms);
+
+        if (ptt != RIG_PTT_OFF)
         {
             val->i = -9 * 6;
             break;
@@ -1022,7 +1037,9 @@ static int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             }
         };
 
-        if (CACHE(rig)->ptt == RIG_PTT_OFF)
+        rig_get_cache_ptt(rig, &ptt, &cache_ms, &timeout_ms);
+
+        if (ptt == RIG_PTT_OFF)
         {
             val->f = 0;
             break;
@@ -1051,7 +1068,7 @@ static int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             val->f = (float) raw_value / 30.0f;
         }
-    
+
         break;
     }
 

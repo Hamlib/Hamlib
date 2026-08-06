@@ -313,7 +313,8 @@ static int ts480_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
  * WARNING: The commands differ slightly from the general versions in kenwood.c
  * e.g.: "SQ"=>"SQ0" , "AG"=>"AG0"
  */
-static int kenwood_ts480_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+static int kenwood_ts480_set_level(RIG *rig, vfo_t vfo, setting_t level,
+                                   value_t val)
 {
     char levelbuf[16];
     int kenwood_val;
@@ -496,6 +497,9 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     size_t ack_len, ack_len_expected;
     int levelint;
     int retval;
+    int cache_ms;
+    int timeout_ms;
+    ptt_t ptt;
 
     ENTERFUNC;
 
@@ -588,7 +592,9 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         RETURNFUNC(RIG_OK);
 
     case RIG_LEVEL_STRENGTH:
-        if (CACHE(rig)->ptt != RIG_PTT_OFF)
+        rig_get_cache_ptt(rig, &ptt, &cache_ms, &timeout_ms);
+
+        if (ptt != RIG_PTT_OFF)
         {
             val->i = -9 * 6;
             break;
@@ -715,7 +721,9 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     {
         int raw_value;
 
-        if (CACHE(rig)->ptt == RIG_PTT_OFF)
+        rig_get_cache_ptt(rig, &ptt, &cache_ms, &timeout_ms);
+
+        if (ptt == RIG_PTT_OFF)
         {
             val->f = 0;
             break;
@@ -1280,8 +1288,9 @@ int qdx_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 }
 
 #endif
-static int qrplabs_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
-                      int *min, int *sec, double *msec, int *utc_offset)
+static int qrplabs_get_clock(RIG *rig, int *year, int *month, int *day,
+                             int *hour,
+                             int *min, int *sec, double *msec, int *utc_offset)
 {
     char tm_cmd[32];
     char tm_buf[32];
@@ -1296,8 +1305,9 @@ static int qrplabs_get_clock(RIG *rig, int *year, int *month, int *day, int *hou
     return retval;
 }
 
-static int qrplabs_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
-                      int sec, double msec, int utc_offset)
+static int qrplabs_set_clock(RIG *rig, int year, int month, int day, int hour,
+                             int min,
+                             int sec, double msec, int utc_offset)
 {
     char tm_cmd[32];
     sprintf(tm_cmd, "TM%02d%02d%02d;", hour, min, sec);
@@ -2380,7 +2390,8 @@ static int malachite_init(RIG *rig)
     RETURNFUNC(RIG_OK);
 }
 
-static int malachite_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+static int malachite_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
+                              pbwidth_t *width)
 {
     int post_write_delay_save = STATE(rig)->post_write_delay;
     STATE(rig)->post_write_delay = 0;
@@ -2402,16 +2413,20 @@ static int malachite_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 static int malachite_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     int retval;
-    struct rig_cache *cachep = CACHE(rig);
+    freq_t freq_main_a;
 
     ENTERFUNC;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: freqMainA=%g, freq=%g\n", __func__,
-              cachep->freqMainA, freq);
+    retval = rig_get_cache_freq(rig, RIG_VFO_A, &freq_main_a, NULL);
 
-    if ((cachep->freqMainA < 400000000 && freq >= 400000000)
-            || (cachep->freqMainA >= 400000000 && freq < 400000000)
-            || cachep->freqMainA == 0)
+    if (retval != RIG_OK) { RETURNFUNC(retval); }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: freqMainA=%g, freq=%g\n", __func__,
+              freq_main_a, freq);
+
+    if ((freq_main_a < 400000000 && freq >= 400000000)
+            || (freq_main_a >= 400000000 && freq < 400000000)
+            || freq_main_a == 0)
     {
         // Malachite has a bug where it takes two freq set to make it work
         // under band changes -- so we just do this all the time

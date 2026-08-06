@@ -26,6 +26,7 @@
 #include "icom_defs.h"
 #include "frame.h"
 #include "misc.h"
+#include "cache.h"
 
 enum
 {
@@ -112,7 +113,7 @@ static int id5100_set_vfo(RIG *rig, vfo_t vfo)
     }
 
     priv->dual_watch_main_sub = main_side;
-    rs->current_vfo = vfo;
+    rig_set_current_vfo_state(rig, vfo);
 
     RETURNFUNC(retval);
 }
@@ -282,7 +283,7 @@ static int id5100_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo
     // So we put Main on right side to match gpredict positions
     // we must set RX vfo to SUB
     retval = id5100_set_vfo(rig, RIG_VFO_SUB);
-    rs->current_vfo = RIG_VFO_SUB;
+    rig_set_current_vfo_state(rig, RIG_VFO_SUB);
     priv->dual_watch_main_sub = MAIN_ON_RIGHT;
 
     return retval;
@@ -320,7 +321,7 @@ static int id5100_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): vfo=%s\n", __func__, __LINE__,
               rig_strvfo(vfo));
 #if 0
-    currvfo = rs->current_vfo;
+    currvfo = rig_get_current_vfo_state(rig);
 
     if (priv->dual_watch_main_sub == MAIN_ON_LEFT && (currvfo == RIG_VFO_MAIN
             || currvfo == RIG_VFO_A) && vfo == RIG_VFO_TX)

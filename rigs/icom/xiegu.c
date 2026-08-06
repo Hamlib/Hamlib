@@ -1152,9 +1152,10 @@ static int x108g_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf), rc;
     int split_sc;
-    struct rig_cache *cachep = CACHE(rig);
+    struct rig_cache_routing_snapshot routing;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_get_cache_routing_snapshot(rig, &routing);
 
     switch (split)
     {
@@ -1165,7 +1166,7 @@ static int x108g_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     case RIG_SPLIT_ON:
         split_sc = S_SPLT_ON;
 
-        if (cachep->split == RIG_SPLIT_OFF)
+        if (routing.split == RIG_SPLIT_OFF)
         {
             /* ensure VFO A is Rx and VFO B is Tx as we assume that elsewhere */
             if ((STATE(rig)->vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B))
@@ -1192,7 +1193,7 @@ static int x108g_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         return -RIG_ERJCTED;
     }
 
-    cachep->split = split;
+    rig_set_cache_split(rig, split, tx_vfo);
     return RIG_OK;
 }
 
@@ -1208,12 +1209,13 @@ static int x108g_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     vfo_t rx_vfo, tx_vfo;
     struct icom_priv_data *priv;
     struct rig_state *rs = STATE(rig);
-    struct rig_cache *cachep = CACHE(rig);
+    struct rig_cache_routing_snapshot routing;
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     priv = (struct icom_priv_data *)rs->priv;
+    rig_get_cache_routing_snapshot(rig, &routing);
 
     /* This method works also in memory mode(RIG_VFO_MEM) */
     if (!priv->no_xchg && rig_has_vfo_op(rig, RIG_OP_XCHG))
@@ -1233,7 +1235,7 @@ static int x108g_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
              queries */
     /* broken if user changes split on rig :( */
     if ((STATE(rig)->vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
-            && cachep->split != RIG_SPLIT_OFF)
+            && routing.split != RIG_SPLIT_OFF)
     {
         /* VFO A/B style rigs swap VFO on split Tx so we need to disable
                  split for certainty */
@@ -1261,7 +1263,7 @@ static int x108g_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     if (RIG_OK != (rc = icom_set_vfo(rig, rx_vfo))) { return rc; }
 
     if ((STATE(rig)->vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
-            && cachep->split != RIG_SPLIT_OFF)
+            && routing.split != RIG_SPLIT_OFF)
     {
         /* Re-enable split */
         rc = icom_transaction(rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0, ackbuf, &ack_len);
@@ -1286,12 +1288,13 @@ static int x108g_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
     vfo_t rx_vfo, tx_vfo;
     struct icom_priv_data *priv;
     struct rig_state *rs = STATE(rig);
-    struct rig_cache *cachep = CACHE(rig);
+    struct rig_cache_routing_snapshot routing;
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     priv = (struct icom_priv_data *)rs->priv;
+    rig_get_cache_routing_snapshot(rig, &routing);
 
     /* This method works also in memory mode(RIG_VFO_MEM) */
     if (!priv->no_xchg && rig_has_vfo_op(rig, RIG_OP_XCHG))
@@ -1312,7 +1315,7 @@ static int x108g_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
              queries */
     /* broken if user changes split on rig :( */
     if ((STATE(rig)->vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
-            && cachep->split != RIG_SPLIT_OFF)
+            && routing.split != RIG_SPLIT_OFF)
     {
         /* VFO A/B style rigs swap VFO on split Tx so we need to disable
                  split for certainty */
@@ -1341,7 +1344,7 @@ static int x108g_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
     if (RIG_OK != (rc = icom_set_vfo(rig, rx_vfo))) { return rc; }
 
     if ((STATE(rig)->vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
-            && cachep->split != RIG_SPLIT_OFF)
+            && routing.split != RIG_SPLIT_OFF)
     {
         /* Re-enable split */
         rc = icom_transaction(rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0, ackbuf, &ack_len);

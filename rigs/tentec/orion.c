@@ -93,6 +93,20 @@ double tt565_timenow()  /* returns current time in secs+microsecs */
 }
 #endif
 
+static pbwidth_t tt565_get_cached_width(RIG *rig, vfo_t vfo)
+{
+    freq_t freq;
+    rmode_t mode;
+    pbwidth_t width = 0;
+    int cache_ms_freq;
+    int cache_ms_mode;
+    int cache_ms_width;
+
+    rig_get_cache(rig, vfo, &freq, &cache_ms_freq, &mode,
+                  &cache_ms_mode, &width, &cache_ms_width);
+    return width;
+}
+
 /**
  * \param rig Rig descriptor
  * \param cmd command to send
@@ -237,7 +251,7 @@ int tt565_init(RIG *rig)
 {
     struct tt565_priv_data *priv;
     STATE(rig)->priv = (struct tt565_priv_data *)calloc(1, sizeof(
-                           struct tt565_priv_data));
+            struct tt565_priv_data));
 
     if (!STATE(rig)->priv) { return -RIG_ENOMEM; } /* no memory available */
 
@@ -420,6 +434,7 @@ int tt565_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     int retval, i, in_range;
     freq_range_t this_range;
     char cmdbuf[TT565_BUFSIZE];
+    vfo_t current_vfo = rig_get_current_vfo_state(rig);
     /* Check for valid frequency request.
      * Find freq range that includes current request and
      * matches the VFO A/B setting. c.f. rig_get_range().
@@ -440,7 +455,7 @@ int tt565_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
         /* We don't care about mode setting, but vfo must match. */
         if (freq >= this_range.startf && freq <= this_range.endf &&
-                (this_range.vfo == STATE(rig)->current_vfo))
+                (this_range.vfo == current_vfo))
         {
             in_range = TRUE;
             break;
@@ -794,7 +809,7 @@ int tt565_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     char ttmode, ttreceiver;
     int retry;
     int timeout;
-    int widthOld = CACHE(rig)->widthMainA;
+    int widthOld = tt565_get_cached_width(rig, RIG_VFO_A);
     struct rig_state *rs = STATE(rig);
 
     ttreceiver = which_receiver(rig, vfo);

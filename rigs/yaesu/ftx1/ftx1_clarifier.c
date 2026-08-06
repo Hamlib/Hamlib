@@ -101,14 +101,7 @@ int ftx1_parse_clar_offset(const char *resp, char vfo,
  */
 static char ftx1_get_cf_vfo_param(RIG *rig, vfo_t vfo)
 {
-    vfo_t curr_vfo = vfo;
-
-    if (curr_vfo == RIG_VFO_CURR || curr_vfo == RIG_VFO_NONE)
-    {
-        curr_vfo = STATE(rig)->current_vfo;
-    }
-
-    return (curr_vfo == RIG_VFO_SUB || curr_vfo == RIG_VFO_B) ? '1' : '0';
+    return ftx1_vfo_to_p1(rig, vfo) ? '1' : '0';
 }
 
 /*
@@ -200,7 +193,8 @@ int ftx1_set_rx_clar(RIG *rig, vfo_t vfo, shortfreq_t offset)
     char vfo_param;
     char tx_clar_enabled;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called with offset=%ld\n", __func__, (long)offset);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called with offset=%ld\n", __func__,
+              (long)offset);
 
     /* Validate range: FTX-1 supports ±9999 Hz */
     if (offset < -9999 || offset > 9999)
@@ -377,7 +371,8 @@ int ftx1_set_tx_clar(RIG *rig, vfo_t vfo, shortfreq_t offset)
     char vfo_param;
     char rx_clar_enabled;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called with offset=%ld\n", __func__, (long)offset);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called with offset=%ld\n", __func__,
+              (long)offset);
 
     /* Validate range: FTX-1 supports ±9999 Hz */
     if (offset < -9999 || offset > 9999)

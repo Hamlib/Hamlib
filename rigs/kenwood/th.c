@@ -27,6 +27,7 @@
 #include <string.h>  /* String function definitions */
 
 #include "hamlib/rig.h"
+#include "cache.h"
 #include "kenwood.h"
 #include "th.h"
 #include "misc.h"
@@ -214,7 +215,7 @@ th_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called %s\n", __func__, rig_strvfo(vfo));
 
-    if (vfo != RIG_VFO_CURR && vfo != STATE(rig)->current_vfo)
+    if (vfo != RIG_VFO_CURR && vfo != rig_get_current_vfo_state(rig))
     {
         return kenwood_wrong_vfo(__func__, vfo);
     }
@@ -254,7 +255,7 @@ th_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    if (vfo != RIG_VFO_CURR && vfo != STATE(rig)->current_vfo)
+    if (vfo != RIG_VFO_CURR && vfo != rig_get_current_vfo_state(rig))
     {
         return kenwood_wrong_vfo(__func__, vfo);
     }
@@ -293,7 +294,7 @@ th_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    if (vfo != RIG_VFO_CURR && vfo != STATE(rig)->current_vfo)
+    if (vfo != RIG_VFO_CURR && vfo != rig_get_current_vfo_state(rig))
     {
         return kenwood_wrong_vfo(__func__, vfo);
     }
@@ -349,7 +350,7 @@ th_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    if (vfo != RIG_VFO_CURR && vfo != STATE(rig)->current_vfo)
+    if (vfo != RIG_VFO_CURR && vfo != rig_get_current_vfo_state(rig))
     {
         return kenwood_wrong_vfo(__func__, vfo);
     }
@@ -627,13 +628,13 @@ th_get_vfo(RIG *rig, vfo_t *vfo)
  */
 int tm_set_vfo_bc2(RIG *rig, vfo_t vfo)
 {
-    struct rig_state *rs = STATE(rig);
-    const struct kenwood_priv_data *priv = rs->priv;
+    struct rig_cache_routing_snapshot routing;
     char cmd[16];
     int vfonum, txvfonum, vfomode = 0;
     int retval;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called %s\n", __func__, rig_strvfo(vfo));
+    rig_get_cache_routing_snapshot(rig, &routing);
 
     switch (vfo)
     {
@@ -641,15 +642,15 @@ int tm_set_vfo_bc2(RIG *rig, vfo_t vfo)
     case RIG_VFO_VFO:
         vfonum = 0;
         /* put back split mode when toggling */
-        txvfonum = (priv->split == RIG_SPLIT_ON &&
-                    rs->tx_vfo == RIG_VFO_B) ? 1 : vfonum;
+        txvfonum = (routing.split == RIG_SPLIT_ON &&
+                    routing.tx_vfo == RIG_VFO_B) ? 1 : vfonum;
         break;
 
     case RIG_VFO_B:
         vfonum = 1;
         /* put back split mode when toggling */
-        txvfonum = (priv->split == RIG_SPLIT_ON &&
-                    rs->tx_vfo == RIG_VFO_A) ? 0 : vfonum;
+        txvfonum = (routing.split == RIG_SPLIT_ON &&
+                    routing.tx_vfo == RIG_VFO_A) ? 0 : vfonum;
         break;
 
     case RIG_VFO_MEM:
@@ -1135,7 +1136,7 @@ th_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    tvfo = (vfo == RIG_VFO_CURR) ? rs->current_vfo : vfo;
+    tvfo = (vfo == RIG_VFO_CURR) ? rig_get_current_vfo_state(rig) : vfo;
 
     switch (tvfo)
     {
@@ -1323,7 +1324,7 @@ int th_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    tvfo = (vfo == RIG_VFO_CURR) ? STATE(rig)->current_vfo : vfo;
+    tvfo = (vfo == RIG_VFO_CURR) ? rig_get_current_vfo_state(rig) : vfo;
 
     switch (tvfo)
     {
@@ -1705,7 +1706,7 @@ th_set_mem(RIG *rig, vfo_t vfo, int ch)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    tvfo = (vfo == RIG_VFO_CURR) ? STATE(rig)->current_vfo : vfo;
+    tvfo = (vfo == RIG_VFO_CURR) ? rig_get_current_vfo_state(rig) : vfo;
 
     switch (tvfo)
     {
@@ -1746,7 +1747,7 @@ th_get_mem(RIG *rig, vfo_t vfo, int *ch)
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     /* store current VFO */
-    cvfo = STATE(rig)->current_vfo;
+    cvfo = rig_get_current_vfo_state(rig);
 
     /* check if we should switch VFO */
     if (cvfo != RIG_VFO_MEM)
@@ -1871,7 +1872,7 @@ int th_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    if (vfo != RIG_VFO_CURR && vfo != STATE(rig)->current_vfo)
+    if (vfo != RIG_VFO_CURR && vfo != rig_get_current_vfo_state(rig))
     {
         return kenwood_wrong_vfo(__func__, vfo);
     }

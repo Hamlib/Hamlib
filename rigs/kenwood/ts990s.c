@@ -28,6 +28,7 @@
 #include "kenwood.h"
 #include "ts990s.h"
 #include "cal.h"
+#include "misc.h"
 
 #define TS990S_AM_MODES RIG_MODE_AM
 #define TS990S_FM_MODES (RIG_MODE_FM|RIG_MODE_FMN)
@@ -788,7 +789,8 @@ static int ts990s_get_split_vfo(RIG *rig, vfo_t rxvfo, split_t *split,
             *split = RIG_SPLIT_OFF;
             *txvfo = RIG_VFO_MAIN;
         }
-        priv->tx_vfo = rs->tx_vfo = *txvfo;
+        priv->tx_vfo = *txvfo;
+        rig_set_tx_vfo_state(rig, *txvfo);
     }
 
     return retval;
