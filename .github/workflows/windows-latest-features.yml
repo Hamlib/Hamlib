@@ -1,0 +1,79 @@
+name: Windows latest C/C++ (features)
+
+on:
+  push:
+    branches: [ master, feature/* ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 150
+    strategy:
+      matrix:
+        os: [windows-latest]
+        configure_args:
+          - >-
+            --enable-html-matrix=yes
+            --enable-parallel=no
+            --enable-pytest=no
+            --enable-shared=yes
+            --enable-silent-rules
+            --enable-static=yes
+            --enable-usrp=no
+            --enable-winradio=yes
+            --with-cxx-binding=no
+            --with-indi=no
+            --with-libusb=yes
+            --with-lua-binding=no
+            --with-perl-binding=no
+            --with-python-binding=no
+            --with-readline=yes
+            --with-samplerate=yes
+            --with-tcl-binding=no
+            --with-xml-support=yes
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up MSYS2 (MINGW64)
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW64
+        update: false
+        install: >-
+          autoconf
+          automake
+          libtool
+          make
+          pkgconf
+          git
+        pacboy: >-
+          gcc:p
+          libgd:p
+          libsamplerate:p
+          libusb:p
+          libxml2:p
+          readline:p
+    - name: bootstrap
+      run: |
+        pwd
+        ./bootstrap
+    - name: configure
+      run: ./configure ${{ matrix.configure_args }}
+    - name: make distcheck
+      run: make distcheck V=0 --no-print-directory AM_DISTCHECK_CONFIGURE_FLAGS="${{ matrix.configure_args }}"
+    - name: Dump test logs on failure
+      if: failure()
+      run: find . -name test-suite.log -print -exec cat {} \;
+    - name: 'tar files'
+      run: tar -cvf windows_latest_features.tar $(pwd)
+    - name: 'Upload Build Artifact'
+      uses: actions/upload-artifact@v4.6.2
+      with:
+        name: 'Windows_latest_features'
+        path: windows_latest_features.tar

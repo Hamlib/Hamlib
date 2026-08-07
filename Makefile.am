@@ -30,7 +30,7 @@ SUBDIRS = macros include lib security \
 	$(AMP_BACKEND_LIST) \
 	src \
 	$(BINDINGS) \
-	tests doc
+	tests test doc
 
 ## Static list of distributed directories.
 DIST_SUBDIRS = \
@@ -50,6 +50,7 @@ DIST_SUBDIRS = \
 	security \
 	simulators \
 	src \
+	test \
 	tests
 
 # Install any third party macros into our tree for distribution

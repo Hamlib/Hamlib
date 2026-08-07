@@ -1,0 +1,773 @@
+/*
+ *  Hamlib streaming subsystem
+ *  Copyright (c) 2026 by Mikael Nousiainen OH3BHX
+ *
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
+ *
+ *   This library is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Lesser General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
+
+/* Streaming simulator for the dummy backend. */
+/* Generates tone/silence or loops back TX→RX for testing. */
+
+#ifdef HAVE_CONFIG_H
+#  include "hamlib/config.h"
+#endif
+
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include <errno.h>
+#include <time.h>
+
+#include <hamlib/rig.h>
+#include "hamlib/rig_state.h"
+#include "stream.h"
+#include "stream_convert.h"
+#include "stream_proto.h"
+#include "stream_time.h"
+#include "dummy.h"
+#include "misc.h"
+
+/* Generator: push a host-clock anchor every N frames (~250 ms at 10 ms
+ * frames); inject the synthetic test gap after this many frames. */
+#define DUMMY_ANCHOR_EVERY_FRAMES 25
+#define DUMMY_SYNTH_GAP_AT_FRAME  5
+
+/* TX scheduler: a timed burst further past due than this counts as late. */
+#define DUMMY_TX_LATE_TOLERANCE_MS 50
+
+/* Default tone parameters, overridable via conf tokens */
+#define DUMMY_DEFAULT_TONE_FREQ  1000.0f
+#define DUMMY_DEFAULT_TONE_AMP   0.5f
+#define DUMMY_DEFAULT_IQ_OFFSET  1000.0f
+
+/* Frame size: 480 samples = 10ms at 48kHz */
+#define DUMMY_FRAME_SAMPLES 480
+
+
+/* ------------------------------------------------------------------ */
+/* Tone generators                                                     */
+/* ------------------------------------------------------------------ */
+
+/* Generate mono sine wave samples into F32LE buffer.
+ * phase_acc tracks position across calls for continuous waveform. */
+static void generate_sine_f32(float *dst, size_t sample_count,
+                              int sample_rate, float frequency,
+                              float amplitude, uint32_t *phase_acc)
+{
+    for (size_t i = 0; i < sample_count; i++)
+    {
+        float phase = 2.0f * (float)M_PI * (*phase_acc) * frequency
+                      / (float)sample_rate;
+        dst[i] = amplitude * sinf(phase);
+        (*phase_acc)++;
+    }
+}
+
+/* Generate complex exponential (I/Q spinning phasor) into a CF32LE buffer.
+ * For channels > 1 the output is channel-interleaved per sample instant:
+ * I0 Q0 I1 Q1 ... I(N-1) Q(N-1), then the next instant. Each channel spins
+ * at frequency × (channel + 1) so the interleave order is verifiable. */
+static void generate_cexp_cf32(float *dst, size_t sample_count, int channels,
+                               int sample_rate, float frequency,
+                               float amplitude, uint32_t *phase_acc)
+{
+    for (size_t i = 0; i < sample_count; i++)
+    {
+        for (int c = 0; c < channels; c++)
+        {
+            float freq = frequency * (float)(c + 1);
+            float phase = 2.0f * (float)M_PI * (*phase_acc) * freq
+                          / (float)sample_rate;
+            size_t base = 2 * (i * (size_t)channels + (size_t)c);
+            dst[base]     = amplitude * cosf(phase);  /* I */
+            dst[base + 1] = amplitude * sinf(phase);  /* Q */
+        }
+
+        (*phase_acc)++;
+    }
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Generator thread                                                    */
+/* ------------------------------------------------------------------ */
+
+/* Push a host-clock capture-time anchor at the current write position. */
+static void push_host_anchor(struct rig_stream *stream, uint32_t flags)
+{
+    struct rig_stream_time_anchor anchor;
+    memset(&anchor, 0, sizeof(anchor));
+    anchor.sample_index = rig_stream_get_samples_written(stream);
+    stream_time_now(&anchor.seconds, &anchor.picoseconds);
+    anchor.source = RIG_STREAM_TIME_SRC_HOST;
+    anchor.accuracy = RIG_STREAM_TIME_ACC_MS;
+    anchor.flags = flags;
+    rig_stream_push_time_anchor(stream, &anchor);
+}
+
+
+static void *dummy_stream_generator(void *arg)
+{
+    struct dummy_stream_state *ds = (struct dummy_stream_state *)arg;
+    struct rig_stream *stream = ds->stream;
+    const struct rig_stream_config *cfg = &stream->config;
+    int sample_rate = cfg->sample_rate;
+    int channels = cfg->channels;
+    int is_iq = stream_type_is_iq(cfg->type);
+
+    /* Frame size in samples per channel */
+    size_t frame_samples = DUMMY_FRAME_SAMPLES;
+
+    /* Allocate F32LE work buffer (always generate in float first).
+     * I/Q: 2 floats (I+Q) per channel per sample instant. */
+    size_t f32_elements = is_iq
+                          ? frame_samples * 2 * (size_t)channels
+                          : frame_samples * channels;
+    float *f32_buf = malloc(f32_elements * sizeof(float));
+
+    if (!f32_buf)
+    {
+        return NULL;
+    }
+
+    /* Output buffer for format conversion (if needed) */
+    int out_sample_size = rig_stream_format_sample_size(cfg->format);
+
+    if (out_sample_size <= 0)
+    {
+        free(f32_buf);
+        return NULL;
+    }
+
+    /* out_sample_size is bytes per per-channel sample; for I/Q that is one
+     * complex I+Q pair. Frame = channels × that, for audio and I/Q alike. */
+    size_t out_bytes = frame_samples * channels * out_sample_size;
+
+    void *out_buf = malloc(out_bytes);
+
+    if (!out_buf)
+    {
+        free(f32_buf);
+        return NULL;
+    }
+
+    /* Sleep interval: frame_samples / sample_rate seconds */
+    struct timespec sleep_ts;
+    long sleep_ns = (long)((double)frame_samples / (double)sample_rate * 1e9);
+    sleep_ts.tv_sec = sleep_ns / 1000000000L;
+    sleep_ts.tv_nsec = sleep_ns % 1000000000L;
+
+    rig_stream_format_t native_fmt = is_iq
+                                     ? RIG_STREAM_FORMAT_IQ_CF32
+                                     : RIG_STREAM_FORMAT_PCM_F32;
+
+    uint64_t frame_no = 0;
+
+    while (ds->running)
+    {
+        /* When paused, sleep without generating data */
+        if (stream->paused)
+        {
+            nanosleep(&sleep_ts, NULL);
+            continue;
+        }
+
+        /* Capture-time anchors: at start and on a fixed cadence */
+        if (frame_no % DUMMY_ANCHOR_EVERY_FRAMES == 0)
+        {
+            push_host_anchor(stream, 0);
+        }
+
+        /* Synthetic radio-side gap (single-shot, for tests) */
+        if (ds->synth_gap > 0 && frame_no == DUMMY_SYNTH_GAP_AT_FRAME)
+        {
+            rig_stream_mark_gap(stream, (uint64_t)ds->synth_gap);
+            push_host_anchor(stream, RIG_STREAM_TIME_FLAG_DISCONTINUITY);
+            ds->synth_gap = 0;
+        }
+
+        frame_no++;
+
+        /* Counter mode: write incrementing bytes directly, skip F32LE path */
+        if (ds->mode == DUMMY_STREAM_COUNTER)
+        {
+            uint8_t *p = (uint8_t *)out_buf;
+            size_t i;
+
+            for (i = 0; i < out_bytes; i++)
+            {
+                p[i] = (uint8_t)(ds->phase_acc++ & 0xFF);
+            }
+
+            stream_ringbuf_write(&stream->ringbuf, out_buf, out_bytes);
+            nanosleep(&sleep_ts, NULL);
+            continue;
+        }
+
+        /* Generate samples in F32LE */
+        if (ds->mode == DUMMY_STREAM_SILENCE)
+        {
+            memset(f32_buf, 0, f32_elements * sizeof(float));
+        }
+        else if (is_iq)
+        {
+            generate_cexp_cf32(f32_buf, frame_samples, channels, sample_rate,
+                               ds->iq_offset, ds->tone_amp, &ds->phase_acc);
+        }
+        else
+        {
+            /* Audio: generate mono tone */
+            generate_sine_f32(f32_buf, frame_samples, sample_rate,
+                              ds->tone_freq, ds->tone_amp, &ds->phase_acc);
+
+            /* Stereo: duplicate to right channel at half amplitude */
+            if (channels == 2)
+            {
+                /* Expand mono to interleaved stereo in-place (work backwards) */
+                for (int j = (int)frame_samples - 1; j >= 0; j--)
+                {
+                    f32_buf[2 * j]     = f32_buf[j];       /* L = full */
+                    f32_buf[2 * j + 1] = f32_buf[j] * 0.5f; /* R = half */
+                }
+            }
+        }
+
+        /* Convert to output format if needed */
+        const void *write_buf;
+        size_t write_bytes;
+
+        if (cfg->format == native_fmt)
+        {
+            write_buf = f32_buf;
+            write_bytes = f32_elements * sizeof(float);
+        }
+        else
+        {
+            /* I/Q format conversion is per complex sample and channel-
+             * agnostic, so treat the interleaved buffer as a flat run of
+             * channels × frame_samples complex samples. */
+            size_t conv_samples = is_iq
+                                  ? frame_samples * (size_t)channels
+                                  : frame_samples;
+            int conv_channels = is_iq ? 1 : channels;
+            int ret = rig_stream_convert(f32_buf, native_fmt,
+                                         out_buf, cfg->format,
+                                         conv_samples, conv_channels);
+
+            if (ret != 0)
+            {
+                /* Conversion failed — write silence */
+                memset(out_buf, 0, out_bytes);
+            }
+
+            write_buf = out_buf;
+            write_bytes = out_bytes;
+        }
+
+        /* Write to ring buffer */
+        stream_ringbuf_write(&stream->ringbuf, write_buf, write_bytes);
+
+        /* Sleep to simulate real-time data rate */
+        nanosleep(&sleep_ts, NULL);
+    }
+
+    free(out_buf);
+    free(f32_buf);
+    return NULL;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Loopback thread: reads from paired TX ring buffer, writes to RX.    */
+/* ------------------------------------------------------------------ */
+
+static struct rig_stream *find_loopback_peer_locked(struct dummy_priv_data
+        *priv,
+        rig_stream_type_t rx_type);
+
+static void *dummy_stream_loopback_thread(void *arg)
+{
+    struct dummy_stream_state *ds = (struct dummy_stream_state *)arg;
+    struct dummy_priv_data *priv =
+        (struct dummy_priv_data *)STATE(ds->rig)->priv;
+    struct rig_stream *rx_stream = ds->stream;
+    const struct rig_stream_config *rx_cfg = &rx_stream->config;
+    int sample_rate = rx_cfg->sample_rate;
+    int is_iq = stream_type_is_iq(rx_cfg->type);
+    int rx_channels = rx_cfg->channels;
+
+    /* RX output frame size in bytes (channels × per-channel sample size;
+     * for I/Q the sample size is one complex I+Q pair). */
+    int rx_sample_size = rig_stream_format_sample_size(rx_cfg->format);
+    size_t rx_frame_bytes = (size_t)DUMMY_FRAME_SAMPLES * rx_channels
+                            * rx_sample_size;
+
+    /* Sleep interval */
+    struct timespec sleep_ts;
+    long sleep_ns = (long)((double)DUMMY_FRAME_SAMPLES
+                           / (double)sample_rate * 1e9);
+    sleep_ts.tv_sec = sleep_ns / 1000000000L;
+    sleep_ts.tv_nsec = sleep_ns % 1000000000L;
+
+    /* Allocate buffers large enough for resampled data.
+     * Worst case: 8kHz→96kHz = 12x upsample, 2 channels, 4 bytes/sample. */
+    size_t buf_size = DUMMY_FRAME_SAMPLES * 16 * 2 * sizeof(float);
+
+    if (buf_size < rx_frame_bytes * 2)
+    {
+        buf_size = rx_frame_bytes * 2;
+    }
+
+    void *tx_buf = malloc(buf_size);
+    void *rx_buf = malloc(buf_size);
+
+    if (!tx_buf || !rx_buf)
+    {
+        free(tx_buf);
+        free(rx_buf);
+        return NULL;
+    }
+
+    while (ds->running)
+    {
+        /* When paused, sleep without generating data */
+        if (rx_stream->paused)
+        {
+            nanosleep(&sleep_ts, NULL);
+            continue;
+        }
+
+        /* Resolve the TX peer and read its ring under the state lock so the
+         * peer cannot be unregistered and freed while it is dereferenced: a
+         * peer's close blocks in unregister_stream_state() until this read
+         * releases the lock. Everything afterwards works on copied-out scalars
+         * and tx_buf, so it is safe to run unlocked. */
+        pthread_mutex_lock(&priv->stream_states_lock);
+
+        struct rig_stream *tx_stream = find_loopback_peer_locked(priv,
+                                       rx_stream->type);
+
+        if (!tx_stream)
+        {
+            pthread_mutex_unlock(&priv->stream_states_lock);
+            memset(rx_buf, 0, rx_frame_bytes);
+            stream_ringbuf_write(&rx_stream->ringbuf, rx_buf, rx_frame_bytes);
+            nanosleep(&sleep_ts, NULL);
+            continue;
+        }
+
+        rig_stream_format_t tx_fmt = tx_stream->config.format;
+        rig_stream_format_t rx_fmt = rx_cfg->format;
+        int tx_channels = tx_stream->config.channels;
+        int tx_sample_size = rig_stream_format_sample_size(tx_fmt);
+
+        /* TX frame size: scale to TX sample rate (DUMMY_FRAME_SAMPLES is
+         * 10ms at 48kHz, so at other rates we adjust proportionally). */
+        int tx_rate = tx_stream->config.sample_rate;
+        size_t tx_frame_samples = (size_t)DUMMY_FRAME_SAMPLES * tx_rate / 48000;
+
+        if (tx_frame_samples == 0)
+        {
+            tx_frame_samples = 1;
+        }
+
+        /* Coherent I/Q channels are interleaved per sample just like audio
+         * channels; the per-channel "sample" is one complex I+Q pair. */
+        size_t tx_frame_bytes =
+            tx_frame_samples * (size_t)tx_channels * tx_sample_size;
+
+        /* Read from TX ring buffer */
+        size_t got = stream_ringbuf_read(&tx_stream->ringbuf,
+                                         tx_buf, tx_frame_bytes, 10);
+
+        pthread_mutex_unlock(&priv->stream_states_lock);
+
+        if (got == 0)
+        {
+            nanosleep(&sleep_ts, NULL);
+            continue;
+        }
+
+        /* Determine sample count (per channel) from bytes read */
+        size_t samples_read = got / ((size_t)tx_channels * tx_sample_size);
+
+        int need_channel_conv = (!is_iq && tx_channels != rx_channels);
+        int need_format_conv = (tx_fmt != rx_fmt);
+        int need_resample = (tx_rate != sample_rate);
+
+        if (!need_channel_conv && !need_format_conv && !need_resample)
+        {
+            /* Direct copy — everything matches */
+            stream_ringbuf_write(&rx_stream->ringbuf, tx_buf, got);
+        }
+        else
+        {
+            /* Run the channel -> format -> resample conversion pipeline.
+             * tx_buf holds the freshly-read TX data; rx_buf is scratch. */
+            size_t out_samples;
+            const void *cur_data = rig_stream_convert_pipeline(
+                                       tx_buf, rx_buf, buf_size,
+                                       tx_fmt, tx_channels, tx_rate, samples_read, is_iq,
+                                       rx_fmt, rx_channels, sample_rate,
+                                       RIG_RESAMPLE_FAST, &out_samples);
+
+            if (cur_data == NULL)
+            {
+                nanosleep(&sleep_ts, NULL);
+                continue;
+            }
+
+            /* Write result to RX ring buffer */
+            size_t out_bytes;
+
+            out_bytes = out_samples * (size_t)rx_channels * rx_sample_size;
+
+            stream_ringbuf_write(&rx_stream->ringbuf, cur_data, out_bytes);
+        }
+    }
+
+    free(tx_buf);
+    free(rx_buf);
+    return NULL;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Stream state table helpers                                          */
+/* ------------------------------------------------------------------ */
+
+/* Find a free slot in the priv stream_states table and store ds.
+ * Returns the slot index, or -1 if full. */
+static int register_stream_state(struct dummy_priv_data *priv,
+                                 rig_stream_type_t type,
+                                 struct dummy_stream_state *ds)
+{
+    pthread_mutex_lock(&priv->stream_states_lock);
+
+    for (int i = 0; i < DUMMY_MAX_STREAMS_PER_TYPE; i++)
+    {
+        if (priv->stream_states[type][i] == NULL)
+        {
+            priv->stream_states[type][i] = ds;
+            pthread_mutex_unlock(&priv->stream_states_lock);
+            return i;
+        }
+    }
+
+    pthread_mutex_unlock(&priv->stream_states_lock);
+    return -1;
+}
+
+static void unregister_stream_state(struct dummy_priv_data *priv,
+                                    rig_stream_type_t type,
+                                    struct dummy_stream_state *ds)
+{
+    pthread_mutex_lock(&priv->stream_states_lock);
+
+    for (int i = 0; i < DUMMY_MAX_STREAMS_PER_TYPE; i++)
+    {
+        if (priv->stream_states[type][i] == ds)
+        {
+            priv->stream_states[type][i] = NULL;
+            break;
+        }
+    }
+
+    pthread_mutex_unlock(&priv->stream_states_lock);
+}
+
+/* Find the TX peer for an RX loopback stream. The caller must hold
+ * priv->stream_states_lock so the returned stream cannot be unregistered and
+ * freed while it is in use. Audio RX pairs with Audio TX slot 0; I/Q RX pairs
+ * with I/Q TX slot 0. */
+static struct rig_stream *find_loopback_peer_locked(struct dummy_priv_data
+        *priv,
+        rig_stream_type_t rx_type)
+{
+    rig_stream_type_t tx_type;
+
+    if (rx_type == RIG_STREAM_TYPE_AUDIO_RX)
+    {
+        tx_type = RIG_STREAM_TYPE_AUDIO_TX;
+    }
+    else if (rx_type == RIG_STREAM_TYPE_IQ_RX)
+    {
+        tx_type = RIG_STREAM_TYPE_IQ_TX;
+    }
+    else
+    {
+        return NULL;
+    }
+
+    /* Find first registered TX stream of matching type */
+    for (int i = 0; i < DUMMY_MAX_STREAMS_PER_TYPE; i++)
+    {
+        if (priv->stream_states[tx_type][i] != NULL)
+        {
+            return priv->stream_states[tx_type][i]->stream;
+        }
+    }
+
+    return NULL;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* TX scheduler thread                                                 */
+/* ------------------------------------------------------------------ */
+
+/* Consumes the TX ring buffer at the stream's real-time rate, honoring
+ * queued burst targets: a timed SOB gates play-out until its UTC instant
+ * (counting tx_late when past due), and with BURST_PTT declared, SOB keys
+ * PTT and EOB unkeys it. Simulates timed/gated transmit. */
+static void *dummy_stream_tx_scheduler(void *arg)
+{
+    struct dummy_stream_state *ds = (struct dummy_stream_state *)arg;
+    struct rig_stream *stream = ds->stream;
+    const struct rig_stream_config *cfg = &stream->config;
+    int is_iq = stream_type_is_iq(cfg->type);
+    int sample_size = rig_stream_format_sample_size(cfg->format);
+    int channels = (!is_iq && cfg->channels > 0) ? cfg->channels : 1;
+
+    if (sample_size <= 0)
+    {
+        return NULL;
+    }
+
+    size_t frame_samples = DUMMY_FRAME_SAMPLES;
+    size_t frame_bytes = frame_samples * (size_t)sample_size * channels;
+    unsigned char *buf = malloc(frame_bytes);
+
+    if (!buf)
+    {
+        return NULL;
+    }
+
+    struct timespec sleep_ts;
+
+    long sleep_ns = (long)((double)frame_samples
+                           / (double)cfg->sample_rate * 1e9);
+    sleep_ts.tv_sec = sleep_ns / 1000000000L;
+    sleep_ts.tv_nsec = sleep_ns % 1000000000L;
+
+    int had_data = 0;   /* for underrun-episode edge detection */
+
+    while (ds->running)
+    {
+        if (stream->paused)
+        {
+            nanosleep(&sleep_ts, NULL);
+            continue;
+        }
+
+        /* Process burst targets reachable within the next frame */
+        struct rig_stream_tx_target tgt;
+
+        while (rig_stream_pop_tx_target(stream,
+                                        ds->tx_consumed + frame_samples,
+                                        &tgt))
+        {
+            if (tgt.flags & RIG_STREAM_TIME_FLAG_TX_TIMED)
+            {
+                int64_t now_s;
+                uint64_t now_ps;
+                stream_time_now(&now_s, &now_ps);
+
+                int64_t wait_ms = stream_time_diff_ms(tgt.seconds,
+                                                      tgt.picoseconds,
+                                                      now_s, now_ps);
+
+                if (wait_ms < -DUMMY_TX_LATE_TOLERANCE_MS)
+                {
+                    struct rig_stream_write_status ev;
+                    memset(&ev, 0, sizeof(ev));
+                    ev.event = RIG_STREAM_WRITE_EVENT_LATE;
+                    ev.sample_index = ds->tx_consumed;
+                    ev.lateness = (int64_t)(-wait_ms)
+                                  * (int64_t)cfg->sample_rate / 1000;
+                    ev.time_valid = 1;
+                    ev.seconds = tgt.seconds;
+                    ev.picoseconds = tgt.picoseconds;
+                    ev.time_source = RIG_STREAM_TIME_SRC_HOST;
+                    ev.time_accuracy = RIG_STREAM_TIME_ACC_MS;
+                    stream_record_write_status(stream, &ev, 0);
+                }
+
+                /* Timed gate: hold play-out until the target instant */
+                while (wait_ms > 0 && ds->running)
+                {
+                    struct timespec gate = { 0, 10000000L };  /* 10 ms */
+                    nanosleep(&gate, NULL);
+                    stream_time_now(&now_s, &now_ps);
+                    wait_ms = stream_time_diff_ms(tgt.seconds,
+                                                  tgt.picoseconds,
+                                                  now_s, now_ps);
+                }
+            }
+
+            if (ds->burst_ptt && (tgt.flags & RIG_STREAM_TIME_FLAG_SOB))
+            {
+                rig_set_ptt(ds->rig, RIG_VFO_CURR, RIG_PTT_ON);
+            }
+
+            if (ds->burst_ptt && (tgt.flags & RIG_STREAM_TIME_FLAG_EOB))
+            {
+                rig_set_ptt(ds->rig, RIG_VFO_CURR, RIG_PTT_OFF);
+            }
+        }
+
+        size_t got = stream_ringbuf_read(&stream->ringbuf, buf, frame_bytes, 100);
+
+        if (got > 0)
+        {
+            had_data = 1;
+            ds->tx_consumed += got / ((size_t)sample_size * channels);
+            nanosleep(&sleep_ts, NULL);   /* real-time pacing */
+        }
+        else if (had_data)
+        {
+            /* Ring starved mid-transmission: one underrun event per episode. */
+            had_data = 0;
+            struct rig_stream_write_status ev;
+            memset(&ev, 0, sizeof(ev));
+            ev.event = RIG_STREAM_WRITE_EVENT_UNDERRUN;
+            ev.sample_index = ds->tx_consumed;
+            stream_record_write_status(stream, &ev, 0);
+        }
+    }
+
+    free(buf);
+    return NULL;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Backend hooks                                                       */
+/* ------------------------------------------------------------------ */
+
+int dummy_stream_open(RIG *rig, struct rig_stream *stream)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s() entered: type=%s format=%s\n",
+              __func__,
+              stream_type_name(stream->type),
+              stream_format_name(stream->config.format));
+
+    struct dummy_priv_data *priv =
+        (struct dummy_priv_data *)STATE(rig)->priv;
+
+    struct dummy_stream_state *ds = calloc(1, sizeof(*ds));
+
+    if (!ds)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: calloc failed\n", __func__);
+        return -RIG_ENOMEM;
+    }
+
+    ds->stream = stream;
+    ds->rig = rig;
+    ds->mode = priv->stream_mode;
+    ds->tone_freq = priv->stream_tone_freq;
+    ds->tone_amp = priv->stream_tone_amp;
+    ds->iq_offset = priv->stream_iq_offset;
+    ds->synth_gap = priv->stream_synth_gap;
+    ds->burst_ptt = (stream->caps_flags & RIG_STREAM_CAP_BURST_PTT) != 0;
+    ds->phase_acc = 0;
+
+    /* Register in the priv state table */
+    if (register_stream_state(priv, stream->type, ds) < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: no free stream slots for type=%s\n",
+                  __func__, stream_type_name(stream->type));
+        free(ds);
+        return -RIG_EINVAL;  /* No free slots */
+    }
+
+    /* RX streams get a generator or loopback thread; TX streams get the
+     * scheduler that consumes the ring buffer and honors burst targets
+     * (except in loopback mode, where the paired RX thread consumes). */
+    void *(*thread_fn)(void *) = NULL;
+
+    if (stream_type_is_rx(stream->type))
+    {
+        if (ds->mode == DUMMY_STREAM_LOOPBACK)
+        {
+            /* The loopback thread resolves its TX peer under the state lock
+             * each iteration, so no peer is cached here. */
+            thread_fn = dummy_stream_loopback_thread;
+        }
+        else
+        {
+            thread_fn = dummy_stream_generator;
+        }
+    }
+    else if (ds->mode != DUMMY_STREAM_LOOPBACK)
+    {
+        thread_fn = dummy_stream_tx_scheduler;
+    }
+
+    if (thread_fn)
+    {
+        ds->running = 1;
+        int err = pthread_create(&ds->thread, NULL, thread_fn, ds);
+
+        if (err != 0)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: pthread_create failed\n", __func__);
+            unregister_stream_state(priv, stream->type, ds);
+            free(ds);
+            return -RIG_EIO;
+        }
+
+        ds->thread_started = 1;
+    }
+
+    /* Store ds pointer for retrieval in close */
+    stream->backend_priv = ds;
+
+    return RIG_OK;
+}
+
+int dummy_stream_close(RIG *rig, struct rig_stream *stream)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s() entered: type=%s\n",
+              __func__, stream_type_name(stream->type));
+
+    struct dummy_priv_data *priv =
+        (struct dummy_priv_data *)STATE(rig)->priv;
+
+    struct dummy_stream_state *ds =
+        (struct dummy_stream_state *)stream->backend_priv;
+
+    if (!ds)
+    {
+        return RIG_OK;
+    }
+
+    /* Stop generator/loopback/TX-scheduler thread */
+    ds->running = 0;
+
+    if (ds->thread_started)
+    {
+        pthread_join(ds->thread, NULL);
+    }
+
+    unregister_stream_state(priv, stream->type, ds);
+    stream->backend_priv = NULL;
+    free(ds);
+
+    return RIG_OK;
+}

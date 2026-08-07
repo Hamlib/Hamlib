@@ -1,0 +1,62 @@
+name: Windows mingw-w64 cross C/C++ (no features)
+
+on:
+  push:
+    branches: [ master, feature/* ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install cross toolchain and Wine
+      run: |
+        sudo apt update
+        sudo apt install -y mingw-w64 wine64 automake autoconf libtool texinfo
+        sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
+        sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
+    - name: bootstrap
+      run: ./bootstrap
+    - name: configure
+      run: >-
+        ./configure --host=x86_64-w64-mingw32
+        --without-cxx-binding --without-libusb --without-samplerate
+        --disable-static
+    - name: make
+      run: make -j $(nproc) V=0 --no-print-directory
+    - name: Build streaming test executables
+      run: |
+        make -C tests rigstreamtest.exe V=0 --no-print-directory
+        make -C test V=0 --no-print-directory \
+          test_stream_ringbuf.exe test_stream_convert.exe \
+          test_stream_codec.exe test_stream_time.exe \
+          test_stream_account.exe test_stream_api.exe \
+          test_dummy_stream.exe test_rigctld_stream.exe \
+          test_rigstreamtest.exe test_rigctld_commands.exe \
+          test_netrigctl_stream.exe
+    - name: Run streaming unit tests under Wine
+      run: |
+        export WINEPREFIX=$HOME/.wineprefix WINEDEBUG=-all
+        # Ubuntu's wine64 package ships only the loader; /usr/bin/wine64
+        # appears when the wine metapackage is installed, so fall back.
+        WINE=$(command -v wine64 || command -v wine || echo /usr/lib/wine/wine64)
+        cp src/.libs/libhamlib-*.dll test/.libs/
+        cp /usr/x86_64-w64-mingw32/lib/libwinpthread-1.dll test/.libs/ || true
+        cp /usr/lib/gcc/x86_64-w64-mingw32/*-posix/libgcc_s_seh-1.dll test/.libs/ || true
+        cd test/.libs
+        rc=0
+        for t in test_stream_ringbuf test_stream_convert test_stream_codec \
+                 test_stream_time test_stream_account test_stream_api \
+                 test_dummy_stream test_rigctld_stream test_rigstreamtest \
+                 test_rigctld_commands test_netrigctl_stream; do
+          echo "=== $t ==="
+          if ! "$WINE" $t.exe; then
+            echo "FAILED: $t"
+            rc=1
+          fi
+        done
+        exit $rc

@@ -92,11 +92,12 @@ $ tree -L 1
 ├── Segfault-award
 ├── simulators
 ├── src
+├── test
 ├── tests
 ├── THANKS
 └── VFOs.txt
 
-18 directories, 32 files
+19 directories, 32 files
 
 
 1. Building
@@ -368,6 +369,14 @@ Some basic testing is accomplished with the 'make check' target which will run a
 few predetermined tests using the 'dummy' (rig model 1) backend and some other
 Hamlib functions in the build tree. This is a basic sanity check and cannot test
 all backends.
+
+'make check' also runs the unit and integration tests in the test/ directory,
+which cover the data streaming subsystem. They use acutest, a single-header test
+framework vendored as test/acutest.h, so they add no build dependency. Some of
+them start a real rigctld or a device simulator as a child process, which
+requires a POSIX host; they are skipped elsewhere. Run a single suite directly
+from the build tree, e.g. './test/test_stream_api', with '--list' to see its
+cases.
 
 Likewise, a complete test of the build system is accomplished with 'make
 distcheck' which exercises a complete build sequence from creating a

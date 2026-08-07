@@ -129,6 +129,11 @@ m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 
 AC_C_INLINE
 
+dnl Defines WORDS_BIGENDIAN on big-endian hosts. The streaming subsystem's
+dnl sample converters operate in host byte order and currently require a
+dnl little-endian host (see src/stream_convert.c).
+AC_C_BIGENDIAN
+
 dnl Set warnings for compilation
 dnl CFLAGS and CXXFLAGS are reserved for user, so set their AM_* counterparts.
 # macros/ax_cflags_warn_all.m4
@@ -362,7 +367,11 @@ AS_CASE(["$host_os"],
 
     [mingw* | pw32* | cygwin*], [
 	AM_CONDITIONAL([VERSIONDLL], true)
-	WINLDFLAGS="-Wl,--output-def,libhamlib.def -Wl,--add-stdcall-alias"
+	# --export-all-symbols matches ELF/Mach-O visibility, where every
+	# extern symbol is available: rigctld and the test programs link
+	# internal stream_* helpers that HAMLIB_EXPORT does not cover, and
+	# any explicit dllexport otherwise disables binutils auto-export.
+	WINLDFLAGS="-Wl,--output-def,libhamlib.def -Wl,--add-stdcall-alias -Wl,--export-all-symbols"
     VERSIONDLL="version_dll.rc"
 	AC_SUBST([WINLDFLAGS])
 
@@ -524,6 +533,31 @@ AC_SUBST([HAMLIB_PC_LIBUSB])
 
 dnl Configure the tests/Makefile.am conditional
 AM_CONDITIONAL([TESTS_HAVE_LIBUSB], [test x"${cf_with_libusb}" = "xyes"])
+
+
+dnl Check for libsamplerate, used for stream resampling.
+dnl Require >= 0.1.9: that is the first BSD-2-Clause release; earlier
+dnl versions were GPL and would conflict with the LGPL frontend.
+AC_MSG_CHECKING([whether to use libsamplerate for stream resampling])
+AC_ARG_WITH([samplerate],
+    [AS_HELP_STRING([--without-samplerate],
+        [disable libsamplerate stream resampling @<:@default=yes@:>@])],
+        [cf_with_samplerate=$with_samplerate],
+        [cf_with_samplerate=yes]
+    )
+
+AC_MSG_RESULT([$cf_with_samplerate])
+
+AS_IF([test x"${cf_with_samplerate}" = "xyes"], [
+    PKG_CHECK_MODULES([SAMPLERATE],
+                      [samplerate >= 0.1.9],
+                      [AC_DEFINE([HAVE_SAMPLERATE],
+                          [1],
+                          [Define if libsamplerate is available])],
+                      [AC_MSG_WARN([libsamplerate >= 0.1.9 not found, stream resampling will be disabled])
+                      cf_with_samplerate=no
+                      ])
+    ])
 
 
 dnl libxml2 required for rigmem XML support; make it build time optional.
@@ -1005,6 +1039,7 @@ scripts/Makefile
 security/Makefile
 simulators/Makefile
 src/Makefile
+test/Makefile
 tests/Makefile
 hamlib.pc
 ])
@@ -1030,6 +1065,7 @@ echo \
     With rigmem XML support         ${cf_with_xml_support}
     With Readline support           ${cf_with_readline_support}
     With INDI support               ${cf_with_indi_support}
+    With libsamplerate support      ${cf_with_samplerate}
 
     Enable HTML rig feature matrix  ${cf_enable_html_matrix}
     Enable WinRadio                 ${cf_with_winradio}

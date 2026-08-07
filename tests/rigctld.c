@@ -37,6 +37,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <signal.h>
+#include <stdint.h>
 
 #include <getopt.h>
 
@@ -73,6 +74,8 @@
 #include "network.h"
 
 #include "rigctl_parse.h"
+#include "rigctld_stream.h"
+#include "rigctld_client.h"
 #include "riglist.h"
 #include "token.h"
 
@@ -81,7 +84,7 @@
  *      keep up to date SHORT_OPTIONS, usage()'s output and man page. thanks.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:p:d:P:D:s:S:c:T:t:C:W:w:x:lLuovhVZRA:b"
+#define SHORT_OPTIONS "m:r:p:d:P:D:s:S:c:T:t:C:W:w:x:lLuovhVZRA:bM:G:"
 static struct option long_options[] =
 {
     {"model",           1, 0, 'm'},
@@ -112,6 +115,15 @@ static struct option long_options[] =
 #endif
     {"rigctld-idle",    0, 0, 'R'},
     {"bind-all",        0, 0, 'b'},
+    {"stream-metadata-interval", 1, 0, 'M'},
+    {"stream-metadata-refresh",  1, 0, 1003},
+    {"stream-transport-buffer-ms",        1, 0, 1004},
+    {"stream-transport-buffer-bytes",     1, 0, 1005},
+    {"stream-multicast-ttl",     1, 0, 'G'},
+    {"stream-time-stale-coarse",     1, 0, 1001},
+    {"stream-time-stale-invalidate", 1, 0, 1002},
+    {"stream-source-id",             1, 0, 1006},
+    {"stream-keepalive-timeout",     1, 0, 1007},
     {0, 0, 0, 0}
 };
 
@@ -124,6 +136,8 @@ static void usage(FILE *fout);
 static void short_usage(FILE *fout);
 
 static unsigned client_count;
+static HAMLIB_ATOMIC int next_client_id =
+    1;  /* Monotonically increasing client ID */
 
 static RIG *my_rig;             /* handle to rig (instance) */
 static volatile int rig_opened = 0;
@@ -255,6 +269,15 @@ int main(int argc, char *argv[])
     int twiddle_timeout = 0;
     int twiddle_rit = 0;
     int uplink = 0;
+    int stream_metadata_interval = RIGCTLD_METADATA_INTERVAL_DEFAULT;
+    int stream_metadata_refresh = RIGCTLD_METADATA_REFRESH_DEFAULT;
+    int stream_transport_buffer_ms = RIG_STREAM_TRANSPORT_BUFFER_DURATION_MS;
+    int stream_transport_buffer_bytes = 0;   /* 0 = derive from rate */
+    int stream_multicast_ttl = 1;
+    int stream_time_stale_coarse = 0;      /* 0 = built-in default */
+    int stream_time_stale_invalidate = 0;  /* 0 = built-in default */
+    int stream_source_id = -2;
+    int stream_keepalive_timeout = RIGCTLD_SUBSCRIBE_TIMEOUT_DEFAULT;
     char host[NI_MAXHOST];
     char serv[NI_MAXSERV];
     char rigstartup[1024];
@@ -276,6 +299,7 @@ int main(int argc, char *argv[])
     if (err) { rig_debug(RIG_DEBUG_ERR, "%s: setvbuf err=%s\n", __func__, strerror(err)); }
 
     rig_set_debug(verbose);
+
     while (1)
     {
         int c;
@@ -312,6 +336,7 @@ int main(int argc, char *argv[])
             break;
 
 #if RIGCTLD_PASSWORDS
+
         case 'A':
             strncpy(rigctld_password, optarg, sizeof(rigctld_password) - 1);
             //char *md5 = rig_make_m d5(rigctld_password);
@@ -321,6 +346,115 @@ int main(int argc, char *argv[])
             rig_settings_save("sharedkey", md5, e_CHAR);
             break;
 #endif
+
+        case 'M':
+            stream_metadata_interval = atoi(optarg);
+
+            if (stream_metadata_interval < RIGCTLD_METADATA_INTERVAL_MIN
+                    || stream_metadata_interval > RIGCTLD_METADATA_INTERVAL_MAX)
+            {
+                fprintf(stderr,
+                        "metadata interval must be %d-%d ms\n",
+                        RIGCTLD_METADATA_INTERVAL_MIN,
+                        RIGCTLD_METADATA_INTERVAL_MAX);
+                exit(1);
+            }
+
+            break;
+
+        case 'G':
+            stream_multicast_ttl = atoi(optarg);
+
+            if (stream_multicast_ttl < 1 || stream_multicast_ttl > 255)
+            {
+                fprintf(stderr,
+                        "multicast TTL must be 1-255\n");
+                exit(1);
+            }
+
+            break;
+
+        case 1001:
+            stream_time_stale_coarse = atoi(optarg);
+
+            if (stream_time_stale_coarse < 0)
+            {
+                fprintf(stderr, "stream-time-stale-coarse must be >= 0\n");
+                exit(1);
+            }
+
+            break;
+
+        case 1002:
+            stream_time_stale_invalidate = atoi(optarg);
+
+            if (stream_time_stale_invalidate < 0)
+            {
+                fprintf(stderr,
+                        "stream-time-stale-invalidate must be >= 0\n");
+                exit(1);
+            }
+
+            break;
+
+        case 1003:
+            stream_metadata_refresh = atoi(optarg);
+
+            if (stream_metadata_refresh < 0)
+            {
+                fprintf(stderr,
+                        "stream-metadata-refresh must be >= 0 (0 = every packet)\n");
+                exit(1);
+            }
+
+            break;
+
+        case 1004:
+            stream_transport_buffer_ms = atoi(optarg);
+
+            if (stream_transport_buffer_ms < 0)
+            {
+                fprintf(stderr, "stream-transport-buffer-ms must be >= 0\n");
+                exit(1);
+            }
+
+            break;
+
+        case 1005:
+            stream_transport_buffer_bytes = atoi(optarg);
+
+            if (stream_transport_buffer_bytes < 0)
+            {
+                fprintf(stderr, "stream-transport-buffer-bytes must be >= 0 (0 = derive)\n");
+                exit(1);
+            }
+
+            break;
+
+        case 1006:
+            stream_source_id = atoi(optarg);
+
+            if (stream_source_id < -1 || stream_source_id > 65535)
+            {
+                fprintf(stderr,
+                        "stream-source-id must be -1-65535 (-1 = derive, 0 = unset)\n");
+                exit(1);
+            }
+
+            break;
+
+        case 1007:
+            stream_keepalive_timeout = atoi(optarg);
+
+            if (stream_keepalive_timeout < RIGCTLD_SUBSCRIBE_TIMEOUT_MIN
+                    || stream_keepalive_timeout > RIGCTLD_SUBSCRIBE_TIMEOUT_MAX)
+            {
+                fprintf(stderr, "stream-keepalive-timeout must be %d-%d seconds\n",
+                        RIGCTLD_SUBSCRIBE_TIMEOUT_MIN, RIGCTLD_SUBSCRIBE_TIMEOUT_MAX);
+                exit(1);
+            }
+
+            break;
 
         case 'm':
             my_model = atoi(optarg);
@@ -701,6 +835,47 @@ int main(int argc, char *argv[])
     rig_debug(RIG_DEBUG_VERBOSE, "Backend version: %s, Status: %s\n",
               my_rig->caps->version, rig_strstatus(my_rig->caps->status));
 
+    rigctld_client_id_init();
+    rigctld_stream_registry_init(&g_stream_registry);
+    g_stream_registry.metadata_interval_ms = stream_metadata_interval;
+    g_stream_registry.metadata_refresh_ms = stream_metadata_refresh;
+    g_stream_registry.transport_buffer_ms = stream_transport_buffer_ms;
+    g_stream_registry.transport_buffer_bytes = stream_transport_buffer_bytes;
+    g_stream_registry.multicast_ttl = stream_multicast_ttl;
+    g_stream_registry.keepalive_timeout_s = stream_keepalive_timeout;
+
+    /* Stream source ID ladder: rig conf token > CLI flag > derivation from
+     * static configuration. The effective value is stamped on every stream
+     * packet and reported by \stream_open and \stream_list. */
+    if (stream_source_id != -2 && STATE(my_rig)->stream_source_id < 0)
+    {
+        STATE(my_rig)->stream_source_id = stream_source_id;
+    }
+
+    if (STATE(my_rig)->stream_source_id >= 0)
+    {
+        g_stream_registry.source_id = STATE(my_rig)->stream_source_id;
+    }
+    else
+    {
+        char hostname[256] = "";
+        gethostname(hostname, sizeof(hostname) - 1);
+        g_stream_registry.source_id = stream_source_id_derive(
+                                          hostname, atoi(portno),
+                                          (int)my_rig->caps->rig_model,
+                                          RIGPORT(my_rig)->pathname);
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "Stream source ID: %d\n",
+              g_stream_registry.source_id);
+
+    /* Rig-level staleness-watchdog defaults; per-stream \stream_open
+     * key=value overrides take precedence (resolved at stream open). */
+    STATE(my_rig)->stream_time_stale_coarse_ms =
+        (unsigned int)stream_time_stale_coarse;
+    STATE(my_rig)->stream_time_stale_invalidate_ms =
+        (unsigned int)stream_time_stale_invalidate;
+
     // Normally we keep the rig open to speed up the 1st client connect
     // But some rigs like the FT-736 have to lock the rig for CAT control
     // So they need to release the rig when no clients are connected
@@ -1053,10 +1228,22 @@ int main(int argc, char *argv[])
                           gai_strerror(retcode));
             }
 
+            if (client_count >= RIGCTLD_MAX_CLIENTS)
+            {
+                rig_debug(RIG_DEBUG_ERR,
+                          "Connection from %s:%s rejected — "
+                          "max clients (%d) reached\n",
+                          host, serv, RIGCTLD_MAX_CLIENTS);
+                close(arg->sock);
+                free(arg);
+                continue;
+            }
+
+            arg->client_id = next_client_id++;
+
             rig_debug(RIG_DEBUG_VERBOSE,
-                      "Connection opened from %s:%s\n",
-                      host,
-                      serv);
+                      "Connection opened from %s:%s (client %d)\n",
+                      host, serv, arg->client_id);
 
             pthread_attr_init(&attr);
             pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
@@ -1091,6 +1278,7 @@ int main(int argc, char *argv[])
     rig_close(my_rig);
     mutex_rigctld(0);
 
+    rigctld_stream_registry_destroy(&g_stream_registry);
     rig_cleanup(my_rig); /* if you care about memory */
 
 #ifdef __MINGW32__
@@ -1166,11 +1354,15 @@ void *handle_socket(void *arg)
     }
 
     retcode = pthread_setspecific(thread_data_key, arg);
+
     if (0 != retcode)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: Could not set thread daya\n", __func__);
         // What do we do here?
     }
+
+    int my_client_id = handle_data_arg->client_id;
+    rigctld_client_id_set(my_client_id);
 
     mutex_rigctld(1);
 
@@ -1288,6 +1480,7 @@ void *handle_socket(void *arg)
     while (!ctrl_c && (retcode == RIG_OK || RIG_IS_SOFT_ERRCODE(retcode)));
 
     mutex_rigctld(1);
+
     if (rigctld_idle && client_count == 1)
     {
         rig_close(my_rig);
@@ -1337,6 +1530,8 @@ void *handle_socket(void *arg)
               host,
               serv);
 
+    rigctld_stream_registry_close_by_client(&g_stream_registry, my_client_id);
+
 handle_exit:
 
 // for MINGW we close the handle before fclose
@@ -1359,7 +1554,8 @@ handle_exit:
 
 #endif
 
-    pthread_setspecific(thread_data_key, NULL);      // Tell pthreads we're done with the data
+    pthread_setspecific(thread_data_key,
+                        NULL);      // Tell pthreads we're done with the data
     free(arg);
 
     pthread_exit(NULL);
@@ -1370,39 +1566,60 @@ handle_exit:
 static void usage(FILE *fout)
 {
     fprintf(fout, "Usage: rigctld [OPTION]...\n"
-           "Daemon serving COMMANDs to a connected radio transceiver or receiver.\n\n");
+                  "Daemon serving COMMANDs to a connected radio transceiver or receiver.\n\n");
 
 
     fprintf(fout,
-        "  -m, --model=ID                select radio model number. See model list (-l)\n"
-        "  -r, --rig-file=DEVICE         set device of the radio to operate on\n"
-        "  -p, --ptt-file=DEVICE         set device of the PTT device to operate on\n"
-        "  -d, --dcd-file=DEVICE         set device of the DCD device to operate on\n"
-        "  -P, --ptt-type=TYPE           set type of the PTT device to operate on\n"
-        "  -D, --dcd-type=TYPE           set type of the DCD device to operate on\n"
-        "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
-        "  -c, --civaddr=ID              set CI-V address, decimal (for Icom rigs only)\n"
-        "  -t, --port=NUM                set TCP listening port, default %s\n"
-        "  -S, --separator=CHAR          set char as rigctld response separator, default is \\n\n"
-        "  -T, --listen-addr=IPADDR      set listening IP address, default ANY\n"
-        "  -C, --set-conf=PARM=VAL[,...] set config parameters\n"
-        "  -L, --show-conf               list all config parameters\n"
-        "  -l, --list                    list all model numbers and exit\n"
-        "  -u, --dump-caps               dump capabilities and exit\n"
-        "  -o, --vfo                     do not default to VFO_CURR, require extra vfo arg\n"
-        "  -v, --verbose                 set verbose mode, cumulative (-v to -vvvvv)\n"
-        "  -W, --twiddle_timeout=SECONDS timeout after detecting vfo manual change\n"
-        "  -w, --twiddle_rit=SECONDS     suppress VFOB getfreq so RIT can be twiddled\n"
-        "  -x, --uplink=OPTION           set uplink get_freq ignore, option 1=Sub, 2=Main\n"
-        "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
+            "  -m, --model=ID                select radio model number. See model list (-l)\n"
+            "  -r, --rig-file=DEVICE         set device of the radio to operate on\n"
+            "  -p, --ptt-file=DEVICE         set device of the PTT device to operate on\n"
+            "  -d, --dcd-file=DEVICE         set device of the DCD device to operate on\n"
+            "  -P, --ptt-type=TYPE           set type of the PTT device to operate on\n"
+            "  -D, --dcd-type=TYPE           set type of the DCD device to operate on\n"
+            "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
+            "  -c, --civaddr=ID              set CI-V address, decimal (for Icom rigs only)\n"
+            "  -t, --port=NUM                set TCP listening port, default %s\n"
+            "  -S, --separator=CHAR          set char as rigctld response separator, default is \\n\n"
+            "  -T, --listen-addr=IPADDR      set listening IP address, default ANY\n"
+            "  -C, --set-conf=PARM=VAL[,...] set config parameters\n"
+            "  -L, --show-conf               list all config parameters\n"
+            "  -l, --list                    list all model numbers and exit\n"
+            "  -u, --dump-caps               dump capabilities and exit\n"
+            "  -o, --vfo                     do not default to VFO_CURR, require extra vfo arg\n"
+            "  -v, --verbose                 set verbose mode, cumulative (-v to -vvvvv)\n"
+            "  -W, --twiddle_timeout=SECONDS timeout after detecting vfo manual change\n"
+            "  -w, --twiddle_rit=SECONDS     suppress VFOB getfreq so RIT can be twiddled\n"
+            "  -x, --uplink=OPTION           set uplink get_freq ignore, option 1=Sub, 2=Main\n"
+            "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
 #if RIGCTLD_PASSWORDS
-        "  -A, --password=PASSWORD       set password for rigctld access (NOT IMPLEMENTED)\n"
+            "  -A, --password=PASSWORD       set password for rigctld access (NOT IMPLEMENTED)\n"
 #endif
-        "  -R, --rigctld-idle            make rigctld close the rig when no clients are connected\n"
-        "  -b, --bind-all                make rigctld bind to first network device available\n"
-        "  -h, --help                    display this help and exit\n"
-        "  -V, --version                 output version information and exit\n\n",
-        portno);
+            "  -R, --rigctld-idle            make rigctld close the rig when no clients are connected\n"
+            "  -b, --bind-all                make rigctld bind to first network device available\n"
+            "  -M, --stream-metadata-interval=MS\n"
+            "                                metadata interval in ms (%d-%d, default %d)\n"
+            "      --stream-metadata-refresh=MS\n"
+            "                                unconditional metadata refresh in ms of\n"
+            "                                stream data (default %d; 0 = every packet)\n"
+            "      --stream-transport-buffer-ms=MS    UDP socket buffer as ms of stream data\n"
+            "                                (default %d; sized from the stream rate)\n"
+            "      --stream-transport-buffer-bytes=N  UDP socket buffer size override in bytes\n"
+            "                                (0 = derive from rate)\n"
+            "  -G, --stream-multicast-ttl=N  multicast TTL / hop limit (1-255, default 1)\n"
+            "      --stream-keepalive-timeout=S\n"
+            "                                seconds of stream silence before a client is\n"
+            "                                dropped; raise it on a lossy link\n"
+            "      --stream-source-id=N      stream source ID stamped on every stream\n"
+            "                                packet (0-65535; -1 = derive from static\n"
+            "                                configuration, the default; 0 = unset)\n"
+            "  -h, --help                    display this help and exit\n"
+            "  -V, --version                 output version information and exit\n\n",
+            portno,
+            RIGCTLD_METADATA_INTERVAL_MIN,
+            RIGCTLD_METADATA_INTERVAL_MAX,
+            RIGCTLD_METADATA_INTERVAL_DEFAULT,
+            RIGCTLD_METADATA_REFRESH_DEFAULT,
+            RIG_STREAM_TRANSPORT_BUFFER_DURATION_MS);
 
     usage_rig(fout);
 }
@@ -1411,6 +1628,7 @@ static void usage(FILE *fout)
 static void short_usage(FILE *fout)
 {
     fprintf(fout, "Usage: rigctld [OPTION]... [-m ID] [-r DEVICE] [-s BAUD]\n");
-    fprintf(fout, "Daemon serving COMMANDs to a connected radio transceiver or receiver.\n\n");
+    fprintf(fout,
+            "Daemon serving COMMANDs to a connected radio transceiver or receiver.\n\n");
     fprintf(fout, "Type: rigctld --help for extended usage.\n");
 }

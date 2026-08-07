@@ -29,11 +29,14 @@ jobs:
             --with-perl-binding=no
             --with-python-binding=no
             --with-readline=no
+            --with-samplerate=no
             --with-tcl-binding=no
             --with-xml-support=no
 
     steps:
     - uses: actions/checkout@v4
+    - name: Raise kernel socket buffer ceiling for stream tests
+      run: sudo sysctl -w net.core.wmem_max=8388608 net.core.rmem_max=8388608
     - name: Install dependencies on Ubuntu latest
       run: |
         sudo apt update
@@ -52,6 +55,9 @@ jobs:
       run: ./configure ${{ matrix.configure_args }}
     - name: make distcheck
       run: make distcheck V=0 --no-print-directory AM_DISTCHECK_CONFIGURE_FLAGS="${{ matrix.configure_args }} --without-perl-binding"
+    - name: Dump test logs on failure
+      if: failure()
+      run: find . -name test-suite.log -print -exec cat {} \;
     - name: 'tar files'
       run: tar -cvf ubuntu_latest_no_features.tar $(pwd)
     - name: 'Upload Build Artifact'
