@@ -9,6 +9,10 @@ Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 
 Version 5.x -- future
+        * QMX: Add SWR and RF power meter readback using the QRP Labs
+          SW and PC CAT commands.  The power meter full scale (6W stock,
+          12W with the PA0RDT PA modification) is read from the radio at
+          open time.
         * rig_get_conf deprecated and replaced by rig_get_conf2
         * rot_get_conf deprecated and replaced by rot_get_conf2
         * Change FT1000MP Mark V model names to align with FT1000MP
