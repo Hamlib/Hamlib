@@ -38,8 +38,16 @@
 #define PS8000A_ALL_MODES (RIG_MODE_AM|RIG_MODE_AMS|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR)
 #define QMX_ALL_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_PKTUSB|RIG_MODE_PKTLSB)
 #define QMX_LEVEL_GET (RIG_LEVEL_SWR|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS)
-/* QMX is a 5W class radio -- used to scale RFPOWER_METER to 0.0..1.0 */
-#define QMX_MAX_POWER 5.0f
+/*
+ * Full scale of the QMX power meter, used to scale RFPOWER_METER to 0.0..1.0.
+ * 6W is the stock value; a radio carrying the PA0RDT 4+4 BS170 PA modification
+ * reports 12W instead.  qrplabs_qmx_open asks the radio which it is, so this is
+ * only the fallback for firmware too old to answer.
+ */
+#define QMX_DEFAULT_MAX_POWER 6.0f
+/* Menu Manager path to the setting, see the QMX CAT manual */
+#define QMX_POWER_FULLSCALE_CMD \
+    "MMDisplay/controls|Pwr/SWR display|Power fullscale"
 
 #define TS480_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
 #define TS480_AM_TX_MODES RIG_MODE_AM
@@ -1300,6 +1308,60 @@ static int qrplabs_get_clock(RIG *rig, int *year, int *month, int *day, int *hou
 }
 
 /*
+ * The QMX power meter has a configurable full scale reading: 6W for a stock
+ * radio, 12W for one carrying the PA0RDT 4+4 BS170 PA modification.  Ask the
+ * radio which it is, so RIG_LEVEL_RFPOWER_METER scales against the right value,
+ * and keep the answer in level_gran where get_level can find it again.
+ * Firmware predating the Menu Manager command answers "?;" -- in that case the
+ * default declared in the caps stands.
+ */
+static int qrplabs_qmx_open(RIG *rig)
+{
+    struct kenwood_priv_data *priv = (struct kenwood_priv_data *) STATE(rig)->priv;
+    char buf[KENWOOD_MAX_BUF_LEN];
+    int retval;
+    float fullscale;
+
+    ENTERFUNC;
+
+    retval = qrplabs_open(rig);
+
+    if (retval != RIG_OK)
+    {
+        RETURNFUNC(retval);
+    }
+
+    /* the probe is optional, so take "?;" at face value rather than retrying */
+    priv->question_mark_response_means_rejected = 1;
+    retval = kenwood_transaction(rig, QMX_POWER_FULLSCALE_CMD, buf, sizeof(buf));
+    priv->question_mark_response_means_rejected = 0;
+
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: power fullscale unavailable (%s), assuming %.0fW\n", __func__,
+                  rigerror(retval), QMX_DEFAULT_MAX_POWER);
+        RETURNFUNC(RIG_OK);
+    }
+
+    /* the reply carries the value of the setting, e.g. MM6W; or MM12W; */
+    if (strlen(buf) <= 2 || sscanf(buf + 2, "%f", &fullscale) != 1
+            || fullscale <= 0)
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: unable to parse power fullscale from '%s', assuming %.0fW\n",
+                  __func__, buf, QMX_DEFAULT_MAX_POWER);
+        RETURNFUNC(RIG_OK);
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: power meter fullscale %.0fW\n", __func__,
+              fullscale);
+    STATE(rig)->level_gran[LVL_RFPOWER_METER_WATTS].max.f = fullscale;
+
+    RETURNFUNC(RIG_OK);
+}
+
+/*
  * QMX-specific meter readings.
  * SW; returns the SWR in hundredths, e.g. SW121; means 1.21:1
  * PC; returns measured output power in tenths of a watt, e.g. PC45; means 4.5W
@@ -1312,6 +1374,7 @@ static int qrplabs_qmx_get_level(RIG *rig, vfo_t vfo, setting_t level,
     char lvlbuf[16];
     int retval;
     int raw;
+    float fullscale;
 
     ENTERFUNC;
 
@@ -1372,7 +1435,12 @@ static int qrplabs_qmx_get_level(RIG *rig, vfo_t vfo, setting_t level,
 
         if (level == RIG_LEVEL_RFPOWER_METER)
         {
-            val->f /= QMX_MAX_POWER;    /* 0.0..1.0 */
+            /* full scale as discovered by qrplabs_qmx_open */
+            fullscale = STATE(rig)->level_gran[LVL_RFPOWER_METER_WATTS].max.f;
+
+            if (fullscale <= 0) { fullscale = QMX_DEFAULT_MAX_POWER; }
+
+            val->f /= fullscale;    /* 0.0..1.0 */
         }
 
         RETURNFUNC(RIG_OK);
@@ -2035,7 +2103,7 @@ struct rig_caps qrplabs_qmx_caps =
     RIG_MODEL(RIG_MODEL_QRPLABS_QMX),
     .model_name = "QMX",
     .mfg_name = "QRPLabs",
-    .version = BACKEND_VER ".3",
+    .version = BACKEND_VER ".4",
     .copyright = "LGPL",
     .status = RIG_STATUS_BETA,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -2082,13 +2150,14 @@ struct rig_caps qrplabs_qmx_caps =
 #undef NO_LVL_RFPOWER_METER_WATTS
         /* SW; and PC; report in hundredths and tenths respectively */
         [LVL_SWR] = {.min = {.f = 0}, .max = {.f = 99.99f}, .step = {.f = 0.01f}},
-        [LVL_RFPOWER_METER_WATTS] = {.min = {.f = 0}, .max = {.f = QMX_MAX_POWER}, .step = {.f = 0.1f}},
+        /* max is the meter full scale, refined at open time -- see qrplabs_qmx_open */
+        [LVL_RFPOWER_METER_WATTS] = {.min = {.f = 0}, .max = {.f = QMX_DEFAULT_MAX_POWER}, .step = {.f = 0.1f}},
     },
 
     .priv = (void *)& ts480_priv_caps,
 
     .rig_init = ts480_init,
-    .rig_open = qrplabs_open,
+    .rig_open = qrplabs_qmx_open,
     .rig_cleanup = kenwood_cleanup,
     .set_freq = kenwood_set_freq,
     .get_freq = kenwood_get_freq,
