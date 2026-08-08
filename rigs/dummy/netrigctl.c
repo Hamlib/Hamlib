@@ -20,6 +20,7 @@
  */
 
 #include "hamlib/config.h"
+#include <locale.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
@@ -47,6 +48,58 @@ struct netrigctl_priv_data
     vfo_t rx_vfo;
     vfo_t tx_vfo;
 };
+
+static int netrigctl_format_protocol_float(char *buffer, size_t buffer_size,
+        const char *format, double value)
+{
+    const struct lconv *numeric_locale;
+    const char *decimal_point;
+    size_t decimal_point_length;
+    char *position;
+    int length;
+
+    length = snprintf(buffer, buffer_size, format, value);
+
+    if (length < 0)
+    {
+        return -RIG_EPROTO;
+    }
+
+    if ((size_t)length >= buffer_size)
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: formatted value requires %d bytes, buffer holds %zu\n",
+                  __func__, length + 1, buffer_size);
+        return -RIG_ETRUNC;
+    }
+
+    numeric_locale = localeconv();
+    decimal_point = numeric_locale->decimal_point;
+    decimal_point_length = strlen(decimal_point);
+
+    if (decimal_point_length == 0)
+    {
+        return -RIG_EPROTO;
+    }
+
+    position = buffer;
+
+    while (strcmp(decimal_point, ".") != 0 &&
+            (position = strstr(position, decimal_point)) != NULL)
+    {
+        *position = '.';
+
+        if (decimal_point_length > 1)
+        {
+            memmove(position + 1, position + decimal_point_length,
+                    strlen(position + decimal_point_length) + 1);
+        }
+
+        position++;
+    }
+
+    return RIG_OK;
+}
 
 int netrigctl_get_vfo_mode(RIG *rig)
 {
@@ -955,6 +1008,7 @@ static int netrigctl_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     int ret;
     char cmd[CMD_MAX];
+    char fstr[CMD_MAX];
     char buf[BUF_MAX];
     char vfostr[16] = "";
 
@@ -965,9 +1019,17 @@ static int netrigctl_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (ret != RIG_OK) { return ret; }
 
-    SNPRINTF(cmd, sizeof(cmd), "F%s %"FREQFMT"\n", vfostr, freq);
+    ret = netrigctl_format_protocol_float(fstr, sizeof(fstr), "%"FREQFMT, freq);
+
+    if (ret != RIG_OK) { return ret; }
+
+    SNPRINTF(cmd, sizeof(cmd), "F%s %s\n", vfostr, fstr);
 #else
-    SNPRINTF(cmd, sizeof(cmd), "F %"FREQFMT"\n", freq);
+    ret = netrigctl_format_protocol_float(fstr, sizeof(fstr), "%"FREQFMT, freq);
+
+    if (ret != RIG_OK) { return ret; }
+
+    SNPRINTF(cmd, sizeof(cmd), "F %s\n", fstr);
 #endif
 
     ret = netrigctl_transaction(rig, cmd, strlen(cmd), buf);
@@ -1596,6 +1658,7 @@ static int netrigctl_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
     int ret;
     char cmd[CMD_MAX];
+    char fstr[CMD_MAX];
     char buf[BUF_MAX];
     char vfostr[16] = "";
 
@@ -1605,7 +1668,12 @@ static int netrigctl_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     if (ret != RIG_OK) { return ret; }
 
-    SNPRINTF(cmd, sizeof(cmd), "I%s %"FREQFMT"\n", vfostr, tx_freq);
+    ret = netrigctl_format_protocol_float(fstr, sizeof(fstr), "%"FREQFMT,
+                                          tx_freq);
+
+    if (ret != RIG_OK) { return ret; }
+
+    SNPRINTF(cmd, sizeof(cmd), "I%s %s\n", vfostr, fstr);
 
     ret = netrigctl_transaction(rig, cmd, strlen(cmd), buf);
 
@@ -2026,7 +2094,9 @@ static int netrigctl_set_level(RIG *rig, vfo_t vfo, setting_t level,
 
     if (RIG_LEVEL_IS_FLOAT(level))
     {
-        SNPRINTF(lstr, sizeof(lstr), "%f", val.f);
+        ret = netrigctl_format_protocol_float(lstr, sizeof(lstr), "%f", val.f);
+
+        if (ret != RIG_OK) { return ret; }
     }
     else
     {
@@ -2169,7 +2239,9 @@ static int netrigctl_set_parm(RIG *rig, setting_t parm, value_t val)
 
     if (RIG_PARM_IS_FLOAT(parm))
     {
-        SNPRINTF(pstr, sizeof(pstr), "%f", val.f);
+        ret = netrigctl_format_protocol_float(pstr, sizeof(pstr), "%f", val.f);
+
+        if (ret != RIG_OK) { return ret; }
     }
     else
     {
@@ -2710,14 +2782,19 @@ static int netrigctl_get_trn(RIG *rig, int *trn)
 static int netrigctl_mW2power(RIG *rig, float *power, unsigned int mwpower,
                               freq_t freq, rmode_t mode)
 {
-    char cmdbuf[32];
+    char cmdbuf[CMD_MAX];
+    char fstr[CMD_MAX];
     char buf[BUF_MAX];
     int ret;
 
     ENTERFUNC;
 
-    SNPRINTF(cmdbuf, sizeof(cmdbuf), "\\mW2power %u %.0f %s\n", mwpower, freq,
-             rig_strrmode(mode));
+    ret = netrigctl_format_protocol_float(fstr, sizeof(fstr), "%.0f", freq);
+
+    if (ret != RIG_OK) { RETURNFUNC(ret); }
+
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "\\mW2power %u %s %s\n", mwpower,
+             fstr, rig_strrmode(mode));
     ret = netrigctl_transaction(rig, cmdbuf, strlen(cmdbuf), buf);
 
     if (ret <= 0)
@@ -2734,14 +2811,24 @@ static int netrigctl_mW2power(RIG *rig, float *power, unsigned int mwpower,
 static int netrigctl_power2mW(RIG *rig, unsigned int *mwpower, float power,
                               freq_t freq, rmode_t mode)
 {
-    char cmdbuf[64];
+    char cmdbuf[CMD_MAX];
+    char fstr[CMD_MAX];
+    char pstr[32];
     char buf[BUF_MAX];
     int ret;
 
     ENTERFUNC;
 
     // we shouldn't need any precision than microwatts
-    SNPRINTF(cmdbuf, sizeof(cmdbuf), "\\power2mW %.3f %.0f %s\n", power, freq,
+    ret = netrigctl_format_protocol_float(pstr, sizeof(pstr), "%.3f", power);
+
+    if (ret != RIG_OK) { RETURNFUNC(ret); }
+
+    ret = netrigctl_format_protocol_float(fstr, sizeof(fstr), "%.0f", freq);
+
+    if (ret != RIG_OK) { RETURNFUNC(ret); }
+
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "\\power2mW %s %s %s\n", pstr, fstr,
              rig_strrmode(mode));
     ret = netrigctl_transaction(rig, cmdbuf, strlen(cmdbuf), buf);
 
