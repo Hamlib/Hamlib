@@ -119,11 +119,17 @@
  * Prototypes
 */
 static int x108g_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+static int g90_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+static int g90_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+static const char *g90_get_info(RIG *rig);
 static int x108g_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
                                vfo_t tx_vfo);
 static int x108g_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
 static int x108g_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
                                 pbwidth_t tx_width);
+
+/* Filled by xiegu_rig_open so \get_info can return the probed model. */
+static char xiegu_info_buf[64];
 
 static int x108g_rig_open(RIG *rig)
 {
@@ -142,54 +148,151 @@ static int x108g_rig_open(RIG *rig)
     RETURNFUNC(RIG_OK);
 }
 
+/*
+ * Legacy Icom-style TRXID map (cmd 0x19 / sub 0x00): 0x0070→G90, 0x0090→G90S.
+ */
+static const char *xiegu_legacy_id_name(unsigned short iid)
+{
+    switch (iid)
+    {
+    case 0x0070:
+        return "G90";
+
+    case 0x0090:
+        return "G90S";
+
+    case 0x0106:
+        return "G106/G106C";
+
+    case 0x6100:
+    case 0x00a4:
+        return "X6100/X6200";
+
+    default:
+        return "Unknown";
+    }
+}
+
+/*
+ * Xiegu radio ID via cmd 0x1D / sub 0x19 (newer G90 firmware).
+ * Reply carries ID bytes after the opcode; 00 90 is G90 (not G90S —
+ * that mapping applies only to the legacy 0x19/0x00 probe).
+ */
+static const char *xiegu_civ_id_name(unsigned short iid)
+{
+    switch (iid)
+    {
+    case 0x0090:
+        return "G90";
+
+    default:
+        return xiegu_legacy_id_name(iid);
+    }
+}
+
+/*
+ * icom_transaction reply buffer starts at the CI-V command byte:
+ *   0x19/0x00 → [19, 00, id…]
+ *   0x1D/0x19 → [1D, 19, id_hi, id_lo]
+ */
+static int xiegu_read_radio_id(RIG *rig, int cmd, int subcmd,
+                               unsigned char *id, int *id_len,
+                               unsigned short *iid)
+{
+    int retval = icom_transaction(rig, cmd, subcmd, NULL, 0, id, id_len);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    dump_hex(id, *id_len);
+
+    if (cmd == 0x1D && *id_len >= 4)
+    {
+        *iid = ((unsigned short)id[2] << 8) | id[3];
+    }
+    else
+    {
+        *iid = (unsigned short)id[1];
+
+        if (*id_len > 2)
+        {
+            *iid = (*iid << 8) | id[2];
+        }
+    }
+
+    return RIG_OK;
+}
+
 static int xiegu_rig_open(RIG *rig)
 {
     int retval;
     unsigned char id[4];
-    int id_len = 2;
-    int cmd = 0x19;
-    int subcmd = 0x00;
+    int id_len;
     unsigned short iid;
+    const char *model;
+    int is_g90 = (rig->caps->rig_model == RIG_MODEL_G90);
+
+    xiegu_info_buf[0] = '\0';
 
     retval = icom_rig_open(rig);
 
-    if (retval != RIG_OK) { return retval; }
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
 
-    retval = icom_transaction(rig, cmd, subcmd, NULL, 0, id, &id_len);
+    if (is_g90)
+    {
+        /* Prefer Xiegu ID opcode 0x1D/0x19 on G90; fall back below on failure */
+        id_len = sizeof(id);
+        retval = xiegu_read_radio_id(rig, 0x1D, 0x19, id, &id_len, &iid);
+
+        if (retval == RIG_OK)
+        {
+            model = xiegu_civ_id_name(iid);
+            rig_debug(RIG_DEBUG_VERBOSE,
+                      "%s: Xiegu Radio ID=0x%04x (%s) via 0x1D/0x19\n",
+                      __func__, iid, model);
+            SNPRINTF(xiegu_info_buf, sizeof(xiegu_info_buf), "%s", model);
+            return RIG_OK;
+        }
+
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: 0x1D/0x19 ID probe failed (%s); trying legacy 0x19/0x00\n",
+                  __func__, rigerror(retval));
+    }
+
+    /* Legacy Icom-style TRXID (older firmware / other Xiegu models) */
+    id_len = sizeof(id);
+    retval = xiegu_read_radio_id(rig, 0x19, 0x00, id, &id_len, &iid);
 
     if (retval == RIG_OK)
     {
-        dump_hex(id, id_len);
-        iid = (int)id[1];
-
-        if (id_len > 2)
-        {
-            iid = (iid << 8) + id[2];
-        }
-
+        model = xiegu_legacy_id_name(iid);
         rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu Radio ID=0x%04x\n", __func__, iid);
-
-        switch (iid)
-        {
-        case 0x0070: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__,
-                                   "G90"); break;
-
-        case 0x0090: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__,
-                                   "G90S"); break;
-
-        case 0x0106: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__,
-                                   "G106/G106C"); break;
-
-        case 0x6100:
-        case 0x00a4: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__,
-                                   "X6100/X6200"); break;
-
-        default: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__,
-                               "Unknown"); break;
-        }
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__, model);
+        SNPRINTF(xiegu_info_buf, sizeof(xiegu_info_buf), "%s", model);
     }
 
     return retval;
+}
+
+/*
+ * g90_get_info
+ * Assumes rig!=NULL. Returns model string from open-time ID probe.
+ */
+static const char *g90_get_info(RIG *rig)
+{
+    (void)rig;
+
+    if (xiegu_info_buf[0] != '\0')
+    {
+        return xiegu_info_buf;
+    }
+
+    return "G90";
 }
 
 /*
@@ -743,10 +846,18 @@ struct rig_caps x6200_caps =
 
 static struct icom_priv_caps g90_priv_caps =
 {
-    0xa4,   /* default address */
+    0x88,   /* default address — stock G90 (also answers 0x70 / 0xa4 on some units) */
     0,      /* 731 mode */
     0,    /* no XCHG */
     ic7200_ts_sc_list,
+    .agc_levels_present = 1,
+    .agc_levels = {
+        { .level = RIG_AGC_OFF, .icom_level = 0x00 },
+        { .level = RIG_AGC_FAST, .icom_level = 0x01 },
+        { .level = RIG_AGC_MEDIUM, .icom_level = 0x02 },
+        { .level = RIG_AGC_SLOW, .icom_level = 0x03 },
+        { .level = RIG_AGC_LAST, .icom_level = -1 },
+    },
     .x25x26_always = 0,
     .x25x26_possibly = 1, // Firmware G90 v20240504.8 doesn't work well -- see https://github.com/Hamlib/Hamlib/issues/1547
     .x1cx03_always = 0,
@@ -761,7 +872,7 @@ struct rig_caps g90_caps =
     RIG_MODEL(RIG_MODEL_G90),
     .model_name = "G90",
     .mfg_name =  "Xiegu",
-    .version =  BACKEND_VER ".11",
+    .version =  BACKEND_VER ".12",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -796,6 +907,7 @@ struct rig_caps g90_caps =
     .max_xit =  Hz(9999),
     .max_ifshift =  Hz(0), /* TODO */
     .vfo_ops =  X108G_VFO_OPS,
+    .agc_levels = { RIG_AGC_OFF, RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW },
     .targetable_vfo =  RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
     .scan_ops =  X108G_SCAN_OPS,
     .transceive =  RIG_TRN_RIG,
@@ -893,10 +1005,11 @@ struct rig_caps g90_caps =
     .set_vfo =  icom_set_vfo,
     .set_ant =  NULL,  /*automatically set by rig depending band */
     .get_ant =  NULL,
+    .get_info =  g90_get_info,
 
     .decode_event =  icom_decode_event,
-    .set_level =  icom_set_level,
-    .get_level =  icom_get_level,
+    .set_level =  g90_set_level,
+    .get_level =  g90_get_level,
     .set_func =  icom_set_func,
     .get_func =  icom_get_func,
     .set_parm =  NULL,
@@ -925,7 +1038,7 @@ struct rig_caps g90_caps =
     .set_split_mode =  icom_set_split_mode,
     .get_split_mode =  icom_get_split_mode,
     .set_split_vfo =  icom_set_split_vfo,
-    .get_split_vfo =  NULL,
+    .get_split_vfo =  icom_get_split_vfo, /* poll C_CTL_SPLT; was NULL → cache-only 0 */
     //.set_powerstat = icom_set_powerstat,
     //.get_powerstat = icom_get_powerstat,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
@@ -1137,6 +1250,134 @@ int x108g_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
                   ackbuf[0], ack_len, ptt);
         return -RIG_ERJCTED;
     }
+
+    return RIG_OK;
+}
+
+/*
+ * The stock G90 firmware (v1.81) does not implement C_CTL_ATT the Icom way.
+ *
+ * Reading is close enough -- "11" answers "11 <state>" -- but the state is a
+ * flag, 0x00 off and 0x0c on, not the attenuation in dB coded as BCD.  The
+ * 0x0c happens to decode as the 12dB the rig really has, so reads mostly got
+ * away with it; anything else the firmware might report would not.
+ *
+ * Writing also answers with "11 <state>" rather than FB (same class of
+ * non-standard ack as x108g_set_ptt()).  Stock firmware accepts 0x00/0x01
+ * as off/on payloads; the old Icom BCD "12" path timed out on the echo.
+ * Set reads current state first and only writes when it must change, then
+ * checks the echoed state.
+ *
+ * Observed on stock G90 firmware v1.81.
+ */
+static int g90_get_att_state(RIG *rig, int *state)
+{
+    unsigned char respbuf[MAXFRAMELEN];
+    int resp_len = sizeof(respbuf), retval;
+
+    retval = icom_transaction(rig, C_CTL_ATT, -1, NULL, 0, respbuf, &resp_len);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    if (resp_len != 2 || respbuf[0] != C_CTL_ATT)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
+                  respbuf[0], resp_len);
+        return -RIG_ERJCTED;
+    }
+
+    *state = respbuf[1];
+
+    return RIG_OK;
+}
+
+/*
+ * g90_set_level
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL
+ */
+static int g90_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
+    unsigned char ackbuf[MAXFRAMELEN];
+    int ack_len = sizeof(ackbuf), retval;
+    int want_on, state;
+
+    if (level != RIG_LEVEL_ATT)
+    {
+        return icom_set_level(rig, vfo, level, val);
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    want_on = val.i != 0;
+
+    retval = g90_get_att_state(rig, &state);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    if ((state != 0) == want_on)
+    {
+        return RIG_OK;
+    }
+
+    retval = icom_transaction(rig, C_CTL_ATT, want_on ? 0x01 : 0x00, NULL, 0,
+                              ackbuf, &ack_len);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    if (ack_len == 1 && ackbuf[0] == ACK)
+    {
+        return RIG_OK;
+    }
+
+    if (ack_len != 2 || ackbuf[0] != C_CTL_ATT)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d, att=%d\n", __func__,
+                  ackbuf[0], ack_len, val.i);
+        return -RIG_ERJCTED;
+    }
+
+    if ((ackbuf[1] != 0) != want_on)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: att state %#.2x after setting %d\n",
+                  __func__, ackbuf[1], val.i);
+        return -RIG_ERJCTED;
+    }
+
+    return RIG_OK;
+}
+
+/*
+ * g90_get_level
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL, val!=NULL
+ */
+static int g90_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+    int retval, state;
+
+    if (level != RIG_LEVEL_ATT)
+    {
+        return icom_get_level(rig, vfo, level, val);
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    retval = g90_get_att_state(rig, &state);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    val->i = state != 0 ? STATE(rig)->attenuator[0] : 0;
 
     return RIG_OK;
 }
