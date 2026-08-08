@@ -981,7 +981,8 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
 
     /* emulation by frontend */
     if ((caps->has_get_level & RIG_LEVEL_STRENGTH) == 0
-            && (caps->has_get_level & RIG_LEVEL_RAWSTR) == RIG_LEVEL_RAWSTR)
+            && (caps->has_get_level & RIG_LEVEL_RAWSTR) == RIG_LEVEL_RAWSTR
+            && caps->str_cal.size)
     {
         rs->has_get_level |= RIG_LEVEL_STRENGTH;
     }

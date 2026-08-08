@@ -216,7 +216,7 @@ static int sf_fails;
 static int ts590_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
-    char kmode = rmode2kenwood(mode, caps->mode_table);
+    int kmode = rmode2kenwood(mode, caps->mode_table);
     char cmd[32], c;
     int retval = -RIG_EINTERNAL;
     int hwidth = 0;
