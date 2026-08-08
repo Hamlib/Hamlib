@@ -58,6 +58,7 @@ int gemini_reset(AMP *amp, amp_reset_t reset);
 int gemini_flush_buffer(AMP *amp);
 int gemini_transaction(AMP *amp, const char *cmd, char *response,
                     int response_len);
+int gemini_parse_status_response(struct gemini_priv_data *priv, char *response);
 const char *gemini_get_info(AMP *amp);
 int gemini_get_freq(AMP *amp, freq_t *freq);
 int gemini_set_freq(AMP *amp, freq_t freq);
@@ -68,4 +69,3 @@ int gemini_get_powerstat(AMP *amp, powerstat_t *status);
 int gemini_set_powerstat(AMP *amp, powerstat_t status);
 
 #endif  /* _AMP_GEMINI_H */
-
