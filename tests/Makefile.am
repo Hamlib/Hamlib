@@ -14,9 +14,52 @@ DISTCLEANFILES = rigctl.log rigctl.sum testbcd.log testbcd.sum
 
 bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld rigctlcom rigctltcp rigctlsync ampctl ampctld rigtestmcast rigtestmcastrx $(TESTLIBUSB)
 
-check_PROGRAMS = dumpmem testrig testrigopen testrigcaps testbcd testfreq listrigs testloc rig_bench testcache cachetest cachetest2 testcookie testdebug testdummyparm testgrid hamlibmodels testmW2power test2038
-check_PROGRAMS += testnetrigctl
-check_PROGRAMS += testctlparser testbandmetadata testicomts testgeministatus testgs100 testftx1parsers
+# Keep test registries sorted and one entry per line.
+# This keeps independent additions from editing shared lines.
+DIRECT_TESTS = \
+	testbandmetadata \
+	testctlparser \
+	testdebug \
+	testdummyparm \
+	testftx1parsers \
+	testgeministatus \
+	testgs100 \
+	testicomts \
+	testrigctlprotocol
+
+GENERATED_TEST_WRAPPERS = \
+	test2038.sh \
+	testbcd.sh \
+	testcache.sh \
+	testcookie.sh \
+	testfreq.sh \
+	testgrid.sh \
+	testloc.sh \
+	testnetrigctl.sh \
+	testnetrigctllocale.sh \
+	testrig.sh \
+	testrigcaps.sh
+
+check_PROGRAMS = \
+	cachetest \
+	cachetest2 \
+	dumpmem \
+	hamlibmodels \
+	listrigs \
+	rig_bench \
+	test2038 \
+	testbcd \
+	testcache \
+	testcookie \
+	testfreq \
+	testgrid \
+	testloc \
+	testmW2power \
+	testnetrigctl \
+	testrig \
+	testrigcaps \
+	testrigopen \
+	$(DIRECT_TESTS)
 # Document building testsecurity
 ### check_PROGRAMS += testsecurity
 
@@ -58,6 +101,7 @@ rigctlcom_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/security
 rigctltcp_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/security
 rigctlsync_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/security
 testdebug_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testnetrigctl_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testctlparser_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testgeministatus_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testgs100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
@@ -82,9 +126,10 @@ rigctlcom_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rigctltcp_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rigctlsync_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 testdebug_LDADD = $(PTHREAD_LIBS) $(LDADD)
-testnetrigctl_LDADD = $(top_builddir)/rigs/dummy/libhamlib-dummy.la
+testnetrigctl_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
 testctlparser_SOURCES = testctlparser.c $(RIGCOMMONSRC)
 testctlparser_LDADD = $(PTHREAD_LIBS) $(READLINE_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
+testrigctlprotocol_LDADD = $(LDADD)
 testicomts_LDADD = $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testgeministatus_LDADD = $(PTHREAD_LIBS) $(top_builddir)/amplifiers/gemini/libhamlib-gemini.la $(LDADD)
 testgs100_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/gomspace/libhamlib-gomspace.la $(LDADD)
@@ -141,10 +186,13 @@ EXTRA_DIST = \
 
 # Support 'make check' target for simple tests
 # Omitting cachetest.sh because it needs 2 instances of rigctld running
-check_SCRIPTS = amptest.sh test2038.sh testbcd.sh testcache.sh testcaps.sh testcookie.sh testfreq.sh testgrid.sh testloc.sh testrig.sh testrigcaps.sh
-check_SCRIPTS += testnetrigctl.sh testctlbounds.sh
+check_SCRIPTS = \
+	amptest.sh \
+	testcaps.sh \
+	testctlbounds.sh \
+	$(GENERATED_TEST_WRAPPERS)
 
-TESTS = $(check_SCRIPTS) testdebug testdummyparm testctlparser testbandmetadata testicomts testgeministatus testgs100 testftx1parsers
+TESTS = $(check_SCRIPTS) $(DIRECT_TESTS)
 
 $(top_builddir)/src/libhamlib.la:
 	$(MAKE) -C $(top_builddir)/src/ libhamlib.la
@@ -174,6 +222,10 @@ testrig.sh:
 testnetrigctl.sh:
 	echo './testnetrigctl' > testnetrigctl.sh
 	chmod +x ./testnetrigctl.sh
+
+testnetrigctllocale.sh:
+	echo './testnetrigctl --locale' > testnetrigctllocale.sh
+	chmod +x ./testnetrigctllocale.sh
 
 testfreq.sh:
 	echo './testfreq' > testfreq.sh
@@ -207,4 +259,11 @@ test2038.sh:
 	echo 'LD_LIBRARY_PATH=$(top_builddir)/src/.libs:$(top_builddir)/dummy/.libs ./test2038 1' > test2038.sh
 	chmod +x ./test2038.sh
 
-CLEANFILES = rigmatrix testrig.sh testfreq.sh testbcd.sh testloc.sh testrigcaps.sh testcache.sh testcookie.sh rigtestlibusb build-w32.sh build-w64.sh build-w64-jtsdk.sh testgrid.sh testrigcaps.sh test2038.sh testnetrigctl.sh tuner_control.log
+CLEANFILES = \
+	build-w32.sh \
+	build-w64-jtsdk.sh \
+	build-w64.sh \
+	rigmatrix \
+	rigtestlibusb \
+	tuner_control.log \
+	$(GENERATED_TEST_WRAPPERS)
