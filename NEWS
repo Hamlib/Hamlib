@@ -46,6 +46,8 @@ Version 4.7.3
           PR #2117.  (TNX Miao Wang)
         * FTX-1: Handle WFM mode quirk (FM-in-WFM-band returns mode '0')
           GitHub PR #2118.  (TNX Miao Wang)
+        * FTX-1: Round repeater offset to nearest menu step, reject negative.
+          GitHub PR #2119.  (TNX Terrell Deppe)
 
 Version 4.7.2
         * 2026-06-21
