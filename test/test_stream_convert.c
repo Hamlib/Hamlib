@@ -237,23 +237,24 @@ void test_f32_to_s16(void)
                                  4, 1);
     TEST_CHECK(ret == 0);
     TEST_CHECK(dst[0] == 0);
-    TEST_CHECK(dst[1] == 32767);          /* 1.0 * 32767 clamped */
-    TEST_CHECK(dst[2] == -32767);         /* -1.0 * 32767 */
-    TEST_CHECK(abs(dst[3] - 16384) <= 1); /* 0.5 * 32767 ~ 16383-16384 */
+    TEST_CHECK(dst[1] == 32767);   /* 1.0 * 32768 = 32768, clamped */
+    TEST_CHECK(dst[2] == -32768);  /* -1.0 * 32768 = full-scale negative */
+    TEST_CHECK(dst[3] == 16384);   /* 0.5 * 32768, exact */
     TEST_MSG("dst: %d %d %d %d", dst[0], dst[1], dst[2], dst[3]);
 }
 
 void test_f32_to_s16_clipping(void)
 {
-    /* Values beyond +/-1.0 must clamp to the int16 range.
-     * Converter computes v = sample * 32767.0f, then clamps v to
-     * [-32768, 32767] and truncates toward zero on the int16 cast:
+    /* Values beyond +/-1.0 must clamp to the int16 range. The converter
+     * uses the SYMMETRIC power-of-two scale (v * 32768, the inverse of
+     * the s16 -> f32 direction) with round-to-nearest, so integer ->
+     * float -> integer round-trips are value-exact:
      *   0.0  -> 0
-     *   1.0  -> 32767
-     *  -1.0  -> -32767      (no clamp: -32767 > -32768)
-     *   2.0  -> 65534 clamped to 32767
-     *  -2.0  -> -65534 clamped to -32768
-     *   0.5  -> 16383.5 truncated to 16383
+     *   1.0  -> 32768 clamped to 32767
+     *  -1.0  -> -32768 (exact full-scale)
+     *   2.0  -> 65536 clamped to 32767
+     *  -2.0  -> -65536 clamped to -32768
+     *   0.5  -> 16384 (exact)
      */
     float src[6] = { 0.0f, 1.0f, -1.0f, 2.0f, -2.0f, 0.5f };
     int16_t dst[6] = { 0 };
@@ -263,10 +264,10 @@ void test_f32_to_s16_clipping(void)
     TEST_CHECK(ret == 0);
     TEST_CHECK(dst[0] == 0);
     TEST_CHECK(dst[1] == 32767);
-    TEST_CHECK(dst[2] == -32767);
-    TEST_CHECK(dst[3] == 32767);     /* clipped from 65534 */
-    TEST_CHECK(dst[4] == -32768);    /* clipped from -65534 */
-    TEST_CHECK(dst[5] == 16383);     /* truncated from 16383.5 */
+    TEST_CHECK(dst[2] == -32768);
+    TEST_CHECK(dst[3] == 32767);     /* clipped from 65536 */
+    TEST_CHECK(dst[4] == -32768);    /* clipped from -65536 */
+    TEST_CHECK(dst[5] == 16384);
     TEST_MSG("dst: %d %d %d %d %d %d",
              dst[0], dst[1], dst[2], dst[3], dst[4], dst[5]);
 }

@@ -1531,8 +1531,14 @@ static void *rigctld_stream_feeder_tx(void *arg)
                 rig_stream_write(stream->rig, stream->backend_stream,
                                  data, data_len, &bytes_written, 0,
                                  winfo_ptr);
-                /* Advance the sample counter by whole frames (all channels). */
-                stream->timestamp += data_len / frame_bytes;
+
+                /* Advance the sample counter by whole frames (all
+                 * channels); codec frame durations are not on the wire,
+                 * so a codec TX position stays byte-agnostic (0). */
+                if (!stream->backend_stream->is_codec)
+                {
+                    stream->timestamp += data_len / frame_bytes;
+                }
             }
         }
 
@@ -1769,8 +1775,13 @@ static void *rigctld_stream_feeder_rx(void *arg)
 
             send_to_client(stream, send_ptr, send_len);
 
-            /* Track the producer position for non-data frames */
-            stream->timestamp = rinfo.sample_index
+            /* Track the producer position for non-data frames. A codec
+             * stream advances by the frame's decoded duration, not by
+             * bytes. */
+            stream->timestamp = stream->backend_stream->is_codec
+                                ? rinfo.sample_index
+                                + rinfo.codec_frame_samples
+                                : rinfo.sample_index
                                 + bytes_read / (size_t)frame_bytes;
 
             /* Unconditional metadata refresh (cadence in stream-data time)

@@ -52,6 +52,8 @@ struct dummy_stream_state
     int thread_started;             /* 1 after successful pthread_create */
     HAMLIB_ATOMIC int running;      /* Thread run flag */
     uint32_t phase_acc;             /* Phase accumulator for tone gen */
+    uint32_t lcg;                   /* Fabricated codec-frame length PRNG
+                                     * (deterministic; zero seed) */
     int mode;                       /* DUMMY_STREAM_TONE/SILENCE/LOOPBACK */
     float tone_freq;                /* Snapshot at stream open time */
     float tone_amp;                 /* Snapshot at stream open time */
@@ -59,6 +61,14 @@ struct dummy_stream_state
     long synth_gap;                 /* RX: inject one gap of N samples */
     int burst_ptt;                  /* TX: SOB/EOB keys PTT (from caps) */
     uint64_t tx_consumed;           /* TX: frames consumed by the scheduler */
+
+    /* Loopback channel/rate adaptation between the TX peer's native side
+     * and this RX stream's native side, seam-free across frames (stateful
+     * resampler). Re-created when the resolved peer's parameters change;
+     * owned and touched only by the loopback thread, freed at close. */
+    struct stream_conv *loop_conv;
+    int lc_src_rate, lc_src_ch;
+    int lc_dst_rate, lc_dst_ch;
 };
 
 /* Backend stream_open / stream_close hooks */

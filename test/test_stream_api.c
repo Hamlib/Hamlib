@@ -22,6 +22,10 @@
 /* Frontend API unit tests for the Hamlib streaming subsystem. */
 /* Uses a minimal stub backend for stream open/close and loopback. */
 
+#ifdef HAVE_CONFIG_H
+#  include "hamlib/config.h"
+#endif
+
 #include "acutest.h"
 #include "stream.h"
 #include "cache.h"
@@ -111,6 +115,29 @@ static const struct rig_stream_caps stub_stream_caps[] =
     { 0 }  /* Terminator */
 };
 
+/* Mono-only audio and 2-channel coherent I/Q, for the channel-derivation
+ * rules: audio widens to stereo (upmix), I/Q never fabricates channels. */
+static const struct rig_stream_caps stub_mono_stream_caps[] =
+{
+    {
+        .type = RIG_STREAM_TYPE_AUDIO_RX,
+        .formats = RIG_STREAM_FORMAT_PCM_F32,
+        .sample_rates = { 48000, 0 },
+        .channels_min = 1,
+        .channels_max = 1,
+        .max_streams = 1,
+    },
+    {
+        .type = RIG_STREAM_TYPE_IQ_RX,
+        .formats = RIG_STREAM_FORMAT_IQ_CF32,
+        .sample_rates = { 48000, 0 },
+        .channels_min = 2,
+        .channels_max = 2,
+        .max_streams = 1,
+    },
+    { 0 }  /* Terminator */
+};
+
 static struct rig_caps stub_caps_with_stream =
 {
     .rig_model = 1,
@@ -191,6 +218,71 @@ static struct rig_caps stub_caps_no_stream =
     .rig_cleanup = stub_rig_cleanup,
     .rig_open = stub_rig_open,
     .rig_close = stub_rig_close,
+    .set_freq = stub_set_freq,
+};
+
+static struct rig_caps stub_caps_mono_stream =
+{
+    .rig_model = 4,
+    .model_name = "Stub Mono Stream",
+    .mfg_name = "Test",
+    .version = "1.0",
+    .status = RIG_STATUS_STABLE,
+    .rig_type = RIG_TYPE_TRANSCEIVER,
+    .port_type = RIG_PORT_NONE,
+    .timeout = 1000,
+    .retry = 0,
+    .stream_caps = stub_mono_stream_caps,
+    .rig_init = stub_rig_init,
+    .rig_cleanup = stub_rig_cleanup,
+    .rig_open = stub_rig_open,
+    .rig_close = stub_rig_close,
+    .stream_open = stub_stream_open,
+    .stream_close = stub_stream_close,
+};
+
+/* Codec (OPUS) alongside raw PCM, plus a codec-only entry. Codec formats
+ * are opaque packet streams: native-only at open, and a codec-only entry
+ * is served verbatim by derivation (no widening). */
+static const struct rig_stream_caps stub_codec_stream_caps[] =
+{
+    {
+        .type = RIG_STREAM_TYPE_AUDIO_RX,
+        .formats = RIG_STREAM_FORMAT_PCM_S16 | RIG_STREAM_FORMAT_OPUS,
+        .sample_rates = { 48000, 0 },
+        .channels_min = 1,
+        .channels_max = 1,
+        .max_streams = 2,
+    },
+    {
+        .type = RIG_STREAM_TYPE_AUDIO_TX,
+        .formats = RIG_STREAM_FORMAT_OPUS,   /* codec-only entry */
+        .sample_rates = { 48000, 0 },
+        .channels_min = 1,
+        .channels_max = 1,
+        .max_streams = 1,
+    },
+    { 0 }  /* Terminator */
+};
+
+static struct rig_caps stub_caps_codec_stream =
+{
+    .rig_model = 5,
+    .model_name = "Stub Codec Stream",
+    .mfg_name = "Test",
+    .version = "1.0",
+    .status = RIG_STATUS_STABLE,
+    .rig_type = RIG_TYPE_TRANSCEIVER,
+    .port_type = RIG_PORT_NONE,
+    .timeout = 1000,
+    .retry = 0,
+    .stream_caps = stub_codec_stream_caps,
+    .rig_init = stub_rig_init,
+    .rig_cleanup = stub_rig_cleanup,
+    .rig_open = stub_rig_open,
+    .rig_close = stub_rig_close,
+    .stream_open = stub_stream_open,
+    .stream_close = stub_stream_close,
 };
 
 
@@ -230,6 +322,20 @@ static void teardown_rig(RIG *rig)
 /* Tests                                                               */
 /* ------------------------------------------------------------------ */
 
+/* True if rate appears in a 0-terminated caps rate list. */
+static int rate_in_list(const int *rates, int rate)
+{
+    for (int i = 0; i < HAMLIB_MAX_STREAM_RATES && rates[i] != 0; i++)
+    {
+        if (rates[i] == rate)
+        {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 void test_get_stream_caps_none(void)
 {
     RIG *rig = setup_rig(&stub_caps_no_stream);
@@ -258,8 +364,14 @@ void test_get_stream_caps(void)
 
     TEST_CHECK(c0->type == RIG_STREAM_TYPE_AUDIO_RX);
     TEST_CHECK(c0->formats & RIG_STREAM_FORMAT_PCM_S16);
-    TEST_CHECK(c0->sample_rates[0] == 8000);
-    TEST_CHECK(c0->sample_rates[1] == 48000);
+    /* The served list is the effective set (sorted, possibly widened by
+     * the resampler rules); the declared rates are in it, and the native
+     * view preserves the declaration verbatim. */
+    TEST_CHECK(rate_in_list(c0->sample_rates, 8000));
+    TEST_CHECK(rate_in_list(c0->sample_rates, 48000));
+    TEST_CHECK(c0->native_sample_rates[0] == 8000);
+    TEST_CHECK(c0->native_sample_rates[1] == 48000);
+    TEST_CHECK(c0->native_sample_rates[2] == 0);
 
     TEST_CHECK(c1->type == RIG_STREAM_TYPE_IQ_RX);
     TEST_CHECK(c1->formats & RIG_STREAM_FORMAT_IQ_CS16);
@@ -268,6 +380,457 @@ void test_get_stream_caps(void)
     TEST_CHECK(rig_stream_caps_at(rig, 2) == NULL);
     TEST_CHECK(rig_stream_caps_at(rig, -1) == NULL);
 
+    teardown_rig(rig);
+}
+
+/* The app-visible caps are the derived view: classic fields widened to the
+ * effective set, native_* preserving the backend's declaration. Rules per
+ * HAMLIB_STREAMING_FORMAT_CONVERSION.md section 3.4. */
+void test_caps_derived_formats(void)
+{
+    RIG *rig = setup_rig(&stub_caps_with_stream);
+    TEST_ASSERT(rig != NULL);
+
+    const struct rig_stream_caps *audio = rig_stream_caps_at(rig, 0);
+    const struct rig_stream_caps *iq = rig_stream_caps_at(rig, 1);
+    TEST_ASSERT(audio != NULL && iq != NULL);
+
+    /* Native view == declaration, exactly. */
+    TEST_CHECK(audio->native_formats == (RIG_STREAM_FORMAT_PCM_S16
+                                         | RIG_STREAM_FORMAT_PCM_F32));
+    TEST_CHECK(iq->native_formats == (RIG_STREAM_FORMAT_IQ_CS16
+                                      | RIG_STREAM_FORMAT_IQ_CF32));
+
+    /* Effective view: the whole family is reachable... */
+    TEST_CHECK(audio->formats & RIG_STREAM_FORMAT_PCM_S8);
+    TEST_CHECK(audio->formats & RIG_STREAM_FORMAT_PCM_U8);
+    TEST_CHECK(iq->formats & RIG_STREAM_FORMAT_IQ_CS8);
+    TEST_CHECK(iq->formats & RIG_STREAM_FORMAT_IQ_CU8);
+
+    /* ...but families do not leak into each other, and codec formats are
+     * not fabricated. */
+    TEST_CHECK(!(audio->formats & RIG_STREAM_FORMAT_IQ_CF32));
+    TEST_CHECK(!(audio->formats & RIG_STREAM_FORMAT_OPUS));
+    TEST_CHECK(!(iq->formats & RIG_STREAM_FORMAT_PCM_S16));
+
+    teardown_rig(rig);
+}
+
+void test_caps_derived_rates(void)
+{
+    RIG *rig = setup_rig(&stub_caps_with_stream);
+    TEST_ASSERT(rig != NULL);
+
+    const struct rig_stream_caps *audio = rig_stream_caps_at(rig, 0);
+    const struct rig_stream_caps *iq = rig_stream_caps_at(rig, 1);
+    TEST_ASSERT(audio != NULL && iq != NULL);
+
+    /* Native rates always present in the effective list. */
+    TEST_CHECK(rate_in_list(audio->sample_rates, 8000));
+    TEST_CHECK(rate_in_list(audio->sample_rates, 48000));
+    TEST_CHECK(rate_in_list(iq->sample_rates, 192000));
+
+#ifdef HAVE_SAMPLERATE
+    /* Curated standards bounded by the largest native rate. */
+    TEST_CHECK(rate_in_list(audio->sample_rates, 44100));
+    TEST_CHECK(rate_in_list(audio->sample_rates, 24000));
+    /* Integer divisions of native rates (exact results only):
+     * 48000/5 and 48000/10 are not curated standards. */
+    TEST_CHECK(rate_in_list(audio->sample_rates, 9600));
+    TEST_CHECK(rate_in_list(audio->sample_rates, 4800));
+    /* Audio is bounded by the largest native rate. */
+    TEST_CHECK(!rate_in_list(audio->sample_rates, 96000));
+
+    /* I/Q: downward only — nothing above native, curated strictly below
+     * the largest native rate, integer divisions included. */
+    TEST_CHECK(rate_in_list(iq->sample_rates, 96000));   /* curated, /2 */
+    TEST_CHECK(rate_in_list(iq->sample_rates, 38400));   /* 192000/5 */
+    TEST_CHECK(rate_in_list(iq->sample_rates, 19200));   /* 192000/10 */
+
+    /* Sorted ascending. */
+    for (int i = 1; i < HAMLIB_MAX_STREAM_RATES
+            && audio->sample_rates[i] != 0; i++)
+    {
+        TEST_CHECK(audio->sample_rates[i] > audio->sample_rates[i - 1]);
+    }
+
+#else
+    /* Without the resampler the effective rates equal the native rates. */
+    TEST_CHECK(audio->sample_rates[0] == 8000);
+    TEST_CHECK(audio->sample_rates[1] == 48000);
+    TEST_CHECK(audio->sample_rates[2] == 0);
+    TEST_CHECK(iq->sample_rates[0] == 48000);
+    TEST_CHECK(iq->sample_rates[1] == 192000);
+    TEST_CHECK(iq->sample_rates[2] == 0);
+#endif
+
+    teardown_rig(rig);
+}
+
+void test_caps_derived_channels(void)
+{
+    RIG *rig = setup_rig(&stub_caps_mono_stream);
+    TEST_ASSERT(rig != NULL);
+
+    const struct rig_stream_caps *audio = rig_stream_caps_at(rig, 0);
+    const struct rig_stream_caps *iq = rig_stream_caps_at(rig, 1);
+    TEST_ASSERT(audio != NULL && iq != NULL);
+
+    /* Mono-only audio hardware: effective widens to stereo via upmix... */
+    TEST_CHECK(audio->native_channels_min == 1);
+    TEST_CHECK(audio->native_channels_max == 1);
+    TEST_CHECK(audio->channels_min == 1);
+    TEST_CHECK(audio->channels_max == 2);
+
+    /* ...but coherent I/Q channels are never fabricated: a subset may be
+     * selected (min widens to 1), the maximum stays native. */
+    TEST_CHECK(iq->native_channels_min == 2);
+    TEST_CHECK(iq->native_channels_max == 2);
+    TEST_CHECK(iq->channels_min == 1);
+    TEST_CHECK(iq->channels_max == 2);
+
+    teardown_rig(rig);
+}
+
+/* Codec formats are opaque packet streams: a codec open must match the
+ * native declaration exactly (no conversion stage applies) and always
+ * reports a native stream, while raw formats in the same entry keep the
+ * normal conversion rules. Applies to any format outside the raw PCM/I/Q
+ * family masks, present or future. */
+void test_codec_format_native_only(void)
+{
+    RIG *rig = setup_rig(&stub_caps_codec_stream);
+    TEST_ASSERT(rig != NULL);
+
+    struct rig_stream_config *cfg = rig_stream_config_alloc();
+    TEST_ASSERT(cfg != NULL);
+    rig_stream_t *stream = NULL;
+
+    cfg->type = RIG_STREAM_TYPE_AUDIO_RX;
+    cfg->format = RIG_STREAM_FORMAT_OPUS;
+    cfg->sample_rate = 48000;
+    cfg->channels = 1;
+
+    int ret = rig_stream_open(rig, cfg, &stream);
+    TEST_CHECK(ret == RIG_OK);
+    TEST_MSG("native codec open returned %d", ret);
+
+    if (ret == RIG_OK)
+    {
+        TEST_CHECK(rig_stream_get_conversions(stream)
+                   == RIG_STREAM_CONV_NONE);
+        rig_stream_close(rig, stream);
+    }
+
+    /* Non-native rate: clean -RIG_EINVAL even where a raw format would
+     * be resampled (24000 divides 48000 exactly). */
+    cfg->sample_rate = 24000;
+    stream = NULL;
+    ret = rig_stream_open(rig, cfg, &stream);
+    TEST_CHECK(ret == -RIG_EINVAL);
+    TEST_MSG("codec at non-native rate: got %d, expected %d",
+             ret, -RIG_EINVAL);
+
+    /* Non-native channel count: the audio mono<->stereo map does not
+     * apply to packets. */
+    cfg->sample_rate = 48000;
+    cfg->channels = 2;
+    ret = rig_stream_open(rig, cfg, &stream);
+    TEST_CHECK(ret == -RIG_EINVAL);
+    TEST_MSG("codec at non-native channels: got %d, expected %d",
+             ret, -RIG_EINVAL);
+
+    /* The raw family in the same entry still converts: stereo S16 is
+     * served through the mono->stereo channel map. */
+    cfg->format = RIG_STREAM_FORMAT_PCM_S16;
+    ret = rig_stream_open(rig, cfg, &stream);
+    TEST_CHECK(ret == RIG_OK);
+    TEST_MSG("raw stereo open returned %d", ret);
+
+    if (ret == RIG_OK)
+    {
+        TEST_CHECK(rig_stream_get_conversions(stream)
+                   == RIG_STREAM_CONV_CHANNELS);
+        rig_stream_close(rig, stream);
+    }
+
+    rig_stream_config_free(cfg);
+    teardown_rig(rig);
+}
+
+/* Codec-frame API semantics against the stub backend (no data threads):
+ * frames produced with the internal backend API come back through
+ * rig_stream_read() one whole frame per call with exact index/duration
+ * reporting; undersized buffers consume nothing; oversized frames are
+ * refused; a full ring drops the newest frame with overrun accounting. */
+void test_codec_frame_read_api(void)
+{
+    RIG *rig = setup_rig(&stub_caps_codec_stream);
+    TEST_ASSERT(rig != NULL);
+
+    struct rig_stream_config *cfg = rig_stream_config_alloc();
+    TEST_ASSERT(cfg != NULL);
+    cfg->type = RIG_STREAM_TYPE_AUDIO_RX;
+    cfg->format = RIG_STREAM_FORMAT_OPUS;
+    cfg->sample_rate = 48000;
+    cfg->channels = 1;
+    cfg->buffer_bytes = 4096;   /* small, deterministic codec ring */
+
+    rig_stream_t *st = NULL;
+    TEST_ASSERT(rig_stream_open(rig, cfg, &st) == RIG_OK && st != NULL);
+    rig_stream_config_free(cfg);
+
+    uint8_t f1[100], f2[200], buf[2048];
+
+    for (int i = 0; i < 200; i++)
+    {
+        if (i < 100) { f1[i] = (uint8_t)i; }
+
+        f2[i] = (uint8_t)(100 + i);
+    }
+
+    TEST_CHECK(stream_backend_write_frame(st, f1, sizeof(f1), 480)
+               == (ssize_t)sizeof(f1));
+    TEST_CHECK(stream_backend_write_frame(st, f2, sizeof(f2), 480)
+               == (ssize_t)sizeof(f2));
+    TEST_CHECK(rig_stream_get_samples_written(st) == 960);
+
+    size_t got = 0;
+    struct rig_stream_read_info info;
+
+    TEST_CHECK(rig_stream_read(rig, st, buf, sizeof(buf), &got, 100,
+                               &info) == RIG_OK);
+    TEST_CHECK(got == sizeof(f1));
+    TEST_CHECK(memcmp(buf, f1, sizeof(f1)) == 0);
+    TEST_CHECK(info.sample_index == 0);
+    TEST_CHECK(info.codec_frame_samples == 480);
+    TEST_MSG("frame 1: got %lu bytes, index %llu, dur %u",
+             (unsigned long)got,
+             (unsigned long long)info.sample_index,
+             info.codec_frame_samples);
+
+    /* Undersized buffer: refused, frame 2 stays queued intact. */
+    TEST_CHECK(rig_stream_read(rig, st, buf, 100, &got, 100, &info)
+               == -RIG_EINVAL);
+
+    TEST_CHECK(rig_stream_read(rig, st, buf, sizeof(buf), &got, 100,
+                               &info) == RIG_OK);
+    TEST_CHECK(got == sizeof(f2));
+    TEST_CHECK(memcmp(buf, f2, sizeof(f2)) == 0);
+    TEST_CHECK(info.sample_index == 480);
+    TEST_CHECK(info.codec_frame_samples == 480);
+
+    /* A frame beyond max_payload is impossible on the wire: refused. */
+    static uint8_t big[4000];
+    TEST_CHECK(stream_backend_write_frame(st, big, sizeof(big), 480)
+               == -RIG_EINVAL);
+
+    /* Drop-newest: overfill the 4096-byte ring with 200-byte frames. */
+    int drops = 0;
+
+    for (int i = 0; i < 40; i++)
+    {
+        if (stream_backend_write_frame(st, f2, sizeof(f2), 480) == 0)
+        {
+            drops++;
+        }
+    }
+
+    TEST_CHECK(drops > 0);
+    TEST_MSG("expected drops on a full 4096-byte ring, got %d", drops);
+
+    struct rig_stream_stats stats;
+    TEST_CHECK(rig_stream_get_stats(rig, st, &stats) == RIG_OK);
+    TEST_CHECK(stats.overruns == (uint32_t)drops);
+    TEST_MSG("overruns %u, drops %d", stats.overruns, drops);
+    TEST_CHECK(stats.dropped_samples_overrun == (uint64_t)drops * 480);
+    /* Frames produced = the two consumed at the top plus the accepted
+     * portion of the overfill (dropped frames never count). */
+    TEST_CHECK(stats.codec_frames == (uint64_t)(2 + 40 - drops));
+    TEST_MSG("codec_frames %llu, expected %d",
+             (unsigned long long)stats.codec_frames, 2 + 40 - drops);
+
+    /* Drain, then produce one more frame: its start index sits past the
+     * dropped-frame hole and the read reports the loss. */
+    while (rig_stream_read(rig, st, buf, sizeof(buf), &got, 0,
+                           &info) == RIG_OK)
+    {
+    }
+
+    TEST_CHECK(stream_backend_write_frame(st, f1, sizeof(f1), 480)
+               == (ssize_t)sizeof(f1));
+    TEST_CHECK(rig_stream_read(rig, st, buf, sizeof(buf), &got, 100,
+                               &info) == RIG_OK);
+    TEST_CHECK(info.dropped_samples == (uint32_t)drops * 480);
+    TEST_MSG("dropped_samples %u", info.dropped_samples);
+    TEST_CHECK((info.drop_flags & RIG_STREAM_DROP_OVERRUN) != 0);
+
+    rig_stream_close(rig, st);
+    teardown_rig(rig);
+}
+
+
+/* Codec-frame TX path: rig_stream_write() carries one whole frame per
+ * call with the app-declared duration; the backend dequeues records with
+ * exact metadata; a full ring blocks up to the timeout instead of
+ * dropping or overwriting. */
+void test_codec_frame_write_api(void)
+{
+    RIG *rig = setup_rig(&stub_caps_codec_stream);
+    TEST_ASSERT(rig != NULL);
+
+    struct rig_stream_config *cfg = rig_stream_config_alloc();
+    TEST_ASSERT(cfg != NULL);
+    cfg->type = RIG_STREAM_TYPE_AUDIO_TX;
+    cfg->format = RIG_STREAM_FORMAT_OPUS;
+    cfg->sample_rate = 48000;
+    cfg->channels = 1;
+    cfg->buffer_bytes = 1024;   /* tiny ring to exercise the timeout */
+
+    rig_stream_t *st = NULL;
+    TEST_ASSERT(rig_stream_open(rig, cfg, &st) == RIG_OK && st != NULL);
+    rig_stream_config_free(cfg);
+
+    uint8_t frame[180], buf[2048];
+
+    for (int i = 0; i < (int)sizeof(frame); i++)
+    {
+        frame[i] = (uint8_t)(i ^ 0x5A);
+    }
+
+    struct rig_stream_write_info winfo;
+    memset(&winfo, 0, sizeof(winfo));
+    winfo.codec_frame_samples = 480;
+
+    size_t written = 0;
+    TEST_CHECK(rig_stream_write(rig, st, frame, sizeof(frame), &written,
+                                100, &winfo) == RIG_OK);
+    TEST_CHECK(written == sizeof(frame));
+    TEST_CHECK(rig_stream_get_samples_written(st) == 480);
+
+    size_t len = 0;
+    uint32_t dur = 0;
+    uint64_t idx = 1;
+    TEST_CHECK(stream_backend_read_frame(st, buf, sizeof(buf), &len, &dur,
+                                         &idx, 100) == RIG_OK);
+    TEST_CHECK(len == sizeof(frame));
+    TEST_CHECK(memcmp(buf, frame, sizeof(frame)) == 0);
+    TEST_CHECK(dur == 480);
+    TEST_CHECK(idx == 0);
+
+    /* Undersized consumer cap: refused, record left queued. */
+    TEST_CHECK(rig_stream_write(rig, st, frame, sizeof(frame), &written,
+                                100, &winfo) == RIG_OK);
+    TEST_CHECK(stream_backend_read_frame(st, buf, 50, &len, &dur, &idx,
+                                         100) == -RIG_EINVAL);
+    TEST_CHECK(stream_backend_read_frame(st, buf, sizeof(buf), &len, &dur,
+                                         &idx, 100) == RIG_OK);
+    TEST_CHECK(idx == 480);
+
+    /* Fill the 1024-byte ring (5 x 192-byte records fit), then the next
+     * write times out — never dropped, never overwritten, no overrun
+     * accounting. */
+    int accepted = 0, ret;
+
+    do
+    {
+        ret = rig_stream_write(rig, st, frame, sizeof(frame), &written,
+                               20, &winfo);
+
+        if (ret == RIG_OK)
+        {
+            accepted++;
+        }
+    }
+    while (ret == RIG_OK && accepted < 20);
+
+    TEST_CHECK(ret == -RIG_ETIMEOUT);
+    TEST_MSG("expected -RIG_ETIMEOUT on the full ring, got %d", ret);
+    TEST_CHECK(accepted > 0 && accepted < 20);
+
+    struct rig_stream_stats stats;
+    TEST_CHECK(rig_stream_get_stats(rig, st, &stats) == RIG_OK);
+    TEST_CHECK(stats.overruns == 0);
+    TEST_CHECK(stats.dropped_samples_overrun == 0);
+
+    rig_stream_close(rig, st);
+    teardown_rig(rig);
+}
+
+
+/* A codec-only caps entry is served verbatim: derivation must not widen
+ * formats, rates or channels it cannot serve. */
+void test_caps_codec_only_not_widened(void)
+{
+    RIG *rig = setup_rig(&stub_caps_codec_stream);
+    TEST_ASSERT(rig != NULL);
+
+    const struct rig_stream_caps *mixed = rig_stream_caps_at(rig, 0);
+    const struct rig_stream_caps *codec = rig_stream_caps_at(rig, 1);
+    TEST_ASSERT(mixed != NULL && codec != NULL);
+
+    /* Mixed entry: PCM family widened, the codec bit passes through. */
+    TEST_CHECK((mixed->formats & RIG_STREAM_FORMAT_PCM_F32) != 0);
+    TEST_CHECK((mixed->formats & RIG_STREAM_FORMAT_OPUS) != 0);
+
+    /* Codec-only entry: exactly what the backend declared. */
+    TEST_CHECK(codec->formats == RIG_STREAM_FORMAT_OPUS);
+    TEST_MSG("codec-only formats: got 0x%x", (unsigned)codec->formats);
+    TEST_CHECK(codec->sample_rates[0] == 48000);
+    TEST_CHECK(codec->sample_rates[1] == 0);
+    TEST_MSG("codec-only rate list must stay native (got second rate %d)",
+             codec->sample_rates[1]);
+    TEST_CHECK(codec->channels_min == 1);
+    TEST_CHECK(codec->channels_max == 1);
+
+    /* Native view mirrors the declaration as usual. */
+    TEST_CHECK(codec->native_formats == RIG_STREAM_FORMAT_OPUS);
+    TEST_CHECK(codec->native_sample_rates[0] == 48000);
+    TEST_CHECK(codec->native_channels_max == 1);
+
+    teardown_rig(rig);
+}
+
+/* Before rig_open there is no stream state: the accessor serves the raw
+ * backend declaration (native semantics, native_* fields zero). */
+void test_caps_pre_open_raw(void)
+{
+    rig_register(&stub_caps_with_stream);
+    RIG *rig = rig_init(stub_caps_with_stream.rig_model);
+    TEST_ASSERT(rig != NULL);
+
+    const struct rig_stream_caps *audio = rig_stream_caps_at(rig, 0);
+    TEST_ASSERT(audio != NULL);
+    TEST_CHECK(audio->formats == (RIG_STREAM_FORMAT_PCM_S16
+                                  | RIG_STREAM_FORMAT_PCM_F32));
+    TEST_CHECK(audio->native_formats == 0);
+
+    rig_cleanup(rig);
+}
+
+/* A fully native open (format, rate and channels all declared) reports
+ * RIG_STREAM_CONV_NONE and satisfies require_native. */
+void test_conversions_getter(void)
+{
+    RIG *rig = setup_rig(&stub_caps_with_stream);
+    TEST_ASSERT(rig != NULL);
+
+    TEST_CHECK(rig_stream_get_conversions(NULL) == -RIG_EINVAL);
+
+    struct rig_stream_config *cfg = rig_stream_config_alloc();
+    TEST_ASSERT(cfg != NULL);
+    cfg->type = RIG_STREAM_TYPE_AUDIO_RX;
+    cfg->format = RIG_STREAM_FORMAT_PCM_S16;
+    cfg->sample_rate = 48000;
+    cfg->channels = 1;
+    cfg->require_native = 1;
+
+    rig_stream_t *stream = NULL;
+    TEST_ASSERT(rig_stream_open(rig, cfg, &stream) == RIG_OK);
+    TEST_CHECK(rig_stream_get_conversions(stream) == RIG_STREAM_CONV_NONE);
+
+    rig_stream_close(rig, stream);
+    rig_stream_config_free(cfg);
     teardown_rig(rig);
 }
 
@@ -1304,6 +1867,28 @@ void test_stream_conf_tokens(void)
                              sizeof(val)) == RIG_OK);
     TEST_CHECK(strcmp(val, "50") == 0);
 
+    /* Resampler quality: combo defaults to medium, accepts the three
+     * levels, rejects anything else (value kept on failed set). */
+    TEST_CHECK(rig_get_conf2(rig, TOK_STREAM_RESAMPLE_QUALITY, val,
+                             sizeof(val)) == RIG_OK);
+    TEST_CHECK(strcmp(val, "medium") == 0);
+    TEST_MSG("default quality: got '%s', expected 'medium'", val);
+
+    TEST_CHECK(rig_set_conf(rig, TOK_STREAM_RESAMPLE_QUALITY,
+                            "best") == RIG_OK);
+    TEST_CHECK(rig_get_conf2(rig, TOK_STREAM_RESAMPLE_QUALITY, val,
+                             sizeof(val)) == RIG_OK);
+    TEST_CHECK(strcmp(val, "best") == 0);
+
+    TEST_CHECK(rig_set_conf(rig, TOK_STREAM_RESAMPLE_QUALITY,
+                            "fast") == RIG_OK);
+    TEST_CHECK(rig_set_conf(rig, TOK_STREAM_RESAMPLE_QUALITY,
+                            "bogus") == -RIG_EINVAL);
+    TEST_CHECK(rig_get_conf2(rig, TOK_STREAM_RESAMPLE_QUALITY, val,
+                             sizeof(val)) == RIG_OK);
+    TEST_CHECK(strcmp(val, "fast") == 0);
+    TEST_MSG("after rejected set: got '%s', expected 'fast'", val);
+
     /* out-of-range rejected */
     TEST_CHECK(rig_set_conf(rig, TOK_STREAM_TRANSPORT_BUFFER_MS,
                             "-1") == -RIG_EINVAL);
@@ -1566,6 +2151,15 @@ TEST_LIST =
     { "get_stream_caps_none",     test_get_stream_caps_none },
     { "stream_conf_tokens",       test_stream_conf_tokens },
     { "get_stream_caps",          test_get_stream_caps },
+    { "caps_derived_formats",     test_caps_derived_formats },
+    { "caps_derived_rates",       test_caps_derived_rates },
+    { "caps_derived_channels",    test_caps_derived_channels },
+    { "codec_format_native_only", test_codec_format_native_only },
+    { "codec_frame_read_api",     test_codec_frame_read_api },
+    { "codec_frame_write_api",    test_codec_frame_write_api },
+    { "caps_codec_only_not_widened", test_caps_codec_only_not_widened },
+    { "caps_pre_open_raw",        test_caps_pre_open_raw },
+    { "conversions_getter",       test_conversions_getter },
     { "config_alloc_free",        test_config_alloc_free },
     { "get_max_payload",          test_get_max_payload },
     { "open_null_config",         test_open_null_config },

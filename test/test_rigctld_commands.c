@@ -90,18 +90,50 @@ extern int is_rigctld;
  * Format order follows all_formats[] in rigctld_stream.c.
  * These must match dummy.c stream_caps declarations exactly.
  */
+/* The advertised rates are the frontend-derived EFFECTIVE list. With the
+ * resampler built it is native ∪ curated standards ∪ integer divisions
+ * (÷2..÷10, exact results) of each native rate, sorted ascending; without
+ * it, exactly the native list. See HAMLIB_STREAMING_FORMAT_CONVERSION.md
+ * §3.4 — these literals double as an integration test of that derivation
+ * against the dummy backend's native rates. */
+#define EXPECTED_AUDIO_NATIVE_RATES "8000,16000,24000,48000,96000"
+#define EXPECTED_IQ_NATIVE_RATES    "24000,48000,96000,192000"
+
+#ifdef HAVE_SAMPLERATE
+#define EXPECTED_AUDIO_RATES \
+    "800,1000,1600,2000,2400,3000,3200,4000,4800,6000,8000,9600,11025," \
+    "12000,16000,19200,22050,24000,32000,44100,48000,96000"
+#define EXPECTED_IQ_RATES \
+    "2400,3000,4000,4800,6000,8000,9600,11025,12000,16000,19200,22050," \
+    "24000,32000,38400,44100,48000,64000,96000,192000"
+#else
+/* Without the resampler the effective sets equal the native sets. */
+#define EXPECTED_AUDIO_RATES EXPECTED_AUDIO_NATIVE_RATES
+#define EXPECTED_IQ_RATES    EXPECTED_IQ_NATIVE_RATES
+#endif
+
+/* AUDIO_RX carries the dummy's fabricated OPUS test codec: it appears in
+ * both views (declared native, passed through derivation untouched). */
 #define EXPECTED_AUDIO_RX_LINE \
-    "type=AUDIO_RX formats=PCM_S8,PCM_U8,PCM_S16,PCM_F32 " \
-    "rates=8000,16000,24000,48000,96000 channels=1-2 max=4"
+    "type=AUDIO_RX formats=PCM_S8,PCM_U8,PCM_S16,PCM_F32,OPUS " \
+    "rates=" EXPECTED_AUDIO_RATES " channels=1-2 max=4 " \
+    "native_formats=PCM_F32,OPUS " \
+    "native_rates=" EXPECTED_AUDIO_NATIVE_RATES " native_channels=1-2"
 #define EXPECTED_AUDIO_TX_LINE \
-    "type=AUDIO_TX formats=PCM_S8,PCM_U8,PCM_S16,PCM_F32 " \
-    "rates=8000,16000,24000,48000,96000 channels=1-2 max=4"
+    "type=AUDIO_TX formats=PCM_S8,PCM_U8,PCM_S16,PCM_F32,OPUS " \
+    "rates=" EXPECTED_AUDIO_RATES " channels=1-2 max=4 " \
+    "native_formats=PCM_F32,OPUS " \
+    "native_rates=" EXPECTED_AUDIO_NATIVE_RATES " native_channels=1-2"
 #define EXPECTED_IQ_RX_LINE \
     "type=IQ_RX formats=IQ_CS8,IQ_CU8,IQ_CS16,IQ_CF32 " \
-    "rates=24000,48000,96000,192000 channels=1-4 max=4"
+    "rates=" EXPECTED_IQ_RATES " channels=1-4 max=4 " \
+    "native_formats=IQ_CF32 " \
+    "native_rates=" EXPECTED_IQ_NATIVE_RATES " native_channels=1-4"
 #define EXPECTED_IQ_TX_LINE \
     "type=IQ_TX formats=IQ_CS8,IQ_CU8,IQ_CS16,IQ_CF32 " \
-    "rates=24000,48000,96000,192000 channels=1-4 max=4"
+    "rates=" EXPECTED_IQ_RATES " channels=1-4 max=4 " \
+    "native_formats=IQ_CF32 " \
+    "native_rates=" EXPECTED_IQ_NATIVE_RATES " native_channels=1-4"
 
 
 /* --- Test helpers --- */
@@ -930,6 +962,126 @@ void test_cmd_stream_open_iq_format_on_audio(void)
     TEST_CHECK(rprt_code < 0);
     TEST_MSG("expected error for IQ format on audio type, got RPRT %d", rprt_code);
     TEST_CHECK(rigctld_stream_registry_count(&g_stream_registry) == 0);
+
+    stream_test_end(rig);
+}
+
+
+/* Coherent multichannel I/Q over the text protocol: channels= accepts
+ * the full caps range — the dummy declares 4 coherent I/Q channels —
+ * with validation done by the frontend caps check. */
+void test_cmd_stream_open_iq_multichannel(void)
+{
+    RIG *rig = stream_test_begin();
+    TEST_CHECK(rig != NULL);
+    char buf[1024];
+
+    int ret = run_cmd(rig, "\\stream_open IQ_RX IQ_CF32 96000 channels=4",
+                      buf, sizeof(buf));
+    TEST_CHECK(ret == 0);
+    TEST_MSG("4-channel IQ open failed: '%s'", buf);
+
+    int stream_id = -1, udp_port = -1;
+    TEST_CHECK(parse_open_response(buf, &stream_id, &udp_port) == 0);
+    TEST_MSG("failed to parse response: '%s'", buf);
+
+    /* Native format, rate and channel count: a native stream. */
+    int val = -1;
+    TEST_CHECK(parse_ext_int(buf, "conversions", &val) == 0);
+    TEST_CHECK(val == RIG_STREAM_CONV_NONE);
+    TEST_MSG("conversions: got %d, expected 0", val);
+
+    struct rigctld_stream *s = rigctld_stream_registry_find_by_id(
+                                   &g_stream_registry, stream_id);
+    TEST_CHECK(s != NULL);
+
+    if (s)
+    {
+        TEST_CHECK(s->config.channels == 4);
+        TEST_MSG("channels: got %d, expected 4", s->config.channels);
+    }
+
+    /* Above the caps maximum still fails cleanly in the frontend. */
+    run_cmd(rig, "\\stream_open IQ_RX IQ_CF32 96000 channels=5",
+            buf, sizeof(buf));
+
+    int rprt_code = 0;
+    TEST_CHECK(parse_rprt_code(buf, &rprt_code) == 0);
+    TEST_CHECK(rprt_code < 0);
+    TEST_MSG("channels=5: got RPRT %d, expected negative", rprt_code);
+    TEST_CHECK(rigctld_stream_registry_count(&g_stream_registry) == 1);
+
+    stream_test_end(rig);
+}
+
+
+/* The open response reports the conversion stages — a converted
+ * request (PCM_S16 against the PCM_F32-native dummy) shows CONV_FORMAT,
+ * a native request shows CONV_NONE. Format conversion needs no resampler,
+ * so this holds with and without HAVE_SAMPLERATE. */
+void test_cmd_stream_open_reports_conversions(void)
+{
+    RIG *rig = stream_test_begin();
+    TEST_CHECK(rig != NULL);
+    char buf[1024];
+    char cmd[64];
+    int val = -1;
+
+    int ret = run_cmd(rig, "\\stream_open AUDIO_RX PCM_S16 48000",
+                      buf, sizeof(buf));
+    TEST_CHECK(ret == 0);
+
+    TEST_CHECK(parse_ext_int(buf, "conversions", &val) == 0);
+    TEST_MSG("no conversions line in: '%s'", buf);
+    TEST_CHECK(val == RIG_STREAM_CONV_FORMAT);
+    TEST_MSG("conversions: got %d, expected %d", val, RIG_STREAM_CONV_FORMAT);
+
+    int stream_id = -1, udp_port = -1;
+    parse_open_response(buf, &stream_id, &udp_port);
+    snprintf(cmd, sizeof(cmd), "\\stream_close %d", stream_id);
+    run_cmd(rig, cmd, buf, sizeof(buf));
+
+    ret = run_cmd(rig, "\\stream_open AUDIO_RX PCM_F32 48000",
+                  buf, sizeof(buf));
+    TEST_CHECK(ret == 0);
+
+    val = -1;
+    TEST_CHECK(parse_ext_int(buf, "conversions", &val) == 0);
+    TEST_CHECK(val == RIG_STREAM_CONV_NONE);
+    TEST_MSG("native open conversions: got %d, expected 0", val);
+
+    stream_test_end(rig);
+}
+
+
+/* require_native=1 refuses a convertible-but-not-native request
+ * with -RIG_ENAVAIL (distinct from -RIG_EINVAL for the impossible), and
+ * accepts the native form of the same request. */
+void test_cmd_stream_open_require_native(void)
+{
+    RIG *rig = stream_test_begin();
+    TEST_CHECK(rig != NULL);
+    char buf[1024];
+
+    run_cmd(rig, "\\stream_open AUDIO_RX PCM_S16 48000 require_native=1",
+            buf, sizeof(buf));
+
+    int rprt_code = 0;
+    TEST_CHECK(parse_rprt_code(buf, &rprt_code) == 0);
+    TEST_MSG("could not parse RPRT from: '%s'", buf);
+    TEST_CHECK(rprt_code == -RIG_ENAVAIL);
+    TEST_MSG("RPRT: got %d, expected %d", rprt_code, -RIG_ENAVAIL);
+    TEST_CHECK(rigctld_stream_registry_count(&g_stream_registry) == 0);
+
+    int ret = run_cmd(rig,
+                      "\\stream_open AUDIO_RX PCM_F32 48000 require_native=1",
+                      buf, sizeof(buf));
+    TEST_CHECK(ret == 0);
+    TEST_MSG("native require_native open failed: '%s'", buf);
+
+    int val = -1;
+    TEST_CHECK(parse_ext_int(buf, "conversions", &val) == 0);
+    TEST_CHECK(val == RIG_STREAM_CONV_NONE);
 
     stream_test_end(rig);
 }
@@ -1792,7 +1944,7 @@ void test_rx_counter_payload_audio(void)
     rigctld_stream_registry_init(&g_stream_registry);
     char buf[1024];
 
-    int ret = run_cmd(rig, "\\stream_open AUDIO_RX PCM_S16 48000",
+    int ret = run_cmd(rig, "\\stream_open AUDIO_RX PCM_F32 48000",
                       buf, sizeof(buf));
     TEST_CHECK(ret == 0);
 
@@ -1889,6 +2041,174 @@ void test_rx_counter_payload_audio(void)
 }
 
 
+/* System-level codec passthrough: open the dummy's fabricated OPUS codec
+ * (counter mode) and verify the packet stream arrives byte-identical —
+ * continuous counter across 3+ UDP packets, wire format id OPUS, and a
+ * conversions: 0 open response. No conversion stage may ever touch a
+ * codec stream. */
+void test_rx_codec_passthrough_audio(void)
+{
+    RIG *rig = test_rig_setup();
+    TEST_CHECK(rig != NULL);
+
+    token_t tok = rig_token_lookup(rig, "stream_mode");
+    TEST_CHECK(tok != 0);
+    TEST_CHECK(rig_set_conf(rig, tok, "counter") == RIG_OK);
+
+    rigctld_stream_registry_init(&g_stream_registry);
+    char buf[1024];
+
+    int ret = run_cmd(rig, "\\stream_open AUDIO_RX OPUS 48000",
+                      buf, sizeof(buf));
+    TEST_CHECK(ret == 0);
+    TEST_MSG("codec open failed: '%s'", buf);
+
+    int stream_id = -1, udp_port = -1;
+    TEST_CHECK(parse_open_response(buf, &stream_id, &udp_port) == 0);
+
+    /* A codec stream is native by definition. */
+    int val = -1;
+    TEST_CHECK(parse_ext_int(buf, "conversions", &val) == 0);
+    TEST_CHECK(val == RIG_STREAM_CONV_NONE);
+    TEST_MSG("codec conversions: got %d, expected 0", val);
+
+    int client_sock = create_client_udp_socket();
+    TEST_CHECK(client_sock >= 0);
+
+    unsigned char pkt[2048];
+    ssize_t n = subscribe_and_await_ack(client_sock, udp_port,
+                                        RIG_STREAM_TYPE_AUDIO_RX, stream_id,
+                                        pkt, sizeof(pkt));
+    TEST_CHECK(n >= RIG_STREAM_HEADER_SIZE);
+
+    uint8_t expected_byte = 0;
+    int data_count = 0;
+    int first_data = 1;
+    uint64_t prev_ts = 0;
+    int i;
+
+    for (i = 0; i < 20 && data_count < 3; i++)
+    {
+        n = udp_recv_timeout(client_sock, pkt, sizeof(pkt), 2000);
+
+        if (n < RIG_STREAM_HEADER_SIZE)
+        {
+            TEST_MSG("packet %d: timeout", i);
+            break;
+        }
+
+        struct rig_stream_packet_header hdr;
+
+        if (stream_packet_header_unpack(pkt, n, &hdr) != 0)
+        {
+            continue;
+        }
+
+        if (!pkt_is_data(&hdr) || pkt_data_len(&hdr) == 0)
+        {
+            continue;
+        }
+
+        /* The wire must label the payload as the codec, untouched. */
+        TEST_CHECK(hdr.format == RIG_STREAM_FMT_ID_OPUS);
+        TEST_MSG("packet %d: wire format id %u, expected %u (OPUS)",
+                 i, (unsigned)hdr.format, (unsigned)RIG_STREAM_FMT_ID_OPUS);
+
+        /* One datagram = one codec frame; the timestamp advances by the
+         * fabricated 480-sample duration per frame. */
+        if (data_count > 0)
+        {
+            TEST_CHECK(hdr.timestamp == prev_ts + 480);
+            TEST_MSG("packet %d: ts %llu, expected %llu", i,
+                     (unsigned long long)hdr.timestamp,
+                     (unsigned long long)(prev_ts + 480));
+        }
+
+        prev_ts = hdr.timestamp;
+
+        unsigned char *payload = pkt + pkt_data_offset(&hdr);
+        size_t data_len = pkt_data_len(&hdr);
+
+        if (first_data)
+        {
+            uint8_t check = payload[0];
+            first_data = 0;
+
+            if (data_len > 1)
+            {
+                check++;
+                int vret = verify_counter_payload(payload + 1,
+                                                  data_len - 1, &check);
+                TEST_CHECK(vret == 0);
+                TEST_MSG("first codec packet: byte altered within packet");
+            }
+
+            expected_byte = check;
+        }
+        else
+        {
+            int vret = verify_counter_payload(payload, data_len,
+                                              &expected_byte);
+            TEST_CHECK(vret == 0);
+            TEST_MSG("codec packet %d: bytes altered or lost", data_count);
+        }
+
+        data_count++;
+    }
+
+    TEST_CHECK(data_count >= 3);
+    TEST_MSG("only got %d codec data packets, expected >= 3", data_count);
+
+    /* Observability: the status reports the produced codec-frame count. */
+    char cmd[64];
+    snprintf(cmd, sizeof(cmd), "\\stream_status %d", stream_id);
+
+    if (run_cmd_ext(rig, cmd, buf, sizeof(buf)) == 0)
+    {
+        int cf = -1;
+        TEST_CHECK(parse_ext_int(buf, "codec_frames", &cf) == 0);
+        TEST_CHECK(cf >= data_count);
+        TEST_MSG("codec_frames %d, expected >= %d", cf, data_count);
+    }
+
+    close(client_sock);
+
+    char close_cmd[64];
+    snprintf(close_cmd, sizeof(close_cmd), "\\stream_close %d", stream_id);
+    run_cmd(rig, close_cmd, buf, sizeof(buf));
+
+    stream_test_end(rig);
+}
+
+
+/* A codec request that is not exactly native must be refused outright:
+ * rates a raw format would reach through resampling (44100 curated,
+ * 12000 = 48000/4) are -RIG_EINVAL for a codec. */
+void test_cmd_stream_open_codec_non_native(void)
+{
+    RIG *rig = stream_test_begin();
+    TEST_CHECK(rig != NULL);
+    char buf[1024];
+    int rprt_code;
+
+    run_cmd(rig, "\\stream_open AUDIO_RX OPUS 44100", buf, sizeof(buf));
+    rprt_code = 0;
+    TEST_CHECK(parse_rprt_code(buf, &rprt_code) == 0);
+    TEST_CHECK(rprt_code == -RIG_EINVAL);
+    TEST_MSG("OPUS@44100: got RPRT %d, expected %d", rprt_code, -RIG_EINVAL);
+
+    run_cmd(rig, "\\stream_open AUDIO_RX OPUS 12000", buf, sizeof(buf));
+    rprt_code = 0;
+    TEST_CHECK(parse_rprt_code(buf, &rprt_code) == 0);
+    TEST_CHECK(rprt_code == -RIG_EINVAL);
+    TEST_MSG("OPUS@12000: got RPRT %d, expected %d", rprt_code, -RIG_EINVAL);
+
+    TEST_CHECK(rigctld_stream_registry_count(&g_stream_registry) == 0);
+
+    stream_test_end(rig);
+}
+
+
 /* Set counter mode, open IQ_RX, verify 3+ packets have continuous
  * incrementing byte pattern with no gaps across packet boundaries. */
 void test_rx_counter_payload_iq(void)
@@ -1904,7 +2224,7 @@ void test_rx_counter_payload_iq(void)
     rigctld_stream_registry_init(&g_stream_registry);
     char buf[1024];
 
-    int ret = run_cmd(rig, "\\stream_open IQ_RX IQ_CS16 192000",
+    int ret = run_cmd(rig, "\\stream_open IQ_RX IQ_CF32 192000",
                       buf, sizeof(buf));
     TEST_CHECK(ret == 0);
 
@@ -2526,14 +2846,14 @@ void test_tx_loopback_counter_audio(void)
     char buf[1024];
 
     /* Open TX first so loopback thread can find it as peer */
-    int ret = run_cmd(rig, "\\stream_open AUDIO_TX PCM_S16 48000",
+    int ret = run_cmd(rig, "\\stream_open AUDIO_TX PCM_F32 48000",
                       buf, sizeof(buf));
     TEST_CHECK(ret == 0);
     int tx_id = -1, tx_port = -1;
     TEST_CHECK(parse_open_response(buf, &tx_id, &tx_port) == 0);
 
     /* Open RX — loopback thread starts reading from TX ringbuf */
-    ret = run_cmd(rig, "\\stream_open AUDIO_RX PCM_S16 48000",
+    ret = run_cmd(rig, "\\stream_open AUDIO_RX PCM_F32 48000",
                   buf, sizeof(buf));
     TEST_CHECK(ret == 0);
     int rx_id = -1, rx_port = -1;
@@ -2664,14 +2984,14 @@ void test_tx_loopback_counter_iq(void)
     char buf[1024];
 
     /* Open IQ_TX first so loopback thread can find it as peer */
-    int ret = run_cmd(rig, "\\stream_open IQ_TX IQ_CS16 192000",
+    int ret = run_cmd(rig, "\\stream_open IQ_TX IQ_CF32 192000",
                       buf, sizeof(buf));
     TEST_CHECK(ret == 0);
     int tx_id = -1, tx_port = -1;
     TEST_CHECK(parse_open_response(buf, &tx_id, &tx_port) == 0);
 
     /* Open IQ_RX — loopback thread starts reading from TX ringbuf */
-    ret = run_cmd(rig, "\\stream_open IQ_RX IQ_CS16 192000",
+    ret = run_cmd(rig, "\\stream_open IQ_RX IQ_CF32 192000",
                   buf, sizeof(buf));
     TEST_CHECK(ret == 0);
     int rx_id = -1, rx_port = -1;
@@ -3568,6 +3888,12 @@ void test_cmd_stream_status_all_fields(void)
     TEST_CHECK(parse_ext_int(buf, "muted", &val) == 0);
     TEST_CHECK(val == 0);
 
+    /* PCM_S16 against the PCM_F32-native dummy is a converted stream. */
+    TEST_CHECK(parse_ext_int(buf, "conversions", &val) == 0);
+    TEST_CHECK(val == RIG_STREAM_CONV_FORMAT);
+    TEST_MSG("status conversions: got %d, expected %d", val,
+             RIG_STREAM_CONV_FORMAT);
+
     TEST_CHECK(parse_ext_int(buf, "packet_count", &val) == 0);
     TEST_CHECK(val >= 0);
 
@@ -3701,6 +4027,12 @@ void test_cmd_stream_list_all_fields(void)
 
     TEST_CHECK(parse_ext_int(buf, "muted", &val) == 0);
     TEST_CHECK(val == 0);
+
+    /* PCM_S16 against the PCM_F32-native dummy is a converted stream. */
+    TEST_CHECK(parse_ext_int(buf, "conversions", &val) == 0);
+    TEST_CHECK(val == RIG_STREAM_CONV_FORMAT);
+    TEST_MSG("list conversions: got %d, expected %d", val,
+             RIG_STREAM_CONV_FORMAT);
 
     snprintf(buf, sizeof(buf), "\\stream_close %d", stream_id);
     run_cmd(rig, buf, buf, sizeof(buf));
@@ -5599,6 +5931,9 @@ TEST_LIST =
     { "cmd_stream_caps_audio_tx_complete",  test_cmd_stream_caps_audio_tx_complete },
     { "cmd_stream_caps_iq_rx_complete",     test_cmd_stream_caps_iq_rx_complete },
     { "cmd_stream_caps_iq_tx_complete",     test_cmd_stream_caps_iq_tx_complete },
+    { "cmd_stream_open_iq_multichannel",    test_cmd_stream_open_iq_multichannel },
+    { "cmd_stream_open_reports_conversions", test_cmd_stream_open_reports_conversions },
+    { "cmd_stream_open_require_native",     test_cmd_stream_open_require_native },
 
     /* stream_open — happy paths with backend verification */
     { "cmd_stream_open_kv_config_params",   test_cmd_stream_open_kv_config_params },
@@ -5642,6 +5977,8 @@ TEST_LIST =
     /* IQ and payload verification */
     { "rx_iq_data_arrives",                 test_rx_iq_data_arrives },
     { "rx_counter_payload_audio",           test_rx_counter_payload_audio },
+    { "rx_codec_passthrough_audio",         test_rx_codec_passthrough_audio },
+    { "cmd_stream_open_codec_non_native",   test_cmd_stream_open_codec_non_native },
     { "rx_counter_payload_iq",              test_rx_counter_payload_iq },
     { "rx_metadata_initial",               test_rx_metadata_initial },
 

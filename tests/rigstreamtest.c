@@ -44,6 +44,18 @@
 
 
 static volatile sig_atomic_t running = 1;
+static int g_require_native = 0;  /* --require-native: fail instead of
+                                   * accepting a converted stream */
+
+/* Report the frontend conversion stages of a freshly opened stream:
+ * CONV_NONE marks a native stream (bytes untouched). */
+static void report_conversions(rig_stream_t *st, const char *tag)
+{
+    int c = rig_stream_get_conversions(st);
+
+    printf("Stream %s: conversions=0x%x (%s)\n", tag, c,
+           c == RIG_STREAM_CONV_NONE ? "native stream" : "converted stream");
+}
 
 static void sighandler(int sig)
 {
@@ -110,6 +122,7 @@ static void usage(const char *prog)
             "  --iq                   Use I/Q streams for the phases (default: audio)\n"
             "  --stats-secs <sec>     Interim stats interval (default 5)\n"
             "  --buffer-ms <ms>       Ring buffer size as ms of stream data\n"
+            "  --require-native       Fail instead of accepting a converted stream\n"
             "                         (0 = backend default)\n"
             "\n"
             "Full-duplex soak (--full-duplex): RX and TX streams run concurrently\n"
@@ -222,6 +235,7 @@ static int run_rx_single(RIG *rig, rig_stream_type_t type,
                      : RIG_STREAM_FORMAT_PCM_F32;
     config->sample_rate = sample_rate;
     config->channels = channels;
+    config->require_native = g_require_native;
 
     printf("Opening %s stream: %d Hz, %d ch\n",
            type_name(type), sample_rate, channels);
@@ -235,6 +249,7 @@ static int run_rx_single(RIG *rig, rig_stream_type_t type,
         return retval;
     }
 
+    report_conversions(stream, type_name(type));
     printf("Stream opened, reading...\n");
 
     if (iq_raw_path && type != RIG_STREAM_TYPE_IQ_RX)
@@ -393,6 +408,7 @@ static int run_tx_single(RIG *rig, int use_iq, int sample_rate, int channels,
                      : RIG_STREAM_FORMAT_PCM_F32;
     config->sample_rate = sample_rate;
     config->channels = chans;
+    config->require_native = g_require_native;
 
     printf("Opening %s stream: %d Hz, %d ch%s\n",
            type_name(type), sample_rate, chans,
@@ -408,6 +424,7 @@ static int run_tx_single(RIG *rig, int use_iq, int sample_rate, int channels,
         return retval;
     }
 
+    report_conversions(stream, type_name(type));
     printf("Stream opened, generating 1 kHz tone (%d ms frames)...\n",
            frame_ms);
 
@@ -538,11 +555,13 @@ static int run_loopback(RIG *rig, int sample_rate, int channels,
     rx_config->format = RIG_STREAM_FORMAT_PCM_F32;
     rx_config->sample_rate = sample_rate;
     rx_config->channels = channels;
+    rx_config->require_native = g_require_native;
 
     tx_config->type = RIG_STREAM_TYPE_AUDIO_TX;
     tx_config->format = RIG_STREAM_FORMAT_PCM_F32;
     tx_config->sample_rate = sample_rate;
     tx_config->channels = channels;
+    tx_config->require_native = g_require_native;
 
     printf("Opening loopback: AUDIO_RX -> AUDIO_TX, %d Hz, %d ch\n",
            sample_rate, channels);
@@ -569,6 +588,8 @@ static int run_loopback(RIG *rig, int sample_rate, int channels,
         return retval;
     }
 
+    report_conversions(rx_stream, "RX");
+    report_conversions(tx_stream, "TX");
     printf("Loopback running...\n");
 
     /* Open WAV file if requested */
@@ -736,6 +757,10 @@ static int open_with_retry(RIG *rig, const struct rig_stream_config *cfg,
     {
         err->open_fail++;
     }
+    else
+    {
+        report_conversions(*stream, "phase");
+    }
 
     return ret;
 }
@@ -759,6 +784,7 @@ static void run_rx_phase(RIG *rig, rig_stream_type_t type,
                   ? RIG_STREAM_FORMAT_IQ_CF32 : RIG_STREAM_FORMAT_PCM_F32;
     cfg->sample_rate = o->sample_rate;
     cfg->channels = o->channels;
+    cfg->require_native = g_require_native;
     cfg->buffer_duration_ms = o->buffer_ms;   /* 0 = backend default */
 
     int ret = open_with_retry(rig, cfg, &stream, err);
@@ -878,6 +904,7 @@ static void run_tx_phase(RIG *rig, rig_stream_type_t type,
     cfg->format = iq ? RIG_STREAM_FORMAT_IQ_CF32 : RIG_STREAM_FORMAT_PCM_F32;
     cfg->sample_rate = o->sample_rate;
     cfg->channels = chans;
+    cfg->require_native = g_require_native;
     cfg->buffer_duration_ms = o->buffer_ms;   /* 0 = backend default */
 
     int ret = open_with_retry(rig, cfg, &stream, err);
@@ -1332,6 +1359,7 @@ static int run_full_duplex(RIG *rig, const struct duplex_opts *o)
                      RIG_STREAM_FORMAT_PCM_F32;
     rx_cfg->sample_rate = o->sample_rate;
     rx_cfg->channels = o->channels;
+    rx_cfg->require_native = g_require_native;
     rx_cfg->buffer_duration_ms = o->buffer_ms;
 
     tx_cfg->type = tx_type;
@@ -1339,6 +1367,7 @@ static int run_full_duplex(RIG *rig, const struct duplex_opts *o)
                      RIG_STREAM_FORMAT_PCM_F32;
     tx_cfg->sample_rate = o->sample_rate;
     tx_cfg->channels = tx_chans;
+    tx_cfg->require_native = g_require_native;
     tx_cfg->buffer_duration_ms = o->buffer_ms;
 
     int rx_ret = rig_stream_open(rig, rx_cfg, &rx);
@@ -1357,6 +1386,9 @@ static int run_full_duplex(RIG *rig, const struct duplex_opts *o)
 
         return 1;
     }
+
+    report_conversions(rx, "RX");
+    report_conversions(tx, "TX");
 
     struct fd_rx_arg rxa;
 
@@ -1530,7 +1562,8 @@ int main(int argc, char *argv[])
     {
         OPT_RX_SECS = 1000, OPT_TX_SECS, OPT_CYCLES,
         OPT_POWER, OPT_IQ, OPT_STATS_SECS, OPT_BUFFER_MS,
-        OPT_FULL_DUPLEX, OPT_TONE_ON, OPT_TONE_OFF
+        OPT_FULL_DUPLEX, OPT_TONE_ON, OPT_TONE_OFF,
+        OPT_REQUIRE_NATIVE
     };
 
     static struct option long_opts[] =
@@ -1555,6 +1588,7 @@ int main(int argc, char *argv[])
         { "iq",          no_argument,       NULL, OPT_IQ },
         { "stats-secs",  required_argument, NULL, OPT_STATS_SECS },
         { "buffer-ms",   required_argument, NULL, OPT_BUFFER_MS },
+        { "require-native", no_argument,    NULL, OPT_REQUIRE_NATIVE },
         { "full-duplex", no_argument,       NULL, OPT_FULL_DUPLEX },
         { "tone-on-ms",     required_argument, NULL, OPT_TONE_ON },
         { "tone-off-ms",    required_argument, NULL, OPT_TONE_OFF },
@@ -1657,6 +1691,10 @@ int main(int argc, char *argv[])
 
         case OPT_BUFFER_MS:
             buffer_ms = atoi(optarg);
+            break;
+
+        case OPT_REQUIRE_NATIVE:
+            g_require_native = 1;
             break;
 
         case OPT_FULL_DUPLEX:

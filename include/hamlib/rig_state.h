@@ -259,6 +259,9 @@ struct rig_state {
                                                     server drops a client (0 = built-in) */
     unsigned int stream_keepalive_interval_s;  /*!< Stream keepalive ping interval in
                                                     seconds (0 = built-in) */
+    int stream_resample_quality;               /*!< Stream resampler quality:
+                                                    RIG_RESAMPLE_* + 1, so 0 =
+                                                    built-in default (medium) */
 // New rig_state items go before this line ============================================
 };
 

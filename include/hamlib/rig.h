@@ -1980,7 +1980,10 @@ typedef enum {
     RIG_STREAM_TYPE_COUNT           /* sentinel — not a valid type */
 } rig_stream_type_t;
 
-#define HAMLIB_MAX_STREAM_RATES 8
+/* Sized so the frontend-derived effective rate list (union of native,
+ * curated standard, and integer-divisible rates) does not trim in
+ * realistic cases. */
+#define HAMLIB_MAX_STREAM_RATES 32
 #define HAMLIB_MAX_STREAM_CAPS  8
 #define HAMLIB_MAX_STREAMS      32
 
@@ -1990,10 +1993,33 @@ typedef enum {
 #define RIG_STREAM_CAP_BURST_PTT        (1<<2)  /* SOB/EOB auto-keys PTT */
 #define RIG_STREAM_CAP_HW_TIME          (1<<3)  /* hardware time source available */
 
+/* Active conversion stages between the hardware and an open stream, reported
+ * by rig_stream_get_conversions(). 0 means a native stream: the bytes pass
+ * untouched between the hardware and the application. Anything else marks a
+ * converted stream and names exactly which stages the frontend runs. */
+#define RIG_STREAM_CONV_NONE      0       /* native stream */
+#define RIG_STREAM_CONV_FORMAT   (1<<0)   /* sample format converted */
+#define RIG_STREAM_CONV_RATE     (1<<1)   /* resampled */
+#define RIG_STREAM_CONV_CHANNELS (1<<2)   /* channel count mapped */
+
+/* Streaming capability descriptor. Two views share this struct:
+ *
+ * - BACKENDS author it with the classic fields (formats, sample_rates,
+ *   channels_min/max) describing the HARDWARE-NATIVE truth, and leave the
+ *   native_* fields zero.
+ * - APPLICATIONS read it through rig_stream_caps_at(), which (after
+ *   rig_open) serves a frontend-derived copy in which the classic fields
+ *   have been widened to the EFFECTIVE set — everything rig_stream_open
+ *   accepts, conversions included — and native_* carries what the backend
+ *   declared. A request outside the native set but inside the effective set
+ *   is served through frontend conversion (see RIG_STREAM_CONV_*). */
 struct rig_stream_caps {
     rig_stream_type_t type;
-    rig_stream_format_t formats;            /* Bitmask of supported formats */
-    int sample_rates[HAMLIB_MAX_STREAM_RATES]; /* Supported rates, 0-terminated */
+    rig_stream_format_t formats;            /* Openable formats (effective set
+                                             * in the derived app view; backends
+                                             * declare native here) */
+    int sample_rates[HAMLIB_MAX_STREAM_RATES]; /* Openable rates, 0-terminated
+                                             * (effective in the app view) */
     int channels_min;                       /* 1=mono, 2=stereo */
     int channels_max;
     int max_streams;                        /* Concurrent streams of this type */
@@ -2001,8 +2027,24 @@ struct rig_stream_caps {
     int tx_schedule_horizon_ms;             /* Max lead time for a timed TX
                                              * burst (0 = not schedulable) */
     int caps_flags2;                        /* RIG_STREAM_CAP2_* (reserved) */
-    int _reserved[6];                       /* ABI headroom; future capability
-                                             * fields carve from here */
+    int _reserved[6];                       /* ABI headroom. Policy: scalar
+                                             * capability fields carve from
+                                             * the front of this array;
+                                             * array-sized additions append
+                                             * at the END of the struct (the
+                                             * library owns and serves every
+                                             * instance, so appended fields
+                                             * are safe — the native_* view
+                                             * below is the precedent). */
+
+    /* Hardware-native view, filled by the frontend in the derived caps
+     * served by rig_stream_caps_at(). Backends leave these zero — except
+     * a relaying backend serving pre-derived caps (see the stream_caps
+     * pointer in struct rig_caps). */
+    rig_stream_format_t native_formats;
+    int native_sample_rates[HAMLIB_MAX_STREAM_RATES]; /* 0-terminated */
+    int native_channels_min;
+    int native_channels_max;
 };
 
 struct rig_stream_config {
@@ -2033,6 +2075,11 @@ struct rig_stream_config {
                                              * 250 ms). Overridden by transport_buffer_bytes. */
     unsigned int transport_buffer_bytes;             /* Explicit transport buffer bytes
                                              * (0 = derive from transport_buffer_ms/rate) */
+    int require_native;                     /* 1 = open only as a native stream:
+                                             * fail with -RIG_ENAVAIL rather than
+                                             * install a conversion. 0 (default) =
+                                             * convert when the request is in the
+                                             * effective but not the native set. */
 };
 
 typedef struct rig_stream rig_stream_t;     /* Opaque — defined in src/stream.h */
@@ -2137,7 +2184,16 @@ struct rig_stream_read_info {
     uint8_t  time_source;       /* enum rig_stream_time_source */
     uint8_t  time_flags;        /* RIG_STREAM_TIME_FLAG_* */
     uint8_t  time_accuracy;     /* enum rig_stream_time_accuracy */
-    uint64_t _reserved[4];      /* ABI headroom; rig_stream_read zeroes it */
+    uint32_t codec_frame_samples; /* Codec streams: decoded duration of the
+                                   * returned codec frame in samples (0 =
+                                   * unknown). Raw streams: 0. (Occupies
+                                   * former tail padding; the reserved
+                                   * array below is untouched.) */
+    uint64_t _reserved[4];      /* ABI headroom; rig_stream_read zeroes it.
+                                   Policy: scalar additions fill padding
+                                   holes first, then carve whole slots from
+                                   the FRONT of this array — keep it one
+                                   array. */
 };
 
 /* Per-write burst target (TX); passed to rig_stream_write when non-NULL.
@@ -2147,7 +2203,16 @@ struct rig_stream_write_info {
     int64_t  seconds;           /* UTC target */
     uint64_t picoseconds;       /* 0..999,999,999,999 */
     uint8_t  flags;             /* SOB/EOB */
-    uint64_t _reserved[2];      /* ABI headroom; caller SHOULD zero-init */
+    uint32_t codec_frame_samples; /* Codec streams: decoded duration of the
+                                   * written codec frame in samples, declared
+                                   * by the application (0 allowed = unknown;
+                                   * timing features then degrade). Ignored
+                                   * for raw streams. (Occupies former tail
+                                   * padding; the reserved array below is
+                                   * untouched.) */
+    uint64_t _reserved[2];      /* ABI headroom; caller SHOULD zero-init.
+                                   Same carve policy as
+                                   rig_stream_read_info. */
 };
 
 /* Stream health snapshot returned by rig_stream_get_stats() */
@@ -2167,7 +2232,13 @@ struct rig_stream_stats {
     uint64_t dropped_samples_gap;     /* lower bound if gaps_unknown > 0 */
     uint64_t dropped_samples_overrun;
     uint64_t dropped_samples_link;    /* network client only */
-    uint64_t _reserved[6];         /* ABI headroom; rig_stream_get_stats
+    uint64_t codec_frames;         /* Codec streams: whole codec frames
+                                      produced through the ring (equals
+                                      the datagram count today — one frame
+                                      per datagram — but counts frames,
+                                      surviving any future packing).
+                                      0 on raw streams. */
+    uint64_t _reserved[5];         /* ABI headroom; rig_stream_get_stats
                                       zeroes it (see rig_stream_metadata) */
 };
 
@@ -2560,7 +2631,19 @@ struct rig_caps {
      * (struct rig_stream_caps) can gain fields without changing sizeof(rig_caps).
      * Backends with static caps point at a `static const` array; backends that
      * build caps at runtime (netrigctl, icom_network) fill a mutable buffer they
-     * own and assign it here. */
+     * own and assign it here.
+     *
+     * Backends declare the HARDWARE-NATIVE formats, rates and channel counts
+     * in the classic fields and nothing else; the frontend derives the wider
+     * effective (openable-via-conversion) view it serves to applications
+     * through rig_stream_caps_at(). Applications must use that accessor, not
+     * this pointer.
+     *
+     * Exception: a backend that fills the native_* fields too (non-zero
+     * native_formats) is declaring BOTH views pre-derived, and the frontend
+     * serves them verbatim. netrigctl uses this to relay the remote
+     * server's authoritative effective/native split, since conversion for
+     * such streams happens server-side. */
     const struct rig_stream_caps *stream_caps; /*!< Streaming capabilities, 0-terminated by type, or NULL */
 
     /* Data streaming API backend hooks. Only stream_open and stream_close are
@@ -3493,6 +3576,14 @@ rig_stream_caps_count(RIG *rig);
 /*!
  * \brief Access the i-th streaming capability descriptor of \a rig.
  *
+ * The returned descriptor carries both capability views: the classic
+ * fields (formats, sample_rates, channels_min/max) hold the EFFECTIVE
+ * set — every configuration rig_stream_open() will serve, conversions
+ * included — and the native_* fields hold the hardware-native truth.
+ * A request inside the effective but outside the native set is served
+ * through conversion; see RIG_STREAM_CONV_*, rig_stream_get_conversions()
+ * and rig_stream_config.require_native.
+ *
  * The returned pointer is owned by the library and is valid for the lifetime
  * of \a rig. Its contents are immutable — treat it as read-only. The caller
  * MUST NOT free it; to retain values, copy the fields out.
@@ -3502,6 +3593,20 @@ rig_stream_caps_count(RIG *rig);
  */
 extern HAMLIB_EXPORT(const struct rig_stream_caps *)
 rig_stream_caps_at(RIG *rig, int index);
+
+/*!
+ * \brief Report the active conversion stages of an open stream.
+ *
+ * Returns the RIG_STREAM_CONV_* bitmask describing what runs between the
+ * hardware and this stream. RIG_STREAM_CONV_NONE (0) means a native
+ * stream: bytes pass untouched. The value is set at open and constant for
+ * the stream's lifetime. For a network rig (netrigctl) the conversion
+ * runs on the server, and this reports the server's value.
+ *
+ * \return the bitmask (>= 0), or -RIG_EINVAL on a NULL stream.
+ */
+extern HAMLIB_EXPORT(int)
+rig_stream_get_conversions(const rig_stream_t *stream);
 
 /*!
  * \brief Allocate a zeroed stream configuration owned by the library.

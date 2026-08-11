@@ -61,6 +61,7 @@ TEST_LIST =
 #include <signal.h>
 #include <sys/wait.h>
 #include <errno.h>
+#include <math.h>
 
 
 /* --- Subprocess rigctld management --- */
@@ -168,9 +169,12 @@ static const char *find_rigctld(void)
 
 /* Start rigctld; source_id_opt, when non-NULL, is passed as
  * --stream-source-id. A proc->port already > 0 is reused (daemon restart on
- * the same port), otherwise a free port is picked. */
+ * the same port), otherwise a free port is picked. set_conf_opt, when
+ * non-NULL, is passed to the daemon as --set-conf (e.g.
+ * "stream_mode=counter" for the dummy's deterministic byte pattern). */
 static int start_rigctld_opt(struct rigctld_proc *proc,
-                             const char *source_id_opt)
+                             const char *source_id_opt,
+                             const char *set_conf_opt)
 {
     const char *rigctld_path;
     char port_str[16];
@@ -210,10 +214,21 @@ static int start_rigctld_opt(struct rigctld_proc *proc,
             freopen("/dev/null", "w", stderr);
         }
 
-        if (source_id_opt)
+        if (source_id_opt && set_conf_opt)
+        {
+            execlp(rigctld_path, "rigctld", "-m", "1", "-t", port_str, "-vvv",
+                   "--stream-source-id", source_id_opt,
+                   "--set-conf", set_conf_opt, NULL);
+        }
+        else if (source_id_opt)
         {
             execlp(rigctld_path, "rigctld", "-m", "1", "-t", port_str, "-vvv",
                    "--stream-source-id", source_id_opt, NULL);
+        }
+        else if (set_conf_opt)
+        {
+            execlp(rigctld_path, "rigctld", "-m", "1", "-t", port_str, "-vvv",
+                   "--set-conf", set_conf_opt, NULL);
         }
         else
         {
@@ -238,7 +253,7 @@ static int start_rigctld_opt(struct rigctld_proc *proc,
 
 static int start_rigctld(struct rigctld_proc *proc)
 {
-    return start_rigctld_opt(proc, NULL);
+    return start_rigctld_opt(proc, NULL, NULL);
 }
 
 
@@ -438,10 +453,11 @@ void test_caps_discovery_all_types(void)
 
     if (arx)
     {
-        /* Documented dummy AUDIO format bitmask:
-         * S8(1<<0) | U8(1<<1) | S16(1<<2) | F32(1<<3)
-         * = 1+2+4+8 = 0x0F */
-        const rig_stream_format_t expected_audio_fmts = 0x0F;
+        /* Documented dummy AUDIO_RX format bitmask:
+         * S8(1<<0) | U8(1<<1) | S16(1<<2) | F32(1<<3) | OPUS(1<<4)
+         * = 0x1F — OPUS is the dummy's fabricated test codec, relayed
+         * through both views. */
+        const rig_stream_format_t expected_audio_fmts = 0x1F;
 
         TEST_CHECK(arx->formats == expected_audio_fmts);
         TEST_MSG("AUDIO_RX formats: got 0x%x, expected 0x%x",
@@ -471,6 +487,21 @@ void test_caps_discovery_all_types(void)
         TEST_CHECK(arx->max_streams == 4);
         TEST_MSG("AUDIO_RX max_streams: got %d, expected 4",
                  arx->max_streams);
+
+        /* The server relays its native (hardware) view — the
+         * dummy is PCM_F32-native plus the fabricated OPUS codec — and
+         * the frontend serves the entry verbatim (pre-derived
+         * passthrough, no re-derivation). */
+        TEST_CHECK(arx->native_formats == (RIG_STREAM_FORMAT_PCM_F32
+                                           | RIG_STREAM_FORMAT_OPUS));
+        TEST_MSG("AUDIO_RX native_formats: got 0x%x",
+                 arx->native_formats);
+        TEST_CHECK(has_rate(arx->native_sample_rates, 8000));
+        TEST_CHECK(has_rate(arx->native_sample_rates, 96000));
+        TEST_CHECK(!has_rate(arx->native_sample_rates, 44100));
+        TEST_MSG("44100 must not be in the native rate list");
+        TEST_CHECK(arx->native_channels_min == 1);
+        TEST_CHECK(arx->native_channels_max == 2);
     }
 
     /* --- AUDIO_TX --- */
@@ -481,8 +512,9 @@ void test_caps_discovery_all_types(void)
 
     if (atx)
     {
-        /* Same documented dummy AUDIO bitmask as AUDIO_RX: 0x0F */
-        const rig_stream_format_t expected_audio_fmts = 0x0F;
+        /* AUDIO_TX carries the fabricated OPUS codec too (symmetric with
+         * AUDIO_RX): 0x1F */
+        const rig_stream_format_t expected_audio_fmts = 0x1F;
 
         TEST_CHECK(atx->formats == expected_audio_fmts);
         TEST_MSG("AUDIO_TX formats: got 0x%x, expected 0x%x",
@@ -546,6 +578,14 @@ void test_caps_discovery_all_types(void)
         TEST_CHECK(iqtx->channels_min == 1);
         TEST_CHECK(iqtx->channels_max == 4);
         TEST_CHECK(iqtx->max_streams == 4);
+
+        /* Relayed native view — the dummy is IQ_CF32-native. */
+        TEST_CHECK(iqtx->native_formats == RIG_STREAM_FORMAT_IQ_CF32);
+        TEST_MSG("IQ_TX native_formats: got 0x%x, expected 0x%x",
+                 iqtx->native_formats, RIG_STREAM_FORMAT_IQ_CF32);
+        TEST_CHECK(has_rate(iqtx->native_sample_rates, 192000));
+        TEST_CHECK(iqtx->native_channels_min == 1);
+        TEST_CHECK(iqtx->native_channels_max == 4);
     }
 
     rig_close(rig);
@@ -998,6 +1038,441 @@ void test_rx_data_received(void)
 }
 
 
+/* Server-side conversion E2E: a PCM_S16 open against the PCM_F32-native
+ * dummy. The client must report the server's
+ * conversion stages, deliver (converted) data, refuse the same config
+ * under require_native with -RIG_ENAVAIL, and report a native stream for
+ * the PCM_F32 form. Format conversion needs no resampler, so this holds
+ * with and without HAVE_SAMPLERATE on either end. */
+void test_rx_converted_stream_e2e(void)
+{
+    struct rigctld_proc proc = {0};
+
+    if (start_rigctld(&proc) < 0)
+    {
+        TEST_CHECK_(0, "could not start rigctld");
+        return;
+    }
+
+    RIG *rig = open_netrigctl(proc.port);
+    TEST_ASSERT(rig != NULL);
+
+    struct rig_stream_config cfg;
+    memset(&cfg, 0, sizeof(cfg));
+    cfg.struct_size = sizeof(cfg);  /* same-build config */
+    cfg.type = RIG_STREAM_TYPE_AUDIO_RX;
+    cfg.format = RIG_STREAM_FORMAT_PCM_S16;
+    cfg.sample_rate = 48000;
+    cfg.channels = 1;
+
+    rig_stream_t *stream = NULL;
+    int ret = rig_stream_open(rig, &cfg, &stream);
+    TEST_CHECK(ret == RIG_OK);
+    TEST_MSG("rig_stream_open RX returned %d", ret);
+    TEST_ASSERT(stream != NULL);
+
+    /* The server-reported indicator: format converted, nothing else. */
+    int conv = rig_stream_get_conversions(stream);
+    TEST_CHECK(conv == RIG_STREAM_CONV_FORMAT);
+    TEST_MSG("conversions: got 0x%x, expected 0x%x",
+             conv, RIG_STREAM_CONV_FORMAT);
+
+    /* Converted data must actually flow. */
+    int16_t buf[480];
+    size_t bytes_read = 0;
+    int got_data = 0;
+
+    for (int attempts = 0; attempts < 15; attempts++)
+    {
+        bytes_read = 0;
+        ret = rig_stream_read(rig, stream, buf, sizeof(buf),
+                              &bytes_read, 200, NULL);
+
+        if (ret == RIG_OK && bytes_read > 0)
+        {
+            got_data = 1;
+            break;
+        }
+    }
+
+    TEST_CHECK(got_data == 1);
+    TEST_MSG("must receive converted RX data within 3 seconds");
+
+    ret = rig_stream_close(rig, stream);
+    TEST_CHECK(ret == RIG_OK);
+
+    /* require_native on the convertible config is refused... */
+    cfg.require_native = 1;
+    stream = NULL;
+    ret = rig_stream_open(rig, &cfg, &stream);
+    TEST_CHECK(ret == -RIG_ENAVAIL);
+    TEST_MSG("require_native open: got %d, expected %d", ret, -RIG_ENAVAIL);
+    TEST_CHECK(stream == NULL);
+
+    /* ...while its native form succeeds and reports a native stream. */
+    cfg.format = RIG_STREAM_FORMAT_PCM_F32;
+    ret = rig_stream_open(rig, &cfg, &stream);
+    TEST_CHECK(ret == RIG_OK);
+    TEST_MSG("native require_native open returned %d", ret);
+
+    if (stream)
+    {
+        TEST_CHECK(rig_stream_get_conversions(stream) == RIG_STREAM_CONV_NONE);
+        rig_stream_close(rig, stream);
+    }
+
+    rig_close(rig);
+    rig_cleanup(rig);
+    stop_rigctld(&proc);
+}
+
+
+/* Full-system codec passthrough: the dummy's fabricated OPUS codec in
+ * counter mode, consumed through the COMPLETE client stack — dummy
+ * generator → server ring → rigctld feeder → UDP → netrigctl ring →
+ * rig_stream_read(). Requested exactly (native format/rate/channels)
+ * the bytes must arrive unaltered (continuous counter), labeled native
+ * (conversions = 0); requested not-exactly (a rate a raw format would
+ * reach by resampling) the open must fail outright with -RIG_EINVAL. */
+void test_rx_codec_passthrough_e2e(void)
+{
+    struct rigctld_proc proc = {0};
+
+    if (start_rigctld_opt(&proc, NULL, "stream_mode=counter") < 0)
+    {
+        TEST_CHECK_(0, "could not start rigctld");
+        return;
+    }
+
+    RIG *rig = open_netrigctl(proc.port);
+    TEST_ASSERT(rig != NULL);
+
+    struct rig_stream_config cfg;
+    memset(&cfg, 0, sizeof(cfg));
+    cfg.struct_size = sizeof(cfg);  /* same-build config */
+    cfg.type = RIG_STREAM_TYPE_AUDIO_RX;
+    cfg.format = RIG_STREAM_FORMAT_OPUS;
+    cfg.sample_rate = 48000;
+    cfg.channels = 1;
+
+    rig_stream_t *stream = NULL;
+    int ret = rig_stream_open(rig, &cfg, &stream);
+    TEST_CHECK(ret == RIG_OK);
+    TEST_MSG("codec open returned %d", ret);
+    TEST_ASSERT(stream != NULL);
+
+    TEST_CHECK(rig_stream_get_conversions(stream) == RIG_STREAM_CONV_NONE);
+
+    /* Frame semantics through the FULL stack: every read returns exactly
+     * one codec frame (16..256 bytes), the byte counter is continuous
+     * ACROSS frames, and the per-frame start index (from the wire
+     * timestamp) advances by the fabricated 480-sample duration. The
+     * duration itself is not carried on the wire, so the client reports
+     * codec_frame_samples = 0 (accepted asymmetry). */
+    unsigned char buf[2048];
+    int frames_got = 0, altered = 0, size_bad = 0;
+    uint8_t expected = 0;
+    int have_expected = 0;
+    uint64_t prev_index = 0;
+    int index_bad = 0;
+
+    for (int attempts = 0; attempts < 40 && frames_got < 10; attempts++)
+    {
+        size_t bytes_read = 0;
+        struct rig_stream_read_info info;
+        ret = rig_stream_read(rig, stream, buf, sizeof(buf),
+                              &bytes_read, 200, &info);
+
+        if (ret != RIG_OK || bytes_read == 0)
+        {
+            continue;
+        }
+
+        if (bytes_read < 16 || bytes_read > 256)
+        {
+            size_bad++;
+        }
+
+        if (!have_expected)
+        {
+            expected = buf[0];
+            have_expected = 1;
+        }
+
+        for (size_t i = 0; i < bytes_read; i++)
+        {
+            if (buf[i] != expected++)
+            {
+                altered++;
+                expected = (uint8_t)(buf[i] + 1);
+            }
+        }
+
+        if (frames_got > 0 && info.sample_index != prev_index + 480)
+        {
+            index_bad++;
+        }
+
+        prev_index = info.sample_index;
+        TEST_CHECK(info.codec_frame_samples == 0);
+        frames_got++;
+    }
+
+    TEST_CHECK(frames_got >= 10);
+    TEST_MSG("got %d codec frames, expected >= 10", frames_got);
+    TEST_CHECK(size_bad == 0);
+    TEST_MSG("%d frames outside the fabricated 16..256 size range",
+             size_bad);
+    TEST_CHECK(altered == 0);
+    TEST_MSG("%d codec bytes altered in transit", altered);
+    TEST_CHECK(index_bad == 0);
+    TEST_MSG("%d frames with a start index not advancing by 480",
+             index_bad);
+
+    rig_stream_close(rig, stream);
+
+    /* Not exactly native: refused outright, never converted. */
+    cfg.sample_rate = 44100;
+    stream = NULL;
+    ret = rig_stream_open(rig, &cfg, &stream);
+    TEST_CHECK(ret == -RIG_EINVAL);
+    TEST_MSG("codec at 44100: got %d, expected %d", ret, -RIG_EINVAL);
+    TEST_CHECK(stream == NULL);
+
+    rig_close(rig);
+    rig_cleanup(rig);
+    stop_rigctld(&proc);
+}
+
+
+/* Channel forwarding E2E: netrigctl must forward channels= on
+ * \stream_open — without it the server defaults to mono and serves
+ * mislabeled data. The dummy generates stereo with R = L/2 exactly, so
+ * verifying that relation on received pairs proves the server really
+ * opened a 2-channel stream (consecutive mono samples of a sine would
+ * fail it). */
+void test_rx_stereo_channels_forwarded(void)
+{
+    struct rigctld_proc proc = {0};
+
+    if (start_rigctld(&proc) < 0)
+    {
+        TEST_CHECK_(0, "could not start rigctld");
+        return;
+    }
+
+    RIG *rig = open_netrigctl(proc.port);
+    TEST_ASSERT(rig != NULL);
+
+    struct rig_stream_config cfg;
+    memset(&cfg, 0, sizeof(cfg));
+    cfg.struct_size = sizeof(cfg);  /* same-build config */
+    cfg.type = RIG_STREAM_TYPE_AUDIO_RX;
+    cfg.format = RIG_STREAM_FORMAT_PCM_F32;
+    cfg.sample_rate = 48000;
+    cfg.channels = 2;
+
+    rig_stream_t *stream = NULL;
+    int ret = rig_stream_open(rig, &cfg, &stream);
+    TEST_CHECK(ret == RIG_OK);
+    TEST_MSG("stereo open returned %d", ret);
+    TEST_ASSERT(stream != NULL);
+
+    /* Native format/rate, 2 channels within the native 1-2 range. */
+    TEST_CHECK(rig_stream_get_conversions(stream) == RIG_STREAM_CONV_NONE);
+
+    float buf[960];  /* 480 stereo frames */
+    size_t bytes_read = 0;
+    int got_data = 0;
+
+    for (int attempts = 0; attempts < 15; attempts++)
+    {
+        bytes_read = 0;
+        ret = rig_stream_read(rig, stream, buf, sizeof(buf),
+                              &bytes_read, 200, NULL);
+
+        if (ret == RIG_OK && bytes_read >= 2 * sizeof(float))
+        {
+            got_data = 1;
+            break;
+        }
+    }
+
+    TEST_CHECK(got_data == 1);
+    TEST_MSG("must receive stereo data within 3 seconds");
+
+    if (got_data)
+    {
+        TEST_CHECK(bytes_read % (2 * sizeof(float)) == 0);
+        TEST_MSG("read %lu bytes, expected whole stereo frames",
+                 (unsigned long)bytes_read);
+
+        int pairs = (int)(bytes_read / (2 * sizeof(float)));
+        int significant = 0, bad = 0;
+
+        for (int i = 0; i < pairs; i++)
+        {
+            float l = buf[2 * i], r = buf[2 * i + 1];
+
+            if (fabsf(l) > 0.05f)
+            {
+                significant++;
+
+                if (fabsf(r - 0.5f * l) > 0.01f)
+                {
+                    bad++;
+                }
+            }
+        }
+
+        TEST_CHECK(significant > 0);
+        TEST_MSG("no significant samples in %d pairs", pairs);
+        TEST_CHECK(bad == 0);
+        TEST_MSG("%d of %d significant pairs violate R = L/2 "
+                 "(server likely opened mono)", bad, significant);
+    }
+
+    rig_stream_close(rig, stream);
+    rig_close(rig);
+    rig_cleanup(rig);
+    stop_rigctld(&proc);
+}
+
+
+/* Coherent multichannel I/Q E2E: 4 channels — native for the dummy — must
+ * survive the whole wire (channels= forwarding plus the server-side kv
+ * range accepting more than stereo). */
+void test_rx_iq_multichannel_e2e(void)
+{
+    struct rigctld_proc proc = {0};
+
+    if (start_rigctld(&proc) < 0)
+    {
+        TEST_CHECK_(0, "could not start rigctld");
+        return;
+    }
+
+    RIG *rig = open_netrigctl(proc.port);
+    TEST_ASSERT(rig != NULL);
+
+    struct rig_stream_config cfg;
+    memset(&cfg, 0, sizeof(cfg));
+    cfg.struct_size = sizeof(cfg);  /* same-build config */
+    cfg.type = RIG_STREAM_TYPE_IQ_RX;
+    cfg.format = RIG_STREAM_FORMAT_IQ_CF32;
+    cfg.sample_rate = 96000;
+    cfg.channels = 4;
+
+    rig_stream_t *stream = NULL;
+    int ret = rig_stream_open(rig, &cfg, &stream);
+    TEST_CHECK(ret == RIG_OK);
+    TEST_MSG("4-channel IQ open returned %d", ret);
+    TEST_ASSERT(stream != NULL);
+
+    TEST_CHECK(rig_stream_get_conversions(stream) == RIG_STREAM_CONV_NONE);
+
+    /* One 4-channel CF32 frame is 32 bytes. */
+    const size_t frame = 4 * 8;
+    unsigned char buf[240 * 32];
+    size_t bytes_read = 0;
+    int got_data = 0;
+
+    for (int attempts = 0; attempts < 15; attempts++)
+    {
+        bytes_read = 0;
+        ret = rig_stream_read(rig, stream, buf, sizeof(buf),
+                              &bytes_read, 200, NULL);
+
+        if (ret == RIG_OK && bytes_read > 0)
+        {
+            got_data = 1;
+            break;
+        }
+    }
+
+    TEST_CHECK(got_data == 1);
+    TEST_MSG("must receive 4-channel IQ data within 3 seconds");
+
+    if (got_data)
+    {
+        TEST_CHECK(bytes_read % frame == 0);
+        TEST_MSG("read %lu bytes, expected whole 32-byte frames",
+                 (unsigned long)bytes_read);
+    }
+
+    rig_stream_close(rig, stream);
+    rig_close(rig);
+    rig_cleanup(rig);
+    stop_rigctld(&proc);
+}
+
+
+#ifdef HAVE_SAMPLERATE
+/* Server-side resampling E2E: 44100 Hz is in the relayed effective list but not
+ * native to the dummy, so the SERVER resamples and the client accepts by
+ * list membership (delegated resolution — no local resampler involved).
+ * Client and server share this build, so HAVE_SAMPLERATE here implies the
+ * server advertises the widened list. */
+void test_rx_resampled_stream_e2e(void)
+{
+    struct rigctld_proc proc = {0};
+
+    if (start_rigctld(&proc) < 0)
+    {
+        TEST_CHECK_(0, "could not start rigctld");
+        return;
+    }
+
+    RIG *rig = open_netrigctl(proc.port);
+    TEST_ASSERT(rig != NULL);
+
+    struct rig_stream_config cfg;
+    memset(&cfg, 0, sizeof(cfg));
+    cfg.struct_size = sizeof(cfg);  /* same-build config */
+    cfg.type = RIG_STREAM_TYPE_AUDIO_RX;
+    cfg.format = RIG_STREAM_FORMAT_PCM_F32;
+    cfg.sample_rate = 44100;
+    cfg.channels = 1;
+
+    rig_stream_t *stream = NULL;
+    int ret = rig_stream_open(rig, &cfg, &stream);
+    TEST_CHECK(ret == RIG_OK);
+    TEST_MSG("rig_stream_open 44100 returned %d", ret);
+    TEST_ASSERT(stream != NULL);
+
+    int conv = rig_stream_get_conversions(stream);
+    TEST_CHECK(conv == RIG_STREAM_CONV_RATE);
+    TEST_MSG("conversions: got 0x%x, expected 0x%x",
+             conv, RIG_STREAM_CONV_RATE);
+
+    float buf[441];  /* 10ms at 44.1kHz mono */
+    size_t bytes_read = 0;
+    int got_data = 0;
+
+    for (int attempts = 0; attempts < 15; attempts++)
+    {
+        bytes_read = 0;
+        ret = rig_stream_read(rig, stream, buf, sizeof(buf),
+                              &bytes_read, 200, NULL);
+
+        if (ret == RIG_OK && bytes_read > 0)
+        {
+            got_data = 1;
+            break;
+        }
+    }
+
+    TEST_CHECK(got_data == 1);
+    TEST_MSG("must receive resampled RX data within 3 seconds");
+
+    rig_stream_close(rig, stream);
+    rig_close(rig);
+    rig_cleanup(rig);
+    stop_rigctld(&proc);
+}
+#endif /* HAVE_SAMPLERATE */
+
+
 /* RX data path: read multiple frames and verify ongoing data flow. */
 void test_rx_continuous_data(void)
 {
@@ -1079,7 +1554,9 @@ void test_open_unsupported_rate(void)
     cfg.struct_size = sizeof(cfg);  /* same-build config */
     cfg.type = RIG_STREAM_TYPE_AUDIO_TX;
     cfg.format = RIG_STREAM_FORMAT_PCM_S16;
-    cfg.sample_rate = 44100;  /* 44.1kHz not in dummy caps */
+    cfg.sample_rate = 500000; /* above the largest native rate: outside the
+                               * effective set even with the resampler (44.1k
+                               * would now be served via conversion) */
     cfg.channels = 1;
 
     rig_stream_t *stream = NULL;
@@ -2101,7 +2578,7 @@ void test_stream_source_id_cli_and_derived(void)
     memset(&proc, 0, sizeof(proc));
 
     /* Explicit CLI value */
-    TEST_ASSERT(start_rigctld_opt(&proc, "42") == 0);
+    TEST_ASSERT(start_rigctld_opt(&proc, "42", NULL) == 0);
     int explicit_id = query_source_id_raw(proc.port);
     stop_rigctld(&proc);
     TEST_CHECK(explicit_id == 42);
@@ -2109,13 +2586,13 @@ void test_stream_source_id_cli_and_derived(void)
 
     /* Derived default, stable across a restart on the same port */
     memset(&proc, 0, sizeof(proc));
-    TEST_ASSERT(start_rigctld_opt(&proc, NULL) == 0);
+    TEST_ASSERT(start_rigctld_opt(&proc, NULL, NULL) == 0);
     int derived1 = query_source_id_raw(proc.port);
     stop_rigctld(&proc);
     TEST_CHECK(derived1 >= 0x1000 && derived1 <= 0xFFFF);
     TEST_MSG("derived source_id=%d, expected 0x1000-0xFFFF", derived1);
 
-    TEST_ASSERT(start_rigctld_opt(&proc, NULL) == 0);   /* same proc.port */
+    TEST_ASSERT(start_rigctld_opt(&proc, NULL, NULL) == 0);   /* same proc.port */
     int derived2 = query_source_id_raw(proc.port);
     stop_rigctld(&proc);
     TEST_CHECK(derived2 == derived1);
@@ -2142,6 +2619,13 @@ TEST_LIST =
     { "tx_write_status_e2e",       test_tx_write_status_e2e },
     { "tx_underrun_e2e",           test_tx_underrun_e2e },
     { "rx_data_received",          test_rx_data_received },
+    { "rx_converted_stream_e2e",   test_rx_converted_stream_e2e },
+    { "rx_codec_passthrough_e2e",  test_rx_codec_passthrough_e2e },
+    { "rx_stereo_channels_forwarded", test_rx_stereo_channels_forwarded },
+    { "rx_iq_multichannel_e2e",    test_rx_iq_multichannel_e2e },
+#ifdef HAVE_SAMPLERATE
+    { "rx_resampled_stream_e2e",   test_rx_resampled_stream_e2e },
+#endif
     { "rx_continuous_data",        test_rx_continuous_data },
     { "open_unsupported_rate",     test_open_unsupported_rate },
     { "open_unsupported_format",   test_open_unsupported_format },

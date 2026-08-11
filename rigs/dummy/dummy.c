@@ -2547,14 +2547,21 @@ static int dummy_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
     .ext_levels = 1,    \
     }
 
+/* Native declaration only: the dummy hardware "is" a float radio. The
+ * frontend derives and serves the wider effective set (all PCM/IQ formats
+ * and additional rates via conversion); the backend threads produce and
+ * consume F32/CF32 exclusively. Rates stay wide so resampler-less builds
+ * keep full rate coverage (design doc section 3.7). */
 static const struct rig_stream_caps dummy_stream_caps[] =
 {
     {
         .type = RIG_STREAM_TYPE_AUDIO_RX,
-        .formats = RIG_STREAM_FORMAT_PCM_S8
-                 | RIG_STREAM_FORMAT_PCM_U8
-                 | RIG_STREAM_FORMAT_PCM_S16
-                 | RIG_STREAM_FORMAT_PCM_F32,
+        /* OPUS here is a FABRICATED test codec: the dummy emits its
+         * generator bytes (tone or counter mode) labeled OPUS so codec
+         * passthrough can be system-tested byte-exactly without a codec
+         * library. Codec formats are native-only — no conversion stage
+         * ever touches them. */
+        .formats = RIG_STREAM_FORMAT_PCM_F32 | RIG_STREAM_FORMAT_OPUS,
         .sample_rates = { 8000, 16000, 24000, 48000, 96000, 0 },
         .channels_min = 1,
         .channels_max = 2,
@@ -2562,10 +2569,8 @@ static const struct rig_stream_caps dummy_stream_caps[] =
     },
     {
         .type = RIG_STREAM_TYPE_AUDIO_TX,
-        .formats = RIG_STREAM_FORMAT_PCM_S8
-                 | RIG_STREAM_FORMAT_PCM_U8
-                 | RIG_STREAM_FORMAT_PCM_S16
-                 | RIG_STREAM_FORMAT_PCM_F32,
+        /* OPUS: fabricated test codec, symmetric with AUDIO_RX. */
+        .formats = RIG_STREAM_FORMAT_PCM_F32 | RIG_STREAM_FORMAT_OPUS,
         .sample_rates = { 8000, 16000, 24000, 48000, 96000, 0 },
         .channels_min = 1,
         .channels_max = 2,
@@ -2577,10 +2582,7 @@ static const struct rig_stream_caps dummy_stream_caps[] =
     },
     {
         .type = RIG_STREAM_TYPE_IQ_RX,
-        .formats = RIG_STREAM_FORMAT_IQ_CU8
-                 | RIG_STREAM_FORMAT_IQ_CS8
-                 | RIG_STREAM_FORMAT_IQ_CS16
-                 | RIG_STREAM_FORMAT_IQ_CF32,
+        .formats = RIG_STREAM_FORMAT_IQ_CF32,
         .sample_rates = { 24000, 48000, 96000, 192000, 0 },
         .channels_min = 1,
         .channels_max = 4,  /* coherent multi-channel I/Q (interleaved) */
@@ -2588,10 +2590,7 @@ static const struct rig_stream_caps dummy_stream_caps[] =
     },
     {
         .type = RIG_STREAM_TYPE_IQ_TX,
-        .formats = RIG_STREAM_FORMAT_IQ_CU8
-                 | RIG_STREAM_FORMAT_IQ_CS8
-                 | RIG_STREAM_FORMAT_IQ_CS16
-                 | RIG_STREAM_FORMAT_IQ_CF32,
+        .formats = RIG_STREAM_FORMAT_IQ_CF32,
         .sample_rates = { 24000, 48000, 96000, 192000, 0 },
         .channels_min = 1,
         .channels_max = 4,  /* coherent multi-channel I/Q (interleaved) */

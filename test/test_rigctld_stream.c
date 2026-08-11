@@ -2001,6 +2001,46 @@ void test_net_parse_caps_line_audio_rx(void)
     TEST_CHECK(caps.channels_min == 1);
     TEST_CHECK(caps.channels_max == 2);
     TEST_CHECK(caps.max_streams == 4);
+
+    /* A caps line from an older server has no native keys: the native
+     * view must stay zeroed so the client falls back to local
+     * derivation. */
+    TEST_CHECK(caps.native_formats == 0);
+    TEST_CHECK(caps.native_sample_rates[0] == 0);
+    TEST_CHECK(caps.native_channels_min == 0);
+    TEST_CHECK(caps.native_channels_max == 0);
+}
+
+void test_net_parse_caps_line_native_keys(void)
+{
+    const char *line =
+        "type=AUDIO_RX formats=PCM_S16,PCM_F32 rates=8000,44100,48000 "
+        "channels=1-2 max=4 native_formats=PCM_F32 native_rates=48000 "
+        "native_channels=2-2";
+    struct rig_stream_caps caps;
+    memset(&caps, 0xff, sizeof(caps));  /* Parser must fully reset it */
+
+    int ret = rig_stream_net_parse_caps_line(line, &caps);
+    TEST_CHECK(ret == 0);
+    TEST_CHECK(caps.type == RIG_STREAM_TYPE_AUDIO_RX);
+
+    /* Effective view */
+    TEST_CHECK(caps.formats == (RIG_STREAM_FORMAT_PCM_S16 |
+                                RIG_STREAM_FORMAT_PCM_F32));
+    TEST_CHECK(caps.sample_rates[0] == 8000);
+    TEST_CHECK(caps.sample_rates[1] == 44100);
+    TEST_CHECK(caps.sample_rates[2] == 48000);
+    TEST_CHECK(caps.sample_rates[3] == 0);
+    TEST_CHECK(caps.channels_min == 1);
+    TEST_CHECK(caps.channels_max == 2);
+
+    /* Native view */
+    TEST_CHECK(caps.native_formats == RIG_STREAM_FORMAT_PCM_F32);
+    TEST_MSG("native_formats=0x%x", (unsigned)caps.native_formats);
+    TEST_CHECK(caps.native_sample_rates[0] == 48000);
+    TEST_CHECK(caps.native_sample_rates[1] == 0);
+    TEST_CHECK(caps.native_channels_min == 2);
+    TEST_CHECK(caps.native_channels_max == 2);
 }
 
 void test_net_parse_caps_line_iq_tx(void)
@@ -2643,6 +2683,7 @@ TEST_LIST =
     /* stream_caps line parser */
     { "net_parse_caps_line_audio_rx",  test_net_parse_caps_line_audio_rx },
     { "net_parse_caps_line_iq_tx",     test_net_parse_caps_line_iq_tx },
+    { "net_parse_caps_line_native_keys", test_net_parse_caps_line_native_keys },
     { "net_parse_caps_line_missing_type", test_net_parse_caps_line_missing_type },
 
     { NULL, NULL }

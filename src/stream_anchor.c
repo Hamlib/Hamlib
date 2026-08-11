@@ -49,6 +49,11 @@ int rig_stream_push_time_anchor(struct rig_stream *stream,
     pthread_mutex_lock(&stream->ringbuf.lock);
 
     stream->anchors[stream->anchor_head] = *anchor;
+    /* Backends anchor in their native sample domain; map into the ring
+     * (consumer) domain when RX rate conversion is active. The rounding
+     * this introduces is well below the resampler's own group delay. */
+    stream->anchors[stream->anchor_head].sample_index =
+        stream_scale_backend_samples(stream, anchor->sample_index);
     stream->anchor_head = (stream->anchor_head + 1) % RIG_STREAM_ANCHOR_DEPTH;
 
     if (stream->anchor_count < RIG_STREAM_ANCHOR_DEPTH)

@@ -2884,7 +2884,8 @@ int netrigctl_send_raw(RIG *rig, char *s)
 static int netrigctl_stream_open(RIG *rig, struct rig_stream *stream)
 {
     int ret;
-    char cmd[CMD_MAX];
+    /* Larger than CMD_MAX: type + format + rate + key=value options. */
+    char cmd[128];
     char buf[BUF_MAX];
     hamlib_port_t *rp = RIGPORT(rig);
     struct rig_stream_net_session *sess;
@@ -2893,16 +2894,22 @@ static int netrigctl_stream_open(RIG *rig, struct rig_stream *stream)
     int udp_port = -1;
     unsigned int subscribe_token = 0;
     int max_payload = -1;
+    int conversions = -1;
     char host[256];
     const char *colon;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called type=%d\n", __func__, stream->type);
 
-    /* Streaming commands require '+' ext_resp prefix. */
-    SNPRINTF(cmd, sizeof(cmd), "+\\stream_open %s %s %d\n",
+    /* Streaming commands require '+' ext_resp prefix. The server performs
+     * any format conversion, so the full requested shape is forwarded:
+     * channels (the server would otherwise default to 1 and serve
+     * mislabeled data) and a native-only demand for it to enforce too. */
+    SNPRINTF(cmd, sizeof(cmd), "+\\stream_open %s %s %d channels=%d%s\n",
              stream_type_name(stream->type),
              stream_format_name(stream->config.format),
-             stream->config.sample_rate);
+             stream->config.sample_rate,
+             stream->config.channels,
+             stream->config.require_native ? " require_native=1" : "");
 
     ret = netrigctl_transaction(rig, cmd, strlen(cmd), buf);
 
@@ -2923,11 +2930,13 @@ static int netrigctl_stream_open(RIG *rig, struct rig_stream *stream)
 
         if (strncmp(buf, NETRIGCTL_RET, strlen(NETRIGCTL_RET)) == 0)
         {
+            /* The RPRT value is already the (negative) Hamlib error code,
+             * same convention as netrigctl_transaction(). */
             int rprt = atoi(buf + strlen(NETRIGCTL_RET));
 
             if (rprt != 0)
             {
-                return -rprt;
+                return rprt;
             }
 
             break;
@@ -2958,6 +2967,11 @@ static int netrigctl_stream_open(RIG *rig, struct rig_stream *stream)
             rig_debug(RIG_DEBUG_VERBOSE, "%s: max_payload=%d\n",
                       __func__, max_payload);
         }
+        else if (sscanf(buf, "conversions: %d", &conversions) == 1)
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: conversions=%d\n",
+                      __func__, conversions);
+        }
 
         ret = read_string(rp, (unsigned char *) buf, BUF_MAX, "\n", 1, 0, 1);
 
@@ -2986,6 +3000,14 @@ static int netrigctl_stream_open(RIG *rig, struct rig_stream *stream)
                       - RIG_STREAM_TIME_BLOCK_SIZE;
 
         stream->max_payload = max_payload < ceiling ? max_payload : ceiling;
+    }
+
+    /* Conversion happens at the server, so its report is authoritative:
+     * replace the locally computed indicator (an older server without the
+     * line leaves the local value in place). */
+    if (conversions >= 0)
+    {
+        stream->conversions = conversions;
     }
 
     /* Extract hostname from RIGPORT pathname (format "host:port") */

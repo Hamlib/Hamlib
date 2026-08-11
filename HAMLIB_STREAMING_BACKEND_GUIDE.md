@@ -17,9 +17,14 @@ architecture follows Hamlib's frontend/backend split:
   callbacks and pushes/pulls sample data through ring buffers.
 
 ```
-RX:  Hardware → backend thread → stream_ringbuf_write() → [ring buffer] → rig_stream_read() → app
-TX:  App → rig_stream_write() → [ring buffer] → stream_ringbuf_read() → backend thread → hardware
+RX:  Hardware → backend thread → stream_backend_write() → [conversion] → [ring buffer] → rig_stream_read() → app
+TX:  App → rig_stream_write() → [conversion] → [ring buffer] → stream_ringbuf_read() → backend thread → hardware
 ```
+
+Conversion (format/rate/channels, when the application's request is not
+hardware-native) is installed by the frontend on the producer side of the
+ring in both directions; the backend always produces and consumes its
+native format (Sections 2, 3 and 5).
 
 **Prerequisites:** A working backend with `rig_caps` populated and CAT
 control functional. Familiarity with Hamlib's backend pattern.
@@ -34,10 +39,22 @@ control functional. Familiarity with Hamlib's backend pattern.
 
 ## 2. Declare Stream Capabilities
 
-The frontend validates every `rig_stream_open()` request against your
-backend's declared capabilities. `rig_caps.stream_caps` is a **pointer** to a
-0-terminated `struct rig_stream_caps` array (not an embedded array — so the
-descriptor can gain fields without changing `sizeof(rig_caps)`). Point it at a
+Declare the **hardware-native truth**: the formats, sample rates and
+channel counts the radio actually produces or accepts — nothing more. The
+frontend derives the wider *effective* set it advertises to applications
+(the whole PCM/I/Q format family, standard and integer-divided rates when
+libsamplerate is built in, audio mono↔stereo mapping) and installs any
+conversion itself at `rig_stream_open()`. Your backend never sees a
+converted request — it always runs at a native configuration you declared
+(see Section 3, "What the frontend handles for you"; the full derivation
+and acceptance rules are in `HAMLIB_STREAMING.md` §3.3). Do **not**
+advertise combinations you would have to convert to serve: the frontend
+serves those through conversion, and `require_native` relies on your
+declaration being hardware truth.
+
+`rig_caps.stream_caps` is a **pointer** to a 0-terminated
+`struct rig_stream_caps` array (not an embedded array — so the descriptor
+can gain fields without changing `sizeof(rig_caps)`). Point it at a
 `static const` array.
 
 ### The `rig_stream_caps` structure
@@ -47,13 +64,20 @@ Defined in `include/hamlib/rig.h`:
 ```c
 struct rig_stream_caps {
     rig_stream_type_t type;                          /* Stream direction */
-    rig_stream_format_t formats;                     /* Bitmask of supported formats */
-    int sample_rates[HAMLIB_MAX_STREAM_RATES];       /* 0-terminated */
+    rig_stream_format_t formats;                     /* Bitmask of NATIVE formats */
+    int sample_rates[HAMLIB_MAX_STREAM_RATES];       /* Native rates, 0-terminated */
     int channels_min;                                /* 1=mono */
     int channels_max;                                /* 2=stereo */
     int max_streams;                                 /* Concurrent streams of this type */
     int caps_flags;                                  /* RIG_STREAM_CAP_* (timed TX; Section 6.1) */
     int tx_schedule_horizon_ms;                      /* Max timed-TX lead time (0 = not schedulable) */
+    /* ...ABI headroom... */
+    /* native_formats / native_sample_rates / native_channels_min/max:
+     * leave ZERO. The frontend fills them in the derived caps it serves
+     * to applications. Setting native_formats yourself declares BOTH
+     * views pre-derived (only a relaying backend like netrigctl does
+     * this — the frontend then serves your entry verbatim and delegates
+     * conversion to your far side). */
 };
 ```
 
@@ -76,11 +100,17 @@ struct rig_stream_caps {
 | `RIG_STREAM_FORMAT_PCM_U8`     | 1           | Unsigned 8-bit          |
 | `RIG_STREAM_FORMAT_PCM_S16`    | 2           | Signed 16-bit           |
 | `RIG_STREAM_FORMAT_PCM_F32`    | 4           | IEEE 754 float          |
-| `RIG_STREAM_FORMAT_OPUS`       | variable    | Opus (reserved; no codec yet) |
+| `RIG_STREAM_FORMAT_OPUS`       | variable    | Opus codec frames (passthrough; no transcode) |
 
 The wire sample payload is fixed little-endian; there are no per-format
 byte-order (LE/BE) variants. ADPCM is a device-link codec
 (`rig_audio_codec_t`), **not** a stream format — see Section 9.1.
+
+Codec stream formats (OPUS, and any future bit outside the raw PCM/I-Q
+families) are opaque packet streams: the frontend applies no conversion
+stage to them, a client request must match your declared rate and channel
+count exactly, and a codec-only caps entry is served to applications
+verbatim (no effective-set widening).
 
 **I/Q formats** (bits 16-19):
 
@@ -104,13 +134,22 @@ For I/Q formats, one "sample" is one complex pair (I + Q components).
    samples: set `channels_max` to the coherent channel count (the dummy
    backend advertises 4). Independent, non-coherent windows use separate
    streams.
-3. **List only what the hardware supports.** The frontend rejects requests
-   that don't match declared capabilities.
-4. **Terminate with `{ 0 }`.**
+3. **List only what the hardware supports.** The frontend serves anything
+   reachable from your native set through conversion and rejects the rest
+   (`-RIG_EINVAL`); listing conversions yourself only mislabels them as
+   hardware-native and breaks `require_native` for your users.
+4. **List every native rate the hardware genuinely offers.** Format and
+   channel conversion are always built into the frontend, but rate
+   conversion depends on libsamplerate (optional at build time) — on a
+   resampler-less build your declared rates are the only ones clients
+   can open, so an omitted native rate is simply lost there.
+5. **Terminate with `{ 0 }`.**
 
 ### Example
 
-A network rig with 48 kHz stereo audio RX/TX and 48-192 kHz I/Q RX:
+A network rig whose wire format is float32 audio at 48 kHz stereo, with
+16-bit I/Q at 48-192 kHz. Declare exactly that — applications wanting
+S16 audio or 44.1 kHz will be served through frontend conversion:
 
 ```c
 /* At file scope, next to your rig_caps: */
@@ -118,8 +157,7 @@ static const struct rig_stream_caps mybackend_stream_caps[] =
 {
     {
         .type = RIG_STREAM_TYPE_AUDIO_RX,
-        .formats = RIG_STREAM_FORMAT_PCM_S16
-                 | RIG_STREAM_FORMAT_PCM_F32,
+        .formats = RIG_STREAM_FORMAT_PCM_F32,     /* the wire format — only */
         .sample_rates = { 48000, 0 },
         .channels_min = 1,
         .channels_max = 2,
@@ -127,8 +165,7 @@ static const struct rig_stream_caps mybackend_stream_caps[] =
     },
     {
         .type = RIG_STREAM_TYPE_AUDIO_TX,
-        .formats = RIG_STREAM_FORMAT_PCM_S16
-                 | RIG_STREAM_FORMAT_PCM_F32,
+        .formats = RIG_STREAM_FORMAT_PCM_F32,
         .sample_rates = { 48000, 0 },
         .channels_min = 1,
         .channels_max = 2,
@@ -136,8 +173,7 @@ static const struct rig_stream_caps mybackend_stream_caps[] =
     },
     {
         .type = RIG_STREAM_TYPE_IQ_RX,
-        .formats = RIG_STREAM_FORMAT_IQ_CS16
-                 | RIG_STREAM_FORMAT_IQ_CF32,
+        .formats = RIG_STREAM_FORMAT_IQ_CS16,
         .sample_rates = { 48000, 96000, 192000, 0 },
         .channels_min = 1,
         .channels_max = 1,
@@ -167,7 +203,9 @@ buffer is already allocated and active.
 | Field               | Type                        | Description                          |
 |---------------------|-----------------------------|--------------------------------------|
 | `stream->type`      | `rig_stream_type_t`         | AUDIO_RX, AUDIO_TX, IQ_RX, or IQ_TX |
-| `stream->config`    | `struct rig_stream_config`  | Requested format, rate, channels     |
+| `stream->config`    | `struct rig_stream_config`  | The APPLICATION's requested config   |
+| `stream->backend_config` | `struct rig_stream_config` | The NATIVE config your backend runs at — **read this one**, not `config` (they differ on a converted stream) |
+| `stream->conversions` | `int`                     | Active `RIG_STREAM_CONV_*` stages (informational; 0 = native) |
 | `stream->ringbuf`   | `struct rig_stream_ringbuf` | Ring buffer for sample data          |
 | `stream->backend_priv` | `void *`                 | Your per-stream state (you set this) |
 | `stream->id`        | `int`                       | Unique ID within the stream type     |
@@ -208,7 +246,14 @@ Defaults: 64 KB for audio buffers, 4 MB for I/Q buffers
 ### What the frontend handles for you
 
 - Validates config against your `stream_caps` before calling `stream_open`
-- Allocates and initializes the ring buffer
+- **Format, rate and channel conversion**: resolves the requested config to
+  a native source from your caps, fills `stream->backend_config` with it,
+  and runs the conversion pipeline on the producer side of the ring — you
+  produce/consume native data only (deliver RX bytes with
+  `stream_backend_write()`, Section 5). Backend-domain sample counts
+  (time anchors, gap accounting) are rescaled for the application
+- Allocates and initializes the ring buffer (sized in the CONSUMER's
+  format: the request on RX, your native side on TX)
 - Manages the slot table (max concurrent streams)
 - Tracks overrun/underrun counts
 - Handles mute (returns zeros to app on read, discards on write)
@@ -255,9 +300,10 @@ int myrig_stream_open(RIG *rig, struct rig_stream *stream)
     ss->running = 1;
     ss->radio_sock = -1;
 
-    /* Tell the radio to start streaming (radio-specific protocol) */
-    int ret = myrig_start_hw_stream(priv, stream->config.type,
-                                     stream->config.sample_rate,
+    /* Tell the radio to start streaming (radio-specific protocol).
+     * backend_config: the native side of any conversion. */
+    int ret = myrig_start_hw_stream(priv, stream->backend_config.type,
+                                     stream->backend_config.sample_rate,
                                      &ss->radio_sock);
 
     if (ret < 0)
@@ -295,8 +341,10 @@ See also: `dummy_stream_open()` in `rigs/dummy/dummy_stream.c`.
 
 ## 5. The RX Producer Thread
 
-The RX thread receives data from hardware and writes it to the ring buffer
-at the correct rate.
+The RX thread receives data from hardware and delivers it — in your
+**native** format, at the `stream->backend_config` rate — through
+`stream_backend_write()`, which applies the frontend conversion pipeline
+(if one is installed) and writes the ring buffer.
 
 ### Thread loop pattern
 
@@ -305,7 +353,8 @@ static void *myrig_rx_thread(void *arg)
 {
     struct myrig_stream_state *ss = (struct myrig_stream_state *)arg;
     struct rig_stream *stream = ss->stream;
-    const struct rig_stream_config *cfg = &stream->config;
+    /* backend_config, not config: the native side of any conversion */
+    const struct rig_stream_config *cfg = &stream->backend_config;
     int sample_size = rig_stream_format_sample_size(cfg->format);
     int frame_samples = cfg->frame_samples > 0 ? cfg->frame_samples : 480;
     size_t frame_bytes = frame_samples * cfg->channels * sample_size;
@@ -332,7 +381,7 @@ static void *myrig_rx_thread(void *arg)
             continue;  /* Timeout or error — retry */
         }
 
-        stream_ringbuf_write(&stream->ringbuf, buf, (size_t)got);
+        stream_backend_write(stream, buf, (size_t)got);
     }
 
     free(buf);
@@ -342,7 +391,11 @@ static void *myrig_rx_thread(void *arg)
 
 ### Key points
 
-- **`stream_ringbuf_write()` never blocks.** If the buffer is full, oldest data
+- **Read `stream->backend_config`, deliver with `stream_backend_write()`.**
+  On a native stream it is byte-for-byte `stream_ringbuf_write()`; on a
+  converted stream it runs the pipeline first. Writing the ring directly
+  would bypass conversion and corrupt a converted stream.
+- **`stream_backend_write()` never blocks.** If the buffer is full, oldest data
   is overwritten and `overrun_count` is incremented.
 - **Check `stream->paused`** in the loop. When paused, sleep briefly and
   skip data production.
@@ -387,7 +440,7 @@ the fill (e.g. to one second) so a clock jump cannot flood the buffer:
 ```c
 memset(silence, 0, chunk_bytes);
 /* write gap_samples worth of zeros (in chunks) */
-stream_ringbuf_write(&stream->ringbuf, silence, gap_samples * frame_bytes);
+stream_backend_write(stream, silence, gap_samples * frame_bytes);
 stream->gap_count++;
 ```
 
@@ -406,7 +459,7 @@ report absolute capture time:
 ```c
 struct rig_stream_time_anchor anchor;
 memset(&anchor, 0, sizeof(anchor));
-anchor.sample_index = rig_stream_get_samples_written(stream);
+anchor.sample_index = my_native_samples_produced;  /* YOUR native count */
 stream_time_now(&anchor.seconds, &anchor.picoseconds);  /* host clock */
 anchor.source = RIG_STREAM_TIME_SRC_HOST;
 anchor.accuracy = RIG_STREAM_TIME_ACC_MS;
@@ -415,11 +468,20 @@ rig_stream_push_time_anchor(stream, &anchor);
 
 Rules:
 
-1. Push at stream start and **at least every second** (the read-path
+1. **`sample_index` is in your NATIVE sample domain** — the count of
+   samples your producer has delivered (plus gap samples), at the
+   `backend_config` rate. The frontend rescales it into the
+   application's domain when rate conversion is active. Do NOT use
+   `rig_stream_get_samples_written()` as the index: it reports the
+   already-rescaled consumer-domain position and would be rescaled a
+   second time. Keep your own counter (see `native_pos` in
+   `dummy_stream_generator()`). The same rule applies to
+   `rig_stream_mark_gap()` counts — report losses in native samples.
+2. Push at stream start and **at least every second** (the read-path
    staleness watchdog degrades and then invalidates older time).
-2. Push immediately after any detected gap, with
+3. Push immediately after any detected gap, with
    `RIG_STREAM_TIME_FLAG_DISCONTINUITY` set.
-3. When the radio supplies absolute time tied to its sample clock (e.g.
+4. When the radio supplies absolute time tied to its sample clock (e.g.
    GPSDO VITA-49 `TSI=UTC`), use it: set the radio-derived
    seconds/picoseconds, `source = RIG_STREAM_TIME_SRC_GPS`,
    `RIG_STREAM_TIME_FLAG_SAMPLE_REFERENCED | RIG_STREAM_TIME_FLAG_LOCKED`, and an
@@ -431,6 +493,44 @@ interpolation) live in `src/stream_time.h`.
 
 The TX-side counterpart — scheduling bursts against this same time
 base — is Section 6.1.
+
+
+---
+
+### 5.3 Codec-frame streams
+
+A compressed format (e.g. `OPUS`) streams **whole codec frames**, not
+sample bytes, and the frontend applies no conversion to them. The
+producer/consumer contract changes accordingly:
+
+- Produce RX frames with
+  `stream_backend_write_frame(stream, buf, len, duration_samples)` — one
+  call per codec frame, `len` up to the stream's `max_payload`. Never
+  blocks: a full ring drops the NEWEST frame (counted as an overrun with
+  its duration). Do **not** use `stream_backend_write()` on a codec
+  stream — it refuses.
+- **You supply the decoded duration** (samples per frame at the native
+  rate): from your protocol's fixed cadence — e.g. FlexRadio's radio-side
+  Opus is one 10 ms frame per packet, 240 samples at 24 kHz — or by
+  parsing the codec's in-band self-description (the Opus TOC byte gives
+  the duration without any decoding). Pass 0 if genuinely unknown; the
+  stream's timing features then degrade.
+- Frame start indexes accumulate automatically from the durations; report
+  radio-side losses with `rig_stream_mark_gap()` in decoded samples as
+  usual, and the hole surfaces to consumers as a start-index jump.
+- Consume TX frames with
+  `stream_backend_read_frame(stream, buf, cap, &len, &duration,
+  &start_index, timeout_ms)` — one whole frame per call; a cap of
+  `max_payload` bytes always suffices.
+- Declare codec formats in `stream_caps` exactly as the hardware offers
+  them (rate and channels must match the declaration exactly at open —
+  codec requests are native-only, Section 2).
+
+The dummy backend's fabricated OPUS (deterministic variable-length frames)
+is the reference implementation and the system-test vehicle:
+`dummy_stream_generator()` (produce), the codec branch of
+`dummy_stream_tx_scheduler()` (consume) and the record-verbatim codec
+loopback.
 
 
 ---
@@ -450,7 +550,9 @@ static void *myrig_tx_thread(void *arg)
 {
     struct myrig_stream_state *ss = (struct myrig_stream_state *)arg;
     struct rig_stream *stream = ss->stream;
-    const struct rig_stream_config *cfg = &stream->config;
+    /* backend_config: the TX ring holds your NATIVE format — the frontend
+     * converted the application's data before enqueueing it. */
+    const struct rig_stream_config *cfg = &stream->backend_config;
     int sample_size = rig_stream_format_sample_size(cfg->format);
     int frame_samples = cfg->frame_samples > 0 ? cfg->frame_samples : 480;
     size_t frame_bytes = frame_samples * cfg->channels * sample_size;
@@ -691,8 +793,13 @@ See also: the `.stream_open` / `.stream_close` assignments in
 
 ## 9. Format Conversion Utilities
 
-When the radio's native format differs from what the application
-requested, use the conversion utilities in `src/stream_convert.h`.
+**You normally don't need these.** When the application's requested
+format, rate or channel count differs from your native declaration, the
+frontend installs the conversion itself (Sections 2-3) — backends no
+longer hand-roll per-client conversion. The stateless utilities in
+`src/stream_convert.h` remain for the cases that stay backend-side: the
+device-codec chain (Section 9.1) and internal processing on your own
+native data.
 
 ### Sample size
 
@@ -753,21 +860,11 @@ Quality: `RIG_RESAMPLE_BEST`, `RIG_RESAMPLE_MEDIUM`, `RIG_RESAMPLE_FAST`.
 2. **Format** second
 3. **Resample** last
 
-### Example: native S16 → requested F32 in an RX thread
-
-```c
-int16_t radio_buf[FRAME_SAMPLES];
-float app_buf[FRAME_SAMPLES];
-
-ssize_t got = recv(sock, radio_buf, sizeof(radio_buf), 0);
-size_t samples = got / sizeof(int16_t);
-
-rig_stream_convert(radio_buf, RIG_STREAM_FORMAT_PCM_S16,
-                   app_buf, RIG_STREAM_FORMAT_PCM_F32,
-                   samples, 1 /* mono */);
-
-stream_ringbuf_write(&stream->ringbuf, app_buf, samples * sizeof(float));
-```
+(The frontend's own per-stream pipeline follows the same order — channel
+map → float pivot → stateful resampler → destination format — with a
+persistent resampler state per stream, which the stateless
+`rig_stream_resample()` above cannot provide across chunk boundaries.
+That is another reason to leave app-facing conversion to the frontend.)
 
 ### 9.1 Device audio codecs (μ-law, A-law, ADPCM)
 
@@ -780,29 +877,28 @@ direction (it holds state for stateful codecs such as ADPCM):
 stream->rx_codec = rig_audio_codec_open(RIG_AUDIO_CODEC_MULAW, 1 /* mono */);
 ```
 
-The codec call takes a caller-chosen PCM `pcm_format` and performs that
-format hop internally, so a backend needs a separate `rig_stream_convert()`
-only for channel or rate changes.
+The codec call takes a caller-chosen PCM `pcm_format` — pass your
+**native** format from `stream->backend_config` (the codec performs that
+format hop internally); everything app-facing is the frontend's job.
 
 ```c
-/* RX: device codec bytes -> requested PCM */
+/* RX: device codec bytes -> native PCM */
 uint8_t  radio_buf[FRAME_BYTES];
-float    app_buf[FRAME_SAMPLES];
+float    pcm_buf[FRAME_SAMPLES];
 size_t   pcm_bytes = 0;
 
 ssize_t got = recv(sock, radio_buf, sizeof(radio_buf), 0);
 
 rig_audio_convert_to_pcm(stream->rx_codec, radio_buf, (size_t)got,
-                         RIG_STREAM_FORMAT_PCM_F32,
-                         app_buf, sizeof(app_buf), &pcm_bytes);
-/* channel / resample here if needed, then: */
-stream_ringbuf_write(&stream->ringbuf, app_buf, pcm_bytes);
+                         RIG_STREAM_FORMAT_PCM_F32,   /* = native format */
+                         pcm_buf, sizeof(pcm_buf), &pcm_bytes);
+stream_backend_write(stream, pcm_buf, pcm_bytes);
 
-/* TX: requested PCM -> device codec bytes */
+/* TX: native PCM (from the ring) -> device codec bytes */
 uint8_t  dev_buf[FRAME_BYTES];
 size_t   dev_bytes = 0;
 rig_audio_convert_from_pcm(stream->tx_codec, RIG_STREAM_FORMAT_PCM_F32,
-                           app_buf, pcm_bytes,
+                           pcm_buf, pcm_bytes,
                            dev_buf, sizeof(dev_buf), &dev_bytes);
 send(sock, dev_buf, dev_bytes, 0);
 ```
@@ -1025,8 +1121,9 @@ test suite.
       [ ] 4c. For TX: start consumer thread (if needed)
       [ ] 4d. Clean up on error paths
 [ ] 5. Implement RX producer thread (Section 5)
-      [ ] 5a. Receive/generate data in correct format
-      [ ] 5b. Call stream_ringbuf_write() with frame data
+      [ ] 5a. Receive/generate data in your NATIVE format
+              (stream->backend_config)
+      [ ] 5b. Call stream_backend_write() with frame data
       [ ] 5c. Handle paused flag
       [ ] 5d. Exit when running flag cleared
 [ ] 6. Implement TX consumer thread (Section 6) — if needed
@@ -1040,7 +1137,11 @@ test suite.
       [ ] 7d. Free per-stream state, set backend_priv = NULL
 [ ] 8. Register callbacks in rig_caps (Section 8)
 [ ] 9. Add source files to Makefile.am (Section 12)
-[ ] 10. Add format conversion if native != requested (Section 9)
+[ ] 10. Wire a device codec if the link is companded/compressed (Section 9.1)
+        — app-facing format conversion is the frontend's job, not yours
+[ ] 10b. Radio emits/accepts encoded codec frames (e.g. Opus)? Declare the
+        codec format in stream_caps and use the codec-frame produce/consume
+        API with producer-supplied durations (Section 5.3)
 [ ] 11. Implement optional callbacks if needed (Section 8)
 [ ] 12. Write and run tests (Section 13)
 [ ] 13. Verify metadata via rig_stream_read_metadata() (Section 10)
@@ -1056,7 +1157,10 @@ test suite.
 
 | Function             | Description                                      |
 |----------------------|--------------------------------------------------|
-| `stream_ringbuf_write(rb, data, len)` | Write to buffer (never blocks, overwrites oldest) |
+| `stream_backend_write(stream, data, len)` | Write native data format to ring buffer: native bytes in, conversion applied, ring written - RX producers should always use this |
+| `stream_ringbuf_write(rb, data, len)` | Write to buffer (never blocks, overwrites oldest) — bypasses conversion |
+| `stream_backend_write_frame(stream, buf, len, dur)` | Codec streams: enqueue ONE codec frame with its decoded duration (Section 5.3) |
+| `stream_backend_read_frame(stream, buf, cap, ...)` | Codec TX consume: dequeue ONE whole codec frame with metadata |
 | `stream_ringbuf_read(rb, data, len, timeout_ms)` | Read with timeout (blocks if empty) |
 | `stream_ringbuf_available(rb)` | Bytes available to read                        |
 | `stream_ringbuf_reset(rb)`  | Reset to empty                                   |

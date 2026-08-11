@@ -163,6 +163,8 @@
 #define TOK_STREAM_KEEPALIVE_TIMEOUT  TOKEN_FRONTEND(145)
 /** \brief rig: Stream keepalive ping interval in seconds (0 = built-in default) */
 #define TOK_STREAM_KEEPALIVE_INTERVAL  TOKEN_FRONTEND(146)
+/** \brief rig: Stream resampler quality: best, medium (default) or fast */
+#define TOK_STREAM_RESAMPLE_QUALITY  TOKEN_FRONTEND(147)
 
 /*
  * rotator specific tokens

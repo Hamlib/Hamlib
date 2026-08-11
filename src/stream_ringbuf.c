@@ -167,6 +167,80 @@ size_t stream_ringbuf_write(struct rig_stream_ringbuf *rb,
 }
 
 
+size_t stream_ringbuf_write_record(struct rig_stream_ringbuf *rb,
+                                   const void *hdr, size_t hdr_len,
+                                   const void *payload, size_t len)
+{
+    size_t total = hdr_len + len;
+
+    pthread_mutex_lock(&rb->lock);
+
+    /* All or nothing: a partial record would strand the reader mid-frame,
+     * and overwriting the oldest bytes would destroy record alignment.
+     * No overrun counting here — a retrying TX writer polls this path,
+     * so the caller decides whether a failure is a real drop. */
+    if (total > rb->capacity - rb->count)
+    {
+        pthread_mutex_unlock(&rb->lock);
+        return 0;
+    }
+
+    rb->write_total += total;
+
+    const unsigned char *parts[2] = { hdr, payload };
+    const size_t part_len[2] = { hdr_len, len };
+
+    for (int i = 0; i < 2; i++)
+    {
+        const unsigned char *src = parts[i];
+        size_t n = part_len[i];
+        size_t first = rb->capacity - rb->write_pos;
+
+        if (first >= n)
+        {
+            memcpy(rb->buffer + rb->write_pos, src, n);
+        }
+        else
+        {
+            memcpy(rb->buffer + rb->write_pos, src, first);
+            memcpy(rb->buffer, src + first, n - first);
+        }
+
+        rb->write_pos = (rb->write_pos + n) & (rb->capacity - 1);
+        rb->count += n;
+    }
+
+    pthread_cond_signal(&rb->data_available);
+    pthread_mutex_unlock(&rb->lock);
+
+    return total;
+}
+
+
+size_t stream_ringbuf_peek_locked(struct rig_stream_ringbuf *rb,
+                                  unsigned char *dst, size_t len)
+{
+    if (len > rb->count)
+    {
+        len = rb->count;
+    }
+
+    size_t first = rb->capacity - rb->read_pos;
+
+    if (first >= len)
+    {
+        memcpy(dst, rb->buffer + rb->read_pos, len);
+    }
+    else
+    {
+        memcpy(dst, rb->buffer + rb->read_pos, first);
+        memcpy(dst + first, rb->buffer, len - first);
+    }
+
+    return len;
+}
+
+
 /* Wait for readable data. Caller holds rb->lock.
  * timeout_ms < 0 blocks until data or shutdown; 0 polls; > 0 bounds the wait.
  * Returns 0 when data is available, -1 on timeout (bumps underrun_count) or

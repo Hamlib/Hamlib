@@ -112,6 +112,7 @@ static void stream_teardown(struct rig_stream_state *ss,
 
     stream_ringbuf_destroy(&stream->ringbuf);
     stream_write_event_destroy(stream);
+    stream_conv_free(stream->conv);
     free(stream);
 }
 
@@ -305,15 +306,237 @@ static void stream_guard_leave(RIG *rig, rig_stream_t *stream)
 /* rig_stream_caps_count / rig_stream_caps_at                          */
 /* ------------------------------------------------------------------ */
 
-int HAMLIB_API rig_stream_caps_count(RIG *rig)
+/* Format families reachable from one another via rig_stream_convert.
+ * Codec formats (Opus, ...) are transport features, not sample-format
+ * conversion, and pass through the derivation untouched. */
+#define STREAM_PCM_FORMAT_MASK (RIG_STREAM_FORMAT_PCM_S8  \
+                                | RIG_STREAM_FORMAT_PCM_U8  \
+                                | RIG_STREAM_FORMAT_PCM_S16 \
+                                | RIG_STREAM_FORMAT_PCM_F32)
+#define STREAM_IQ_FORMAT_MASK  (RIG_STREAM_FORMAT_IQ_CS8  \
+                                | RIG_STREAM_FORMAT_IQ_CU8  \
+                                | RIG_STREAM_FORMAT_IQ_CS16 \
+                                | RIG_STREAM_FORMAT_IQ_CF32)
+
+#ifdef HAVE_SAMPLERATE
+/* Standard rates advertised in the effective set when the resampler is
+ * built (bounded by the largest native rate; I/Q strictly below it). */
+static const int stream_curated_rates[] =
+{
+    8000, 11025, 16000, 22050, 24000, 44100, 48000, 96000, 192000, 0
+};
+
+/* Largest integer-decimation factor advertised (exact divisions only). */
+#define STREAM_MAX_DECIM_FACTOR 10
+#endif
+
+static int stream_type_is_iq_type(rig_stream_type_t type)
+{
+    return type == RIG_STREAM_TYPE_IQ_RX || type == RIG_STREAM_TYPE_IQ_TX;
+}
+
+#ifdef HAVE_SAMPLERATE
+/* Append rate to a 0-terminated list if absent and there is room; the
+ * caller adds in priority order, so on overflow the least useful entries
+ * (highest decimation factors, added last) are the ones trimmed. */
+static void stream_rate_list_add(int *rates, int rate)
+{
+    int i;
+
+    for (i = 0; i < HAMLIB_MAX_STREAM_RATES - 1 && rates[i] != 0; i++)
+    {
+        if (rates[i] == rate)
+        {
+            return;
+        }
+    }
+
+    if (i < HAMLIB_MAX_STREAM_RATES - 1)
+    {
+        rates[i] = rate;
+        rates[i + 1] = 0;
+    }
+}
+
+static int stream_rate_list_max(const int *rates)
+{
+    int max = 0;
+
+    for (int i = 0; i < HAMLIB_MAX_STREAM_RATES && rates[i] != 0; i++)
+    {
+        if (rates[i] > max)
+        {
+            max = rates[i];
+        }
+    }
+
+    return max;
+}
+
+static int stream_rate_cmp(const void *a, const void *b)
+{
+    return *(const int *)a - *(const int *)b;
+}
+#endif /* HAVE_SAMPLERATE */
+
+/* Widen one backend-declared (native) descriptor into the app-visible
+ * derived view: classic fields become the effective set, native_* keeps
+ * the hardware truth. Rules per HAMLIB_STREAMING_FORMAT_CONVERSION.md
+ * section 3.4. */
+static void stream_derive_caps(struct rig_stream_caps *dst,
+                               const struct rig_stream_caps *src)
+{
+    int is_iq = stream_type_is_iq_type(src->type);
+
+    *dst = *src;
+
+    /* A backend that already declares BOTH views (native_formats set) is
+     * serving pre-derived caps — netrigctl relays the server's effective
+     * and native sets, and the server's derivation is authoritative
+     * because conversion happens there. Pass through verbatim rather
+     * than re-deriving effective-of-effective. */
+    if (src->native_formats != 0)
+    {
+        return;
+    }
+
+    /* Native view = what the backend declared. */
+    dst->native_formats = src->formats;
+    memcpy(dst->native_sample_rates, src->sample_rates,
+           sizeof(dst->native_sample_rates));
+    dst->native_channels_min = src->channels_min;
+    dst->native_channels_max = src->channels_max;
+
+    /* Formats: whole family reachable via rig_stream_convert; codec bits
+     * pass through as declared. */
+    if (src->formats & STREAM_PCM_FORMAT_MASK)
+    {
+        dst->formats |= STREAM_PCM_FORMAT_MASK;
+    }
+
+    if (src->formats & STREAM_IQ_FORMAT_MASK)
+    {
+        dst->formats |= STREAM_IQ_FORMAT_MASK;
+    }
+
+    /* A codec-only entry (no raw-family bits) is served verbatim beyond
+     * this point: codec streams are opaque packets that no conversion
+     * stage applies to, so the rate/channel widening below would only
+     * advertise configurations rig_stream_open() must refuse. */
+    if (!(src->formats & (STREAM_PCM_FORMAT_MASK | STREAM_IQ_FORMAT_MASK)))
+    {
+        return;
+    }
+
+    /* Channels: audio maps mono<->stereo; I/Q channels are coherent, so a
+     * subset may be selected but never fabricated. */
+    if (src->channels_max > 0)
+    {
+        dst->channels_min = 1;
+
+        if (!is_iq && dst->channels_max < 2)
+        {
+            dst->channels_max = 2;
+        }
+    }
+
+#ifdef HAVE_SAMPLERATE
+    /* Rates (resampler built): native, then curated standards, then
+     * integer divisions of each native rate (factors 2..10, exact results
+     * only) — in that priority order, deduplicated, ascending. This list
+     * is discoverability; acceptance at open is rule-based. Audio may go
+     * up to the largest native rate, I/Q only strictly below it
+     * (downward-only: the I/Q sample rate is the represented bandwidth).
+     * Without the resampler the effective rates equal the native rates. */
+    {
+        int native_max = stream_rate_list_max(src->sample_rates);
+        int n;
+
+        for (int i = 0; stream_curated_rates[i] != 0; i++)
+        {
+            int r = stream_curated_rates[i];
+
+            if ((is_iq && r < native_max) || (!is_iq && r <= native_max))
+            {
+                stream_rate_list_add(dst->sample_rates, r);
+            }
+        }
+
+        for (int i = 0; i < HAMLIB_MAX_STREAM_RATES
+                && src->sample_rates[i] != 0; i++)
+        {
+            for (int f = 2; f <= STREAM_MAX_DECIM_FACTOR; f++)
+            {
+                if (src->sample_rates[i] % f == 0)
+                {
+                    stream_rate_list_add(dst->sample_rates,
+                                         src->sample_rates[i] / f);
+                }
+            }
+        }
+
+        for (n = 0; n < HAMLIB_MAX_STREAM_RATES && dst->sample_rates[n] != 0;
+                n++)
+        {
+        }
+
+        qsort(dst->sample_rates, n, sizeof(int), stream_rate_cmp);
+    }
+#endif /* HAVE_SAMPLERATE */
+}
+
+/* Return the app-visible derived caps array, building or refreshing it
+ * under stream_mutex. Before rig_open (no stream state yet) the backend's
+ * raw declaration is served unchanged — the derived view, including the
+ * native_* fields, is available once the rig is open. */
+static const struct rig_stream_caps *stream_served_caps(RIG *rig)
 {
     if (!rig || !rig->caps || !rig->caps->stream_caps)
     {
-        return 0;
+        return NULL;
     }
 
-    const struct rig_stream_caps *src = rig->caps->stream_caps;
+    struct rig_stream_state *ss = get_stream_state(rig);
+
+    if (!ss)
+    {
+        return rig->caps->stream_caps;
+    }
+
+    pthread_mutex_lock(&ss->stream_mutex);
+
+    if (ss->derived_src != rig->caps->stream_caps)
+    {
+        const struct rig_stream_caps *src = rig->caps->stream_caps;
+
+        memset(ss->derived_caps, 0, sizeof(ss->derived_caps));
+
+        for (int i = 0; i < HAMLIB_MAX_STREAM_CAPS; i++)
+        {
+            if (src[i].formats == 0)
+            {
+                break;  /* 0-terminated */
+            }
+
+            stream_derive_caps(&ss->derived_caps[i], &src[i]);
+        }
+
+        ss->derived_src = src;
+    }
+
+    pthread_mutex_unlock(&ss->stream_mutex);
+    return ss->derived_caps;
+}
+
+int HAMLIB_API rig_stream_caps_count(RIG *rig)
+{
+    const struct rig_stream_caps *src = stream_served_caps(rig);
     int count = 0;
+
+    if (!src)
+    {
+        return 0;
+    }
 
     for (int i = 0; i < HAMLIB_MAX_STREAM_CAPS; i++)
     {
@@ -331,13 +554,12 @@ int HAMLIB_API rig_stream_caps_count(RIG *rig)
 const struct rig_stream_caps *HAMLIB_API rig_stream_caps_at(RIG *rig,
         int index)
 {
-    if (!rig || !rig->caps || !rig->caps->stream_caps
-            || index < 0 || index >= HAMLIB_MAX_STREAM_CAPS)
+    const struct rig_stream_caps *src = stream_served_caps(rig);
+
+    if (!src || index < 0 || index >= HAMLIB_MAX_STREAM_CAPS)
     {
         return NULL;
     }
-
-    const struct rig_stream_caps *src = rig->caps->stream_caps;
 
     if (src[index].formats == 0)
     {
@@ -403,9 +625,163 @@ static const struct rig_stream_caps *find_stream_caps(RIG *rig,
 
 /* Check a requested config's format, sample rate and channel count against a
  * backend caps entry. Returns RIG_OK or -RIG_EINVAL. */
-static int validate_config_against_caps(const struct rig_stream_config *config,
-                                        const struct rig_stream_caps *caps)
+/* True if rate appears in a 0-terminated rate list. */
+static int rate_in_list(const int *rates, int rate)
 {
+    for (int i = 0; i < HAMLIB_MAX_STREAM_RATES && rates[i] != 0; i++)
+    {
+        if (rates[i] == rate)
+        {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+/* True if rate appears in the caps' 0-terminated native list. */
+static int caps_rate_native(const struct rig_stream_caps *caps, int rate)
+{
+    return rate_in_list(caps->sample_rates, rate);
+}
+
+#ifdef HAVE_SAMPLERATE
+/* Smallest native rate >= rate (the cheapest downconversion source), or 0
+ * when the request exceeds every native rate — the effective set is
+ * bounded by the largest native rate for audio and I/Q alike. */
+static int caps_rate_source(const struct rig_stream_caps *caps, int rate)
+{
+    int best = 0;
+
+    for (int i = 0; i < HAMLIB_MAX_STREAM_RATES
+            && caps->sample_rates[i] != 0; i++)
+    {
+        int r = caps->sample_rates[i];
+
+        if (r >= rate && (best == 0 || r < best))
+        {
+            best = r;
+        }
+    }
+
+    return best;
+}
+#endif
+
+/* Resolution for a pre-derived caps entry (native_formats set — a relaying
+ * backend such as netrigctl): conversion happens on the far side of the
+ * backend (the server), so the local backend runs at the requested config
+ * verbatim and no local pipeline is installed. Acceptance is membership in
+ * the relayed EFFECTIVE sets — the server's advertisement is authoritative
+ * for what it will serve. The conversion stages are computed against the
+ * relayed NATIVE view so the indicator is correct immediately (the relaying
+ * backend overrides it with the server-reported value after open). */
+static int resolve_delegated_source(const struct rig_stream_config *config,
+                                    const struct rig_stream_caps *caps,
+                                    int *conversions)
+{
+    int conv = RIG_STREAM_CONV_NONE;
+
+    if (!(config->format & caps->formats))
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: format 0x%x not in the relayed effective set 0x%x\n",
+                  __func__, config->format, caps->formats);
+        return -RIG_EINVAL;
+    }
+
+    if (!(config->format & caps->native_formats))
+    {
+        conv |= RIG_STREAM_CONV_FORMAT;
+    }
+
+    /* Codec formats are native-only on the far side too: same rule as
+     * resolve_stream_source(), against the relayed native view. */
+    if (!(config->format & (STREAM_PCM_FORMAT_MASK | STREAM_IQ_FORMAT_MASK)))
+    {
+        if (!rate_in_list(caps->native_sample_rates, config->sample_rate))
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: codec format 0x%x requires a native rate "
+                      "(got %d)\n",
+                      __func__, config->format, config->sample_rate);
+            return -RIG_EINVAL;
+        }
+
+        if (caps->native_channels_min > 0
+                && (config->channels < caps->native_channels_min
+                    || config->channels > caps->native_channels_max))
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: codec format 0x%x requires native channels "
+                      "%d-%d (got %d)\n",
+                      __func__, config->format,
+                      caps->native_channels_min, caps->native_channels_max,
+                      config->channels);
+            return -RIG_EINVAL;
+        }
+
+        *conversions = RIG_STREAM_CONV_NONE;
+        return RIG_OK;
+    }
+
+    if (!rate_in_list(caps->sample_rates, config->sample_rate))
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: rate %d not offered by the relayed effective set\n",
+                  __func__, config->sample_rate);
+        return -RIG_EINVAL;
+    }
+
+    if (!rate_in_list(caps->native_sample_rates, config->sample_rate))
+    {
+        conv |= RIG_STREAM_CONV_RATE;
+    }
+
+    if (caps->channels_min > 0
+            && (config->channels < caps->channels_min
+                || config->channels > caps->channels_max))
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: channels %d outside relayed effective range %d-%d\n",
+                  __func__, config->channels,
+                  caps->channels_min, caps->channels_max);
+        return -RIG_EINVAL;
+    }
+
+    if (caps->native_channels_min > 0
+            && (config->channels < caps->native_channels_min
+                || config->channels > caps->native_channels_max))
+    {
+        conv |= RIG_STREAM_CONV_CHANNELS;
+    }
+
+    *conversions = conv;
+    return RIG_OK;
+}
+
+
+/* Validate the requested config against the backend's native caps under
+ * the effective-set acceptance rules (design: HAMLIB_STREAMING_FORMAT_
+ * CONVERSION.md section 3.4) and resolve the native SOURCE the backend
+ * will run at. On success, *backend_cfg holds the request with format /
+ * sample_rate / channels replaced by the selected native values, and
+ * *conversions the RIG_STREAM_CONV_* stages that requires.
+ * Returns -RIG_EINVAL when the request is outside the effective set. */
+static int resolve_stream_source(const struct rig_stream_config *config,
+                                 const struct rig_stream_caps *caps,
+                                 struct rig_stream_config *backend_cfg,
+                                 int *conversions)
+{
+    int is_iq = config->type == RIG_STREAM_TYPE_IQ_RX
+                || config->type == RIG_STREAM_TYPE_IQ_TX;
+    rig_stream_format_t family = is_iq ? STREAM_IQ_FORMAT_MASK
+                                 : STREAM_PCM_FORMAT_MASK;
+    int conv = RIG_STREAM_CONV_NONE;
+
+    *backend_cfg = *config;
+    *conversions = RIG_STREAM_CONV_NONE;
+
     /* A stream needs a concrete rate and channel count; zero or negative
      * values would otherwise reach downstream divisions (rate-derived timing,
      * per-channel sizing) as a divide-by-zero. */
@@ -423,60 +799,144 @@ static int validate_config_against_caps(const struct rig_stream_config *config,
         return -RIG_EINVAL;
     }
 
-    /* The requested format must be exactly one supported format bit. A
-     * multi-bit value would otherwise pass the overlap test and then resolve
-     * to sample_size 0, silently degrading the stream to compressed handling. */
+    /* The requested format must be exactly one format bit. A multi-bit
+     * value would otherwise resolve to sample_size 0, silently degrading
+     * the stream to compressed handling. */
     if (config->format == 0
-            || (config->format & (config->format - 1)) != 0
-            || !(config->format & caps->formats))
+            || (config->format & (config->format - 1)) != 0)
     {
-        rig_debug(RIG_DEBUG_ERR,
-                  "%s: format 0x%x not a single supported format "
-                  "(caps formats=0x%x)\n",
-                  __func__, config->format, caps->formats);
+        rig_debug(RIG_DEBUG_ERR, "%s: format 0x%x is not a single format\n",
+                  __func__, config->format);
         return -RIG_EINVAL;
     }
 
-    /* Verify sample rate is in the supported list */
-    if (config->sample_rate > 0)
+    /* Pre-derived entry: the relaying backend's far side converts;
+     * backend_cfg stays equal to the request. */
+    if (caps->native_formats != 0)
     {
-        int rate_ok = 0;
+        return resolve_delegated_source(config, caps, conversions);
+    }
 
-        for (int i = 0; i < HAMLIB_MAX_STREAM_RATES; i++)
-        {
-            if (caps->sample_rates[i] == 0)
-            {
-                break;
-            }
-
-            if (caps->sample_rates[i] == config->sample_rate)
-            {
-                rate_ok = 1;
-                break;
-            }
-        }
-
-        if (!rate_ok)
+    /* Format: native, or reachable within the family via conversion.
+     * Codec formats (outside the family masks) must be native. */
+    if (!(config->format & caps->formats))
+    {
+        if (!(config->format & family) || !(caps->formats & family))
         {
             rig_debug(RIG_DEBUG_ERR,
-                      "%s: sample rate %u not in supported list\n",
+                      "%s: format 0x%x not reachable from native 0x%x\n",
+                      __func__, config->format, caps->formats);
+            return -RIG_EINVAL;
+        }
+
+        /* Source preference: the float format (lossless staging), then
+         * S16, then whatever the hardware has. */
+        rig_stream_format_t f32 = is_iq ? RIG_STREAM_FORMAT_IQ_CF32
+                                  : RIG_STREAM_FORMAT_PCM_F32;
+        rig_stream_format_t s16 = is_iq ? RIG_STREAM_FORMAT_IQ_CS16
+                                  : RIG_STREAM_FORMAT_PCM_S16;
+
+        if (caps->formats & f32)
+        {
+            backend_cfg->format = f32;
+        }
+        else if (caps->formats & s16)
+        {
+            backend_cfg->format = s16;
+        }
+        else
+        {
+            rig_stream_format_t avail = caps->formats & family;
+            backend_cfg->format = avail & ~(avail - 1);  /* lowest set bit */
+        }
+
+        conv |= RIG_STREAM_CONV_FORMAT;
+    }
+
+    /* Codec (compressed) formats are opaque packet streams, not raw
+     * samples: no stage of the conversion pipeline applies to them. The
+     * whole config must match the native declaration. Keyed on the family
+     * masks so any codec bit — present or future — takes this path. */
+    if (!(config->format & (STREAM_PCM_FORMAT_MASK | STREAM_IQ_FORMAT_MASK)))
+    {
+        if (!caps_rate_native(caps, config->sample_rate))
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: codec format 0x%x requires a native rate "
+                      "(got %d)\n",
+                      __func__, config->format, config->sample_rate);
+            return -RIG_EINVAL;
+        }
+
+        if (caps->channels_min > 0
+                && (config->channels < caps->channels_min
+                    || config->channels > caps->channels_max))
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: codec format 0x%x requires native channels "
+                      "%d-%d (got %d)\n",
+                      __func__, config->format,
+                      caps->channels_min, caps->channels_max,
+                      config->channels);
+            return -RIG_EINVAL;
+        }
+
+        return RIG_OK;    /* conv stays RIG_STREAM_CONV_NONE */
+    }
+
+    /* Rate: native, or (resampler built) any rate up to the largest
+     * native rate — audio and I/Q alike; I/Q upsampling beyond the
+     * hardware is impossible by this bound (sample rate = bandwidth). */
+    if (!caps_rate_native(caps, config->sample_rate))
+    {
+#ifdef HAVE_SAMPLERATE
+        int src_rate = caps_rate_source(caps, config->sample_rate);
+
+        if (src_rate <= 0)
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: rate %d exceeds the largest native rate\n",
                       __func__, config->sample_rate);
             return -RIG_EINVAL;
         }
+
+        backend_cfg->sample_rate = src_rate;
+        conv |= RIG_STREAM_CONV_RATE;
+#else
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: sample rate %d not native and resampling is not "
+                  "built in\n", __func__, config->sample_rate);
+        return -RIG_EINVAL;
+#endif
     }
 
-    /* Verify the channel count is within the supported range */
+    /* Channels: native range, audio 1<->2 mapping, or a subset of the
+     * hardware channels. I/Q channels are coherent and never fabricated. */
     if (caps->channels_min > 0
             && (config->channels < caps->channels_min
                 || config->channels > caps->channels_max))
     {
-        rig_debug(RIG_DEBUG_ERR,
-                  "%s: channels %d outside supported range %d-%d\n",
-                  __func__, config->channels,
-                  caps->channels_min, caps->channels_max);
-        return -RIG_EINVAL;
+        if (config->channels < caps->channels_min)
+        {
+            backend_cfg->channels = caps->channels_min;  /* subset/downmix */
+        }
+        else if (!is_iq && config->channels == 2 && caps->channels_max == 1)
+        {
+            backend_cfg->channels = 1;                   /* mono upmix */
+        }
+        else
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: channels %d outside effective range for native "
+                      "%d-%d\n", __func__, config->channels,
+                      caps->channels_min, caps->channels_max);
+            return -RIG_EINVAL;
+        }
+
+        conv |= RIG_STREAM_CONV_CHANNELS;
     }
 
+    *conversions = conv;
     return RIG_OK;
 }
 
@@ -561,11 +1021,25 @@ int HAMLIB_API rig_stream_open(RIG *rig,
         return -RIG_EINVAL;
     }
 
-    int cfg_ret = validate_config_against_caps(config, found_caps);
+    struct rig_stream_config backend_cfg;
+    int conversions = RIG_STREAM_CONV_NONE;
+    int cfg_ret = resolve_stream_source(config, found_caps, &backend_cfg,
+                                        &conversions);
 
     if (cfg_ret != RIG_OK)
     {
         return cfg_ret;
+    }
+
+    /* The request is servable, but only through conversion: a client that
+     * demanded a native stream gets a distinct refusal (-RIG_ENAVAIL, vs
+     * -RIG_EINVAL for the outright impossible). */
+    if (conversions != RIG_STREAM_CONV_NONE && config->require_native)
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: config requires conversions 0x%x but require_native "
+                  "is set\n", __func__, conversions);
+        return -RIG_ENAVAIL;
     }
 
     struct rig_stream_state *ss = get_stream_state(rig);
@@ -647,12 +1121,29 @@ int HAMLIB_API rig_stream_open(RIG *rig,
     }
     s->id = ss->stream_next_id[config->type]++;
 
+    /* The backend runs at the resolved native source; equal to the request
+     * on a native stream. backend_cfg is a full struct copy of the request
+     * with format/rate/channels replaced, so backends read it directly. */
+    backend_cfg.struct_size = sizeof(s->backend_config);
+    s->backend_config = backend_cfg;
+    s->conversions = conversions;
+
+    /* The ring buffer holds the CONSUMER's format: the client's request on
+     * RX, the backend-native side on TX. */
+    int is_rx = config->type == RIG_STREAM_TYPE_AUDIO_RX
+                || config->type == RIG_STREAM_TYPE_IQ_RX;
+    const struct rig_stream_config *ring_cfg = is_rx ? config
+                                               : &s->backend_config;
+
     /* Bytes per frame for producer-index accounting; 0 for compressed
-     * formats (index/time features unavailable there). */
+     * formats. A codec (compressed) stream's ring carries length-prefixed
+     * codec-frame records instead of raw bytes; its producer index is the
+     * decoded-sample position accumulated from frame durations. */
     {
-        int sample_size = rig_stream_format_sample_size(config->format);
-        int channels = config->channels > 0 ? config->channels : 1;
+        int sample_size = rig_stream_format_sample_size(ring_cfg->format);
+        int channels = ring_cfg->channels > 0 ? ring_cfg->channels : 1;
         s->frame_bytes = sample_size > 0 ? sample_size * channels : 0;
+        s->is_codec = ring_cfg->format != 0 && sample_size == 0;
     }
 
     /* Effective sender payload budget from the configured (clamped) MTU. */
@@ -663,11 +1154,85 @@ int HAMLIB_API rig_stream_open(RIG *rig,
 
     resolve_stale_thresholds(rig, config, s);
 
-    /* Initialize ring buffer */
-    size_t buf_size = buffer_size_from_config(config);
+    /* Conversion pipeline: producer side of the ring — backend->request
+     * for RX, request->backend for TX. A pre-derived caps entry delegates
+     * the conversion to the backend's far side (the stages are still
+     * reported), so no local pipeline is installed for it. */
+    if (conversions != RIG_STREAM_CONV_NONE && found_caps->native_formats == 0)
+    {
+        int is_iq = config->type == RIG_STREAM_TYPE_IQ_RX
+                    || config->type == RIG_STREAM_TYPE_IQ_TX;
+        int quality = stream_resample_quality(rig);
+        int conv_ret;
+
+        if (is_rx)
+        {
+            conv_ret = stream_conv_init(&s->conv,
+                                        backend_cfg.format,
+                                        backend_cfg.sample_rate,
+                                        backend_cfg.channels,
+                                        config->format,
+                                        config->sample_rate,
+                                        config->channels, is_iq, quality);
+        }
+        else
+        {
+            conv_ret = stream_conv_init(&s->conv,
+                                        config->format,
+                                        config->sample_rate,
+                                        config->channels,
+                                        backend_cfg.format,
+                                        backend_cfg.sample_rate,
+                                        backend_cfg.channels, is_iq, quality);
+        }
+
+        if (conv_ret != 0)
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: conversion pipeline init failed (0x%x)\n",
+                      __func__, conversions);
+            free(s);
+            pthread_mutex_unlock(&ss->stream_mutex);
+            return -RIG_ENOMEM;
+        }
+    }
+
+    /* Initialize ring buffer. A codec ring is sized from the buffer
+     * duration as a worst case — one max_payload frame per 10 ms (the
+     * assumed shortest codec cadence) plus record headers — because the
+     * sample-rate math of buffer_size_from_config() has no meaning for
+     * compressed payloads. buffer_bytes still wins verbatim. */
+    size_t buf_size;
+
+    if (s->is_codec && ring_cfg->buffer_bytes == 0)
+    {
+        unsigned int dur_ms = ring_cfg->buffer_duration_ms > 0
+                              ? ring_cfg->buffer_duration_ms
+                              : RIG_STREAM_AUDIO_BUF_DEFAULT_MS;
+        size_t slots = (dur_ms + 9) / 10;
+
+        if (slots < 1)
+        {
+            slots = 1;
+        }
+
+        buf_size = slots * ((size_t)s->max_payload
+                            + STREAM_CODEC_REC_HDR_SIZE);
+
+        if (buf_size < 4096)
+        {
+            buf_size = 4096;
+        }
+    }
+    else
+    {
+        buf_size = buffer_size_from_config(ring_cfg);
+    }
+
 
     if (stream_ringbuf_init(&s->ringbuf, buf_size) != 0)
     {
+        stream_conv_free(s->conv);
         free(s);
         pthread_mutex_unlock(&ss->stream_mutex);
         return -RIG_ENOMEM;
@@ -697,12 +1262,287 @@ int HAMLIB_API rig_stream_open(RIG *rig,
         s->active = 0;
         stream_ringbuf_destroy(&s->ringbuf);
         stream_write_event_destroy(s);
+        stream_conv_free(s->conv);
         free(s);
         return ret;
     }
 
     *stream = s;
     return RIG_OK;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Backend-facing produce path                                         */
+/* ------------------------------------------------------------------ */
+
+static size_t conv_ring_sink(void *ctx, const void *buf, size_t len)
+{
+    struct rig_stream *s = ctx;
+
+    return stream_ringbuf_write(&s->ringbuf, buf, len);
+}
+
+size_t stream_backend_write(struct rig_stream *stream, const void *buf,
+                            size_t bytes)
+{
+    if (!stream || !buf)
+    {
+        return 0;
+    }
+
+    if (stream->is_codec)
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: codec stream requires stream_backend_write_frame()\n",
+                  __func__);
+        return 0;
+    }
+
+    if (!stream->conv)
+    {
+        return stream_ringbuf_write(&stream->ringbuf, buf, bytes);
+    }
+
+    ssize_t n = stream_conv_process(stream->conv, buf, bytes,
+                                    conv_ring_sink, stream);
+
+    return n < 0 ? 0 : (size_t)n;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Codec-frame records (see STREAM_CODEC_REC_HDR_SIZE in stream.h)     */
+/* ------------------------------------------------------------------ */
+
+static void codec_rec_pack(uint8_t *hdr, uint16_t len, uint16_t duration,
+                           uint64_t start_index)
+{
+    memcpy(hdr, &len, 2);
+    memcpy(hdr + 2, &duration, 2);
+    memcpy(hdr + 4, &start_index, 8);
+}
+
+static void codec_rec_unpack(const uint8_t *hdr, uint16_t *len,
+                             uint16_t *duration, uint64_t *start_index)
+{
+    memcpy(len, hdr, 2);
+    memcpy(duration, hdr + 2, 2);
+    memcpy(start_index, hdr + 4, 8);
+}
+
+/* Shared produce core: validate and enqueue one codec frame atomically.
+ * have_index selects an explicit start index over the accumulator.
+ * account_drop: 1 = a full ring drops the frame permanently (RX producer;
+ * overrun + dropped-sample accounting, index advances over the hole);
+ * 0 = a full ring is a transient failure the caller will retry (TX app
+ * write; nothing accounted, index unchanged). Returns len, 0 when the
+ * ring is full, or a negative error. */
+static ssize_t codec_produce(struct rig_stream *stream, const void *buf,
+                             size_t len, uint32_t duration_samples,
+                             int have_index, uint64_t start_index,
+                             int account_drop)
+{
+    if (!stream || !buf)
+    {
+        return -RIG_EINVAL;
+    }
+
+    if (!stream->is_codec)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: not a codec stream\n", __func__);
+        return -RIG_EINVAL;
+    }
+
+    if (len == 0 || len > (size_t)stream->max_payload || len > UINT16_MAX
+            || duration_samples > UINT16_MAX)
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: codec frame len %zu / duration %u outside limits "
+                  "(max_payload %d)\n", __func__, len,
+                  (unsigned)duration_samples, stream->max_payload);
+        return -RIG_EINVAL;
+    }
+
+    /* Muted RX producer: discard, but keep the index advancing so the
+     * position stays truthful when unmuted. */
+    if (stream->muted)
+    {
+        pthread_mutex_lock(&stream->ringbuf.lock);
+        stream->codec_pos = (have_index ? start_index : stream->codec_pos)
+                            + duration_samples;
+        pthread_mutex_unlock(&stream->ringbuf.lock);
+        return (ssize_t)len;
+    }
+
+    uint8_t hdr[STREAM_CODEC_REC_HDR_SIZE];
+    size_t stored;
+
+    pthread_mutex_lock(&stream->ringbuf.lock);
+    uint64_t idx = have_index ? start_index : stream->codec_pos;
+    pthread_mutex_unlock(&stream->ringbuf.lock);
+
+    codec_rec_pack(hdr, (uint16_t)len, (uint16_t)duration_samples, idx);
+
+    stored = stream_ringbuf_write_record(&stream->ringbuf,
+                                         hdr, sizeof(hdr), buf, len);
+
+    pthread_mutex_lock(&stream->ringbuf.lock);
+
+    if (stored == 0 && !account_drop)
+    {
+        /* Transient full for a retrying caller: no accounting, no index
+         * movement. */
+        pthread_mutex_unlock(&stream->ringbuf.lock);
+        return 0;
+    }
+
+    if (stored == 0)
+    {
+        /* Drop-newest: the frame never entered the ring. The producer is
+         * authoritative for the dropped-sample total (the consume-side
+         * overrun attribution is suppressed for codec streams — the hole
+         * sits AFTER the stored records, so the announced-skip mechanism
+         * would double count). The index advance below exposes the hole
+         * to the consumer as a start-index jump. */
+        stream->ringbuf.overrun_count++;
+        stream->pending_drop_flags |= RIG_STREAM_DROP_OVERRUN;
+        stream->dropped_samples_overrun += duration_samples;
+    }
+
+    if (stored != 0)
+    {
+        stream->codec_frames++;
+    }
+
+    stream->codec_pos = idx + duration_samples;
+    pthread_mutex_unlock(&stream->ringbuf.lock);
+
+    return stored == 0 ? 0 : (ssize_t)len;
+}
+
+ssize_t stream_backend_write_frame(struct rig_stream *stream,
+                                   const void *buf, size_t len,
+                                   uint32_t duration_samples)
+{
+    return codec_produce(stream, buf, len, duration_samples, 0, 0, 1);
+}
+
+ssize_t stream_backend_write_frame_indexed(struct rig_stream *stream,
+                                           const void *buf, size_t len,
+                                           uint32_t duration_samples,
+                                           uint64_t start_index)
+{
+    return codec_produce(stream, buf, len, duration_samples, 1, start_index,
+                         1);
+}
+
+/* Dequeue one whole codec-frame record under a single lock hold. cap too
+ * small for the next frame leaves the record unconsumed. */
+static int codec_consume_locked(struct rig_stream *stream, void *buf,
+                                size_t cap, size_t *len,
+                                uint32_t *duration_samples,
+                                uint64_t *start_index)
+{
+    struct rig_stream_ringbuf *rb = &stream->ringbuf;
+    uint8_t hdr[STREAM_CODEC_REC_HDR_SIZE];
+    uint16_t rlen, rdur;
+    uint64_t ridx;
+
+    /* Records are written atomically, so a non-empty codec ring always
+     * holds at least one whole record. */
+    if (stream_ringbuf_peek_locked(rb, hdr, sizeof(hdr)) != sizeof(hdr))
+    {
+        return -RIG_EPROTO;   /* ring corrupted — cannot happen by design */
+    }
+
+    codec_rec_unpack(hdr, &rlen, &rdur, &ridx);
+
+    if ((size_t)rlen > cap)
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: buffer %zu too small for codec frame %u "
+                  "(rig_stream_get_max_payload() bytes always suffice)\n",
+                  __func__, cap, (unsigned)rlen);
+        return -RIG_EINVAL;
+    }
+
+    stream_ringbuf_consume_locked(rb, hdr, sizeof(hdr));
+    stream_ringbuf_consume_locked(rb, buf, rlen);
+
+    *len = rlen;
+
+    if (duration_samples)
+    {
+        *duration_samples = rdur;
+    }
+
+    if (start_index)
+    {
+        *start_index = ridx;
+    }
+
+    return RIG_OK;
+}
+
+int stream_backend_read_frame(struct rig_stream *stream, void *buf,
+                              size_t cap, size_t *len,
+                              uint32_t *duration_samples,
+                              uint64_t *start_index, int timeout_ms)
+{
+    if (!stream || !buf || !len || !stream->is_codec)
+    {
+        return -RIG_EINVAL;
+    }
+
+    struct rig_stream_ringbuf *rb = &stream->ringbuf;
+
+    *len = 0;
+    pthread_mutex_lock(&rb->lock);
+
+    if (stream_ringbuf_wait_data_locked(rb, timeout_ms) < 0)
+    {
+        pthread_mutex_unlock(&rb->lock);
+        return -RIG_ETIMEOUT;
+    }
+
+    int ret = codec_consume_locked(stream, buf, cap, len,
+                                   duration_samples, start_index);
+    pthread_mutex_unlock(&rb->lock);
+
+    return ret;
+}
+
+/* Resolve the resampler quality for new conversion pipelines on this rig:
+ * the stream_resample_quality conf token (stored as RIG_RESAMPLE_* + 1),
+ * or the built-in default when unset. */
+int stream_resample_quality(RIG *rig)
+{
+    struct rig_state *rs = rig ? STATE(rig) : NULL;
+
+    if (rs && rs->stream_resample_quality > 0)
+    {
+        return rs->stream_resample_quality - 1;
+    }
+
+    return RIG_RESAMPLE_MEDIUM;
+}
+
+uint64_t stream_scale_backend_samples(const struct rig_stream *stream,
+                                      uint64_t samples)
+{
+    if (!stream || !stream->conv
+            || stream->backend_config.sample_rate == stream->config.sample_rate
+            || stream->backend_config.sample_rate <= 0)
+    {
+        return samples;
+    }
+
+    /* Backend (native-rate) domain -> ring (client-rate) domain. Only RX
+     * streams have backend-side producers pushing counts; TX accounting
+     * already runs in the native ring domain. */
+    return samples * (uint64_t)stream->config.sample_rate
+           / (uint64_t)stream->backend_config.sample_rate;
 }
 
 
@@ -845,6 +1685,64 @@ int HAMLIB_API rig_stream_read(RIG *rig,
         pthread_mutex_unlock(&rb->lock);
         *bytes_read = 0;
         ret = closing ? -RIG_ENAVAIL : -RIG_ETIMEOUT;
+        goto out;
+    }
+
+    if (stream->is_codec)
+    {
+        /* Codec stream: exactly ONE whole codec frame per call. The
+         * record's start index and duration drive the accounting; a
+         * buffer of rig_stream_get_max_payload() bytes always
+         * suffices. */
+        size_t flen = 0;
+        uint32_t fdur = 0;
+        uint64_t fidx = 0;
+        int cret = codec_consume_locked(stream, buffer, buffer_size,
+                                        &flen, &fdur, &fidx);
+
+        if (cret != RIG_OK)
+        {
+            if (--stream->blocked_waiters == 0 && rb->closing)
+            {
+                pthread_cond_signal(&stream->quiesced);
+            }
+
+            pthread_mutex_unlock(&rb->lock);
+            *bytes_read = 0;
+            ret = cret;
+            goto out;
+        }
+
+        stream_consume_account_locked(stream, fidx, fdur, info);
+        pthread_mutex_unlock(&rb->lock);
+
+        /* Muted: the frame is consumed and DISCARDED — zeroed bytes are
+         * not a valid codec frame, so the app gets no data instead. */
+        if (stream->muted)
+        {
+            *bytes_read = 0;
+        }
+        else
+        {
+            *bytes_read = flen;
+        }
+
+        if (info)
+        {
+            info->codec_frame_samples = fdur;
+            stream_fill_read_time(stream, info);
+        }
+
+        pthread_mutex_lock(&rb->lock);
+
+        if (--stream->blocked_waiters == 0 && rb->closing)
+        {
+            pthread_cond_signal(&stream->quiesced);
+        }
+
+        pthread_mutex_unlock(&rb->lock);
+
+        ret = RIG_OK;
         goto out;
     }
 
@@ -1001,8 +1899,74 @@ int HAMLIB_API rig_stream_write(RIG *rig,
         }
     }
 
+    if (stream->is_codec)
+    {
+        /* Codec stream: exactly ONE whole codec frame per call, duration
+         * declared via write_info. Never dropped and never overwritten:
+         * on a full ring the call polls for space up to timeout_ms. */
+        uint32_t dur = info ? info->codec_frame_samples : 0;
+        struct timespec start;
+        clock_gettime(CLOCK_MONOTONIC, &start);
+
+        for (;;)
+        {
+            ssize_t got = codec_produce(stream, buffer, buffer_size, dur,
+                                        0, 0, 0);
+
+            if (got < 0)
+            {
+                ret = (int)got;
+                goto out;
+            }
+
+            if (got > 0)
+            {
+                *bytes_written = (size_t)got;
+                goto out;
+            }
+
+            /* Ring full: poll for space up to the timeout — the
+             * app-facing contract is block-not-drop. */
+            struct timespec now;
+            clock_gettime(CLOCK_MONOTONIC, &now);
+            long elapsed_ms = (now.tv_sec - start.tv_sec) * 1000
+                              + (now.tv_nsec - start.tv_nsec) / 1000000;
+
+            if (timeout_ms >= 0 && elapsed_ms >= timeout_ms)
+            {
+                *bytes_written = 0;
+                ret = -RIG_ETIMEOUT;
+                goto out;
+            }
+
+            usleep(1000);
+        }
+    }
+
     int ovr_before = stream->ringbuf.overrun_count;
-    *bytes_written = stream_ringbuf_write(&stream->ringbuf, buffer, buffer_size);
+
+    if (stream->conv)
+    {
+        /* Converted TX stream: the ring holds the backend-native format,
+         * so the client's bytes run through the pipeline on the way in. */
+        ssize_t consumed = stream_conv_process(stream->conv, buffer,
+                                               buffer_size, conv_ring_sink,
+                                               stream);
+
+        if (consumed < 0)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: conversion failed\n", __func__);
+            ret = -RIG_EINVAL;
+            goto out;
+        }
+
+        *bytes_written = (size_t)consumed;
+    }
+    else
+    {
+        *bytes_written = stream_ringbuf_write(&stream->ringbuf, buffer,
+                                              buffer_size);
+    }
 
     /* A write that overwrote unread data is a local TX overrun: report it as a
      * write-status event (the ring already counted it in overrun_count). */
@@ -1140,6 +2104,11 @@ uint64_t stream_first_readable_index_locked(struct rig_stream *stream)
 void stream_skip_samples(struct rig_stream *stream, uint64_t dropped_samples,
                          uint8_t drop_flag)
 {
+    /* Backends report losses in their own (native) sample domain; the ring
+     * accounting runs in the consumer domain, so scale under RX rate
+     * conversion (identity otherwise). */
+    dropped_samples = stream_scale_backend_samples(stream, dropped_samples);
+
     pthread_mutex_lock(&stream->ringbuf.lock);
 
     stream->pending_drop_flags |= drop_flag;
@@ -1148,6 +2117,15 @@ void stream_skip_samples(struct rig_stream *stream, uint64_t dropped_samples,
     {
     case RIG_STREAM_DROP_GAP:
         stream->gap_count++;
+
+        /* A codec stream's producer index accumulates in codec_pos; a
+         * radio-side gap advances it so the next frame's start index
+         * exposes the hole. */
+        if (stream->is_codec)
+        {
+            stream->codec_pos += dropped_samples;
+        }
+
 
         if (dropped_samples == 0)
         {
@@ -1216,6 +2194,7 @@ int HAMLIB_API rig_stream_get_stats(RIG *rig, rig_stream_t *stream,
     stats->dropped_samples_gap = stream->dropped_samples_gap;
     stats->dropped_samples_overrun = stream->dropped_samples_overrun;
     stats->dropped_samples_link = stream->dropped_samples_link;
+    stats->codec_frames = stream->codec_frames;
 
     pthread_mutex_unlock(&stream->ringbuf.lock);
 
@@ -1446,6 +2425,15 @@ uint64_t HAMLIB_API rig_stream_get_samples_written(const rig_stream_t *stream)
 
     pthread_mutex_lock(&s->ringbuf.lock);
 
+    if (s->is_codec)
+    {
+        /* Decoded-sample producer position: frame durations plus gap
+         * skips, all folded into codec_pos as they happen. */
+        uint64_t pos = s->codec_pos;
+        pthread_mutex_unlock(&s->ringbuf.lock);
+        return pos;
+    }
+
     uint64_t written = s->frame_bytes > 0
                        ? s->ringbuf.write_total / (uint64_t)s->frame_bytes
                        : 0;
@@ -1479,6 +2467,16 @@ int HAMLIB_API rig_stream_get_id(const rig_stream_t *stream)
     }
 
     return stream->id;
+}
+
+int HAMLIB_API rig_stream_get_conversions(const rig_stream_t *stream)
+{
+    if (!stream)
+    {
+        return -RIG_EINVAL;
+    }
+
+    return stream->conversions;
 }
 
 int HAMLIB_API rig_stream_get_max_payload(const rig_stream_t *stream)

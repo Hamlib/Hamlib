@@ -1842,8 +1842,20 @@ and all of a client's streams are closed when it disconnects.
 .
 .TP
 .BR stream_caps
-Get the backend streaming capabilities, one line per supported stream type:
-type, supported sample formats, sample-rate limits, and channel count.
+Get the backend streaming capabilities, one line per supported stream type.
+Each line carries two views: the
+.IR formats ", " rates " and " channels
+keys hold the \fIeffective\fP set \(em every configuration
+.B stream_open
+will serve, through server-side format conversion where needed \(em and the
+.IR native_formats ", " native_rates " and " native_channels
+keys hold the hardware-native truth.  A request inside the effective but
+outside the native set is served through conversion (see
+.I require_native
+and
+.I conversions
+under
+.BR stream_open ).
 .
 .TP
 .BR stream_open " \(aq" \fIType\fP "\(aq \(aq" \fIFormat\fP "\(aq \(aq" \fIRate\fP "\(aq [\fIkey=value\fP ...]"
@@ -1871,7 +1883,11 @@ arguments:
 .I ttl
 (1\(en255),
 .I channels
-(1\(en2),
+(1\(en255, validated against the capability entry \(em coherent I/Q may
+exceed stereo),
+.I require_native
+(0\(en1; 1 opens only a hardware-native stream, refusing a request that
+would need conversion with \-RIG_ENAVAIL),
 .I time_stale_coarse
 (ms), and
 .I time_stale_invalidate
@@ -1883,8 +1899,14 @@ The response reports
 .IR udp_port ,
 .IR subscribe_token ,
 .IR max_payload ,
+.I conversions
+(the active server-side conversion-stage bitmask: 1 = sample format,
+2 = sample rate, 4 = channel count; 0 = native stream),
 and, for multicast streams,
 .IR multicast .
+Codec formats (e.g. OPUS) open native-only \(em no conversion stage ever
+applies to them \(em and stream as exactly one codec frame per UDP
+datagram.
 The client drives the UDP session with
 .I udp_port
 and
@@ -1899,7 +1921,14 @@ Close a stream and release its UDP socket.
 .TP
 .BR stream_status " \(aq" \fIStreamId\fP \(aq
 Get per-stream state and counters: packet counts, per-cause sample losses,
-overruns, underruns, late timed transmissions, and the latest time anchor.
+overruns, underruns, late timed transmissions, the active
+.I conversions
+bitmask (see
+.BR stream_open ),
+the
+.I codec_frames
+count (whole codec frames produced; 0 on raw sample streams),
+and the latest time anchor.
 .
 .TP
 .BR stream_pause " \(aq" \fIStreamId\fP \(aq
@@ -1930,8 +1959,15 @@ Drain a TX stream's buffer.
 List all active streams:
 .IR stream_id ,
 .IR source_id ,
-type, format, sample rate, channels, UDP port, paused/muted state, and
-ownership.  The UDP port of streams owned by other clients is hidden.
+type, format, sample rate, channels, UDP port, paused/muted state,
+ownership, the active
+.I conversions
+bitmask (see
+.BR stream_open ),
+and the
+.I codec_frames
+count.
+The UDP port of streams owned by other clients is hidden.
 .
 .SH PROTOCOL
 .

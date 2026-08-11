@@ -41,6 +41,7 @@
 #include "hamlib/port.h"
 #include "hamlib/rig_state.h"
 #include "token.h"
+#include "stream_convert.h"     /* RIG_RESAMPLE_* quality constants */
 
 
 /*
@@ -190,6 +191,13 @@ static const struct confparams frontend_cfg_params[] =
         "Raise it on a lossy link so consecutive lost pings do not end the "
         "stream; 0 selects the built-in default",
         "0", RIG_CONF_NUMERIC, { .n = {0, 3600, 1}}
+    },
+    {
+        TOK_STREAM_RESAMPLE_QUALITY, "stream_resample_quality",
+        "Stream resampler quality",
+        "libsamplerate sinc converter for stream rate conversion, applied "
+        "to pipelines created after the change",
+        "medium", RIG_CONF_COMBO, { .c = {{ "medium", "best", "fast", NULL }} }
     },
     {
         TOK_STREAM_KEEPALIVE_INTERVAL, "stream_keepalive_interval",
@@ -830,6 +838,29 @@ static int frontend_set_conf(RIG *rig, hamlib_token_t token, const char *val)
         rs->stream_keepalive_interval_s = (unsigned int)val_i;
         break;
 
+    case TOK_STREAM_RESAMPLE_QUALITY:
+
+        /* Stored as RIG_RESAMPLE_* + 1 so a zeroed state means "unset"
+         * (built-in medium). Applied to pipelines created afterwards. */
+        if (strcmp(val, "best") == 0)
+        {
+            rs->stream_resample_quality = RIG_RESAMPLE_BEST + 1;
+        }
+        else if (strcmp(val, "medium") == 0)
+        {
+            rs->stream_resample_quality = RIG_RESAMPLE_MEDIUM + 1;
+        }
+        else if (strcmp(val, "fast") == 0)
+        {
+            rs->stream_resample_quality = RIG_RESAMPLE_FAST + 1;
+        }
+        else
+        {
+            return -RIG_EINVAL;
+        }
+
+        break;
+
     case TOK_AUTO_POWER_ON:
         if (1 != sscanf(val, "%ld", &val_i))
         {
@@ -1381,6 +1412,18 @@ static int frontend_get_conf2(RIG *rig, hamlib_token_t token, char *val,
 
     case TOK_STREAM_KEEPALIVE_INTERVAL:
         SNPRINTF(val, val_len, "%u", rs->stream_keepalive_interval_s);
+        break;
+
+    case TOK_STREAM_RESAMPLE_QUALITY:
+        switch (rs->stream_resample_quality)
+        {
+        case RIG_RESAMPLE_BEST + 1: SNPRINTF(val, val_len, "best"); break;
+
+        case RIG_RESAMPLE_FAST + 1: SNPRINTF(val, val_len, "fast"); break;
+
+        default:                    SNPRINTF(val, val_len, "medium"); break;
+        }
+
         break;
 
     case TOK_AUTO_POWER_ON:

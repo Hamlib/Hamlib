@@ -141,7 +141,7 @@ static ssize_t recv_from_server(struct rig_stream_net_session *sess,
 {
     struct sockaddr_storage from;
     socklen_t from_len = sizeof(from);
-    ssize_t n = recvfrom(sess->udp_sock, buf, buflen, 0,
+    ssize_t n = recvfrom(sess->udp_sock, (char *)buf, buflen, 0,
                          (struct sockaddr *)&from, &from_len);
 
     if (n <= 0)
@@ -257,7 +257,8 @@ static int send_control_packet(struct rig_stream_net_session *sess,
 
     stream_packet_header_pack(&hdr, buf);
 
-    ssize_t sent = sendto(sess->udp_sock, buf, RIG_STREAM_HEADER_SIZE, 0,
+    ssize_t sent = sendto(sess->udp_sock, (const char *)buf,
+                          RIG_STREAM_HEADER_SIZE, 0,
                           (struct sockaddr *)&sess->server_addr,
                           sess->server_addr_len);
 
@@ -488,7 +489,7 @@ int rig_stream_net_send_data(struct rig_stream_net_session *sess,
     memcpy(pkt + RIG_STREAM_HEADER_SIZE + block, data, len);
 
     size_t total = RIG_STREAM_HEADER_SIZE + block + len;
-    ssize_t sent = sendto(sess->udp_sock, pkt, total, 0,
+    ssize_t sent = sendto(sess->udp_sock, (const char *)pkt, total, 0,
                           (struct sockaddr *)&sess->server_addr,
                           sess->server_addr_len);
 
@@ -501,8 +502,14 @@ int rig_stream_net_send_data(struct rig_stream_net_session *sess,
 
     sess->tx_seq++;
 
-    /* Advance timestamp by number of samples sent */
-    if (stream->config.channels > 0)
+    /* Advance timestamp by number of samples sent. A codec frame's decoded
+     * duration comes from the application's write_info (0 = unknown, the
+     * timestamp then stays put). */
+    if (stream->is_codec)
+    {
+        sess->tx_timestamp += info ? info->codec_frame_samples : 0;
+    }
+    else if (stream->config.channels > 0)
     {
         uint64_t frame_size = (uint64_t)sess->sample_size * stream->config.channels;
 
@@ -686,7 +693,18 @@ static int handle_data_frame(struct rig_stream_net_session *sess,
 
     if (data_len > 0)
     {
-        stream_ringbuf_write(&stream->ringbuf, data, data_len);
+        if (stream->is_codec)
+        {
+            /* One datagram payload = one codec frame; the header timestamp
+             * is its start index. Duration is not carried on the wire
+             * (0 = unknown at the client). */
+            stream_backend_write_frame_indexed(stream, data, data_len, 0,
+                                               hdr->timestamp);
+        }
+        else
+        {
+            stream_ringbuf_write(&stream->ringbuf, data, data_len);
+        }
     }
 
     return 0;
@@ -992,12 +1010,13 @@ int rig_stream_net_parse_caps_line(const char *line,
         }
     }
 
-    /* Parse rates= (comma-separated integers) */
+    /* Parse rates= (comma-separated integers). Sized for a full
+     * HAMLIB_MAX_STREAM_RATES effective list. */
     val = find_kv(line, "rates", &vlen);
 
     if (val != NULL && vlen > 0)
     {
-        char rbuf[128];
+        char rbuf[256];
         copy_kv_value(val, vlen, rbuf, sizeof(rbuf));
 
         int ri = 0;
@@ -1017,6 +1036,69 @@ int rig_stream_net_parse_caps_line(const char *line,
         }
 
         caps->sample_rates[ri] = 0;  /* Sentinel */
+    }
+
+    /* Parse native_formats= (comma-separated format names) */
+    val = find_kv(line, "native_formats", &vlen);
+
+    if (val != NULL && vlen > 0)
+    {
+        char fbuf[256];
+        copy_kv_value(val, vlen, fbuf, sizeof(fbuf));
+
+        char *saveptr = NULL;
+        char *tok = strtok_r(fbuf, ",", &saveptr);
+
+        while (tok != NULL)
+        {
+            rig_stream_format_t fmt = stream_format_parse(tok);
+
+            if (fmt != 0)
+            {
+                caps->native_formats |= fmt;
+            }
+
+            tok = strtok_r(NULL, ",", &saveptr);
+        }
+    }
+
+    /* Parse native_rates= (comma-separated integers) */
+    val = find_kv(line, "native_rates", &vlen);
+
+    if (val != NULL && vlen > 0)
+    {
+        char rbuf[256];
+        copy_kv_value(val, vlen, rbuf, sizeof(rbuf));
+
+        int ri = 0;
+        char *saveptr2 = NULL;
+        char *tok = strtok_r(rbuf, ",", &saveptr2);
+
+        while (tok != NULL && ri < HAMLIB_MAX_STREAM_RATES - 1)
+        {
+            int rate = parse_uint_field(tok);
+
+            if (rate > 0)
+            {
+                caps->native_sample_rates[ri++] = rate;
+            }
+
+            tok = strtok_r(NULL, ",", &saveptr2);
+        }
+
+        caps->native_sample_rates[ri] = 0;  /* Sentinel */
+    }
+
+    /* Parse native_channels=MIN-MAX */
+    val = find_kv(line, "native_channels", &vlen);
+
+    if (val != NULL && vlen > 0)
+    {
+        char cbuf[32];
+        copy_kv_value(val, vlen, cbuf, sizeof(cbuf));
+
+        sscanf(cbuf, "%d-%d", &caps->native_channels_min,
+               &caps->native_channels_max);
     }
 
     /* Parse channels=MIN-MAX */

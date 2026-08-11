@@ -178,6 +178,97 @@ void test_ringbuf_overwrite_oldest(void)
 }
 
 
+/* Atomic record write: hdr+payload land together, or not at all — a full
+ * ring never gets a partial record and never overwrites (drop-newest for
+ * codec streams). peek does not consume. */
+void test_ringbuf_write_record_atomic(void)
+{
+    struct rig_stream_ringbuf rb;
+    TEST_ASSERT(stream_ringbuf_init(&rb, 64) == 0);   /* rounds to 64 */
+
+    unsigned char hdr[4] = { 0xAA, 0xBB, 0xCC, 0xDD };
+    unsigned char payload[16];
+    unsigned char out[64];
+
+    for (int i = 0; i < 16; i++)
+    {
+        payload[i] = (unsigned char)i;
+    }
+
+    /* 3 x 20-byte records fill 60 of 64 bytes. */
+    for (int r = 0; r < 3; r++)
+    {
+        size_t n = stream_ringbuf_write_record(&rb, hdr, sizeof(hdr),
+                                               payload, sizeof(payload));
+        TEST_CHECK(n == 20);
+    }
+
+    TEST_CHECK(stream_ringbuf_available(&rb) == 60);
+
+    /* A 4th record does not fit: nothing written (overrun accounting is
+     * the caller's call — a retrying TX writer polls this path). */
+    size_t n = stream_ringbuf_write_record(&rb, hdr, sizeof(hdr),
+                                           payload, sizeof(payload));
+    TEST_CHECK(n == 0);
+    TEST_CHECK(stream_ringbuf_available(&rb) == 60);
+    TEST_CHECK(rb.overrun_count == 0);
+
+    /* Peek copies the head record without consuming. */
+    pthread_mutex_lock(&rb.lock);
+    size_t got = stream_ringbuf_peek_locked(&rb, out, 20);
+    pthread_mutex_unlock(&rb.lock);
+    TEST_CHECK(got == 20);
+    TEST_CHECK(memcmp(out, hdr, 4) == 0);
+    TEST_CHECK(memcmp(out + 4, payload, 16) == 0);
+    TEST_CHECK(stream_ringbuf_available(&rb) == 60);
+
+    /* Consuming one record makes room for exactly one more. */
+    got = stream_ringbuf_read(&rb, out, 20, 0);
+    TEST_CHECK(got == 20);
+    n = stream_ringbuf_write_record(&rb, hdr, sizeof(hdr),
+                                    payload, sizeof(payload));
+    TEST_CHECK(n == 20);
+
+    stream_ringbuf_destroy(&rb);
+}
+
+
+/* Record writes across the wrap point stay intact. */
+void test_ringbuf_write_record_wraparound(void)
+{
+    struct rig_stream_ringbuf rb;
+    TEST_ASSERT(stream_ringbuf_init(&rb, 64) == 0);
+
+    unsigned char pad[40];
+    unsigned char out[64];
+    memset(pad, 0x55, sizeof(pad));
+
+    /* Advance positions close to the end, then drain. */
+    TEST_CHECK(stream_ringbuf_write(&rb, pad, 40) == 40);
+    TEST_CHECK(stream_ringbuf_read(&rb, out, 40, 0) == 40);
+
+    /* This record spans the wrap boundary (write_pos = 40, cap 64). */
+    unsigned char hdr[4] = { 1, 2, 3, 4 };
+    unsigned char payload[28];
+
+    for (int i = 0; i < 28; i++)
+    {
+        payload[i] = (unsigned char)(0x80 + i);
+    }
+
+    size_t n = stream_ringbuf_write_record(&rb, hdr, sizeof(hdr),
+                                           payload, sizeof(payload));
+    TEST_CHECK(n == 32);
+
+    size_t got = stream_ringbuf_read(&rb, out, 32, 0);
+    TEST_CHECK(got == 32);
+    TEST_CHECK(memcmp(out, hdr, 4) == 0);
+    TEST_CHECK(memcmp(out + 4, payload, 28) == 0);
+
+    stream_ringbuf_destroy(&rb);
+}
+
+
 void test_ringbuf_read_timeout(void)
 {
     struct rig_stream_ringbuf rb;
@@ -389,6 +480,8 @@ TEST_LIST =
     { "stream_ringbuf_partial_read",   test_ringbuf_partial_read },
     { "stream_ringbuf_wraparound",     test_ringbuf_wraparound },
     { "stream_ringbuf_overwrite_oldest", test_ringbuf_overwrite_oldest },
+    { "stream_ringbuf_write_record_atomic", test_ringbuf_write_record_atomic },
+    { "stream_ringbuf_write_record_wrap", test_ringbuf_write_record_wraparound },
     { "stream_ringbuf_read_timeout",   test_ringbuf_read_timeout },
     { "stream_ringbuf_underrun_count", test_ringbuf_underrun_count },
     { "stream_ringbuf_available",      test_ringbuf_available },

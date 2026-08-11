@@ -81,7 +81,13 @@ void stream_consume_account_locked(struct rig_stream *stream,
     if (overrun_part > 0)
     {
         flags |= RIG_STREAM_DROP_OVERRUN;
-        stream->dropped_samples_overrun += overrun_part;
+
+        /* Codec streams: the producer already counted the dropped frames
+         * (drop-newest) — attribute the cause, but do not double count. */
+        if (!stream->is_codec)
+        {
+            stream->dropped_samples_overrun += overrun_part;
+        }
     }
 
     stream->next_expected = first_index + frames_read;

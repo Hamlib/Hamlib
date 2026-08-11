@@ -31,7 +31,9 @@
 #endif
 
 #include "stream_convert.h"
+#include <math.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 /* The sample converters dereference multi-byte samples in host byte order and
@@ -94,20 +96,26 @@ int rig_stream_format_sample_size(rig_stream_format_t format)
 }
 
 
-/* Clamp a float sample to an inclusive [lo, hi] range. */
-static inline float clampf(float v, float lo, float hi)
+/* Scale a float sample by a symmetric power-of-two factor, round to
+ * nearest and clamp. The symmetric factor (the same 2^n used by the
+ * integer -> float direction) plus round-to-nearest makes
+ * integer -> float -> integer round-trips value-exact, which the
+ * conversion-pipeline tests rely on. */
+static inline long scale_round_clamp(float v, float scale, long lo, long hi)
 {
-    if (v > hi)
-    {
-        return hi;
-    }
+    long r = lrintf(v * scale);
 
-    if (v < lo)
+    if (r < lo)
     {
         return lo;
     }
 
-    return v;
+    if (r > hi)
+    {
+        return hi;
+    }
+
+    return r;
 }
 
 
@@ -285,7 +293,7 @@ static void convert_f32_to_s16(const void *src, void *dst, size_t n)
 
     for (size_t i = 0; i < n; i++)
     {
-        d[i] = (int16_t)clampf(s[i] * 32767.0f, -32768.0f, 32767.0f);
+        d[i] = (int16_t)scale_round_clamp(s[i], 32768.0f, -32768, 32767);
     }
 }
 
@@ -357,7 +365,7 @@ static void convert_cf32_to_cu8(const void *src, void *dst, size_t n)
 
     for (size_t i = 0; i < 2 * n; i++)
     {
-        d[i] = (uint8_t)clampf(s[i] * 127.0f + 128.0f, 0.0f, 255.0f);
+        d[i] = (uint8_t)(scale_round_clamp(s[i], 128.0f, -128, 127) + 128);
     }
 }
 
@@ -369,7 +377,7 @@ static void convert_cf32_to_cs8(const void *src, void *dst, size_t n)
 
     for (size_t i = 0; i < 2 * n; i++)
     {
-        d[i] = (int8_t)clampf(s[i] * 127.0f, -128.0f, 127.0f);
+        d[i] = (int8_t)scale_round_clamp(s[i], 128.0f, -128, 127);
     }
 }
 
@@ -381,7 +389,7 @@ static void convert_f32_to_s8(const void *src, void *dst, size_t n)
 
     for (size_t i = 0; i < n; i++)
     {
-        d[i] = (int8_t)clampf(s[i] * 127.0f, -128.0f, 127.0f);
+        d[i] = (int8_t)scale_round_clamp(s[i], 128.0f, -128, 127);
     }
 }
 
@@ -393,7 +401,7 @@ static void convert_f32_to_u8(const void *src, void *dst, size_t n)
 
     for (size_t i = 0; i < n; i++)
     {
-        d[i] = (uint8_t)clampf(s[i] * 127.0f + 128.0f, 0.0f, 255.0f);
+        d[i] = (uint8_t)(scale_round_clamp(s[i], 128.0f, -128, 127) + 128);
     }
 }
 
@@ -789,6 +797,352 @@ int rig_stream_resample(const float *src, int src_rate,
 }
 
 #endif /* HAVE_SAMPLERATE */
+
+
+/* ------------------------------------------------------------------ */
+/* Persistent per-stream conversion context (stream_conv)              */
+/* ------------------------------------------------------------------ */
+
+/* Frames processed per pipeline pass; bounds the scratch buffers while
+ * arbitrarily large writes stream through in slices. */
+#define STREAM_CONV_CHUNK_FRAMES 1024
+
+struct stream_conv
+{
+    rig_stream_format_t src_fmt, dst_fmt;
+    int src_rate, dst_rate;
+    int src_ch, dst_ch;
+    int is_iq;
+    int src_frame_bytes;            /* src_ch x src sample size */
+    int dst_frame_bytes;            /* dst_ch x dst sample size */
+    rig_stream_format_t pivot_fmt;  /* PCM_F32 or IQ_CF32 when resampling */
+    size_t out_cap_frames;          /* scratch capacity in output frames */
+    unsigned char *buf_a;           /* ping-pong scratch */
+    unsigned char *buf_b;
+    size_t buf_bytes;
+#ifdef HAVE_SAMPLERATE
+    SRC_STATE *src_state;           /* stateful resampler, NULL if no rate conv */
+#endif
+};
+
+/* Select the first dst_ch of src_ch interleaved per-frame elements
+ * (audio samples or I/Q complex pairs), element size from format. */
+static void conv_channels_subset(const unsigned char *src, int src_ch,
+                                 unsigned char *dst, int dst_ch,
+                                 size_t frames, int elem_size)
+{
+    size_t src_stride = (size_t)src_ch * elem_size;
+    size_t dst_stride = (size_t)dst_ch * elem_size;
+
+    for (size_t i = 0; i < frames; i++)
+    {
+        memcpy(dst + i * dst_stride, src + i * src_stride, dst_stride);
+    }
+}
+
+/* Channel-map frames of fmt data from src_ch to dst_ch per the design
+ * rules (audio: 1<->2 map, first-N subset; I/Q: subset only).
+ * Returns 0 on success. */
+static int conv_channel_map(const struct stream_conv *c,
+                            const unsigned char *src, unsigned char *dst,
+                            size_t frames)
+{
+    int elem = rig_stream_format_sample_size(c->src_fmt);
+
+    if (!c->is_iq && c->src_ch == 1 && c->dst_ch == 2)
+    {
+        return rig_stream_convert_channels(src, 1, dst, 2, frames,
+                                           c->src_fmt);
+    }
+
+    if (!c->is_iq && c->src_ch == 2 && c->dst_ch == 1)
+    {
+        return rig_stream_convert_channels(src, 2, dst, 1, frames,
+                                           c->src_fmt);
+    }
+
+    if (c->dst_ch < c->src_ch)
+    {
+        conv_channels_subset(src, c->src_ch, dst, c->dst_ch, frames, elem);
+        return 0;
+    }
+
+    return -1;
+}
+
+int stream_conv_init(struct stream_conv **out,
+                     rig_stream_format_t src_fmt, int src_rate, int src_ch,
+                     rig_stream_format_t dst_fmt, int dst_rate, int dst_ch,
+                     int is_iq, int quality)
+{
+    if (!out || src_rate <= 0 || dst_rate <= 0 || src_ch <= 0 || dst_ch <= 0)
+    {
+        return -1;
+    }
+
+    int src_ss = rig_stream_format_sample_size(src_fmt);
+    int dst_ss = rig_stream_format_sample_size(dst_fmt);
+
+    if (src_ss <= 0 || dst_ss <= 0)
+    {
+        return -1;  /* compressed/unknown formats are not convertible */
+    }
+
+#ifndef HAVE_SAMPLERATE
+
+    if (src_rate != dst_rate)
+    {
+        return -1;  /* rate conversion requires libsamplerate */
+    }
+
+#endif
+
+    struct stream_conv *c = calloc(1, sizeof(*c));
+
+    if (!c)
+    {
+        return -1;
+    }
+
+    c->src_fmt = src_fmt;
+    c->dst_fmt = dst_fmt;
+    c->src_rate = src_rate;
+    c->dst_rate = dst_rate;
+    c->src_ch = src_ch;
+    c->dst_ch = dst_ch;
+    c->is_iq = is_iq;
+    c->src_frame_bytes = src_ch * src_ss;
+    c->dst_frame_bytes = dst_ch * dst_ss;
+    c->pivot_fmt = is_iq ? RIG_STREAM_FORMAT_IQ_CF32
+                   : RIG_STREAM_FORMAT_PCM_F32;
+
+    /* Output frames a full input chunk can produce (+margin for the
+     * resampler's internal state). Source selection keeps dst <= src rate,
+     * but size for either direction to stay safe. */
+    double ratio = (double)dst_rate / (double)src_rate;
+    c->out_cap_frames = (size_t)((double)STREAM_CONV_CHUNK_FRAMES
+                                 * (ratio > 1.0 ? ratio : 1.0)) + 64;
+
+    /* Scratch sized for the widest stage across the whole pipeline. */
+    int pivot_ss = rig_stream_format_sample_size(c->pivot_fmt);
+    size_t worst_frame = (size_t)src_ch * src_ss;
+
+    if ((size_t)src_ch * pivot_ss > worst_frame)
+    {
+        worst_frame = (size_t)src_ch * pivot_ss;
+    }
+
+    if ((size_t)dst_ch * pivot_ss > worst_frame)
+    {
+        worst_frame = (size_t)dst_ch * pivot_ss;
+    }
+
+    if ((size_t)c->dst_frame_bytes > worst_frame)
+    {
+        worst_frame = c->dst_frame_bytes;
+    }
+
+    size_t worst_frames = STREAM_CONV_CHUNK_FRAMES > c->out_cap_frames
+                          ? STREAM_CONV_CHUNK_FRAMES : c->out_cap_frames;
+    c->buf_bytes = worst_frames * worst_frame;
+    c->buf_a = malloc(c->buf_bytes);
+    c->buf_b = malloc(c->buf_bytes);
+
+    if (!c->buf_a || !c->buf_b)
+    {
+        stream_conv_free(c);
+        return -1;
+    }
+
+#ifdef HAVE_SAMPLERATE
+
+    if (src_rate != dst_rate)
+    {
+        /* Interleaved I/Q resamples as 2 float channels per I/Q channel:
+         * I and Q pass through identical filters, preserving the complex
+         * signal. */
+        int rs_channels = is_iq ? 2 * dst_ch : dst_ch;
+        int err = 0;
+
+        c->src_state = src_new(resample_converter_type(quality),
+                               rs_channels, &err);
+
+        if (!c->src_state)
+        {
+            stream_conv_free(c);
+            return -1;
+        }
+    }
+
+#endif
+
+    *out = c;
+    return 0;
+}
+
+void stream_conv_free(struct stream_conv *c)
+{
+    if (!c)
+    {
+        return;
+    }
+
+#ifdef HAVE_SAMPLERATE
+
+    if (c->src_state)
+    {
+        src_delete(c->src_state);
+    }
+
+#endif
+    free(c->buf_a);
+    free(c->buf_b);
+    free(c);
+}
+
+/* Convert one slice of in_frames source frames and deliver the result to
+ * sink. Returns output bytes accepted by the sink, sets *out_bytes_total
+ * to the bytes offered, or returns (size_t)-1 on conversion error. */
+static size_t conv_run_slice(struct stream_conv *c, const unsigned char *in,
+                             size_t in_frames, stream_conv_sink_fn sink,
+                             void *ctx, size_t *out_bytes_total)
+{
+    /* Ping-pong: each stage reads cur and writes other, then swaps. The
+     * external input is never written, so the first stage lands in buf_a. */
+    const unsigned char *cur = in;
+    unsigned char *other = c->buf_a;
+    rig_stream_format_t cur_fmt = c->src_fmt;
+    int cur_ch = c->src_ch;
+    size_t frames = in_frames;
+
+    /* Stage 1: channel map (in source format). */
+    if (c->dst_ch != c->src_ch)
+    {
+        if (conv_channel_map(c, cur, other, frames) != 0)
+        {
+            return (size_t)-1;
+        }
+
+        cur = other;
+        other = (other == c->buf_a) ? c->buf_b : c->buf_a;
+        cur_ch = c->dst_ch;
+    }
+
+    int resampling = c->src_rate != c->dst_rate;
+
+    /* Stage 2: convert to the pivot (resampling) or the destination. */
+    rig_stream_format_t target = resampling ? c->pivot_fmt : c->dst_fmt;
+
+    if (cur_fmt != target)
+    {
+        /* I/Q converts as a flat run of complex samples. */
+        size_t nsamp = c->is_iq ? frames * cur_ch : frames;
+        int conv_ch = c->is_iq ? 1 : cur_ch;
+
+        if (rig_stream_convert(cur, cur_fmt, other, target,
+                               nsamp, conv_ch) != 0)
+        {
+            return (size_t)-1;
+        }
+
+        cur = other;
+        other = (other == c->buf_a) ? c->buf_b : c->buf_a;
+        cur_fmt = target;
+    }
+
+#ifdef HAVE_SAMPLERATE
+
+    /* Stage 3: stateful resample on the float pivot (I/Q runs as 2 float
+     * channels per I/Q channel, fixed at src_new time). */
+    if (resampling)
+    {
+        SRC_DATA data;
+
+        data.data_in = (float *)(uintptr_t)cur;
+        data.input_frames = (long)frames;
+        data.data_out = (float *)other;
+        data.output_frames = (long)c->out_cap_frames;
+        data.src_ratio = (double)c->dst_rate / (double)c->src_rate;
+        data.end_of_input = 0;
+
+        if (src_process(c->src_state, &data) != 0)
+        {
+            return (size_t)-1;
+        }
+
+        cur = other;
+        other = (other == c->buf_a) ? c->buf_b : c->buf_a;
+        frames = (size_t)data.output_frames_gen;
+
+        /* Stage 4: pivot -> destination format. */
+        if (c->dst_fmt != cur_fmt)
+        {
+            size_t nsamp = c->is_iq ? frames * cur_ch : frames;
+            int conv_ch = c->is_iq ? 1 : cur_ch;
+
+            if (rig_stream_convert(cur, cur_fmt, other, c->dst_fmt,
+                                   nsamp, conv_ch) != 0)
+            {
+                return (size_t)-1;
+            }
+
+            cur = other;
+        }
+    }
+
+#endif /* HAVE_SAMPLERATE */
+
+    size_t out_bytes = frames * c->dst_frame_bytes;
+    *out_bytes_total = out_bytes;
+
+    if (out_bytes == 0)
+    {
+        return 0;  /* resampler primed but produced nothing yet */
+    }
+
+    return sink(ctx, cur, out_bytes);
+}
+
+ssize_t stream_conv_process(struct stream_conv *c, const void *buf,
+                            size_t len, stream_conv_sink_fn sink, void *ctx)
+{
+    if (!c || !buf || !sink || len % c->src_frame_bytes != 0)
+    {
+        return -1;
+    }
+
+    const unsigned char *in = buf;
+    size_t frames_left = len / c->src_frame_bytes;
+    size_t consumed_frames = 0;
+
+    while (frames_left > 0)
+    {
+        size_t slice = frames_left > STREAM_CONV_CHUNK_FRAMES
+                       ? STREAM_CONV_CHUNK_FRAMES : frames_left;
+        size_t offered = 0;
+        size_t accepted = conv_run_slice(c, in, slice, sink, ctx, &offered);
+
+        if (accepted == (size_t)-1)
+        {
+            return -1;
+        }
+
+        if (accepted < offered)
+        {
+            /* Sink stopped early (ring full / timeout): credit the input
+             * proportionally so the caller can report partial progress. */
+            consumed_frames += offered != 0
+                               ? slice * accepted / offered : 0;
+            return (ssize_t)(consumed_frames * c->src_frame_bytes);
+        }
+
+        consumed_frames += slice;
+        in += slice * c->src_frame_bytes;
+        frames_left -= slice;
+    }
+
+    return (ssize_t)(consumed_frames * c->src_frame_bytes);
+}
 
 
 /* ------------------------------------------------------------------ */

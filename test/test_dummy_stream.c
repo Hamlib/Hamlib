@@ -2250,10 +2250,12 @@ void test_open_unsupported_format(void)
     RIG *rig = open_dummy();
     TEST_ASSERT(rig != NULL);
 
-    /* Opus is not in dummy's stream_caps */
+    /* Opus is not in dummy's I/Q stream_caps (the fabricated test codec
+     * is audio-only), and a codec bit is outside the I/Q family, so this
+     * is an outright-unsupported format. */
     struct rig_stream_config *config = rig_stream_config_alloc();
     TEST_ASSERT(config != NULL);
-    config->type = RIG_STREAM_TYPE_AUDIO_RX;
+    config->type = RIG_STREAM_TYPE_IQ_RX;
     config->format = RIG_STREAM_FORMAT_OPUS;
     config->sample_rate = 48000;
     config->channels = 1;
@@ -2961,6 +2963,360 @@ void test_timed_tx_horizon_rejected(void)
 }
 
 
+/* --- Frontend conversion against the native-F32 dummy --- */
+
+/* Helper: open an AUDIO_RX stream with the given format/rate, returning
+ * the stream (or NULL) and the open return code in *ret_out. */
+static rig_stream_t *open_audio_rx(RIG *rig, rig_stream_format_t fmt,
+                                   int rate, int require_native,
+                                   int *ret_out)
+{
+    struct rig_stream_config *config = rig_stream_config_alloc();
+
+    if (!config)
+    {
+        *ret_out = -RIG_ENOMEM;
+        return NULL;
+    }
+
+    config->type = RIG_STREAM_TYPE_AUDIO_RX;
+    config->format = fmt;
+    config->sample_rate = rate;
+    config->channels = 1;
+    config->require_native = require_native;
+    rig_stream_t *stream = NULL;
+    *ret_out = rig_stream_open(rig, config, &stream);
+    rig_stream_config_free(config);
+    return stream;
+}
+
+/* The conversions bitmask names exactly the stages between the F32-native
+ * dummy hardware and the client's request. */
+void test_conversions_bitmask(void)
+{
+    RIG *rig = open_dummy();
+    TEST_ASSERT(rig != NULL);
+
+    int ret;
+    rig_stream_t *st = open_audio_rx(rig, RIG_STREAM_FORMAT_PCM_F32, 48000,
+                                     0, &ret);
+    TEST_ASSERT(ret == RIG_OK && st != NULL);
+    TEST_CHECK(rig_stream_get_conversions(st) == RIG_STREAM_CONV_NONE);
+    rig_stream_close(rig, st);
+
+    st = open_audio_rx(rig, RIG_STREAM_FORMAT_PCM_S16, 48000, 0, &ret);
+    TEST_ASSERT(ret == RIG_OK && st != NULL);
+    TEST_CHECK(rig_stream_get_conversions(st) == RIG_STREAM_CONV_FORMAT);
+    rig_stream_close(rig, st);
+
+#ifdef HAVE_SAMPLERATE
+    st = open_audio_rx(rig, RIG_STREAM_FORMAT_PCM_S16, 44100, 0, &ret);
+    TEST_ASSERT(ret == RIG_OK && st != NULL);
+    TEST_CHECK(rig_stream_get_conversions(st)
+               == (RIG_STREAM_CONV_FORMAT | RIG_STREAM_CONV_RATE));
+    rig_stream_close(rig, st);
+#endif
+
+    /* Above the largest native rate: outside the effective set. */
+    st = open_audio_rx(rig, RIG_STREAM_FORMAT_PCM_F32, 500000, 0, &ret);
+    TEST_CHECK(ret == -RIG_EINVAL && st == NULL);
+
+    close_dummy(rig);
+}
+
+/* require_native: native requests open with a hard guarantee, convertible
+ * ones are refused with the distinct -RIG_ENAVAIL. */
+void test_require_native(void)
+{
+    RIG *rig = open_dummy();
+    TEST_ASSERT(rig != NULL);
+
+    int ret;
+    rig_stream_t *st = open_audio_rx(rig, RIG_STREAM_FORMAT_PCM_F32, 48000,
+                                     1, &ret);
+    TEST_ASSERT(ret == RIG_OK && st != NULL);
+    TEST_CHECK(rig_stream_get_conversions(st) == RIG_STREAM_CONV_NONE);
+    rig_stream_close(rig, st);
+
+    st = open_audio_rx(rig, RIG_STREAM_FORMAT_PCM_S16, 48000, 1, &ret);
+    TEST_CHECK(ret == -RIG_ENAVAIL && st == NULL);
+    TEST_MSG("expected -RIG_ENAVAIL, got %d", ret);
+
+#ifdef HAVE_SAMPLERATE
+    st = open_audio_rx(rig, RIG_STREAM_FORMAT_PCM_F32, 44100, 1, &ret);
+    TEST_CHECK(ret == -RIG_ENAVAIL && st == NULL);
+#endif
+
+    close_dummy(rig);
+}
+
+/* Replicates the dummy's fabricated codec-frame generator: LCG frame
+ * lengths (seed 0) and a continuing byte counter. */
+static size_t next_fab_frame(uint32_t *lcg, uint32_t *counter,
+                             uint8_t *out)
+{
+    *lcg = *lcg * 1103515245u + 12345u;
+    size_t len = 16 + (size_t)((*lcg >> 16) % 241);
+
+    for (size_t i = 0; i < len; i++)
+    {
+        out[i] = (uint8_t)((*counter)++ & 0xFF);
+    }
+
+    return len;
+}
+
+/* Fabricated codec RX through the dummy generator: every read returns
+ * exactly one codec frame whose size and bytes reproduce the generator's
+ * deterministic sequence, with the fixed 480-sample duration and a start
+ * index advancing by it. */
+void test_codec_rx_frame_sequence(void)
+{
+    RIG *rig = open_dummy();
+    TEST_ASSERT(rig != NULL);
+
+    int ret;
+    rig_stream_t *st = open_audio_rx(rig, RIG_STREAM_FORMAT_OPUS, 48000,
+                                     0, &ret);
+    TEST_ASSERT(ret == RIG_OK && st != NULL);
+    TEST_CHECK(rig_stream_get_conversions(st) == RIG_STREAM_CONV_NONE);
+
+    uint32_t lcg = 0, counter = 0;
+    uint8_t expect[512], buf[2048];
+
+    for (int k = 0; k < 8; k++)
+    {
+        size_t elen = next_fab_frame(&lcg, &counter, expect);
+        size_t got = 0;
+        struct rig_stream_read_info info;
+        int rret = rig_stream_read(rig, st, buf, sizeof(buf), &got,
+                                   500, &info);
+
+        TEST_CHECK(rret == RIG_OK && got > 0);
+        TEST_MSG("frame %d: read returned %d (%lu bytes)", k, rret,
+                 (unsigned long)got);
+
+        if (rret != RIG_OK || got == 0)
+        {
+            break;
+        }
+
+        TEST_CHECK(got == elen);
+        TEST_MSG("frame %d: got %lu bytes, expected %lu", k,
+                 (unsigned long)got, (unsigned long)elen);
+        TEST_CHECK(got == elen && memcmp(buf, expect, elen) == 0);
+        TEST_MSG("frame %d: payload bytes altered", k);
+        TEST_CHECK(info.codec_frame_samples == 480);
+        TEST_CHECK(info.sample_index == (uint64_t)k * 480);
+        TEST_MSG("frame %d: index %llu, expected %llu", k,
+                 (unsigned long long)info.sample_index,
+                 (unsigned long long)k * 480);
+    }
+
+    rig_stream_close(rig, st);
+    close_dummy(rig);
+}
+
+/* Codec loopback round-trip: frames written to AUDIO_TX come back on
+ * AUDIO_RX byte-identical, with durations and start indexes preserved
+ * (records copied verbatim). */
+void test_codec_loopback_roundtrip(void)
+{
+    RIG *rig = open_dummy();
+    TEST_ASSERT(rig != NULL);
+
+    token_t tok = rig_token_lookup(rig, "stream_mode");
+    TEST_CHECK(tok != 0);
+    TEST_CHECK(rig_set_conf(rig, tok, "loopback") == RIG_OK);
+
+    int ret;
+    rig_stream_t *tx = NULL, *rx = NULL;
+    struct rig_stream_config *cfg = rig_stream_config_alloc();
+    TEST_ASSERT(cfg != NULL);
+
+    cfg->type = RIG_STREAM_TYPE_AUDIO_TX;
+    cfg->format = RIG_STREAM_FORMAT_OPUS;
+    cfg->sample_rate = 48000;
+    cfg->channels = 1;
+    ret = rig_stream_open(rig, cfg, &tx);
+    TEST_ASSERT(ret == RIG_OK && tx != NULL);
+
+    cfg->type = RIG_STREAM_TYPE_AUDIO_RX;
+    ret = rig_stream_open(rig, cfg, &rx);
+    TEST_ASSERT(ret == RIG_OK && rx != NULL);
+    rig_stream_config_free(cfg);
+
+    struct rig_stream_write_info winfo;
+    memset(&winfo, 0, sizeof(winfo));
+    winfo.codec_frame_samples = 480;
+
+    uint8_t frames[6][256], buf[2048];
+    size_t flen[6];
+    uint32_t seed = 7;
+
+    for (int k = 0; k < 6; k++)
+    {
+        seed = seed * 1103515245u + 12345u;
+        flen[k] = 20 + (seed >> 16) % 200;
+
+        for (size_t i = 0; i < flen[k]; i++)
+        {
+            frames[k][i] = (uint8_t)(seed + k + i);
+        }
+
+        size_t written = 0;
+        ret = rig_stream_write(rig, tx, frames[k], flen[k], &written,
+                               200, &winfo);
+        TEST_CHECK(ret == RIG_OK && written == flen[k]);
+        TEST_MSG("frame %d write: ret %d written %lu", k, ret,
+                 (unsigned long)written);
+    }
+
+    for (int k = 0; k < 6; k++)
+    {
+        size_t got = 0;
+        struct rig_stream_read_info info;
+        ret = rig_stream_read(rig, rx, buf, sizeof(buf), &got, 1000, &info);
+
+        TEST_CHECK(ret == RIG_OK && got > 0);
+        TEST_MSG("frame %d read: ret %d got %lu", k, ret,
+                 (unsigned long)got);
+
+        if (ret != RIG_OK || got == 0)
+        {
+            break;
+        }
+
+        TEST_CHECK(got == flen[k] && memcmp(buf, frames[k], flen[k]) == 0);
+        TEST_MSG("frame %d altered in loopback (got %lu, expected %lu)",
+                 k, (unsigned long)got, (unsigned long)flen[k]);
+        TEST_CHECK(info.codec_frame_samples == 480);
+        TEST_CHECK(info.sample_index == (uint64_t)k * 480);
+        TEST_MSG("frame %d index %llu", k,
+                 (unsigned long long)info.sample_index);
+    }
+
+    rig_stream_close(rig, rx);
+    rig_stream_close(rig, tx);
+    close_dummy(rig);
+}
+
+
+#ifdef HAVE_SAMPLERATE
+/* The stream_resample_quality conf token is honored at pipeline creation:
+ * a resampled open succeeds at every advertised quality level. */
+void test_resample_quality_open(void)
+{
+    RIG *rig = open_dummy();
+    TEST_ASSERT(rig != NULL);
+
+    token_t tok = rig_token_lookup(rig, "stream_resample_quality");
+    TEST_CHECK(tok != 0);
+
+    static const char *levels[] = { "best", "medium", "fast", NULL };
+
+    for (int i = 0; levels[i] != NULL; i++)
+    {
+        int ret;
+        TEST_CHECK(rig_set_conf(rig, tok, levels[i]) == RIG_OK);
+
+        rig_stream_t *st = open_audio_rx(rig, RIG_STREAM_FORMAT_PCM_F32,
+                                         44100, 0, &ret);
+        TEST_CHECK(ret == RIG_OK && st != NULL);
+        TEST_MSG("open at quality '%s' returned %d", levels[i], ret);
+
+        if (st)
+        {
+            TEST_CHECK(rig_stream_get_conversions(st)
+                       == RIG_STREAM_CONV_RATE);
+            rig_stream_close(rig, st);
+        }
+    }
+
+    close_dummy(rig);
+}
+
+
+/* Rate conversion end to end: a 44.1 kHz client stream from the 48 kHz
+ * native source must still carry the 1 kHz test tone (resampler filter
+ * and rate mapping verified via FFT peak). */
+void test_audio_rx_tone_resampled(void)
+{
+    RIG *rig = open_dummy();
+    TEST_ASSERT(rig != NULL);
+
+    int ret;
+    rig_stream_t *stream = open_audio_rx(rig, RIG_STREAM_FORMAT_PCM_F32,
+                                         44100, 0, &ret);
+    TEST_ASSERT(ret == RIG_OK && stream != NULL);
+    TEST_CHECK(rig_stream_get_conversions(stream) == RIG_STREAM_CONV_RATE);
+
+    const size_t N = 8192;
+    float *buf = malloc(N * sizeof(float));
+    TEST_ASSERT(buf != NULL);
+
+    size_t total_bytes = 0;
+
+    while (total_bytes < N * sizeof(float))
+    {
+        size_t bytes_read = 0;
+        ret = rig_stream_read(rig, stream,
+                              (char *)buf + total_bytes,
+                              N * sizeof(float) - total_bytes,
+                              &bytes_read, 500, NULL);
+
+        if (ret != RIG_OK && bytes_read == 0)
+        {
+            break;
+        }
+
+        total_bytes += bytes_read;
+    }
+
+    TEST_ASSERT(total_bytes == N * sizeof(float));
+
+    float *mag = malloc(N * sizeof(float));
+    TEST_ASSERT(mag != NULL);
+    test_fft_magnitude(buf, mag, N);
+
+    size_t peak = test_fft_peak_bin(mag, N / 2);
+    float peak_freq = test_fft_bin_to_freq(peak, N, 44100);
+
+    /* Default tone is 1000 Hz; bin width 44100/8192 = 5.4 Hz. */
+    TEST_CHECK(fabsf(peak_freq - 1000.0f) < 11.0f);
+    TEST_MSG("Expected peak near 1000 Hz, got %.1f Hz (bin %lu)",
+             peak_freq, (unsigned long)peak);
+
+    free(mag);
+    free(buf);
+    rig_stream_close(rig, stream);
+    close_dummy(rig);
+}
+#endif /* HAVE_SAMPLERATE */
+
+/* I/Q rates are downward-only: above-native is rejected outright. */
+void test_iq_upsample_rejected(void)
+{
+    RIG *rig = open_dummy();
+    TEST_ASSERT(rig != NULL);
+
+    struct rig_stream_config *config = rig_stream_config_alloc();
+    TEST_ASSERT(config != NULL);
+    config->type = RIG_STREAM_TYPE_IQ_RX;
+    config->format = RIG_STREAM_FORMAT_IQ_CF32;
+    config->sample_rate = 250000;   /* above the 192 kHz native maximum */
+    config->channels = 1;
+    rig_stream_t *stream = NULL;
+    int ret = rig_stream_open(rig, config, &stream);
+    rig_stream_config_free(config);
+
+    TEST_CHECK(ret == -RIG_EINVAL && stream == NULL);
+    TEST_MSG("expected -RIG_EINVAL, got %d", ret);
+
+    close_dummy(rig);
+}
+
+
 TEST_LIST =
 {
     { "caps_query",                   test_caps_query },
@@ -2973,6 +3329,15 @@ TEST_LIST =
     { "iq_rx_cexp_frequency",         test_iq_rx_cexp_frequency },
     { "audio_rx_tone_s16",          test_audio_rx_tone_s16 },
     { "audio_rx_tone_s8",             test_audio_rx_tone_s8 },
+    { "conversions_bitmask",          test_conversions_bitmask },
+    { "require_native",               test_require_native },
+    { "codec_rx_frame_sequence",      test_codec_rx_frame_sequence },
+    { "codec_loopback_roundtrip",     test_codec_loopback_roundtrip },
+#ifdef HAVE_SAMPLERATE
+    { "resample_quality_open",        test_resample_quality_open },
+    { "audio_rx_tone_resampled",      test_audio_rx_tone_resampled },
+#endif
+    { "iq_upsample_rejected",         test_iq_upsample_rejected },
     { "audio_rx_tone_u8",             test_audio_rx_tone_u8 },
     { "iq_rx_tone_cs16",            test_iq_rx_tone_cs16 },
     { "iq_rx_tone_cs8",               test_iq_rx_tone_cs8 },

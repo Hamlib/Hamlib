@@ -168,7 +168,7 @@ the wire:
 | `RIG_STREAM_FORMAT_PCM_U8`     | 1   | 1 | implemented |
 | `RIG_STREAM_FORMAT_PCM_S16`    | 2   | 2 | implemented |
 | `RIG_STREAM_FORMAT_PCM_F32`    | 3   | 4 | implemented |
-| `RIG_STREAM_FORMAT_OPUS`       | 4   | variable | reserved (flag + wire ID 4); transcode is a future codec-layer feature |
+| `RIG_STREAM_FORMAT_OPUS`       | 4   | variable | implemented as codec-frame **passthrough** (no transcode; see below) |
 | `RIG_STREAM_FORMAT_IQ_CS8`     | 16  | 2 | implemented |
 | `RIG_STREAM_FORMAT_IQ_CU8`     | 17  | 2 | implemented |
 | `RIG_STREAM_FORMAT_IQ_CS16`    | 18  | 4 | implemented |
@@ -197,17 +197,19 @@ for the complex I/Q variants — I and Q each independently):
 
 | Format | Zero | Full-scale | ↔ float32 |
 |--------|:----:|:----------:|-----------|
-| `PCM_S16` / `IQ_CS16` | 0 | ±32768 | f = s / 32768; s = clip(f × 32767, [−32768, 32767]) |
-| `PCM_S8`  / `IQ_CS8`  | 0 | ±128   | f = s / 128;   s = clip(f × 127, [−128, 127]) |
-| `PCM_U8`  / `IQ_CU8`  | 128 (offset binary) | ±128 | f = (u − 128) / 128; u = clip(f × 127 + 128, [0, 255]) |
+| `PCM_S16` / `IQ_CS16` | 0 | ±32768 | f = s / 32768; s = clip(round(f × 32768), [−32768, 32767]) |
+| `PCM_S8`  / `IQ_CS8`  | 0 | ±128   | f = s / 128;   s = clip(round(f × 128), [−128, 127]) |
+| `PCM_U8`  / `IQ_CU8`  | 128 (offset binary) | ±128 | f = (u − 128) / 128; u = clip(round(f × 128) + 128, [0, 255]) |
 
-The decode divisor (`32768`, `128`) uses the full negative magnitude so
-the most-negative code maps exactly to −1.0; the encode multiplier
-(`32767`, `127`) is one less and clips, so +1.0 never overflows the
-positive range. 8↔16-bit integer conversions shift by 8 bits and re-bias
-the offset. These conventions are fixed wire semantics: a third-party
-implementation of the protocol MUST use them so sample amplitude is
-interpreted identically on both ends.
+Decode and encode use the **same power-of-two scale** (`32768`, `128`)
+with round-to-nearest and clipping on encode: the most-negative code maps
+exactly to −1.0, +1.0 clips to the positive maximum, and — the reason for
+the symmetric convention — every integer sample survives an
+integer → float → integer round-trip **value-exact**, which the frontend
+conversion path (§3.3) depends on. 8↔16-bit integer
+conversions shift by 8 bits and re-bias the offset. These conventions are
+fixed wire semantics: a third-party implementation of the protocol MUST
+use them so sample amplitude is interpreted identically on both ends.
 
 The app-facing audio formats are raw PCM and Opus. Device-native
 companded or compressed codecs (the μ-law and ADPCM carried on Icom
@@ -218,11 +220,16 @@ codec layer that performs that decode/encode lives in
 `src/stream_codec.{c,h}`, keyed on its own `rig_audio_codec_t` enum
 (never advertised in `stream_caps`); see §9.1.
 
-Opus is not yet transcoded. When a stream negotiates `OPUS`, encoding PCM→Opus
-(TX) and decoding Opus→PCM (RX) is a planned **codec-layer** feature — stateful
-and frame-based, requiring libopus — and is *not* a job for the stateless
-sample-format converter (`rig_stream_convert`), which handles only raw PCM/IQ.
-Until then the `OPUS` flag and wire ID 4 are reserved.
+`OPUS` streams are **codec-frame passthrough**: Hamlib forwards the encoded
+frames untouched — radio to application (or the reverse) through the rings,
+rigctld and UDP — without any codec library. A codec format is native-only
+(§3.3): no conversion stage ever applies, so serving a PCM client from an
+Opus-only radio (or vice versa) still requires a future **codec-layer**
+transcode feature — stateful, frame-based, libopus-gated — which is *not* a
+job for the stateless sample-format converter (`rig_stream_convert`). The
+unit of transport is one **codec frame** (one self-contained encoded unit,
+e.g. one Opus packet — distinct from the raw-PCM "frame" meaning one sample
+instant): see §4 for the API semantics and §6.2.1 for the wire contract.
 
 ### 3.3 Capabilities (`struct rig_stream_caps`)
 
@@ -232,7 +239,7 @@ array in its `rig_caps`. One entry per stream type it supports:
 ```c
 struct rig_stream_caps {
     rig_stream_type_t   type;
-    rig_stream_format_t formats;                  /* OR-ed supported formats */
+    rig_stream_format_t formats;                  /* OR-ed openable formats */
     int                 sample_rates[HAMLIB_MAX_STREAM_RATES]; /* 0-terminated */
     int                 channels_min;             /* 1=mono */
     int                 channels_max;             /* 2=stereo */
@@ -240,6 +247,13 @@ struct rig_stream_caps {
     int                 caps_flags;               /* RIG_STREAM_CAP_* */
     int                 tx_schedule_horizon_ms;   /* Max timed-TX lead time
                                                    * (0 = not schedulable) */
+    /* ... ABI headroom ... */
+
+    /* Hardware-native view (see below) */
+    rig_stream_format_t native_formats;
+    int                 native_sample_rates[HAMLIB_MAX_STREAM_RATES];
+    int                 native_channels_min;
+    int                 native_channels_max;
 };
 
 /* caps_flags bits */
@@ -249,13 +263,76 @@ struct rig_stream_caps {
 #define RIG_STREAM_CAP_HW_TIME          (1<<3)  /* get_hardware_time meaningful */
 ```
 
-Limits: `HAMLIB_MAX_STREAM_RATES = 8`, `HAMLIB_MAX_STREAM_CAPS = 8`,
+Limits: `HAMLIB_MAX_STREAM_RATES = 32`, `HAMLIB_MAX_STREAM_CAPS = 8`,
 `HAMLIB_MAX_STREAMS = 32` (concurrent streams per type).
 
-`rig_stream_open()` validates the requested **type**, **format** (must be
-a single bit present in the caps bitmask), **sample_rate** (must be in
-the caps list), and **channels** (within `channels_min`/`channels_max`)
-against the matching caps entry.
+**Two views share the struct** — hardware-native and effective:
+
+- A **backend** authors only the classic fields (`formats`,
+  `sample_rates`, `channels_min/max`) with the **hardware-native** truth —
+  what the radio actually produces or accepts — and leaves the `native_*`
+  fields zero.
+- An **application** reads the struct through `rig_stream_caps_at()`,
+  which serves a frontend-derived copy: the classic fields are widened to
+  the **effective** set (everything `rig_stream_open()` will serve,
+  frontend conversion included) and `native_*` carries what the backend
+  declared.
+
+**Derivation rules** (native → effective, computed at runtime):
+
+- **Formats:** the whole family becomes reachable — any PCM format if the
+  backend has any PCM format, any I/Q format if it has any I/Q format.
+  Codec format bits (e.g. Opus) pass through only as declared; they are
+  never fabricated. Codec formats are opaque packet streams, so no
+  conversion stage applies to them: a codec request must match the native
+  rate and channel count exactly (else `-RIG_EINVAL`), it always opens as
+  a native stream, and a codec-only caps entry is served verbatim — none
+  of the widening below applies to it. This holds for any format outside
+  the raw PCM/I-Q family masks, present or future.
+- **Rates** (only when libsamplerate is built in — without it the
+  effective rates equal the native rates): the native rates, plus the
+  curated standard rates {8000, 11025, 16000, 22050, 24000, 44100,
+  48000, 96000, 192000}, plus every exact integer division (factors
+  2…10) of each native rate. Deduplicated, ascending, bounded by the
+  largest native rate: audio up to and including it, I/Q strictly below
+  it (an I/Q stream's sample rate is its represented bandwidth, so
+  upsampling past the hardware cannot create information).
+- **Channels:** audio maps mono↔stereo (`channels_min` becomes 1,
+  `channels_max` at least 2); I/Q channels are coherent captures, so a
+  subset of the hardware channels may be selected but channels are never
+  fabricated.
+
+**The libsamplerate dependency boundary.** Only sample-**rate** conversion
+(resampling) depends on libsamplerate, which is optional at build time
+(enabled by default; `--without-samplerate` omits it). Format conversion
+and channel mapping are pure C built into the frontend and always
+available, on every build. On a resampler-less build the only differences
+are: the effective rate list equals the native rate list, and a
+non-native rate request fails with `-RIG_EINVAL` — so
+`RIG_STREAM_CONV_RATE` can never appear there, while
+`RIG_STREAM_CONV_FORMAT` and `RIG_STREAM_CONV_CHANNELS` streams work
+identically. For a remote rig (netrigctl, §6.1) it is the **server's**
+build that matters — conversion runs there, and the effective rate list
+the server advertises already reflects whether its resampler is present.
+
+**Acceptance at `rig_stream_open()` is by rule, not by list membership** —
+the advertised effective list is for discoverability. Any rate at or
+below the largest native rate is accepted when the resampler is built,
+listed or not (e.g. an arbitrary 22 222 Hz). The frontend resolves the
+request to a native source: format prefers the float format (lossless
+staging), then S16, then the lowest declared bit; the rate source is the
+smallest native rate ≥ the request; and a conversion pipeline is
+installed between that source and the stream. Requests beyond the rules
+(a rate above the largest native rate, an I/Q format on an audio stream,
+more channels than the mapping allows) fail with `-RIG_EINVAL`.
+
+`rig_stream_get_conversions()` reports the installed stages
+(`RIG_STREAM_CONV_FORMAT/RATE/CHANNELS`, 0 = native stream). A config
+with `require_native = 1` refuses conversion with `-RIG_ENAVAIL`
+(distinct from `-RIG_EINVAL` for the impossible). One exception to the
+authoring rule: a relaying backend (netrigctl) fills the `native_*`
+fields too, declaring both views pre-derived; the frontend then serves
+the entry verbatim and delegates conversion to the far side (see §6.1).
 
 ### 3.4 Configuration (`struct rig_stream_config`)
 
@@ -274,6 +351,8 @@ struct rig_stream_config {
     unsigned int        mtu;                /* sender path MTU, 0 = default 1500 (see 6.8) */
     unsigned int        transport_buffer_ms;         /* UDP socket buffer as ms of stream data; 0 = rig token / built-in 250 ms */
     unsigned int        transport_buffer_bytes;      /* explicit UDP socket buffer bytes; 0 = derive from transport_buffer_ms/rate */
+    int                 require_native;     /* 1 = open only as a native stream:
+                                             * -RIG_ENAVAIL rather than convert */
 };
 ```
 
@@ -330,6 +409,8 @@ int  rig_stream_drain(RIG *rig, rig_stream_t *stream, int timeout_ms);
 rig_stream_type_t rig_stream_get_type(const rig_stream_t *stream);
 int  rig_stream_get_id(const rig_stream_t *stream);
 int  rig_stream_get_max_payload(const rig_stream_t *stream);
+int  rig_stream_get_conversions(const rig_stream_t *stream);
+                                /* RIG_STREAM_CONV_* stages; 0 = native */
 
 /* State control (independent operations) */
 int  rig_stream_pause (RIG *rig, rig_stream_t *stream);
@@ -393,10 +474,13 @@ if (rig_stream_open(rig, cfg, &stream) == RIG_OK)
 
 The config must come from `rig_stream_config_alloc()` — `rig_stream_open()`
 rejects a stack-declared one (see "Object ownership & lifetimes"). Ask for a
-format and rate the backend advertises in its caps; `rig_stream_caps_count()`
-and `rig_stream_caps_at()` enumerate them. Pass a
-`struct rig_stream_read_info *` as the last argument instead of `NULL` when you
-need the producer sample index, drop counts and capture time.
+format and rate from the effective caps; `rig_stream_caps_count()` and
+`rig_stream_caps_at()` enumerate them (§3.3). After a successful open,
+`rig_stream_get_conversions()` tells you whether the stream is served
+natively or through conversion; set `cfg->require_native = 1` to demand
+hardware-native service. Pass a `struct rig_stream_read_info *` as the last
+argument instead of `NULL` when you need the producer sample index, drop
+counts and capture time.
 
 Semantics:
 
@@ -405,16 +489,38 @@ Semantics:
   increments the underrun counter. A non-NULL `info` additionally reports
   the producer sample index, drops, and capture time on read or
   carries the burst target on write.
+- **Codec-frame streams** (compressed formats, e.g. `OPUS`) transport
+  whole codec frames instead of a byte stream: `rig_stream_read()` returns
+  **exactly one codec frame per call** — a buffer of
+  `rig_stream_get_max_payload()` bytes always suffices, and an undersized
+  buffer fails with `-RIG_EINVAL` consuming nothing.
+  `read_info.sample_index` is the frame's decoded start index and
+  `read_info.codec_frame_samples` its decoded duration (0 = unknown; on a
+  remote rig the duration is not carried per packet, only the index).
+  `rig_stream_write()` carries exactly one codec frame per call with the
+  duration declared in `write_info.codec_frame_samples`, the frame must
+  fit `rig_stream_get_max_payload()`, and a full TX ring **blocks** up to
+  `timeout_ms` (returns `-RIG_ETIMEOUT`; the write side never drops or
+  overwrites). RX mute discards frames (zeroed bytes are not a valid
+  codec frame), TX mute drops writes, and
+  `rig_stream_get_samples_written()` reports the decoded-sample position
+  accumulated from the durations. On the RX producer edge (the backend,
+  which cannot wait) a full ring drops the NEWEST frame, counted as an
+  overrun with its duration in `dropped_samples_overrun` and the loss
+  surfacing to the reader as a start-index jump.
 - **drain** (TX) blocks until the ring buffer drains or the timeout
   elapses.
 - **pause/resume** stop and restart backend device I/O. **mute/unmute**
   act at the ring-buffer level (RX writes discarded, TX reads return
   zeros). They are independent: a stream can be muted but not paused, and
   vice versa.
-- **open** validates the config against the backend's caps and additionally
-  rejects a non-positive `sample_rate` or `channels`, an unknown stream type,
-  a `struct_size` of 0, and exhaustion of either the caps `max_streams` limit
-  or the `HAMLIB_MAX_STREAMS` slots for that type — all with `-RIG_EINVAL`.
+- **open** validates the config against the effective-set acceptance rules
+  (§3.3), resolves the native source the backend will run at, and installs
+  any conversion pipeline. It additionally rejects a non-positive
+  `sample_rate` or `channels`, an unknown stream type, a `struct_size` of 0,
+  and exhaustion of either the caps `max_streams` limit or the
+  `HAMLIB_MAX_STREAMS` slots for that type — all with `-RIG_EINVAL`. A
+  convertible request with `require_native = 1` fails with `-RIG_ENAVAIL`.
 - **close** unregisters the stream, wakes any blocked reader or
   write-status waiter, then waits for every `rig_stream_*` call already in
   flight on that stream to return before the handle is torn down. A
@@ -457,6 +563,20 @@ allocates the storage?*
   zeroes it, and callers **SHOULD** zero-initialize the struct (`= {0}`) so a
   not-yet-known field reads as `0` even against an older library.
 
+**Reserved-space carve policy.** Caller-allocated structs never change
+size: each keeps exactly **one** trailing `_reserved` array, and a new
+field first fills any padding hole in the existing layout (e.g.
+`codec_frame_samples` sits in former tail padding of both info structs),
+then carves whole slots from the **front** of the reserved array —
+shrinking the array, never splitting it into multiple reserved fields.
+`rig_stream_caps` (library-owned) additionally appends array-sized fields
+at the **end** of the struct (the `native_*` view is the precedent) and
+keeps its `int _reserved[6]` for future scalars; `rig_stream_config`
+needs no reserved tail at all — the allocator plus `struct_size` make
+plain appending safe. Flag words have their own reserves
+(`caps_flags2`, metadata `field_mask` bits ≥ `1<<4`, time-flag bits 5–7)
+and the wire protocol's extension seams are listed in §6.2.1.
+
 ### Health counters
 
 Stream health is returned as one snapshot — per-cause event counts plus
@@ -479,6 +599,11 @@ struct rig_stream_stats {
     uint64_t dropped_samples_gap;     /* lower bound if gaps_unknown > 0 */
     uint64_t dropped_samples_overrun;
     uint64_t dropped_samples_link;    /* network client only */
+    uint64_t codec_frames;            /* whole codec frames produced (0 = raw
+                                         stream); today equal to the datagram
+                                         count (one frame per datagram) but
+                                         counts FRAMES, surviving any future
+                                         packing */
 };
 ```
 
@@ -489,10 +614,13 @@ server-reported TX under/overrun is counted separately in `remote_overruns` /
 remote causes stay distinguishable. The server-only view remains queryable via
 `\stream_status` (see loss classification).
 
-The overflow policy is **overwrite-oldest**: a full ring buffer never
-blocks the producer; the oldest unread bytes are dropped and `overruns`
-increments. This keeps the stream current (most-recent data wins), which
-is the right trade-off for real-time audio/I/Q.
+The overflow policy for raw streams is **overwrite-oldest**: a full ring
+buffer never blocks the producer; the oldest unread bytes are dropped and
+`overruns` increments. This keeps the stream current (most-recent data
+wins), which is the right trade-off for real-time audio/I/Q. Codec-frame
+streams instead **drop the newest** incoming frame on the RX producer edge
+(overwriting would destroy frame alignment; see §4), and the blocking
+`rig_stream_write()` never drops at all.
 
 ---
 
@@ -533,8 +661,19 @@ int (*stream_hardware_time)(RIG *rig, struct rig_stream *stream,
                             struct rig_stream_time_anchor *now);
 ```
 
-The backend reads and writes sample bytes through the ring buffer using
-the internal `stream_ringbuf_*` API:
+The backend always runs at the **native** side of any conversion: it reads
+its operating format, rate and channel count from `stream->backend_config`
+(equal to `stream->config` on a native stream) and never sees the
+application's requested config. An RX producer delivers its native bytes
+with `stream_backend_write(stream, data, len)` — the frontend applies the
+conversion pipeline when one is installed and writes the ring, or writes
+the ring directly on a native stream. A TX consumer reads the ring as
+before: the ring always holds the backend-native format, because
+conversion runs on the producer side of the ring in both directions
+(`rig_stream_write()` converts before enqueueing). Backend-domain sample
+counts (time anchors, gap accounting) are rescaled by the frontend.
+
+The underlying internal `stream_ringbuf_*` API:
 
 | Function | Behavior |
 |----------|----------|
@@ -544,7 +683,23 @@ the internal `stream_ringbuf_*` API:
 | `stream_ringbuf_reset(rb)` | Discard buffered data. |
 
 `stream_ringbuf_init`/`stream_ringbuf_destroy` are frontend-managed — backends do not
-call them.
+call them. RX producers should prefer `stream_backend_write()` over raw
+`stream_ringbuf_write()` so converted streams work unchanged.
+
+**Codec-frame streams** have their own produce/consume pair — the ring
+holds length-prefixed codec-frame records, never raw bytes:
+
+| Function | Behavior |
+|----------|----------|
+| `stream_backend_write_frame(stream, buf, len, duration_samples)` | RX produce: enqueue ONE codec frame with its decoded duration (0 = unknown). Never blocks; a full ring drops the NEWEST frame with overrun accounting. Frame start indexes accumulate from the durations. |
+| `stream_backend_write_frame_indexed(...)` | Same, with an explicit start index (relaying producers that know the absolute position — e.g. the netrigctl client stamping the wire timestamp). |
+| `stream_backend_read_frame(stream, buf, cap, &len, &duration, &start_index, timeout_ms)` | TX consume: dequeue ONE whole codec frame with its metadata; an undersized cap fails without consuming. |
+
+The producer supplies durations — from a fixed protocol cadence (e.g.
+FlexRadio's 10 ms Opus frames = 240 samples at 24 kHz) or the codec's own
+in-band self-description — so the core stays codec-ignorant. Radio-side
+gap marks (`rig_stream_mark_gap()`) advance the frame index so losses
+surface to consumers as start-index jumps.
 
 ### Threading model
 
@@ -641,7 +796,12 @@ exceed the signed-char range used by the short-form parser:
      multicast=<ADDR:PORT>    RX only, multicast group (see 6.4)
      ttl=<1..255>             multicast TTL/hops
 
-     channels=<1|2>           stream channel count (default 1)
+     channels=<1..255>        stream channel count (default 1; validated
+                              against the caps entry — coherent I/Q may
+                              exceed stereo)
+     require_native=<0|1>     1 = open only as a hardware-native stream;
+                              a convertible request is refused with
+                              RPRT -RIG_ENAVAIL (default 0 = convert)
      time_stale_coarse=<ms>   staleness → COARSE threshold (see details below)
      time_stale_invalidate=<ms> staleness → time-invalid threshold (see details below)
      keepalive_timeout=<s>    silence before the client is dropped, clamped
@@ -659,12 +819,42 @@ source_id: <stream source ID>  0 = unset (see §6.2.1)
 udp_port: <port>
 subscribe_token: <32-bit token>
 max_payload: <bytes>         effective frame-aligned payload budget (see 6.8)
+conversions: <bitmask>       RIG_STREAM_CONV_* stages active server-side
+                             (0 = native stream)
 [multicast: <addr>]          (only for multicast streams)
 ```
 
 The client uses `udp_port` and `subscribe_token` to drive the UDP session
 (see subscribe handshake and keepalive later in this document), and
 `max_payload` to size its own TX packetization to the negotiated path.
+
+`\stream_caps` emits one line per capability entry with both views —
+effective sets first, then the hardware-native view:
+
+```
+type=<TYPE> formats=<F1,F2,...> rates=<R1,R2,...> channels=<MIN>-<MAX>
+max=<n> native_formats=<...> native_rates=<...> native_channels=<MIN>-<MAX>
+```
+
+(one line per entry; wrapped here for readability). The effective sets are
+what `\stream_open` serves — through server-side conversion where they
+exceed the native sets. The netrigctl client backend parses both views and
+relays them to its application verbatim (pre-derived caps; the server's
+advertisement is authoritative because the conversion runs there), and
+reports the server's `conversions:` value through
+`rig_stream_get_conversions()`. For such a relayed rig, acceptance at the
+client is **membership in the advertised effective sets** rather than the
+local rule-based acceptance of §3.3 — rule-based acceptance of arbitrary
+rates applies where the conversion actually runs, so a text-protocol
+client talking straight to rigctld may open unlisted rule-acceptable
+rates, while a netrigctl application chooses from the advertised list. An
+older server without the `native_*` keys is still accepted — the client
+falls back to deriving the effective view locally — and an older client
+simply ignores the added keys and response lines.
+
+`\stream_status` and `\stream_list` also report `conversions` and
+`codec_frames` (whole codec frames produced; 0 on raw sample streams) per
+stream — both appended last in the terse forms, in that order.
 
 The network stream commands only function inside rigctld daemon;
 the same commands invoked through local rigctl return `-RIG_ENAVAIL`.
@@ -815,14 +1005,21 @@ MUST be separate streams. Appended metadata fields are fixed-size except at most
 one terminal variable-length field (reserved for a future per-channel-frequency
 vector), so fixed offsets are preserved.
 
-**Compressed formats.** For a `frame_bytes == 0` (compressed) format such as the
-reserved `OPUS` id: `payload_len` is the exact codec-frame byte count; the
-header `timestamp` is the decoded output-sample index in the header's
-`sample_rate` domain; and **exactly one codec frame occupies one datagram** (the
-"a frame never spans a datagram" rule applies to the *codec* frame). A decoder
-needs no out-of-band per-packet codec parameters; encoder parameters (bitrate,
-frame size) are negotiated on the control plane (config / rigctld `\stream_open
-key=value`).
+**Compressed formats.** For a `frame_bytes == 0` (compressed) format such as
+`OPUS` (implemented as codec-frame passthrough): `payload_len` is the exact
+codec-frame byte count; the header `timestamp` is the decoded output-sample
+index of the frame's FIRST sample in the header's `sample_rate` domain,
+advancing by each frame's decoded duration; **exactly one codec frame
+occupies one datagram** (the "a frame never spans a datagram" rule applies to
+the *codec* frame), and a relay MUST NOT split or merge codec frames. The
+per-frame decoded duration is NOT carried on the wire: the producer knows it
+(fixed cadence, or the codec's own in-band self-description such as the Opus
+TOC byte), and a receiver that needs it derives it from consecutive
+timestamps. A decoder needs no out-of-band per-packet codec parameters;
+encoder parameters (bitrate, frame size) are negotiated on the control plane
+(config / rigctld `\stream_open key=value`). Deployed example of this exact
+model: FlexRadio's radio-side Opus — fixed 10 ms stereo frames at 24 kHz, one
+frame per packet.
 
 **Stream identity & multicast.** When `source_id` is zero, a receiver MUST
 treat the tuple `(source IP, source UDP port, stream_id)` as the canonical
@@ -1451,6 +1648,26 @@ records events locally, so the same API works without a server.
 ---
 
 ## 9. Format conversion
+
+(Codec-frame streams are exempt from everything in this section: no
+conversion stage ever applies to compressed frames — they pass through
+untouched, §3.2/§4 — and a codec request must match the native
+declaration exactly.)
+
+Per-client format, rate and channel conversion is a **frontend**
+concern (the native/effective capability split, §3.3): `rig_stream_open()`
+installs a persistent, stateful pipeline (an internal `struct stream_conv`
+in `src/stream_convert.c` — channel map → float pivot → stateful
+libsamplerate resampler → destination format) on the producer side of the
+ring whenever the request is not native. The pipeline's resampler quality
+is selected by the rig-level conf token `stream_resample_quality` —
+`best`, `medium` (default) or `fast`, mapping to libsamplerate's
+corresponding sinc converters — read when a pipeline is created, so set
+it before opening the stream (server-side for network clients, e.g.
+`rigctld --set-conf=stream_resample_quality=best`). Backends produce and consume their native format only
+(§5). The helpers below are a standalone library — the codec layer (§9.1)
+chains them, and a backend with a genuinely special path may still call
+them directly:
 
 `src/stream_convert.{c,h}` provides pure-C conversion (no required
 dependencies):
