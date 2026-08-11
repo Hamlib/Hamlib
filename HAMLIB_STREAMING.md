@@ -586,7 +586,10 @@ lost-sample totals, so loss *ratios* by cause are directly computable:
 struct rig_stream_stats {
     /* event counts (local ring) */
     uint32_t overruns;      /* local ring full on write; oldest overwritten */
-    uint32_t underruns;     /* local blocking read timed out empty */
+    uint32_t underruns;     /* local blocking read timed out empty —
+                               counted only once the producer has ever
+                               delivered (startup silence is not an
+                               underrun) */
     uint32_t gaps;          /* radio/network-side gaps marked by backend */
     uint32_t gaps_unknown;  /* subset of gaps with unknown size */
     uint32_t link_loss;     /* network client only: app-link UDP loss */
@@ -678,7 +681,7 @@ The underlying internal `stream_ringbuf_*` API:
 | Function | Behavior |
 |----------|----------|
 | `stream_ringbuf_write(rb, data, len)` | Never blocks; overwrites oldest if full, bumps overruns. |
-| `stream_ringbuf_read(rb, data, len, timeout_ms)` | Blocks up to timeout; returns bytes read, bumps underruns on timeout. |
+| `stream_ringbuf_read(rb, data, len, timeout_ms)` | Blocks up to timeout; returns bytes read. A timeout bumps underruns only once the ring has ever been fed (startup silence is not an underrun). |
 | `stream_ringbuf_available(rb)` | Bytes currently readable. |
 | `stream_ringbuf_reset(rb)` | Discard buffered data. |
 

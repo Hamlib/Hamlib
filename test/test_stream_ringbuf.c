@@ -291,10 +291,16 @@ void test_ringbuf_underrun_count(void)
     struct rig_stream_ringbuf rb;
     stream_ringbuf_init(&rb, 1024);
 
+    unsigned char data[10];
     unsigned char out[10];
     TEST_CHECK(rb.underrun_count == 0);
 
-    /* Read from empty buffer — should timeout and increment underrun */
+    /* Starving counts once the producer has delivered and then fallen behind,
+     * so feed the ring and drain it before expecting anything. */
+    stream_ringbuf_write(&rb, data, 10);
+    stream_ringbuf_read(&rb, out, 10, 10);
+    TEST_CHECK(rb.underrun_count == 0);
+
     stream_ringbuf_read(&rb, out, 10, 10);
     TEST_CHECK(rb.underrun_count == 1);
     TEST_MSG("underrun_count = %d", rb.underrun_count);
@@ -473,6 +479,47 @@ void test_ringbuf_init_zero_capacity(void)
 }
 
 
+/* A consumer that starts before the producer has delivered anything is early,
+ * not starved. Counting that left every stream reporting one underrun it
+ * never suffered, which is indistinguishable from the first real one. */
+void test_ringbuf_startup_silence_is_not_an_underrun(void)
+{
+    struct rig_stream_ringbuf rb;
+    unsigned char dst[64];
+
+    stream_ringbuf_init(&rb, 1024);
+
+    TEST_CHECK(stream_ringbuf_read(&rb, dst, sizeof(dst), 20) == 0);
+    TEST_CHECK(rb.underrun_count == 0);
+    TEST_MSG("nothing was ever produced, so nothing fell behind; got %d",
+             rb.underrun_count);
+
+    stream_ringbuf_destroy(&rb);
+}
+
+
+/* Once data has flowed, a reset empties the ring without meaning the producer
+ * stopped, so starving after one is a real underrun. */
+void test_ringbuf_underrun_counts_again_after_reset(void)
+{
+    struct rig_stream_ringbuf rb;
+    unsigned char data[16];
+    unsigned char dst[16];
+
+    stream_ringbuf_init(&rb, 1024);
+    stream_ringbuf_write(&rb, data, sizeof(data));
+    stream_ringbuf_read(&rb, dst, sizeof(dst), 20);
+    stream_ringbuf_reset(&rb);
+
+    TEST_CHECK(stream_ringbuf_read(&rb, dst, sizeof(dst), 20) == 0);
+    TEST_CHECK(rb.underrun_count == 1);
+    TEST_MSG("a reset must not excuse a later starve; got %d",
+             rb.underrun_count);
+
+    stream_ringbuf_destroy(&rb);
+}
+
+
 TEST_LIST =
 {
     { "stream_ringbuf_init_zero_capacity", test_ringbuf_init_zero_capacity },
@@ -485,6 +532,8 @@ TEST_LIST =
     { "stream_ringbuf_write_record_wrap", test_ringbuf_write_record_wraparound },
     { "stream_ringbuf_read_timeout",   test_ringbuf_read_timeout },
     { "stream_ringbuf_underrun_count", test_ringbuf_underrun_count },
+    { "stream_ringbuf_startup_silence_is_not_an_underrun", test_ringbuf_startup_silence_is_not_an_underrun },
+    { "stream_ringbuf_underrun_counts_again_after_reset", test_ringbuf_underrun_counts_again_after_reset },
     { "stream_ringbuf_available",      test_ringbuf_available },
     { "stream_ringbuf_reset",          test_ringbuf_reset },
     { "stream_ringbuf_power_of_two",   test_ringbuf_power_of_two },

@@ -1161,7 +1161,7 @@ test suite.
 | `stream_ringbuf_write(rb, data, len)` | Write to buffer (never blocks, overwrites oldest) — bypasses conversion |
 | `stream_backend_write_frame(stream, buf, len, dur)` | Codec streams: enqueue ONE codec frame with its decoded duration (Section 5.3) |
 | `stream_backend_read_frame(stream, buf, cap, ...)` | Codec TX consume: dequeue ONE whole codec frame with metadata |
-| `stream_ringbuf_read(rb, data, len, timeout_ms)` | Read with timeout (blocks if empty) |
+| `stream_ringbuf_read(rb, data, len, timeout_ms)` | Read with timeout (blocks if empty; a timeout counts an underrun only once the ring has ever been fed) |
 | `stream_ringbuf_available(rb)` | Bytes available to read                        |
 | `stream_ringbuf_reset(rb)`  | Reset to empty                                   |
 

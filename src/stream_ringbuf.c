@@ -294,7 +294,18 @@ int stream_ringbuf_wait_data_locked(struct rig_stream_ringbuf *rb,
 
         if (ret == ETIMEDOUT)
         {
-            rb->underrun_count++;
+            /* An underrun is the producer falling behind, which it cannot do
+             * before it has produced anything. A consumer that starts first
+             * and reads while the stream is still coming up is early, not
+             * starved, and counting that leaves every stream reporting one
+             * underrun it never suffered -- which hides the first real one.
+             * write_total counts every byte ever produced and survives a
+             * reset, so this only excuses the opening silence. */
+            if (rb->write_total > 0)
+            {
+                rb->underrun_count++;
+            }
+
             return -1;
         }
     }
