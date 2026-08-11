@@ -71,6 +71,7 @@ class TestClass:
 'rig_stream_config_alloc',
 'rig_stream_config_free',
 'rig_stream_drain',
+'rig_stream_get_conversions',
 'rig_stream_get_hardware_time',
 'rig_stream_get_id',
 'rig_stream_get_max_payload',

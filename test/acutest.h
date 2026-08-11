@@ -308,6 +308,17 @@
     #define ACUTEST_ATTRIBUTE_(attr)
 #endif
 
+/* Hamlib local patch (not upstream acutest): when __USE_MINGW_ANSI_STDIO
+ * selects mingw-w64's C99-compliant printf runtime, make GCC's format
+ * checker use the matching gnu rules too — a bare "printf" archetype
+ * means ms_printf on MinGW, which rejects %zu the runtime handles fine.
+ * Re-apply on acutest upgrades. */
+#if defined(__MINGW32__) && defined(__USE_MINGW_ANSI_STDIO) && __USE_MINGW_ANSI_STDIO
+    #define ACUTEST_PRINTF_FORMAT_  gnu_printf
+#else
+    #define ACUTEST_PRINTF_FORMAT_  printf
+#endif
+
 #ifdef __cplusplus
     extern "C" {
 #endif
@@ -575,7 +586,7 @@ acutest_exit_(int exit_code)
 #define ACUTEST_COLOR_GREEN_INTENSIVE_      12
 #define ACUTEST_COLOR_YELLOW_INTENSIVE_     13
 
-static int ACUTEST_ATTRIBUTE_(format (printf, 2, 3))
+static int ACUTEST_ATTRIBUTE_(format (ACUTEST_PRINTF_FORMAT_, 2, 3))
 acutest_colored_printf_(int color, const char* fmt, ...)
 {
     va_list args;
@@ -747,7 +758,7 @@ acutest_line_indent_(int level)
     printf("%.*s", n, spaces);
 }
 
-void ACUTEST_ATTRIBUTE_(format (printf, 3, 4))
+void ACUTEST_ATTRIBUTE_(format (ACUTEST_PRINTF_FORMAT_, 3, 4))
 acutest_skip_(const char* file, int line, const char* fmt, ...)
 {
     va_list args;
@@ -792,7 +803,7 @@ acutest_skip_(const char* file, int line, const char* fmt, ...)
     acutest_test_skip_count_++;
 }
 
-int ACUTEST_ATTRIBUTE_(format (printf, 4, 5))
+int ACUTEST_ATTRIBUTE_(format (ACUTEST_PRINTF_FORMAT_, 4, 5))
 acutest_check_(int cond, const char* file, int line, const char* fmt, ...)
 {
     const char *result_str;
@@ -856,7 +867,7 @@ skip_check:
     return !acutest_cond_failed_;
 }
 
-void ACUTEST_ATTRIBUTE_(format (printf, 1, 2))
+void ACUTEST_ATTRIBUTE_(format (ACUTEST_PRINTF_FORMAT_, 1, 2))
 acutest_case_(const char* fmt, ...)
 {
     va_list args;
@@ -885,7 +896,7 @@ acutest_case_(const char* fmt, ...)
     }
 }
 
-void ACUTEST_ATTRIBUTE_(format (printf, 1, 2))
+void ACUTEST_ATTRIBUTE_(format (ACUTEST_PRINTF_FORMAT_, 1, 2))
 acutest_message_(const char* fmt, ...)
 {
     char buffer[TEST_MSG_MAXSIZE];
@@ -1090,7 +1101,7 @@ acutest_select_(const char* pattern)
 /* Called if anything goes bad in Acutest, or if the unit test ends in other
  * way then by normal returning from its function (e.g. exception or some
  * abnormal child process termination). */
-static void ACUTEST_ATTRIBUTE_(format (printf, 1, 2))
+static void ACUTEST_ATTRIBUTE_(format (ACUTEST_PRINTF_FORMAT_, 1, 2))
 acutest_error_(const char* fmt, ...)
 {
     if(acutest_verbose_level_ == 0)

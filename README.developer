@@ -378,6 +378,13 @@ requires a POSIX host; they are skipped elsewhere. Run a single suite directly
 from the build tree, e.g. './test/test_stream_api', with '--list' to see its
 cases.
 
+The automake test harness prints one PASS/FAIL line per suite and captures
+each suite's complete output (per-case results and diagnostics) into
+test/<suite>.log, dumping the log of any failing suite. The suites run at
+RIG_DEBUG_WARN by default; set RIG_TEST_DEBUG=1 in the environment to run
+them (and any rigctld child daemons they spawn) at TRACE level when
+debugging a failure.
+
 The streaming subsystem itself is documented at the top of the source tree:
 HAMLIB_STREAMING.md (protocol and API design, including the native/effective
 capability model and format conversion) and HAMLIB_STREAMING_BACKEND_GUIDE.md

@@ -27,6 +27,7 @@
 #endif
 
 #include "acutest.h"
+#include "test_debug.h"
 #include "stream.h"
 #include "cache.h"
 #include <string.h>

@@ -27,6 +27,7 @@
 #endif
 
 #include "acutest.h"
+#include "test_debug.h"
 /* Socket headers come from stream_proto.h (via rigctld_stream.h), which picks
  * the right set for the host; do not include them directly. */
 #include "../tests/rigctl_parse.h"
@@ -446,7 +447,7 @@ static int send_control_pkt(int client_sock, int server_port,
     dest.sin_port = htons(server_port);
     dest.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
-    ssize_t sent = sendto(client_sock, pkt, 32, 0,
+    ssize_t sent = sendto(client_sock, (const char *)pkt, 32, 0,
                           (struct sockaddr *)&dest, sizeof(dest));
 
     return (sent == 32) ? 0 : -1;
@@ -479,7 +480,7 @@ static ssize_t udp_recv_timeout(int sock, void *buf, size_t buflen,
 
         if (ready > 0)
         {
-            return recvfrom(sock, buf, buflen, 0, NULL, NULL);
+            return recvfrom(sock, (char *)buf, buflen, 0, NULL, NULL);
         }
 
         if (ready == 0)
@@ -1829,7 +1830,7 @@ static int send_data_pkt(int client_sock, int server_port,
     dest.sin_port = htons(server_port);
     dest.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
-    ssize_t sent = sendto(client_sock, pkt, pkt_len, 0,
+    ssize_t sent = sendto(client_sock, (const char *)pkt, pkt_len, 0,
                           (struct sockaddr *)&dest, sizeof(dest));
 
     return (sent == (ssize_t)pkt_len) ? 0 : -1;
@@ -2435,7 +2436,7 @@ void test_stream_source_id_inbound_reject(void)
     dest.sin_family = AF_INET;
     dest.sin_port = htons(udp_port);
     dest.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    TEST_CHECK(sendto(client_sock, pkt, sizeof(pkt), 0,
+    TEST_CHECK(sendto(client_sock, (const char *)pkt, sizeof(pkt), 0,
                       (struct sockaddr *)&dest, sizeof(dest))
                == (ssize_t)sizeof(pkt));
 
@@ -2499,7 +2500,7 @@ void test_stream_wrong_token_reject(void)
     dest.sin_family = AF_INET;
     dest.sin_port = htons(udp_port);
     dest.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    TEST_CHECK(sendto(client_sock, pkt, sizeof(pkt), 0,
+    TEST_CHECK(sendto(client_sock, (const char *)pkt, sizeof(pkt), 0,
                       (struct sockaddr *)&dest, sizeof(dest))
                == (ssize_t)sizeof(pkt));
 
@@ -5427,7 +5428,7 @@ void test_tx_data_resets_timeout(void)
         dest.sin_port = htons(udp_port);
         dest.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
-        sendto(client_sock, pkt, sizeof(pkt), 0,
+        sendto(client_sock, (const char *)pkt, sizeof(pkt), 0,
                (struct sockaddr *)&dest, sizeof(dest));
     }
 

@@ -23,6 +23,7 @@
 /* per-cause counters, and read-side dropped-sample attribution.       */
 
 #include "acutest.h"
+#include "test_debug.h"
 
 #include <string.h>
 

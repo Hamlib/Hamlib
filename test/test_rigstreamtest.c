@@ -23,6 +23,7 @@
 /* Covers the issue-tally/exit-code contract, tone synthesis, and WAV output. */
 
 #include "acutest.h"
+#include "test_debug.h"
 
 #include <stdint.h>
 #include <stdio.h>

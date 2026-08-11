@@ -27,6 +27,7 @@
 #endif
 
 #include "acutest.h"
+#include "test_debug.h"
 /* Socket headers come from stream_proto.h (via rigctld_stream.h), which picks
  * the right set for the host; do not include them directly. */
 #include "../tests/rigctld_stream.h"

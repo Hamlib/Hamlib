@@ -27,6 +27,7 @@
 #endif
 
 #include "acutest.h"
+#include "test_debug.h"
 #include "stream_codec.h"
 #include "stream_convert.h"
 #include <string.h>

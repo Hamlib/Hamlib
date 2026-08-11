@@ -27,6 +27,7 @@
 #endif
 
 #include "acutest.h"
+#include "test_debug.h"
 #include <hamlib/rig.h>
 #include "hamlib/rig_state.h"
 #include <string.h>

@@ -23,6 +23,7 @@
 /* Tests init/destroy, read/write, wraparound, overwrite, and concurrency. */
 
 #include "acutest.h"
+#include "test_debug.h"
 #include "stream.h"
 #include <string.h>
 #include <pthread.h>

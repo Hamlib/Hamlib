@@ -23,6 +23,7 @@
 /* Covers ns/timespec round-trips, normalization, and sample interpolation. */
 
 #include "acutest.h"
+#include "test_debug.h"
 
 #include <stdint.h>
 #include <time.h>

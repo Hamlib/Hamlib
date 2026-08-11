@@ -27,6 +27,7 @@
 #endif
 
 #include "acutest.h"
+#include "test_debug.h"
 
 #ifdef _WIN32
 
@@ -201,12 +202,16 @@ static int start_rigctld_opt(struct rigctld_proc *proc,
         return -1;
     }
 
+    /* Child daemon verbosity: -vvv (WARN) so dropped subscribes and
+     * events (token/IP validation) leave a trace the parent can dump
+     * when a test fails; RIG_TEST_DEBUG raises it to TRACE like the
+     * suite itself (see test_debug.h). */
+    const char *verbosity = getenv("RIG_TEST_DEBUG") ? "-vvvvv" : "-vvv";
+
     if (proc->pid == 0)
     {
-        /* Child: silence stdout, but capture stderr in a per-daemon log.
-         * -vvv puts the daemon at WARN level so dropped subscribes and
-         * events (token/IP validation) leave a trace the parent can dump
-         * when a test fails; /dev/null here made those undiagnosable. */
+        /* Child: silence stdout, but capture stderr in a per-daemon log;
+         * /dev/null for stderr made failures undiagnosable. */
         freopen("/dev/null", "w", stdout);
 
         if (freopen(proc->log_path, "w", stderr) == NULL)
@@ -216,23 +221,23 @@ static int start_rigctld_opt(struct rigctld_proc *proc,
 
         if (source_id_opt && set_conf_opt)
         {
-            execlp(rigctld_path, "rigctld", "-m", "1", "-t", port_str, "-vvv",
+            execlp(rigctld_path, "rigctld", "-m", "1", "-t", port_str, verbosity,
                    "--stream-source-id", source_id_opt,
                    "--set-conf", set_conf_opt, NULL);
         }
         else if (source_id_opt)
         {
-            execlp(rigctld_path, "rigctld", "-m", "1", "-t", port_str, "-vvv",
+            execlp(rigctld_path, "rigctld", "-m", "1", "-t", port_str, verbosity,
                    "--stream-source-id", source_id_opt, NULL);
         }
         else if (set_conf_opt)
         {
-            execlp(rigctld_path, "rigctld", "-m", "1", "-t", port_str, "-vvv",
+            execlp(rigctld_path, "rigctld", "-m", "1", "-t", port_str, verbosity,
                    "--set-conf", set_conf_opt, NULL);
         }
         else
         {
-            execlp(rigctld_path, "rigctld", "-m", "1", "-t", port_str, "-vvv",
+            execlp(rigctld_path, "rigctld", "-m", "1", "-t", port_str, verbosity,
                    NULL);
         }
 
