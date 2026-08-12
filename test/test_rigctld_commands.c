@@ -224,8 +224,8 @@ static int run_cmd(RIG *rig, const char *cmd_str, char *outbuf,
 
     if (len > 0 && (size_t)len < outbuf_size)
     {
-        fread(outbuf, 1, len, fout);
-        outbuf[len] = '\0';
+        size_t got = fread(outbuf, 1, len, fout);
+        outbuf[got] = '\0';
     }
     else if (len == 0)
     {
@@ -234,8 +234,8 @@ static int run_cmd(RIG *rig, const char *cmd_str, char *outbuf,
     else
     {
         /* Output too large for buffer — truncate */
-        fread(outbuf, 1, outbuf_size - 1, fout);
-        outbuf[outbuf_size - 1] = '\0';
+        size_t got = fread(outbuf, 1, outbuf_size - 1, fout);
+        outbuf[got] = '\0';
     }
 
     fclose(fin);
@@ -284,8 +284,8 @@ static int run_cmd_ext(RIG *rig, const char *cmd_str, char *outbuf,
 
     if (len > 0 && (size_t)len < outbuf_size)
     {
-        fread(outbuf, 1, len, fout);
-        outbuf[len] = '\0';
+        size_t got = fread(outbuf, 1, len, fout);
+        outbuf[got] = '\0';
     }
     else
     {
@@ -4121,8 +4121,8 @@ void test_cmd_stream_requires_ext_resp(void)
 
     if (len > 0 && (size_t)len < sizeof(buf))
     {
-        fread(buf, 1, len, fout);
-        buf[len] = '\0';
+        size_t got = fread(buf, 1, len, fout);
+        buf[got] = '\0';
     }
     else
     {

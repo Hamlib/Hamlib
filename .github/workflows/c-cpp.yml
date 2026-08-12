@@ -53,7 +53,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Raise kernel socket buffer ceiling for stream tests
+    - name: Raise kernel socket buffer ceiling for network test suites
       if: runner.os == 'Linux'
       run: sudo sysctl -w net.core.wmem_max=8388608 net.core.rmem_max=8388608
     - name: Install dependencies on Linux

@@ -1,5 +1,12 @@
-# Unit tests for Hamlib using acutest (single-header test framework).
+# Unit tests and integration tests for Hamlib, run with the acutest
+# single-header test framework. This directory is the home for ALL
+# acutest-based suites, whatever subsystem they cover.
 # Run via: make check
+#
+# Adding a new suite: create test_<name>.c (include "acutest.h" and
+# "test_debug.h"), add it to check_PROGRAMS and its _SOURCES/_LDADD
+# below — TESTS = $(check_PROGRAMS) and the CI workflows pick it up
+# automatically from there.
 #
 # The (default) parallel automake harness captures each suite's full
 # output — acutest per-case results plus library/daemon diagnostics —
@@ -76,6 +83,11 @@ test_rigctld_commands_LDADD = $(LDADD) $(PTHREAD_LIBS) $(READLINE_LIBS) $(NET_LI
 TESTS = $(check_PROGRAMS)
 
 EXTRA_DIST = acutest.h test_debug.h
+
+# Convenience target for CI cross builds: compile every suite without
+# running it (the .exe files are executed under Wine in a separate step).
+checkprogs: $(check_PROGRAMS)
+.PHONY: checkprogs
 
 $(top_builddir)/src/libhamlib.la:
 	$(MAKE) -C $(top_builddir)/src/ libhamlib.la

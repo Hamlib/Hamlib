@@ -173,9 +173,78 @@ static const char *find_rigctld(void)
  * the same port), otherwise a free port is picked. set_conf_opt, when
  * non-NULL, is passed to the daemon as --set-conf (e.g.
  * "stream_mode=counter" for the dummy's deterministic byte pattern). */
+static void dump_rigctld_log(const char *path);
+
+/* The last daemon started, for failure diagnostics in open_netrigctl(). */
+static struct rigctld_proc *last_rigctld_proc;
+
+/* Report whether the daemon child is still running; reap and describe it
+ * when it is not. */
+static int rigctld_alive(struct rigctld_proc *proc)
+{
+    int st = 0;
+    pid_t r = waitpid(proc->pid, &st, WNOHANG);
+
+    if (r == 0)
+    {
+        return 1;
+    }
+
+    fprintf(stderr, "rigctld pid %d died at startup (%s %d)\n",
+            (int)proc->pid,
+            WIFEXITED(st) ? "exit" : "signal",
+            WIFEXITED(st) ? WEXITSTATUS(st) : WTERMSIG(st));
+    proc->pid = -1;
+    return 0;
+}
+
+static int start_rigctld_once(struct rigctld_proc *proc,
+                              const char *source_id_opt,
+                              const char *set_conf_opt);
+
+/* find_free_port() closes the probe socket before rigctld binds the port,
+ * so another process on a busy CI runner can steal it in between and the
+ * daemon exits on the bind failure — observed as a connect that breaks
+ * mid-handshake followed by connection-refused. Verify the child survived
+ * startup and retry on a fresh port (unless the caller pinned one). */
 static int start_rigctld_opt(struct rigctld_proc *proc,
                              const char *source_id_opt,
                              const char *set_conf_opt)
+{
+    int pinned = proc->port > 0;
+
+    for (int attempt = 0; attempt < 3; attempt++)
+    {
+        if (start_rigctld_once(proc, source_id_opt, set_conf_opt) == 0
+                && rigctld_alive(proc))
+        {
+            last_rigctld_proc = proc;
+            return 0;
+        }
+
+        if (proc->pid > 0)
+        {
+            kill(proc->pid, SIGTERM);
+            waitpid(proc->pid, NULL, 0);
+            proc->pid = -1;
+        }
+
+        dump_rigctld_log(proc->log_path);
+
+        if (pinned)
+        {
+            return -1;   /* the caller needs this exact port */
+        }
+
+        proc->port = 0;  /* pick a fresh port next round */
+    }
+
+    return -1;
+}
+
+static int start_rigctld_once(struct rigctld_proc *proc,
+                              const char *source_id_opt,
+                              const char *set_conf_opt)
 {
     const char *rigctld_path;
     char port_str[16];
@@ -211,12 +280,13 @@ static int start_rigctld_opt(struct rigctld_proc *proc,
     if (proc->pid == 0)
     {
         /* Child: silence stdout, but capture stderr in a per-daemon log;
-         * /dev/null for stderr made failures undiagnosable. */
-        freopen("/dev/null", "w", stdout);
+         * /dev/null for stderr made failures undiagnosable. On redirect
+         * failure the inherited stream simply stays in place. */
+        if (freopen("/dev/null", "w", stdout) == NULL) {}
 
         if (freopen(proc->log_path, "w", stderr) == NULL)
         {
-            freopen("/dev/null", "w", stderr);
+            if (freopen("/dev/null", "w", stderr) == NULL) {}
         }
 
         if (source_id_opt && set_conf_opt)
@@ -364,6 +434,17 @@ static RIG *open_netrigctl(int port)
         }
 
         rig_cleanup(rig);
+    }
+
+    /* All attempts failed: say why, if the daemon can tell us. */
+    if (last_rigctld_proc)
+    {
+        if (last_rigctld_proc->pid > 0)
+        {
+            rigctld_alive(last_rigctld_proc);
+        }
+
+        dump_rigctld_log(last_rigctld_proc->log_path);
     }
 
     return NULL;
