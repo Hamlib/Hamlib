@@ -201,6 +201,30 @@ static int check_invalid_send_command(RIG *rig, const char *command)
     return 0;
 }
 
+static int check_receive_length(RIG *rig, const char *length, int expected)
+{
+    FILE *input = tmpfile();
+    char *argv[] = { "testctlparser", "W", "x01", (char *)length };
+    int ret;
+
+    if (input == NULL)
+    {
+        return 1;
+    }
+
+    ret = parse_command(rig, input, argv, 4, -1);
+    fclose(input);
+
+    if (ret != expected)
+    {
+        fprintf(stderr, "receive length '%s': expected %d, got %d\n",
+                length, expected, ret);
+        return 1;
+    }
+
+    return 0;
+}
+
 static int check_bad_input_stream(RIG *rig)
 {
     FILE *input = tmpfile();
@@ -452,6 +476,14 @@ int main(void)
             || check_invalid_send_command(rig, "x000") != 0
             || check_invalid_send_command(rig, "x00 nope") != 0
             || check_invalid_send_command(rig, "\\0x00\\0xgg") != 0
+            || check_receive_length(rig, "511", RIG_OK) != 0
+            || check_receive_length(rig, "\\0x03", RIG_OK) != 0
+            || check_receive_length(rig, "512", -RIG_EINVAL) != 0
+            || check_receive_length(rig, "700", -RIG_EINVAL) != 0
+            || check_receive_length(rig, "-1", -RIG_EINVAL) != 0
+            || check_receive_length(rig, "12junk", -RIG_EINVAL) != 0
+            || check_receive_length(rig, "999999999999999999999999",
+                                    -RIG_EINVAL) != 0
             || check_bad_input_stream(rig) != 0)
     {
         rig_cleanup(rig);
