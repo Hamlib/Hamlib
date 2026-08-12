@@ -36,6 +36,16 @@ __BEGIN_DECLS
  *      - n3gb 2025-05-14
  */
 
+/*
+ * Coherent copy of the application-facing cache values. All fields are
+ * captured while holding the cache mutex, but the rig may change after the
+ * snapshot is returned. Freshness timestamps remain private to the cache.
+ *
+ * current_vfo is Hamlib's working routing assumption. observed_vfo is the
+ * last VFO selection confirmed through a rig observation and has separately
+ * tracked freshness. The Curr, Other, Main, Sub, A, B, C, and Mem suffixes
+ * identify the logical VFO slots used by Hamlib's cache mapping.
+ */
 struct rig_cache_snapshot
 {
     vfo_t current_vfo;
@@ -75,6 +85,11 @@ struct rig_cache_snapshot
     int satmode;
 };
 
+/*
+ * Coherent subset of cache state used for VFO routing decisions. Use this
+ * instead of rig_cache_snapshot when frequency, mode, and width values are
+ * not needed.
+ */
 struct rig_cache_routing_snapshot
 {
     vfo_t current_vfo;
