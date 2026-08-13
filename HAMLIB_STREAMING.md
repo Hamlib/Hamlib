@@ -241,8 +241,10 @@ struct rig_stream_caps {
     rig_stream_type_t   type;
     rig_stream_format_t formats;                  /* OR-ed openable formats */
     int                 sample_rates[HAMLIB_MAX_STREAM_RATES]; /* 0-terminated */
-    int                 channels_min;             /* 1=mono */
-    int                 channels_max;             /* 2=stereo */
+    int                 channels[HAMLIB_MAX_STREAM_CHANNEL_COUNTS];
+                                                  /* openable channel counts,
+                                                   * 0-terminated ascending
+                                                   * list (1=mono, 2=stereo) */
     int                 max_streams;              /* concurrent of this type */
     int                 caps_flags;               /* RIG_STREAM_CAP_* */
     int                 tx_schedule_horizon_ms;   /* Max timed-TX lead time
@@ -252,8 +254,7 @@ struct rig_stream_caps {
     /* Hardware-native view (see below) */
     rig_stream_format_t native_formats;
     int                 native_sample_rates[HAMLIB_MAX_STREAM_RATES];
-    int                 native_channels_min;
-    int                 native_channels_max;
+    int                 native_channels[HAMLIB_MAX_STREAM_CHANNEL_COUNTS];
 };
 
 /* caps_flags bits */
@@ -263,13 +264,14 @@ struct rig_stream_caps {
 #define RIG_STREAM_CAP_HW_TIME          (1<<3)  /* get_hardware_time meaningful */
 ```
 
-Limits: `HAMLIB_MAX_STREAM_RATES = 32`, `HAMLIB_MAX_STREAM_CAPS = 8`,
+Limits: `HAMLIB_MAX_STREAM_RATES = 32`,
+`HAMLIB_MAX_STREAM_CHANNEL_COUNTS = 16`, `HAMLIB_MAX_STREAM_CAPS = 8`,
 `HAMLIB_MAX_STREAMS = 32` (concurrent streams per type).
 
 **Two views share the struct** — hardware-native and effective:
 
 - A **backend** authors only the classic fields (`formats`,
-  `sample_rates`, `channels_min/max`) with the **hardware-native** truth —
+  `sample_rates`, `channels`) with the **hardware-native** truth —
   what the radio actually produces or accepts — and leaves the `native_*`
   fields zero.
 - An **application** reads the struct through `rig_stream_caps_at()`,
@@ -284,8 +286,9 @@ Limits: `HAMLIB_MAX_STREAM_RATES = 32`, `HAMLIB_MAX_STREAM_CAPS = 8`,
   backend has any PCM format, any I/Q format if it has any I/Q format.
   Codec format bits (e.g. Opus) pass through only as declared; they are
   never fabricated. Codec formats are opaque packet streams, so no
-  conversion stage applies to them: a codec request must match the native
-  rate and channel count exactly (else `-RIG_EINVAL`), it always opens as
+  conversion stage applies to them: a codec request must match a native
+  rate and a native channel count exactly (else `-RIG_EINVAL`), it always
+  opens as
   a native stream, and a codec-only caps entry is served verbatim — none
   of the widening below applies to it. This holds for any format outside
   the raw PCM/I-Q family masks, present or future.
@@ -297,10 +300,14 @@ Limits: `HAMLIB_MAX_STREAM_RATES = 32`, `HAMLIB_MAX_STREAM_CAPS = 8`,
   largest native rate: audio up to and including it, I/Q strictly below
   it (an I/Q stream's sample rate is its represented bandwidth, so
   upsampling past the hardware cannot create information).
-- **Channels:** audio maps mono↔stereo (`channels_min` becomes 1,
-  `channels_max` at least 2); I/Q channels are coherent captures, so a
-  subset of the hardware channels may be selected but channels are never
-  fabricated.
+- **Channels:** the declared list is exact — the effective list equals
+  the native list, and unlisted counts are never invented (a device may
+  genuinely support only very specific counts, which is exactly what the
+  list states). The single exception is the audio mono↔stereo map: when
+  the hardware offers either count of the {1, 2} pair, the other becomes
+  openable through the frontend's upmix/downmix. I/Q channels are
+  coherent captures and never widen; a backend that can open a subset of
+  its hardware channels declares each openable count explicitly.
 
 **The libsamplerate dependency boundary.** Only sample-**rate** conversion
 (resampling) depends on libsamplerate, which is optional at build time
@@ -822,8 +829,10 @@ source_id: <stream source ID>  0 = unset (see §6.2.1)
 udp_port: <port>
 subscribe_token: <32-bit token>
 max_payload: <bytes>         effective frame-aligned payload budget (see 6.8)
-conversions: <bitmask>       RIG_STREAM_CONV_* stages active server-side
-                             (0 = native stream)
+conversions: <C1,C2,...>     server-side conversion stages, comma-
+                             separated RIG_STREAM_CONV_* names with the
+                             prefix stripped (FORMAT, RATE, CHANNELS);
+                             empty = native stream
 [multicast: <addr>]          (only for multicast streams)
 ```
 
@@ -835,11 +844,22 @@ The client uses `udp_port` and `subscribe_token` to drive the UDP session
 effective sets first, then the hardware-native view:
 
 ```
-type=<TYPE> formats=<F1,F2,...> rates=<R1,R2,...> channels=<MIN>-<MAX>
-max=<n> native_formats=<...> native_rates=<...> native_channels=<MIN>-<MAX>
+type=<TYPE> formats=<F1,F2,...> rates=<R1,R2,...> channels=<C1,C2,...>
+max_streams=<n> native_formats=<...> native_rates=<...>
+native_channels=<C1,C2,...>
 ```
 
-(one line per entry; wrapped here for readability). The effective sets are
+(one line per entry; wrapped here for readability). Every key uses one of
+three value syntaxes, and each key always uses the same one:
+
+- **name list** — comma-separated symbolic names, no spaces
+  (`formats=PCM_S16,PCM_F32`). One name is a one-element list.
+- **integer list** — comma-separated decimal integers, ascending, no
+  spaces (`rates=24000,48000`, `channels=1,2`). Ranges are **not** part of
+  the grammar — a contiguous set is spelled out (`channels=1,2,3,4`).
+- **scalar** — a single decimal integer (`max_streams=4`).
+
+The effective sets are
 what `\stream_open` serves — through server-side conversion where they
 exceed the native sets. The netrigctl client backend parses both views and
 relays them to its application verbatim (pre-derived caps; the server's
@@ -855,9 +875,163 @@ older server without the `native_*` keys is still accepted — the client
 falls back to deriving the effective view locally — and an older client
 simply ignores the added keys and response lines.
 
-`\stream_status` and `\stream_list` also report `conversions` and
-`codec_frames` (whole codec frames produced; 0 on raw sample streams) per
-stream — both appended last in the terse forms, in that order.
+**The remaining commands.** Every command below takes the numeric
+`stream_id` returned by `\stream_open`. Streams are owned by the TCP
+connection that opened them: commands against another connection's
+stream fail with `RPRT` -RIG_EACCESS (`\stream_list` is the exception —
+it reports all clients' streams). In the extended response protocol
+every response opens with an echo line (`stream_status: 1`), then any
+`key: value` fields joined by the chosen separator (`+` = newline), then
+the `RPRT <code>` result (0 = success; a negative code is the RIG_E*
+error). Commands with no output fields answer with the echo line and
+`RPRT` alone:
+
+- `\stream_close <stream_id>` — stop the feeder, close the stream's
+  UDP socket and release the stream.
+- `\stream_pause <stream_id>` / `\stream_resume <stream_id>` —
+  suspend and restart backend I/O without releasing anything; a paused
+  stream keeps its UDP socket, subscription and counters.
+- `\stream_mute <stream_id>` / `\stream_unmute <stream_id>` — keep
+  the stream flowing but discard RX payloads / substitute silence on TX.
+- `\stream_drain <stream_id>` — block until the TX ring has been
+  played out, bounded at 1 second.
+
+`\stream_status <stream_id>` response fields, in order (scalars all
+decimal except `time_flags`):
+
+```
+type: <TYPE>                 stream type name
+stream_id: <n>
+sample_rate: <hz>            the opened (client-side) configuration
+format: <FORMAT>
+channels: <n>
+udp_port: <port>
+paused: <0|1>
+muted: <0|1>
+conversions: <C1,C2,...>     server-side conversion stages (see
+                             stream_open; empty = native stream)
+codec_frames: <n>            whole codec frames produced (0 = raw stream)
+packet_count: <n>            UDP datagrams sent (RX) / accepted (TX)
+gap_count: <n>               inbound datagrams missing by sequence
+                             (meaningful on TX streams)
+overruns: <n>                ring health counters (§4)
+underruns: <n>
+backend_gaps: <n>            backend-reported sample gaps
+backend_gaps_unknown: <n>    gaps of unknown length
+link_loss: <n>               app-link UDP loss events (netrigctl
+                             client side; 0 in rigctld itself)
+tx_late: <n>                 timed-TX deadline misses
+dropped_samples_gap: <n>     per-cause dropped-sample totals
+dropped_samples_overrun: <n>
+dropped_samples_link: <n>
+time_anchor_index: <n>       latest time anchor (§8); these five appear
+time_anchor_seconds: <s>     only once the stream has an anchor
+time_source: <n>
+time_flags: 0x<hex>
+time_accuracy: <n>
+multicast: <addr>            multicast streams only
+ttl: <n>
+```
+
+`\stream_metadata_read <stream_id>` — the latest metadata snapshot
+(§7):
+
+```
+center_freq: <hz>
+vfo_freq: <hz>
+vfo_id: <n>
+ptt: <0|1>
+field_mask: <bits>           which fields carry valid data (§7)
+sample_index: <n>            stream position the values belong to
+```
+
+`\stream_list` — one block per active stream, all clients, blank-line
+separated:
+
+```
+stream_id: <n>
+source_id: <n>
+type: <TYPE>
+format: <FORMAT>
+sample_rate: <hz>
+channels: <n>
+udp_port: <port>             0 unless the caller owns the stream
+paused: <0|1>
+muted: <0|1>
+owner: <0|1>                 1 = opened by this TCP connection
+conversions: <C1,C2,...>     (empty = native stream)
+codec_frames: <n>
+```
+
+**A complete session** against the dummy rig (`rigctld -m 1`), captured
+verbatim (`>` marks client input). The dummy's native audio format is
+PCM_F32, so this PCM_S16 open is served through server-side format
+conversion — visible as `conversions: FORMAT` in the open response and
+everywhere after (a native stream shows an empty value):
+
+```
+> +\stream_open AUDIO_RX PCM_S16 48000 channels=2
+stream_open: AUDIO_RX PCM_S16 48000
+stream_id: 1
+source_id: 11300
+udp_port: 53758
+subscribe_token: 2341159422
+max_payload: 1420
+conversions: FORMAT
+RPRT 0
+> +\stream_status 1
+stream_status: 1
+type: AUDIO_RX
+stream_id: 1
+sample_rate: 48000
+format: PCM_S16
+channels: 2
+udp_port: 53758
+paused: 0
+muted: 0
+conversions: FORMAT
+codec_frames: 0
+packet_count: 0
+gap_count: 0
+overruns: 9
+underruns: 0
+backend_gaps: 0
+backend_gaps_unknown: 0
+link_loss: 0
+tx_late: 0
+dropped_samples_gap: 0
+dropped_samples_overrun: 0
+dropped_samples_link: 0
+time_anchor_index: 12000
+time_anchor_seconds: 1786606908
+time_source: 1
+time_flags: 0x00
+time_accuracy: 2
+RPRT 0
+> +\stream_list
+stream_list:
+stream_id: 1
+source_id: 11300
+type: AUDIO_RX
+format: PCM_S16
+sample_rate: 48000
+channels: 2
+udp_port: 53758
+paused: 0
+muted: 0
+owner: 1
+conversions: FORMAT
+codec_frames: 0
+RPRT 0
+> +\stream_close 1
+stream_close: 1
+RPRT 0
+```
+
+(The non-zero `overruns` is real and expected here: no UDP subscriber
+was attached in this capture, so the RX ring overwrote unread data — a
+real client attaches with the subscribe handshake of §6.3 and drains the
+stream.)
 
 The network stream commands only function inside rigctld daemon;
 the same commands invoked through local rigctl return `-RIG_ENAVAIL`.

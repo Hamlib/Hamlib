@@ -373,11 +373,49 @@ static int stream_rate_list_max(const int *rates)
     return max;
 }
 
+#endif /* HAVE_SAMPLERATE */
+
+/* Ascending int comparator for caps list sorting (rates and channel
+ * counts alike). */
 static int stream_rate_cmp(const void *a, const void *b)
 {
     return *(const int *)a - *(const int *)b;
 }
-#endif /* HAVE_SAMPLERATE */
+
+/* True if count appears in a 0-terminated channel-count list. */
+static int chan_in_list(const int *list, int count)
+{
+    for (int i = 0; i < HAMLIB_MAX_STREAM_CHANNEL_COUNTS && list[i] != 0; i++)
+    {
+        if (list[i] == count)
+        {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+/* Append count to a 0-terminated list if absent and there is room; the
+ * native entries are present before any additions, so an overflow trims
+ * only conversion-reachable extras. */
+static void chan_list_add(int *list, int count)
+{
+    int i;
+
+    for (i = 0; i < HAMLIB_MAX_STREAM_CHANNEL_COUNTS - 1 && list[i] != 0; i++)
+    {
+        if (list[i] == count)
+        {
+            return;
+        }
+    }
+
+    if (i < HAMLIB_MAX_STREAM_CHANNEL_COUNTS - 1)
+    {
+        list[i] = count;
+    }
+}
 
 /* Widen one backend-declared (native) descriptor into the app-visible
  * derived view: classic fields become the effective set, native_* keeps
@@ -404,8 +442,8 @@ static void stream_derive_caps(struct rig_stream_caps *dst,
     dst->native_formats = src->formats;
     memcpy(dst->native_sample_rates, src->sample_rates,
            sizeof(dst->native_sample_rates));
-    dst->native_channels_min = src->channels_min;
-    dst->native_channels_max = src->channels_max;
+    memcpy(dst->native_channels, src->channels,
+           sizeof(dst->native_channels));
 
     /* Formats: whole family reachable via rig_stream_convert; codec bits
      * pass through as declared. */
@@ -428,16 +466,29 @@ static void stream_derive_caps(struct rig_stream_caps *dst,
         return;
     }
 
-    /* Channels: audio maps mono<->stereo; I/Q channels are coherent, so a
-     * subset may be selected but never fabricated. */
-    if (src->channels_max > 0)
+    /* Channels: the declared list is exact — counts are never invented.
+     * The one exception is the audio mono<->stereo map: when the
+     * hardware offers either count of the {1, 2} pair, the other is
+     * openable through the frontend's upmix/downmix. I/Q channels are
+     * coherent captures and never widen; a backend able to open a
+     * subset of its hardware channels declares each openable count
+     * explicitly. The native entries are already in the list
+     * (whole-struct copy above). */
+    if (!is_iq
+            && (chan_in_list(src->channels, 1)
+                || chan_in_list(src->channels, 2)))
     {
-        dst->channels_min = 1;
+        int n;
 
-        if (!is_iq && dst->channels_max < 2)
+        chan_list_add(dst->channels, 1);
+        chan_list_add(dst->channels, 2);
+
+        for (n = 0; n < HAMLIB_MAX_STREAM_CHANNEL_COUNTS
+                && dst->channels[n] != 0; n++)
         {
-            dst->channels_max = 2;
         }
+
+        qsort(dst->channels, n, sizeof(int), stream_rate_cmp);
     }
 
 #ifdef HAVE_SAMPLERATE
@@ -645,6 +696,7 @@ static int caps_rate_native(const struct rig_stream_caps *caps, int rate)
     return rate_in_list(caps->sample_rates, rate);
 }
 
+
 #ifdef HAVE_SAMPLERATE
 /* Smallest native rate >= rate (the cheapest downconversion source), or 0
  * when the request exceeds every native rate — the effective set is
@@ -708,16 +760,13 @@ static int resolve_delegated_source(const struct rig_stream_config *config,
             return -RIG_EINVAL;
         }
 
-        if (caps->native_channels_min > 0
-                && (config->channels < caps->native_channels_min
-                    || config->channels > caps->native_channels_max))
+        if (caps->native_channels[0] != 0
+                && !chan_in_list(caps->native_channels, config->channels))
         {
             rig_debug(RIG_DEBUG_ERR,
-                      "%s: codec format 0x%x requires native channels "
-                      "%d-%d (got %d)\n",
-                      __func__, config->format,
-                      caps->native_channels_min, caps->native_channels_max,
-                      config->channels);
+                      "%s: codec format 0x%x requires a native channel "
+                      "count (got %d)\n",
+                      __func__, config->format, config->channels);
             return -RIG_EINVAL;
         }
 
@@ -738,20 +787,17 @@ static int resolve_delegated_source(const struct rig_stream_config *config,
         conv |= RIG_STREAM_CONV_RATE;
     }
 
-    if (caps->channels_min > 0
-            && (config->channels < caps->channels_min
-                || config->channels > caps->channels_max))
+    if (caps->channels[0] != 0
+            && !chan_in_list(caps->channels, config->channels))
     {
         rig_debug(RIG_DEBUG_ERR,
-                  "%s: channels %d outside relayed effective range %d-%d\n",
-                  __func__, config->channels,
-                  caps->channels_min, caps->channels_max);
+                  "%s: channels %d not in the relayed effective list\n",
+                  __func__, config->channels);
         return -RIG_EINVAL;
     }
 
-    if (caps->native_channels_min > 0
-            && (config->channels < caps->native_channels_min
-                || config->channels > caps->native_channels_max))
+    if (caps->native_channels[0] != 0
+            && !chan_in_list(caps->native_channels, config->channels))
     {
         conv |= RIG_STREAM_CONV_CHANNELS;
     }
@@ -868,16 +914,13 @@ static int resolve_stream_source(const struct rig_stream_config *config,
             return -RIG_EINVAL;
         }
 
-        if (caps->channels_min > 0
-                && (config->channels < caps->channels_min
-                    || config->channels > caps->channels_max))
+        if (caps->channels[0] != 0
+                && !chan_in_list(caps->channels, config->channels))
         {
             rig_debug(RIG_DEBUG_ERR,
-                      "%s: codec format 0x%x requires native channels "
-                      "%d-%d (got %d)\n",
-                      __func__, config->format,
-                      caps->channels_min, caps->channels_max,
-                      config->channels);
+                      "%s: codec format 0x%x requires a native channel "
+                      "count (got %d)\n",
+                      __func__, config->format, config->channels);
             return -RIG_EINVAL;
         }
 
@@ -910,26 +953,28 @@ static int resolve_stream_source(const struct rig_stream_config *config,
 #endif
     }
 
-    /* Channels: native range, audio 1<->2 mapping, or a subset of the
-     * hardware channels. I/Q channels are coherent and never fabricated. */
-    if (caps->channels_min > 0
-            && (config->channels < caps->channels_min
-                || config->channels > caps->channels_max))
+    /* Channels: a count in the native list passes through untouched. The
+     * only conversion is the audio mono<->stereo map between the {1, 2}
+     * pair; any other count is outside the effective set — the declared
+     * list is exact and gaps are never filled. */
+    if (caps->channels[0] != 0
+            && !chan_in_list(caps->channels, config->channels))
     {
-        if (config->channels < caps->channels_min)
-        {
-            backend_cfg->channels = caps->channels_min;  /* subset/downmix */
-        }
-        else if (!is_iq && config->channels == 2 && caps->channels_max == 1)
+        if (!is_iq && config->channels == 2
+                && chan_in_list(caps->channels, 1))
         {
             backend_cfg->channels = 1;                   /* mono upmix */
+        }
+        else if (!is_iq && config->channels == 1
+                 && chan_in_list(caps->channels, 2))
+        {
+            backend_cfg->channels = 2;                   /* stereo downmix */
         }
         else
         {
             rig_debug(RIG_DEBUG_ERR,
-                      "%s: channels %d outside effective range for native "
-                      "%d-%d\n", __func__, config->channels,
-                      caps->channels_min, caps->channels_max);
+                      "%s: channels %d not in the native count list\n",
+                      __func__, config->channels);
             return -RIG_EINVAL;
         }
 

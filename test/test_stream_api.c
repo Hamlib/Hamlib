@@ -101,16 +101,14 @@ static const struct rig_stream_caps stub_stream_caps[] =
         .type = RIG_STREAM_TYPE_AUDIO_RX,
         .formats = RIG_STREAM_FORMAT_PCM_S16 | RIG_STREAM_FORMAT_PCM_F32,
         .sample_rates = { 8000, 48000, 0 },
-        .channels_min = 1,
-        .channels_max = 2,
+        .channels = { 1, 2, 0 },
         .max_streams = 2,
     },
     {
         .type = RIG_STREAM_TYPE_IQ_RX,
         .formats = RIG_STREAM_FORMAT_IQ_CS16 | RIG_STREAM_FORMAT_IQ_CF32,
         .sample_rates = { 48000, 192000, 0 },
-        .channels_min = 1,
-        .channels_max = 1,
+        .channels = { 1, 0 },
         .max_streams = 1,
     },
     { 0 }  /* Terminator */
@@ -124,16 +122,14 @@ static const struct rig_stream_caps stub_mono_stream_caps[] =
         .type = RIG_STREAM_TYPE_AUDIO_RX,
         .formats = RIG_STREAM_FORMAT_PCM_F32,
         .sample_rates = { 48000, 0 },
-        .channels_min = 1,
-        .channels_max = 1,
+        .channels = { 1, 0 },
         .max_streams = 1,
     },
     {
         .type = RIG_STREAM_TYPE_IQ_RX,
         .formats = RIG_STREAM_FORMAT_IQ_CF32,
         .sample_rates = { 48000, 0 },
-        .channels_min = 2,
-        .channels_max = 2,
+        .channels = { 2, 0 },
         .max_streams = 1,
     },
     { 0 }  /* Terminator */
@@ -242,6 +238,41 @@ static struct rig_caps stub_caps_mono_stream =
     .stream_close = stub_stream_close,
 };
 
+/* A non-contiguous native channel list: coherent I/Q hardware that opens
+ * 1 or 4 channels but nothing in between. The list is exact — the
+ * frontend never fills the gap, so 2 and 3 are simply not openable. */
+static const struct rig_stream_caps stub_gap_channel_stream_caps[] =
+{
+    {
+        .type = RIG_STREAM_TYPE_IQ_RX,
+        .formats = RIG_STREAM_FORMAT_IQ_CF32,
+        .sample_rates = { 48000, 0 },
+        .channels = { 1, 4, 0 },
+        .max_streams = 1,
+    },
+    { 0 }  /* Terminator */
+};
+
+static struct rig_caps stub_caps_gap_channel_stream =
+{
+    .rig_model = 6,
+    .model_name = "Stub Gap Channels",
+    .mfg_name = "Test",
+    .version = "1.0",
+    .status = RIG_STATUS_STABLE,
+    .rig_type = RIG_TYPE_TRANSCEIVER,
+    .port_type = RIG_PORT_NONE,
+    .timeout = 1000,
+    .retry = 0,
+    .stream_caps = stub_gap_channel_stream_caps,
+    .rig_init = stub_rig_init,
+    .rig_cleanup = stub_rig_cleanup,
+    .rig_open = stub_rig_open,
+    .rig_close = stub_rig_close,
+    .stream_open = stub_stream_open,
+    .stream_close = stub_stream_close,
+};
+
 /* Codec (OPUS) alongside raw PCM, plus a codec-only entry. Codec formats
  * are opaque packet streams: native-only at open, and a codec-only entry
  * is served verbatim by derivation (no widening). */
@@ -251,16 +282,14 @@ static const struct rig_stream_caps stub_codec_stream_caps[] =
         .type = RIG_STREAM_TYPE_AUDIO_RX,
         .formats = RIG_STREAM_FORMAT_PCM_S16 | RIG_STREAM_FORMAT_OPUS,
         .sample_rates = { 48000, 0 },
-        .channels_min = 1,
-        .channels_max = 1,
+        .channels = { 1, 0 },
         .max_streams = 2,
     },
     {
         .type = RIG_STREAM_TYPE_AUDIO_TX,
         .formats = RIG_STREAM_FORMAT_OPUS,   /* codec-only entry */
         .sample_rates = { 48000, 0 },
-        .channels_min = 1,
-        .channels_max = 1,
+        .channels = { 1, 0 },
         .max_streams = 1,
     },
     { 0 }  /* Terminator */
@@ -477,19 +506,92 @@ void test_caps_derived_channels(void)
     const struct rig_stream_caps *iq = rig_stream_caps_at(rig, 1);
     TEST_ASSERT(audio != NULL && iq != NULL);
 
-    /* Mono-only audio hardware: effective widens to stereo via upmix... */
-    TEST_CHECK(audio->native_channels_min == 1);
-    TEST_CHECK(audio->native_channels_max == 1);
-    TEST_CHECK(audio->channels_min == 1);
-    TEST_CHECK(audio->channels_max == 2);
+    /* Mono-only audio hardware: effective gains stereo via upmix... */
+    TEST_CHECK(audio->native_channels[0] == 1
+               && audio->native_channels[1] == 0);
+    TEST_CHECK(audio->channels[0] == 1 && audio->channels[1] == 2
+               && audio->channels[2] == 0);
 
-    /* ...but coherent I/Q channels are never fabricated: a subset may be
-     * selected (min widens to 1), the maximum stays native. */
-    TEST_CHECK(iq->native_channels_min == 2);
-    TEST_CHECK(iq->native_channels_max == 2);
-    TEST_CHECK(iq->channels_min == 1);
-    TEST_CHECK(iq->channels_max == 2);
+    /* ...but the I/Q list is exact: coherent channels never widen, so a
+     * 2-channel-only declaration serves 2 channels and nothing else. */
+    TEST_CHECK(iq->native_channels[0] == 2 && iq->native_channels[1] == 0);
+    TEST_CHECK(iq->channels[0] == 2 && iq->channels[1] == 0);
 
+    teardown_rig(rig);
+}
+
+/* A native channel list need not be contiguous, and it is exact: the
+ * effective list equals the declared list (no audio count present, so
+ * no mono<->stereo widening either), a listed count opens native, and
+ * every unlisted count — inside the gap or above the maximum — is
+ * refused. */
+void test_channel_list_exact(void)
+{
+    RIG *rig = setup_rig(&stub_caps_gap_channel_stream);
+    TEST_ASSERT(rig != NULL);
+
+    const struct rig_stream_caps *iq = rig_stream_caps_at(rig, 0);
+    TEST_ASSERT(iq != NULL);
+
+    /* Native {1,4} preserved and served verbatim as the effective set. */
+    TEST_CHECK(iq->native_channels[0] == 1 && iq->native_channels[1] == 4
+               && iq->native_channels[2] == 0);
+    TEST_CHECK(iq->channels[0] == 1 && iq->channels[1] == 4
+               && iq->channels[2] == 0);
+
+    struct rig_stream_config *cfg = rig_stream_config_alloc();
+    TEST_ASSERT(cfg != NULL);
+    cfg->type = RIG_STREAM_TYPE_IQ_RX;
+    cfg->format = RIG_STREAM_FORMAT_IQ_CF32;
+    cfg->sample_rate = 48000;
+
+    /* Listed counts open native. */
+    rig_stream_t *stream = NULL;
+    cfg->channels = 4;
+    int ret = rig_stream_open(rig, cfg, &stream);
+    TEST_CHECK(ret == RIG_OK);
+    TEST_MSG("native 4-channel open returned %d", ret);
+
+    if (ret == RIG_OK)
+    {
+        TEST_CHECK(rig_stream_get_conversions(stream)
+                   == RIG_STREAM_CONV_NONE);
+        rig_stream_close(rig, stream);
+    }
+
+    /* Unlisted counts are refused — in the gap and above the maximum. */
+    for (int want = 2; want <= 3; want++)
+    {
+        cfg->channels = want;
+        stream = NULL;
+        ret = rig_stream_open(rig, cfg, &stream);
+        TEST_CHECK(ret == -RIG_EINVAL);
+        TEST_MSG("%d-channel open: got %d, expected %d",
+                 want, ret, -RIG_EINVAL);
+    }
+
+    cfg->channels = 5;
+    stream = NULL;
+    ret = rig_stream_open(rig, cfg, &stream);
+    TEST_CHECK(ret == -RIG_EINVAL);
+    TEST_MSG("5-channel open: got %d, expected %d", ret, -RIG_EINVAL);
+
+    /* Listed counts still open under require_native. */
+    cfg->channels = 1;
+    cfg->require_native = 1;
+    stream = NULL;
+    ret = rig_stream_open(rig, cfg, &stream);
+    TEST_CHECK(ret == RIG_OK);
+    TEST_MSG("require_native native-count open returned %d", ret);
+
+    if (ret == RIG_OK)
+    {
+        TEST_CHECK(rig_stream_get_conversions(stream)
+                   == RIG_STREAM_CONV_NONE);
+        rig_stream_close(rig, stream);
+    }
+
+    rig_stream_config_free(cfg);
     teardown_rig(rig);
 }
 
@@ -781,13 +883,13 @@ void test_caps_codec_only_not_widened(void)
     TEST_CHECK(codec->sample_rates[1] == 0);
     TEST_MSG("codec-only rate list must stay native (got second rate %d)",
              codec->sample_rates[1]);
-    TEST_CHECK(codec->channels_min == 1);
-    TEST_CHECK(codec->channels_max == 1);
+    TEST_CHECK(codec->channels[0] == 1 && codec->channels[1] == 0);
 
     /* Native view mirrors the declaration as usual. */
     TEST_CHECK(codec->native_formats == RIG_STREAM_FORMAT_OPUS);
     TEST_CHECK(codec->native_sample_rates[0] == 48000);
-    TEST_CHECK(codec->native_channels_max == 1);
+    TEST_CHECK(codec->native_channels[0] == 1
+               && codec->native_channels[1] == 0);
 
     teardown_rig(rig);
 }
@@ -2155,6 +2257,7 @@ TEST_LIST =
     { "caps_derived_formats",     test_caps_derived_formats },
     { "caps_derived_rates",       test_caps_derived_rates },
     { "caps_derived_channels",    test_caps_derived_channels },
+    { "channel_list_exact",       test_channel_list_exact },
     { "codec_format_native_only", test_codec_format_native_only },
     { "codec_frame_read_api",     test_codec_frame_read_api },
     { "codec_frame_write_api",    test_codec_frame_write_api },

@@ -1986,6 +1986,9 @@ typedef enum {
 #define HAMLIB_MAX_STREAM_RATES 32
 #define HAMLIB_MAX_STREAM_CAPS  8
 #define HAMLIB_MAX_STREAMS      32
+/* Entries in a caps channel-count list (0-terminated, like the rate
+ * lists). Bounds the ALLOWED-COUNT list, not the counts themselves. */
+#define HAMLIB_MAX_STREAM_CHANNEL_COUNTS 16
 
 /* Stream capability flags */
 #define RIG_STREAM_CAP_TIMED_TX_COARSE  (1<<0)  /* start-at-T play-out gating */
@@ -2005,7 +2008,7 @@ typedef enum {
 /* Streaming capability descriptor. Two views share this struct:
  *
  * - BACKENDS author it with the classic fields (formats, sample_rates,
- *   channels_min/max) describing the HARDWARE-NATIVE truth, and leave the
+ *   channels) describing the HARDWARE-NATIVE truth, and leave the
  *   native_* fields zero.
  * - APPLICATIONS read it through rig_stream_caps_at(), which (after
  *   rig_open) serves a frontend-derived copy in which the classic fields
@@ -2020,8 +2023,14 @@ struct rig_stream_caps {
                                              * declare native here) */
     int sample_rates[HAMLIB_MAX_STREAM_RATES]; /* Openable rates, 0-terminated
                                              * (effective in the app view) */
-    int channels_min;                       /* 1=mono, 2=stereo */
-    int channels_max;
+    int channels[HAMLIB_MAX_STREAM_CHANNEL_COUNTS]; /* Openable channel
+                                             * counts, 0-terminated ascending
+                                             * list (effective in the app
+                                             * view; backends declare the
+                                             * hardware-native counts, which
+                                             * need not be contiguous). The
+                                             * list is exact: every openable
+                                             * count is listed, none implied */
     int max_streams;                        /* Concurrent streams of this type */
     int caps_flags;                         /* RIG_STREAM_CAP_* */
     int tx_schedule_horizon_ms;             /* Max lead time for a timed TX
@@ -2043,8 +2052,7 @@ struct rig_stream_caps {
      * pointer in struct rig_caps). */
     rig_stream_format_t native_formats;
     int native_sample_rates[HAMLIB_MAX_STREAM_RATES]; /* 0-terminated */
-    int native_channels_min;
-    int native_channels_max;
+    int native_channels[HAMLIB_MAX_STREAM_CHANNEL_COUNTS]; /* 0-terminated */
 };
 
 struct rig_stream_config {
@@ -3577,7 +3585,7 @@ rig_stream_caps_count(RIG *rig);
  * \brief Access the i-th streaming capability descriptor of \a rig.
  *
  * The returned descriptor carries both capability views: the classic
- * fields (formats, sample_rates, channels_min/max) hold the EFFECTIVE
+ * fields (formats, sample_rates, channels) hold the EFFECTIVE
  * set — every configuration rig_stream_open() will serve, conversions
  * included — and the native_* fields hold the hardware-native truth.
  * A request inside the effective but outside the native set is served

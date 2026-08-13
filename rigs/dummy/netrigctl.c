@@ -2967,9 +2967,47 @@ static int netrigctl_stream_open(RIG *rig, struct rig_stream *stream)
             rig_debug(RIG_DEBUG_VERBOSE, "%s: max_payload=%d\n",
                       __func__, max_payload);
         }
-        else if (sscanf(buf, "conversions: %d", &conversions) == 1)
+        else if (strncmp(buf, "conversions:", 12) == 0)
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: conversions=%d\n",
+            /* Comma-separated stage names with the RIG_STREAM_CONV_
+             * prefix stripped; an empty value is a native stream.
+             * Unknown names are skipped so a future server may add
+             * stages without breaking this client. */
+            const char *tok = buf + 12;
+
+            conversions = RIG_STREAM_CONV_NONE;
+
+            while (*tok != '\0')
+            {
+                while (*tok == ' ' || *tok == ',')
+                {
+                    tok++;
+                }
+
+                size_t len = strcspn(tok, ", \r\n");
+
+                if (len == 0)
+                {
+                    break;
+                }
+
+                if (len == 6 && strncmp(tok, "FORMAT", 6) == 0)
+                {
+                    conversions |= RIG_STREAM_CONV_FORMAT;
+                }
+                else if (len == 4 && strncmp(tok, "RATE", 4) == 0)
+                {
+                    conversions |= RIG_STREAM_CONV_RATE;
+                }
+                else if (len == 8 && strncmp(tok, "CHANNELS", 8) == 0)
+                {
+                    conversions |= RIG_STREAM_CONV_CHANNELS;
+                }
+
+                tok += len;
+            }
+
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: conversions=0x%x\n",
                       __func__, conversions);
         }
 

@@ -109,21 +109,4 @@ ssize_t stream_conv_process(struct stream_conv *c, const void *buf,
 
 void stream_conv_free(struct stream_conv *c);
 
-
-/* Run the channel -> format -> optional-resample conversion pipeline.
- * work_a initially holds src_samples (per-channel) of src_fmt/src_channels
- * data; work_a and work_b are caller-provided non-overlapping scratch
- * buffers each at least work_size bytes. is_iq selects I/Q sample geometry.
- * On success returns a pointer to whichever buffer holds the result and sets
- * *out_samples to the per-channel output sample count; returns NULL on any
- * conversion error or if a stage would exceed work_size. Resampling I/Q
- * (is_iq with src_rate != dst_rate) is unsupported and returns NULL; open I/Q
- * streams at a matched rate. */
-const void *rig_stream_convert_pipeline(
-    void *work_a, void *work_b, size_t work_size,
-    rig_stream_format_t src_fmt, int src_channels, int src_rate,
-    size_t src_samples, int is_iq,
-    rig_stream_format_t dst_fmt, int dst_channels, int dst_rate,
-    int resample_quality, size_t *out_samples);
-
 #endif /* HAMLIB_STREAM_CONVERT_H */

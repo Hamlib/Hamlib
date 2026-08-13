@@ -117,24 +117,24 @@ extern int is_rigctld;
  * both views (declared native, passed through derivation untouched). */
 #define EXPECTED_AUDIO_RX_LINE \
     "type=AUDIO_RX formats=PCM_S8,PCM_U8,PCM_S16,PCM_F32,OPUS " \
-    "rates=" EXPECTED_AUDIO_RATES " channels=1-2 max=4 " \
+    "rates=" EXPECTED_AUDIO_RATES " channels=1,2 max_streams=4 " \
     "native_formats=PCM_F32,OPUS " \
-    "native_rates=" EXPECTED_AUDIO_NATIVE_RATES " native_channels=1-2"
+    "native_rates=" EXPECTED_AUDIO_NATIVE_RATES " native_channels=1,2"
 #define EXPECTED_AUDIO_TX_LINE \
     "type=AUDIO_TX formats=PCM_S8,PCM_U8,PCM_S16,PCM_F32,OPUS " \
-    "rates=" EXPECTED_AUDIO_RATES " channels=1-2 max=4 " \
+    "rates=" EXPECTED_AUDIO_RATES " channels=1,2 max_streams=4 " \
     "native_formats=PCM_F32,OPUS " \
-    "native_rates=" EXPECTED_AUDIO_NATIVE_RATES " native_channels=1-2"
+    "native_rates=" EXPECTED_AUDIO_NATIVE_RATES " native_channels=1,2"
 #define EXPECTED_IQ_RX_LINE \
     "type=IQ_RX formats=IQ_CS8,IQ_CU8,IQ_CS16,IQ_CF32 " \
-    "rates=" EXPECTED_IQ_RATES " channels=1-4 max=4 " \
+    "rates=" EXPECTED_IQ_RATES " channels=1,2,3,4 max_streams=4 " \
     "native_formats=IQ_CF32 " \
-    "native_rates=" EXPECTED_IQ_NATIVE_RATES " native_channels=1-4"
+    "native_rates=" EXPECTED_IQ_NATIVE_RATES " native_channels=1,2,3,4"
 #define EXPECTED_IQ_TX_LINE \
     "type=IQ_TX formats=IQ_CS8,IQ_CU8,IQ_CS16,IQ_CF32 " \
-    "rates=" EXPECTED_IQ_RATES " channels=1-4 max=4 " \
+    "rates=" EXPECTED_IQ_RATES " channels=1,2,3,4 max_streams=4 " \
     "native_formats=IQ_CF32 " \
-    "native_rates=" EXPECTED_IQ_NATIVE_RATES " native_channels=1-4"
+    "native_rates=" EXPECTED_IQ_NATIVE_RATES " native_channels=1,2,3,4"
 
 
 /* --- Test helpers --- */
@@ -300,6 +300,8 @@ static int run_cmd_ext(RIG *rig, const char *cmd_str, char *outbuf,
 
 /* Parse "stream_id\nudp_port\n" from stream_open output */
 static int parse_ext_int(const char *buf, const char *label, int *value);
+static int parse_ext_str(const char *buf, const char *key,
+                         char *out, size_t out_size);
 
 /* --- Streaming fixtures --------------------------------------------------
  * acutest has no per-test fixture, so these are called explicitly. Pairing
@@ -987,10 +989,10 @@ void test_cmd_stream_open_iq_multichannel(void)
     TEST_MSG("failed to parse response: '%s'", buf);
 
     /* Native format, rate and channel count: a native stream. */
-    int val = -1;
-    TEST_CHECK(parse_ext_int(buf, "conversions", &val) == 0);
-    TEST_CHECK(val == RIG_STREAM_CONV_NONE);
-    TEST_MSG("conversions: got %d, expected 0", val);
+    char conv[64] = "x";
+    TEST_CHECK(parse_ext_str(buf, "conversions", conv, sizeof(conv)) == 0);
+    TEST_CHECK(conv[0] == '\0');
+    TEST_MSG("conversions: got '%s', expected empty", conv);
 
     struct rigctld_stream *s = rigctld_stream_registry_find_by_id(
                                    &g_stream_registry, stream_id);
@@ -1026,16 +1028,16 @@ void test_cmd_stream_open_reports_conversions(void)
     TEST_CHECK(rig != NULL);
     char buf[1024];
     char cmd[64];
-    int val = -1;
 
     int ret = run_cmd(rig, "\\stream_open AUDIO_RX PCM_S16 48000",
                       buf, sizeof(buf));
     TEST_CHECK(ret == 0);
 
-    TEST_CHECK(parse_ext_int(buf, "conversions", &val) == 0);
+    char conv[64] = "";
+    TEST_CHECK(parse_ext_str(buf, "conversions", conv, sizeof(conv)) == 0);
     TEST_MSG("no conversions line in: '%s'", buf);
-    TEST_CHECK(val == RIG_STREAM_CONV_FORMAT);
-    TEST_MSG("conversions: got %d, expected %d", val, RIG_STREAM_CONV_FORMAT);
+    TEST_CHECK(strcmp(conv, "FORMAT") == 0);
+    TEST_MSG("conversions: got '%s', expected FORMAT", conv);
 
     int stream_id = -1, udp_port = -1;
     parse_open_response(buf, &stream_id, &udp_port);
@@ -1046,10 +1048,10 @@ void test_cmd_stream_open_reports_conversions(void)
                   buf, sizeof(buf));
     TEST_CHECK(ret == 0);
 
-    val = -1;
-    TEST_CHECK(parse_ext_int(buf, "conversions", &val) == 0);
-    TEST_CHECK(val == RIG_STREAM_CONV_NONE);
-    TEST_MSG("native open conversions: got %d, expected 0", val);
+    conv[0] = 'x'; conv[1] = '\0';
+    TEST_CHECK(parse_ext_str(buf, "conversions", conv, sizeof(conv)) == 0);
+    TEST_CHECK(conv[0] == '\0');
+    TEST_MSG("native open conversions: got '%s', expected empty", conv);
 
     stream_test_end(rig);
 }
@@ -1080,9 +1082,9 @@ void test_cmd_stream_open_require_native(void)
     TEST_CHECK(ret == 0);
     TEST_MSG("native require_native open failed: '%s'", buf);
 
-    int val = -1;
-    TEST_CHECK(parse_ext_int(buf, "conversions", &val) == 0);
-    TEST_CHECK(val == RIG_STREAM_CONV_NONE);
+    char conv[64] = "x";
+    TEST_CHECK(parse_ext_str(buf, "conversions", conv, sizeof(conv)) == 0);
+    TEST_CHECK(conv[0] == '\0');
 
     stream_test_end(rig);
 }
@@ -2068,10 +2070,10 @@ void test_rx_codec_passthrough_audio(void)
     TEST_CHECK(parse_open_response(buf, &stream_id, &udp_port) == 0);
 
     /* A codec stream is native by definition. */
-    int val = -1;
-    TEST_CHECK(parse_ext_int(buf, "conversions", &val) == 0);
-    TEST_CHECK(val == RIG_STREAM_CONV_NONE);
-    TEST_MSG("codec conversions: got %d, expected 0", val);
+    char conv[64] = "x";
+    TEST_CHECK(parse_ext_str(buf, "conversions", conv, sizeof(conv)) == 0);
+    TEST_CHECK(conv[0] == '\0');
+    TEST_MSG("codec conversions: got '%s', expected empty", conv);
 
     int client_sock = create_client_udp_socket();
     TEST_CHECK(client_sock >= 0);
@@ -3890,10 +3892,10 @@ void test_cmd_stream_status_all_fields(void)
     TEST_CHECK(val == 0);
 
     /* PCM_S16 against the PCM_F32-native dummy is a converted stream. */
-    TEST_CHECK(parse_ext_int(buf, "conversions", &val) == 0);
-    TEST_CHECK(val == RIG_STREAM_CONV_FORMAT);
-    TEST_MSG("status conversions: got %d, expected %d", val,
-             RIG_STREAM_CONV_FORMAT);
+    char conv[64] = "";
+    TEST_CHECK(parse_ext_str(buf, "conversions", conv, sizeof(conv)) == 0);
+    TEST_CHECK(strcmp(conv, "FORMAT") == 0);
+    TEST_MSG("status conversions: got '%s', expected FORMAT", conv);
 
     TEST_CHECK(parse_ext_int(buf, "packet_count", &val) == 0);
     TEST_CHECK(val >= 0);
@@ -4030,10 +4032,10 @@ void test_cmd_stream_list_all_fields(void)
     TEST_CHECK(val == 0);
 
     /* PCM_S16 against the PCM_F32-native dummy is a converted stream. */
-    TEST_CHECK(parse_ext_int(buf, "conversions", &val) == 0);
-    TEST_CHECK(val == RIG_STREAM_CONV_FORMAT);
-    TEST_MSG("list conversions: got %d, expected %d", val,
-             RIG_STREAM_CONV_FORMAT);
+    char conv[64] = "";
+    TEST_CHECK(parse_ext_str(buf, "conversions", conv, sizeof(conv)) == 0);
+    TEST_CHECK(strcmp(conv, "FORMAT") == 0);
+    TEST_MSG("list conversions: got '%s', expected FORMAT", conv);
 
     snprintf(buf, sizeof(buf), "\\stream_close %d", stream_id);
     run_cmd(rig, buf, buf, sizeof(buf));

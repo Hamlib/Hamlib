@@ -947,6 +947,29 @@ static int parse_uint_field(const char *s)
     return (int)v;
 }
 
+/* Parse a comma-separated channel-count list into a 0-terminated array. */
+static void parse_chan_list(char *text, int *list)
+{
+    int ci = 0;
+    char *saveptr = NULL;
+    char *tok = strtok_r(text, ",", &saveptr);
+
+    while (tok != NULL && ci < HAMLIB_MAX_STREAM_CHANNEL_COUNTS - 1)
+    {
+        int count = parse_uint_field(tok);
+
+        if (count > 0)
+        {
+            list[ci++] = count;
+        }
+
+        tok = strtok_r(NULL, ",", &saveptr);
+    }
+
+    list[ci] = 0;   /* Sentinel */
+}
+
+
 
 int rig_stream_net_parse_caps_line(const char *line,
                                    struct rig_stream_caps *caps)
@@ -1089,37 +1112,28 @@ int rig_stream_net_parse_caps_line(const char *line,
         caps->native_sample_rates[ri] = 0;  /* Sentinel */
     }
 
-    /* Parse native_channels=MIN-MAX */
+    /* Parse native_channels= (comma-separated allowed counts) */
     val = find_kv(line, "native_channels", &vlen);
 
     if (val != NULL && vlen > 0)
     {
-        char cbuf[32];
+        char cbuf[128];
         copy_kv_value(val, vlen, cbuf, sizeof(cbuf));
-
-        sscanf(cbuf, "%d-%d", &caps->native_channels_min,
-               &caps->native_channels_max);
+        parse_chan_list(cbuf, caps->native_channels);
     }
 
-    /* Parse channels=MIN-MAX */
+    /* Parse channels= (comma-separated allowed counts) */
     val = find_kv(line, "channels", &vlen);
 
     if (val != NULL && vlen > 0)
     {
-        char cbuf[32];
+        char cbuf[128];
         copy_kv_value(val, vlen, cbuf, sizeof(cbuf));
-
-        if (sscanf(cbuf, "%d-%d", &caps->channels_min, &caps->channels_max) != 2)
-        {
-            /* Try single value */
-            int ch = parse_uint_field(cbuf);
-            caps->channels_min = (ch >= 0) ? ch : 0;
-            caps->channels_max = caps->channels_min;
-        }
+        parse_chan_list(cbuf, caps->channels);
     }
 
     /* Parse max= */
-    val = find_kv(line, "max", &vlen);
+    val = find_kv(line, "max_streams", &vlen);
 
     if (val != NULL && vlen > 0)
     {

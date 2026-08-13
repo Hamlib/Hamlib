@@ -499,7 +499,7 @@ static int has_rate(const int *rates, int rate)
 
 
 /* Verify all 4 stream types are discovered with correct format bitmasks,
- * sample rates, channel ranges, and max_streams values matching the
+ * sample rates, channel lists, and max_streams values matching the
  * dummy backend's rig_caps. */
 void test_caps_discovery_all_types(void)
 {
@@ -561,13 +561,11 @@ void test_caps_discovery_all_types(void)
         TEST_CHECK(has_rate(arx->sample_rates, 96000));
         TEST_MSG("AUDIO_RX must support 96000 Hz");
 
-        /* Channel range */
-        TEST_CHECK(arx->channels_min == 1);
-        TEST_MSG("AUDIO_RX channels_min: got %d, expected 1",
-                 arx->channels_min);
-        TEST_CHECK(arx->channels_max == 2);
-        TEST_MSG("AUDIO_RX channels_max: got %d, expected 2",
-                 arx->channels_max);
+        /* Allowed channel counts */
+        TEST_CHECK(arx->channels[0] == 1 && arx->channels[1] == 2
+                   && arx->channels[2] == 0);
+        TEST_MSG("AUDIO_RX channels: got %d,%d",
+                 arx->channels[0], arx->channels[1]);
 
         /* Max concurrent streams */
         TEST_CHECK(arx->max_streams == 4);
@@ -586,8 +584,9 @@ void test_caps_discovery_all_types(void)
         TEST_CHECK(has_rate(arx->native_sample_rates, 96000));
         TEST_CHECK(!has_rate(arx->native_sample_rates, 44100));
         TEST_MSG("44100 must not be in the native rate list");
-        TEST_CHECK(arx->native_channels_min == 1);
-        TEST_CHECK(arx->native_channels_max == 2);
+        TEST_CHECK(arx->native_channels[0] == 1
+                   && arx->native_channels[1] == 2
+                   && arx->native_channels[2] == 0);
     }
 
     /* --- AUDIO_TX --- */
@@ -610,8 +609,8 @@ void test_caps_discovery_all_types(void)
         TEST_CHECK(has_rate(atx->sample_rates, 48000));
         TEST_CHECK(has_rate(atx->sample_rates, 96000));
 
-        TEST_CHECK(atx->channels_min == 1);
-        TEST_CHECK(atx->channels_max == 2);
+        TEST_CHECK(atx->channels[0] == 1 && atx->channels[1] == 2
+                   && atx->channels[2] == 0);
         TEST_CHECK(atx->max_streams == 4);
     }
 
@@ -638,8 +637,8 @@ void test_caps_discovery_all_types(void)
         TEST_CHECK(has_rate(iqrx->sample_rates, 192000));
         TEST_MSG("IQ_RX must support 192000 Hz");
 
-        TEST_CHECK(iqrx->channels_min == 1);
-        TEST_CHECK(iqrx->channels_max == 4);
+        TEST_CHECK(iqrx->channels[0] == 1 && iqrx->channels[3] == 4
+                   && iqrx->channels[4] == 0);
         TEST_CHECK(iqrx->max_streams == 4);
     }
 
@@ -661,8 +660,8 @@ void test_caps_discovery_all_types(void)
         TEST_CHECK(has_rate(iqtx->sample_rates, 24000));
         TEST_CHECK(has_rate(iqtx->sample_rates, 192000));
 
-        TEST_CHECK(iqtx->channels_min == 1);
-        TEST_CHECK(iqtx->channels_max == 4);
+        TEST_CHECK(iqtx->channels[0] == 1 && iqtx->channels[3] == 4
+                   && iqtx->channels[4] == 0);
         TEST_CHECK(iqtx->max_streams == 4);
 
         /* Relayed native view — the dummy is IQ_CF32-native. */
@@ -670,8 +669,9 @@ void test_caps_discovery_all_types(void)
         TEST_MSG("IQ_TX native_formats: got 0x%x, expected 0x%x",
                  iqtx->native_formats, RIG_STREAM_FORMAT_IQ_CF32);
         TEST_CHECK(has_rate(iqtx->native_sample_rates, 192000));
-        TEST_CHECK(iqtx->native_channels_min == 1);
-        TEST_CHECK(iqtx->native_channels_max == 4);
+        TEST_CHECK(iqtx->native_channels[0] == 1
+                   && iqtx->native_channels[3] == 4
+                   && iqtx->native_channels[4] == 0);
     }
 
     rig_close(rig);
@@ -1487,6 +1487,16 @@ void test_rx_iq_multichannel_e2e(void)
     }
 
     rig_stream_close(rig, stream);
+
+    /* Delegated resolution is membership in the relayed effective list:
+     * a count past the advertised maximum is refused locally, without a
+     * server round-trip. */
+    rig_stream_t *bad = NULL;
+    cfg.channels = 5;
+    ret = rig_stream_open(rig, &cfg, &bad);
+    TEST_CHECK(ret == -RIG_EINVAL);
+    TEST_MSG("5-channel open: got %d, expected %d", ret, -RIG_EINVAL);
+
     rig_close(rig);
     rig_cleanup(rig);
     stop_rigctld(&proc);

@@ -66,13 +66,15 @@ struct rig_stream_caps {
     rig_stream_type_t type;                          /* Stream direction */
     rig_stream_format_t formats;                     /* Bitmask of NATIVE formats */
     int sample_rates[HAMLIB_MAX_STREAM_RATES];       /* Native rates, 0-terminated */
-    int channels_min;                                /* 1=mono */
-    int channels_max;                                /* 2=stereo */
+    int channels[HAMLIB_MAX_STREAM_CHANNEL_COUNTS]; /* Openable channel
+                                                      * counts, 0-terminated
+                                                      * ascending list
+                                                      * (1=mono, 2=stereo) */
     int max_streams;                                 /* Concurrent streams of this type */
     int caps_flags;                                  /* RIG_STREAM_CAP_* (timed TX; Section 6.1) */
     int tx_schedule_horizon_ms;                      /* Max timed-TX lead time (0 = not schedulable) */
     /* ...ABI headroom... */
-    /* native_formats / native_sample_rates / native_channels_min/max:
+    /* native_formats / native_sample_rates / native_channels:
      * leave ZERO. The frontend fills them in the derived caps it serves
      * to applications. Setting native_formats yourself declares BOTH
      * views pre-derived (only a relaying backend like netrigctl does
@@ -108,7 +110,7 @@ byte-order (LE/BE) variants. ADPCM is a device-link codec
 
 Codec stream formats (OPUS, and any future bit outside the raw PCM/I-Q
 families) are opaque packet streams: the frontend applies no conversion
-stage to them, a client request must match your declared rate and channel
+stage to them, a client request must match a declared rate and channel
 count exactly, and a codec-only caps entry is served to applications
 verbatim (no effective-set widening).
 
@@ -128,12 +130,19 @@ For I/Q formats, one "sample" is one complex pair (I + Q components).
 1. **Don't mix audio and I/Q formats** in a single caps entry. Use
    separate entries for audio and I/Q stream types.
 2. **I and Q are components of one channel, not two channels.** For a
-   single-window receiver set `channels_min = channels_max = 1`. Coherent
+   single-window receiver set `channels = { 1, 0 }`. Coherent
    multi-channel I/Q (several receivers sharing one LO/clock — e.g. diversity
    or X/Y polarization) is a *single* stream of N channel-interleaved complex
-   samples: set `channels_max` to the coherent channel count (the dummy
-   backend advertises 4). Independent, non-coherent windows use separate
-   streams.
+   samples: list every openable coherent count (the dummy backend
+   advertises `{ 1, 2, 3, 4, 0 }`). Independent, non-coherent windows use
+   separate streams.
+   The `channels` list is 0-terminated, ascending and **exact**: every
+   openable count is listed and none is implied. It need not be
+   contiguous — a radio that opens 1 or 4 coherent channels but nothing
+   in between declares `{ 1, 4, 0 }`, and exactly those two counts are
+   openable; the frontend never fills the gap. (The one frontend-added
+   convenience is audio-only: declaring either of mono/stereo makes the
+   other openable through the mono↔stereo map.)
 3. **List only what the hardware supports.** The frontend serves anything
    reachable from your native set through conversion and rejects the rest
    (`-RIG_EINVAL`); listing conversions yourself only mislabels them as
@@ -159,24 +168,21 @@ static const struct rig_stream_caps mybackend_stream_caps[] =
         .type = RIG_STREAM_TYPE_AUDIO_RX,
         .formats = RIG_STREAM_FORMAT_PCM_F32,     /* the wire format — only */
         .sample_rates = { 48000, 0 },
-        .channels_min = 1,
-        .channels_max = 2,
+        .channels = { 1, 2, 0 },
         .max_streams = 1,
     },
     {
         .type = RIG_STREAM_TYPE_AUDIO_TX,
         .formats = RIG_STREAM_FORMAT_PCM_F32,
         .sample_rates = { 48000, 0 },
-        .channels_min = 1,
-        .channels_max = 2,
+        .channels = { 1, 2, 0 },
         .max_streams = 1,
     },
     {
         .type = RIG_STREAM_TYPE_IQ_RX,
         .formats = RIG_STREAM_FORMAT_IQ_CS16,
         .sample_rates = { 48000, 96000, 192000, 0 },
-        .channels_min = 1,
-        .channels_max = 1,
+        .channels = { 1, 0 },
         .max_streams = 1,
     },
     { 0 },  /* sentinel */

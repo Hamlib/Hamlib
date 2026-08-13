@@ -154,7 +154,7 @@ int rig_stream_net_send_data(struct rig_stream_net_session *sess,
 void rig_stream_net_session_cleanup(struct rig_stream_net_session *sess);
 
 /* Parse one stream_caps response line into a rig_stream_caps struct.
- * Expected format: "type=AUDIO_RX formats=PCM_S16,PCM_F32 rates=8000,48000 channels=1-2 max=4"
+ * Expected format: "type=AUDIO_RX formats=PCM_S16,PCM_F32 rates=8000,48000 channels=1,2 max_streams=4"
  * Returns 0 on success, -1 on parse error. */
 int rig_stream_net_parse_caps_line(const char *line,
                                    struct rig_stream_caps *caps);

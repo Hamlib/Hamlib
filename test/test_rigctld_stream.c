@@ -1980,7 +1980,7 @@ void test_net_session_cleanup(void)
 void test_net_parse_caps_line_audio_rx(void)
 {
     const char *line =
-        "type=AUDIO_RX formats=PCM_S16,PCM_F32 rates=8000,48000 channels=1-2 max=4";
+        "type=AUDIO_RX formats=PCM_S16,PCM_F32 rates=8000,48000 channels=1,2 max_streams=4";
     struct rig_stream_caps caps;
     memset(&caps, 0, sizeof(caps));
 
@@ -1999,8 +1999,8 @@ void test_net_parse_caps_line_audio_rx(void)
     TEST_CHECK(caps.sample_rates[1] == 48000);
     TEST_CHECK(caps.sample_rates[2] == 0);  /* Sentinel */
 
-    TEST_CHECK(caps.channels_min == 1);
-    TEST_CHECK(caps.channels_max == 2);
+    TEST_CHECK(caps.channels[0] == 1 && caps.channels[1] == 2
+               && caps.channels[2] == 0);
     TEST_CHECK(caps.max_streams == 4);
 
     /* A caps line from an older server has no native keys: the native
@@ -2008,16 +2008,15 @@ void test_net_parse_caps_line_audio_rx(void)
      * derivation. */
     TEST_CHECK(caps.native_formats == 0);
     TEST_CHECK(caps.native_sample_rates[0] == 0);
-    TEST_CHECK(caps.native_channels_min == 0);
-    TEST_CHECK(caps.native_channels_max == 0);
+    TEST_CHECK(caps.native_channels[0] == 0);
 }
 
 void test_net_parse_caps_line_native_keys(void)
 {
     const char *line =
         "type=AUDIO_RX formats=PCM_S16,PCM_F32 rates=8000,44100,48000 "
-        "channels=1-2 max=4 native_formats=PCM_F32 native_rates=48000 "
-        "native_channels=2-2";
+        "channels=1,2 max_streams=4 native_formats=PCM_F32 native_rates=48000 "
+        "native_channels=2";
     struct rig_stream_caps caps;
     memset(&caps, 0xff, sizeof(caps));  /* Parser must fully reset it */
 
@@ -2032,22 +2031,22 @@ void test_net_parse_caps_line_native_keys(void)
     TEST_CHECK(caps.sample_rates[1] == 44100);
     TEST_CHECK(caps.sample_rates[2] == 48000);
     TEST_CHECK(caps.sample_rates[3] == 0);
-    TEST_CHECK(caps.channels_min == 1);
-    TEST_CHECK(caps.channels_max == 2);
+    TEST_CHECK(caps.channels[0] == 1 && caps.channels[1] == 2
+               && caps.channels[2] == 0);
 
     /* Native view */
     TEST_CHECK(caps.native_formats == RIG_STREAM_FORMAT_PCM_F32);
     TEST_MSG("native_formats=0x%x", (unsigned)caps.native_formats);
     TEST_CHECK(caps.native_sample_rates[0] == 48000);
     TEST_CHECK(caps.native_sample_rates[1] == 0);
-    TEST_CHECK(caps.native_channels_min == 2);
-    TEST_CHECK(caps.native_channels_max == 2);
+    TEST_CHECK(caps.native_channels[0] == 2
+               && caps.native_channels[1] == 0);
 }
 
 void test_net_parse_caps_line_iq_tx(void)
 {
     const char *line =
-        "type=IQ_TX formats=IQ_CS16 rates=192000,384000,768000 channels=2-2 max=1";
+        "type=IQ_TX formats=IQ_CS16 rates=192000,384000,768000 channels=2 max_streams=1";
     struct rig_stream_caps caps;
     memset(&caps, 0, sizeof(caps));
 
@@ -2062,15 +2061,14 @@ void test_net_parse_caps_line_iq_tx(void)
     TEST_CHECK(caps.sample_rates[2] == 768000);
     TEST_CHECK(caps.sample_rates[3] == 0);
 
-    TEST_CHECK(caps.channels_min == 2);
-    TEST_CHECK(caps.channels_max == 2);
+    TEST_CHECK(caps.channels[0] == 2 && caps.channels[1] == 0);
     TEST_CHECK(caps.max_streams == 1);
 }
 
 void test_net_parse_caps_line_missing_type(void)
 {
     const char *line =
-        "formats=PCM_S16 rates=48000 channels=1-2 max=4";
+        "formats=PCM_S16 rates=48000 channels=1,2 max_streams=4";
     struct rig_stream_caps caps;
     memset(&caps, 0, sizeof(caps));
 

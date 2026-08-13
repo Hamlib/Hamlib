@@ -6307,6 +6307,63 @@ declare_proto_rig(set_conf)
 }
 
 
+/* Render a 0-terminated channel-count list as "1,2,4"; on overflow emit
+ * what fits. */
+static void stream_chan_list_str(const int *list, char *buf, size_t bufsize)
+{
+    int pos = 0;
+
+    buf[0] = '\0';
+
+    for (int j = 0; j < HAMLIB_MAX_STREAM_CHANNEL_COUNTS && list[j] != 0;
+            j++)
+    {
+        int n = snprintf(buf + pos, bufsize - pos, "%s%d",
+                         j > 0 ? "," : "", list[j]);
+
+        if (n < 0 || (size_t)n >= bufsize - pos)
+        {
+            break;
+        }
+
+        pos += n;
+    }
+}
+
+/* Render a RIG_STREAM_CONV_* bitmask as a comma-separated list of stage
+ * names with the prefix stripped ("FORMAT,RATE,CHANNELS"); an empty
+ * string when no conversion is active (a native stream). */
+static void stream_conversions_str(int conv, char *buf, size_t bufsize)
+{
+    static const struct { int flag; const char *name; } stages[] =
+    {
+        { RIG_STREAM_CONV_FORMAT,   "FORMAT" },
+        { RIG_STREAM_CONV_RATE,     "RATE" },
+        { RIG_STREAM_CONV_CHANNELS, "CHANNELS" },
+    };
+    size_t pos = 0;
+
+    buf[0] = '\0';
+
+    for (size_t i = 0; i < sizeof(stages) / sizeof(stages[0]); i++)
+    {
+        if (!(conv & stages[i].flag))
+        {
+            continue;
+        }
+
+        int n = snprintf(buf + pos, bufsize - pos, "%s%s",
+                         pos > 0 ? "," : "", stages[i].name);
+
+        if (n < 0 || (size_t)n >= bufsize - pos)
+        {
+            break;
+        }
+
+        pos += (size_t)n;
+    }
+}
+
 /* 0xb0 — query streaming capabilities */
 declare_proto_rig(stream_caps)
 {
@@ -6359,6 +6416,8 @@ declare_proto_rig(stream_caps)
         /* Native (hardware) view alongside the effective sets. */
         char nfmtbuf[256];
         char nratebuf[256];
+        char chanbuf[128];
+        char nchanbuf[128];
         int nrpos = 0;
 
         stream_format_bitmask_str(cap->native_formats, nfmtbuf,
@@ -6380,19 +6439,21 @@ declare_proto_rig(stream_caps)
             nrpos += n;
         }
 
+        stream_chan_list_str(cap->channels, chanbuf, sizeof(chanbuf));
+        stream_chan_list_str(cap->native_channels, nchanbuf,
+                             sizeof(nchanbuf));
+
         fprintf(fout,
-                "type=%s formats=%s rates=%s channels=%d-%d max=%d "
-                "native_formats=%s native_rates=%s native_channels=%d-%d%c",
+                "type=%s formats=%s rates=%s channels=%s max_streams=%d "
+                "native_formats=%s native_rates=%s native_channels=%s%c",
                 stream_type_name(cap->type),
                 fmtbuf,
                 ratebuf,
-                cap->channels_min,
-                cap->channels_max,
+                chanbuf,
                 cap->max_streams,
                 nfmtbuf,
                 nratebuf,
-                cap->native_channels_min,
-                cap->native_channels_max,
+                nchanbuf,
                 resp_sep);
     }
 
@@ -6808,10 +6869,15 @@ declare_proto_rig(stream_open)
         fprintf(fout, "subscribe_token: %u%c",
                 stream->subscribe_token, resp_sep);
         fprintf(fout, "max_payload: %d%c", max_payload, resp_sep);
-        /* Server-side conversion stages (RIG_STREAM_CONV_*); 0 = the
+        /* Server-side conversion stages, comma-separated stage names
+         * (RIG_STREAM_CONV_* with the prefix stripped); empty = the
          * backend serves the request natively. */
-        fprintf(fout, "conversions: %d%c",
-                rig_stream_get_conversions(backend_stream), resp_sep);
+        {
+            char convbuf[64];
+            stream_conversions_str(rig_stream_get_conversions(backend_stream),
+                                   convbuf, sizeof(convbuf));
+            fprintf(fout, "conversions: %s%c", convbuf, resp_sep);
+        }
 
         if (stream->multicast)
         {
@@ -6989,6 +7055,9 @@ declare_proto_rig(stream_status)
     socklen_t s_multicast_addr_len = stream->multicast_addr_len;
     int s_multicast_ttl = stream->multicast_ttl;
     int s_conversions = rig_stream_get_conversions(stream->backend_stream);
+    char s_convbuf[64];
+
+    stream_conversions_str(s_conversions, s_convbuf, sizeof(s_convbuf));
     uint64_t s_codec_frames = stats.codec_frames;
 
     rigctld_stream_registry_unlock(&g_stream_registry);
@@ -7003,7 +7072,7 @@ declare_proto_rig(stream_status)
         fprintf(fout, "udp_port: %d%c", s_udp_port, resp_sep);
         fprintf(fout, "paused: %d%c", paused, resp_sep);
         fprintf(fout, "muted: %d%c", muted, resp_sep);
-        fprintf(fout, "conversions: %d%c", s_conversions, resp_sep);
+        fprintf(fout, "conversions: %s%c", s_convbuf, resp_sep);
         fprintf(fout, "codec_frames: %llu%c",
                 (unsigned long long)s_codec_frames, resp_sep);
         fprintf(fout, "packet_count: %d%c", s_packet_count, resp_sep);
@@ -7046,7 +7115,7 @@ declare_proto_rig(stream_status)
     else
     {
         fprintf(fout,
-                "%s%c%d%c%u%c%s%c%d%c%d%c%d%c%d%c%d%c%u%c%u%c%u%c%u%c%u%c%u%c%u%c%llu%c%llu%c%llu%c%d%c%llu%c",
+                "%s%c%d%c%u%c%s%c%d%c%d%c%d%c%d%c%d%c%u%c%u%c%u%c%u%c%u%c%u%c%u%c%llu%c%llu%c%llu%c%s%c%llu%c",
                 stream_type_name(s_type), resp_sep,
                 s_stream_id, resp_sep,
                 s_sample_rate, resp_sep,
@@ -7066,7 +7135,7 @@ declare_proto_rig(stream_status)
                 (unsigned long long)stats.dropped_samples_gap, resp_sep,
                 (unsigned long long)stats.dropped_samples_overrun, resp_sep,
                 (unsigned long long)stats.dropped_samples_link, resp_sep,
-                s_conversions, resp_sep,
+                s_convbuf, resp_sep,
                 (unsigned long long)s_codec_frames, resp_sep);
     }
 
@@ -7328,14 +7397,22 @@ declare_proto_rig(stream_list)
                     entries[i].muted, resp_sep);
             fprintf(fout, "owner: %d%c",
                     entries[i].owner, resp_sep);
-            fprintf(fout, "conversions: %d%c",
-                    entries[i].conversions, resp_sep);
+            {
+                char convbuf[64];
+                stream_conversions_str(entries[i].conversions,
+                                       convbuf, sizeof(convbuf));
+                fprintf(fout, "conversions: %s%c", convbuf, resp_sep);
+            }
             fprintf(fout, "codec_frames: %llu%c",
                     (unsigned long long)entries[i].codec_frames, resp_sep);
         }
         else
         {
-            fprintf(fout, "%d%c%u%c%s%c%s%c%u%c%d%c%d%c%d%c%d%c%d%c%d%c%llu%c",
+            char convbuf[64];
+
+            stream_conversions_str(entries[i].conversions,
+                                   convbuf, sizeof(convbuf));
+            fprintf(fout, "%d%c%u%c%s%c%s%c%u%c%d%c%d%c%d%c%d%c%d%c%s%c%llu%c",
                     entries[i].stream_id, resp_sep,
                     entries[i].source_id, resp_sep,
                     stream_type_name(entries[i].type), resp_sep,
@@ -7346,7 +7423,7 @@ declare_proto_rig(stream_list)
                     entries[i].paused, resp_sep,
                     entries[i].muted, resp_sep,
                     entries[i].owner, resp_sep,
-                    entries[i].conversions, resp_sep,
+                    convbuf, resp_sep,
                     (unsigned long long)entries[i].codec_frames, resp_sep);
         }
     }

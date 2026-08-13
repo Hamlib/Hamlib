@@ -263,8 +263,8 @@ void test_caps_audio_all_formats(void)
     TEST_CHECK(audio_rx->formats & RIG_STREAM_FORMAT_PCM_F32);
 
     /* Mono and stereo */
-    TEST_CHECK(audio_rx->channels_min == 1);
-    TEST_CHECK(audio_rx->channels_max == 2);
+    TEST_CHECK(audio_rx->channels[0] == 1 && audio_rx->channels[1] == 2
+               && audio_rx->channels[2] == 0);
 
     /* Sample rates include 8000 and 48000 */
     int has_8k = 0, has_48k = 0;
@@ -314,8 +314,8 @@ void test_caps_iq_all_formats(void)
 
     /* I/Q supports 1..4 coherent channels (interleaved); I+Q are the two
      * components of one channel, not separate channels. */
-    TEST_CHECK(iq_rx->channels_min == 1);
-    TEST_CHECK(iq_rx->channels_max == 4);
+    TEST_CHECK(iq_rx->channels[0] == 1 && iq_rx->channels[3] == 4
+               && iq_rx->channels[4] == 0);
 
     /* Sample rates include 48000 and 192000 */
     int has_48k = 0, has_192k = 0;

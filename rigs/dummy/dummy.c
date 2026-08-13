@@ -2563,8 +2563,7 @@ static const struct rig_stream_caps dummy_stream_caps[] =
          * ever touches them. */
         .formats = RIG_STREAM_FORMAT_PCM_F32 | RIG_STREAM_FORMAT_OPUS,
         .sample_rates = { 8000, 16000, 24000, 48000, 96000, 0 },
-        .channels_min = 1,
-        .channels_max = 2,
+        .channels = { 1, 2, 0 },
         .max_streams = DUMMY_MAX_STREAMS_PER_TYPE,
     },
     {
@@ -2572,8 +2571,7 @@ static const struct rig_stream_caps dummy_stream_caps[] =
         /* OPUS: fabricated test codec, symmetric with AUDIO_RX. */
         .formats = RIG_STREAM_FORMAT_PCM_F32 | RIG_STREAM_FORMAT_OPUS,
         .sample_rates = { 8000, 16000, 24000, 48000, 96000, 0 },
-        .channels_min = 1,
-        .channels_max = 2,
+        .channels = { 1, 2, 0 },
         .max_streams = DUMMY_MAX_STREAMS_PER_TYPE,
         .caps_flags = RIG_STREAM_CAP_TIMED_TX_COARSE
                     | RIG_STREAM_CAP_TIMED_TX_SAMPLE
@@ -2584,16 +2582,14 @@ static const struct rig_stream_caps dummy_stream_caps[] =
         .type = RIG_STREAM_TYPE_IQ_RX,
         .formats = RIG_STREAM_FORMAT_IQ_CF32,
         .sample_rates = { 24000, 48000, 96000, 192000, 0 },
-        .channels_min = 1,
-        .channels_max = 4,  /* coherent multi-channel I/Q (interleaved) */
+        .channels = { 1, 2, 3, 4, 0 },  /* coherent multi-channel I/Q */
         .max_streams = DUMMY_MAX_STREAMS_PER_TYPE,
     },
     {
         .type = RIG_STREAM_TYPE_IQ_TX,
         .formats = RIG_STREAM_FORMAT_IQ_CF32,
         .sample_rates = { 24000, 48000, 96000, 192000, 0 },
-        .channels_min = 1,
-        .channels_max = 4,  /* coherent multi-channel I/Q (interleaved) */
+        .channels = { 1, 2, 3, 4, 0 },  /* coherent multi-channel I/Q */
         .max_streams = DUMMY_MAX_STREAMS_PER_TYPE,
         .caps_flags = RIG_STREAM_CAP_TIMED_TX_COARSE
                     | RIG_STREAM_CAP_TIMED_TX_SAMPLE

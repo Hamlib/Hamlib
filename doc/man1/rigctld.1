@@ -1856,6 +1856,16 @@ and
 .I conversions
 under
 .BR stream_open ).
+.IP
+Each key uses one of three value syntaxes, always the same one:
+.IR formats " and " native_formats
+are comma-separated symbolic name lists;
+.IR rates ", " channels ", " native_rates " and " native_channels
+are comma-separated ascending decimal integer lists (ranges are not part
+of the grammar \(em a contiguous set is spelled out, e.g.
+\(aqchannels=1,2,3,4\(aq); and
+.I max_streams
+(the concurrent-stream limit for the type) is a single integer.
 .
 .TP
 .BR stream_open " \(aq" \fIType\fP "\(aq \(aq" \fIFormat\fP "\(aq \(aq" \fIRate\fP "\(aq [\fIkey=value\fP ...]"
@@ -1900,8 +1910,8 @@ The response reports
 .IR subscribe_token ,
 .IR max_payload ,
 .I conversions
-(the active server-side conversion-stage bitmask: 1 = sample format,
-2 = sample rate, 4 = channel count; 0 = native stream),
+(the active server-side conversion stages as a comma-separated name
+list \(em FORMAT, RATE and/or CHANNELS \(em empty for a native stream),
 and, for multicast streams,
 .IR multicast .
 Codec formats (e.g. OPUS) open native-only \(em no conversion stage ever
@@ -1923,7 +1933,7 @@ Close a stream and release its UDP socket.
 Get per-stream state and counters: packet counts, per-cause sample losses,
 overruns, underruns, late timed transmissions, the active
 .I conversions
-bitmask (see
+stage-name list (see
 .BR stream_open ),
 the
 .I codec_frames
@@ -1962,7 +1972,7 @@ List all active streams:
 type, format, sample rate, channels, UDP port, paused/muted state,
 ownership, the active
 .I conversions
-bitmask (see
+stage-name list (see
 .BR stream_open ),
 and the
 .I codec_frames
