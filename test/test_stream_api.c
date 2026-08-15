@@ -2193,6 +2193,25 @@ void test_close_waits_for_inflight_call(void)
 /* The struct_size field is the ABI forward-compatibility gate: rig_stream_open
  * rejects a zero struct_size and copies min(struct_size, sizeof) over a zeroed
  * target, so an older/smaller or newer/larger caller struct stays safe. */
+/* Layout contract for the publicly indexable caps struct: exact-width
+ * fields, no hidden padding anywhere, the 64-bit flags word 8-aligned by
+ * construction, reserve tail-only. sizeof is FROZEN for the ABI major
+ * (rig_caps.stream_caps is legally indexed by applications), so a
+ * failure here is an ABI event, not a test to update. */
+void test_caps_struct_layout(void)
+{
+    TEST_CHECK(offsetof(struct rig_stream_caps, sample_rates) == 8);
+    TEST_CHECK(offsetof(struct rig_stream_caps, channels) == 136);
+    TEST_CHECK(offsetof(struct rig_stream_caps, max_streams) == 200);
+    TEST_CHECK(offsetof(struct rig_stream_caps, caps_flags) == 208);
+    TEST_CHECK(offsetof(struct rig_stream_caps, native_formats) == 216);
+    TEST_CHECK(offsetof(struct rig_stream_caps, native_channels) == 348);
+    TEST_CHECK(offsetof(struct rig_stream_caps, _reserved32) == 412);
+    TEST_CHECK(offsetof(struct rig_stream_caps, _reserved) == 416);
+    TEST_CHECK(sizeof(struct rig_stream_caps) == 448);
+    TEST_MSG("sizeof = %zu", sizeof(struct rig_stream_caps));
+}
+
 void test_struct_size_gate(void)
 {
     RIG *rig = setup_rig(&stub_caps_with_stream);
@@ -2249,6 +2268,118 @@ void test_struct_size_gate(void)
 }
 
 
+/* A transport that negotiates one geometry for a whole connection cannot say
+ * so through rig_caps: that is per model and shared by every rig using it.
+ * stream_set_session_caps() publishes the session's truth per rig, and the
+ * model declaration must come through it byte for byte -- it is what
+ * dump_caps reports, and writing it would corrupt every other rig of the
+ * model for the life of the process. */
+void test_session_caps_narrow_only_the_served_view(void)
+{
+    struct rig_stream_caps declaration[3];
+    struct rig_stream_caps session[1];
+    const struct rig_stream_caps *served;
+    RIG *rig = setup_rig(&stub_caps_with_stream);
+
+    TEST_ASSERT(rig != NULL);
+
+    /* Snapshot the model declaration to prove nothing writes to it. */
+    memcpy(declaration, stub_stream_caps, sizeof(declaration));
+
+    /* The model offers 8000 and 48000, mono and stereo, audio and I/Q. This
+     * session carries one geometry, and no I/Q at all. */
+    memset(session, 0, sizeof(session));
+    session[0].type = RIG_STREAM_TYPE_AUDIO_RX;
+    session[0].formats = RIG_STREAM_FORMAT_PCM_S16;
+    session[0].sample_rates[0] = 48000;
+    session[0].channels[0] = 1;
+    session[0].max_streams = 1;
+
+    TEST_CHECK(stream_set_session_caps(rig, session, 1) == RIG_OK);
+
+    /* Served view is the session alone: the I/Q entry the session cannot
+     * carry is gone, not merely narrowed. */
+    TEST_CHECK(rig_stream_caps_count(rig) == 1);
+    TEST_MSG("served %d entries, expected 1", rig_stream_caps_count(rig));
+    served = rig_stream_caps_at(rig, 0);
+    TEST_ASSERT(served != NULL);
+    TEST_CHECK(served->type == RIG_STREAM_TYPE_AUDIO_RX);
+
+    /* Native is the session's hardware truth. */
+    TEST_CHECK(served->native_sample_rates[0] == 48000);
+    TEST_CHECK(served->native_sample_rates[1] == 0);
+    TEST_CHECK(served->native_channels[0] == 1);
+    TEST_CHECK(served->native_channels[1] == 0);
+
+    /* Effective widens over the session truth exactly as it would over a
+     * model declaration -- mono audio upmixes to stereo, and with the
+     * resampler built in the rate list grows around the session's native
+     * rate (bounded by it). The model's 8000 stays reachable only as a
+     * conversion of the session's 48000, never as native; without the
+     * resampler the effective rates are the session rates alone. */
+    TEST_CHECK(served->channels[0] == 1 && served->channels[1] == 2);
+    TEST_CHECK(rate_in_list(served->sample_rates, 48000));
+#ifdef HAVE_SAMPLERATE
+    TEST_CHECK(rate_in_list(served->sample_rates, 8000));
+#else
+    TEST_CHECK(served->sample_rates[0] == 48000);
+    TEST_CHECK(served->sample_rates[1] == 0);
+    TEST_MSG("served rate[1]=%d, expected none", served->sample_rates[1]);
+#endif
+
+    /* Session caps gate the OPEN path too, not just discovery: the
+     * session's own geometry opens, and the model-declared I/Q type the
+     * session removed is refused — rig_stream_open resolves against the
+     * same source the served view derives from. */
+    {
+        struct rig_stream_config *cfg = rig_stream_config_alloc();
+        rig_stream_t *stream = NULL;
+
+        TEST_ASSERT(cfg != NULL);
+        cfg->type = RIG_STREAM_TYPE_AUDIO_RX;
+        cfg->format = RIG_STREAM_FORMAT_PCM_S16;
+        cfg->sample_rate = 48000;
+        cfg->channels = 1;
+
+        int ret = rig_stream_open(rig, cfg, &stream);
+        TEST_CHECK(ret == RIG_OK);
+        TEST_MSG("session-native open returned %d", ret);
+
+        if (ret == RIG_OK)
+        {
+            rig_stream_close(rig, stream);
+        }
+
+        cfg->type = RIG_STREAM_TYPE_IQ_RX;
+        cfg->format = RIG_STREAM_FORMAT_IQ_CS16;
+        cfg->sample_rate = 48000;
+        stream = NULL;
+        ret = rig_stream_open(rig, cfg, &stream);
+        TEST_CHECK(ret != RIG_OK);
+        TEST_MSG("session-removed I/Q open: got %d, expected failure", ret);
+        rig_stream_config_free(cfg);
+    }
+
+    /* The model declaration came through untouched, array and pointer. */
+    TEST_CHECK(memcmp(declaration, stub_stream_caps, sizeof(declaration)) == 0);
+    TEST_CHECK(rig->caps->stream_caps == stub_stream_caps);
+
+    /* Clearing restores the model view. */
+    TEST_CHECK(stream_set_session_caps(rig, NULL, 0) == RIG_OK);
+    TEST_CHECK(rig_stream_caps_count(rig) == 2);
+    served = rig_stream_caps_at(rig, 0);
+    TEST_ASSERT(served != NULL);
+    TEST_CHECK(served->native_sample_rates[0] == 8000);
+
+    /* Publish once more and leave it published, so teardown has an allocation
+     * to release rather than a NULL. */
+    TEST_CHECK(stream_set_session_caps(rig, session, 1) == RIG_OK);
+    TEST_CHECK(rig_stream_caps_count(rig) == 1);
+
+    teardown_rig(rig);
+}
+
+
 TEST_LIST =
 {
     { "get_stream_caps_none",     test_get_stream_caps_none },
@@ -2292,11 +2423,14 @@ TEST_LIST =
     { "close_wakes_blocked_reader", test_close_wakes_blocked_reader },
     { "close_waits_for_inflight_call", test_close_waits_for_inflight_call },
     { "read_block_forever_until_close", test_read_block_forever_until_close },
+    { "caps_struct_layout",       test_caps_struct_layout },
     { "struct_size_gate",         test_struct_size_gate },
     /* Metadata */
     { "get_latest_metadata",      test_get_latest_metadata },
     { "write_metadata",           test_write_metadata },
     { "stream_metadata_changed",         test_metadata_changed },
     { "metadata_field_mask",      test_metadata_field_mask },
+    /* Session caps */
+    { "session_caps_narrow_only_the_served_view", test_session_caps_narrow_only_the_served_view },
     { NULL, NULL }
 };

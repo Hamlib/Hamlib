@@ -125,7 +125,7 @@ struct rig_stream
                                      * the ring (protected by ringbuf.lock) */
     int max_payload;                /* Effective frame-aligned sender payload
                                      * budget (bytes), from config.mtu */
-    int caps_flags;                 /* RIG_STREAM_CAP_* from the caps entry */
+    uint64_t caps_flags;            /* RIG_STREAM_CAP_* from the caps entry */
     int tx_horizon_ms;              /* Max timed-TX lead time (0 = none) */
     uint64_t skipped_samples;       /* Index holes inserted by skip/mark_gap */
     uint64_t next_expected;         /* Consumer position for drop detection */
@@ -194,6 +194,12 @@ struct rig_stream_state
      * open). derived_src remembers the source array of the current build. */
     struct rig_stream_caps derived_caps[HAMLIB_MAX_STREAM_CAPS];
     const struct rig_stream_caps *derived_src;
+
+    /* Session caps published by the backend (see stream_set_session_caps),
+     * used as the derivation input in place of the model declaration.
+     * Allocated on first use and owned here; NULL means derive from
+     * rig->caps->stream_caps. */
+    struct rig_stream_caps *session_caps;
 };
 
 
@@ -202,6 +208,20 @@ int rig_stream_state_init(struct rig_stream_state **state);
 
 /* Free stream state and close any open streams. */
 void rig_stream_state_cleanup(struct rig_stream_state *state);
+
+/* Publish the capabilities this session can actually serve, replacing the
+ * model declaration as the input rig_stream_caps_at() derives from. A backend
+ * whose transport negotiates one geometry per connection -- one codec, one
+ * rate, one channel count for as long as the rig is open -- calls this from
+ * rig_open once the negotiation is known, so an application can discover what
+ * it may open before it opens anything.
+ *
+ * rig->caps is shared by every rig of the model and is what dump_caps reports;
+ * a backend must never write to it. Entries are copied here, so the caller may
+ * build them on the stack. Passing NULL (or count 0) restores the model
+ * declaration. Returns RIG_OK, or -RIG_EINVAL/-RIG_ENOMEM. */
+int stream_set_session_caps(RIG *rig, const struct rig_stream_caps *caps,
+                            int count);
 
 /* Backend-facing producer write: applies the stream's conversion pipeline
  * (native -> requested, when one is active) and writes into the ring

@@ -1714,8 +1714,12 @@ int HAMLIB_API rig_open(RIG *rig)
 
     rs->comm_status = RIG_COMM_STATUS_OK;
 
-    /* Initialize streaming subsystem state */
-    if (rig_stream_state_init((struct rig_stream_state **)&rs->stream_state) != 0)
+    /* Initialize streaming subsystem state — unless the backend already
+     * created it from its rig_open hook by publishing session caps
+     * (stream_set_session_caps creates the state on first use). */
+    if (rs->stream_state == NULL
+            && rig_stream_state_init((struct rig_stream_state **)&rs->stream_state)
+            != 0)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: stream state init failed\n", __func__);
         /* Non-fatal — streaming just won't be available */

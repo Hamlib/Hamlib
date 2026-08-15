@@ -118,21 +118,25 @@ extern int is_rigctld;
 #define EXPECTED_AUDIO_RX_LINE \
     "type=AUDIO_RX formats=PCM_S8,PCM_U8,PCM_S16,PCM_F32,OPUS " \
     "rates=" EXPECTED_AUDIO_RATES " channels=1,2 max_streams=4 " \
+    "flags= tx_horizon_ms=0 " \
     "native_formats=PCM_F32,OPUS " \
     "native_rates=" EXPECTED_AUDIO_NATIVE_RATES " native_channels=1,2"
 #define EXPECTED_AUDIO_TX_LINE \
     "type=AUDIO_TX formats=PCM_S8,PCM_U8,PCM_S16,PCM_F32,OPUS " \
     "rates=" EXPECTED_AUDIO_RATES " channels=1,2 max_streams=4 " \
+    "flags=TIMED_TX_COARSE,TIMED_TX_SAMPLE,BURST_PTT tx_horizon_ms=30000 " \
     "native_formats=PCM_F32,OPUS " \
     "native_rates=" EXPECTED_AUDIO_NATIVE_RATES " native_channels=1,2"
 #define EXPECTED_IQ_RX_LINE \
     "type=IQ_RX formats=IQ_CS8,IQ_CU8,IQ_CS16,IQ_CF32 " \
     "rates=" EXPECTED_IQ_RATES " channels=1,2,3,4 max_streams=4 " \
+    "flags= tx_horizon_ms=0 " \
     "native_formats=IQ_CF32 " \
     "native_rates=" EXPECTED_IQ_NATIVE_RATES " native_channels=1,2,3,4"
 #define EXPECTED_IQ_TX_LINE \
     "type=IQ_TX formats=IQ_CS8,IQ_CU8,IQ_CS16,IQ_CF32 " \
     "rates=" EXPECTED_IQ_RATES " channels=1,2,3,4 max_streams=4 " \
+    "flags=TIMED_TX_COARSE,TIMED_TX_SAMPLE,BURST_PTT tx_horizon_ms=30000 " \
     "native_formats=IQ_CF32 " \
     "native_rates=" EXPECTED_IQ_NATIVE_RATES " native_channels=1,2,3,4"
 
@@ -640,6 +644,51 @@ static int send_ping_pkt(int client_sock, int server_port,
 
 
 /* --- stream_caps tests --- */
+
+/* \\dump_caps: the streaming section reflects the dummy's declarations
+ * (verbose block), "Has data streaming support:" reports the strict AND of
+ * caps + required hooks, and a correct backend dumps with zero
+ * streaming warnings. Pins the format and keeps dummy.c honest. */
+void test_cmd_dump_caps_streaming(void)
+{
+    static char buf[65536];
+    RIG *rig = stream_test_begin();
+    TEST_CHECK(rig != NULL);
+
+    int ret = run_cmd(rig, "\\dump_caps", buf, sizeof(buf));
+    TEST_CHECK(ret == 0);
+
+    TEST_CHECK(strstr(buf, "Has data streaming support: Y") != NULL);
+    TEST_MSG("no 'Has data streaming support: Y' in dump");
+
+    TEST_CHECK(strstr(buf, "Data streaming capabilities:") != NULL);
+
+    /* Declaration-form entries: the same key=value grammar as
+     * \stream_caps, without the native_* keys (a model declaration has
+     * no derived view). One full line per stream type. */
+    TEST_CHECK(strstr(buf,
+                      "\ttype=AUDIO_RX formats=PCM_F32,OPUS "
+                      "rates=8000,16000,24000,48000,96000 channels=1,2 "
+                      "max_streams=4 flags= tx_horizon_ms=0\n") != NULL);
+    TEST_CHECK(strstr(buf,
+                      "\ttype=AUDIO_TX formats=PCM_F32,OPUS "
+                      "rates=8000,16000,24000,48000,96000 channels=1,2 "
+                      "max_streams=4 flags=TIMED_TX_COARSE,TIMED_TX_SAMPLE,"
+                      "BURST_PTT tx_horizon_ms=30000\n") != NULL);
+    TEST_CHECK(strstr(buf,
+                      "\ttype=IQ_RX formats=IQ_CF32 "
+                      "rates=24000,48000,96000,192000 channels=1,2,3,4 "
+                      "max_streams=4 flags= tx_horizon_ms=0\n") != NULL);
+    TEST_CHECK(strstr(buf, "native_formats=") == NULL);
+    TEST_MSG("declaration form must not carry native_* keys");
+
+    /* A correctly declared backend must not trip the sanity checks. */
+    TEST_CHECK(strstr(buf, "Warning--stream") == NULL);
+    TEST_MSG("unexpected streaming warning in dump");
+
+    stream_test_end(rig);
+}
+
 
 void test_cmd_stream_caps_line_count(void)
 {
@@ -5928,6 +5977,7 @@ void test_rx_ping_before_subscribe(void)
 
 TEST_LIST =
 {
+    { "cmd_dump_caps_streaming",  test_cmd_dump_caps_streaming },
     /* stream_caps — exact output verification */
     { "cmd_stream_caps_line_count",         test_cmd_stream_caps_line_count },
     { "cmd_stream_caps_audio_rx_complete",  test_cmd_stream_caps_audio_rx_complete },

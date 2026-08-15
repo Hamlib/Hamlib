@@ -32,6 +32,7 @@
  * the right set for the host; do not include them directly. */
 #include "../tests/rigctld_stream.h"
 #include "stream_net.h"
+#include "stream_proto.h"
 #include "stream_convert.h"
 #include "kvparse.h"
 #include <string.h>
@@ -2065,6 +2066,82 @@ void test_net_parse_caps_line_iq_tx(void)
     TEST_CHECK(caps.max_streams == 1);
 }
 
+/* The canonical line format and the wire parser are the two halves of
+ * ONE rendering: everything the formatter emits must come back through
+ * the parser field-exact, for every field the struct carries — flags
+ * and TX horizon included, and both with and without the native view. */
+void test_caps_line_roundtrip(void)
+{
+    struct rig_stream_caps in;
+    struct rig_stream_caps out;
+    char line[1024];
+
+    /* Declaration form: non-contiguous channels, flags, horizon. */
+    memset(&in, 0, sizeof(in));
+    in.type = RIG_STREAM_TYPE_AUDIO_TX;
+    in.formats = RIG_STREAM_FORMAT_PCM_F32 | RIG_STREAM_FORMAT_OPUS;
+    in.sample_rates[0] = 24000;
+    in.sample_rates[1] = 48000;
+    in.channels[0] = 1;
+    in.channels[1] = 4;
+    in.max_streams = 2;
+    in.caps_flags = RIG_STREAM_CAP_TIMED_TX_COARSE
+                    | RIG_STREAM_CAP_BURST_PTT;
+    in.tx_schedule_horizon_ms = 15000;
+
+    TEST_CHECK(stream_caps_format_line(&in, 0, line, sizeof(line)) > 0);
+    TEST_MSG("line: '%s'", line);
+
+    memset(&out, 0, sizeof(out));
+    TEST_CHECK(rig_stream_net_parse_caps_line(line, &out) == 0);
+    TEST_CHECK(out.type == in.type);
+    TEST_CHECK(out.formats == in.formats);
+    TEST_CHECK(memcmp(out.sample_rates, in.sample_rates,
+                      sizeof(in.sample_rates)) == 0);
+    TEST_CHECK(memcmp(out.channels, in.channels, sizeof(in.channels)) == 0);
+    TEST_CHECK(out.max_streams == in.max_streams);
+    TEST_CHECK(out.caps_flags == in.caps_flags);
+    TEST_MSG("flags: got 0x%x, expected 0x%x", out.caps_flags,
+             in.caps_flags);
+    TEST_CHECK(out.tx_schedule_horizon_ms == in.tx_schedule_horizon_ms);
+
+    /* Served form: native view appended; empty flags stay empty. */
+    in.caps_flags = 0;
+    in.tx_schedule_horizon_ms = 0;
+    in.native_formats = RIG_STREAM_FORMAT_PCM_F32;
+    in.native_sample_rates[0] = 48000;
+    in.native_channels[0] = 1;
+    in.native_channels[1] = 2;
+
+    TEST_CHECK(stream_caps_format_line(&in, 1, line, sizeof(line)) > 0);
+    TEST_MSG("line: '%s'", line);
+
+    memset(&out, 0, sizeof(out));
+    TEST_CHECK(rig_stream_net_parse_caps_line(line, &out) == 0);
+    TEST_CHECK(out.caps_flags == 0);
+    TEST_CHECK(out.tx_schedule_horizon_ms == 0);
+    TEST_CHECK(out.native_formats == in.native_formats);
+    TEST_CHECK(memcmp(out.native_sample_rates, in.native_sample_rates,
+                      sizeof(in.native_sample_rates)) == 0);
+    TEST_CHECK(memcmp(out.native_channels, in.native_channels,
+                      sizeof(in.native_channels)) == 0);
+}
+
+/* Unknown flag names on the wire are skipped, known ones kept — a
+ * future server may add stages without breaking this client. */
+void test_caps_line_unknown_flag_skipped(void)
+{
+    const char *line =
+        "type=AUDIO_RX formats=PCM_S16 rates=48000 channels=1 "
+        "max_streams=1 flags=SHINY_FUTURE_FLAG,BURST_PTT tx_horizon_ms=0";
+    struct rig_stream_caps caps;
+    memset(&caps, 0, sizeof(caps));
+
+    TEST_CHECK(rig_stream_net_parse_caps_line(line, &caps) == 0);
+    TEST_CHECK(caps.caps_flags == RIG_STREAM_CAP_BURST_PTT);
+    TEST_MSG("caps_flags = 0x%x, expected BURST_PTT only", caps.caps_flags);
+}
+
 void test_net_parse_caps_line_missing_type(void)
 {
     const char *line =
@@ -2682,6 +2759,8 @@ TEST_LIST =
     /* stream_caps line parser */
     { "net_parse_caps_line_audio_rx",  test_net_parse_caps_line_audio_rx },
     { "net_parse_caps_line_iq_tx",     test_net_parse_caps_line_iq_tx },
+    { "caps_line_roundtrip",           test_caps_line_roundtrip },
+    { "caps_line_unknown_flag_skipped", test_caps_line_unknown_flag_skipped },
     { "net_parse_caps_line_native_keys", test_net_parse_caps_line_native_keys },
     { "net_parse_caps_line_missing_type", test_net_parse_caps_line_missing_type },
 

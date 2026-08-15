@@ -239,27 +239,34 @@ array in its `rig_caps`. One entry per stream type it supports:
 ```c
 struct rig_stream_caps {
     rig_stream_type_t   type;
-    rig_stream_format_t formats;                  /* OR-ed openable formats */
-    int                 sample_rates[HAMLIB_MAX_STREAM_RATES]; /* 0-terminated */
-    int                 channels[HAMLIB_MAX_STREAM_CHANNEL_COUNTS];
+    rig_stream_format_t formats;                  /* OR-ed openable formats
+                                                   * (a uint32_t typedef) */
+    int32_t             sample_rates[HAMLIB_MAX_STREAM_RATES]; /* 0-terminated */
+    int32_t             channels[HAMLIB_MAX_STREAM_CHANNEL_COUNTS];
                                                   /* openable channel counts,
                                                    * 0-terminated ascending
                                                    * list (1=mono, 2=stereo) */
-    int                 max_streams;              /* concurrent of this type */
-    int                 caps_flags;               /* RIG_STREAM_CAP_* */
-    int                 tx_schedule_horizon_ms;   /* Max timed-TX lead time
+    int32_t             max_streams;              /* concurrent of this type */
+    int32_t             tx_schedule_horizon_ms;   /* Max timed-TX lead time
                                                    * (0 = not schedulable) */
-    /* ... ABI headroom ... */
+    uint64_t            caps_flags;               /* RIG_STREAM_CAP_*, one
+                                                   * 64-bit namespace, at an
+                                                   * 8-aligned offset */
 
     /* Hardware-native view (see below) */
     rig_stream_format_t native_formats;
-    int                 native_sample_rates[HAMLIB_MAX_STREAM_RATES];
-    int                 native_channels[HAMLIB_MAX_STREAM_CHANNEL_COUNTS];
+    int32_t             native_sample_rates[HAMLIB_MAX_STREAM_RATES];
+    int32_t             native_channels[HAMLIB_MAX_STREAM_CHANNEL_COUNTS];
+
+    uint32_t            _reserved32[1];           /* ABI headroom (tail-only;
+                                                   * see the layout note) */
+    uint64_t            _reserved[4];
 };
 
-/* caps_flags bits */
-#define RIG_STREAM_CAP_TIMED_TX_COARSE  (1<<0)  /* start-at-T play-out gating */
-#define RIG_STREAM_CAP_TIMED_TX_SAMPLE  (1<<1)  /* sample-accurate hw scheduling */
+/* caps_flags bits (a single 64-bit namespace; the wire carries names,
+ * so future flags extend the flags= list without a new key) */
+#define RIG_STREAM_CAP_TIMED_TX_COARSE  (1ULL<<0)  /* start-at-T play-out gating */
+#define RIG_STREAM_CAP_TIMED_TX_SAMPLE  (1ULL<<1)  /* sample-accurate hw scheduling */
 #define RIG_STREAM_CAP_BURST_PTT        (1<<2)  /* SOB/EOB auto-keys PTT */
 #define RIG_STREAM_CAP_HW_TIME          (1<<3)  /* get_hardware_time meaningful */
 ```
@@ -308,6 +315,24 @@ Limits: `HAMLIB_MAX_STREAM_RATES = 32`,
   openable through the frontend's upmix/downmix. I/Q channels are
   coherent captures and never widen; a backend that can open a subset of
   its hardware channels declares each openable count explicitly.
+
+**Session-scoped capabilities.** Some transports negotiate one stream
+geometry for a whole connection — a single codec, rate and channel
+count, fixed between `rig_open()` and `rig_close()` — so what *this
+connection* can carry is a subset of what the *radio model* can do. A
+backend publishes that subset from its `rig_open` hook through the
+backend-internal `stream_set_session_caps()` (see the backend guide);
+entries are copied, and publishing `NULL` restores the model
+declaration. The mechanism is transparent to applications: both
+discovery (`rig_stream_caps_count()` / `rig_stream_caps_at()`, and
+rigctld's `\stream_caps`) and acceptance at `rig_stream_open()` follow
+the session publication — the served view and the open-time resolution
+derive from the same source, so they cannot disagree. The model
+declaration in `rig_caps` is never modified (it is shared by every rig
+of the model and is what `dump_caps` reports); the runtime state dump
+(`--dump-caps` on a netrigctl rig) shows the session view. netrigctl
+itself publishes the remote server's advertisement as session caps —
+its whole streaming capability is per-connection.
 
 **The libsamplerate dependency boundary.** Only sample-**rate** conversion
 (resampling) depends on libsamplerate, which is optional at build time
@@ -577,12 +602,16 @@ field first fills any padding hole in the existing layout (e.g.
 then carves whole slots from the **front** of the reserved array —
 shrinking the array, never splitting it into multiple reserved fields.
 `rig_stream_caps` (library-owned) additionally appends array-sized fields
-at the **end** of the struct (the `native_*` view is the precedent) and
-keeps its `int _reserved[6]` for future scalars; `rig_stream_config`
-needs no reserved tail at all — the allocator plus `struct_size` make
-plain appending safe. Flag words have their own reserves
-(`caps_flags2`, metadata `field_mask` bits ≥ `1<<4`, time-flag bits 5–7)
-and the wire protocol's extension seams are listed in §6.2.1.
+with a tail-only reserve (`uint32_t _reserved32[1]` +
+`uint64_t _reserved[4]`): fields are never appended after it, because
+`rig_caps.stream_caps` is a publicly indexable array and its element
+`sizeof` is therefore frozen for the ABI major — future scalars carve
+reserve slots instead (32-bit from `_reserved32`, 64-bit from
+`_reserved`). `rig_stream_config` needs no reserved tail at all — the
+allocator plus `struct_size` make plain appending safe. Flag headroom
+lives inside the fields themselves (`caps_flags` is a 64-bit namespace
+with 60 free bits, metadata `field_mask` bits ≥ `1<<4`, time-flag bits
+5–7) and the wire protocol's extension seams are listed in §6.2.1.
 
 ### Health counters
 
@@ -841,23 +870,40 @@ The client uses `udp_port` and `subscribe_token` to drive the UDP session
 `max_payload` to size its own TX packetization to the negotiated path.
 
 `\stream_caps` emits one line per capability entry with both views —
-effective sets first, then the hardware-native view:
+effective sets first, then the hardware-native view. The entries answer
+for the **current session**: a backend that negotiates capabilities per
+connection (§3.3, session-scoped capabilities) advertises what this
+connection can carry right now, not the model's full range:
 
 ```
 type=<TYPE> formats=<F1,F2,...> rates=<R1,R2,...> channels=<C1,C2,...>
-max_streams=<n> native_formats=<...> native_rates=<...>
-native_channels=<C1,C2,...>
+max_streams=<n> flags=<G1,G2,...> tx_horizon_ms=<n>
+native_formats=<...> native_rates=<...> native_channels=<C1,C2,...>
 ```
 
-(one line per entry; wrapped here for readability). Every key uses one of
+(one line per entry; wrapped here for readability). `flags=` carries the
+`RIG_STREAM_CAP_*` names with the prefix stripped (`TIMED_TX_COARSE`,
+`TIMED_TX_SAMPLE`, `BURST_PTT`, `HW_TIME`) and `tx_horizon_ms=` the
+timed-TX lead-time limit (0 = not schedulable). This line is the **one
+canonical textual rendering** of a capability entry — it carries every
+defined field of `struct rig_stream_caps`, and the same format (minus
+the `native_*` keys, which a bare declaration does not have) is what
+`dump_caps` prints in its streaming section, so one parser serves both.
+A parser MUST skip unknown keys and unknown flag names: future
+capability flags extend the `flags=` list without a new key.
+
+Every key uses one of
 three value syntaxes, and each key always uses the same one:
 
 - **name list** — comma-separated symbolic names, no spaces
-  (`formats=PCM_S16,PCM_F32`). One name is a one-element list.
+  (`formats=PCM_S16,PCM_F32`). One name is a one-element list; a list
+  may be empty (`flags=` on an entry with no capability flags, like
+  `conversions:` on a native stream).
 - **integer list** — comma-separated decimal integers, ascending, no
   spaces (`rates=24000,48000`, `channels=1,2`). Ranges are **not** part of
   the grammar — a contiguous set is spelled out (`channels=1,2,3,4`).
-- **scalar** — a single decimal integer (`max_streams=4`).
+- **scalar** — a single decimal integer (`max_streams=4`,
+  `tx_horizon_ms=30000`).
 
 The effective sets are
 what `\stream_open` serves — through server-side conversion where they
@@ -2006,6 +2052,17 @@ Run a stream against the dummy:
 ./tests/rigstreamtest -m 1 -t iq_rx -s 48000 -d 5     # RX I/Q at 48 kHz
 ./tests/rigstreamtest -m 1 -t loopback -d 5           # TX -> ring -> RX
 ```
+
+`rigctl -m <model> --dump-caps` prints a `Data streaming capabilities:`
+block — one entry per line in the **same key=value grammar as
+`\stream_caps`** (§6.1), in declaration form (no `native_*` keys: a
+model declaration has no derived view), plus a
+`Has data streaming support:` summary that is Y only when the caps and
+the required `stream_open`/`stream_close` hooks are all present. It also
+runs sanity checks over the declarations — inconsistent caps/hook
+pairings and malformed rate/channel lists are reported as backend
+warnings. On a netrigctl rig the dump shows the served session view,
+byte-identical to the `\stream_caps` lines.
 
 To exercise the network path, run rigctld with the dummy backend and point the
 tool at it through netrigctl (model 2):

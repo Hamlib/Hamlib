@@ -1061,6 +1061,42 @@ int rig_stream_net_parse_caps_line(const char *line,
         caps->sample_rates[ri] = 0;  /* Sentinel */
     }
 
+    /* Parse flags= (comma-separated RIG_STREAM_CAP_* names, prefix
+     * stripped; optional — absent or empty means none; unknown names are
+     * skipped for forward compatibility) */
+    val = find_kv(line, "flags", &vlen);
+
+    if (val != NULL && vlen > 0)
+    {
+        char flbuf[128];
+        copy_kv_value(val, vlen, flbuf, sizeof(flbuf));
+
+        char *saveptr = NULL;
+        char *tok = strtok_r(flbuf, ",", &saveptr);
+
+        while (tok != NULL)
+        {
+            caps->caps_flags |= stream_caps_flag_parse(tok);
+            tok = strtok_r(NULL, ",", &saveptr);
+        }
+    }
+
+    /* Parse tx_horizon_ms= (optional; absent means 0) */
+    val = find_kv(line, "tx_horizon_ms", &vlen);
+
+    if (val != NULL && vlen > 0)
+    {
+        char hbuf[16];
+        copy_kv_value(val, vlen, hbuf, sizeof(hbuf));
+
+        int horizon = parse_uint_field(hbuf);
+
+        if (horizon > 0)
+        {
+            caps->tx_schedule_horizon_ms = horizon;
+        }
+    }
+
     /* Parse native_formats= (comma-separated format names) */
     val = find_kv(line, "native_formats", &vlen);
 

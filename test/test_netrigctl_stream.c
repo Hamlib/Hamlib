@@ -452,27 +452,22 @@ static RIG *open_netrigctl(int port)
 
 
 /* Helper: find a stream_caps entry by type, return pointer or NULL. */
+/* The relayed advertisement is published as SESSION caps (netrigctl
+ * never writes rig->caps), so lookups go through the public served view:
+ * rig_stream_caps_at() returns it verbatim for pre-derived entries. */
 static const struct rig_stream_caps *find_caps_by_type(
-    const struct rig_caps *caps,
+    RIG *rig,
     rig_stream_type_t type)
 {
-    if (!caps || !caps->stream_caps)
-    {
-        return NULL;
-    }
+    int count = rig_stream_caps_count(rig);
 
-    for (int i = 0; i < HAMLIB_MAX_STREAM_CAPS; i++)
+    for (int i = 0; i < count; i++)
     {
-        if (caps->stream_caps[i].type == type
-                && caps->stream_caps[i].formats != 0)
-        {
-            return &caps->stream_caps[i];
-        }
+        const struct rig_stream_caps *e = rig_stream_caps_at(rig, i);
 
-        if (caps->stream_caps[i].type == 0
-                && caps->stream_caps[i].formats == 0)
+        if (e && e->type == type)
         {
-            break;
+            return e;
         }
     }
 
@@ -514,25 +509,15 @@ void test_caps_discovery_all_types(void)
     RIG *rig = open_netrigctl(proc.port);
     TEST_ASSERT(rig != NULL);
 
-    /* Count total discovered caps */
-    int total_caps = 0;
-
-    for (int i = 0; rig->caps->stream_caps && i < HAMLIB_MAX_STREAM_CAPS; i++)
-    {
-        if (rig->caps->stream_caps[i].type == 0
-                && rig->caps->stream_caps[i].formats == 0)
-        {
-            break;
-        }
-
-        total_caps++;
-    }
+    /* Count total discovered caps through the served view: the relayed
+     * advertisement lives in session caps, never in rig->caps. */
+    int total_caps = rig_stream_caps_count(rig);
 
     TEST_CHECK(total_caps == 4);
     TEST_MSG("Expected 4 stream caps, got %d", total_caps);
 
     /* --- AUDIO_RX --- */
-    const struct rig_stream_caps *arx = find_caps_by_type(rig->caps,
+    const struct rig_stream_caps *arx = find_caps_by_type(rig,
                                         RIG_STREAM_TYPE_AUDIO_RX);
     TEST_CHECK(arx != NULL);
     TEST_MSG("AUDIO_RX caps must be present");
@@ -590,7 +575,7 @@ void test_caps_discovery_all_types(void)
     }
 
     /* --- AUDIO_TX --- */
-    const struct rig_stream_caps *atx = find_caps_by_type(rig->caps,
+    const struct rig_stream_caps *atx = find_caps_by_type(rig,
                                         RIG_STREAM_TYPE_AUDIO_TX);
     TEST_CHECK(atx != NULL);
     TEST_MSG("AUDIO_TX caps must be present");
@@ -612,10 +597,21 @@ void test_caps_discovery_all_types(void)
         TEST_CHECK(atx->channels[0] == 1 && atx->channels[1] == 2
                    && atx->channels[2] == 0);
         TEST_CHECK(atx->max_streams == 4);
+
+        /* caps_flags and the TX horizon relay through the wire line too:
+         * without them a remote client could not discover timed TX. */
+        TEST_CHECK(atx->caps_flags == (RIG_STREAM_CAP_TIMED_TX_COARSE
+                                       | RIG_STREAM_CAP_TIMED_TX_SAMPLE
+                                       | RIG_STREAM_CAP_BURST_PTT));
+        TEST_MSG("relayed AUDIO_TX caps_flags = 0x%llx",
+                 (unsigned long long)atx->caps_flags);
+        TEST_CHECK(atx->tx_schedule_horizon_ms == 30000);
+        TEST_MSG("relayed AUDIO_TX horizon = %d",
+                 atx->tx_schedule_horizon_ms);
     }
 
     /* --- IQ_RX --- */
-    const struct rig_stream_caps *iqrx = find_caps_by_type(rig->caps,
+    const struct rig_stream_caps *iqrx = find_caps_by_type(rig,
                                          RIG_STREAM_TYPE_IQ_RX);
     TEST_CHECK(iqrx != NULL);
     TEST_MSG("IQ_RX caps must be present");
@@ -643,7 +639,7 @@ void test_caps_discovery_all_types(void)
     }
 
     /* --- IQ_TX --- */
-    const struct rig_stream_caps *iqtx = find_caps_by_type(rig->caps,
+    const struct rig_stream_caps *iqtx = find_caps_by_type(rig,
                                          RIG_STREAM_TYPE_IQ_TX);
     TEST_CHECK(iqtx != NULL);
     TEST_MSG("IQ_TX caps must be present");

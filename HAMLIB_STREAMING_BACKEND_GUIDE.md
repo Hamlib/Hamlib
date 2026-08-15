@@ -64,22 +64,25 @@ Defined in `include/hamlib/rig.h`:
 ```c
 struct rig_stream_caps {
     rig_stream_type_t type;                          /* Stream direction */
-    rig_stream_format_t formats;                     /* Bitmask of NATIVE formats */
-    int sample_rates[HAMLIB_MAX_STREAM_RATES];       /* Native rates, 0-terminated */
-    int channels[HAMLIB_MAX_STREAM_CHANNEL_COUNTS]; /* Openable channel
+    rig_stream_format_t formats;                     /* Bitmask of NATIVE formats (uint32_t) */
+    int32_t sample_rates[HAMLIB_MAX_STREAM_RATES];   /* Native rates, 0-terminated */
+    int32_t channels[HAMLIB_MAX_STREAM_CHANNEL_COUNTS]; /* Openable channel
                                                       * counts, 0-terminated
                                                       * ascending list
                                                       * (1=mono, 2=stereo) */
-    int max_streams;                                 /* Concurrent streams of this type */
-    int caps_flags;                                  /* RIG_STREAM_CAP_* (timed TX; Section 6.1) */
-    int tx_schedule_horizon_ms;                      /* Max timed-TX lead time (0 = not schedulable) */
-    /* ...ABI headroom... */
+    int32_t max_streams;                             /* Concurrent streams of this type */
+    int32_t tx_schedule_horizon_ms;                  /* Max timed-TX lead time (0 = not schedulable) */
+    uint64_t caps_flags;                             /* RIG_STREAM_CAP_* (timed TX; Section 6.1) */
     /* native_formats / native_sample_rates / native_channels:
      * leave ZERO. The frontend fills them in the derived caps it serves
      * to applications. Setting native_formats yourself declares BOTH
      * views pre-derived (only a relaying backend like netrigctl does
      * this — the frontend then serves your entry verbatim and delegates
      * conversion to your far side). */
+    rig_stream_format_t native_formats;
+    int32_t native_sample_rates[HAMLIB_MAX_STREAM_RATES];
+    int32_t native_channels[HAMLIB_MAX_STREAM_CHANNEL_COUNTS];
+    /* ...tail-only ABI headroom (never declare or touch) ... */
 };
 ```
 
@@ -153,6 +156,21 @@ For I/Q formats, one "sample" is one complex pair (I + Q components).
    resampler-less build your declared rates are the only ones clients
    can open, so an omitted native rate is simply lost there.
 5. **Terminate with `{ 0 }`.**
+6. **Never write to `rig->caps`.** It is `/* read only */`, and one
+   `rig_caps` is shared by every rig of the model — writing it corrupts
+   the declaration for every other open rig and for the rest of the
+   process, and `dump_caps` then reports the wreckage instead of the
+   model. If your transport negotiates its format per connection, publish
+   that with `stream_set_session_caps()` — see *Capabilities that depend
+   on the connection* below.
+7. **Check your work with `rigctl -m <model> --dump-caps`.** It prints
+   the streaming section and warns about declaration mistakes: caps
+   without the required `stream_open`/`stream_close` pair (and vice
+   versa), a `stream_pause`/`stream_resume` override without its
+   partner, `RIG_STREAM_CAP_HW_TIME` without `stream_hardware_time`,
+   mixed audio/I-Q formats in one entry, non-ascending or empty
+   rate/channel lists, duplicate (unreachable) type entries, and
+   timed-TX flags on RX entries.
 
 ### Example
 
@@ -195,6 +213,62 @@ static const struct rig_stream_caps mybackend_stream_caps[] =
 A backend that builds caps at runtime (e.g. from a remote rig) fills a mutable
 `static struct rig_stream_caps[]` buffer and assigns it — see
 `rigs/dummy/netrigctl.c`. For the static case see `rigs/dummy/dummy.c`.
+
+### Capabilities that depend on the connection
+
+Some transports negotiate one audio geometry for a whole connection: a single
+codec, rate and channel count, fixed at connect and unchangeable until the rig
+is closed. The model declaration then describes what the *radio* can do across
+configurations, which is wider than what *this* connection can carry.
+
+That difference matters to the frontend, which chooses conversions from your
+native declaration. If the declaration claims stereo is native while the
+negotiated codec is mono, no channel conversion is installed and your mono
+bytes are read as stereo — audio at the wrong speed, with every counter
+reading zero. It matters to applications too: by rule 4, a rate you cannot
+serve may be unreachable on a resampler-less build, so a client has to be able
+to discover the connection's real geometry *before* it opens anything.
+
+Declare the model's full capability in `rig_caps` as usual, then publish the
+connection's truth from `rig_open`, once the negotiation is known:
+
+```c
+struct rig_stream_caps session[2];
+int n = 0;
+
+memset(session, 0, sizeof(session));
+session[n].type = RIG_STREAM_TYPE_AUDIO_RX;
+session[n].formats = RIG_STREAM_FORMAT_PCM_S16;   /* what was negotiated */
+session[n].sample_rates[0] = negotiated_rate;
+session[n].channels[0] = negotiated_channels;
+session[n].max_streams = 1;
+n++;
+
+stream_set_session_caps(rig, session, n);
+```
+
+Entries are copied, so the array above may live on the stack. Publishing a
+subset also *removes* what the connection cannot carry at all — a session
+whose codec carries I/Q simply omits the audio entry, and vice versa.
+
+The two views then answer different questions, and both stay honest:
+
+| view | source | answers |
+|---|---|---|
+| `dump_caps` | `rig_caps`, never written | what this radio model can do |
+| `rig_stream_caps_at()`, `\stream_caps` | session caps when published | what can be opened on this connection now |
+
+Session caps gate the whole pipeline, not just discovery:
+`rig_stream_open()` resolves requests against the same source the served
+view derives from, so a configuration the session cannot carry is
+refused even when the model declaration offers it.
+
+Pass `NULL` to drop back to the model declaration. Backends whose format is a
+protocol constant — the same for every connection — need none of this; see
+`rigs/flexradio/smartsdr.c`, whose caps are `static const`. For a live
+session-caps publisher see `rigs/dummy/netrigctl.c`, which publishes the
+remote server's advertisement — its streaming capability exists only
+per connection.
 
 ---
 

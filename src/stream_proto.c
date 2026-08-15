@@ -695,3 +695,284 @@ int stream_format_bitmask_str(rig_stream_format_t formats,
     buf[pos] = '\0';
     return (int)pos;
 }
+
+
+/* Capability-flag names shared by the wire emitter/parser and the caps
+ * dumps: RIG_STREAM_CAP_* with the prefix stripped. */
+static const struct
+{
+    uint64_t flag;
+    const char *name;
+} caps_flag_table[] =
+{
+    { RIG_STREAM_CAP_TIMED_TX_COARSE, "TIMED_TX_COARSE" },
+    { RIG_STREAM_CAP_TIMED_TX_SAMPLE, "TIMED_TX_SAMPLE" },
+    { RIG_STREAM_CAP_BURST_PTT,       "BURST_PTT" },
+    { RIG_STREAM_CAP_HW_TIME,         "HW_TIME" },
+};
+
+int stream_caps_flags_str(uint64_t caps_flags, char *buf, size_t buflen)
+{
+    size_t pos = 0;
+    size_t i;
+
+    if (buflen == 0)
+    {
+        return -1;
+    }
+
+    buf[0] = '\0';
+
+    for (i = 0; i < sizeof(caps_flag_table) / sizeof(caps_flag_table[0]); i++)
+    {
+        if (!(caps_flags & caps_flag_table[i].flag))
+        {
+            continue;
+        }
+
+        int n = snprintf(buf + pos, buflen - pos, "%s%s",
+                         pos > 0 ? "," : "", caps_flag_table[i].name);
+
+        if (n < 0 || (size_t)n >= buflen - pos)
+        {
+            return -1;
+        }
+
+        pos += (size_t)n;
+    }
+
+    return (int)pos;
+}
+
+uint64_t stream_caps_flag_parse(const char *name)
+{
+    size_t i;
+
+    for (i = 0; i < sizeof(caps_flag_table) / sizeof(caps_flag_table[0]); i++)
+    {
+        if (strcmp(name, caps_flag_table[i].name) == 0)
+        {
+            return caps_flag_table[i].flag;
+        }
+    }
+
+    return 0;
+}
+
+/* Append an ascending 0-terminated int list as comma-separated decimals.
+ * Returns 0, or -1 on overflow. */
+static int append_int_list(char *buf, size_t buflen, size_t *pos,
+                           const int *list, int max_entries)
+{
+    for (int i = 0; i < max_entries && list[i] != 0; i++)
+    {
+        int n = snprintf(buf + *pos, buflen - *pos, "%s%d",
+                         i > 0 ? "," : "", list[i]);
+
+        if (n < 0 || (size_t)n >= buflen - *pos)
+        {
+            return -1;
+        }
+
+        *pos += (size_t)n;
+    }
+
+    return 0;
+}
+
+int stream_caps_format_line(const struct rig_stream_caps *e,
+                            int include_native, char *buf, size_t buflen)
+{
+    char fmtbuf[256];
+    char flagbuf[128];
+    size_t pos = 0;
+    int n;
+
+    if (!e || !buf || buflen == 0)
+    {
+        return -1;
+    }
+
+    if (stream_format_bitmask_str(e->formats, fmtbuf, sizeof(fmtbuf)) < 0
+            || stream_caps_flags_str(e->caps_flags, flagbuf,
+                                     sizeof(flagbuf)) < 0)
+    {
+        return -1;
+    }
+
+    n = snprintf(buf, buflen, "type=%s formats=%s rates=",
+                 stream_type_name(e->type), fmtbuf);
+
+    if (n < 0 || (size_t)n >= buflen)
+    {
+        return -1;
+    }
+
+    pos = (size_t)n;
+
+    if (append_int_list(buf, buflen, &pos, e->sample_rates,
+                        HAMLIB_MAX_STREAM_RATES) != 0)
+    {
+        return -1;
+    }
+
+    n = snprintf(buf + pos, buflen - pos, " channels=");
+
+    if (n < 0 || (size_t)n >= buflen - pos)
+    {
+        return -1;
+    }
+
+    pos += (size_t)n;
+
+    if (append_int_list(buf, buflen, &pos, e->channels,
+                        HAMLIB_MAX_STREAM_CHANNEL_COUNTS) != 0)
+    {
+        return -1;
+    }
+
+    n = snprintf(buf + pos, buflen - pos,
+                 " max_streams=%d flags=%s tx_horizon_ms=%d",
+                 e->max_streams, flagbuf, e->tx_schedule_horizon_ms);
+
+    if (n < 0 || (size_t)n >= buflen - pos)
+    {
+        return -1;
+    }
+
+    pos += (size_t)n;
+
+    if (!include_native)
+    {
+        return (int)pos;
+    }
+
+    if (stream_format_bitmask_str(e->native_formats, fmtbuf,
+                                  sizeof(fmtbuf)) < 0)
+    {
+        return -1;
+    }
+
+    n = snprintf(buf + pos, buflen - pos, " native_formats=%s native_rates=",
+                 fmtbuf);
+
+    if (n < 0 || (size_t)n >= buflen - pos)
+    {
+        return -1;
+    }
+
+    pos += (size_t)n;
+
+    if (append_int_list(buf, buflen, &pos, e->native_sample_rates,
+                        HAMLIB_MAX_STREAM_RATES) != 0)
+    {
+        return -1;
+    }
+
+    n = snprintf(buf + pos, buflen - pos, " native_channels=");
+
+    if (n < 0 || (size_t)n >= buflen - pos)
+    {
+        return -1;
+    }
+
+    pos += (size_t)n;
+
+    if (append_int_list(buf, buflen, &pos, e->native_channels,
+                        HAMLIB_MAX_STREAM_CHANNEL_COUNTS) != 0)
+    {
+        return -1;
+    }
+
+    return (int)pos;
+}
+
+
+/* Conversion-stage names shared by the rigctld TCP responses and the
+ * netrigctl client: RIG_STREAM_CONV_* with the prefix stripped. */
+static const struct
+{
+    int flag;
+    const char *name;
+} conv_table[] =
+{
+    { RIG_STREAM_CONV_FORMAT,   "FORMAT" },
+    { RIG_STREAM_CONV_RATE,     "RATE" },
+    { RIG_STREAM_CONV_CHANNELS, "CHANNELS" },
+};
+
+int stream_conversions_str(int conv, char *buf, size_t buflen)
+{
+    size_t pos = 0;
+    size_t i;
+
+    if (buflen == 0)
+    {
+        return -1;
+    }
+
+    buf[0] = '\0';
+
+    for (i = 0; i < sizeof(conv_table) / sizeof(conv_table[0]); i++)
+    {
+        if (!(conv & conv_table[i].flag))
+        {
+            continue;
+        }
+
+        int n = snprintf(buf + pos, buflen - pos, "%s%s",
+                         pos > 0 ? "," : "", conv_table[i].name);
+
+        if (n < 0 || (size_t)n >= buflen - pos)
+        {
+            return -1;
+        }
+
+        pos += (size_t)n;
+    }
+
+    return (int)pos;
+}
+
+int stream_conversions_parse(const char *text)
+{
+    int conv = RIG_STREAM_CONV_NONE;
+    const char *tok = text;
+
+    if (!text)
+    {
+        return conv;
+    }
+
+    while (*tok != '\0')
+    {
+        while (*tok == ' ' || *tok == ',')
+        {
+            tok++;
+        }
+
+        size_t len = strcspn(tok, ", \r\n");
+
+        if (len == 0)
+        {
+            break;
+        }
+
+        size_t i;
+
+        /* Unknown names are skipped so future servers may add stages. */
+        for (i = 0; i < sizeof(conv_table) / sizeof(conv_table[0]); i++)
+        {
+            if (len == strlen(conv_table[i].name)
+                    && strncmp(tok, conv_table[i].name, len) == 0)
+            {
+                conv |= conv_table[i].flag;
+                break;
+            }
+        }
+
+        tok += len;
+    }
+
+    return conv;
+}

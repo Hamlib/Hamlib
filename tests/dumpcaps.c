@@ -28,6 +28,7 @@
 #include "sprintflst.h"
 #include "rigctl_parse.h"
 #include "../rigs/icom/icom.h"
+#include "stream_proto.h"
 #include "dumpcaps.h"
 
 void range_print(FILE *fout, const struct freq_range_list range_list[], int rx);
@@ -67,6 +68,266 @@ static int print_ext(RIG *rig, const struct confparams *cfp, rig_ptr_t ptr)
 /*
  * the rig may be in rig_init state, but not opened
  */
+
+#define DUMPCAPS_STREAM_PCM_MASK (RIG_STREAM_FORMAT_PCM_S8  \
+                                  | RIG_STREAM_FORMAT_PCM_U8  \
+                                  | RIG_STREAM_FORMAT_PCM_S16 \
+                                  | RIG_STREAM_FORMAT_PCM_F32)
+#define DUMPCAPS_STREAM_IQ_MASK  (RIG_STREAM_FORMAT_IQ_CS8  \
+                                  | RIG_STREAM_FORMAT_IQ_CU8  \
+                                  | RIG_STREAM_FORMAT_IQ_CS16 \
+                                  | RIG_STREAM_FORMAT_IQ_CF32)
+
+static void stream_warn(FILE *fout, char *warnbuf, size_t warnbuf_size,
+                        int *warnings, const char *tag, const char *msg)
+{
+    fprintf(fout, "Warning--%s\n", msg);
+
+    if (warnbuf)
+    {
+        strncat(warnbuf, tag, warnbuf_size - strlen(warnbuf) - 1);
+    }
+
+    (*warnings)++;
+}
+
+
+/* Print one capability entry as the canonical key=value line — the same
+ * rendering as the rigctld \stream_caps response, so there is exactly
+ * one textual caps format to parse. include_native appends the
+ * native_* keys (served/both-views form). */
+static void dump_stream_entry(FILE *fout, const struct rig_stream_caps *e,
+                              int include_native)
+{
+    char line[1024];
+
+    if (stream_caps_format_line(e, include_native, line, sizeof(line)) < 0)
+    {
+        return;
+    }
+
+    fprintf(fout, "\t%s\n", line);
+}
+
+int dumpcaps_stream_state(RIG *rig, FILE *fout)
+{
+    const struct rig_caps *caps = rig->caps;
+    int count = rig_stream_caps_count(rig);
+    int i;
+
+    /* The served (session/derived) view: what rig_stream_open() accepts
+     * on this rig right now. A backend that negotiates capabilities per
+     * connection publishes them as session caps, and this is where they
+     * show; the model declaration is dump_caps' business. */
+    fprintf(fout, "Has data streaming support: %s\n",
+            (count > 0 && caps->stream_open && caps->stream_close)
+            ? "Y" : "N");
+
+    if (count == 0)
+    {
+        return 0;
+    }
+
+    fprintf(fout, "Data streaming capabilities:\n");
+
+    for (i = 0; i < count; i++)
+    {
+        const struct rig_stream_caps *e = rig_stream_caps_at(rig, i);
+
+        if (!e)
+        {
+            break;
+        }
+
+        dump_stream_entry(fout, e, 1);
+    }
+
+    return 0;
+}
+
+int dumpcaps_stream(RIG *rig, FILE *fout, char *warnbuf,
+                    size_t warnbuf_size)
+{
+    const struct rig_caps *caps = rig->caps;
+    int warnings = 0;
+    int entries = 0;
+    int hw_time_flagged = 0;
+    int i;
+
+    if (caps->stream_caps)
+    {
+        for (i = 0; i < HAMLIB_MAX_STREAM_CAPS
+                && caps->stream_caps[i].formats != 0; i++)
+        {
+            entries++;
+        }
+    }
+
+    /* Streaming works only when the capability declaration AND the
+     * required hook pair are all present; anything partial is a
+     * declaration bug flagged below. */
+    fprintf(fout, "Has data streaming support: %s\n",
+            (entries > 0 && caps->stream_open && caps->stream_close)
+            ? "Y" : "N");
+
+    if (entries > 0 && (!caps->stream_open || !caps->stream_close))
+    {
+        stream_warn(fout, warnbuf, warnbuf_size, &warnings, " STREAM_HOOKS",
+                    "streaming capabilities declared but the required "
+                    "stream_open/stream_close hooks are missing");
+    }
+
+    if (entries == 0
+            && (caps->stream_open || caps->stream_close
+                || caps->stream_read || caps->stream_write
+                || caps->stream_drain || caps->stream_pause
+                || caps->stream_resume || caps->stream_apply_metadata
+                || caps->stream_hardware_time))
+    {
+        stream_warn(fout, warnbuf, warnbuf_size, &warnings, " STREAM_CAPS",
+                    "stream functions implemented but no stream_caps "
+                    "declared, so streaming is unreachable");
+    }
+
+    if ((caps->stream_open == NULL) != (caps->stream_close == NULL))
+    {
+        stream_warn(fout, warnbuf, warnbuf_size, &warnings,
+                    " STREAM_OPEN_CLOSE",
+                    "stream_open and stream_close must be implemented "
+                    "as a pair");
+    }
+
+    if ((caps->stream_pause == NULL) != (caps->stream_resume == NULL))
+    {
+        stream_warn(fout, warnbuf, warnbuf_size, &warnings,
+                    " STREAM_PAUSE_RESUME",
+                    "stream_pause and stream_resume must be overridden "
+                    "as a pair (a mixed custom/default pair strands the "
+                    "radio in one state)");
+    }
+
+    if (entries == 0)
+    {
+        return warnings;
+    }
+
+    fprintf(fout, "Data streaming capabilities:\n");
+
+    for (i = 0; i < entries; i++)
+    {
+        const struct rig_stream_caps *e = &caps->stream_caps[i];
+        int is_tx = e->type == RIG_STREAM_TYPE_AUDIO_TX
+                    || e->type == RIG_STREAM_TYPE_IQ_TX;
+        int j;
+
+        dump_stream_entry(fout, e, e->native_formats != 0);
+
+        if (e->caps_flags & RIG_STREAM_CAP_HW_TIME)
+        {
+            hw_time_flagged = 1;
+        }
+
+        /* --- per-entry sanity --- */
+
+        if (e->type >= RIG_STREAM_TYPE_COUNT)
+        {
+            stream_warn(fout, warnbuf, warnbuf_size, &warnings,
+                        " STREAM_TYPE", "invalid stream type in caps entry");
+        }
+
+        for (j = 0; j < i; j++)
+        {
+            if (caps->stream_caps[j].type == e->type)
+            {
+                stream_warn(fout, warnbuf, warnbuf_size, &warnings,
+                            " STREAM_DUP",
+                            "duplicate stream type entry is unreachable "
+                            "(the first entry per type wins)");
+                break;
+            }
+        }
+
+        if ((e->formats & DUMPCAPS_STREAM_PCM_MASK)
+                && (e->formats & DUMPCAPS_STREAM_IQ_MASK))
+        {
+            stream_warn(fout, warnbuf, warnbuf_size, &warnings,
+                        " STREAM_FORMAT_MIX",
+                        "audio and I/Q formats mixed in one caps entry; "
+                        "use separate entries per stream type");
+        }
+
+        if (e->sample_rates[0] == 0)
+        {
+            stream_warn(fout, warnbuf, warnbuf_size, &warnings,
+                        " STREAM_RATES", "no native sample rates declared");
+        }
+
+        for (j = 1; j < HAMLIB_MAX_STREAM_RATES
+                && e->sample_rates[j] != 0; j++)
+        {
+            if (e->sample_rates[j] <= e->sample_rates[j - 1])
+            {
+                stream_warn(fout, warnbuf, warnbuf_size, &warnings,
+                            " STREAM_RATES",
+                            "sample rate list must be ascending");
+                break;
+            }
+        }
+
+        if (e->channels[0] == 0)
+        {
+            stream_warn(fout, warnbuf, warnbuf_size, &warnings,
+                        " STREAM_CHANNELS",
+                        "no channel counts declared (the list is exact: "
+                        "every openable count must be listed)");
+        }
+
+        for (j = 0; j < HAMLIB_MAX_STREAM_CHANNEL_COUNTS
+                && e->channels[j] != 0; j++)
+        {
+            if (e->channels[j] < 0 || e->channels[j] > 255
+                    || (j > 0 && e->channels[j] <= e->channels[j - 1]))
+            {
+                stream_warn(fout, warnbuf, warnbuf_size, &warnings,
+                            " STREAM_CHANNELS",
+                            "channel count list must be ascending, "
+                            "each count 1..255");
+                break;
+            }
+        }
+
+        if (e->max_streams < 1)
+        {
+            stream_warn(fout, warnbuf, warnbuf_size, &warnings,
+                        " STREAM_MAX", "max_streams must be at least 1");
+        }
+
+        if (!is_tx
+                && ((e->caps_flags & (RIG_STREAM_CAP_TIMED_TX_COARSE
+                                      | RIG_STREAM_CAP_TIMED_TX_SAMPLE
+                                      | RIG_STREAM_CAP_BURST_PTT))
+                    || e->tx_schedule_horizon_ms > 0))
+        {
+            stream_warn(fout, warnbuf, warnbuf_size, &warnings,
+                        " STREAM_TX_META",
+                        "timed-TX flags/horizon are meaningless on an "
+                        "RX stream type");
+        }
+    }
+
+    if (hw_time_flagged && !caps->stream_hardware_time)
+    {
+        stream_warn(fout, warnbuf, warnbuf_size, &warnings,
+                    " STREAM_HW_TIME",
+                    "RIG_STREAM_CAP_HW_TIME declared but "
+                    "stream_hardware_time is not implemented (the "
+                    "default anchor is the host clock)");
+    }
+
+
+    return warnings;
+}
+
 int dumpcaps(RIG *rig, FILE *fout)
 {
     const struct rig_caps *caps;
@@ -814,6 +1075,9 @@ int dumpcaps(RIG *rig, FILE *fout)
     }
 
     fprintf(fout, "\n");
+
+    backend_warnings += dumpcaps_stream(rig, fout, warnbuf,
+                                        sizeof(warnbuf));
 
     fprintf(fout, "Has priv data:\t%c\n", caps->priv != NULL ? 'Y' : 'N');
     /*

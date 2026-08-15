@@ -1991,10 +1991,12 @@ typedef enum {
 #define HAMLIB_MAX_STREAM_CHANNEL_COUNTS 16
 
 /* Stream capability flags */
-#define RIG_STREAM_CAP_TIMED_TX_COARSE  (1<<0)  /* start-at-T play-out gating */
-#define RIG_STREAM_CAP_TIMED_TX_SAMPLE  (1<<1)  /* sample-accurate hw scheduling */
-#define RIG_STREAM_CAP_BURST_PTT        (1<<2)  /* SOB/EOB auto-keys PTT */
-#define RIG_STREAM_CAP_HW_TIME          (1<<3)  /* hardware time source available */
+#define RIG_STREAM_CAP_TIMED_TX_COARSE  (1ULL<<0)  /* start-at-T play-out gating */
+#define RIG_STREAM_CAP_TIMED_TX_SAMPLE  (1ULL<<1)  /* sample-accurate hw scheduling */
+#define RIG_STREAM_CAP_BURST_PTT        (1ULL<<2)  /* SOB/EOB auto-keys PTT */
+#define RIG_STREAM_CAP_HW_TIME          (1ULL<<3)  /* hardware time source available */
+/* caps_flags is a single 64-bit namespace: future flags extend it with
+ * (1ULL<<n) — the wire carries flag NAMES, so no key ever changes. */
 
 /* Active conversion stages between the hardware and an open stream, reported
  * by rig_stream_get_conversions(). 0 means a native stream: the bytes pass
@@ -2021,9 +2023,9 @@ struct rig_stream_caps {
     rig_stream_format_t formats;            /* Openable formats (effective set
                                              * in the derived app view; backends
                                              * declare native here) */
-    int sample_rates[HAMLIB_MAX_STREAM_RATES]; /* Openable rates, 0-terminated
+    int32_t sample_rates[HAMLIB_MAX_STREAM_RATES]; /* Openable rates, 0-terminated
                                              * (effective in the app view) */
-    int channels[HAMLIB_MAX_STREAM_CHANNEL_COUNTS]; /* Openable channel
+    int32_t channels[HAMLIB_MAX_STREAM_CHANNEL_COUNTS]; /* Openable channel
                                              * counts, 0-terminated ascending
                                              * list (effective in the app
                                              * view; backends declare the
@@ -2031,28 +2033,31 @@ struct rig_stream_caps {
                                              * need not be contiguous). The
                                              * list is exact: every openable
                                              * count is listed, none implied */
-    int max_streams;                        /* Concurrent streams of this type */
-    int caps_flags;                         /* RIG_STREAM_CAP_* */
-    int tx_schedule_horizon_ms;             /* Max lead time for a timed TX
+    int32_t max_streams;                    /* Concurrent streams of this type */
+    int32_t tx_schedule_horizon_ms;         /* Max lead time for a timed TX
                                              * burst (0 = not schedulable) */
-    int caps_flags2;                        /* RIG_STREAM_CAP2_* (reserved) */
-    int _reserved[6];                       /* ABI headroom. Policy: scalar
-                                             * capability fields carve from
-                                             * the front of this array;
-                                             * array-sized additions append
-                                             * at the END of the struct (the
-                                             * library owns and serves every
-                                             * instance, so appended fields
-                                             * are safe — the native_* view
-                                             * below is the precedent). */
+    uint64_t caps_flags;                    /* RIG_STREAM_CAP_* (8-aligned
+                                             * offset by construction) */
 
     /* Hardware-native view, filled by the frontend in the derived caps
      * served by rig_stream_caps_at(). Backends leave these zero — except
      * a relaying backend serving pre-derived caps (see the stream_caps
      * pointer in struct rig_caps). */
     rig_stream_format_t native_formats;
-    int native_sample_rates[HAMLIB_MAX_STREAM_RATES]; /* 0-terminated */
-    int native_channels[HAMLIB_MAX_STREAM_CHANNEL_COUNTS]; /* 0-terminated */
+    int32_t native_sample_rates[HAMLIB_MAX_STREAM_RATES]; /* 0-terminated */
+    int32_t native_channels[HAMLIB_MAX_STREAM_CHANNEL_COUNTS]; /* 0-terminated */
+
+    uint32_t _reserved32[1];                /* ABI headroom, tail-only. Policy:
+                                             * 32-bit scalars carve from here
+                                             * (this slot also keeps the u64
+                                             * reserve 8-aligned with no hidden
+                                             * padding)... */
+    uint64_t _reserved[4];                  /* ...64-bit scalars carve from the
+                                             * front of this array. NEVER append
+                                             * fields after it: rig_caps.
+                                             * stream_caps is a publicly
+                                             * indexable array, so sizeof is
+                                             * frozen for the ABI major. */
 };
 
 struct rig_stream_config {
@@ -2063,27 +2068,27 @@ struct rig_stream_config {
                                              * this makes appended fields ABI-safe. */
     rig_stream_type_t type;
     rig_stream_format_t format;             /* Single RIG_STREAM_FORMAT_* value */
-    int sample_rate;
-    int channels;
-    int frame_samples;                      /* Samples per frame (0 = backend default) */
+    int32_t sample_rate;
+    int32_t channels;
+    int32_t frame_samples;                  /* Samples per frame (0 = backend default) */
     size_t buffer_bytes;                    /* Ring buffer capacity in bytes (0 = default) */
-    unsigned int buffer_duration_ms;        /* If non-zero and buffer_bytes==0, derive size */
-    unsigned int time_stale_coarse_ms;      /* Staleness: downgrade accuracy to
+    uint32_t buffer_duration_ms;            /* If non-zero and buffer_bytes==0, derive size */
+    uint32_t time_stale_coarse_ms;          /* Staleness: downgrade accuracy to
                                              * COARSE (0 = rig/built-in default) */
-    unsigned int time_stale_invalidate_ms;  /* Staleness: clear time_valid
+    uint32_t time_stale_invalidate_ms;      /* Staleness: clear time_valid
                                              * (0 = rig/built-in default) */
-    unsigned int mtu;                       /* Sender path MTU in bytes for
+    uint32_t mtu;                           /* Sender path MTU in bytes for
                                              * datagram packetization (0 =
                                              * default 1500). Clamped to a
                                              * jumbo-frame ceiling; query the
                                              * effective, frame-aligned payload
                                              * with rig_stream_get_max_payload(). */
-    unsigned int transport_buffer_ms;                /* Transport buffer as ms of stream
+    uint32_t transport_buffer_ms;           /* Transport buffer as ms of stream
                                              * data (0 = rig token / built-in
                                              * 250 ms). Overridden by transport_buffer_bytes. */
-    unsigned int transport_buffer_bytes;             /* Explicit transport buffer bytes
+    uint32_t transport_buffer_bytes;        /* Explicit transport buffer bytes
                                              * (0 = derive from transport_buffer_ms/rate) */
-    int require_native;                     /* 1 = open only as a native stream:
+    int32_t require_native;                 /* 1 = open only as a native stream:
                                              * fail with -RIG_ENAVAIL rather than
                                              * install a conversion. 0 (default) =
                                              * convert when the request is in the
@@ -2186,7 +2191,7 @@ struct rig_stream_read_info {
     uint32_t dropped_samples;   /* known-size hole before this read, any
                                    cause (marked gap and/or overrun) */
     uint8_t  drop_flags;        /* RIG_STREAM_DROP_* cause attribution */
-    int      time_valid;        /* 1 if the time fields are meaningful */
+    int32_t  time_valid;        /* 1 if the time fields are meaningful */
     int64_t  seconds;           /* UTC, Unix epoch */
     uint64_t picoseconds;       /* 0..999,999,999,999 */
     uint8_t  time_source;       /* enum rig_stream_time_source */
@@ -2207,7 +2212,7 @@ struct rig_stream_read_info {
 /* Per-write burst target (TX); passed to rig_stream_write when non-NULL.
  * No source/accuracy: the target is a request, not a measurement. */
 struct rig_stream_write_info {
-    int      time_valid;        /* 0 = send immediately (no scheduling) */
+    int32_t  time_valid;        /* 0 = send immediately (no scheduling) */
     int64_t  seconds;           /* UTC target */
     uint64_t picoseconds;       /* 0..999,999,999,999 */
     uint8_t  flags;             /* SOB/EOB */
@@ -2274,7 +2279,7 @@ struct rig_stream_write_status {
     uint64_t sample_index;      /* producer index the event refers to */
     uint32_t dropped_samples;   /* samples lost on UNDERRUN/OVERRUN; 0 if N/A */
     int64_t  lateness;          /* samples a timed burst was late (LATE); 0 if N/A */
-    int      time_valid;        /* 1 if seconds/picoseconds are meaningful */
+    int32_t  time_valid;        /* 1 if seconds/picoseconds are meaningful */
     int64_t  seconds;           /* UTC, Unix epoch */
     uint64_t picoseconds;       /* 0..999,999,999,999 */
     uint8_t  time_source;       /* enum rig_stream_time_source */

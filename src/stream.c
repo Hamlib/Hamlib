@@ -142,6 +142,7 @@ void rig_stream_state_cleanup(struct rig_stream_state *state)
 
     pthread_cond_destroy(&state->stream_idle);
     pthread_mutex_destroy(&state->stream_mutex);
+    free(state->session_caps);
     free(state);
 }
 
@@ -542,7 +543,7 @@ static void stream_derive_caps(struct rig_stream_caps *dst,
  * native_* fields, is available once the rig is open. */
 static const struct rig_stream_caps *stream_served_caps(RIG *rig)
 {
-    if (!rig || !rig->caps || !rig->caps->stream_caps)
+    if (!rig || !rig->caps)
     {
         return NULL;
     }
@@ -556,9 +557,23 @@ static const struct rig_stream_caps *stream_served_caps(RIG *rig)
 
     pthread_mutex_lock(&ss->stream_mutex);
 
-    if (ss->derived_src != rig->caps->stream_caps)
+    /* The session's own truth when the backend has published one, otherwise
+     * the model declaration. A session-caps backend need not declare any
+     * model caps at all (netrigctl's whole capability is per-connection),
+     * so only the SELECTED source has to exist. */
+    const struct rig_stream_caps *want = ss->session_caps
+                                         ? ss->session_caps
+                                         : rig->caps->stream_caps;
+
+    if (want == NULL)
     {
-        const struct rig_stream_caps *src = rig->caps->stream_caps;
+        pthread_mutex_unlock(&ss->stream_mutex);
+        return NULL;
+    }
+
+    if (ss->derived_src != want)
+    {
+        const struct rig_stream_caps *src = want;
 
         memset(ss->derived_caps, 0, sizeof(ss->derived_caps));
 
@@ -578,6 +593,84 @@ static const struct rig_stream_caps *stream_served_caps(RIG *rig)
     pthread_mutex_unlock(&ss->stream_mutex);
     return ss->derived_caps;
 }
+
+
+int stream_set_session_caps(RIG *rig, const struct rig_stream_caps *caps,
+                            int count)
+{
+    struct rig_stream_state *ss;
+    int i;
+
+    if (!rig || !rig->caps)
+    {
+        return -RIG_EINVAL;
+    }
+
+    if (caps && (count < 0 || count > HAMLIB_MAX_STREAM_CAPS))
+    {
+        return -RIG_EINVAL;
+    }
+
+    ss = get_stream_state(rig);
+
+    if (!ss)
+    {
+        /* Backends publish from their rig_open hook, which the frontend
+         * calls BEFORE its own stream-state init: create the state on
+         * first use here; the later init finds it and leaves it alone. */
+        if (rig_stream_state_init((struct rig_stream_state **)
+                                  &STATE(rig)->stream_state) != 0)
+        {
+            return -RIG_ENOMEM;
+        }
+
+        ss = get_stream_state(rig);
+    }
+
+    pthread_mutex_lock(&ss->stream_mutex);
+
+    if (caps == NULL || count == 0)
+    {
+        free(ss->session_caps);
+        ss->session_caps = NULL;
+    }
+    else
+    {
+        if (ss->session_caps == NULL)
+        {
+            /* Only a backend that negotiates per connection pays for this,
+             * and rig_stream_state is allocated for every rig. */
+            ss->session_caps = calloc(HAMLIB_MAX_STREAM_CAPS,
+                                      sizeof(*ss->session_caps));
+
+            if (ss->session_caps == NULL)
+            {
+                pthread_mutex_unlock(&ss->stream_mutex);
+                return -RIG_ENOMEM;
+            }
+        }
+
+        memset(ss->session_caps, 0,
+               HAMLIB_MAX_STREAM_CAPS * sizeof(*ss->session_caps));
+
+        for (i = 0; i < count; i++)
+        {
+            ss->session_caps[i] = caps[i];
+        }
+
+        /* The array is 0-terminated by type, so a full-length publication has
+         * no terminator to spare; readers stop at HAMLIB_MAX_STREAM_CAPS. */
+    }
+
+    /* The derived view is rebuilt on the next query rather than compared by
+     * source pointer: republishing into the same array would otherwise go
+     * unnoticed. */
+    ss->derived_src = NULL;
+
+    pthread_mutex_unlock(&ss->stream_mutex);
+    return RIG_OK;
+}
+
 
 int HAMLIB_API rig_stream_caps_count(RIG *rig)
 {
@@ -652,10 +745,36 @@ void HAMLIB_API rig_stream_config_free(struct rig_stream_config *config)
 
 /* Return the backend's stream caps entry for a stream type, or NULL if the
  * type is not offered. */
+/* The backend-authored capability source for this rig: the session
+ * publication when one exists, else the model declaration. This is the
+ * open-time resolution input; stream_served_caps() derives the
+ * app-visible view from the same source, so acceptance and advertisement
+ * cannot disagree. Session entries keep their authored form here — a
+ * local backend's entries resolve rule-based with a conversion pipeline,
+ * a relay's pre-derived entries resolve delegated. */
+static const struct rig_stream_caps *stream_source_caps(RIG *rig)
+{
+    struct rig_stream_state *ss = get_stream_state(rig);
+
+    if (ss)
+    {
+        pthread_mutex_lock(&ss->stream_mutex);
+        const struct rig_stream_caps *sc = ss->session_caps;
+        pthread_mutex_unlock(&ss->stream_mutex);
+
+        if (sc)
+        {
+            return sc;
+        }
+    }
+
+    return rig->caps->stream_caps;
+}
+
 static const struct rig_stream_caps *find_stream_caps(RIG *rig,
         rig_stream_type_t type)
 {
-    const struct rig_stream_caps *caps_arr = rig->caps->stream_caps;
+    const struct rig_stream_caps *caps_arr = stream_source_caps(rig);
 
     for (int i = 0; caps_arr && i < HAMLIB_MAX_STREAM_CAPS; i++)
     {

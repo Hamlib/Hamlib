@@ -314,6 +314,30 @@ const char *stream_format_name(rig_stream_format_t format);
  * Returns 0 for unknown names. */
 rig_stream_format_t stream_format_parse(const char *name);
 
+/* Write comma-separated RIG_STREAM_CAP_* flag names (prefix stripped);
+ * empty string when no flag is set. Returns characters written or -1. */
+int stream_caps_flags_str(uint64_t caps_flags, char *buf, size_t buflen);
+
+/* Parse one flag name to its RIG_STREAM_CAP_* bit; 0 for unknown names. */
+uint64_t stream_caps_flag_parse(const char *name);
+
+/* Format one capability entry as the canonical key=value line used by the
+ * rigctld \stream_caps response and the caps dumps — the ONE textual
+ * rendering of struct rig_stream_caps. include_native appends the
+ * native_* keys (the served/both-views form); without it the line is the
+ * backend-declaration form. Returns characters written or -1 if buf is
+ * too small. */
+int stream_caps_format_line(const struct rig_stream_caps *e,
+                            int include_native, char *buf, size_t buflen);
+
+/* Write comma-separated RIG_STREAM_CONV_* stage names (prefix stripped);
+ * empty string when no conversion is active. Returns chars written or -1. */
+int stream_conversions_str(int conv, char *buf, size_t buflen);
+
+/* Parse a comma-separated stage-name list back to the bitmask; unknown
+ * names are skipped (forward compatibility), empty text is CONV_NONE. */
+int stream_conversions_parse(const char *text);
+
 
 /* Stream type classification helpers */
 

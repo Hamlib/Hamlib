@@ -6307,62 +6307,7 @@ declare_proto_rig(set_conf)
 }
 
 
-/* Render a 0-terminated channel-count list as "1,2,4"; on overflow emit
- * what fits. */
-static void stream_chan_list_str(const int *list, char *buf, size_t bufsize)
-{
-    int pos = 0;
 
-    buf[0] = '\0';
-
-    for (int j = 0; j < HAMLIB_MAX_STREAM_CHANNEL_COUNTS && list[j] != 0;
-            j++)
-    {
-        int n = snprintf(buf + pos, bufsize - pos, "%s%d",
-                         j > 0 ? "," : "", list[j]);
-
-        if (n < 0 || (size_t)n >= bufsize - pos)
-        {
-            break;
-        }
-
-        pos += n;
-    }
-}
-
-/* Render a RIG_STREAM_CONV_* bitmask as a comma-separated list of stage
- * names with the prefix stripped ("FORMAT,RATE,CHANNELS"); an empty
- * string when no conversion is active (a native stream). */
-static void stream_conversions_str(int conv, char *buf, size_t bufsize)
-{
-    static const struct { int flag; const char *name; } stages[] =
-    {
-        { RIG_STREAM_CONV_FORMAT,   "FORMAT" },
-        { RIG_STREAM_CONV_RATE,     "RATE" },
-        { RIG_STREAM_CONV_CHANNELS, "CHANNELS" },
-    };
-    size_t pos = 0;
-
-    buf[0] = '\0';
-
-    for (size_t i = 0; i < sizeof(stages) / sizeof(stages[0]); i++)
-    {
-        if (!(conv & stages[i].flag))
-        {
-            continue;
-        }
-
-        int n = snprintf(buf + pos, bufsize - pos, "%s%s",
-                         pos > 0 ? "," : "", stages[i].name);
-
-        if (n < 0 || (size_t)n >= bufsize - pos)
-        {
-            break;
-        }
-
-        pos += (size_t)n;
-    }
-}
 
 /* 0xb0 — query streaming capabilities */
 declare_proto_rig(stream_caps)
@@ -6383,78 +6328,20 @@ declare_proto_rig(stream_caps)
     for (i = 0; i < count; i++)
     {
         const struct rig_stream_caps *cap = rig_stream_caps_at(rig, i);
-        char fmtbuf[256];
-        /* Sized for a full HAMLIB_MAX_STREAM_RATES effective list. */
-        char ratebuf[256];
-        int rpos = 0;
-        int j;
+        /* Sized for full effective + native lists. */
+        char line[1024];
 
         if (!cap)
         {
             break;
         }
 
-        stream_format_bitmask_str(cap->formats, fmtbuf, sizeof(fmtbuf));
-
-        /* Build comma-separated rate list; on overflow emit what fits. */
-        ratebuf[0] = '\0';
-
-        for (j = 0; j < HAMLIB_MAX_STREAM_RATES && cap->sample_rates[j] != 0; j++)
+        if (stream_caps_format_line(cap, 1, line, sizeof(line)) < 0)
         {
-            int n = snprintf(ratebuf + rpos, sizeof(ratebuf) - rpos,
-                             "%s%d", j > 0 ? "," : "",
-                             cap->sample_rates[j]);
-
-            if (n < 0 || (size_t)n >= sizeof(ratebuf) - rpos)
-            {
-                break;
-            }
-
-            rpos += n;
+            continue;
         }
 
-        /* Native (hardware) view alongside the effective sets. */
-        char nfmtbuf[256];
-        char nratebuf[256];
-        char chanbuf[128];
-        char nchanbuf[128];
-        int nrpos = 0;
-
-        stream_format_bitmask_str(cap->native_formats, nfmtbuf,
-                                  sizeof(nfmtbuf));
-        nratebuf[0] = '\0';
-
-        for (j = 0; j < HAMLIB_MAX_STREAM_RATES
-                && cap->native_sample_rates[j] != 0; j++)
-        {
-            int n = snprintf(nratebuf + nrpos, sizeof(nratebuf) - nrpos,
-                             "%s%d", j > 0 ? "," : "",
-                             cap->native_sample_rates[j]);
-
-            if (n < 0 || (size_t)n >= sizeof(nratebuf) - nrpos)
-            {
-                break;
-            }
-
-            nrpos += n;
-        }
-
-        stream_chan_list_str(cap->channels, chanbuf, sizeof(chanbuf));
-        stream_chan_list_str(cap->native_channels, nchanbuf,
-                             sizeof(nchanbuf));
-
-        fprintf(fout,
-                "type=%s formats=%s rates=%s channels=%s max_streams=%d "
-                "native_formats=%s native_rates=%s native_channels=%s%c",
-                stream_type_name(cap->type),
-                fmtbuf,
-                ratebuf,
-                chanbuf,
-                cap->max_streams,
-                nfmtbuf,
-                nratebuf,
-                nchanbuf,
-                resp_sep);
+        fprintf(fout, "%s%c", line, resp_sep);
     }
 
     RETURNFUNC2(RIG_OK);

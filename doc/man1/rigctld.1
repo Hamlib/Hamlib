@@ -1849,7 +1849,10 @@ keys hold the \fIeffective\fP set \(em every configuration
 .B stream_open
 will serve, through server-side format conversion where needed \(em and the
 .IR native_formats ", " native_rates " and " native_channels
-keys hold the hardware-native truth.  A request inside the effective but
+keys hold the hardware-native truth.  The entries answer for the
+current session: a backend that negotiates its capabilities per
+connection advertises what this connection can carry now, not the
+model's full range.  A request inside the effective but
 outside the native set is served through conversion (see
 .I require_native
 and
@@ -1858,14 +1861,18 @@ under
 .BR stream_open ).
 .IP
 Each key uses one of three value syntaxes, always the same one:
-.IR formats " and " native_formats
-are comma-separated symbolic name lists;
+.IR formats ", " native_formats " and " flags
+are comma-separated symbolic name lists (a list may be empty \(em
+.I flags
+on an entry with no capability flags);
 .IR rates ", " channels ", " native_rates " and " native_channels
 are comma-separated ascending decimal integer lists (ranges are not part
 of the grammar \(em a contiguous set is spelled out, e.g.
 \(aqchannels=1,2,3,4\(aq); and
-.I max_streams
-(the concurrent-stream limit for the type) is a single integer.
+.IR max_streams " (the concurrent-stream limit) and " tx_horizon_ms
+(the timed-TX lead-time limit, 0 = not schedulable) are single
+integers.  The line carries every defined capability field; clients
+must skip unknown keys and unknown flag names.
 .
 .TP
 .BR stream_open " \(aq" \fIType\fP "\(aq \(aq" \fIFormat\fP "\(aq \(aq" \fIRate\fP "\(aq [\fIkey=value\fP ...]"

@@ -611,13 +611,22 @@ int main(int argc, char *argv[])
             rig_set_debug(verbose);
             my_rig = rig_init(my_model);
 
+            /* This is a fresh rig: carry the -r target over, or the dump
+             * would describe the default localhost:4532 daemon. */
+            if (rig_file)
+            {
+                rig_set_conf(my_rig, TOK_PATHNAME, rig_file);
+            }
+
             if ((ret = rig_open(my_rig)) != RIG_OK)
             {
                 fprintf(stderr, "Unable to open rigctld: %s\n", rigerror(ret));
                 exit(1);
             }
 
-            rig_close(my_rig);
+            /* Dump while the connection is up: the state being dumped —
+             * including session stream caps — describes the open
+             * connection and is torn down by rig_close. */
             dumpstate(my_rig, stdout);
             rig_close(my_rig);
             exit(0);

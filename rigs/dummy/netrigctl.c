@@ -34,6 +34,7 @@
 
 #include "dummy.h"
 #include "dummy_common.h"
+#include "stream.h"
 #include "stream_net.h"
 #include "stream_proto.h"
 #include "stream_convert.h"
@@ -926,9 +927,13 @@ static int netrigctl_open(RIG *rig)
     {
         char cmd[CMD_MAX];
         int caps_count = 0;
-        /* rig_caps.stream_caps is a pointer, not an embedded array; fill this
-         * mutable buffer from the remote's advertised caps and point at it. */
-        static struct rig_stream_caps netrigctl_stream_caps[HAMLIB_MAX_STREAM_CAPS];
+        /* This connection's advertisement, published as SESSION caps: the
+         * caps depend on the server this rig is connected to, and rig_caps
+         * is shared by every netrigctl rig in the process — never written
+         * (backend guide, "Capabilities that depend on the connection").
+         * Entries are copied by stream_set_session_caps, so the parse
+         * buffer lives on the stack. */
+        struct rig_stream_caps netrigctl_stream_caps[HAMLIB_MAX_STREAM_CAPS];
 
         SNPRINTF(cmd, sizeof(cmd), "+\\stream_caps\n");
         ret = netrigctl_transaction(rig, cmd, strlen(cmd), buf);
@@ -968,7 +973,21 @@ static int netrigctl_open(RIG *rig)
             }
             while (1);
 
-            rig->caps->stream_caps = netrigctl_stream_caps;
+            ret = stream_set_session_caps(rig, netrigctl_stream_caps,
+                                          caps_count);
+
+            if (ret != RIG_OK)
+            {
+                rig_debug(RIG_DEBUG_WARN,
+                          "%s: publishing session stream caps failed: %s\n",
+                          __func__, rigerror(ret));
+            }
+        }
+        else
+        {
+            /* No streaming on this server: clear any session caps left from
+             * a previous connection of this rig. */
+            stream_set_session_caps(rig, NULL, 0);
         }
 
         rig_debug(RIG_DEBUG_VERBOSE, "%s: discovered %d stream caps\n",
@@ -995,6 +1014,9 @@ static int netrigctl_close(RIG *rig)
     {
         rig_set_powerstat(rig, 0);
     }
+
+    /* The session caps described the connection being torn down. */
+    stream_set_session_caps(rig, NULL, 0);
 
     ret = netrigctl_transaction(rig, "q\n", 2, buf);
 
@@ -2969,44 +2991,10 @@ static int netrigctl_stream_open(RIG *rig, struct rig_stream *stream)
         }
         else if (strncmp(buf, "conversions:", 12) == 0)
         {
-            /* Comma-separated stage names with the RIG_STREAM_CONV_
-             * prefix stripped; an empty value is a native stream.
-             * Unknown names are skipped so a future server may add
-             * stages without breaking this client. */
-            const char *tok = buf + 12;
-
-            conversions = RIG_STREAM_CONV_NONE;
-
-            while (*tok != '\0')
-            {
-                while (*tok == ' ' || *tok == ',')
-                {
-                    tok++;
-                }
-
-                size_t len = strcspn(tok, ", \r\n");
-
-                if (len == 0)
-                {
-                    break;
-                }
-
-                if (len == 6 && strncmp(tok, "FORMAT", 6) == 0)
-                {
-                    conversions |= RIG_STREAM_CONV_FORMAT;
-                }
-                else if (len == 4 && strncmp(tok, "RATE", 4) == 0)
-                {
-                    conversions |= RIG_STREAM_CONV_RATE;
-                }
-                else if (len == 8 && strncmp(tok, "CHANNELS", 8) == 0)
-                {
-                    conversions |= RIG_STREAM_CONV_CHANNELS;
-                }
-
-                tok += len;
-            }
-
+            /* Comma-separated stage names; empty value = native stream.
+             * Unknown names are skipped by the shared parser so a future
+             * server may add stages without breaking this client. */
+            conversions = stream_conversions_parse(buf + 12);
             rig_debug(RIG_DEBUG_VERBOSE, "%s: conversions=0x%x\n",
                       __func__, conversions);
         }
