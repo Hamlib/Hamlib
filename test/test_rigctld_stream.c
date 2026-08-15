@@ -2101,8 +2101,9 @@ void test_caps_line_roundtrip(void)
     TEST_CHECK(memcmp(out.channels, in.channels, sizeof(in.channels)) == 0);
     TEST_CHECK(out.max_streams == in.max_streams);
     TEST_CHECK(out.caps_flags == in.caps_flags);
-    TEST_MSG("flags: got 0x%x, expected 0x%x", out.caps_flags,
-             in.caps_flags);
+    TEST_MSG("flags: got 0x%llx, expected 0x%llx",
+             (unsigned long long)out.caps_flags,
+             (unsigned long long)in.caps_flags);
     TEST_CHECK(out.tx_schedule_horizon_ms == in.tx_schedule_horizon_ms);
 
     /* Served form: native view appended; empty flags stay empty. */
@@ -2139,7 +2140,8 @@ void test_caps_line_unknown_flag_skipped(void)
 
     TEST_CHECK(rig_stream_net_parse_caps_line(line, &caps) == 0);
     TEST_CHECK(caps.caps_flags == RIG_STREAM_CAP_BURST_PTT);
-    TEST_MSG("caps_flags = 0x%x, expected BURST_PTT only", caps.caps_flags);
+    TEST_MSG("caps_flags = 0x%llx, expected BURST_PTT only",
+             (unsigned long long)caps.caps_flags);
 }
 
 void test_net_parse_caps_line_missing_type(void)
