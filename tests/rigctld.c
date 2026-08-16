@@ -180,6 +180,19 @@ void mutex_rigctld(int lock)
 
 }
 
+
+/* The daemon registry owns feeder threads that retain rig_stream_t handles.
+ * They must be gone before rig_close() invalidates the rig's stream state. */
+static int rigctld_close_rig(void)
+{
+    int retcode;
+
+    rigctld_stream_registry_close_all(&g_stream_registry);
+    retcode = rig_close(my_rig);
+    rig_opened = 0;
+    return retcode;
+}
+
 #ifdef WIN32
 static BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
 {
@@ -881,7 +894,7 @@ int main(int argc, char *argv[])
     // So they need to release the rig when no clients are connected
     if (rigctld_idle)
     {
-        rig_close(my_rig);          /* we will reopen for clients */
+        rigctld_close_rig();
 
         if (verbose > RIG_DEBUG_ERR)
         {
@@ -1275,7 +1288,7 @@ int main(int argc, char *argv[])
 #else
     close(sock_listen);
 #endif
-    rig_close(my_rig);
+    rigctld_close_rig();
     mutex_rigctld(0);
 
     rigctld_stream_registry_destroy(&g_stream_registry);
@@ -1329,6 +1342,7 @@ void *handle_socket(void *arg)
     char send_cmd_term = '\r';  /* send_cmd termination char */
     int ext_resp = 0;
     char my_resp_sep = resp_sep;  // Separator for this connection, initial default
+    unsigned remaining_clients;
     rig_powerstat = RIG_POWER_ON; // defaults to power on
     struct timespec powerstat_check_time;
 
@@ -1455,8 +1469,7 @@ void *handle_socket(void *arg)
             do
             {
                 mutex_rigctld(1);
-                retcode = rig_close(my_rig);
-                rig_opened = 0;
+                retcode = rigctld_close_rig();
                 mutex_rigctld(0);
                 rig_debug(RIG_DEBUG_ERR, "%s: rig_close retcode=%d\n", __func__, retcode);
 
@@ -1480,18 +1493,19 @@ void *handle_socket(void *arg)
     while (!ctrl_c && (retcode == RIG_OK || RIG_IS_SOFT_ERRCODE(retcode)));
 
     mutex_rigctld(1);
+    rigctld_stream_registry_close_by_client(&g_stream_registry, my_client_id);
+    remaining_clients = --client_count;
 
-    if (rigctld_idle && client_count == 1)
+    if (rigctld_idle && remaining_clients == 0)
     {
-        rig_close(my_rig);
+        rigctld_close_rig();
 
         if (verbose > RIG_DEBUG_ERR) { printf("Closed rig model %s.  Will reopen for new clients\n", my_rig->caps->model_name); }
     }
 
-    --client_count;
     mutex_rigctld(0);
 
-    if (rigctld_idle && client_count > 0) { printf("%u client%s still connected so rig remains open\n", client_count, client_count > 1 ? "s" : ""); }
+    if (rigctld_idle && remaining_clients > 0) { printf("%u client%s still connected so rig remains open\n", remaining_clients, remaining_clients > 1 ? "s" : ""); }
 
 #if 0
     mutex_rigctld(1);
@@ -1529,8 +1543,6 @@ void *handle_socket(void *arg)
               "Connection closed from %s:%s\n",
               host,
               serv);
-
-    rigctld_stream_registry_close_by_client(&g_stream_registry, my_client_id);
 
 handle_exit:
 
