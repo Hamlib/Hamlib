@@ -107,6 +107,7 @@ extern int read_history();
 #define ARG_IN4  0x40
 #define ARG_OUT4 0x80
 #define ARG_OUT5 0x100
+#define CMD_PREAUTH 0x2000
 #define ARG_IN_LINE 0x4000
 #define ARG_NOVFO 0x8000
 
@@ -386,8 +387,8 @@ static struct test_table test_list[] =
     { '4',  "mW2power",         ACTION(mW2power),       ARG_IN1 | ARG_IN2 | ARG_IN3 | ARG_OUT1 | ARG_NOVFO, "Power mW", "Freq", "Mode", "Power [0.0..1.0]" },
     { '1',  "dump_caps",        ACTION(dump_caps),      ARG_NOVFO },
     { '3',  "dump_conf",        ACTION(dump_conf),      ARG_NOVFO },
-    { 0x8f, "dump_state",       ACTION(dump_state),     ARG_OUT | ARG_NOVFO },
-    { 0xf0, "chk_vfo",          ACTION(chk_vfo),        ARG_NOVFO, "ChkVFO" },   /* rigctld only--check for VFO mode */
+    { 0x8f, "dump_state",       ACTION(dump_state),     ARG_OUT | ARG_NOVFO | CMD_PREAUTH },
+    { 0xf0, "chk_vfo",          ACTION(chk_vfo),        ARG_NOVFO | CMD_PREAUTH, "ChkVFO" },   /* rigctld only--check for VFO mode */
     { 0xf2, "set_vfo_opt",      ACTION(set_vfo_opt),    ARG_NOVFO | ARG_IN, "Status" }, /* turn vfo option on/off */
     { 0xf3, "get_vfo_info",     ACTION(get_vfo_info),   ARG_IN1 | ARG_NOVFO | ARG_OUT5, "VFO", "Freq", "Mode", "Width", "Split", "SatMode" }, /* get several vfo parameters at once */
     { 0xf5, "get_rig_info",     ACTION(get_rig_info),   ARG_NOVFO | ARG_OUT, "RigInfo" }, /* get several vfo parameters at once */
@@ -399,7 +400,7 @@ static struct test_table test_list[] =
     { 0xf1, "halt",             ACTION(halt),           ARG_NOVFO },   /* rigctld only--halt the daemon */
     { 0x8c, "pause",            ACTION(pause),          ARG_IN | ARG_NOVFO, "Seconds" },
 #if RIGCTLD_PASSWORDS
-    { 0x98, "password",         ACTION(password),       ARG_IN | ARG_NOVFO, "Password" },
+    { 0x98, "password",         ACTION(password),       ARG_IN | ARG_NOVFO | CMD_PREAUTH, "Password" },
 //    { 0x99, "set_password",     ACTION(set_password),   ARG_IN | ARG_NOVFO, "Password" },
 #endif
     { 0xa0, "set_separator",     ACTION(set_separator), ARG_IN | ARG_NOVFO, "Separator" },
@@ -757,6 +758,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
     char client_version[32];
     char name_format[8];
     char arg_format[8];
+    int password_missing;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called, interactive=%d\n", __func__,
               interactive);
@@ -1798,7 +1800,18 @@ readline_repeat:
      */
     if (p1) { strip_quotes(p1); }
 
-    if (interactive && *ext_resp_ptr && !prompt && cmd != 0xf0)
+    connection = pthread_getspecific(thread_data_key);
+    password_missing = use_password
+                       && !(connection ? connection->is_passwordOK : 0)
+                       && !(cmd_entry->flags & CMD_PREAUTH);
+
+    if (password_missing)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: password has not been provided\n", __func__);
+    }
+
+    if (!password_missing && interactive && *ext_resp_ptr && !prompt
+            && cmd != 0xf0)
     {
         char a1[MAXARGSZ + 2];
         char a2[MAXARGSZ + 2];
@@ -1837,35 +1850,15 @@ readline_repeat:
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo_opt=%d\n", __func__, *vfo_opt);
 
-    if (rs->comm_state == 0)
+    if (!password_missing && rs->comm_state == 0)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: %p rig not open...trying to reopen\n", __func__,
                   &rs->comm_state);
         rig_open(my_rig);
     }
 
-    // chk_vfo is the one command we'll allow without a password
-    // since it's in the initial handshake
-    int preCmd =
-        0;  // some command are allowed without password to satisfy rigctld initialization from rigctl -m 2
-
-    if (cmd_entry->arg1 != NULL)
+    if (password_missing)
     {
-        if (strcmp(cmd_entry->arg1, "ChkVFO") == 0) { preCmd = 1; }
-        else if (strcmp(cmd_entry->arg1, "VFO") == 0) { preCmd = 1; }
-        else if (strcmp(cmd_entry->arg1, "Password") == 0) { preCmd = 1; }
-    }
-
-    connection = pthread_getspecific(
-                     thread_data_key);  // Get state of this connection
-
-    /* Streaming commands are gated even when they take no arguments */
-    int is_stream_cmd = (cmd >= 0xb0 && cmd <= 0xba);
-
-    if (use_password && !(connection ? connection->is_passwordOK : 0)
-            && (cmd_entry->arg1 != NULL || is_stream_cmd) && !preCmd)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: password has not been provided\n", __func__);
         fflush(fin);
         retcode = -RIG_ESECURITY;
     }

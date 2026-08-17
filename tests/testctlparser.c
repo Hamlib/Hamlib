@@ -9,6 +9,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -19,8 +20,19 @@
 
 int lock_mode;
 powerstat_t rig_powerstat = RIG_POWER_ON;
+extern char rigctld_password[65];
+extern int is_rigctld;
 
 static char captured_description[sizeof(((channel_t *)0)->channel_desc)];
+static int checking_halt_authorization;
+
+static void fail_if_halt_exits(void)
+{
+    if (checking_halt_authorization)
+    {
+        abort();
+    }
+}
 
 static int capture_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
@@ -74,6 +86,136 @@ static int parse_command_output(RIG *rig, FILE *input, char *argv[], int argc,
     *output_length = fread(output, 1, output_size, stream);
     fclose(stream);
     return ret;
+}
+
+static int parse_secure_network_command(RIG *rig, const char *command,
+                                        struct handle_data *connection)
+{
+    FILE *input = tmpfile();
+    FILE *output = tmpfile();
+    char *argv[] = { "testctlparser" };
+    int vfo_mode = 0;
+    int ext_resp = 0;
+    char resp_sep = '\n';
+    int ret;
+
+    if (input == NULL || output == NULL)
+    {
+        if (input != NULL) { fclose(input); }
+
+        if (output != NULL) { fclose(output); }
+
+        return -RIG_EINTERNAL;
+    }
+
+    fputs(command, input);
+    rewind(input);
+    pthread_setspecific(thread_data_key, connection);
+    ret = rigctl_parse(rig, input, output, argv, 1, NULL, 1, 0,
+                       &vfo_mode, 0, &ext_resp, &resp_sep, 1);
+    pthread_setspecific(thread_data_key, NULL);
+    fclose(input);
+    fclose(output);
+    return ret;
+}
+
+static int check_password_authorization(RIG *rig)
+{
+    static const char *protected_commands[] =
+    {
+        "\\halt\n",
+        "\\set_vfo VFOA\n",
+        "\\hamlib_version\n"
+    };
+    static const char *protected_names[] =
+    {
+        "halt",
+        "set_vfo",
+        "hamlib_version"
+    };
+    static const char *preauth_commands[] =
+    {
+        "\\chk_vfo\n",
+        "\\dump_state\n"
+    };
+    static const char *preauth_names[] =
+    {
+        "chk_vfo",
+        "dump_state"
+    };
+    struct handle_data connection = { .rig = rig };
+    char password[] = "test-password";
+    char *secret;
+    char command[64];
+    int ret;
+
+    for (size_t i = 0;
+            i < sizeof(protected_commands) / sizeof(protected_commands[0]); i++)
+    {
+        checking_halt_authorization = i == 0;
+        ret = parse_secure_network_command(rig, protected_commands[i],
+                                           &connection);
+        checking_halt_authorization = 0;
+
+        if (ret != -RIG_ESECURITY)
+        {
+            fprintf(stderr, "unauthenticated %s: expected %d, got %d\n",
+                    protected_names[i], -RIG_ESECURITY, ret);
+            return 1;
+        }
+    }
+
+    if (HAMLIB_STATE(rig)->comm_state != 0)
+    {
+        fprintf(stderr, "unauthenticated commands opened the rig\n");
+        return 1;
+    }
+
+    for (size_t i = 0;
+            i < sizeof(preauth_commands) / sizeof(preauth_commands[0]); i++)
+    {
+        ret = parse_secure_network_command(rig, preauth_commands[i], &connection);
+
+        if (ret != RIG_OK)
+        {
+            fprintf(stderr, "unauthenticated %s: expected success, got %d\n",
+                    preauth_names[i], ret);
+            return 1;
+        }
+    }
+
+    strcpy(rigctld_password, password);
+    secret = rig_make_md5(password);
+
+    if (secret == NULL)
+    {
+        fprintf(stderr, "unable to create password secret\n");
+        return 1;
+    }
+
+    snprintf(command, sizeof(command), "\\password %s\n", secret);
+    is_rigctld = 1;
+    ret = parse_secure_network_command(rig, command, &connection);
+    is_rigctld = 0;
+    free(secret);
+
+    if (ret != RIG_OK || !connection.is_passwordOK)
+    {
+        fprintf(stderr, "password authentication failed: ret=%d authenticated=%d\n",
+                ret, connection.is_passwordOK);
+        return 1;
+    }
+
+    ret = parse_secure_network_command(rig, "\\hamlib_version\n", &connection);
+
+    if (ret != RIG_OK)
+    {
+        fprintf(stderr, "authenticated hamlib_version: expected success, got %d\n",
+                ret);
+        return 1;
+    }
+
+    return 0;
 }
 
 static int check_send_command(RIG *rig, const char *command,
@@ -247,6 +389,13 @@ int main(void)
     state = HAMLIB_STATE(rig);
     memcpy(state->chan_list, caps.chan_list, sizeof(state->chan_list));
     rigctl_parse_init();
+    atexit(fail_if_halt_exits);
+
+    if (check_password_authorization(rig) != 0)
+    {
+        rig_cleanup(rig);
+        return 1;
+    }
 
     if (check_description(rig, maximum, maximum) != 0
             || check_description(rig, thirty, maximum) != 0
