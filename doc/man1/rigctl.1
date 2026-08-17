@@ -5,7 +5,7 @@
 .\"
 .\" Note: Please keep this page in sync with the source, rigctl.c
 .\"
-.TH RIGCTL "1" "2026-01-06" "Hamlib" "Hamlib Utilities"
+.TH RIGCTL "1" "2026-08-16" "Hamlib" "Hamlib Utilities"
 .
 .
 .SH NAME
@@ -1621,8 +1621,26 @@ before sending the next command to the radio.
 .
 .TP
 .BR password " \(aq" \fIPassword\fP \(aq
-Sends password to rigctld when rigctld has been secured with -A.  Must use the 32-char shared secret from rigctld.
-(NOT IMPLEMENTED)
+Authenticate to a
+.B rigctld
+server started with
+.BR \-A .
+.B rigctld
+accepts a configuration password containing 1 to 64 bytes and prints a
+32-character bearer secret at startup.
+.I Password
+must be that exact bearer secret.
+Before authentication, the only rig commands accepted by the server are
+.BR \\password ,
+.BR \\chk_vfo ,
+and
+.B \\dump_state
+so clients can complete the opening handshake.  An unauthenticated connection
+must authenticate within 30 seconds of connection establishment and is closed
+after five failed password or unauthorized command attempts.  A failed
+password attempt after successful authentication revokes access and starts a
+new 30-second authentication deadline.  The secret is sent over plaintext TCP;
+use a trusted network or secure tunnel.
 .
 .TP
 .BR set_lock_mode " \(aq" \fILocked\fP \(aq

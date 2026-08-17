@@ -5,7 +5,7 @@
 .\"
 .\" Note: Please keep this page in sync with the source, rigctld.c
 .\"
-.TH RIGCTLD "1" "2026-01-06" "Hamlib" "Hamlib Utilities"
+.TH RIGCTLD "1" "2026-08-16" "Hamlib" "Hamlib Utilities"
 .
 .
 .SH NAME
@@ -30,6 +30,7 @@ rigctld \- TCP radio control daemon
 .OP \-t number
 .OP \-C parm=val
 .OP \-X seconds
+.OP \-A password
 .RB [ \-v [ \-Z ]]
 .YS
 .
@@ -405,11 +406,28 @@ Use only in combination with the
 option as it generates no output on its own.
 .
 .TP
-.BR \-A ", " \-\-password
-Sets password on
+.BR \-A ", " \-\-password = \fIPASSWORD\fP
+Enable password authentication using a configuration password containing 1 to
+64 bytes.
 .B rigctld
-which requires hamlib to use rig_set_password and rigctl to use \\password to access rigctld.  A 32-char shared secret will be displayed to be used on the client side.
-(NOT IMPLEMENTED)
+prints a 32-character bearer secret at startup.  Clients authenticate by
+submitting that exact secret with the
+.B \\password
+command.
+.IP
+Before authentication, the only accepted rig commands are
+.BR \\password ,
+.BR \\chk_vfo ,
+and
+.B \\dump_state
+so clients can complete the opening handshake.  An unauthenticated connection
+must authenticate within 30 seconds of connection establishment and is closed
+after five failed password or unauthorized command attempts.  A failed
+password attempt after successful authentication revokes access and starts a
+new 30-second authentication deadline.
+.IP
+The bearer secret is sent over plaintext TCP.  Use this option only on a trusted
+network or through a secure tunnel.
 .
 .TP
 .BR \-R ", " \-\-rigctld\-idle
@@ -1749,8 +1767,13 @@ before sending the next command to the radio.
 .
 .TP
 .BR password " \(aq" \fIPassword\fP \(aq
-Sends password to rigctld when rigctld has been secured with -A.  Must use the 32-char shared secret from rigctld.
-(NOT IMPLEMENTED)
+Authenticate to a
+.B rigctld
+server started with
+.BR \-A .
+.I Password
+must be the exact 32-character bearer secret printed by the server at startup.
+The secret is sent over plaintext TCP; use a trusted network or secure tunnel.
 .
 .TP
 .BR set_lock_mode " \(aq" \fILocked\fP \(aq
@@ -2364,11 +2387,12 @@ on the local host:
 .
 .SH SECURITY
 .
-No authentication whatsoever; DO NOT leave this TCP port open wide to the
-Internet.  Please ask if stronger security is needed or consider using a
-Secure Shell
-.RB ( ssh (1))
-tunnel.
+Authentication is optional and must be enabled with
+.BR -A .
+It uses a reusable bearer secret over plaintext TCP and does not provide
+encryption.  Do not expose this port to the Internet; use a trusted network or
+a secure tunnel such as Secure Shell
+.RB ( ssh (1)).
 .
 .PP
 As

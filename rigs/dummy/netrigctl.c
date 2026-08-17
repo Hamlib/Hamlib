@@ -62,7 +62,8 @@ int netrigctl_get_vfo_mode(RIG *rig)
 /*
  * Helper function with protocol return code parsing
  */
-static int netrigctl_transaction(RIG *rig, char *cmd, int len, char *buf)
+static int netrigctl_transaction_internal(RIG *rig, char *cmd, int len,
+        char *buf, int sensitive)
 {
     int ret;
     hamlib_port_t *rp = RIGPORT(rig);
@@ -72,7 +73,8 @@ static int netrigctl_transaction(RIG *rig, char *cmd, int len, char *buf)
     /* flush anything in the read buffer before command is sent */
     rig_flush(rp);
 
-    ret = write_block(rp, (unsigned char *) cmd, len);
+    ret = sensitive ? write_block_sensitive(rp, (unsigned char *) cmd, len)
+          : write_block(rp, (unsigned char *) cmd, len);
 
     if (ret != RIG_OK)
     {
@@ -92,6 +94,11 @@ static int netrigctl_transaction(RIG *rig, char *cmd, int len, char *buf)
     }
 
     return ret;
+}
+
+static int netrigctl_transaction(RIG *rig, char *cmd, int len, char *buf)
+{
+    return netrigctl_transaction_internal(rig, cmd, len, buf, 0);
 }
 
 /* this will fill vfostr with the vfo value if the vfo mode is enabled
@@ -2843,13 +2850,13 @@ int netrigctl_password(RIG *rig, const char *key1)
     int retval;
 
     ENTERFUNC;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: key1=%s\n", __func__, key1);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: submitting password\n", __func__);
     SNPRINTF(cmdbuf, sizeof(cmdbuf), "\\password %s\n", key1);
-    retval = netrigctl_transaction(rig, cmdbuf, strlen(cmdbuf), buf);
+    retval = netrigctl_transaction_internal(rig, cmdbuf, strlen(cmdbuf), buf,
+                                            1);
 
-    if (retval != RIG_OK)
+    if (retval > RIG_OK)
     {
-        //rig_debug(RIG_DEBUG_ERR, "%s; retval = %d\n", __func__, retval);
         retval = -RIG_EPROTO;
     }
 
