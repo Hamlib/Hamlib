@@ -24,7 +24,9 @@ DIRECT_TESTS = \
 	testftx1parsers \
 	testgeministatus \
 	testgs100 \
-	testicomts
+	testicomts \
+	testthd7x \
+	testthd75emu
 
 GENERATED_TEST_WRAPPERS = \
 	test2038.sh \
