@@ -303,10 +303,12 @@ Limits: `HAMLIB_MAX_STREAM_RATES = 32`,
   effective rates equal the native rates): the native rates, plus the
   curated standard rates {8000, 11025, 16000, 22050, 24000, 44100,
   48000, 96000, 192000}, plus every exact integer division (factors
-  2…10) of each native rate. Deduplicated, ascending, bounded by the
-  largest native rate: audio up to and including it, I/Q strictly below
-  it (an I/Q stream's sample rate is its represented bandwidth, so
-  upsampling past the hardware cannot create information).
+  2…10) of each native rate. Candidates outside libsamplerate's
+  single-stage 1/256…256 conversion-ratio range are omitted. The result
+  is deduplicated, ascending, and bounded by the largest native rate:
+  audio up to and including it, I/Q strictly below it (an I/Q stream's
+  sample rate is its represented bandwidth, so upsampling past the
+  hardware cannot create information).
 - **Channels:** the declared list is exact — the effective list equals
   the native list, and unlisted counts are never invented (a device may
   genuinely support only very specific counts, which is exactly what the
@@ -349,14 +351,16 @@ the server advertises already reflects whether its resampler is present.
 
 **Acceptance at `rig_stream_open()` is by rule, not by list membership** —
 the advertised effective list is for discoverability. Any rate at or
-below the largest native rate is accepted when the resampler is built,
-listed or not (e.g. an arbitrary 22 222 Hz). The frontend resolves the
-request to a native source: format prefers the float format (lossless
-staging), then S16, then the lowest declared bit; the rate source is the
-smallest native rate ≥ the request; and a conversion pipeline is
-installed between that source and the stream. Requests beyond the rules
-(a rate above the largest native rate, an I/Q format on an audio stream,
-more channels than the mapping allows) fail with `-RIG_EINVAL`.
+below the largest native rate is accepted when the resampler is built and
+the selected native/requested pair is within libsamplerate's single-stage
+1/256…256 ratio range, listed or not (e.g. an arbitrary 22 222 Hz). The
+frontend resolves the request to a native source: format prefers the float
+format (lossless staging), then S16, then the lowest declared bit; the rate
+source is the smallest native rate ≥ the request; and a conversion pipeline
+is installed between that source and the stream. Requests beyond the rules
+(an unsupported conversion ratio, a rate above the largest native rate, an
+I/Q format on an audio stream, or more channels than the mapping allows)
+fail with `-RIG_EINVAL`.
 
 `rig_stream_get_conversions()` reports the installed stages
 (`RIG_STREAM_CONV_FORMAT/RATE/CHANNELS`, 0 = native stream). A config
@@ -550,9 +554,10 @@ Semantics:
   (§3.3), resolves the native source the backend will run at, and installs
   any conversion pipeline. It additionally rejects a non-positive
   `sample_rate` or `channels`, an unknown stream type, a `struct_size` of 0,
-  and exhaustion of either the caps `max_streams` limit or the
-  `HAMLIB_MAX_STREAMS` slots for that type — all with `-RIG_EINVAL`. A
-  convertible request with `require_native = 1` fails with `-RIG_ENAVAIL`.
+  a rate conversion outside libsamplerate's supported ratio, and exhaustion
+  of either the caps `max_streams` limit or the `HAMLIB_MAX_STREAMS` slots for
+  that type — all with `-RIG_EINVAL`. A convertible request with
+  `require_native = 1` fails with `-RIG_ENAVAIL`.
 - **close** unregisters the stream, wakes any blocked reader or
   write-status waiter, then waits for every `rig_stream_*` call already in
   flight on that stream to return before the handle is torn down. A
