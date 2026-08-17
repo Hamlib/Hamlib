@@ -300,7 +300,6 @@ int main(int argc, char *argv[])
 #endif
 
     pthread_t thread;
-    pthread_attr_t attr;
     int vfo_mode = 0; /* vfo_mode=0 means target VFO is current VFO */
     int i;
     extern int is_rigctld;
@@ -1202,6 +1201,8 @@ int main(int argc, char *argv[])
         else
         {
             struct handle_data *arg;
+            pthread_attr_t attr;
+            int attr_ret;
 
             arg = calloc(1, sizeof(struct handle_data));
 
@@ -1247,7 +1248,7 @@ int main(int argc, char *argv[])
                           "Connection from %s:%s rejected — "
                           "max clients (%d) reached\n",
                           host, serv, RIGCTLD_MAX_CLIENTS);
-                close(arg->sock);
+                socket_close(arg->sock);
                 free(arg);
                 continue;
             }
@@ -1258,14 +1259,51 @@ int main(int argc, char *argv[])
                       "Connection opened from %s:%s (client %d)\n",
                       host, serv, arg->client_id);
 
-            pthread_attr_init(&attr);
-            pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+            attr_ret = pthread_attr_init(&attr);
+
+            if (attr_ret != 0)
+            {
+                rig_debug(RIG_DEBUG_ERR, "pthread_attr_init: %s\n",
+                          strerror(attr_ret));
+                socket_close(arg->sock);
+                free(arg);
+                break;
+            }
+
+            attr_ret = pthread_attr_setdetachstate(&attr,
+                                                   PTHREAD_CREATE_DETACHED);
+
+            if (attr_ret != 0)
+            {
+                rig_debug(RIG_DEBUG_ERR, "pthread_attr_setdetachstate: %s\n",
+                          strerror(attr_ret));
+                int destroy_ret = pthread_attr_destroy(&attr);
+
+                if (destroy_ret != 0)
+                {
+                    rig_debug(RIG_DEBUG_WARN, "pthread_attr_destroy: %s\n",
+                              strerror(destroy_ret));
+                }
+
+                socket_close(arg->sock);
+                free(arg);
+                break;
+            }
 
             retcode = pthread_create(&thread, &attr, handle_socket, arg);
+            attr_ret = pthread_attr_destroy(&attr);
+
+            if (attr_ret != 0)
+            {
+                rig_debug(RIG_DEBUG_WARN, "pthread_attr_destroy: %s\n",
+                          strerror(attr_ret));
+            }
 
             if (retcode != 0)
             {
                 rig_debug(RIG_DEBUG_ERR, "pthread_create: %s\n", strerror(retcode));
+                socket_close(arg->sock);
+                free(arg);
                 break;
             }
 
