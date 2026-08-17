@@ -444,20 +444,26 @@ done:
 static int check_sensitive_write(void)
 {
     static const unsigned char secret[] = "unique-write-secret";
+    FILE *sink = tmpfile();
     hamlib_port_t port = { 0 };
-    int descriptors[2];
     int ret;
 
-    if (pipe(descriptors) != 0)
+    if (sink == NULL)
     {
         return 1;
     }
 
-    port.fd = descriptors[1];
+    port.fd = fileno(sink);
+
+    if (port.fd < 0)
+    {
+        fclose(sink);
+        return 1;
+    }
+
     rig_debug_clear();
     ret = write_block_sensitive(&port, secret, sizeof(secret) - 1);
-    close(descriptors[0]);
-    close(descriptors[1]);
+    fclose(sink);
 
     if (ret != RIG_OK || strstr(debugmsgsave, (const char *)secret) != NULL)
     {
