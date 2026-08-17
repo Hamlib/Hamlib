@@ -36,5 +36,7 @@ extern struct rig_caps smartsdr_e_rig_caps;
 extern struct rig_caps smartsdr_f_rig_caps;
 extern struct rig_caps smartsdr_g_rig_caps;
 extern struct rig_caps smartsdr_h_rig_caps;
+int smartsdr_parse_status_value(const char *token, const char *prefix,
+                                char *value, size_t value_size);
 
 #endif /* _FLEXRADIO_H */
