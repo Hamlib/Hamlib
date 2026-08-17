@@ -151,7 +151,6 @@ static int volatile ctrl_c = 0;
 
 const char *portno = "4532";
 const char *src_addr = NULL; /* INADDR_ANY */
-extern char rigctld_password[65];
 char resp_sep = '\n';
 extern int lock_mode;
 extern powerstat_t rig_powerstat;
@@ -338,13 +337,20 @@ int main(int argc, char *argv[])
 #if RIGCTLD_PASSWORDS
 
         case 'A':
-            strncpy(rigctld_password, optarg, sizeof(rigctld_password) - 1);
-            //char *md5 = rig_make_m d5(rigctld_password);
-            char md5[HAMLIB_SECRET_LENGTH + 1];
-            rig_password_generate_secret(rigctld_password, md5);
-            printf("Secret key: %s\n", md5);
-            rig_settings_save("sharedkey", md5, e_CHAR);
+        {
+            char secret[HAMLIB_SECRET_LENGTH + 1];
+            int retval = rigctld_password_configure(optarg, secret);
+
+            if (retval != RIG_OK)
+            {
+                fprintf(stderr, "password must contain 1 to 64 bytes\n");
+                exit(1);
+            }
+
+            printf("Secret key: %s\n", secret);
             break;
+        }
+
 #endif
 
         case 'M':
@@ -1198,7 +1204,7 @@ int main(int argc, char *argv[])
                 exit(1);
             }
 
-            if (rigctld_password[0] != 0) { arg->use_password = 1; }
+            if (rigctld_password_is_enabled()) { arg->use_password = 1; }
 
             arg->rig = my_rig;
             arg->clilen = sizeof(arg->cli_addr);

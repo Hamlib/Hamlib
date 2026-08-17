@@ -78,6 +78,9 @@ int print_conf_list2(const struct confparams *cfp, rig_ptr_t data);
 int set_conf(RIG *my_rig, char *conf_parms);
 
 void rigctl_parse_init(void);
+int rigctld_password_configure(const char *password,
+                               char secret[HAMLIB_SECRET_LENGTH + 1]);
+int rigctld_password_is_enabled(void);
 typedef void (*sync_cb_t)(int);
 int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc, sync_cb_t sync_cb,
                  int interactive, int prompt, int * vfo_mode, char send_cmd_term,

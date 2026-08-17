@@ -20,7 +20,6 @@
 
 int lock_mode;
 powerstat_t rig_powerstat = RIG_POWER_ON;
-extern char rigctld_password[65];
 extern int is_rigctld;
 
 static char captured_description[sizeof(((channel_t *)0)->channel_desc)];
@@ -145,7 +144,9 @@ static int check_password_authorization(RIG *rig)
     };
     struct handle_data connection = { .rig = rig };
     char password[] = "test-password";
-    char *secret;
+    char overlong_password[66];
+    char secret[HAMLIB_SECRET_LENGTH + 1];
+    char repeated_secret[HAMLIB_SECRET_LENGTH + 1];
     char command[64];
     int ret;
 
@@ -184,20 +185,41 @@ static int check_password_authorization(RIG *rig)
         }
     }
 
-    strcpy(rigctld_password, password);
-    secret = rig_make_md5(password);
+    memset(overlong_password, 'x', sizeof(overlong_password) - 1);
+    overlong_password[sizeof(overlong_password) - 1] = '\0';
 
-    if (secret == NULL)
+    if (rigctld_password_configure("", secret) != -RIG_EINVAL
+            || rigctld_password_configure(overlong_password, secret)
+            != -RIG_EINVAL || rigctld_password_is_enabled())
     {
-        fprintf(stderr, "unable to create password secret\n");
+        fprintf(stderr, "invalid password was configured\n");
+        return 1;
+    }
+
+    ret = rigctld_password_configure(password, secret);
+    rig_password_generate_secret(password, repeated_secret);
+
+    if (ret != RIG_OK || !rigctld_password_is_enabled()
+            || strcmp(secret, repeated_secret) != 0)
+    {
+        fprintf(stderr, "unable to configure a stable password secret\n");
+        return 1;
+    }
+
+    snprintf(command, sizeof(command), "\\password %sx\n", secret);
+    is_rigctld = 1;
+    ret = parse_secure_network_command(rig, command, &connection);
+
+    if (ret != -RIG_EPROTO || connection.is_passwordOK)
+    {
+        fprintf(stderr, "password with trailing data was accepted\n");
+        is_rigctld = 0;
         return 1;
     }
 
     snprintf(command, sizeof(command), "\\password %s\n", secret);
-    is_rigctld = 1;
     ret = parse_secure_network_command(rig, command, &connection);
     is_rigctld = 0;
-    free(secret);
 
     if (ret != RIG_OK || !connection.is_passwordOK)
     {

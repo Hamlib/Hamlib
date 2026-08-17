@@ -113,9 +113,10 @@ extern int read_history();
 
 #define ARG_IN  (ARG_IN1|ARG_IN2|ARG_IN3|ARG_IN4)
 #define ARG_OUT (ARG_OUT1|ARG_OUT2|ARG_OUT3|ARG_OUT4|ARG_OUT5)
+#define RIGCTLD_PASSWORD_MAX_LENGTH 64
 
 static int chk_vfo_executed;
-char rigctld_password[65];
+static char rigctld_secret[HAMLIB_SECRET_LENGTH + 1];
 int is_rigctld;
 extern int lock_mode; // used by rigctld
 extern powerstat_t rig_powerstat;
@@ -737,6 +738,38 @@ void rigctl_parse_init(/* int threaded */)
     }
 
     return;
+}
+
+int rigctld_password_configure(const char *password,
+                               char secret[HAMLIB_SECRET_LENGTH + 1])
+{
+    if (secret == NULL)
+    {
+        return -RIG_EINVAL;
+    }
+
+    secret[0] = '\0';
+
+    if (password == NULL || password[0] == '\0'
+            || strlen(password) > RIGCTLD_PASSWORD_MAX_LENGTH)
+    {
+        return -RIG_EINVAL;
+    }
+
+    rig_password_generate_secret(password, rigctld_secret);
+
+    if (rigctld_secret[0] == '\0')
+    {
+        return -RIG_EINTERNAL;
+    }
+
+    memcpy(secret, rigctld_secret, sizeof(rigctld_secret));
+    return RIG_OK;
+}
+
+int rigctld_password_is_enabled(void)
+{
+    return rigctld_secret[0] != '\0';
 }
 
 int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
@@ -5693,33 +5726,22 @@ declare_proto_rig(pause)
 }
 
 #if RIGCTLD_PASSWORDS
-// Compare our known secret with remote submission
-// Returns 1 if match, 0 if not
-static int rigctld_password_check(RIG *rig, const char *md5)
+static int rigctld_password_check(const char *secret)
 {
-    int retval;
-    int len, hits = 0;
-    char padded[HAMLIB_SECRET_LENGTH + 1];
-    //fprintf(fout, "password %s\n", password);
-    //rig_debug(RIG_DEBUG_TRACE, "%s: %s == %s\n", __func__, md5, rigctld_password);
+    unsigned char difference = 0;
 
-    char *mymd5 = rig_make_md5(rigctld_password);
-
-    len = strlen(mymd5);
-    strncpy(padded, md5, HAMLIB_SECRET_LENGTH);
-    padded[HAMLIB_SECRET_LENGTH] = '\0';     // Make sure it's a terminated string
-
-    /* Brute force, constant time comparison */
-    for (int i = 0; i <= len; i++)
+    if (strlen(secret) != HAMLIB_SECRET_LENGTH)
     {
-        hits += (int)(padded[i] == mymd5[i]);
+        return 0;
     }
 
-    retval = (hits == len + 1);     // Entire string + terminator
+    for (int i = 0; i < HAMLIB_SECRET_LENGTH; i++)
+    {
+        difference |= (unsigned char)secret[i]
+                      ^ (unsigned char)rigctld_secret[i];
+    }
 
-    free(mymd5);
-
-    return (retval);
+    return difference == 0;
 }
 
 /* 0x98 */
@@ -5733,7 +5755,7 @@ declare_proto_rig(password)
 
     if (is_rigctld)
     {
-        retval = rigctld_password_check(rig, key);
+        retval = rigctld_password_check(key);
         connection = pthread_getspecific(thread_data_key);
 
         if (connection)
@@ -5759,8 +5781,6 @@ declare_proto_rig(password)
     }
     else
     {
-        //rig_debug(RIG_DEBUG_ERR, "%s: password error, '%s'!='%s'\n", __func__,
-        //          key, rigctld_password);
         rig_debug(RIG_DEBUG_ERR, "%s: password error\n", __func__);
     }
 
@@ -5772,9 +5792,8 @@ declare_proto_rig(password)
 /* 0x99 */
 declare_proto_rig(set_password)
 {
-    const char *passwd = arg1;
-    strncpy(rigctld_password, passwd, sizeof(passwd) - 1);
-    rig_debug(RIG_DEBUG_ERR, "%s: set_password %s\n", __func__, rigctld_password);
+    char secret[HAMLIB_SECRET_LENGTH + 1];
+    rigctld_password_configure(arg1, secret);
     return (RIG_OK);
 }
 #endif
