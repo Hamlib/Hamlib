@@ -30,6 +30,7 @@ DIRECT_TESTS = \
 	testicomts \
 	testnewcatset \
 	testmodecompat \
+	testsmartsdrstatus \
 	testthd7x \
 	testthd75emu \
 	testts990s
@@ -120,6 +121,7 @@ testicomts_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testgeministatus_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/amplifiers/gemini
 testftx1parsers_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/yaesu/ftx1
 testft991idmeter_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/yaesu
+testsmartsdrstatus_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/flexradio
 if TESTS_HAVE_LIBUSB
     rigtestlibusb_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) $(LIBUSB_CFLAGS)
 endif
@@ -152,6 +154,7 @@ testftx1parsers_LDADD = $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
 testft991idmeter_LDADD = $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
 testnewcatset_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
 testnetrigctl_SOURCES = testnetrigctl.c $(top_srcdir)/rigs/dummy/dummy_common.c
+testsmartsdrstatus_LDADD = $(top_builddir)/rigs/flexradio/libhamlib-flexradio.la $(LDADD)
 if TESTS_HAVE_LIBUSB
     rigtestlibusb_LDADD = $(LIBUSB_LIBS)
 endif
@@ -242,6 +245,9 @@ $(top_builddir)/rigs/kenwood/libhamlib-kenwood.la:
 
 $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la:
 	$(MAKE) -C $(top_builddir)/rigs/yaesu/ libhamlib-yaesu.la
+
+$(top_builddir)/rigs/flexradio/libhamlib-flexradio.la:
+	$(MAKE) -C $(top_builddir)/rigs/flexradio/ libhamlib-flexradio.la
 
 testrig.sh:
 	echo 'LD_LIBRARY_PATH=$(top_builddir)/src/.libs:$(top_builddir)/dummy/.libs ./testrig 1' > testrig.sh
