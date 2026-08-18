@@ -18,6 +18,10 @@ bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld rigctlcom rig
 # This keeps independent additions from editing shared lines.
 DIRECT_TESTS = \
 	testbandmetadata \
+	testcachemode \
+	testcacherouting \
+	testcachethread \
+	testcachevfo \
 	testctlparser \
 	testdebug \
 	testdummyparm \
@@ -25,6 +29,7 @@ DIRECT_TESTS = \
 	testgeministatus \
 	testgs100 \
 	testicomts \
+	testpoll \
 	testthd7x \
 	testthd75emu \
 	testid5100
@@ -108,6 +113,10 @@ rigctlcom_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_srcdir)/src -I$(top_bu
 rigctltcp_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_srcdir)/src -I$(top_builddir)/security
 rigctlsync_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_srcdir)/src -I$(top_builddir)/security
 testdebug_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testcachemode_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testcacherouting_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testcachethread_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testcachevfo_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testctlparser_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testgeministatus_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testgs100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
@@ -138,6 +147,18 @@ rigstreamtest_LDADD = $(PTHREAD_LIBS) $(LDADD)
 rigstreamtest_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 rigstreamtest_CPPFLAGS = -I$(top_srcdir)/src -I$(top_builddir)/src \
     $(AM_CPPFLAGS)
+testcachemode_LDADD = $(PTHREAD_LIBS) \
+                       $(top_builddir)/rigs/dummy/libhamlib-dummy.la \
+                       $(LDADD)
+testcacherouting_LDADD = $(PTHREAD_LIBS) \
+                          $(top_builddir)/rigs/dummy/libhamlib-dummy.la \
+                          $(LDADD)
+testcachethread_LDADD = $(PTHREAD_LIBS) \
+                        $(top_builddir)/rigs/dummy/libhamlib-dummy.la \
+                        $(LDADD)
+testcachevfo_LDADD = $(PTHREAD_LIBS) \
+                      $(top_builddir)/rigs/dummy/libhamlib-dummy.la \
+                      $(LDADD)
 testnetrigctl_LDADD = $(top_builddir)/rigs/dummy/libhamlib-dummy.la
 testctlparser_SOURCES = testctlparser.c $(RIGCOMMONSRC)
 testctlparser_LDADD = $(PTHREAD_LIBS) $(READLINE_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
@@ -195,6 +216,7 @@ EXTRA_DIST = \
 	testcaps.sh \
 	testctlbounds.sh \
 	testctld.pl \
+	testroutingaccess.sh \
 	testrotctld.pl
 
 # Support 'make check' target for simple tests
@@ -204,6 +226,7 @@ check_SCRIPTS = \
 	rigstreamtest.sh \
 	testcaps.sh \
 	testctlbounds.sh \
+	testroutingaccess.sh \
 	$(GENERATED_TEST_WRAPPERS)
 
 TESTS = $(check_SCRIPTS) $(DIRECT_TESTS)

@@ -40,6 +40,7 @@
 #include "hamlib/rig.h"
 #include "hamlib/port.h"
 #include "hamlib/rig_state.h"
+#include "event.h"
 #include "token.h"
 #include "stream_convert.h"     /* RIG_RESAMPLE_* quality constants */
 
@@ -104,8 +105,10 @@ static const struct confparams frontend_cfg_params[] =
         "0", RIG_CONF_NUMERIC, { .n = { 0.0, 1000.0, .001 } }
     },
     {
-        TOK_POLL_INTERVAL, "poll_interval", "Rig state poll interval in ms",
-        "Polling interval in ms for transceive emulation, defaults to 1000, value of 0 disables polling",
+        TOK_POLL_INTERVAL, "poll_interval",
+        "Rig state publication interval in ms",
+        "Maximum interval between multicast state keepalives; changes may "
+        "publish sooner, defaults to 1000, value of 0 disables publication",
         "1000", RIG_CONF_NUMERIC, { .n = { 0, 1000000, 1 } }
     },
     {
@@ -141,7 +144,7 @@ static const struct confparams frontend_cfg_params[] =
     {
         TOK_CACHE_TIMEOUT, "cache_timeout", "Cache timeout value in ms",
         "Cache timeout, value of 0 disables caching",
-        "500", RIG_CONF_NUMERIC, { .n = {0, 5000, 1}}
+        "1000", RIG_CONF_NUMERIC, { .n = {0, 5000, 1}}
     },
     {
         TOK_STREAM_TIME_STALE_COARSE, "stream_time_stale_coarse",
@@ -744,9 +747,7 @@ static int frontend_set_conf(RIG *rig, hamlib_token_t token, const char *val)
             return -RIG_EINVAL;
         }
 
-        rs->poll_interval = val_i;
-        // Make sure cache times out before next poll cycle
-        rig_set_cache_timeout_ms(rig, HAMLIB_CACHE_ALL, atol(val));
+        rig_set_poll_interval(rig, val_i);
         break;
 
     case TOK_LO_FREQ:
@@ -1257,7 +1258,7 @@ static int frontend_get_conf2(RIG *rig, hamlib_token_t token, char *val,
         break;
 
     case TOK_POLL_INTERVAL:
-        SNPRINTF(val, val_len, "%d", rs->poll_interval);
+        SNPRINTF(val, val_len, "%d", rig_get_poll_interval(rig));
         break;
 
     case TOK_PTT_TYPE:

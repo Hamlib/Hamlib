@@ -412,21 +412,20 @@ static int pmr171_open(RIG *rig)
                          reply[freq_b_offset+3];
 
         // Update cache
-        CACHE(rig)->freqMainA = (freq_t)freq_a;
-        CACHE(rig)->freqMainB = (freq_t)freq_b;
+        rig_set_cache_freq(rig, RIG_VFO_A, (freq_t)freq_a);
+        rig_set_cache_freq(rig, RIG_VFO_B, (freq_t)freq_b);
 
         // Return requested VFO frequency
-        *freq = (vfo == RIG_VFO_A) ? CACHE(rig)->freqMainA : CACHE(rig)->freqMainB;
+        *freq = (vfo == RIG_VFO_A) ? (freq_t)freq_a : (freq_t)freq_b;
 
         rig_debug(RIG_DEBUG_VERBOSE, "%s: Successfully got VFOA=%.0f Hz, VFOB=%.0f Hz\n",
-                 __func__, CACHE(rig)->freqMainA, CACHE(rig)->freqMainB);
+                 __func__, (freq_t)freq_a, (freq_t)freq_b);
     }
     return RIG_OK;
  }
  
  static int pmr171_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  {
-    struct rig_cache *cachep = CACHE(rig);
     const pmr171_data_t *p = (pmr171_data_t *) STATE(rig)->priv;
     {
         unsigned char reply[40];
@@ -434,17 +433,19 @@ static int pmr171_open(RIG *rig)
         pmr171_send_cmd1(rig, 0x0b, 0);
         // Read and validate response using common function
         if (read_rig_response(rig, reply, sizeof(reply), __func__) < 0) {
-            RETURN_CACHED_MODE(rig, vfo, mode, width, cachep, p);
+            RETURN_CACHED_MODE(rig, vfo, mode, width, p);
         }
         // Validate mode response using common function
         if (validate_mode_response(rig, reply, sizeof(reply), __func__, 5) < 0) {
-            RETURN_CACHED_MODE(rig, vfo, mode, width, cachep, p);
+            RETURN_CACHED_MODE(rig, vfo, mode, width, p);
         }
+        rmode_t mode_a = guohe2rmode(reply[7], pmr171_modes);
+        rmode_t mode_b = guohe2rmode(reply[8], pmr171_modes);
         // Update cache
-        cachep->modeMainA = guohe2rmode(reply[7], pmr171_modes);
-        cachep->modeMainB = guohe2rmode(reply[8], pmr171_modes);
+        rig_set_cache_mode_only(rig, RIG_VFO_A, mode_a);
+        rig_set_cache_mode_only(rig, RIG_VFO_B, mode_b);
         // Return requested mode
-        *mode = (vfo == RIG_VFO_A) ? cachep->modeMainA : cachep->modeMainB;
+        *mode = (vfo == RIG_VFO_A) ? mode_a : mode_b;
         *width = p->filterBW;
     }
     return RIG_OK;
@@ -453,7 +454,10 @@ static int pmr171_open(RIG *rig)
  static int pmr171_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
                                  vfo_t *tx_vfo)
  {
-     *split = CACHE(rig)->split;
+     struct rig_cache_routing_snapshot routing;
+
+     rig_get_cache_routing_snapshot(rig, &routing);
+     *split = routing.split;
  
      if (*split) { *tx_vfo = RIG_VFO_B; }
      else { *tx_vfo = RIG_VFO_A; }
@@ -485,22 +489,21 @@ static int pmr171_open(RIG *rig)
  
  static int pmr171_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
  {
-    struct rig_cache *cachep = CACHE(rig);
     {
         unsigned char reply[40];
         pmr171_send_cmd1(rig, 0x0b, 0);
         // Read and validate response using common function
         if (read_rig_response(rig, reply, sizeof(reply), __func__) < 0) {
-            RETURN_CACHED_PTT(rig, ptt, cachep);
+            RETURN_CACHED_PTT(rig, ptt);
         }
         // Validate PTT status field index won't overflow
         if (reply[4] < 2) { // Need at least 2 bytes to access reply[6]
             rig_debug(RIG_DEBUG_ERR, "%s: Response too short for PTT data, using cached values\n", __func__);
-            RETURN_CACHED_PTT(rig, ptt, cachep);
+            RETURN_CACHED_PTT(rig, ptt);
         }
         // Get PTT status
-        cachep->ptt = reply[6];
-        *ptt = cachep->ptt;
+        *ptt = reply[6];
+        rig_set_cache_ptt(rig, *ptt);
     }
     return RIG_OK;
  }
@@ -565,19 +568,24 @@ static int pmr171_open(RIG *rig)
      unsigned char cmd[16] = { 0xa5, 0xa5, 0xa5, 0xa5, 11, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
      unsigned char reply[16];
      hamlib_port_t *rp = RIGPORT(rig);
+     freq_t other_freq;
 
      rig_debug(RIG_DEBUG_VERBOSE, "pmr171: requested freq = %"PRIfreq" Hz\n", freq);
+
+    rig_get_cache_freq(rig,
+                       vfo == RIG_VFO_B ? RIG_VFO_A : RIG_VFO_B,
+                       &other_freq, NULL);
 
     /* Update frequency */
     if (vfo == RIG_VFO_B)
     {
-        to_be(&cmd[6], CACHE(rig)->freqMainA, 4);
+        to_be(&cmd[6], other_freq, 4);
         to_be(&cmd[10], freq, 4);
     }
     else
     {
         to_be(&cmd[6], freq, 4);
-        to_be(&cmd[10], CACHE(rig)->freqMainB, 4);
+        to_be(&cmd[10], other_freq, 4);
     }
  
      unsigned int crc = CRC16Check(&cmd[4], 10);
@@ -591,26 +599,12 @@ static int pmr171_open(RIG *rig)
      if (ret < 0) {
          rig_debug(RIG_DEBUG_ERR, "%s: Failed to read response, using cached values\n", __func__);
          // Update cache with requested frequency even if response failed
-         if (vfo == RIG_VFO_B)
-         {
-             CACHE(rig)->freqMainB = freq;
-         }
-         else
-         {
-             CACHE(rig)->freqMainA = freq;
-         }
+         rig_set_cache_freq(rig, vfo, freq);
          return RIG_OK;
      }
      
      // Update cache with requested frequency
-     if (vfo == RIG_VFO_B)
-     {
-         CACHE(rig)->freqMainB = freq;
-     }
-     else
-     {
-         CACHE(rig)->freqMainA = freq;
-     }
+     rig_set_cache_freq(rig, vfo, freq);
 
      return RIG_OK;
  }
@@ -639,16 +633,20 @@ static int pmr171_open(RIG *rig)
      unsigned char cmd[10] = { 0xa5, 0xa5, 0xa5, 0xa5, 5, 0x0a, 0x00, 0x00, 0x00, 0x00 };
      unsigned char reply[10];
      unsigned char i = rmode2guohe(mode, pmr171_modes);
+     rmode_t other_mode;
+
+     guohetec_get_cached_mode(
+         rig, vfo == RIG_VFO_B ? RIG_VFO_A : RIG_VFO_B, &other_mode);
 
      if (vfo == RIG_VFO_B)
      {
-         cmd[6] = rmode2guohe(CACHE(rig)->modeMainA, pmr171_modes);
+         cmd[6] = rmode2guohe(other_mode, pmr171_modes);
          cmd[7] = i;
      }
      else
      {
          cmd[6] = i;
-         cmd[7] = rmode2guohe(CACHE(rig)->modeMainB, pmr171_modes);
+         cmd[7] = rmode2guohe(other_mode, pmr171_modes);
      }
 
      int crc = CRC16Check(&cmd[4], 4);
@@ -660,14 +658,7 @@ static int pmr171_open(RIG *rig)
      // Use common response reading function
      if (read_rig_response(rig, reply, sizeof(reply), __func__) < 0) {
          // Update cache with requested mode even if response failed
-         if (vfo == RIG_VFO_B)
-         {
-             CACHE(rig)->modeMainB = mode;
-         }
-         else
-         {
-             CACHE(rig)->modeMainA = mode;
-         }
+         rig_set_cache_mode(rig, vfo, mode, width);
          return RIG_OK;
      }
      
@@ -675,20 +666,15 @@ static int pmr171_open(RIG *rig)
      if (reply[4] < 3) { // Need at least 3 bytes to access reply[6] and reply[7]
          rig_debug(RIG_DEBUG_ERR, "%s: Response too short for mode data, using cached values\n", __func__);
          // Update cache with requested mode even if validation failed
-         if (vfo == RIG_VFO_B)
-         {
-             CACHE(rig)->modeMainB = mode;
-         }
-         else
-         {
-             CACHE(rig)->modeMainA = mode;
-         }
+         rig_set_cache_mode(rig, vfo, mode, width);
          return RIG_OK;
      }
      
      // Update cache with response data
-     CACHE(rig)->modeMainA = guohe2rmode(reply[6], pmr171_modes);
-     CACHE(rig)->modeMainB = guohe2rmode(reply[7], pmr171_modes);
+     rig_set_cache_mode_only(rig, RIG_VFO_A,
+                             guohe2rmode(reply[6], pmr171_modes));
+     rig_set_cache_mode_only(rig, RIG_VFO_B,
+                             guohe2rmode(reply[7], pmr171_modes));
 
      return RIG_OK;
  }
@@ -710,7 +696,7 @@ static int pmr171_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     unsigned char reply[9];
     pmr171_send(rig, cmd, sizeof(cmd), reply, sizeof(reply));
 
-    CACHE(rig)->ptt = ptt;
+    rig_set_cache_ptt(rig, ptt);
 
     return RIG_OK;
 }
@@ -761,7 +747,7 @@ static int pmr171_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
          break;
      }
  
-     CACHE(rig)->split = split;
+     rig_set_cache_split(rig, split, tx_vfo);
  
      return RIG_OK;
  

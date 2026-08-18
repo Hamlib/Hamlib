@@ -120,6 +120,23 @@ extern HAMLIB_EXPORT(double) elapsed_ms(struct timespec *start, int start_flag);
 extern HAMLIB_EXPORT(vfo_t) vfo_fixup(RIG *rig, vfo_t vfo, split_t split);
 extern HAMLIB_EXPORT(vfo_t) vfo_fixup2a(RIG *rig, vfo_t vfo, split_t split, const char *func, const int line);
 #define vfo_fixup(r,v,s) vfo_fixup2a(r,v,s,__func__,__LINE__)
+struct rig_cache_routing_snapshot;
+extern HAMLIB_EXPORT(vfo_t) vfo_fixup_from_snapshot(
+    RIG *rig, vfo_t vfo, split_t split,
+    const struct rig_cache_routing_snapshot *snapshot,
+    const char *func, int line);
+extern HAMLIB_EXPORT(vfo_t) vfo_fixup_current2a(
+    RIG *rig, vfo_t vfo, const char *func, int line);
+#define vfo_fixup_current(r,v) vfo_fixup_current2a(r,v,__func__,__LINE__)
+
+extern HAMLIB_EXPORT(void) rig_set_current_vfo_state(RIG *rig, vfo_t vfo);
+extern HAMLIB_EXPORT(void) rig_set_rx_vfo_state(RIG *rig, vfo_t rx_vfo);
+extern HAMLIB_EXPORT(void) rig_set_tx_vfo_state(RIG *rig, vfo_t tx_vfo);
+extern HAMLIB_EXPORT(void) rig_set_vfo_state(RIG *rig, vfo_t current_vfo,
+                                             vfo_t tx_vfo);
+extern HAMLIB_EXPORT(void) rig_set_split_routing_state(
+    RIG *rig, split_t split, vfo_t rx_vfo, vfo_t tx_vfo);
+extern HAMLIB_EXPORT(void) rig_observe_current_vfo(RIG *rig, vfo_t vfo);
 
 extern HAMLIB_EXPORT(int) parse_hoststr(char *hoststr, int hoststr_len, char host[256], char port[6]);
 
@@ -177,27 +194,7 @@ void errmsg(int err, char *s, const char *func, const char *file, int line);
             return (rctmp); \
             } while(0);}
 
-#define CACHE_RESET {\
-    elapsed_ms(&CACHE(rig)->time_freqMainA, HAMLIB_ELAPSED_INVALIDATE);\
-    elapsed_ms(&CACHE(rig)->time_freqMainB, HAMLIB_ELAPSED_INVALIDATE);\
-    elapsed_ms(&CACHE(rig)->time_freqSubA, HAMLIB_ELAPSED_INVALIDATE);\
-    elapsed_ms(&CACHE(rig)->time_freqSubB, HAMLIB_ELAPSED_INVALIDATE);\
-    elapsed_ms(&CACHE(rig)->time_vfo, HAMLIB_ELAPSED_INVALIDATE);\
-    elapsed_ms(&CACHE(rig)->time_modeMainA, HAMLIB_ELAPSED_INVALIDATE);\
-    elapsed_ms(&CACHE(rig)->time_modeMainB, HAMLIB_ELAPSED_INVALIDATE);\
-    elapsed_ms(&CACHE(rig)->time_modeMainC, HAMLIB_ELAPSED_INVALIDATE);\
-    elapsed_ms(&CACHE(rig)->time_modeSubA, HAMLIB_ELAPSED_INVALIDATE);\
-    elapsed_ms(&CACHE(rig)->time_modeSubB, HAMLIB_ELAPSED_INVALIDATE);\
-    elapsed_ms(&CACHE(rig)->time_modeSubC, HAMLIB_ELAPSED_INVALIDATE);\
-    elapsed_ms(&CACHE(rig)->time_widthMainA, HAMLIB_ELAPSED_INVALIDATE);\
-    elapsed_ms(&CACHE(rig)->time_widthMainB, HAMLIB_ELAPSED_INVALIDATE);\
-    elapsed_ms(&CACHE(rig)->time_widthMainC, HAMLIB_ELAPSED_INVALIDATE);\
-    elapsed_ms(&CACHE(rig)->time_widthSubA, HAMLIB_ELAPSED_INVALIDATE);\
-    elapsed_ms(&CACHE(rig)->time_widthSubB, HAMLIB_ELAPSED_INVALIDATE);\
-    elapsed_ms(&CACHE(rig)->time_widthSubC, HAMLIB_ELAPSED_INVALIDATE);\
-    elapsed_ms(&CACHE(rig)->time_ptt, HAMLIB_ELAPSED_INVALIDATE);\
-    elapsed_ms(&CACHE(rig)->time_split, HAMLIB_ELAPSED_INVALIDATE);\
-     }
+#define CACHE_RESET rig_invalidate_cache(rig)
 
 
 typedef enum settings_value_e

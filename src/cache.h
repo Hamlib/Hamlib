@@ -36,32 +36,31 @@ __BEGIN_DECLS
  *      - n3gb 2025-05-14
  */
 
-/**
- * \brief Rig cache data
+/*
+ * Coherent copy of the application-facing cache values. All fields are
+ * captured while holding the cache mutex, but the rig may change after the
+ * snapshot is returned. Freshness timestamps remain private to the cache.
  *
- * This struct contains all the items we cache at the highest level
- * Replaces cache structure(s) in state
+ * current_vfo is Hamlib's working routing assumption. observed_vfo is the
+ * last VFO selection confirmed through a rig observation and has separately
+ * tracked freshness. The Curr, Other, Main, Sub, A, B, C, and Mem suffixes
+ * identify the logical VFO slots used by Hamlib's cache mapping.
  */
-struct rig_cache {
-    int timeout_ms;  // the cache timeout for invalidating itself
-    vfo_t vfo;
-    //freq_t freq; // to be deprecated in 4.1 when full Main/Sub/A/B caching is implemented in 4.1
-    // other abstraction here is based on dual vfo rigs and mapped to all others
-    // So we have four possible states of rig
-    // MainA, MainB, SubA, SubB
-    // Main is the Main VFO and Sub is for the 2nd VFO
-    // Most rigs have MainA and MainB
-    // Dual VFO rigs can have SubA and SubB too
-    // For dual VFO rigs simplex operations are all done on MainA/MainB -- ergo this abstraction
-    freq_t freqCurr; // Other VFO
-    freq_t freqOther; // Other VFO
-    freq_t freqMainA; // VFO_A, VFO_MAIN, and VFO_MAINA
-    freq_t freqMainB; // VFO_B, VFO_SUB, and VFO_MAINB
-    freq_t freqMainC; // VFO_C, VFO_MAINC
-    freq_t freqSubA;  // VFO_SUBA -- only for rigs with dual Sub VFOs
-    freq_t freqSubB;  // VFO_SUBB -- only for rigs with dual Sub VFOs
-    freq_t freqSubC;  // VFO_SUBC -- only for rigs with 3 Sub VFOs
-    freq_t freqMem;   // VFO_MEM -- last MEM channel
+struct rig_cache_snapshot
+{
+    vfo_t current_vfo;
+    vfo_t observed_vfo;
+    vfo_t rx_vfo;
+    vfo_t tx_vfo;
+    freq_t freqCurr;
+    freq_t freqOther;
+    freq_t freqMainA;
+    freq_t freqMainB;
+    freq_t freqMainC;
+    freq_t freqSubA;
+    freq_t freqSubB;
+    freq_t freqSubC;
+    freq_t freqMem;
     rmode_t modeCurr;
     rmode_t modeOther;
     rmode_t modeMainA;
@@ -71,60 +70,65 @@ struct rig_cache {
     rmode_t modeSubB;
     rmode_t modeSubC;
     rmode_t modeMem;
-    pbwidth_t widthCurr; // if non-zero then rig has separate width for MainA
-    pbwidth_t widthOther; // if non-zero then rig has separate width for MainA
-    pbwidth_t widthMainA; // if non-zero then rig has separate width for MainA
-    pbwidth_t widthMainB; // if non-zero then rig has separate width for MainB
-    pbwidth_t widthMainC; // if non-zero then rig has separate width for MainC
-    pbwidth_t widthSubA;  // if non-zero then rig has separate width for SubA
-    pbwidth_t widthSubB;  // if non-zero then rig has separate width for SubB
-    pbwidth_t widthSubC;  // if non-zero then rig has separate width for SubC
-    pbwidth_t widthMem;  // if non-zero then rig has separate width for Mem
+    pbwidth_t widthCurr;
+    pbwidth_t widthOther;
+    pbwidth_t widthMainA;
+    pbwidth_t widthMainB;
+    pbwidth_t widthMainC;
+    pbwidth_t widthSubA;
+    pbwidth_t widthSubB;
+    pbwidth_t widthSubC;
+    pbwidth_t widthMem;
     ptt_t ptt;
     split_t split;
-    vfo_t split_vfo;  // split caches two values
-    struct timespec time_freqCurr;
-    struct timespec time_freqOther;
-    struct timespec time_freqMainA;
-    struct timespec time_freqMainB;
-    struct timespec time_freqMainC;
-    struct timespec time_freqSubA;
-    struct timespec time_freqSubB;
-    struct timespec time_freqSubC;
-    struct timespec time_freqMem;
-    struct timespec time_vfo;
-    struct timespec time_modeCurr;
-    struct timespec time_modeOther;
-    struct timespec time_modeMainA;
-    struct timespec time_modeMainB;
-    struct timespec time_modeMainC;
-    struct timespec time_modeSubA;
-    struct timespec time_modeSubB;
-    struct timespec time_modeSubC;
-    struct timespec time_modeMem;
-    struct timespec time_widthCurr;
-    struct timespec time_widthOther;
-    struct timespec time_widthMainA;
-    struct timespec time_widthMainB;
-    struct timespec time_widthMainC;
-    struct timespec time_widthSubA;
-    struct timespec time_widthSubB;
-    struct timespec time_widthSubC;
-    struct timespec time_widthMem;
-    struct timespec time_ptt;
-    struct timespec time_split;
-    int satmode; // if rig is in satellite mode
+    vfo_t split_vfo;
+    int satmode;
 };
 
-/* Access macros */
-#define CACHE(r) ((r)->cache_addr)
-//#define HAMLIB_CACHE(r) ((struct rig_cache *)rig_data_pointer(r, RIG_PTRX_CACHE))
+/*
+ * Coherent subset of cache state used for VFO routing decisions. Use this
+ * instead of rig_cache_snapshot when frequency, mode, and width values are
+ * not needed.
+ */
+struct rig_cache_routing_snapshot
+{
+    vfo_t current_vfo;
+    vfo_t rx_vfo;
+    vfo_t tx_vfo;
+    split_t split;
+    vfo_t split_vfo;
+    int satmode;
+    ptt_t ptt;
+};
 
 /* Function templates
  * Does not include those marked as part of HAMLIB_API
  */
+struct rig_cache *rig_cache_create(void);
+void rig_cache_destroy(struct rig_cache *cache);
 int rig_set_cache_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+int rig_set_cache_mode_only(RIG *rig, vfo_t vfo, rmode_t mode);
+int rig_invalidate_cache_mode(RIG *rig, vfo_t vfo);
 int rig_set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq);
+void rig_invalidate_cache_current_freq(RIG *rig);
+void rig_invalidate_cache_vfo(RIG *rig);
+void rig_get_cached_vfo(RIG *rig, vfo_t *vfo, int *cache_ms,
+                        int *timeout_ms);
+void rig_set_cache_ptt(RIG *rig, ptt_t ptt);
+void rig_invalidate_cache_ptt(RIG *rig);
+void rig_invalidate_cache(RIG *rig);
+void rig_get_cache_ptt(RIG *rig, ptt_t *ptt, int *cache_ms,
+                       int *timeout_ms);
+void rig_set_cache_split(RIG *rig, split_t split, vfo_t split_vfo);
+void rig_get_cache_split(RIG *rig, split_t *split, vfo_t *split_vfo,
+                         int *cache_ms, int *timeout_ms);
+void rig_set_cache_satmode(RIG *rig, int satmode);
+int rig_get_cache_satmode(RIG *rig);
+void rig_set_current_vfo_state(RIG *rig, vfo_t vfo);
+vfo_t rig_get_current_vfo_state(RIG *rig);
+void rig_get_cache_routing_snapshot(
+    RIG *rig, struct rig_cache_routing_snapshot *snapshot);
+void rig_get_cache_snapshot(RIG *rig, struct rig_cache_snapshot *snapshot);
 void rig_cache_show(RIG *rig, const char *func, int line);
 
 __END_DECLS

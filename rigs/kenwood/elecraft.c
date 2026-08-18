@@ -657,13 +657,26 @@ int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
                   __func__, splitbuf);
     }
 
-    *vfo = STATE(rig)->tx_vfo = RIG_VFO_A;
+    *vfo = RIG_VFO_A;
+    rig_set_tx_vfo_state(rig, *vfo);
 
-    if (tq && ft == 1) { *vfo = STATE(rig)->tx_vfo = RIG_VFO_B; }
-    else if (tq && ft == 0) { *vfo = STATE(rig)->tx_vfo = RIG_VFO_A; }
+    if (tq && ft == 1)
+    {
+        *vfo = RIG_VFO_B;
+        rig_set_tx_vfo_state(rig, *vfo);
+    }
+    else if (tq && ft == 0)
+    {
+        *vfo = RIG_VFO_A;
+        rig_set_tx_vfo_state(rig, *vfo);
+    }
 
-    if (!tq && fr == 1) { *vfo = STATE(rig)->rx_vfo = STATE(rig)->tx_vfo = RIG_VFO_B; }
+    if (!tq && fr == 1)
+    {
+        *vfo = RIG_VFO_B;
+        rig_set_rx_vfo_state(rig, *vfo);
+        rig_set_tx_vfo_state(rig, *vfo);
+    }
 
     RETURNFUNC2(RIG_OK);
 }
-

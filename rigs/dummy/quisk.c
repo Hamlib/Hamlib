@@ -1049,7 +1049,7 @@ static int quisk_set_vfo(RIG *rig, vfo_t vfo)
     }
 
     priv->vfo_curr = vfo; // remember our vfo
-    STATE(rig)->current_vfo = vfo;
+    rig_set_current_vfo_state(rig, vfo);
     return ret;
 }
 

@@ -445,7 +445,7 @@ struct rig_caps ft747_caps =
 int ft747_init(RIG *rig)
 {
     STATE(rig)->priv = (struct ft747_priv_data *) calloc(1,
-                       sizeof(struct ft747_priv_data));
+        sizeof(struct ft747_priv_data));
 
     if (!STATE(rig)->priv)           /* whoops! memory shortage! */
     {
@@ -566,7 +566,7 @@ int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     to_bcd(p->p_cmd, (freq + 5) / 10, 8);
 
     rig_debug(RIG_DEBUG_VERBOSE, fmt, __func__, (int64_t)from_bcd(p->p_cmd,
-              8) * 10);
+            8) * 10);
 
     rig_force_cache_timeout(&p->status_tv);
 
@@ -582,19 +582,21 @@ int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 int ft747_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct ft747_priv_data *p;
-    struct rig_cache *cachep = CACHE(rig);
+    struct rig_cache_snapshot cache;
     freq_t f;
     int ret;
 
+    rig_get_cache_snapshot(rig, &cache);
+
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s: called vfo=%s, freqMainA=%.0f, freqMainB=%.0f\n", __func__,
-              rig_strvfo(vfo), cachep->freqMainA, cachep->freqMainB);
+              rig_strvfo(vfo), cache.freqMainA, cache.freqMainB);
 
-    if (vfo == RIG_VFO_CURR) { vfo = cachep->vfo; }
+    if (vfo == RIG_VFO_CURR) { vfo = cache.current_vfo; }
 
-    if (cachep->ptt == RIG_PTT_ON)
+    if (cache.ptt == RIG_PTT_ON)
     {
-        *freq = RIG_VFO_B ? cachep->freqMainB : cachep->freqMainA;
+        *freq = cache.freqMainB;
         return RIG_OK;
     }
 
@@ -1004,12 +1006,17 @@ static int ft747_get_update_data(RIG *rig)
 {
     hamlib_port_t *rigport;
     struct ft747_priv_data *p;
+    int cache_ms;
+    int timeout_ms;
+    ptt_t ptt;
     //unsigned char last_byte;
 
     p = (struct ft747_priv_data *)STATE(rig)->priv;
     rigport = RIGPORT(rig);
 
-    if (CACHE(rig)->ptt == RIG_PTT_ON
+    rig_get_cache_ptt(rig, &ptt, &cache_ms, &timeout_ms);
+
+    if (ptt == RIG_PTT_ON
             || !rig_check_cache_timeout(&p->status_tv, FT747_CACHE_TIMEOUT))
     {
         return RIG_OK;
@@ -1071,4 +1078,3 @@ static int ft747_send_priv_cmd(RIG *rig, unsigned char ci)
     return write_block(RIGPORT(rig), ft747_ncmd[ci].nseq, YAESU_CMD_LENGTH);
 
 }
-

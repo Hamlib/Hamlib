@@ -23,6 +23,7 @@
 #include "hamlib/port.h"
 #include "hamlib/rig_state.h"
 #include "icom.h"
+#include "cache.h"
 
 struct civ_step
 {
@@ -317,27 +318,27 @@ int main(void)
     priv->serial_USB_echo_off = 1;
     STATE(rig)->comm_state = 1;
     STATE(rig)->dual_watch = 1;
-    STATE(rig)->current_vfo = RIG_VFO_CURR;
+    rig_set_current_vfo_state(rig, RIG_VFO_CURR);
     rig_set_cache_timeout_ms(rig, HAMLIB_CACHE_ALL, 0);
 
     retval = rig_get_freq(rig, RIG_VFO_CURR, &freq);
     failed |= check_result("current read", retval, RIG_OK);
     failed |= check_result("current frequency", (int) freq, 145490000);
-    failed |= check_result("current VFO unchanged", STATE(rig)->current_vfo,
+    failed |= check_result("current VFO unchanged", rig_get_current_vfo_state(rig),
                            RIG_VFO_CURR);
     failed |= check_result("dual watch unchanged", STATE(rig)->dual_watch, 1);
 
     retval = rig_get_freq(rig, RIG_VFO_A, &freq);
     failed |= check_result("unknown side is not targetable", retval,
                            -RIG_ENTARGET);
-    failed |= check_result("unknown side remains unchanged", STATE(rig)->current_vfo,
+    failed |= check_result("unknown side remains unchanged", rig_get_current_vfo_state(rig),
                            RIG_VFO_CURR);
 
     retval = rig_set_freq(rig, RIG_VFO_A, 146760000);
     failed |= check_result("unknown side cannot be written", retval,
                            -RIG_ENTARGET);
     failed |= check_result("unknown side remains unchanged after write",
-                           STATE(rig)->current_vfo, RIG_VFO_CURR);
+                           rig_get_current_vfo_state(rig), RIG_VFO_CURR);
 
     retval = rig_set_vfo(rig, RIG_VFO_A);
     failed |= check_result("select A", retval, RIG_OK);
@@ -345,7 +346,7 @@ int main(void)
     retval = rig_get_freq(rig, RIG_VFO_B, &freq);
     failed |= check_result("read B", retval, RIG_OK);
     failed |= check_result("B frequency", (int) freq, 145490000);
-    failed |= check_result("restore A", STATE(rig)->current_vfo, RIG_VFO_A);
+    failed |= check_result("restore A", rig_get_current_vfo_state(rig), RIG_VFO_A);
 
     retval = rig_set_vfo(rig, RIG_VFO_B);
     failed |= check_result("select B", retval, RIG_OK);
@@ -353,16 +354,16 @@ int main(void)
     retval = rig_get_freq(rig, RIG_VFO_A, &freq);
     failed |= check_result("read A", retval, RIG_OK);
     failed |= check_result("A frequency", (int) freq, 146760000);
-    failed |= check_result("restore B", STATE(rig)->current_vfo, RIG_VFO_B);
+    failed |= check_result("restore B", rig_get_current_vfo_state(rig), RIG_VFO_B);
 
     retval = rig_get_freq(rig, RIG_VFO_A, &freq);
     failed |= check_result("rejected frequency read", retval, -RIG_ERJCTED);
-    failed |= check_result("restore B after rejected read", STATE(rig)->current_vfo,
+    failed |= check_result("restore B after rejected read", rig_get_current_vfo_state(rig),
                            RIG_VFO_B);
 
     retval = rig_get_freq(rig, RIG_VFO_A, &freq);
     failed |= check_result("rejected A selection", retval, -RIG_ERJCTED);
-    failed |= check_result("keep B after rejected selection", STATE(rig)->current_vfo,
+    failed |= check_result("keep B after rejected selection", rig_get_current_vfo_state(rig),
                            RIG_VFO_B);
     failed |= check_result("dual watch remains enabled", STATE(rig)->dual_watch, 1);
 

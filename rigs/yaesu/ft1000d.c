@@ -296,7 +296,7 @@ struct rig_caps ft1000d_caps =
     .has_get_func =       RIG_FUNC_LOCK | RIG_FUNC_TUNER | RIG_FUNC_MON,
     .has_set_func =       RIG_FUNC_LOCK | RIG_FUNC_TUNER,
     .has_get_level =      RIG_LEVEL_STRENGTH | RIG_LEVEL_SWR | RIG_LEVEL_ALC | \
-    RIG_LEVEL_RFPOWER | RIG_LEVEL_COMP,
+                          RIG_LEVEL_RFPOWER | RIG_LEVEL_COMP,
     .has_set_level =      RIG_LEVEL_BAND_SELECT,
     .has_get_parm =       RIG_PARM_NONE,
     .has_set_parm =       RIG_PARM_BACKLIGHT,
@@ -588,7 +588,7 @@ static int ft1000d_init(RIG *rig)
     }
 
     STATE(rig)->priv = (struct ft1000d_priv_data *) calloc(1,
-                       sizeof(struct ft1000d_priv_data));
+        sizeof(struct ft1000d_priv_data));
 
     if (!STATE(rig)->priv)
     {
@@ -3711,7 +3711,7 @@ static int ft1000d_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq)
     to_bcd(priv->p_cmd, freq / 10, FT1000D_BCD_DIAL);
 
     rig_debug(RIG_DEBUG_TRACE, fmt, __func__, (int64_t)from_bcd(priv->p_cmd,
-              FT1000D_BCD_DIAL) * 10);
+            FT1000D_BCD_DIAL) * 10);
 
     err = write_block(rp, (unsigned char *) &priv->p_cmd, YAESU_CMD_LENGTH);
 
@@ -4116,34 +4116,22 @@ static int ft1000d_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
 
 static int ft1000_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    if (vfo == RIG_VFO_CURR)
-    {
-        rig_debug(RIG_DEBUG_TRACE, "%s: current_vfo=%s\n", __func__,
-                  rig_strvfo(STATE(rig)->current_vfo));
-        vfo = STATE(rig)->current_vfo;
-    }
-
-    if (vfo == RIG_VFO_A)
-    {
-        *freq = CACHE(rig)->freqMainA;
-    }
-    else
-    {
-        *freq = CACHE(rig)->freqMainB;
-    }
-
-    return RIG_OK;
+    return rig_get_cache_freq(rig, vfo, freq, NULL);
 }
 
 static int ft1000_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
+    struct rig_cache_snapshot cache;
+
+    rig_get_cache_snapshot(rig, &cache);
+
     if (vfo == RIG_VFO_A)
     {
-        *mode = CACHE(rig)->modeMainA;
+        *mode = cache.modeMainA;
     }
     else
     {
-        *mode = CACHE(rig)->modeMainB;
+        *mode = cache.modeMainB;
     }
 
     return RIG_OK;
@@ -4151,16 +4139,18 @@ static int ft1000_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 static int ft1000_get_vfo(RIG *rig, vfo_t *vfo)
 {
-    *vfo = STATE(rig)->current_vfo;
+    *vfo = rig_get_current_vfo_state(rig);
     return RIG_OK;
 }
 
 static int ft1000_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
-    *ptt = CACHE(rig)->ptt;
+    int cache_ms;
+    int timeout_ms;
+
+    rig_get_cache_ptt(rig, ptt, &cache_ms, &timeout_ms);
     return RIG_OK;
 }
-
 
 
 

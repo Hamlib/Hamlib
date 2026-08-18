@@ -596,6 +596,9 @@ static int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     size_t ack_len, ack_len_expected;
     int levelint;
     int retval;
+    int cache_ms;
+    int timeout_ms;
+    ptt_t ptt;
     char vfo_num = (vfo == RIG_VFO_C) ? '1' : '0';
 
     ENTERFUNC;
@@ -698,7 +701,9 @@ static int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         RETURNFUNC(RIG_OK);
 
     case RIG_LEVEL_STRENGTH:
-        if (CACHE(rig)->ptt != RIG_PTT_OFF)
+        rig_get_cache_ptt(rig, &ptt, &cache_ms, &timeout_ms);
+
+        if (ptt != RIG_PTT_OFF)
         {
             val->i = -9 * 6;
             break;
@@ -885,7 +890,9 @@ static int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         int raw_value;
         char read_vfo_num;
 
-        if (CACHE(rig)->ptt == RIG_PTT_OFF)
+        rig_get_cache_ptt(rig, &ptt, &cache_ms, &timeout_ms);
+
+        if (ptt == RIG_PTT_OFF)
         {
             val->f = 0;
             break;

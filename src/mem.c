@@ -40,6 +40,7 @@
 
 #include "hamlib/rig.h"
 #include "hamlib/rig_state.h"
+#include "cache.h"
 
 #ifndef DOC_HIDDEN
 
@@ -86,7 +87,7 @@ int HAMLIB_API rig_set_mem(RIG *rig, vfo_t vfo, int ch)
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_MEM)
             || vfo == RIG_VFO_CURR
-            || vfo == STATE(rig)->current_vfo)
+            || vfo == rig_get_current_vfo_state(rig))
     {
         return caps->set_mem(rig, vfo, ch);
     }
@@ -96,7 +97,7 @@ int HAMLIB_API rig_set_mem(RIG *rig, vfo_t vfo, int ch)
         return -RIG_ENTARGET;
     }
 
-    curr_vfo = STATE(rig)->current_vfo;
+    curr_vfo = rig_get_current_vfo_state(rig);
     retcode = caps->set_vfo(rig, vfo);
 
     if (retcode != RIG_OK)
@@ -149,7 +150,7 @@ int HAMLIB_API rig_get_mem(RIG *rig, vfo_t vfo, int *ch)
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_MEM)
             || vfo == RIG_VFO_CURR
-            || vfo == STATE(rig)->current_vfo)
+            || vfo == rig_get_current_vfo_state(rig))
     {
         return caps->get_mem(rig, vfo, ch);
     }
@@ -159,7 +160,7 @@ int HAMLIB_API rig_get_mem(RIG *rig, vfo_t vfo, int *ch)
         return -RIG_ENTARGET;
     }
 
-    curr_vfo = STATE(rig)->current_vfo;
+    curr_vfo = rig_get_current_vfo_state(rig);
     retcode = caps->set_vfo(rig, vfo);
 
     if (retcode != RIG_OK)
@@ -212,7 +213,7 @@ int HAMLIB_API rig_set_bank(RIG *rig, vfo_t vfo, int bank)
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_BANK)
             || vfo == RIG_VFO_CURR
-            || vfo == STATE(rig)->current_vfo)
+            || vfo == rig_get_current_vfo_state(rig))
     {
         return caps->set_bank(rig, vfo, bank);
     }
@@ -222,7 +223,7 @@ int HAMLIB_API rig_set_bank(RIG *rig, vfo_t vfo, int bank)
         return -RIG_ENTARGET;
     }
 
-    curr_vfo = STATE(rig)->current_vfo;
+    curr_vfo = rig_get_current_vfo_state(rig);
     retcode = caps->set_vfo(rig, vfo);
 
     if (retcode != RIG_OK)
@@ -736,7 +737,7 @@ int HAMLIB_API rig_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
         return -RIG_ENTARGET;
     }
 
-    curr_vfo = STATE(rig)->current_vfo;
+    curr_vfo = rig_get_current_vfo_state(rig);
 
     if (vfotmp == RIG_VFO_MEM)
     {
@@ -881,7 +882,7 @@ int HAMLIB_API rig_get_channel(RIG *rig, vfo_t vfox, channel_t *chan,
         return -RIG_ENTARGET;
     }
 
-    curr_vfo = STATE(rig)->current_vfo;
+    curr_vfo = rig_get_current_vfo_state(rig);
 
     if (vfotmp == RIG_VFO_MEM)
     {

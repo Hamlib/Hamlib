@@ -31,6 +31,7 @@
 #include "hamlib/rig_state.h"
 #include "serial.h"
 #include "misc.h"
+#include "cache.h"
 #include "cal.h"
 #include "idx_builtin.h"
 
@@ -74,11 +75,11 @@
 
 struct gqrx_priv_data
 {
-    freq_t	curr_freq;
-    rmode_t	curr_mode;
-    pbwidth_t	curr_width;
-    int		curr_power;
-    int		curr_meter;
+    freq_t  curr_freq;
+    rmode_t curr_mode;
+    pbwidth_t   curr_width;
+    int     curr_power;
+    int     curr_meter;
     float       curr_af;
     float       curr_sql;
 };
@@ -224,7 +225,7 @@ static int write_transaction(RIG *rig, char *xml, int xml_len)
 
 
 static int gqrx_transaction(RIG *rig, char *cmd, char *value,
-                                int value_len)
+                            int value_len)
 {
     char xml[MAXXMLLEN];
     int retry = 3;
@@ -277,9 +278,9 @@ static int gqrx_transaction(RIG *rig, char *cmd, char *value,
     if (value && strlen(value) == 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: no value returned\n", __func__);
-        
+
         set_transaction_inactive(rig);
-        
+
         RETURNFUNC(-RIG_EPROTO);
     }
 
@@ -301,7 +302,8 @@ static int gqrx_init(RIG *rig)
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __func__, rig->caps->version);
 
-    STATE(rig)->priv  = (struct gqrx_priv_data *)calloc(1, sizeof(struct gqrx_priv_data));
+    STATE(rig)->priv  = (struct gqrx_priv_data *)calloc(1,
+        sizeof(struct gqrx_priv_data));
 
     if (!STATE(rig)->priv)
     {
@@ -315,7 +317,7 @@ static int gqrx_init(RIG *rig)
     /*
      * set arbitrary initial status
      */
-    STATE(rig)->current_vfo = RIG_VFO_A;
+    rig_set_current_vfo_state(rig, RIG_VFO_A);
     priv->curr_freq = 0.0;
     priv->curr_mode = RIG_MODE_NONE;
     priv->curr_width = RIG_PASSBAND_NORMAL;
@@ -359,7 +361,7 @@ static int gqrx_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = STATE(rig)->current_vfo;
+        vfo = rig_get_current_vfo_state(rig);
         rig_debug(RIG_DEBUG_TRACE, "%s: get_freq vfo=%s\n",
                   __func__, rig_strvfo(vfo));
     }
@@ -422,9 +424,9 @@ static int gqrx_open(RIG *rig)
         RETURNFUNC(-RIG_EPROTO);
     }
 
-    STATE(rig)->current_vfo = RIG_VFO_A;
+    rig_set_current_vfo_state(rig, RIG_VFO_A);
     rig_debug(RIG_DEBUG_TRACE, "%s: currvfo=%s value=%s\n", __func__,
-              rig_strvfo(STATE(rig)->current_vfo), value);
+              rig_strvfo(RIG_VFO_A), value);
 
     RETURNFUNC(retval);
 }
@@ -465,6 +467,7 @@ static int gqrx_cleanup(RIG *rig)
     // model_gqrx was not getting refilled
     // if we can figure out that one we can re-enable this
 #if 0
+
     for (int i = 0; modeMap[i].mode_hamlib != 0; ++i)
     {
         if (modeMap[i].mode_gqrx)
@@ -520,7 +523,7 @@ static int gqrx_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = STATE(rig)->current_vfo;
+        vfo = rig_get_current_vfo_state(rig);
         rig_debug(RIG_DEBUG_TRACE, "%s: set_freq vfo=%s\n",
                   __func__, rig_strvfo(vfo));
     }
@@ -549,7 +552,7 @@ static int gqrx_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     int retval;
     char cmd[MAXARGLEN];
     char value[1024];
-    char* mode_sel;
+    char *mode_sel;
     struct gqrx_priv_data *priv = (struct gqrx_priv_data *) STATE(rig)->priv;
 
     ENTERFUNC;
@@ -566,7 +569,7 @@ static int gqrx_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = STATE(rig)->current_vfo;
+        vfo = rig_get_current_vfo_state(rig);
         rig_debug(RIG_DEBUG_TRACE, "%s: set_mode vfo=%s\n",
                   __func__, rig_strvfo(vfo));
     }
@@ -593,7 +596,7 @@ static int gqrx_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     default:
         rig_debug(RIG_DEBUG_ERR, "gqrx_set_mode: "
-                  "unsupported mode %s\n", rig_strrmode(mode));
+                                 "unsupported mode %s\n", rig_strrmode(mode));
         return -RIG_EINVAL;
     }
 
@@ -612,7 +615,7 @@ static int gqrx_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     retval = gqrx_transaction(rig, cmd, value, sizeof(value));
 
     free(mode_sel);
-    
+
     if (retval != RIG_OK)
     {
         RETURNFUNC2(retval);
@@ -649,7 +652,7 @@ static int gqrx_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = STATE(rig)->current_vfo;
+        vfo = rig_get_current_vfo_state(rig);
         rig_debug(RIG_DEBUG_TRACE, "%s: get_mode vfo=%s\n",
                   __func__, rig_strvfo(vfo));
     }
@@ -709,7 +712,7 @@ static int gqrx_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
                   value);
         RETURNFUNC(-RIG_EPROTO);
     }
-    
+
     rig_debug(RIG_DEBUG_TRACE, "%s: mode=%s\n", __func__, modeStr);
 
     if (vfo == RIG_VFO_A)
@@ -747,7 +750,7 @@ static int gqrx_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = STATE(rig)->current_vfo;
+        vfo = rig_get_current_vfo_state(rig);
         rig_debug(RIG_DEBUG_TRACE, "%s: set_level vfo=%s\n",
                   __func__, rig_strvfo(vfo));
     }
@@ -785,7 +788,7 @@ static int gqrx_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
  */
 static int gqrx_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-    char* cmd;
+    char *cmd;
     char value[MAXARGLEN];
     int retval;
     struct gqrx_priv_data *priv = (struct gqrx_priv_data *) STATE(rig)->priv;
@@ -803,30 +806,30 @@ static int gqrx_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = STATE(rig)->current_vfo;
+        vfo = rig_get_current_vfo_state(rig);
         rig_debug(RIG_DEBUG_TRACE, "%s: get_mode vfo=%s\n",
                   __func__, rig_strvfo(vfo));
     }
 
-    switch(level)
+    switch (level)
     {
     case RIG_LEVEL_AF:
-       cmd = strdup("l AF\n");
-       break;
-       
+        cmd = strdup("l AF\n");
+        break;
+
     case RIG_LEVEL_SQL:
-       cmd = strdup("l SQL\n");
-       break;
+        cmd = strdup("l SQL\n");
+        break;
 
     case RIG_LEVEL_STRENGTH:
     case RIG_LEVEL_RAWSTR:
-       cmd = strdup("l STRENGTH\n");
-       break;
+        cmd = strdup("l STRENGTH\n");
+        break;
 
     default:
         RETURNFUNC(-RIG_EPROTO);
     }
-    
+
     retval = gqrx_transaction(rig, cmd, value, sizeof(value));
 
     if (retval != RIG_OK)
@@ -841,16 +844,17 @@ static int gqrx_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     if (vfo == RIG_VFO_A)
     {
         int tempi;
-        switch(level)
+
+        switch (level)
         {
         case RIG_LEVEL_AF:
             priv->curr_af = val->f;
             break;
-            
+
         case RIG_LEVEL_SQL:
             priv->curr_sql = val->f;
             break;
-            
+
         case RIG_LEVEL_STRENGTH:
             // Overlapping read/write from one member of a union to another
             //   is technically undefined behavior, according to the C
@@ -864,7 +868,7 @@ static int gqrx_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             tempi = round(val->f);
             val->i = tempi;
             break;
-            
+
         default :
             break;
         }
@@ -925,7 +929,7 @@ static int gqrx_get_powerstat(RIG *rig, powerstat_t *status)
     {
         *status = (value[0] == '1');
     }
-   
+
     rig_debug(RIG_DEBUG_TRACE, "%s: status=%d\n", __func__, *status);
 
     priv->curr_power = *status;

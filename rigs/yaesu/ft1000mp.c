@@ -301,7 +301,7 @@ struct ft1000mp_priv_data
     unsigned char
     p_cmd[YAESU_CMD_LENGTH];    /* private copy of 1 constructed CAT cmd */
     unsigned char update_data[2 *
-                                FT1000MP_STATUS_UPDATE_LENGTH]; /* returned data--max value, some are less */
+                              FT1000MP_STATUS_UPDATE_LENGTH]; /* returned data--max value, some are less */
 };
 
 
@@ -753,7 +753,7 @@ static int ft1000mp_init(RIG *rig)
     ENTERFUNC;
 
     STATE(rig)->priv = (struct ft1000mp_priv_data *) calloc(1,
-                       sizeof(struct ft1000mp_priv_data));
+        sizeof(struct ft1000mp_priv_data));
 
     if (!STATE(rig)->priv)                       /* whoops! memory shortage! */
     {
@@ -802,6 +802,7 @@ static int ft1000mp_open(RIG *rig)
     hamlib_port_t *rp = RIGPORT(rig);
     struct ft1000mp_priv_data *p;
     unsigned char *cmd;           /* points to sequence to send */
+    vfo_t current_vfo;
 
     ENTERFUNC;
 
@@ -825,7 +826,11 @@ static int ft1000mp_open(RIG *rig)
     cmd = p->p_cmd;
     write_block(rp, cmd, YAESU_CMD_LENGTH);
 
-    ft1000mp_get_vfo(rig, &rig_s->current_vfo);
+    if (ft1000mp_get_vfo(rig, &current_vfo) == RIG_OK)
+    {
+        rig_set_current_vfo_state(rig, current_vfo);
+    }
+
     /* TODO */
 
     RETURNFUNC(RIG_OK);
@@ -849,7 +854,7 @@ static int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = STATE(rig)->current_vfo;
+        vfo = rig_get_current_vfo_state(rig);
     }
 
     // round freq to 10 Hz intervals due to rig restriction
@@ -859,12 +864,12 @@ static int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     {
     case RIG_VFO_A:
         cmd_index = FT1000MP_NATIVE_FREQA_SET;
-        CACHE(rig)->freqMainA = freq;
+        rig_set_cache_freq(rig, RIG_VFO_A, freq);
         break;
 
     case RIG_VFO_B:
         cmd_index = FT1000MP_NATIVE_FREQB_SET;
-        CACHE(rig)->freqMainB = freq;
+        rig_set_cache_freq(rig, RIG_VFO_B, freq);
         break;
 
     case RIG_VFO_MEM:
@@ -935,9 +940,9 @@ static int ft1000mp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (vfo == RIG_VFO_CURR)
     {
+        vfo = rig_get_current_vfo_state(rig);
         rig_debug(RIG_DEBUG_TRACE, "%s: current_vfo=%s\n", __func__,
-                  rig_strvfo(STATE(rig)->current_vfo));
-        vfo = STATE(rig)->current_vfo;
+                  rig_strvfo(vfo));
     }
 
     retval = ft1000mp_get_vfo_data(rig, vfo);
@@ -991,9 +996,9 @@ static int ft1000mp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (vfo == RIG_VFO_CURR)
     {
+        vfo = rig_get_current_vfo_state(rig);
         rig_debug(RIG_DEBUG_TRACE, "%s: current_vfo=%s\n", __func__,
-                  rig_strvfo(STATE(rig)->current_vfo));
-        vfo = STATE(rig)->current_vfo;
+                  rig_strvfo(vfo));
     }
 
     /*
@@ -1113,9 +1118,9 @@ static int ft1000mp_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
 
     if (vfo == RIG_VFO_CURR)
     {
+        vfo = rig_get_current_vfo_state(rig);
         rig_debug(RIG_DEBUG_TRACE, "%s: current_vfo=%s\n", __func__,
-                  rig_strvfo(rs->current_vfo));
-        vfo = rs->current_vfo;
+                  rig_strvfo(vfo));
     }
 
     retval = ft1000mp_get_vfo_data(rig, vfo);
@@ -1215,7 +1220,7 @@ static int ft1000mp_set_vfo(RIG *rig, vfo_t vfo)
 
     if (vfo == RIG_VFO_VFO)
     {
-        vfo = STATE(rig)->current_vfo;
+        vfo = rig_get_current_vfo_state(rig);
     }
 
 #if 0 // seems switching VFOs like this changes the frequencies in the response
@@ -1224,13 +1229,13 @@ static int ft1000mp_set_vfo(RIG *rig, vfo_t vfo)
     {
     case RIG_VFO_A:
         cmd_index = FT1000MP_NATIVE_VFO_A;
-        STATE(rig)->current_vfo = vfo;       /* update active VFO */
+        rig_set_current_vfo_state(rig, vfo); /* update active VFO */
         rig_debug(RIG_DEBUG_TRACE, "%s: vfo == RIG_VFO_A\n", __func__);
         break;
 
     case RIG_VFO_B:
         cmd_index = FT1000MP_NATIVE_VFO_B;
-        STATE(rig)->current_vfo = vfo;       /* update active VFO */
+        rig_set_current_vfo_state(rig, vfo); /* update active VFO */
         rig_debug(RIG_DEBUG_TRACE, "%s: vfo == RIG_VFO_B\n", __func__);
         break;
 
@@ -1250,7 +1255,7 @@ static int ft1000mp_set_vfo(RIG *rig, vfo_t vfo)
 #endif
 
     // we just store the requested vfo in our internal state
-    STATE(rig)->current_vfo = vfo;
+    rig_set_current_vfo_state(rig, vfo);
 
     RETURNFUNC(RIG_OK);
 
@@ -1287,7 +1292,7 @@ static int ft1000mp_get_vfo(RIG *rig, vfo_t *vfo)
     }
     else // we are emulating vfo status
     {
-        *vfo = STATE(rig)->current_vfo;
+        *vfo = rig_get_current_vfo_state(rig);
 
         if (*vfo == RIG_VFO_CURR)
         {
@@ -1299,11 +1304,13 @@ static int ft1000mp_get_vfo(RIG *rig, vfo_t *vfo)
 #if 0
     else if (p->update_data[FT1000MP_SUMO_DISPLAYED_STATUS] & SF_VFOAB)
     {
-        *vfo = STATE(rig)->current_vfo = RIG_VFO_B;
+        *vfo = RIG_VFO_B;
+        rig_set_current_vfo_state(rig, *vfo);
     }
     else
     {
-        *vfo = STATE(rig)->current_vfo = RIG_VFO_A;
+        *vfo = RIG_VFO_A;
+        rig_set_current_vfo_state(rig, *vfo);
     }
 
 #endif
@@ -1575,7 +1582,7 @@ static int ft1000mp_get_level(RIG *rig, vfo_t vfo, setting_t level,
     case RIG_LEVEL_RAWSTR:
         if (vfo == RIG_VFO_CURR)
         {
-            vfo = rs->current_vfo;
+            vfo = rig_get_current_vfo_state(rig);
         }
 
         m = vfo == RIG_VFO_B ? 0x01 : 0x00;
@@ -1736,7 +1743,7 @@ static int ft1000mp_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
                                   vfo_t tx_vfo)
 {
     unsigned char cmd_index = 0;      /* index of sequence to send */
-    struct rig_state *rs = STATE(rig);
+    int retval;
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s called rx_vfo=%s, tx_vfo=%s\n", __func__,
@@ -1757,11 +1764,16 @@ static int ft1000mp_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
         RETURNFUNC(-RIG_EINVAL);         /* sorry, wrong VFO */
     }
 
+    retval = ft1000mp_send_priv_cmd(rig, cmd_index);
+
+    if (retval != RIG_OK)
+    {
+        RETURNFUNC(retval);
+    }
+
     // manual says VFO_A=Tx and VFO_B=Rx but testing shows otherwise
-    rs->current_vfo = RIG_VFO_A;
-    rs->rx_vfo = RIG_VFO_B;
-    rs->tx_vfo = RIG_VFO_B;
-    ft1000mp_send_priv_cmd(rig, cmd_index);
+    rig_set_vfo_state(rig, RIG_VFO_A, RIG_VFO_B);
+    rig_set_rx_vfo_state(rig, RIG_VFO_B);
 
     RETURNFUNC(RIG_OK);
 }
@@ -1850,8 +1862,8 @@ static int ft1000mp_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq,
 
     if (retval == RIG_OK)
     {
-        CACHE(rig)->freqMainB = freq;
-        CACHE(rig)->modeMainB = mode;
+        rig_set_cache_freq(rig, RIG_VFO_B, freq);
+        rig_set_cache_mode(rig, RIG_VFO_B, mode, width);
     }
 
     RETURNFUNC(retval);
@@ -1875,8 +1887,8 @@ static int ft1000mp_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *freq,
 
     if (retval == RIG_OK)
     {
-        CACHE(rig)->freqMainB = *freq;
-        CACHE(rig)->modeMainB = *mode;
+        rig_set_cache_freq(rig, RIG_VFO_B, *freq);
+        rig_set_cache_mode(rig, RIG_VFO_B, *mode, *width);
     }
 
     RETURNFUNC(retval);

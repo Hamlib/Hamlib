@@ -29,6 +29,7 @@
 #include "hamlib/rig_state.h"
 #include "iofunc.h"
 #include "misc.h"
+#include "cache.h"
 #include "token.h"
 
 #include "dummy_common.h"
@@ -428,7 +429,7 @@ static int tci1x_init(RIG *rig)
     rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __func__, rig->caps->version);
 
     STATE(rig)->priv  = (struct tci1x_priv_data *)calloc(1, sizeof(
-                            struct tci1x_priv_data));
+            struct tci1x_priv_data));
 
     if (!STATE(rig)->priv)
     {
@@ -443,7 +444,7 @@ static int tci1x_init(RIG *rig)
     /*
      * set arbitrary initial status
      */
-    STATE(rig)->current_vfo = RIG_VFO_A;
+    rig_set_current_vfo_state(rig, RIG_VFO_A);
     priv->split = 0;
     priv->ptt = 0;
     priv->curr_modeA = -1;
@@ -656,9 +657,9 @@ static int tci1x_open(RIG *rig)
         rig_debug(RIG_DEBUG_ERR, "%s: tci1x_get_freq not working!!\n", __func__);
     }
 
-    STATE(rig)->current_vfo = RIG_VFO_A;
+    rig_set_current_vfo_state(rig, RIG_VFO_A);
     rig_debug(RIG_DEBUG_TRACE, "%s: currvfo=%s value=%s\n", __func__,
-              rig_strvfo(STATE(rig)->current_vfo), value);
+              rig_strvfo(RIG_VFO_A), value);
     //tci1x_get_split_vfo(rig, vfo, &priv->split, &vfo_tx);
     RETURNFUNC2(RIG_OK);
 
@@ -851,7 +852,7 @@ static int tci1x_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = STATE(rig)->current_vfo;
+        vfo = rig_get_current_vfo_state(rig);
         rig_debug(RIG_DEBUG_TRACE, "%s: get_freq2 vfo=%s\n",
                   __func__, rig_strvfo(vfo));
     }
@@ -920,7 +921,7 @@ static int tci1x_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = STATE(rig)->current_vfo;
+        vfo = rig_get_current_vfo_state(rig);
     }
     else if (vfo == RIG_VFO_TX && priv->split)
     {
@@ -1054,7 +1055,7 @@ static int tci1x_set_split_mode(RIG *rig, vfo_t vfo, rmode_t mode,
     switch (vfo)
     {
     case RIG_VFO_CURR:
-        vfo = STATE(rig)->current_vfo;
+        vfo = rig_get_current_vfo_state(rig);
         break;
 
     case RIG_VFO_TX:
@@ -1089,6 +1090,7 @@ static int tci1x_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     int retval;
     int needBW;
     int vfoSwitched;
+    vfo_t current_vfo;
     char cmd_arg[MAXCMDLEN];
     char *p;
     char *pttmode;
@@ -1108,9 +1110,11 @@ static int tci1x_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         RETURNFUNC(RIG_OK);
     }
 
+    current_vfo = rig_get_current_vfo_state(rig);
+
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = STATE(rig)->current_vfo;
+        vfo = current_vfo;
     }
 
     if (check_vfo(vfo) == FALSE)
@@ -1130,11 +1134,11 @@ static int tci1x_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     // MDB
     vfoSwitched = 0;
     rig_debug(RIG_DEBUG_TRACE, "%s: curr_vfo = %s\n", __func__,
-              rig_strvfo(STATE(rig)->current_vfo));
+              rig_strvfo(current_vfo));
 
     // If we don't have the get_bwA call we have to switch VFOs ourself
     if (!priv->has_get_bwA && vfo == RIG_VFO_B
-            && STATE(rig)->current_vfo != RIG_VFO_B)
+            && current_vfo != RIG_VFO_B)
     {
         vfoSwitched = 1;
         rig_debug(RIG_DEBUG_TRACE, "%s: switch to VFOB = %d\n", __func__,
@@ -1311,11 +1315,11 @@ static int tci1x_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    curr_vfo = STATE(rig)->current_vfo;
+    curr_vfo = rig_get_current_vfo_state(rig);
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = STATE(rig)->current_vfo;
+        vfo = curr_vfo;
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: using vfo=%s\n", __func__,
@@ -1453,7 +1457,6 @@ static int tci1x_set_vfo(RIG *rig, vfo_t vfo)
 {
     int retval;
     char cmd_arg[MAXBUFLEN];
-    struct rig_state *rs = STATE(rig);
     const struct tci1x_priv_data *priv = (struct tci1x_priv_data *) STATE(
             rig)->priv;
 
@@ -1477,7 +1480,7 @@ static int tci1x_set_vfo(RIG *rig, vfo_t vfo)
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = STATE(rig)->current_vfo;
+        vfo = rig_get_current_vfo_state(rig);
     }
 
     SNPRINTF(cmd_arg, sizeof(cmd_arg),
@@ -1492,8 +1495,7 @@ static int tci1x_set_vfo(RIG *rig, vfo_t vfo)
         RETURNFUNC(retval);
     }
 
-    STATE(rig)->current_vfo = vfo;
-    rs->tx_vfo = RIG_VFO_B; // always VFOB
+    rig_set_vfo_state(rig, vfo, RIG_VFO_B); // always VFOB
 
     /* for some rigs TCI turns off split when VFOA is selected */
     /* so if we are in split and asked for A we have to turn split back on */
@@ -1556,7 +1558,7 @@ static int tci1x_get_vfo(RIG *rig, vfo_t *vfo)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    STATE(rig)->current_vfo = *vfo;
+    rig_set_current_vfo_state(rig, *vfo);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
               rig_strvfo(*vfo));

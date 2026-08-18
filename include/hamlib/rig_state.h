@@ -107,7 +107,7 @@ struct rig_state {
      */
 
     int transaction_active;    /*!< set to 1 to inform the async reader thread that a synchronous command transaction is waiting for a response, otherwise 0 */
-    vfo_t current_vfo;  /*!< VFO currently set */
+    vfo_t current_vfo;  /*!< ABI mirror; direct reads are not synchronized. */
     int vfo_list;       /*!< Complete list of VFO for this rig */
     int comm_state;     /*!< Comm port state, opened/closed. */
     rig_ptr_t priv;     /*!< Pointer to private rig state data. */
@@ -119,7 +119,7 @@ struct rig_state {
     rmode_t current_mode;       /*!< Mode currently set */
     //rmode_t current_modeB;      /*!< Mode currently set VFOB */
     pbwidth_t current_width;    /*!< Passband width currently set */
-    vfo_t tx_vfo;               /*!< Tx VFO currently set */
+    vfo_t tx_vfo;               /*!< ABI mirror; direct reads are not synchronized. */
     rmode_t mode_list;              /*!< Complete list of modes for this rig */
     // mode_list is used by some
     // so anything added to this structure must be below here
@@ -146,7 +146,7 @@ struct rig_state {
     unsigned char disable_yaesu_bandselect; /*!< Disables Yaesu band select logic */
     int twiddle_rit;            /*!< Suppresses VFOB reading (cached value used) so RIT control can be used */
     int twiddle_state;          /*!< keeps track of twiddle status */
-    vfo_t rx_vfo;               /*!< Rx VFO currently set */
+    vfo_t rx_vfo;               /*!< ABI mirror; direct reads are not synchronized. */
 
     volatile unsigned int snapshot_packet_sequence_number;  /*!< Sequence number for JSON output. */
 

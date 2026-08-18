@@ -2791,10 +2791,12 @@ static uint8_t stream_vfo_to_id(vfo_t vfo)
 static int cache_to_metadata(RIG *rig, rig_stream_t *stream,
                              struct rig_stream_metadata *meta)
 {
-    struct rig_cache *cache = CACHE(rig);
     vfo_t vfo = (stream->vfo != RIG_VFO_NONE) ? stream->vfo : RIG_VFO_CURR;
     freq_t freq = 0;
     int cache_ms = 0;
+    ptt_t ptt;
+    int ptt_ms = 0;
+    int timeout_ms = 0;
 
     memset(meta, 0, sizeof(*meta));
 
@@ -2820,10 +2822,8 @@ static int cache_to_metadata(RIG *rig, rig_stream_t *stream,
         meta->field_mask |= RIG_STREAM_META_CENTER_FREQ;
     }
 
-    /* PTT snapshot.  Hold the rig lock to avoid a torn read. */
-    rig_lock(rig, 1);
-    meta->ptt = (cache->ptt != RIG_PTT_OFF) ? 1 : 0;
-    rig_lock(rig, 0);
+    rig_get_cache_ptt(rig, &ptt, &ptt_ms, &timeout_ms);
+    meta->ptt = (ptt != RIG_PTT_OFF) ? 1 : 0;
     meta->field_mask |= RIG_STREAM_META_PTT;
 
     meta->vfo_id = stream_vfo_to_id(vfo);

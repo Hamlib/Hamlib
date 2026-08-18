@@ -29,6 +29,7 @@
 #include "hamlib/rig_state.h"
 #include "iofunc.h"
 #include "misc.h"
+#include "cache.h"
 
 #define DEBUG 1
 #define DEBUG_TRACE DEBUG_VERBOSE
@@ -327,7 +328,7 @@ static int aclog_init(RIG *rig)
     rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __func__, rig->caps->version);
 
     STATE(rig)->priv  = (struct aclog_priv_data *)calloc(1, sizeof(
-                            struct aclog_priv_data));
+            struct aclog_priv_data));
 
     if (!STATE(rig)->priv)
     {
@@ -342,7 +343,7 @@ static int aclog_init(RIG *rig)
     /*
      * set arbitrary initial status
      */
-    STATE(rig)->current_vfo = RIG_VFO_A;
+    rig_set_current_vfo_state(rig, RIG_VFO_A);
     priv->split = 0;
     priv->ptt = 0;
     priv->curr_modeA = -1;
@@ -444,7 +445,7 @@ static int aclog_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = STATE(rig)->current_vfo;
+        vfo = rig_get_current_vfo_state(rig);
         rig_debug(RIG_DEBUG_TRACE, "%s: get_freq2 vfo=%s\n",
                   __func__, rig_strvfo(vfo));
     }
@@ -649,9 +650,9 @@ static int aclog_open(RIG *rig)
         RETURNFUNC(-RIG_EPROTO);
     }
 
-    STATE(rig)->current_vfo = RIG_VFO_A;
+    rig_set_current_vfo_state(rig, RIG_VFO_A);
     rig_debug(RIG_DEBUG_TRACE, "%s: currvfo=%s value=%s\n", __func__,
-              rig_strvfo(STATE(rig)->current_vfo), value);
+              rig_strvfo(RIG_VFO_A), value);
 
     RETURNFUNC(retval);
 }
@@ -694,6 +695,7 @@ static int aclog_cleanup(RIG *rig)
     // model_aclog was not getting refilled
     // if we can figure out that one we can re-enable this
 #if 0
+
     for (int i = 0; modeMap[i].mode_hamlib != 0; ++i)
     {
         if (modeMap[i].mode_aclog)
@@ -738,7 +740,7 @@ static int aclog_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = STATE(rig)->current_vfo;
+        vfo = rig_get_current_vfo_state(rig);
     }
 
 #endif
@@ -770,6 +772,7 @@ static int aclog_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     char *pttmode;
     char *ttmode = NULL;
     struct aclog_priv_data *priv = (struct aclog_priv_data *) STATE(rig)->priv;
+    vfo_t current_vfo = rig_get_current_vfo_state(rig);
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s mode=%s width=%d\n",
@@ -786,7 +789,7 @@ static int aclog_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = STATE(rig)->current_vfo;
+        vfo = current_vfo;
     }
 
     if (check_vfo(vfo) == FALSE)
@@ -805,7 +808,7 @@ static int aclog_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     // Switch to VFOB if appropriate since we can't set mode directly
     // MDB
     rig_debug(RIG_DEBUG_TRACE, "%s: curr_vfo = %s\n", __func__,
-              rig_strvfo(STATE(rig)->current_vfo));
+              rig_strvfo(current_vfo));
 
     // Set the mode
     if (strstr(modeMapGet(mode), "ERROR") == NULL)

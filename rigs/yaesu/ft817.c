@@ -333,8 +333,8 @@ struct rig_caps ft817_caps =
     .has_get_func =        RIG_FUNC_NONE,
     .has_set_func =        RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL | RIG_FUNC_CSQL | RIG_FUNC_RIT,
     .has_get_level =
-    RIG_LEVEL_STRENGTH | RIG_LEVEL_RAWSTR | RIG_LEVEL_RFPOWER |
-    RIG_LEVEL_ALC | RIG_LEVEL_SWR | RIG_LEVEL_RFPOWER_METER_WATTS,
+        RIG_LEVEL_STRENGTH | RIG_LEVEL_RAWSTR | RIG_LEVEL_RFPOWER |
+        RIG_LEVEL_ALC | RIG_LEVEL_SWR | RIG_LEVEL_RFPOWER_METER_WATTS,
     .has_set_level =       RIG_LEVEL_BAND_SELECT,
     .has_get_parm =        RIG_PARM_NONE,
     .has_set_parm =        RIG_PARM_NONE,
@@ -484,8 +484,8 @@ struct rig_caps ft818_caps =
     .has_get_func =        RIG_FUNC_NONE,
     .has_set_func =        RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL | RIG_FUNC_RIT,
     .has_get_level =
-    RIG_LEVEL_STRENGTH | RIG_LEVEL_RAWSTR | RIG_LEVEL_RFPOWER |
-    RIG_LEVEL_ALC | RIG_LEVEL_SWR,
+        RIG_LEVEL_STRENGTH | RIG_LEVEL_RAWSTR | RIG_LEVEL_RFPOWER |
+        RIG_LEVEL_ALC | RIG_LEVEL_SWR,
     .has_set_level =       RIG_LEVEL_BAND_SELECT,
     .has_get_parm =        RIG_PARM_NONE,
     .has_set_parm =        RIG_PARM_NONE,
@@ -862,18 +862,19 @@ static int ft817_get_status(RIG *rig, int status)
 static int ft817_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) STATE(rig)->priv;
+    struct rig_cache_snapshot cache;
     freq_t f1 = 0, f2 = 0;
-    struct rig_cache *cachep = CACHE(rig);
     int retries = RIGPORT(rig)->retry +
                   1; // +1 because, because 2 steps are needed even in best scenario
 
+    rig_get_cache_snapshot(rig, &cache);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called, vfo=%s, ptt=%d, split=%d\n", __func__,
-              rig_strvfo(vfo), cachep->ptt, cachep->split);
+              rig_strvfo(vfo), cache.ptt, cache.split);
 
     // we can't query VFOB while in transmit and split mode
-    if (cachep->ptt && vfo == RIG_VFO_B && cachep->split)
+    if (cache.ptt && vfo == RIG_VFO_B && cache.split)
     {
-        *freq = cachep->freqMainB;
+        *freq = cache.freqMainB;
         return RIG_OK;
     }
 
@@ -1267,7 +1268,7 @@ static int ft818_817_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
     /* if CURR then get real VFO before parsing EEPROM */
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = STATE(rig)->current_vfo;
+        vfo = rig_get_current_vfo_state(rig);
     }
 
     /* band info is 4 bit per VFO, for A lower nibble, B is upper nible */
@@ -2021,7 +2022,7 @@ static int ft817_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         return n;
     }
 
-    CACHE(rig)->split = split;
+    rig_set_cache_split(rig, split, tx_vfo);
 
     return RIG_OK;
 
