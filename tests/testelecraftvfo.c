@@ -222,8 +222,8 @@ static int run_case(const char *name, const char *fr, const char *ft,
 
     if (rig == NULL)
     {
-        close(sockets[0]);
-        close(sockets[1]);
+        close_test_socket(sockets[0]);
+        close_test_socket(sockets[1]);
         pthread_join(thread, NULL);
         return 1;
     }
