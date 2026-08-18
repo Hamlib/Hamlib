@@ -38,6 +38,8 @@ Version 5.x -- future
           PR #2083.  (TNX Jeff Francis)
         * TH-D75: New dedicated backend.  GitHub PR #2120.  (TNX David
           Christle)
+        * ID-5100: Correct ID-5100 VFO switching.  GitHub PR #2129 (TNX
+          David Christle)
 
 Version 4.7.2
         * 2026-06-21
