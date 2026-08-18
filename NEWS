@@ -36,6 +36,8 @@ Version 5.x -- future
           GitHub PR #2116.  (TNX Mikael Nousiainen)
         * New: TCI 2.0 (Expert Electronics) backend, CAT only.  GitHub
           PR #2083.  (TNX Jeff Francis)
+        * TH-D75: New dedicated backend.  GitHub PR #2120.  (TNX David
+          Christle)
 
 Version 4.7.2
         * 2026-06-21
