@@ -717,6 +717,41 @@ static int newcat_get_index_from_width(pbwidth_t width, const struct newcat_widt
     return info->count - 1; // Not found, use the maximum
 }
 
+static const struct newcat_width_info *newcat_width_info_for_mode(
+    const struct newcat_priv_caps *priv_caps, rmode_t mode)
+{
+    if (priv_caps == NULL)
+    {
+        return NULL;
+    }
+
+    switch (mode)
+    {
+    case RIG_MODE_RTTY:
+    case RIG_MODE_RTTYR:
+        if (priv_caps->rtty_widths != NULL)
+        {
+            return priv_caps->rtty_widths;
+        }
+
+        HL_FALLTHROUGH
+
+    case RIG_MODE_PKTUSB:
+    case RIG_MODE_PKTLSB:
+    case RIG_MODE_CW:
+    case RIG_MODE_CWR:
+    case RIG_MODE_PSK:
+        return priv_caps->cw_widths;
+
+    case RIG_MODE_LSB:
+    case RIG_MODE_USB:
+        return priv_caps->ssb_widths;
+
+    default:
+        return &dummy_widths;
+    }
+}
+
 /*
  * ************************************
  *
@@ -8700,41 +8735,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     // NOTE: RIG_PASSBAND_NORMAL (0) should select the default filter width (SH00)
 
-    // Preselect set of possible widths
-    switch (mode)
-    {
-    case RIG_MODE_RTTY:
-    case RIG_MODE_RTTYR:
-        width_info = priv_caps->rtty_widths;  // Set RTTY data if different
-        HL_FALLTHROUGH                        // Fall into CW
-    case RIG_MODE_PKTUSB:
-    case RIG_MODE_PKTLSB:
-    case RIG_MODE_CW:
-    case RIG_MODE_CWR:
-    case RIG_MODE_PSK:     // For FTX-1
-        if (width_info == NULL)
-        {
-            width_info = priv_caps->cw_widths;
-        }
-        break;
-
-    case RIG_MODE_LSB:
-    case RIG_MODE_USB:
-        width_info = priv_caps->ssb_widths;
-        break;
-
-#if 0
-    case RIG_MODE_AM:
-    case RIG_MODE_FM:
-    case RIG_MODE_PKTFM:
-    case RIG_MODE_FMN:
-        //????
-        break;
-#endif
-    default:
-        width_info = &dummy_widths;  // Just in case...
-
-    }
+    width_info = newcat_width_info_for_mode(priv_caps, mode);
 
     if (is_ft950)
     {
@@ -9437,40 +9438,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
 
-    // Preselect set of possible widths
-    switch (mode)
-    {
-    case RIG_MODE_RTTY:
-    case RIG_MODE_RTTYR:
-        width_info = priv_caps->rtty_widths;  // Set RTTY data if different
-        HL_FALLTHROUGH                        // Fall into CW
-    case RIG_MODE_PKTUSB:
-    case RIG_MODE_PKTLSB:
-    case RIG_MODE_CW:
-    case RIG_MODE_CWR:
-    case RIG_MODE_PSK:     // For FTX-1
-        if (width_info == NULL)
-        {
-            width_info = priv_caps->cw_widths;
-        }
-        break;
-
-    case RIG_MODE_LSB:
-    case RIG_MODE_USB:
-        width_info = priv_caps->ssb_widths;
-        break;
-
-#if 0
-    case RIG_MODE_AM:
-    case RIG_MODE_FM:
-    case RIG_MODE_PKTFM:
-    case RIG_MODE_FMN:
-        //????
-        break;
-#endif
-    default:
-        width_info = &dummy_widths;  // Just in case...
-    }
+    width_info = newcat_width_info_for_mode(priv_caps, mode);
 
     if (sh_command_valid)
     {
