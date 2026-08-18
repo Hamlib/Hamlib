@@ -25,6 +25,7 @@ DIRECT_TESTS = \
 	testgeministatus \
 	testgs100 \
 	testicomts \
+	testrigctlprotocol \
 	testthd7x \
 	testthd75emu
 
@@ -37,6 +38,7 @@ GENERATED_TEST_WRAPPERS = \
 	testgrid.sh \
 	testloc.sh \
 	testnetrigctl.sh \
+	testnetrigctllocale.sh \
 	testrig.sh \
 	testrigcaps.sh
 
@@ -107,6 +109,7 @@ rigctlcom_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_srcdir)/src -I$(top_bu
 rigctltcp_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_srcdir)/src -I$(top_builddir)/security
 rigctlsync_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_srcdir)/src -I$(top_builddir)/security
 testdebug_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testnetrigctl_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testctlparser_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testgeministatus_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testgs100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
@@ -135,9 +138,10 @@ rigstreamtest_LDADD = $(PTHREAD_LIBS) $(LDADD)
 rigstreamtest_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 rigstreamtest_CPPFLAGS = -I$(top_srcdir)/src -I$(top_builddir)/src \
     $(AM_CPPFLAGS)
-testnetrigctl_LDADD = $(top_builddir)/rigs/dummy/libhamlib-dummy.la
+testnetrigctl_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
 testctlparser_SOURCES = testctlparser.c $(RIGCOMMONSRC)
 testctlparser_LDADD = $(PTHREAD_LIBS) $(READLINE_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
+testrigctlprotocol_LDADD = $(LDADD)
 testicomts_LDADD = $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testgeministatus_LDADD = $(PTHREAD_LIBS) $(top_builddir)/amplifiers/gemini/libhamlib-gemini.la $(LDADD)
 testgs100_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/gomspace/libhamlib-gomspace.la $(LDADD)
@@ -232,6 +236,10 @@ testrig.sh:
 testnetrigctl.sh:
 	echo './testnetrigctl' > testnetrigctl.sh
 	chmod +x ./testnetrigctl.sh
+
+testnetrigctllocale.sh:
+	echo './testnetrigctl --locale' > testnetrigctllocale.sh
+	chmod +x ./testnetrigctllocale.sh
 
 testfreq.sh:
 	echo './testfreq' > testfreq.sh
