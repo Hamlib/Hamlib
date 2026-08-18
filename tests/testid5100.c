@@ -11,8 +11,13 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <string.h>
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
 #include <sys/socket.h>
 #include <unistd.h>
+#endif
 
 #include "hamlib/rig.h"
 #include "hamlib/port.h"
@@ -36,6 +41,89 @@ struct peer_case
     int status;
     const char *failed_step;
 };
+
+static int close_test_socket(int fd)
+{
+#ifdef _WIN32
+    return closesocket(fd);
+#else
+    return close(fd);
+#endif
+}
+
+static int read_test_socket(int fd, void *buffer, size_t length)
+{
+#ifdef _WIN32
+    return recv(fd, buffer, (int) length, 0);
+#else
+    return (int) read(fd, buffer, length);
+#endif
+}
+
+static int write_test_socket(int fd, const void *buffer, size_t length)
+{
+#ifdef _WIN32
+    return send(fd, buffer, (int) length, 0);
+#else
+    return (int) write(fd, buffer, length);
+#endif
+}
+
+static int open_test_connection(int sockets[2])
+{
+#ifdef _WIN32
+    SOCKET listener;
+    SOCKET client;
+    SOCKET peer;
+    struct sockaddr_in address;
+    int address_length = sizeof(address);
+
+    listener = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+    if (listener == INVALID_SOCKET) { return -1; }
+
+    memset(&address, 0, sizeof(address));
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    address.sin_port = 0;
+
+    if (bind(listener, (struct sockaddr *) &address, sizeof(address)) != 0 ||
+            listen(listener, 1) != 0 ||
+            getsockname(listener, (struct sockaddr *) &address,
+                        &address_length) != 0)
+    {
+        closesocket(listener);
+        return -1;
+    }
+
+    client = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+    if (client == INVALID_SOCKET ||
+            connect(client, (struct sockaddr *) &address,
+                    sizeof(address)) != 0)
+    {
+        if (client != INVALID_SOCKET) { closesocket(client); }
+
+        closesocket(listener);
+        return -1;
+    }
+
+    peer = accept(listener, NULL, NULL);
+    closesocket(listener);
+
+    if (peer == INVALID_SOCKET)
+    {
+        closesocket(client);
+        return -1;
+    }
+
+    sockets[0] = (int) client;
+    sockets[1] = (int) peer;
+    return 0;
+#else
+    return socketpair(AF_UNIX, SOCK_STREAM, 0, sockets);
+#endif
+}
 
 static const unsigned char read_freq[] =
 { 0xfe, 0xfe, 0x8c, 0xe0, 0x03, 0xfd };
@@ -81,7 +169,7 @@ static int read_frame(int fd, unsigned char *buffer, size_t capacity,
 
     while (used < capacity)
     {
-        ssize_t count = read(fd, buffer + used, 1);
+        int count = read_test_socket(fd, buffer + used, 1);
 
         if (count != 1) { return -1; }
 
@@ -101,7 +189,7 @@ static int write_all(int fd, const unsigned char *buffer, size_t length)
 
     while (written < length)
     {
-        ssize_t count = write(fd, buffer + written, length - written);
+        int count = write_test_socket(fd, buffer + written, length - written);
 
         if (count <= 0) { return -1; }
 
@@ -176,19 +264,35 @@ int main(void)
     int failed = 0;
     int retval;
 
+#ifdef _WIN32
+    WSADATA wsa_data;
+
+    if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0)
+    {
+        fprintf(stderr, "WSAStartup failed\n");
+        return 1;
+    }
+#endif
+
     rig_register(&id5100_caps);
     rig = rig_init(RIG_MODEL_ID5100);
 
     if (rig == NULL)
     {
         fprintf(stderr, "rig_init failed\n");
+#ifdef _WIN32
+        WSACleanup();
+#endif
         return 1;
     }
 
-    if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) != 0)
+    if (open_test_connection(sockets) != 0)
     {
-        perror("socketpair");
+        fprintf(stderr, "test socket setup failed\n");
         rig_cleanup(rig);
+#ifdef _WIN32
+        WSACleanup();
+#endif
         return 1;
     }
 
@@ -196,13 +300,17 @@ int main(void)
 
     if (pthread_create(&thread, NULL, run_peer, &test) != 0)
     {
-        close(sockets[0]);
-        close(sockets[1]);
+        close_test_socket(sockets[0]);
+        close_test_socket(sockets[1]);
         rig_cleanup(rig);
+#ifdef _WIN32
+        WSACleanup();
+#endif
         return 1;
     }
 
     RIGPORT(rig)->fd = sockets[0];
+    RIGPORT(rig)->type.rig = RIG_PORT_NETWORK;
     RIGPORT(rig)->timeout = 250;
     RIGPORT(rig)->retry = 0;
     priv = (struct icom_priv_data *) STATE(rig)->priv;
@@ -260,9 +368,9 @@ int main(void)
 
     RIGPORT(rig)->fd = -1;
     STATE(rig)->comm_state = 0;
-    close(sockets[0]);
+    close_test_socket(sockets[0]);
     pthread_join(thread, NULL);
-    close(sockets[1]);
+    close_test_socket(sockets[1]);
     rig_cleanup(rig);
 
     if (test.status != 0)
@@ -271,6 +379,10 @@ int main(void)
                 test.failed_step ? test.failed_step : "unknown step");
         failed = 1;
     }
+
+#ifdef _WIN32
+    WSACleanup();
+#endif
 
     return failed;
 }
