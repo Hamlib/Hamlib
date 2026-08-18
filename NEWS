@@ -48,6 +48,9 @@ Version 4.7.3
           GitHub PR #2118.  (TNX Miao Wang)
         * FTX-1: Round repeater offset to nearest menu step, reject negative.
           GitHub PR #2119.  (TNX Terrell Deppe)
+        * TH-D75: New dedicated backend.  GitHub PR #2159.  (TNX David
+          Christle)
+
 
 Version 4.7.2
         * 2026-06-21
