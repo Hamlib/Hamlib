@@ -4215,6 +4215,17 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
                      val.i == 0 ? 0 : 1,
                      val.i, cat_term);
         }
+        else if (is_ft2000)
+        {
+            /* FT-2000 CAT manual: IS command's P1 (VFO byte) is
+             * documented "0: Fixed" -- always '0'. The guard below
+             * can't fix this after the fact for this rig, since
+             * main_sub_vfo would already be baked into cmd_str[2];
+             * hardcode '0' here instead, same pattern as FTDX10/FT710
+             * above. */
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "IS0%+.4d%c",
+                     val.i, cat_term);
+        }
         else
         {
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "IS%c%+.4d%c", main_sub_vfo,
@@ -5021,8 +5032,17 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             newcat_get_mode(rig, vfo, &mode, &width);
         }
 
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "IS%c%c", main_sub_vfo,
-                 cat_term);
+        if (is_ft2000)
+        {
+            /* See newcat_set_level()'s RIG_LEVEL_IF case above: FT-2000's
+             * IS P1 is fixed at '0', can't rely on the guard below. */
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "IS0%c", cat_term);
+        }
+        else
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "IS%c%c", main_sub_vfo,
+                     cat_term);
+        }
 
         if (rig->caps->targetable_vfo & RIG_TARGETABLE_LEVEL && !is_ft2000
                 && !is_ftdx10 && !is_ft710)
