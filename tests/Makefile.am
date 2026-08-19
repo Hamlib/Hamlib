@@ -141,7 +141,7 @@ rigstreamtest_LDADD = $(PTHREAD_LIBS) $(LDADD)
 rigstreamtest_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 rigstreamtest_CPPFLAGS = -I$(top_srcdir)/src -I$(top_builddir)/src \
     $(AM_CPPFLAGS)
-testnetrigctl_LDADD = $(top_builddir)/rigs/dummy/libhamlib-dummy.la
+testnetrigctl_SOURCES = testnetrigctl.c $(top_srcdir)/rigs/dummy/dummy_common.c
 testctlparser_SOURCES = testctlparser.c $(RIGCOMMONSRC)
 testctlparser_LDADD = $(PTHREAD_LIBS) $(READLINE_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
 testicomts_LDADD = $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
