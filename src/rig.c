@@ -2827,6 +2827,28 @@ int HAMLIB_API rig_get_freqs(RIG *rig, freq_t *freqA, freq_t freqB)
     return (-RIG_ENIMPL);
 }
 
+static int mode_satisfies_request(rmode_t requested, rmode_t current)
+{
+    if (requested == current)
+    {
+        return 1;
+    }
+
+    if (requested == RIG_MODE_PKTUSB)
+    {
+        return current == RIG_MODE_USBD1 || current == RIG_MODE_USBD2
+               || current == RIG_MODE_USBD3;
+    }
+
+    if (requested == RIG_MODE_PKTLSB)
+    {
+        return current == RIG_MODE_LSBD1 || current == RIG_MODE_LSBD2
+               || current == RIG_MODE_LSBD3;
+    }
+
+    return 0;
+}
+
 
 /**
  * \brief set the mode of the target VFO
@@ -2926,10 +2948,10 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 #if 0
         // This should not be necessary anymore with the new filter method for Icom rigs
         // Hopefully fixes issue https://github.com/Hamlib/Hamlib/issues/1580
-        if (retcode == RIG_OK && mode == mode_curr
+        if (retcode == RIG_OK && mode_satisfies_request(mode, mode_curr)
                 && RIG_ICOM != RIG_BACKEND_NUM(rig->caps->rig_model))
 #else
-        if (retcode == RIG_OK && mode == mode_curr)
+        if (retcode == RIG_OK && mode_satisfies_request(mode, mode_curr))
 #endif
         {
             rig_debug(RIG_DEBUG_VERBOSE,
