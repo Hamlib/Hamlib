@@ -39,7 +39,7 @@ jobs:
         shell: msys2 {0}
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Set up MSYS2 (MINGW64)
       uses: msys2/setup-msys2@v2
       with:
