@@ -11,8 +11,13 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <string.h>
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
 #include <sys/socket.h>
 #include <unistd.h>
+#endif
 
 #include "hamlib/rig.h"
 #include "hamlib/port.h"
@@ -23,6 +28,89 @@
 
 extern struct rig_caps ic7100_caps;
 extern struct rig_caps ic7300_caps;
+
+static int close_test_socket(int fd)
+{
+#ifdef _WIN32
+    return closesocket(fd);
+#else
+    return close(fd);
+#endif
+}
+
+static int read_test_socket(int fd, void *buffer, size_t length)
+{
+#ifdef _WIN32
+    return recv(fd, buffer, (int) length, 0);
+#else
+    return (int) read(fd, buffer, length);
+#endif
+}
+
+static int write_test_socket(int fd, const void *buffer, size_t length)
+{
+#ifdef _WIN32
+    return send(fd, buffer, (int) length, 0);
+#else
+    return (int) write(fd, buffer, length);
+#endif
+}
+
+static int open_test_connection(int sockets[2])
+{
+#ifdef _WIN32
+    SOCKET listener;
+    SOCKET client;
+    SOCKET peer;
+    struct sockaddr_in address;
+    int address_length = sizeof(address);
+
+    listener = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+    if (listener == INVALID_SOCKET) { return -1; }
+
+    memset(&address, 0, sizeof(address));
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    address.sin_port = 0;
+
+    if (bind(listener, (struct sockaddr *) &address, sizeof(address)) != 0 ||
+            listen(listener, 1) != 0 ||
+            getsockname(listener, (struct sockaddr *) &address,
+                        &address_length) != 0)
+    {
+        closesocket(listener);
+        return -1;
+    }
+
+    client = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+    if (client == INVALID_SOCKET ||
+            connect(client, (struct sockaddr *) &address,
+                    sizeof(address)) != 0)
+    {
+        if (client != INVALID_SOCKET) { closesocket(client); }
+
+        closesocket(listener);
+        return -1;
+    }
+
+    peer = accept(listener, NULL, NULL);
+    closesocket(listener);
+
+    if (peer == INVALID_SOCKET)
+    {
+        closesocket(client);
+        return -1;
+    }
+
+    sockets[0] = (int) client;
+    sockets[1] = (int) peer;
+    return 0;
+#else
+    return socketpair(AF_UNIX, SOCK_STREAM, 0, sockets);
+#endif
+}
 
 struct exchange
 {
@@ -192,7 +280,7 @@ static int read_frame(int fd, unsigned char *frame, size_t capacity)
 
     while (length < capacity)
     {
-        ssize_t count = read(fd, frame + length, 1);
+        int count = read_test_socket(fd, frame + length, 1);
 
         if (count != 1)
         {
@@ -214,7 +302,7 @@ static int write_all(int fd, const unsigned char *buffer, size_t length)
 
     while (written < length)
     {
-        ssize_t count = write(fd, buffer + written, length - written);
+        int count = write_test_socket(fd, buffer + written, length - written);
 
         if (count <= 0)
         {
@@ -272,6 +360,7 @@ static RIG *prepare_rig(rig_model_t model, int fd)
     STATE(rig)->comm_state = 1;
     STATE(rig)->current_vfo = RIG_VFO_A;
     RIGPORT(rig)->fd = fd;
+    RIGPORT(rig)->type.rig = RIG_PORT_NETWORK;
     RIGPORT(rig)->retry = 0;
     RIGPORT(rig)->timeout = 100;
     priv = STATE(rig)->priv;
@@ -283,7 +372,7 @@ static void release_rig(RIG *rig, int fd)
 {
     STATE(rig)->comm_state = 0;
     RIGPORT(rig)->fd = -1;
-    close(fd);
+    close_test_socket(fd);
     rig_cleanup(rig);
 }
 
@@ -307,9 +396,9 @@ static int run_mode_case(const char *name, rig_model_t model,
     pbwidth_t width = 0;
     int retval;
 
-    if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) != 0)
+    if (open_test_connection(sockets) != 0)
     {
-        perror("socketpair");
+        fprintf(stderr, "%s: test socket setup failed\n", name);
         return 1;
     }
 
@@ -317,8 +406,8 @@ static int run_mode_case(const char *name, rig_model_t model,
 
     if (pthread_create(&thread, NULL, run_peer, &test) != 0)
     {
-        close(sockets[0]);
-        close(sockets[1]);
+        close_test_socket(sockets[0]);
+        close_test_socket(sockets[1]);
         return 1;
     }
 
@@ -326,8 +415,8 @@ static int run_mode_case(const char *name, rig_model_t model,
 
     if (rig == NULL)
     {
-        close(sockets[0]);
-        close(sockets[1]);
+        close_test_socket(sockets[0]);
+        close_test_socket(sockets[1]);
         pthread_join(thread, NULL);
         return 1;
     }
@@ -335,7 +424,7 @@ static int run_mode_case(const char *name, rig_model_t model,
     retval = rig_get_mode(rig, RIG_VFO_CURR, &mode, &width);
     release_rig(rig, sockets[0]);
     pthread_join(thread, NULL);
-    close(sockets[1]);
+    close_test_socket(sockets[1]);
 
     if (test.status != 0 || retval != expected_retval
             || (retval == RIG_OK && mode != expected_mode))
@@ -367,9 +456,9 @@ static int run_frequency_case(const char *name,
     freq_t frequency = 0;
     int retval;
 
-    if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) != 0)
+    if (open_test_connection(sockets) != 0)
     {
-        perror("socketpair");
+        fprintf(stderr, "%s: test socket setup failed\n", name);
         return 1;
     }
 
@@ -377,8 +466,8 @@ static int run_frequency_case(const char *name,
 
     if (pthread_create(&thread, NULL, run_peer, &test) != 0)
     {
-        close(sockets[0]);
-        close(sockets[1]);
+        close_test_socket(sockets[0]);
+        close_test_socket(sockets[1]);
         return 1;
     }
 
@@ -386,8 +475,8 @@ static int run_frequency_case(const char *name,
 
     if (rig == NULL)
     {
-        close(sockets[0]);
-        close(sockets[1]);
+        close_test_socket(sockets[0]);
+        close_test_socket(sockets[1]);
         pthread_join(thread, NULL);
         return 1;
     }
@@ -395,7 +484,7 @@ static int run_frequency_case(const char *name,
     retval = rig_get_freq(rig, RIG_VFO_CURR, &frequency);
     release_rig(rig, sockets[0]);
     pthread_join(thread, NULL);
-    close(sockets[1]);
+    close_test_socket(sockets[1]);
 
     if (test.status != 0 || retval != expected_retval
             || (retval == RIG_OK && frequency != 14074000))
@@ -410,6 +499,19 @@ static int run_frequency_case(const char *name,
 
 int main(void)
 {
+    int status = 0;
+
+#ifdef _WIN32
+    WSADATA wsa_data;
+
+    if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0)
+    {
+        fprintf(stderr, "WSAStartup failed\n");
+        return 1;
+    }
+
+#endif
+
     rig_register(&ic7100_caps);
     rig_register(&ic7300_caps);
 
@@ -429,21 +531,24 @@ int main(void)
                              ARRAY_SIZE(required_mode_exchanges),
                              -RIG_ERJCTED, RIG_MODE_NONE) != 0)
     {
-        return 1;
+        status = 1;
     }
-
-    if (run_frequency_case("optional 0x25 NAK", old_frequency_exchanges,
-                           ARRAY_SIZE(old_frequency_exchanges), RIG_OK) != 0
-            || run_frequency_case("supported 0x25", new_frequency_exchanges,
-                                  ARRAY_SIZE(new_frequency_exchanges),
-                                  RIG_OK) != 0
-            || run_frequency_case("malformed 0x25 reply",
-                                  malformed_frequency_exchanges,
-                                  ARRAY_SIZE(malformed_frequency_exchanges),
-                                  -RIG_EPROTO) != 0)
+    else if (run_frequency_case("optional 0x25 NAK", old_frequency_exchanges,
+                                ARRAY_SIZE(old_frequency_exchanges), RIG_OK) != 0
+             || run_frequency_case("supported 0x25", new_frequency_exchanges,
+                                   ARRAY_SIZE(new_frequency_exchanges),
+                                   RIG_OK) != 0
+             || run_frequency_case("malformed 0x25 reply",
+                                   malformed_frequency_exchanges,
+                                   ARRAY_SIZE(malformed_frequency_exchanges),
+                                   -RIG_EPROTO) != 0)
     {
-        return 1;
+        status = 1;
     }
 
-    return 0;
+#ifdef _WIN32
+    WSACleanup();
+#endif
+
+    return status;
 }
