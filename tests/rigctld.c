@@ -180,6 +180,19 @@ void mutex_rigctld(int lock)
 
 }
 
+
+/* The daemon registry owns feeder threads that retain rig_stream_t handles.
+ * They must be gone before rig_close() invalidates the rig's stream state. */
+static int rigctld_close_rig(void)
+{
+    int retcode;
+
+    rigctld_stream_registry_close_all(&g_stream_registry);
+    retcode = rig_close(my_rig);
+    rig_opened = 0;
+    return retcode;
+}
+
 #ifdef WIN32
 static BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
 {
@@ -287,7 +300,6 @@ int main(int argc, char *argv[])
 #endif
 
     pthread_t thread;
-    pthread_attr_t attr;
     int vfo_mode = 0; /* vfo_mode=0 means target VFO is current VFO */
     int i;
     extern int is_rigctld;
@@ -881,7 +893,7 @@ int main(int argc, char *argv[])
     // So they need to release the rig when no clients are connected
     if (rigctld_idle)
     {
-        rig_close(my_rig);          /* we will reopen for clients */
+        rigctld_close_rig();
 
         if (verbose > RIG_DEBUG_ERR)
         {
@@ -1189,6 +1201,8 @@ int main(int argc, char *argv[])
         else
         {
             struct handle_data *arg;
+            pthread_attr_t attr;
+            int attr_ret;
 
             arg = calloc(1, sizeof(struct handle_data));
 
@@ -1234,7 +1248,7 @@ int main(int argc, char *argv[])
                           "Connection from %s:%s rejected — "
                           "max clients (%d) reached\n",
                           host, serv, RIGCTLD_MAX_CLIENTS);
-                close(arg->sock);
+                socket_close(arg->sock);
                 free(arg);
                 continue;
             }
@@ -1245,14 +1259,51 @@ int main(int argc, char *argv[])
                       "Connection opened from %s:%s (client %d)\n",
                       host, serv, arg->client_id);
 
-            pthread_attr_init(&attr);
-            pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+            attr_ret = pthread_attr_init(&attr);
+
+            if (attr_ret != 0)
+            {
+                rig_debug(RIG_DEBUG_ERR, "pthread_attr_init: %s\n",
+                          strerror(attr_ret));
+                socket_close(arg->sock);
+                free(arg);
+                break;
+            }
+
+            attr_ret = pthread_attr_setdetachstate(&attr,
+                                                   PTHREAD_CREATE_DETACHED);
+
+            if (attr_ret != 0)
+            {
+                rig_debug(RIG_DEBUG_ERR, "pthread_attr_setdetachstate: %s\n",
+                          strerror(attr_ret));
+                int destroy_ret = pthread_attr_destroy(&attr);
+
+                if (destroy_ret != 0)
+                {
+                    rig_debug(RIG_DEBUG_WARN, "pthread_attr_destroy: %s\n",
+                              strerror(destroy_ret));
+                }
+
+                socket_close(arg->sock);
+                free(arg);
+                break;
+            }
 
             retcode = pthread_create(&thread, &attr, handle_socket, arg);
+            attr_ret = pthread_attr_destroy(&attr);
+
+            if (attr_ret != 0)
+            {
+                rig_debug(RIG_DEBUG_WARN, "pthread_attr_destroy: %s\n",
+                          strerror(attr_ret));
+            }
 
             if (retcode != 0)
             {
                 rig_debug(RIG_DEBUG_ERR, "pthread_create: %s\n", strerror(retcode));
+                socket_close(arg->sock);
+                free(arg);
                 break;
             }
 
@@ -1275,7 +1326,7 @@ int main(int argc, char *argv[])
 #else
     close(sock_listen);
 #endif
-    rig_close(my_rig);
+    rigctld_close_rig();
     mutex_rigctld(0);
 
     rigctld_stream_registry_destroy(&g_stream_registry);
@@ -1329,6 +1380,7 @@ void *handle_socket(void *arg)
     char send_cmd_term = '\r';  /* send_cmd termination char */
     int ext_resp = 0;
     char my_resp_sep = resp_sep;  // Separator for this connection, initial default
+    unsigned remaining_clients;
     rig_powerstat = RIG_POWER_ON; // defaults to power on
     struct timespec powerstat_check_time;
 
@@ -1455,8 +1507,7 @@ void *handle_socket(void *arg)
             do
             {
                 mutex_rigctld(1);
-                retcode = rig_close(my_rig);
-                rig_opened = 0;
+                retcode = rigctld_close_rig();
                 mutex_rigctld(0);
                 rig_debug(RIG_DEBUG_ERR, "%s: rig_close retcode=%d\n", __func__, retcode);
 
@@ -1480,18 +1531,19 @@ void *handle_socket(void *arg)
     while (!ctrl_c && (retcode == RIG_OK || RIG_IS_SOFT_ERRCODE(retcode)));
 
     mutex_rigctld(1);
+    rigctld_stream_registry_close_by_client(&g_stream_registry, my_client_id);
+    remaining_clients = --client_count;
 
-    if (rigctld_idle && client_count == 1)
+    if (rigctld_idle && remaining_clients == 0)
     {
-        rig_close(my_rig);
+        rigctld_close_rig();
 
         if (verbose > RIG_DEBUG_ERR) { printf("Closed rig model %s.  Will reopen for new clients\n", my_rig->caps->model_name); }
     }
 
-    --client_count;
     mutex_rigctld(0);
 
-    if (rigctld_idle && client_count > 0) { printf("%u client%s still connected so rig remains open\n", client_count, client_count > 1 ? "s" : ""); }
+    if (rigctld_idle && remaining_clients > 0) { printf("%u client%s still connected so rig remains open\n", remaining_clients, remaining_clients > 1 ? "s" : ""); }
 
 #if 0
     mutex_rigctld(1);
@@ -1529,8 +1581,6 @@ void *handle_socket(void *arg)
               "Connection closed from %s:%s\n",
               host,
               serv);
-
-    rigctld_stream_registry_close_by_client(&g_stream_registry, my_client_id);
 
 handle_exit:
 

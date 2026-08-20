@@ -7043,13 +7043,10 @@ declare_proto_rig(stream_pause)
 
     if (!stream) { RETURNFUNC2(err); }
 
-    /* Release the registry lock before the (possibly blocking) backend call so
-     * one client's pause cannot stall every other client's stream command. The
-     * backend stream cannot be freed underneath us: rig_stream_close() drains
-     * its in-use count, which this call holds for its duration. */
-    rig_stream_t *backend = stream->backend_stream;
+    /* Keep the registry-owned handle pinned until the public API has entered
+     * and released its internal stream-lifetime guard. */
+    retval = rig_stream_pause(rig, stream->backend_stream);
     rigctld_stream_registry_unlock(&g_stream_registry);
-    retval = rig_stream_pause(rig, backend);
     RETURNFUNC2(retval);
 }
 
@@ -7067,10 +7064,8 @@ declare_proto_rig(stream_resume)
 
     if (!stream) { RETURNFUNC2(err); }
 
-    /* See stream_pause: drop the registry lock before the backend call. */
-    rig_stream_t *backend = stream->backend_stream;
+    retval = rig_stream_resume(rig, stream->backend_stream);
     rigctld_stream_registry_unlock(&g_stream_registry);
-    retval = rig_stream_resume(rig, backend);
     RETURNFUNC2(retval);
 }
 
@@ -7175,11 +7170,8 @@ declare_proto_rig(stream_drain)
 
     if (!stream) { RETURNFUNC2(err); }
 
-    /* See stream_pause: drop the registry lock before the 1 s flush so it does
-     * not stall every other client's stream command for its whole duration. */
-    rig_stream_t *backend = stream->backend_stream;
+    retval = rig_stream_drain(rig, stream->backend_stream, 1000);
     rigctld_stream_registry_unlock(&g_stream_registry);
-    retval = rig_stream_drain(rig, backend, 1000);
     RETURNFUNC2(retval);
 }
 

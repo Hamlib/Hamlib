@@ -229,6 +229,10 @@ struct rigctld_stream *rigctld_stream_registry_remove(
 int rigctld_stream_registry_close_by_client(struct rigctld_stream_registry *reg,
         int client_id);
 
+/* Remove and free every stream while leaving the registry reusable.
+ * Returns the number of streams closed. */
+int rigctld_stream_registry_close_all(struct rigctld_stream_registry *reg);
+
 /* Count active streams in the registry. */
 int rigctld_stream_registry_count(struct rigctld_stream_registry *reg);
 
