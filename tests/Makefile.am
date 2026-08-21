@@ -40,6 +40,7 @@ GENERATED_TEST_WRAPPERS = \
 	testfreq.sh \
 	testgrid.sh \
 	testloc.sh \
+	testnetrigctl.sh \
 	testrig.sh \
 	testrigcaps.sh
 
@@ -58,6 +59,7 @@ check_PROGRAMS = \
 	testgrid \
 	testloc \
 	testmW2power \
+	testnetrigctl \
 	testrig \
 	testrigcaps \
 	testrigopen \
@@ -144,6 +146,7 @@ testelecraftvfo_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/kenwood
 testftx1parsers_LDADD = $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
 testft991idmeter_LDADD = $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
 testnewcatset_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
+testnetrigctl_LDADD = $(top_builddir)/rigs/dummy/libhamlib-dummy.la
 if TESTS_HAVE_LIBUSB
     rigtestlibusb_LDADD = $(LIBUSB_LIBS)
 endif
@@ -231,6 +234,10 @@ $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la:
 testrig.sh:
 	echo 'LD_LIBRARY_PATH=$(top_builddir)/src/.libs:$(top_builddir)/dummy/.libs ./testrig 1' > testrig.sh
 	chmod +x ./testrig.sh
+
+testnetrigctl.sh:
+	echo './testnetrigctl' > testnetrigctl.sh
+	chmod +x ./testnetrigctl.sh
 
 testfreq.sh:
 	echo './testfreq' > testfreq.sh
