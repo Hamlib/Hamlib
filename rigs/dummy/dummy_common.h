@@ -26,5 +26,11 @@
 
 struct ext_list *alloc_init_ext(const struct confparams *cfp);
 struct ext_list *find_ext(struct ext_list *elp, hamlib_token_t token);
+void dummy_reset_agc_levels(
+    enum agc_level_e agc_levels[HAMLIB_MAX_AGC_LEVELS],
+    int *agc_level_count);
+int dummy_parse_agc_levels(char *value,
+                           enum agc_level_e agc_levels[HAMLIB_MAX_AGC_LEVELS],
+                           int *agc_level_count);
 
 #endif /* _DUMMY_H */
