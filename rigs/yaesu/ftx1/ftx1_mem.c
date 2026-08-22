@@ -364,14 +364,17 @@ int ftx1_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str),
                  "CF100%d0000;", (chan->rit != 0) ? 1 : 0);
         (void)newcat_set_cmd(rig);
+        ftx1_invalidate_clar_state(priv, '1');
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str),
                  "CF100%d0000;", (chan->xit != 0) ? 3 : 2);
         (void)newcat_set_cmd(rig);
+        ftx1_invalidate_clar_state(priv, '1');
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str),
                  "CF101%c%04d;", dir, off);
         (void)newcat_set_cmd(rig);
+        ftx1_invalidate_clar_state(priv, '1');
     }
     else
     {
@@ -379,8 +382,10 @@ int ftx1_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
          * from a previous write or the operator's prior VFO-B. */
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF10000000;");
         (void)newcat_set_cmd(rig);
+        ftx1_invalidate_clar_state(priv, '1');
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF10020000;");
         (void)newcat_set_cmd(rig);
+        ftx1_invalidate_clar_state(priv, '1');
     }
 
     /* 4. Commit VFO-B to the last-selected memory channel. */
@@ -396,8 +401,10 @@ restore:
      * side-effect cleanup. */
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF10000000;");
     (void)newcat_set_cmd(rig);
+    ftx1_invalidate_clar_state(priv, '1');
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF10020000;");
     (void)newcat_set_cmd(rig);
+    ftx1_invalidate_clar_state(priv, '1');
     if (is_fm_family)
     {
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CT10;");
