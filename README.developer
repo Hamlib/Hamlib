@@ -342,7 +342,10 @@ The '--prefix' option to 'configure' is optional and not shown as it defaults to
 /usr/local away from distribution installed packages.  The 'CFLAGS="-g -O0"'
 environment variable generates less optimized binaries with the '-O0'  while the
 '-g' option adds debugging info which can be changed to -ggdb to generate
-debugging info for gdb.
+debugging info for gdb, then you need to run gdb using libtool passing as
+arguments the wrapper script and any needed option and command:
+    libtool --mode=execute gdb --args tests/rigctl --model ...
+
 
 Additionally, you may want to add the '--with-perl-binding' or
 '--with-python-binding' or '--with-tcl-binding' or '--with-lua-binding' if you
