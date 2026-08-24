@@ -1862,17 +1862,28 @@ under
 .IP
 Each key uses one of three value syntaxes, always the same one:
 .IR formats ", " native_formats " and " flags
-are comma-separated symbolic name lists (a list may be empty \(em
-.I flags
-on an entry with no capability flags);
+are comma-separated symbolic name lists;
 .IR rates ", " channels ", " native_rates " and " native_channels
 are comma-separated ascending decimal integer lists (ranges are not part
 of the grammar \(em a contiguous set is spelled out, e.g.
 \(aqchannels=1,2,3,4\(aq); and
 .IR max_streams " (the concurrent-stream limit) and " tx_horizon_ms
 (the timed-TX lead-time limit, 0 = not schedulable) are single
-integers.  The line carries every defined capability field; clients
-must skip unknown keys and unknown flag names.
+integers.  An empty list is spelled
+.BR NONE ,
+whichever of the two list syntaxes the key uses \(em
+\(aqflags=NONE\(aq on an entry with no capability flags,
+\(aqchannels=NONE\(aq on one that declares no channel counts \(em so no
+key is ever written with an empty value; the same token spells the empty
+list in
+.I conversions
+and
+.I require_native
+under
+.BR stream_open .
+A parser should nonetheless accept an empty value as the empty list, as
+an absent key already means.  The line carries every defined capability
+field; clients must skip unknown keys and unknown flag names.
 .
 .TP
 .BR stream_open " \(aq" \fIType\fP "\(aq \(aq" \fIFormat\fP "\(aq \(aq" \fIRate\fP "\(aq [\fIkey=value\fP ...]"
@@ -1903,8 +1914,13 @@ arguments:
 (1\(en255, validated against the capability entry \(em coherent I/Q may
 exceed stereo),
 .I require_native
-(0\(en1; 1 opens only a hardware-native stream, refusing a request that
-would need conversion with \-RIG_ENAVAIL),
+(comma-separated conversion stage names \(em FORMAT, RATE, CHANNELS \(em or
+ALL for every stage, or NONE; a request that would need a listed stage is
+refused with \-RIG_ENAVAIL instead of converted, while stages left out are
+still converted, so \(aqrequire_native=RATE\(aq demands a hardware-native
+sample rate but accepts a format conversion.  An unknown stage name is
+rejected with \-RIG_EINVAL rather than ignored, so a demand this server
+cannot honour never passes silently),
 .I time_stale_coarse
 (ms), and
 .I time_stale_invalidate
@@ -1918,7 +1934,7 @@ The response reports
 .IR max_payload ,
 .I conversions
 (the active server-side conversion stages as a comma-separated name
-list \(em FORMAT, RATE and/or CHANNELS \(em empty for a native stream),
+list \(em FORMAT, RATE and/or CHANNELS \(em NONE for a native stream),
 and, for multicast streams,
 .IR multicast .
 Codec formats (e.g. OPUS) open native-only \(em no conversion stage ever

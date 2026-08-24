@@ -578,7 +578,7 @@ void test_channel_list_exact(void)
 
     /* Listed counts still open under require_native. */
     cfg->channels = 1;
-    cfg->require_native = 1;
+    cfg->require_native = RIG_STREAM_CONV_ALL;
     stream = NULL;
     ret = rig_stream_open(rig, cfg, &stream);
     TEST_CHECK(ret == RIG_OK);
@@ -926,13 +926,52 @@ void test_conversions_getter(void)
     cfg->format = RIG_STREAM_FORMAT_PCM_S16;
     cfg->sample_rate = 48000;
     cfg->channels = 1;
-    cfg->require_native = 1;
+    cfg->require_native = RIG_STREAM_CONV_ALL;
 
     rig_stream_t *stream = NULL;
     TEST_ASSERT(rig_stream_open(rig, cfg, &stream) == RIG_OK);
     TEST_CHECK(rig_stream_get_conversions(stream) == RIG_STREAM_CONV_NONE);
 
     rig_stream_close(rig, stream);
+    rig_stream_config_free(cfg);
+    teardown_rig(rig);
+}
+
+/* The channel map is a stage like the others: against a mono-only backend
+ * a stereo request is refused when CHANNELS is required native, and served
+ * when the demand names a different stage. */
+void test_require_native_channels_stage(void)
+{
+    RIG *rig = setup_rig(&stub_caps_mono_stream);
+    TEST_ASSERT(rig != NULL);
+
+    struct rig_stream_config *cfg = rig_stream_config_alloc();
+    TEST_ASSERT(cfg != NULL);
+    cfg->type = RIG_STREAM_TYPE_AUDIO_RX;
+    cfg->format = RIG_STREAM_FORMAT_PCM_F32;
+    cfg->sample_rate = 48000;
+    cfg->channels = 2;                  /* mono backend -> upmix */
+
+    rig_stream_t *stream = NULL;
+    cfg->require_native = RIG_STREAM_CONV_CHANNELS;
+    int ret = rig_stream_open(rig, cfg, &stream);
+    TEST_CHECK(ret == -RIG_ENAVAIL && stream == NULL);
+    TEST_MSG("channels demand on an upmixed open: got %d, expected %d",
+             ret, -RIG_ENAVAIL);
+
+    cfg->require_native = RIG_STREAM_CONV_FORMAT | RIG_STREAM_CONV_RATE;
+    stream = NULL;
+    ret = rig_stream_open(rig, cfg, &stream);
+    TEST_CHECK(ret == RIG_OK);
+    TEST_MSG("format+rate demand on an upmixed open returned %d", ret);
+
+    if (ret == RIG_OK)
+    {
+        TEST_CHECK(rig_stream_get_conversions(stream)
+                   == RIG_STREAM_CONV_CHANNELS);
+        rig_stream_close(rig, stream);
+    }
+
     rig_stream_config_free(cfg);
     teardown_rig(rig);
 }
@@ -2395,6 +2434,7 @@ TEST_LIST =
     { "caps_codec_only_not_widened", test_caps_codec_only_not_widened },
     { "caps_pre_open_raw",        test_caps_pre_open_raw },
     { "conversions_getter",       test_conversions_getter },
+    { "require_native_channels_stage", test_require_native_channels_stage },
     { "config_alloc_free",        test_config_alloc_free },
     { "get_max_payload",          test_get_max_payload },
     { "open_null_config",         test_open_null_config },

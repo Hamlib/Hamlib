@@ -668,6 +668,15 @@ int stream_format_bitmask_str(rig_stream_format_t formats,
 
     buf[0] = '\0';
 
+    /* Every list-valued key of the protocol spells the empty list NONE
+     * (see stream_list_none()) — never an empty value. */
+    if (formats == 0)
+    {
+        int n = snprintf(buf, buflen, "%s", STREAM_LIST_NONE);
+
+        return (n < 0 || (size_t)n >= buflen) ? -1 : n;
+    }
+
     for (i = 0; i < FORMAT_TABLE_SIZE; i++)
     {
         if (formats & format_table[i].format)
@@ -723,6 +732,13 @@ int stream_caps_flags_str(uint64_t caps_flags, char *buf, size_t buflen)
 
     buf[0] = '\0';
 
+    if (caps_flags == 0)
+    {
+        int n = snprintf(buf, buflen, "%s", STREAM_LIST_NONE);
+
+        return (n < 0 || (size_t)n >= buflen) ? -1 : n;
+    }
+
     for (i = 0; i < sizeof(caps_flag_table) / sizeof(caps_flag_table[0]); i++)
     {
         if (!(caps_flags & caps_flag_table[i].flag))
@@ -761,9 +777,34 @@ uint64_t stream_caps_flag_parse(const char *name)
 
 /* Append an ascending 0-terminated int list as comma-separated decimals.
  * Returns 0, or -1 on overflow. */
+/* One token spells the empty list in EVERY list-valued key of the streaming
+ * protocol — caps name lists and integer lists, the conversions: stage list,
+ * and require_native. A key whose value is missing entirely, or empty as an
+ * older peer wrote it, means the same thing. */
+const char *const STREAM_LIST_NONE = "NONE";
+
+int stream_list_none(const char *value, size_t len)
+{
+    return len == 4 && strncmp(value, STREAM_LIST_NONE, 4) == 0;
+}
+
+
 static int append_int_list(char *buf, size_t buflen, size_t *pos,
                            const int *list, int max_entries)
 {
+    if (max_entries <= 0 || list[0] == 0)
+    {
+        int n = snprintf(buf + *pos, buflen - *pos, "%s", STREAM_LIST_NONE);
+
+        if (n < 0 || (size_t)n >= buflen - *pos)
+        {
+            return -1;
+        }
+
+        *pos += (size_t)n;
+        return 0;
+    }
+
     for (int i = 0; i < max_entries && list[i] != 0; i++)
     {
         int n = snprintf(buf + *pos, buflen - *pos, "%s%d",
@@ -913,6 +954,16 @@ int stream_conversions_str(int conv, char *buf, size_t buflen)
 
     buf[0] = '\0';
 
+    /* A native stream is spelled NONE, not an empty value: the same token
+     * a client writes in require_native, and one an eye or a log filter
+     * cannot mistake for a missing field. */
+    if (conv == RIG_STREAM_CONV_NONE)
+    {
+        int n = snprintf(buf, buflen, "%s", STREAM_LIST_NONE);
+
+        return (n < 0 || (size_t)n >= buflen) ? -1 : n;
+    }
+
     for (i = 0; i < sizeof(conv_table) / sizeof(conv_table[0]); i++)
     {
         if (!(conv & conv_table[i].flag))
@@ -960,7 +1011,15 @@ int stream_conversions_parse(const char *text)
 
         size_t i;
 
-        /* Unknown names are skipped so future servers may add stages. */
+        /* NONE contributes no stage; an empty value means the same thing
+         * (older servers wrote one). Other unknown names are skipped so
+         * future servers may add stages. */
+        if (stream_list_none(tok, len))
+        {
+            tok += len;
+            continue;
+        }
+
         for (i = 0; i < sizeof(conv_table) / sizeof(conv_table[0]); i++)
         {
             if (len == strlen(conv_table[i].name)
@@ -975,4 +1034,101 @@ int stream_conversions_parse(const char *text)
     }
 
     return conv;
+}
+
+
+/* --- require_native stage list --- */
+
+/* The wire spells a rig_stream_config.require_native mask with the same stage
+ * names as the conversions: line, plus ALL (every stage, present and future)
+ * and NONE (the empty list). */
+int stream_native_req_str(uint32_t mask, char *buf, size_t buflen)
+{
+    static const uint32_t known = (uint32_t)(RIG_STREAM_CONV_FORMAT
+                                  | RIG_STREAM_CONV_RATE
+                                  | RIG_STREAM_CONV_CHANNELS);
+
+    if (buflen == 0)
+    {
+        return -1;
+    }
+
+    /* Only RIG_STREAM_CONV_ALL sets bits outside the named stages, and it
+     * must survive the round trip as ALL: an older peer that rendered it as
+     * the stages it happens to know would quietly narrow the demand. */
+    if (mask & ~known)
+    {
+        int n = snprintf(buf, buflen, "ALL");
+
+        return (n < 0 || (size_t)n >= buflen) ? -1 : n;
+    }
+
+    /* RIG_STREAM_CONV_NONE renders as NONE through the shared formatter. */
+    return stream_conversions_str((int)mask, buf, buflen);
+}
+
+/* Strict counterpart of stream_conversions_parse(): an unknown stage name is
+ * an error rather than a skip. A requirement the peer cannot honour must
+ * never be silently dropped — the client would hold a guarantee that nothing
+ * enforces. Returns 0 with *mask set, or -1 (nothing written). */
+int stream_native_req_parse(const char *text, uint32_t *mask)
+{
+    uint32_t out = RIG_STREAM_CONV_NONE;
+    const char *tok = text;
+
+    if (!text || !mask)
+    {
+        return -1;
+    }
+
+    while (*tok != '\0')
+    {
+        while (*tok == ' ' || *tok == ',')
+        {
+            tok++;
+        }
+
+        size_t len = strcspn(tok, ", \r\n");
+
+        if (len == 0)
+        {
+            break;
+        }
+
+        size_t i;
+        int found = 0;
+
+        if (len == 3 && strncmp(tok, "ALL", len) == 0)
+        {
+            out |= RIG_STREAM_CONV_ALL;
+            found = 1;
+        }
+        else if (stream_list_none(tok, len))
+        {
+            found = 1;                /* RIG_STREAM_CONV_NONE: no stage */
+        }
+
+        for (i = 0; !found && i < sizeof(conv_table) / sizeof(conv_table[0]);
+                i++)
+        {
+            if (len == strlen(conv_table[i].name)
+                    && strncmp(tok, conv_table[i].name, len) == 0)
+            {
+                out |= (uint32_t)conv_table[i].flag;
+                found = 1;
+            }
+        }
+
+        if (!found)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: unknown conversion stage '%.*s'\n",
+                      __func__, (int)len, tok);
+            return -1;
+        }
+
+        tok += len;
+    }
+
+    *mask = out;
+    return 0;
 }

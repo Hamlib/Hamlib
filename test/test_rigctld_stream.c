@@ -675,10 +675,15 @@ void test_format_bitmask_str(void)
     TEST_CHECK(strcmp(buf, "IQ_CS16,IQ_CF32") == 0);
     TEST_MSG("got '%s'", buf);
 
-    /* Empty bitmask */
+    /* Empty bitmask: the shared empty-list token, never an empty value */
     ret = stream_format_bitmask_str(0, buf, sizeof(buf));
-    TEST_CHECK(ret == 0);
-    TEST_CHECK(buf[0] == '\0');
+    TEST_CHECK(ret == 4);
+    TEST_CHECK(strcmp(buf, "NONE") == 0);
+    TEST_MSG("empty bitmask rendered '%s'", buf);
+
+    /* Too short for the token: refused, not truncated */
+    ret = stream_format_bitmask_str(0, buf, 4);
+    TEST_CHECK(ret == -1);
 
     /* Buffer too small */
     ret = stream_format_bitmask_str(RIG_STREAM_FORMAT_PCM_S16, buf, 5);
@@ -2106,7 +2111,8 @@ void test_caps_line_roundtrip(void)
              (unsigned long long)in.caps_flags);
     TEST_CHECK(out.tx_schedule_horizon_ms == in.tx_schedule_horizon_ms);
 
-    /* Served form: native view appended; empty flags stay empty. */
+    /* Served form: native view appended; empty flags render as the
+     * empty-list token and parse back to no flags. */
     in.caps_flags = 0;
     in.tx_schedule_horizon_ms = 0;
     in.native_formats = RIG_STREAM_FORMAT_PCM_F32;
@@ -2117,6 +2123,9 @@ void test_caps_line_roundtrip(void)
     TEST_CHECK(stream_caps_format_line(&in, 1, line, sizeof(line)) > 0);
     TEST_MSG("line: '%s'", line);
 
+    TEST_CHECK(strstr(line, "flags=NONE") != NULL);
+    TEST_MSG("empty flags not rendered as NONE: '%s'", line);
+
     memset(&out, 0, sizeof(out));
     TEST_CHECK(rig_stream_net_parse_caps_line(line, &out) == 0);
     TEST_CHECK(out.caps_flags == 0);
@@ -2126,6 +2135,57 @@ void test_caps_line_roundtrip(void)
                       sizeof(in.native_sample_rates)) == 0);
     TEST_CHECK(memcmp(out.native_channels, in.native_channels,
                       sizeof(in.native_channels)) == 0);
+}
+
+/* Every list-valued caps key spells an empty list NONE — name lists and
+ * integer lists alike — so no key is ever written with an empty value.
+ * Each spelling parses back to the empty list, including the empty value
+ * an older peer would have written. */
+void test_caps_line_empty_lists_none(void)
+{
+    struct rig_stream_caps in;
+    struct rig_stream_caps out;
+    char line[1024];
+
+    memset(&in, 0, sizeof(in));
+    in.type = RIG_STREAM_TYPE_AUDIO_RX;
+    in.formats = RIG_STREAM_FORMAT_PCM_S16;
+    in.sample_rates[0] = 48000;
+    in.max_streams = 1;
+    /* channels, flags and the whole native view left empty. */
+
+    TEST_CHECK(stream_caps_format_line(&in, 1, line, sizeof(line)) > 0);
+    TEST_MSG("line: '%s'", line);
+
+    TEST_CHECK(strstr(line, "channels=NONE") != NULL);
+    TEST_CHECK(strstr(line, "flags=NONE") != NULL);
+    TEST_CHECK(strstr(line, "native_formats=NONE") != NULL);
+    TEST_CHECK(strstr(line, "native_rates=NONE") != NULL);
+    TEST_CHECK(strstr(line, "native_channels=NONE") != NULL);
+    TEST_CHECK_(strstr(line, "= ") == NULL && line[strlen(line) - 1] != '=',
+                "a key was written with an empty value: '%s'", line);
+
+    memset(&out, 0, sizeof(out));
+    TEST_CHECK(rig_stream_net_parse_caps_line(line, &out) == 0);
+    TEST_CHECK(out.formats == in.formats);
+    TEST_CHECK(out.sample_rates[0] == 48000);
+    TEST_CHECK(out.channels[0] == 0);
+    TEST_CHECK(out.caps_flags == 0);
+    TEST_CHECK(out.native_formats == 0);
+    TEST_CHECK(out.native_sample_rates[0] == 0);
+    TEST_CHECK(out.native_channels[0] == 0);
+
+    /* The empty values an older peer wrote still mean the empty list. */
+    const char *legacy =
+        "type=AUDIO_RX formats=PCM_S16 rates=48000 channels= "
+        "max_streams=1 flags= tx_horizon_ms=0";
+
+    memset(&out, 0, sizeof(out));
+    TEST_CHECK(rig_stream_net_parse_caps_line(legacy, &out) == 0);
+    TEST_CHECK(out.formats == RIG_STREAM_FORMAT_PCM_S16);
+    TEST_CHECK(out.sample_rates[0] == 48000);
+    TEST_CHECK(out.channels[0] == 0);
+    TEST_CHECK(out.caps_flags == 0);
 }
 
 /* Unknown flag names on the wire are skipped, known ones kept — a
@@ -2631,6 +2691,114 @@ void test_write_status_emit(void)
 }
 
 
+/* --- require_native stage list on the wire --- */
+
+/* The mask renders to the stage names the \stream_open require_native= key
+ * carries, and parses back to the same mask. ALL must survive as ALL: a peer
+ * that re-rendered it as the stages it happens to know would silently narrow
+ * the demand for the next hop. */
+void test_native_req_round_trip(void)
+{
+    static const struct
+    {
+        uint32_t mask;
+        const char *text;
+    } cases[] =
+    {
+        { 0,                                            "NONE" },
+        { RIG_STREAM_CONV_FORMAT,                       "FORMAT" },
+        { RIG_STREAM_CONV_RATE,                         "RATE" },
+        { RIG_STREAM_CONV_CHANNELS,                     "CHANNELS" },
+        {
+            RIG_STREAM_CONV_FORMAT | RIG_STREAM_CONV_RATE,
+            "FORMAT,RATE"
+        },
+        {
+            RIG_STREAM_CONV_FORMAT | RIG_STREAM_CONV_RATE
+            | RIG_STREAM_CONV_CHANNELS,
+            "FORMAT,RATE,CHANNELS"
+        },
+        { RIG_STREAM_CONV_ALL,                          "ALL" },
+    };
+
+    for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++)
+    {
+        char buf[64] = "";
+        TEST_CHECK(stream_native_req_str(cases[i].mask, buf, sizeof(buf)) > 0);
+        TEST_CHECK_(strcmp(buf, cases[i].text) == 0,
+                    "0x%x rendered '%s', expected '%s'",
+                    (unsigned)cases[i].mask, buf, cases[i].text);
+
+        uint32_t back = 0xdeadbeef;
+        TEST_CHECK(stream_native_req_parse(cases[i].text, &back) == 0);
+        TEST_CHECK_(back == cases[i].mask, "'%s' parsed to 0x%x, expected 0x%x",
+                    cases[i].text, (unsigned)back, (unsigned)cases[i].mask);
+    }
+
+    /* Spaces, empty text and repeats are all accepted. */
+    uint32_t mask = 0xdeadbeef;
+    TEST_CHECK(stream_native_req_parse("", &mask) == 0);
+    TEST_CHECK(mask == 0);
+
+    TEST_CHECK(stream_native_req_parse("RATE, FORMAT RATE", &mask) == 0);
+    TEST_CHECK(mask == (uint32_t)(RIG_STREAM_CONV_RATE
+                                  | RIG_STREAM_CONV_FORMAT));
+
+    /* ALL is a superset of every named stage, so it absorbs them. */
+    TEST_CHECK(stream_native_req_parse("FORMAT,ALL", &mask) == 0);
+    TEST_CHECK(mask == RIG_STREAM_CONV_ALL);
+
+    /* A short buffer fails rather than truncating a demand. */
+    char tiny[4];
+    TEST_CHECK(stream_native_req_str(RIG_STREAM_CONV_FORMAT
+                                     | RIG_STREAM_CONV_RATE,
+                                     tiny, sizeof(tiny)) < 0);
+}
+
+/* The reported side speaks the same NONE: a native stream renders as the
+ * token, not as an empty value, and the token parses back to
+ * RIG_STREAM_CONV_NONE from either spelling. */
+void test_conversions_str_none(void)
+{
+    char buf[64] = "x";
+
+    TEST_CHECK(stream_conversions_str(RIG_STREAM_CONV_NONE, buf,
+                                      sizeof(buf)) == 4);
+    TEST_CHECK_(strcmp(buf, "NONE") == 0, "CONV_NONE rendered '%s'", buf);
+
+    TEST_CHECK(stream_conversions_parse("NONE") == RIG_STREAM_CONV_NONE);
+    TEST_CHECK(stream_conversions_parse("") == RIG_STREAM_CONV_NONE);
+
+    /* NONE contributes no stage when it turns up beside one. */
+    TEST_CHECK(stream_conversions_parse("NONE,RATE") == RIG_STREAM_CONV_RATE);
+
+    /* Too short for the token: refused, not truncated to "NON". */
+    char tiny[4];
+    TEST_CHECK(stream_conversions_str(RIG_STREAM_CONV_NONE, tiny,
+                                      sizeof(tiny)) < 0);
+}
+
+/* Parsing is strict where stream_conversions_parse() is forgiving: an
+ * unknown stage name is an error, and nothing is written to the mask. */
+void test_native_req_unknown_name(void)
+{
+    uint32_t mask = 0x5a5a5a5a;
+
+    TEST_CHECK(stream_native_req_parse("CODEC", &mask) < 0);
+    TEST_CHECK(stream_native_req_parse("RATE,CODEC", &mask) < 0);
+    TEST_CHECK(stream_native_req_parse("format", &mask) < 0);   /* case */
+    TEST_CHECK_(mask == 0x5a5a5a5a, "mask was written on failure: 0x%x",
+                (unsigned)mask);
+
+    TEST_CHECK(stream_native_req_parse(NULL, &mask) < 0);
+    TEST_CHECK(stream_native_req_parse("RATE", NULL) < 0);
+
+    /* The reported-conversions parser keeps its skip-unknown behaviour:
+     * a stage a future server names must not break a client reading it. */
+    TEST_CHECK(stream_conversions_parse("RATE,CODEC") == RIG_STREAM_CONV_RATE);
+}
+
+
 TEST_LIST =
 {
     /* Subscribe token */
@@ -2638,6 +2806,12 @@ TEST_LIST =
 
     /* Packet header */
     { "header_pack_unpack_roundtrip", test_header_pack_unpack_roundtrip },
+
+    /* require_native stage list */
+    { "native_req_round_trip",        test_native_req_round_trip },
+    { "native_req_unknown_name",      test_native_req_unknown_name },
+    { "conversions_str_none",         test_conversions_str_none },
+
     { "time_block_round_trip", test_time_block_round_trip },
     { "time_block_negative_seconds", test_time_block_negative_seconds },
     { "time_block_short_buffer", test_time_block_short_buffer },
@@ -2762,6 +2936,7 @@ TEST_LIST =
     { "net_parse_caps_line_audio_rx",  test_net_parse_caps_line_audio_rx },
     { "net_parse_caps_line_iq_tx",     test_net_parse_caps_line_iq_tx },
     { "caps_line_roundtrip",           test_caps_line_roundtrip },
+    { "caps_line_empty_lists_none",    test_caps_line_empty_lists_none },
     { "caps_line_unknown_flag_skipped", test_caps_line_unknown_flag_skipped },
     { "net_parse_caps_line_native_keys", test_net_parse_caps_line_native_keys },
     { "net_parse_caps_line_missing_type", test_net_parse_caps_line_missing_type },

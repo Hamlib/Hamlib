@@ -49,8 +49,10 @@ converted request — it always runs at a native configuration you declared
 (see Section 3, "What the frontend handles for you"; the full derivation
 and acceptance rules are in `HAMLIB_STREAMING.md` §3.3). Do **not**
 advertise combinations you would have to convert to serve: the frontend
-serves those through conversion, and `require_native` relies on your
-declaration being hardware truth.
+serves those through conversion, and `require_native` — with which an
+application demands specific stages (format, rate, channels) be served
+natively or the open refused — relies on your declaration being hardware
+truth.
 
 `rig_caps.stream_caps` is a **pointer** to a 0-terminated
 `struct rig_stream_caps` array (not an embedded array — so the descriptor
@@ -149,7 +151,9 @@ For I/Q formats, one "sample" is one complex pair (I + Q components).
 3. **List only what the hardware supports.** The frontend serves anything
    reachable from your native set through conversion and rejects the rest
    (`-RIG_EINVAL`); listing conversions yourself only mislabels them as
-   hardware-native and breaks `require_native` for your users.
+   hardware-native and breaks `require_native` for your users: an
+   application that demands a native sample rate would get a resampled
+   stream and no error.
 4. **List every native rate the hardware genuinely offers.** Format and
    channel conversion are always built into the frontend, but rate
    conversion depends on libsamplerate (optional at build time) — on a

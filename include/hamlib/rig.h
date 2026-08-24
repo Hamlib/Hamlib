@@ -1998,14 +1998,22 @@ typedef enum {
 /* caps_flags is a single 64-bit namespace: future flags extend it with
  * (1ULL<<n) — the wire carries flag NAMES, so no key ever changes. */
 
-/* Active conversion stages between the hardware and an open stream, reported
- * by rig_stream_get_conversions(). 0 means a native stream: the bytes pass
- * untouched between the hardware and the application. Anything else marks a
- * converted stream and names exactly which stages the frontend runs. */
-#define RIG_STREAM_CONV_NONE      0       /* native stream */
+/* Conversion stages between the hardware and an open stream: the stages
+ * rig_stream_get_conversions() reports as running, and the stages
+ * rig_stream_config.require_native demands NOT run. RIG_STREAM_CONV_NONE
+ * means a native stream — the bytes pass untouched between the hardware and
+ * the application, and as a require_native value it demands nothing.
+ * Anything else names exactly which stages are meant. */
+#define RIG_STREAM_CONV_NONE      0       /* native stream / no demand */
 #define RIG_STREAM_CONV_FORMAT   (1<<0)   /* sample format converted */
 #define RIG_STREAM_CONV_RATE     (1<<1)   /* resampled */
 #define RIG_STREAM_CONV_CHANNELS (1<<2)   /* channel count mapped */
+/* Every stage, present and future — the value rig_stream_config.require_native
+ * takes to demand a fully native stream. Deliberately every bit rather than the
+ * OR of the three above: a stage added by a later release is then forbidden
+ * too, without the caller recompiling. Never test a REPORTED bitmask against
+ * it; test the individual stage bits. */
+#define RIG_STREAM_CONV_ALL       0xffffffffU
 
 /* Streaming capability descriptor. Two views share this struct:
  *
@@ -2088,11 +2096,20 @@ struct rig_stream_config {
                                              * 250 ms). Overridden by transport_buffer_bytes. */
     uint32_t transport_buffer_bytes;        /* Explicit transport buffer bytes
                                              * (0 = derive from transport_buffer_ms/rate) */
-    int32_t require_native;                 /* 1 = open only as a native stream:
-                                             * fail with -RIG_ENAVAIL rather than
-                                             * install a conversion. 0 (default) =
-                                             * convert when the request is in the
-                                             * effective but not the native set. */
+    uint32_t require_native;                /* Stages that MUST be served
+                                             * natively, as a bitmask of
+                                             * RIG_STREAM_CONV_*: the open fails
+                                             * with -RIG_ENAVAIL rather than
+                                             * install any stage listed here.
+                                             * RIG_STREAM_CONV_NONE (0, the
+                                             * default) = convert whatever the
+                                             * request needs; RIG_STREAM_CONV_ALL
+                                             * = a fully native stream. Stages
+                                             * left out are still converted as
+                                             * needed, so RIG_STREAM_CONV_RATE
+                                             * alone demands a native sample rate
+                                             * while allowing format and channel
+                                             * conversion. */
 };
 
 typedef struct rig_stream rig_stream_t;     /* Opaque — defined in src/stream.h */
@@ -3656,8 +3673,17 @@ rig_stream_config_free(struct rig_stream_config *config);
  * the opaque handle; free it with rig_stream_close(). \a config may be freed
  * immediately after this call returns.
  *
+ * A request that the backend cannot serve natively but the frontend can
+ * convert to is opened through conversion (see RIG_STREAM_CONV_* and
+ * rig_stream_get_conversions()), unless \a config->require_native lists the
+ * stage in question: any stage both required native and needed by the request
+ * refuses the open with -RIG_ENAVAIL, which is why that code is distinct from
+ * the -RIG_EINVAL of an outright unservable request.
+ *
  * \return RIG_OK, or a negative error (-RIG_EINVAL for a bad config/format,
- *         -RIG_ENIMPL if the backend has no streaming, and backend errors).
+ *         -RIG_ENAVAIL if serving the request would install a conversion
+ *         stage listed in \a config->require_native, -RIG_ENIMPL if the
+ *         backend has no streaming, and backend errors).
  */
 extern HAMLIB_EXPORT(int)
 rig_stream_open(RIG *rig,
