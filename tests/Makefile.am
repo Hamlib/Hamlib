@@ -29,6 +29,7 @@ GENERATED_TEST_WRAPPERS = \
 	testfreq.sh \
 	testgrid.sh \
 	testloc.sh \
+	testnetrigctl.sh \
 	testrig.sh \
 	testrigcaps.sh
 
@@ -47,6 +48,7 @@ check_PROGRAMS = \
 	testgrid \
 	testloc \
 	testmW2power \
+	testnetrigctl \
 	testrig \
 	testrigcaps \
 	testrigopen \
@@ -110,6 +112,7 @@ rigctlcom_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rigctltcp_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rigctlsync_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 testdebug_LDADD = $(PTHREAD_LIBS) $(LDADD)
+testnetrigctl_SOURCES = testnetrigctl.c $(top_srcdir)/rigs/dummy/dummy_common.c
 if TESTS_HAVE_LIBUSB
     rigtestlibusb_LDADD = $(LIBUSB_LIBS)
 endif
@@ -174,9 +177,16 @@ $(top_builddir)/src/libhamlib.la:
 $(top_builddir)/lib/libmisc.la:
 	$(MAKE) -C $(top_builddir)/lib/ libmisc.la
 
+$(top_builddir)/rigs/dummy/libhamlib-dummy.la:
+	$(MAKE) -C $(top_builddir)/rigs/dummy/ libhamlib-dummy.la
+
 testrig.sh:
 	echo 'LD_LIBRARY_PATH=$(top_builddir)/src/.libs:$(top_builddir)/dummy/.libs ./testrig 1' > testrig.sh
 	chmod +x ./testrig.sh
+
+testnetrigctl.sh:
+	echo './testnetrigctl' > testnetrigctl.sh
+	chmod +x ./testnetrigctl.sh
 
 testfreq.sh:
 	echo './testfreq' > testfreq.sh
