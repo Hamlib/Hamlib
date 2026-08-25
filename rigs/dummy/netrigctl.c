@@ -34,6 +34,10 @@
 
 #include "dummy.h"
 #include "dummy_common.h"
+#include "stream.h"
+#include "stream_net.h"
+#include "stream_proto.h"
+#include "stream_convert.h"
 
 #define CMD_MAX 64
 #define BUF_MAX 1024
@@ -283,7 +287,8 @@ static int netrigctl_open(RIG *rig)
     }
     else
     {
-        rig_debug(RIG_DEBUG_ERR, "%s:  unknown value returned from netrigctl_transaction=%d\n",
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s:  unknown value returned from netrigctl_transaction=%d\n",
                   __func__, ret);
     }
 
@@ -649,7 +654,7 @@ static int netrigctl_open(RIG *rig)
             RETURNFUNC((ret < 0) ? ret : -RIG_EPROTO);
         }
 
-        if (strncmp(buf, "done", 4) == 0) { RETURNFUNC(RIG_OK); }
+        if (strncmp(buf, "done", 4) == 0) { break; }
 
         if (sscanf(buf, "%31[^=]=%1023[^\t\n]", setting, value) == 2)
         {
@@ -916,6 +921,79 @@ static int netrigctl_open(RIG *rig)
     }
     while (1);
 
+    /* Query streaming capabilities from rigctld.
+     * Streaming commands require '+' ext_resp prefix.
+     * Gracefully skip if rigctld doesn't support streaming. */
+    {
+        char cmd[CMD_MAX];
+        int caps_count = 0;
+        /* This connection's advertisement, published as SESSION caps: the
+         * caps depend on the server this rig is connected to, and rig_caps
+         * is shared by every netrigctl rig in the process — never written
+         * (backend guide, "Capabilities that depend on the connection").
+         * Entries are copied by stream_set_session_caps, so the parse
+         * buffer lives on the stack. */
+        struct rig_stream_caps netrigctl_stream_caps[HAMLIB_MAX_STREAM_CAPS];
+
+        SNPRINTF(cmd, sizeof(cmd), "+\\stream_caps\n");
+        ret = netrigctl_transaction(rig, cmd, strlen(cmd), buf);
+
+        if (ret > 0 && strncmp(buf, NETRIGCTL_RET, strlen(NETRIGCTL_RET)) != 0)
+        {
+            /* First line is a caps line, not an RPRT error */
+            memset(netrigctl_stream_caps, 0, sizeof(netrigctl_stream_caps));
+
+            char *saveptr = NULL;
+
+            do
+            {
+                strtok_r(buf, "\r\n", &saveptr);
+
+                if (strncmp(buf, NETRIGCTL_RET, strlen(NETRIGCTL_RET)) == 0)
+                {
+                    break;
+                }
+
+                if (caps_count < HAMLIB_MAX_STREAM_CAPS)
+                {
+                    struct rig_stream_caps sc;
+
+                    if (rig_stream_net_parse_caps_line(buf, &sc) == 0)
+                    {
+                        netrigctl_stream_caps[caps_count++] = sc;
+                    }
+                }
+
+                ret = read_string(rp, (unsigned char *) buf, BUF_MAX, "\n", 1, 0, 1);
+
+                if (ret <= 0)
+                {
+                    break;
+                }
+            }
+            while (1);
+
+            ret = stream_set_session_caps(rig, netrigctl_stream_caps,
+                                          caps_count);
+
+            if (ret != RIG_OK)
+            {
+                rig_debug(RIG_DEBUG_WARN,
+                          "%s: publishing session stream caps failed: %s\n",
+                          __func__, rigerror(ret));
+            }
+        }
+        else
+        {
+            /* No streaming on this server: clear any session caps left from
+             * a previous connection of this rig. */
+            stream_set_session_caps(rig, NULL, 0);
+        }
+
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: discovered %d stream caps\n",
+                  __func__, caps_count);
+    }
+
     if (rs->auto_power_on)
     {
         rig_set_powerstat(rig, 1);
@@ -936,6 +1014,9 @@ static int netrigctl_close(RIG *rig)
     {
         rig_set_powerstat(rig, 0);
     }
+
+    /* The session caps described the connection being torn down. */
+    stream_set_session_caps(rig, NULL, 0);
 
     ret = netrigctl_transaction(rig, "q\n", 2, buf);
 
@@ -2767,10 +2848,10 @@ int netrigctl_password(RIG *rig, const char *key1)
     retval = netrigctl_transaction(rig, cmdbuf, strlen(cmdbuf), buf);
 
     if (retval != RIG_OK)
-        {
-            //rig_debug(RIG_DEBUG_ERR, "%s; retval = %d\n", __func__, retval);
-            retval = -RIG_EPROTO;
-        }
+    {
+        //rig_debug(RIG_DEBUG_ERR, "%s; retval = %d\n", __func__, retval);
+        retval = -RIG_EPROTO;
+    }
 
     RETURNFUNC(retval);
 }
@@ -2821,8 +2902,360 @@ int netrigctl_send_raw(RIG *rig, char *s)
     return ret;
 }
 
+
+static int netrigctl_stream_open(RIG *rig, struct rig_stream *stream)
+{
+    int ret;
+    /* Larger than CMD_MAX: type + format + rate + key=value options. */
+    char cmd[128];
+    char buf[BUF_MAX];
+    hamlib_port_t *rp = RIGPORT(rig);
+    struct rig_stream_net_session *sess;
+    int stream_id = -1;
+    int source_id = 0;
+    int udp_port = -1;
+    unsigned int subscribe_token = 0;
+    int max_payload = -1;
+    int conversions = -1;
+    char host[256];
+    const char *colon;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called type=%d\n", __func__, stream->type);
+
+    /* Streaming commands require '+' ext_resp prefix. The server performs
+     * any format conversion, so the full requested shape is forwarded:
+     * channels (the server would otherwise default to 1 and serve
+     * mislabeled data) and a native-only demand for it to enforce too. */
+    SNPRINTF(cmd, sizeof(cmd), "+\\stream_open %s %s %d channels=%d%s\n",
+             stream_type_name(stream->type),
+             stream_format_name(stream->config.format),
+             stream->config.sample_rate,
+             stream->config.channels,
+             stream->config.require_native ? " require_native=1" : "");
+
+    ret = netrigctl_transaction(rig, cmd, strlen(cmd), buf);
+
+    if (ret < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: stream_open failed: %s\n",
+                  __func__, rigerror(ret));
+        return ret;
+    }
+
+    /* Parse ext_resp key:value lines (stream_id, source_id, udp_port,
+     * subscribe_token, max_payload) terminated by an RPRT line. */
+    char *saveptr = NULL;
+
+    do
+    {
+        strtok_r(buf, "\r\n", &saveptr);
+
+        if (strncmp(buf, NETRIGCTL_RET, strlen(NETRIGCTL_RET)) == 0)
+        {
+            /* The RPRT value is already the (negative) Hamlib error code,
+             * same convention as netrigctl_transaction(). */
+            int rprt = atoi(buf + strlen(NETRIGCTL_RET));
+
+            if (rprt != 0)
+            {
+                return rprt;
+            }
+
+            break;
+        }
+
+        if (sscanf(buf, "stream_id: %d", &stream_id) == 1)
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: stream_id=%d\n",
+                      __func__, stream_id);
+        }
+        else if (sscanf(buf, "source_id: %d", &source_id) == 1)
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: source_id=%d\n",
+                      __func__, source_id);
+        }
+        else if (sscanf(buf, "udp_port: %d", &udp_port) == 1)
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: udp_port=%d\n",
+                      __func__, udp_port);
+        }
+        else if (sscanf(buf, "subscribe_token: %u", &subscribe_token) == 1)
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: subscribe_token=%u\n",
+                      __func__, subscribe_token);
+        }
+        else if (sscanf(buf, "max_payload: %d", &max_payload) == 1)
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: max_payload=%d\n",
+                      __func__, max_payload);
+        }
+        else if (strncmp(buf, "conversions:", 12) == 0)
+        {
+            /* Comma-separated stage names; empty value = native stream.
+             * Unknown names are skipped by the shared parser so a future
+             * server may add stages without breaking this client. */
+            conversions = stream_conversions_parse(buf + 12);
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: conversions=0x%x\n",
+                      __func__, conversions);
+        }
+
+        ret = read_string(rp, (unsigned char *) buf, BUF_MAX, "\n", 1, 0, 1);
+
+        if (ret <= 0)
+        {
+            break;
+        }
+    }
+    while (1);
+
+    if (stream_id < 0 || udp_port <= 0 || udp_port > 65535)
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: missing stream_id=%d or udp_port=%d\n",
+                  __func__, stream_id, udp_port);
+        return -RIG_EPROTO;
+    }
+
+    /* Adopt the server's effective (clamped) payload budget so this client
+     * packetizes TX to match the negotiated path MTU. Clamp to the datagram
+     * buffer capacity (leaving room for the header and an embedded time block)
+     * so a malformed or hostile advertisement cannot drive an oversized write. */
+    if (max_payload > 0)
+    {
+        int ceiling = RIG_STREAM_MAX_DATAGRAM - RIG_STREAM_HEADER_SIZE
+                      - RIG_STREAM_TIME_BLOCK_SIZE;
+
+        stream->max_payload = max_payload < ceiling ? max_payload : ceiling;
+    }
+
+    /* Conversion happens at the server, so its report is authoritative:
+     * replace the locally computed indicator (an older server without the
+     * line leaves the local value in place). */
+    if (conversions >= 0)
+    {
+        stream->conversions = conversions;
+    }
+
+    /* Extract hostname from RIGPORT pathname (format "host:port") */
+    strncpy(host, rp->pathname, sizeof(host) - 1);
+    host[sizeof(host) - 1] = '\0';
+    colon = strrchr(host, ':');
+
+    if (colon)
+    {
+        host[colon - host] = '\0';
+    }
+
+    /* Allocate and initialize session */
+    sess = calloc(1, sizeof(*sess));
+
+    if (!sess)
+    {
+        return -RIG_ENOMEM;
+    }
+
+    sess->udp_sock = -1;
+    sess->remote_stream_id = stream_id;
+    sess->remote_source_id = source_id;
+    sess->remote_udp_port = udp_port;
+    sess->subscribe_token = (uint32_t)subscribe_token;
+    sess->keepalive_interval_s = STATE(rig)->stream_keepalive_interval_s
+                                 ? (int)STATE(rig)->stream_keepalive_interval_s
+                                 : RIG_STREAM_NET_KEEPALIVE_INTERVAL;
+    sess->stream = stream;
+    sess->rx_first = 1;
+    /* Rig-level transport_buffer defaults; per-stream config.transport_buffer_* overrides. */
+    sess->transport_buffer_ms = STATE(rig)->stream_transport_buffer_ms;
+    sess->transport_buffer_bytes = STATE(rig)->stream_transport_buffer_bytes;
+
+    /* Create UDP socket to rigctld */
+    if (rig_stream_net_udp_connect(sess, host, udp_port) < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: UDP connect to %s:%d failed\n",
+                  __func__, host, udp_port);
+        free(sess);
+        return -RIG_EIO;
+    }
+
+    /* Cache format invariants for per-packet header builds */
+    sess->format_id = stream_format_to_id(stream->config.format);
+    sess->sample_size = rig_stream_format_sample_size(stream->config.format);
+
+    if (sess->sample_size <= 0)
+    {
+        sess->sample_size = 1;
+    }
+
+    stream->backend_priv = sess;
+
+    /* RX streams subscribe to start the server's data flow. */
+    if (stream->type == RIG_STREAM_TYPE_AUDIO_RX
+            || stream->type == RIG_STREAM_TYPE_IQ_RX)
+    {
+        if (rig_stream_net_subscribe(sess, stream, 5000) < 0)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: subscribe failed\n", __func__);
+            rig_stream_net_session_cleanup(sess);
+            stream->backend_priv = NULL;
+            return -RIG_EIO;
+        }
+    }
+
+    /* Start the receive thread for both directions: RX receives data and
+     * control; TX receives PONG and async write-status frames from the
+     * server, surfaced via rig_stream_wait_write_status(). */
+    sess->rx_running = 1;
+    sess->last_ping_sent = time(NULL);
+
+    if (pthread_create(&sess->rx_thread, NULL,
+                       rig_stream_net_rx_thread, stream) != 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: rx_thread create failed\n", __func__);
+        sess->rx_running = 0;
+        rig_stream_net_session_cleanup(sess);
+        stream->backend_priv = NULL;
+        return -RIG_EIO;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "%s: opened stream_id=%d udp_port=%d host=%s\n",
+              __func__, stream_id, udp_port, host);
+
+    return RIG_OK;
+}
+
+
+static int netrigctl_stream_close(RIG *rig, struct rig_stream *stream)
+{
+    int ret;
+    char cmd[CMD_MAX];
+    char buf[BUF_MAX];
+    struct rig_stream_net_session *sess;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
+
+    sess = (struct rig_stream_net_session *)stream->backend_priv;
+
+    if (!sess)
+    {
+        return -RIG_EINVAL;
+    }
+
+    /* Stop RX thread if running */
+    if (sess->rx_running)
+    {
+        sess->rx_running = 0;
+        pthread_join(sess->rx_thread, NULL);
+    }
+
+    /* Streaming commands require '+' ext_resp prefix. */
+    SNPRINTF(cmd, sizeof(cmd), "+\\stream_close %d\n", sess->remote_stream_id);
+    ret = netrigctl_transaction(rig, cmd, strlen(cmd), buf);
+
+    if (ret < 0)
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: stream_close returned %s\n",
+                  __func__, rigerror(ret));
+    }
+
+    rig_stream_net_session_cleanup(sess);
+    stream->backend_priv = NULL;
+
+    return RIG_OK;
+}
+
+
+static int netrigctl_stream_write(RIG *rig, struct rig_stream *stream,
+                                  const void *buffer, size_t buffer_size,
+                                  size_t *bytes_written, int timeout_ms,
+                                  const struct rig_stream_write_info *info)
+{
+    struct rig_stream_net_session *sess;
+    int ret;
+
+    (void)timeout_ms;  /* UDP sendto is non-blocking */
+
+    sess = (struct rig_stream_net_session *)stream->backend_priv;
+
+    if (!sess)
+    {
+        return -RIG_EINVAL;
+    }
+
+    /* Burst targets travel as embedded time blocks; the server's TX
+     * feeder extracts them into the backend's target channel. */
+    ret = rig_stream_net_send_data(sess, stream, buffer, buffer_size, info);
+
+    if (ret < 0)
+    {
+        return -RIG_EIO;
+    }
+
+    if (bytes_written)
+    {
+        *bytes_written = (size_t)ret;
+    }
+
+    return RIG_OK;
+}
+
+
+/* Send a simple stream command that takes only the stream_id argument. */
+static int netrigctl_stream_simple_cmd(RIG *rig, struct rig_stream *stream,
+                                       const char *cmd_name)
+{
+    int ret;
+    char cmd[CMD_MAX];
+    char buf[BUF_MAX];
+    struct rig_stream_net_session *sess;
+
+    sess = (struct rig_stream_net_session *)stream->backend_priv;
+
+    if (!sess)
+    {
+        return -RIG_EINVAL;
+    }
+
+    SNPRINTF(cmd, sizeof(cmd), "+\\%s %d\n", cmd_name, sess->remote_stream_id);
+    ret = netrigctl_transaction(rig, cmd, strlen(cmd), buf);
+    return (ret < 0) ? ret : RIG_OK;
+}
+
+
+static int netrigctl_stream_pause(RIG *rig, struct rig_stream *stream)
+{
+    return netrigctl_stream_simple_cmd(rig, stream, "stream_pause");
+}
+
+
+static int netrigctl_stream_resume(RIG *rig, struct rig_stream *stream)
+{
+    return netrigctl_stream_simple_cmd(rig, stream, "stream_resume");
+}
+
+
+/* TX bypasses the local ring buffer (stream_write sends directly over UDP), so
+ * the frontend's default flush would never drain the remote radio's TX FIFO.
+ * Forward the flush so the daemon drains the real backend stream. */
+static int netrigctl_stream_drain(RIG *rig, struct rig_stream *stream,
+                                  int timeout_ms)
+{
+    (void)timeout_ms;  /* the daemon applies its own flush timeout */
+    return netrigctl_stream_simple_cmd(rig, stream, "stream_drain");
+}
+
+
 /*
  * Netrigctl rig capabilities.
+ *
+ * netrigctl discovers the remote rig's capabilities at open and records many
+ * of them (max_rit/xit, has_*_func/level, vfo_ops, ptt_type, timeout,
+ * ctcss/dcs lists, several method pointers, and stream_caps) directly into this
+ * shared per-model struct. Those fields are therefore process-global, not
+ * per-connection: opening two netrigctl rigs against servers with different
+ * capabilities in one process makes the last open win for every instance. Run
+ * a single netrigctl instance per process, or resolve the discovered values
+ * from per-instance state instead of this struct.
  */
 
 struct rig_caps netrigctl_caps =
@@ -2938,6 +3371,13 @@ struct rig_caps netrigctl_caps =
     .password =   netrigctl_password,
     .set_lock_mode = netrigctl_set_lock_mode,
     .get_lock_mode = netrigctl_get_lock_mode,
+
+    .stream_open =   netrigctl_stream_open,
+    .stream_close =  netrigctl_stream_close,
+    .stream_write =  netrigctl_stream_write,
+    .stream_drain =  netrigctl_stream_drain,
+    .stream_pause =  netrigctl_stream_pause,
+    .stream_resume = netrigctl_stream_resume,
 
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };

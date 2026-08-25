@@ -5,7 +5,7 @@
 .\"
 .\" Note: Please keep this page in sync with the source, rigctl.c
 .\"
-.TH RIGCTL "1" "2026-01-06" "Hamlib" "Hamlib Utilities"
+.TH RIGCTL "1" "2026-08-23" "Hamlib" "Hamlib Utilities"
 .
 .
 .SH NAME
@@ -404,6 +404,26 @@ The backend for the radio to be controlled, or the radio itself may not
 support some commands. In that case, the operation will fail with a
 .B Hamlib
 error message.
+.
+.IP
+.BR Note :
+The streaming commands of the UDP sample-data streaming subsystem
+.RB ( stream_caps ,
+.BR stream_open ,
+.BR stream_close ,
+.BR stream_status ,
+.BR stream_pause ,
+.BR stream_resume ,
+.BR stream_mute ,
+.BR stream_unmute ,
+.BR stream_metadata_read ,
+.BR stream_drain ,
+.BR stream_list )
+are only functional inside
+.BR rigctld (1),
+where they are documented; invoked through
+.B rigctl
+they return \-RIG_ENAVAIL.
 .
 .
 .SS Standard Input
@@ -903,7 +923,7 @@ in Hz.
 .BR U ", " set_func " \(aq" \fIFunc\fP "\(aq \(aq" "\fIFunc Status\fP" \(aq
 Set
 .RI \(aq Func \(aq
-and
+to
 .RI \(aq "Func Status" \(aq.
 .IP
 Func is a token:
@@ -1033,7 +1053,7 @@ Use this to determine the supported functions of a given radio backend.
 .BR L ", " set_level " \(aq" \fILevel\fP "\(aq \(aq" "\fILevel Value\fP" \(aq
 Set
 .RI \(aq Level \(aq
-and
+to
 .RI \(aq "Level Value" \(aq.
 .IP
 Level is a token:
@@ -1155,6 +1175,10 @@ WPM
 Passing a \(oq?\(cq (query) as the first argument instead of a Level token
 will return a space separated list of radio backend supported set level
 tokens.  Use this to determine the supported levels of a given radio backend.
+
+Passing a \(oq?\(cq (query) as the second argument instead of a "\fILevel Value\fP"
+will return the range and granularity for numeric levels or the list of values for string levels.
+
 .
 .TP
 .BR l ", " get_level " \(aq" \fILevel\fP \(aq

@@ -1,0 +1,10 @@
+# Every program here is built from a matching test_*.c, so one pattern covers
+# both the binaries and their objects; the sources are excluded from it. Adding
+# a test needs no change to this file.
+test_*
+!test_*.c
+!test_*.h
+
+test-suite.log
+*.log
+*.trs

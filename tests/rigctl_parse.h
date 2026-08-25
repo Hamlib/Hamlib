@@ -52,6 +52,7 @@ struct handle_data
     int vfo_mode;
     int use_password;
     int is_passwordOK;
+    int client_id;      /* Identifies the connection owning a stream */
 };
 
 extern pthread_key_t thread_data_key;

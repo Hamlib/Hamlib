@@ -16,7 +16,9 @@
 
 
 int civ_731_mode = 0;
-vfo_t current_vfo = RIG_VFO_A;
+vfo_t selected_band = RIG_VFO_A;
+vfo_t main_band = RIG_VFO_A;
+int dual_watch = 0;
 int split = 0;
 
 // we make B different from A to ensure we see a difference at startup
@@ -74,6 +76,17 @@ frameGet(int fd, unsigned char *buf)
     return 0;
 }
 
+static void frameReply(int fd, unsigned char *frame, size_t len)
+{
+    unsigned char address = frame[2];
+    frame[2] = frame[3];
+    frame[3] = address;
+    write(fd, frame, len);
+    address = frame[2];
+    frame[2] = frame[3];
+    frame[3] = address;
+}
+
 void frameParse(int fd, unsigned char *frame, int len)
 {
     double freq;
@@ -91,34 +104,35 @@ void frameParse(int fd, unsigned char *frame, int len)
     {
     case 0x00:
         freq = from_bcd(&frame[5], 5 * 2);
-        freqA = freq;
-        printf("freq=%lf\n", freqA);
+        if (selected_band == RIG_VFO_A) { freqA = freq; }
+        else { freqB = freq; }
+        printf("freq=%lf\n", freq);
         break;
 
     case 0x03:
 
         //from_bcd(frameackbuf[2], (civ_731_mode ? 4 : 5) * 2);
-        if (current_vfo == RIG_VFO_A || current_vfo == RIG_VFO_MAIN)
+        if (selected_band == RIG_VFO_A)
         {
             printf("get_freqA\n");
-            to_bcd(&frame[5], (long long)freqA / 10000, 3 * 2);
+            to_bcd(&frame[5], (long long)freqA, 5 * 2);
             dump_hex(frame, 11);
         }
         else
         {
             printf("get_freqB\n");
-            to_bcd(&frame[5], (long long)freqB / 10000, 3 * 2);
+            to_bcd(&frame[5], (long long)freqB, 5 * 2);
         }
 
-        frame[8] = 0xfd;
-        dump_hex(frame, 9);
+        frame[10] = 0xfd;
+        dump_hex(frame, 11);
 
-        write(fd, frame, 9);
+        frameReply(fd, frame, 11);
 
         break;
 
     case 0x04:
-        if (current_vfo == RIG_VFO_A || current_vfo == RIG_VFO_MAIN)
+        if (selected_band == RIG_VFO_A)
         {
             printf("get_modeA\n");
             frame[5] = modeA;
@@ -132,48 +146,59 @@ void frameParse(int fd, unsigned char *frame, int len)
         }
 
         frame[7] = 0xfd;
-        write(fd, frame, 8);
+        frameReply(fd, frame, 8);
         break;
 
     case 0x05:
         freq = from_bcd(&frame[5], (civ_731_mode ? 4 : 5) * 2);
         printf("set_freq to %.0f\n", freq);
 
-        if (current_vfo == RIG_VFO_A || current_vfo == RIG_VFO_MAIN) { freqA = freq; }
+        if (selected_band == RIG_VFO_A) { freqA = freq; }
         else { freqB = freq; }
 
         frame[4] = 0xfb;
         frame[5] = 0xfd;
-        write(fd, frame, 6);
+        frameReply(fd, frame, 6);
         break;
 
     case 0x06:
-        if (current_vfo == RIG_VFO_A || current_vfo == RIG_VFO_MAIN) { modeA = frame[6]; }
+        if (selected_band == RIG_VFO_A) { modeA = frame[6]; }
         else { modeB = frame[6]; }
 
         frame[4] = 0xfb;
         frame[5] = 0xfd;
-        write(fd, frame, 6);
+        frameReply(fd, frame, 6);
         break;
 
     case 0x07:
 
         switch (frame[5])
         {
-        case 0x00: current_vfo = RIG_VFO_A; break;
+        case 0xd0:
+            selected_band = RIG_VFO_A;
+            if (dual_watch) { main_band = RIG_VFO_A; }
+            break;
 
-        case 0x01: current_vfo = RIG_VFO_B; break;
+        case 0xd1:
+            selected_band = RIG_VFO_B;
+            if (dual_watch) { main_band = RIG_VFO_B; }
+            break;
 
-        case 0xd0: current_vfo = RIG_VFO_MAIN; break;
-
-        case 0xd1: current_vfo = RIG_VFO_SUB; break;
+        default:
+            frame[4] = 0xfa;
+            frame[5] = 0xfd;
+            frameReply(fd, frame, 6);
+            break;
         }
 
-        printf("set_vfo to %s\n", rig_strvfo(current_vfo));
+        printf("selected band %s\n", rig_strvfo(selected_band));
 
-        frame[4] = 0xfb;
-        frame[5] = 0xfd;
-        write(fd, frame, 6);
+        if (frame[4] != 0xfa)
+        {
+            frame[4] = 0xfb;
+            frame[5] = 0xfd;
+            frameReply(fd, frame, 6);
+        }
         break;
 
     case 0x0f:
@@ -185,14 +210,14 @@ void frameParse(int fd, unsigned char *frame, int len)
         {
             printf("get split %d\n", 1);
             frame[7] = 0xfd;
-            write(fd, frame, 8);
+            frameReply(fd, frame, 8);
         }
         else
         {
             printf("set split %d\n", 1);
             frame[4] = 0xfb;
             frame[5] = 0xfd;
-            write(fd, frame, 6);
+            frameReply(fd, frame, 6);
         }
 
         break;
@@ -215,7 +240,7 @@ void frameParse(int fd, unsigned char *frame, int len)
         frame[7] = 0xfd;
         printf("write 8 bytes\n");
         dump_hex(frame, 8);
-        write(fd, frame, 8);
+        frameReply(fd, frame, 8);
         break;
 
     case 0x14:
@@ -231,7 +256,7 @@ void frameParse(int fd, unsigned char *frame, int len)
 
             to_bcd(&frame[6], (long long)power_level, 2);
             frame[8] = 0xfd;
-            write(fd, frame, 9);
+            frameReply(fd, frame, 9);
             break;
         }
 
@@ -245,7 +270,7 @@ void frameParse(int fd, unsigned char *frame, int len)
         case 0x07:
             frame[6] = ovf_status;
             frame[7] = 0xfd;
-            write(fd, frame, 8);
+            frameReply(fd, frame, 8);
             ovf_status = ovf_status == 0 ? 1 : 0;
             break;
 
@@ -257,13 +282,42 @@ void frameParse(int fd, unsigned char *frame, int len)
 
             to_bcd(&frame[6], (long long)meter_level, 2);
             frame[8] = 0xfd;
-            write(fd, frame, 9);
+            frameReply(fd, frame, 9);
             break;
         }
+
+        break;
 
     case 0x16:
         switch (frame[5])
         {
+        case 0x59:
+            if (frame[6] == 0xfd)
+            {
+                frame[6] = dual_watch;
+                frame[7] = 0xfd;
+                frameReply(fd, frame, 8);
+            }
+            else if (frame[6] == 0 || frame[6] == 1)
+            {
+                dual_watch = frame[6];
+
+                if (dual_watch) { main_band = selected_band; }
+                else { selected_band = main_band; }
+
+                frame[4] = 0xfb;
+                frame[5] = 0xfd;
+                frameReply(fd, frame, 6);
+            }
+            else
+            {
+                frame[4] = 0xfa;
+                frame[5] = 0xfd;
+                frameReply(fd, frame, 6);
+            }
+
+            break;
+
         case 0x5a:
             if (frame[6] == 0xfe)
             {
@@ -273,7 +327,7 @@ void frameParse(int fd, unsigned char *frame, int len)
             {
                 frame[6] = satmode;
                 frame[7] = 0xfd;
-                write(fd, frame, 8);
+                frameReply(fd, frame, 8);
             }
 
             break;
@@ -284,17 +338,17 @@ void frameParse(int fd, unsigned char *frame, int len)
     case 0x18: // miscellaneous things
         frame[5] = 1;
         frame[6] = 0xfd;
-        write(fd, frame, 7);
+        frameReply(fd, frame, 7);
         break;
 
     case 0x1a: // miscellaneous things
         switch (frame[5])
         {
         case 0x03:  // width
-            if (current_vfo == RIG_VFO_A || current_vfo == RIG_VFO_MAIN) { frame[6] = filterA; }
+            if (selected_band == RIG_VFO_A) { frame[6] = filterA; }
 
             frame[7] = 0xfd;
-            write(fd, frame, 8);
+            frameReply(fd, frame, 8);
             break;
 
         case 0x04: // AGC TIME
@@ -304,7 +358,7 @@ void frameParse(int fd, unsigned char *frame, int len)
             {
                 frame[6] = agc_time;
                 frame[7] = 0xfd;
-                write(fd, frame, 8);
+                frameReply(fd, frame, 8);
             }
             else
             {
@@ -312,7 +366,7 @@ void frameParse(int fd, unsigned char *frame, int len)
                 agc_time = frame[6];
                 frame[4] = 0xfb;
                 frame[5] = 0xfd;
-                write(fd, frame, 6);
+                frameReply(fd, frame, 6);
             }
 
             break;
@@ -320,7 +374,7 @@ void frameParse(int fd, unsigned char *frame, int len)
         case 0x07: // satmode
             frame[4] = 0;
             frame[7] = 0xfd;
-            write(fd, frame, 8);
+            frameReply(fd, frame, 8);
             break;
 
         }
@@ -335,14 +389,14 @@ void frameParse(int fd, unsigned char *frame, int len)
             {
                 frame[6] = ptt;
                 frame[7] = 0xfd;
-                write(fd, frame, 8);
+                frameReply(fd, frame, 8);
             }
             else
             {
                 ptt = frame[6];
                 frame[7] = 0xfb;
                 frame[8] = 0xfd;
-                write(fd, frame, 9);
+                frameReply(fd, frame, 9);
             }
 
             break;
@@ -370,12 +424,16 @@ void frameParse(int fd, unsigned char *frame, int len)
 
 void rigStatus()
 {
-    char vfoa = current_vfo == RIG_VFO_A ? '*' : ' ';
-    char vfob = current_vfo == RIG_VFO_B ? '*' : ' ';
-    printf("%cVFOA: mode=%d filter=%d freq=%.0f\n", vfoa, modeA,
+    char vfoa = selected_band == RIG_VFO_A ? '*' : ' ';
+    char vfob = selected_band == RIG_VFO_B ? '*' : ' ';
+    const char *label_a = dual_watch ? (main_band == RIG_VFO_A ? "MAIN" : "SUB") : "VFOA";
+    const char *label_b = dual_watch ? (main_band == RIG_VFO_B ? "MAIN" : "SUB") : "VFOB";
+    printf("watch=%s selected=%s main=%s\n", dual_watch ? "dual" : "single",
+           rig_strvfo(selected_band), rig_strvfo(main_band));
+    printf("%c%s: mode=%d filter=%d freq=%.0f\n", vfoa, label_a, modeA,
            filterA,
            freqA);
-    printf("%cVFOB: mode=%d filter=%d freq=%.0f\n", vfob, modeB,
+    printf("%c%s: mode=%d filter=%d freq=%.0f\n", vfob, label_b, modeB,
            filterA,
            freqB);
 }

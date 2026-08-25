@@ -29,11 +29,12 @@ jobs:
             --with-perl-binding=no
             --with-python-binding=no
             --with-readline=no
+            --with-samplerate=no
             --with-tcl-binding=no
             --with-xml-support=no
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Install dependencies on MacOS
       run: |
         brew install autoconf
@@ -55,6 +56,9 @@ jobs:
       run: ./configure ${{ matrix.configure_args }} --with-indi=detect --without-lua-binding PYTHON=/opt/homebrew/bin/python3
     - name: make distcheck
       run: make distcheck V=0 --no-print-directory AM_DISTCHECK_CONFIGURE_FLAGS="${{ matrix.configure_args }} --with-indi=detect --without-perl-binding --without-lua-binding --without-tcl-binding PYTHON=/opt/homebrew/bin/python3"
+    - name: Dump test logs on failure
+      if: failure()
+      run: find . -name test-suite.log -print -exec cat {} \;
     - name: 'tar files'
       run: tar -cvf macos_latest_no_features.tar $(pwd)
     - name: 'Upload Build Artifact'

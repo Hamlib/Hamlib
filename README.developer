@@ -92,11 +92,12 @@ $ tree -L 1
 ├── Segfault-award
 ├── simulators
 ├── src
+├── test
 ├── tests
 ├── THANKS
 └── VFOs.txt
 
-18 directories, 32 files
+19 directories, 32 files
 
 
 1. Building
@@ -341,7 +342,10 @@ The '--prefix' option to 'configure' is optional and not shown as it defaults to
 /usr/local away from distribution installed packages.  The 'CFLAGS="-g -O0"'
 environment variable generates less optimized binaries with the '-O0'  while the
 '-g' option adds debugging info which can be changed to -ggdb to generate
-debugging info for gdb.
+debugging info for gdb, then you need to run gdb using libtool passing as
+arguments the wrapper script and any needed option and command:
+    libtool --mode=execute gdb --args tests/rigctl --model ...
+
 
 Additionally, you may want to add the '--with-perl-binding' or
 '--with-python-binding' or '--with-tcl-binding' or '--with-lua-binding' if you
@@ -368,6 +372,32 @@ Some basic testing is accomplished with the 'make check' target which will run a
 few predetermined tests using the 'dummy' (rig model 1) backend and some other
 Hamlib functions in the build tree. This is a basic sanity check and cannot test
 all backends.
+
+'make check' also runs the unit and integration tests in the test/ directory.
+That directory is the home for all suites based on acutest, a single-header
+test framework vendored as test/acutest.h that adds no build dependency; the
+suites there currently cover the data streaming subsystem, and new tests for
+any subsystem belong there too (the recipe for adding a suite is at the top
+of test/Makefile.am). Some suites start a real rigctld or a device simulator
+as a child process, which requires a POSIX host; they are skipped elsewhere.
+Run a single suite directly from the build tree, e.g. './test/test_stream_api',
+with '--list' to see its cases.
+
+The automake test harness prints one PASS/FAIL line per suite and captures
+each suite's complete output (per-case results and diagnostics) into
+test/<suite>.log, dumping the log of any failing suite. The suites run at
+RIG_DEBUG_WARN by default; set RIG_TEST_DEBUG=1 in the environment to run
+them (and any rigctld child daemons they spawn) at TRACE level when
+debugging a failure.
+
+The streaming subsystem itself is documented at the top of the source tree:
+HAMLIB_STREAMING.md (protocol and API design, including the native/effective
+capability model and format conversion) and HAMLIB_STREAMING_BACKEND_GUIDE.md
+(adding streaming support to a backend). In short: a backend declares only
+its hardware-native formats, sample rates and channel counts in stream_caps;
+the frontend derives the wider effective set it advertises to applications
+and installs any needed conversion at stream open
+(rig_stream_get_conversions() reports what runs on a stream).
 
 Likewise, a complete test of the build system is accomplished with 'make
 distcheck' which exercises a complete build sequence from creating a

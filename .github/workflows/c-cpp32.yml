@@ -12,7 +12,7 @@ jobs:
     runs-on: fedora:32
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
     - name: bootstrap
       run: |
         sudo apt install libusb-1.0-0-dev
@@ -26,3 +26,6 @@ jobs:
       run: make check
     - name: make distcheck
       run: make distcheck
+    - name: Dump test logs on failure
+      if: failure()
+      run: find . -name test-suite.log -print -exec cat {} \;
