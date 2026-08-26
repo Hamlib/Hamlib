@@ -5,7 +5,7 @@
 .\"
 .\" Note: Please keep this page in sync with the source, rotctl.c
 .\"
-.TH ROTCTL "1" "2025-09-01" "Hamlib" "Hamlib Utilities"
+.TH ROTCTL "1" "2026-08-23" "Hamlib" "Hamlib Utilities"
 .
 .
 .SH NAME
@@ -25,6 +25,11 @@ rotctl \- control antenna rotators
 .OP \-C parm=val
 .OP \-o azoffset
 .OP \-O eloffset
+.OP \-L
+.OP \-l
+.OP \-u
+.OP \-i
+.OP \-I
 .RB [ \-v [ \-Z ]]
 .RB [ command | \- ]
 .YS
@@ -441,7 +446,11 @@ output.
 .IP
 .RI \(aq Value \(aq
 is a string of up to 20 characters.
-.\" FIXME:  Need to describe the reset parameters available.
+.
+.TP
+.BR get_conf " \(aq" "\fIToken\fP" \(aq
+Get
+.RI \(aq "Token Value" \(aq.
 .
 .TP
 .BR R ", " reset " \(aq" \fIReset\fP \(aq
@@ -468,6 +477,9 @@ Not a real rot remote command, it just dumps capabilities, i.e. what the
 backend knows about this model, and what it can do.
 .
 .TP
+.BR 3 ", " dump_conf
+.
+.TP
 .BR w ", " send_cmd " \(aq" \fICmd\fP \(aq
 Send a raw command string to the rotator.
 .IP
@@ -478,6 +490,63 @@ value, see
 option) is appended automatically at the end of the command for text
 protocols.  For binary protocols, enter hexadecimal values as
 \(lq\\0xAA\\0xBB\(rq.
+.
+.TP
+.BR U ", " set_func " \(aq" \fIFunc\fP "\(aq \(aq" "\fIFunc Status\fP" \(aq
+Set
+.RI \(aq Func \(aq
+to
+.RI \(aq "Func Status" \(aq.
+.IP
+.BR Note :
+Passing a \(oq?\(cq (query) as the first argument instead of a Func token will
+return a space separated list of rotator backend supported set function tokens.
+Use this to determine the supported functions of a given rotator backend.
+.
+.TP
+.BR u ", " get_func " \(aq" \fIFunc\fP \(aq
+Get
+.RI \(aq "Func Status" \(aq.
+.
+.TP
+.BR V ", " set_level " \(aq" \fILevel\fP "\(aq \(aq" "\fILevel Value\fP" \(aq
+Set
+.RI \(aq Level \(aq
+to
+.RI \(aq "Level Value" \(aq.
+.IP
+Level is a token:
+\(oqSPEED\(cq.
+.IP
+.BR Note :
+Passing a \(oq?\(cq (query) as the first argument instead of a Level token
+will return a space separated list of rotator backend supported set level
+tokens.  Use this to determine the supported levels of a given rotator backend.
+.
+.TP
+.BR v ", " get_level " \(aq" \fILevel\fP \(aq
+Get
+.RI \(aq "Level Value" \(aq.
+.
+.TP
+.BR X ", " set_parm " \(aq" \fIParm\fP "\(aq \(aq" "\fIParm Value\fP" \(aq
+Set
+.RI \(aq Parm \(aq
+and
+.RI \(aq "Parm Value" \(aq.
+.IP
+.BR Note :
+Passing a \(oq?\(cq (query) as the first argument instead of a Parm token will
+return a space separated list of rotator backend supported set parameter tokens.
+Use this to determine the supported parameters of a given rotator backend.
+.
+.TP
+.BR x ", " get_parm " \(aq" \fIParm\fP \(aq
+Get
+.RI \(aq "Parm Value" \(aq.
+.
+.TP
+.BR s ", " get_status
 .
 .
 .SS Locator Commands

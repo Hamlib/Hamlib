@@ -2930,15 +2930,17 @@ const char *rig_get_band_str(RIG *rig, hamlib_band_t band, int which)
                               rig->caps->parm_gran);
         rig_debug(RIG_DEBUG_VERBOSE, "%s: bandlist=%s\n", __func__, bandlist);
         int n = 0;
-        char *p = strchr(bandlist, '(') + 1;
+        char *p = strchr(bandlist, '(');
         const char *token;
 
         if (p == NULL)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: unable to find open paren in '%s'\n", __func__,
                       bandlist);
-            return 0;
+            return "BANDGEN";
         }
+
+        p++;
 
         while ((token = strtok_r(p, ",", &p)))
         {
@@ -2978,7 +2980,7 @@ hamlib_band_t rig_get_band(RIG *rig, freq_t freq, int band)
                               rig->caps->parm_gran);
         rig_debug(RIG_DEBUG_VERBOSE, "%s: bandlist=%s\n", __func__, bandlist);
         // e.g. BANDSELECT(BAND160M,BAND80M,BANDUNUSED,BAND40M)
-        char *p = strchr(bandlist, '(') + 1;
+        char *p = strchr(bandlist, '(');
         const char *token;
 
         if (p == NULL)
@@ -2987,6 +2989,8 @@ hamlib_band_t rig_get_band(RIG *rig, freq_t freq, int band)
                       bandlist);
             return 0;
         }
+
+        p++;
 
         int n = 0;
 
