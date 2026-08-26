@@ -569,30 +569,23 @@ static int scanfc(FILE *fin, const char *format, void *p)
         int ret;
         *(char *)p = 0;
 
+        errno = 0;
 
         ret = fscanf(fin, format, p);
 
-        if (ret < 0)
+        if (ret == EOF && ferror(fin) && errno == EINTR)
         {
-            if (errno == EINTR)
-            {
-                continue;
-            }
-
-            if (!feof(fin))
-            {
-                rig_debug(RIG_DEBUG_TRACE, "%s fscanf of:", __func__);
-                dump_hex((unsigned char *)p, strlen(p));
-                rig_debug(RIG_DEBUG_TRACE, " failed with format '%s'\n", format);
-                ret = 0x0a;
-            }
+            clearerr(fin);
+            continue;
         }
 
         if (ret < 1) { rig_debug(RIG_DEBUG_TRACE, "%s: ret=%d\n", __func__, ret); }
 
-        if (errno == 22) { return  -22; }
-
-        if (ferror(fin)) { rig_debug(RIG_DEBUG_ERR, "%s: errno=%d, %s\n", __func__, errno, strerror(errno)); }
+        if (ferror(fin))
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: errno=%d, %s\n", __func__, errno,
+                      strerror(errno));
+        }
 
         return ret;
     }
@@ -4405,7 +4398,7 @@ declare_proto_rig(set_channel)
             fprintf_flush(fout, "channel desc: ");
         }
 
-        CHKSCN1ARG(scanfc(fin, "%31s", s));
+        CHKSCN1ARG(scanfc(fin, "%29s", s));
         strcpy(chan.channel_desc, s);
     }
 
@@ -5150,6 +5143,110 @@ static int hasbinary(char *s, int len)
     return 0;
 }
 
+static int hex_digit_value(char digit)
+{
+    if (digit >= '0' && digit <= '9')
+    {
+        return digit - '0';
+    }
+
+    digit = tolower((unsigned char)digit);
+
+    if (digit >= 'a' && digit <= 'f')
+    {
+        return digit - 'a' + 10;
+    }
+
+    return -1;
+}
+
+static int has_binary_command_prefix(const char *command)
+{
+    while (isspace((unsigned char)*command))
+    {
+        command++;
+    }
+
+    if ((command[0] == 'x' || command[0] == 'X')
+            && isxdigit((unsigned char)command[1]))
+    {
+        return 1;
+    }
+
+    return command[0] == '\\' && command[1] == '0'
+           && (command[2] == 'x' || command[2] == 'X');
+}
+
+static int decode_binary_command(const char *command, char *decoded,
+                                 size_t decoded_size, int *decoded_length)
+{
+    const char *p = command;
+    size_t length = 0;
+
+    while (1)
+    {
+        int bytes_in_group = 0;
+
+        while (isspace((unsigned char)*p))
+        {
+            p++;
+        }
+
+        if (*p == '\0')
+        {
+            break;
+        }
+
+        if (*p == '\\' && p[1] == '0' && (p[2] == 'x' || p[2] == 'X'))
+        {
+            p += 3;
+        }
+        else if (*p == 'x' || *p == 'X')
+        {
+            p++;
+        }
+        else
+        {
+            return -RIG_EINVAL;
+        }
+
+        while (isxdigit((unsigned char)*p))
+        {
+            int high = hex_digit_value(p[0]);
+            int low = hex_digit_value(p[1]);
+
+            if (low < 0 || length + 1 >= decoded_size)
+            {
+                return -RIG_EINVAL;
+            }
+
+            decoded[length++] = (char)((high << 4) | low);
+            bytes_in_group++;
+            p += 2;
+        }
+
+        if (bytes_in_group == 0)
+        {
+            return -RIG_EINVAL;
+        }
+
+        if (*p != '\0' && !isspace((unsigned char)*p) && *p != '\\'
+                && *p != 'x' && *p != 'X')
+        {
+            return -RIG_EINVAL;
+        }
+    }
+
+    if (length == 0)
+    {
+        return -RIG_EINVAL;
+    }
+
+    decoded[length] = '\0';
+    *decoded_length = (int)length;
+    return RIG_OK;
+}
+
 /*
  * Special debugging purpose send command display reply until there's a
  * timeout.
@@ -5189,6 +5286,11 @@ declare_proto_rig(send_cmd)
 
     ENTERFUNC2;
 
+    if (arg1 == NULL || arg1[0] == '\0')
+    {
+        RETURNFUNC2(-RIG_EINVAL);
+    }
+
     /*
      * binary protocols enter values as \0xZZ\0xYY..
      */
@@ -5216,43 +5318,29 @@ declare_proto_rig(send_cmd)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: arg1=%s\n", __func__, arg1);
 
-    // note that hex sscanf expects at least 2 values to pass this check
-    // is there any situation where only one x00 value would be written?
-    unsigned int n, i1, i2;
-    n = sscanf(arg1, "x%x x%x", &i1, &i2);
-
     if (send_cmd_term == -1
             || backend_num == RIG_ICOM
             || backend_num == RIG_KACHINA
             || backend_num == RIG_MICROTUNE
-            || ((strstr(arg1, "\\0x") || n == 2)
+            || (has_binary_command_prefix(arg1)
                 && (rig->caps->rig_model != RIG_MODEL_NETRIGCTL))
        )
     {
+        int decode_status;
 
-        const char *p = arg1, *pp = NULL;
-        int i;
         rig_debug(RIG_DEBUG_TRACE, "%s: send_cmd_term==-1, arg1=%s\n", __func__, arg1);
 
-        if (arg1[strlen(arg1) - 1] != ';' && strstr(arg1, "\\0x") == NULL
-                && sscanf(arg1, "x%x x%x", &i1, &i2) != 2)
+        decode_status = decode_binary_command(arg1, bufcmd, BUFSZ, &cmd_len);
+
+        if (decode_status != RIG_OK)
         {
             rig_debug(RIG_DEBUG_ERR,
-                      "%s: expecting binary hex string here, either x00 xff or \\0x00 \\0xff or x00xff\n",
+                      "%s: expecting binary hex bytes such as x00 xff, \\0x00\\0xff, x00ff, or x00xff\n",
                       __func__);
-            RETURNFUNC2(-RIG_EINVAL);
-        }
-
-        for (i = 0; i < BUFSZ - 1 && p != pp; i++)
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: p=%s\n", __func__, p);
-            pp = p + 1;
-            bufcmd[i] = strtol(p + 1, (char **) &p, 0);
+            RETURNFUNC2(decode_status);
         }
 
         /* must save length to allow 0x00 to be sent as part of a command */
-        cmd_len = i - 1;
-
         /* no End Of Message chars */
         eom_buf[0] = '\0';
     }
@@ -6155,4 +6243,3 @@ declare_proto_rig(set_conf)
 
     return (ret);
 }
-
