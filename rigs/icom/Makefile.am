@@ -9,10 +9,15 @@ ICOMSRC = icom.c icom.h icom_defs.h icom_alt_agc.c icom_alt_agc.h frame.c frame.
 	id1.c id31.c id51.c id52plus.c id4100.c id5100.c perseus.c ic2730.c \
 	ic707.c ic728.c ic751.c ic761.c \
 	ic78.c ic7800.c ic785x.c \
-	ic7000.c ic7100.c ic7200.c ic7300.c ic7600.c ic7610.c ic7700.c ic7760.c icf8101.c \
-	optoscan.c optoscan.h xiegu.c level_gran_icom.h
+	ic7000.c ic7100.c ic7200.c ic7300.c ic9700.c ic705.c ic905.c ic7600.c ic7610.c ic7700.c ic7760.c icf8101.c \
+	optoscan.c optoscan.h xiegu.c level_gran_icom.h \
+	network_proto.c network_proto.h network_seqbuf.c network_seqbuf.h \
+	network_session.c network_session.h network_conf.c network_conf.h \
+	network_utils.c network_utils.h \
+	icom_network.c icom_network.h \
+	ic7610net.c ic9700net.c ic705net.c ic905net.c ic7760net.c ic7300mk2net.c
 
 noinst_LTLIBRARIES = libhamlib-icom.la
 libhamlib_icom_la_SOURCES = $(ICOMSRC)
 
-EXTRA_DIST = README.icom TODO.icom
+EXTRA_DIST = ICOM.md

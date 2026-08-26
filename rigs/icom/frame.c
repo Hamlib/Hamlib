@@ -34,6 +34,7 @@
 #include "icom.h"
 #include "icom_defs.h"
 #include "frame.h"
+#include "network_session.h"
 
 /*
  * Build a CI-V frame.
@@ -114,6 +115,40 @@ int icom_frame_fix_preamble(int frame_len, unsigned char *frame)
 }
 
 /*
+ * Transport seam for CI-V frames. When a network session is present (Icom LAN
+ * models), frames are tunneled over it; otherwise the standard serial/network
+ * port is used. For all serial models priv->netsession is NULL, so these are
+ * identical to a direct write_block()/read_icom_frame() on the rig port.
+ */
+static int icom_send_frame(RIG *rig, const unsigned char *frame, int len)
+{
+    struct icom_priv_data *priv = (struct icom_priv_data *)STATE(rig)->priv;
+
+    if (priv->netsession)
+    {
+        /* civ_send returns the byte count on success; the caller expects
+         * RIG_OK like write_block(), so translate. */
+        int ret = icom_network_civ_send(priv->netsession, frame, len);
+        return ret > 0 ? RIG_OK : ret;
+    }
+
+    return write_block(RIGPORT(rig), frame, len);
+}
+
+static int icom_recv_frame(RIG *rig, unsigned char *buf, size_t buflen)
+{
+    struct icom_priv_data *priv = (struct icom_priv_data *)STATE(rig)->priv;
+
+    if (priv->netsession)
+    {
+        return icom_network_civ_recv(priv->netsession, buf, buflen,
+                                     RIGPORT(rig)->timeout);
+    }
+
+    return read_icom_frame(RIGPORT(rig), buf, buflen);
+}
+
+/*
  * icom_one_transaction
  *
  * We assume that rig!=NULL, STATE(rig)!= NULL, payload!=NULL, data!=NULL, data_len!=NULL
@@ -170,7 +205,7 @@ collision_retry:
 
     if (data_len) { *data_len = 0; }
 
-    retval = write_block(rp, sendbuf, frm_len);
+    retval = icom_send_frame(rig, sendbuf, frm_len);
 
     if (retval != RIG_OK)
     {
@@ -191,7 +226,7 @@ collision_retry:
          */
 
 again1:
-        retval = read_icom_frame(rp, buf, sizeof(buf));
+        retval = icom_recv_frame(rig, buf, sizeof(buf));
 
         if (retval == -RIG_ETIMEOUT || retval == 0)
         {
@@ -322,7 +357,7 @@ read_another_frame:
     priv->serial_USB_echo_off = 1;
 again2:
     buf[0] = 0;
-    frm_len = read_icom_frame(rp, buf, sizeof(buf));
+    frm_len = icom_recv_frame(rig, buf, sizeof(buf));
 
     if (frm_len <= 0)
     {
@@ -349,6 +384,28 @@ again2:
     if (buf[3] == 0xaa || buf[2] == 0xaa)
     {
         goto again2;
+    }
+
+    // The frame must be the response to the command we sent: a set replies
+    // ACK/NAK/COL, a get echoes our cmd (and subcmd). Any other cmd byte is an
+    // unsolicited or interleaved frame (e.g. on a shared or echoing CI-V bus),
+    // so skip it and read the next frame.
+    if (buf[4] != ACK && buf[4] != NAK && buf[4] != COL)
+    {
+        if (cmd != buf[4])
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd x%02x != buf x%02x so retry read\n",
+                      __func__, cmd, buf[4]);
+            goto again2;
+        }
+
+        if (subcmd != -1 && frm_len > 5 && subcmd != buf[5])
+        {
+            rig_debug(RIG_DEBUG_VERBOSE,
+                      "%s: subcmd x%02x != buf x%02x so retry read\n", __func__,
+                      subcmd, buf[5]);
+            goto again2;
+        }
     }
 
     if (sendbuf[3] != buf[2])

@@ -520,6 +520,28 @@ void test_ringbuf_underrun_counts_again_after_reset(void)
 }
 
 
+/* The counter must still work: starving while the producer is meant to be
+ * running is exactly what it is for. */
+void test_ringbuf_empty_still_underruns(void)
+{
+    struct rig_stream_ringbuf rb;
+    unsigned char data[16];
+    unsigned char dst[64];
+    uint32_t before;
+
+    stream_ringbuf_init(&rb, 1024);
+    stream_ringbuf_write(&rb, data, sizeof(data));
+    stream_ringbuf_read(&rb, dst, sizeof(data), 20);
+    before = rb.underrun_count;
+
+    TEST_CHECK(stream_ringbuf_read(&rb, dst, sizeof(dst), 20) == 0);
+    TEST_CHECK(rb.underrun_count == before + 1);
+    TEST_MSG("a starved read must still count");
+
+    stream_ringbuf_destroy(&rb);
+}
+
+
 TEST_LIST =
 {
     { "stream_ringbuf_init_zero_capacity", test_ringbuf_init_zero_capacity },
@@ -538,5 +560,8 @@ TEST_LIST =
     { "stream_ringbuf_reset",          test_ringbuf_reset },
     { "stream_ringbuf_power_of_two",   test_ringbuf_power_of_two },
     { "stream_ringbuf_concurrent",     test_ringbuf_concurrent },
+    { "stream_ringbuf_startup_silence_is_not_an_underrun", test_ringbuf_startup_silence_is_not_an_underrun },
+    { "stream_ringbuf_underrun_counts_again_after_reset", test_ringbuf_underrun_counts_again_after_reset },
+    { "stream_ringbuf_empty_still_underruns",     test_ringbuf_empty_still_underruns },
     { NULL, NULL }
 };
