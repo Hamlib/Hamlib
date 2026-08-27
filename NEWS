@@ -54,6 +54,8 @@ Version 4.7.3
           (TNX David Christle)
         * Fix(icom): Backport optional command fallback to 4.7.  GitHub PR
           #2138.  (TNX David Christle)
+        * Fix(icom): Backport ID-5100 VFO switching to 4.7.  GitHub PR #2130.
+          (TNX David Christle)
 
 
 Version 4.7.2
