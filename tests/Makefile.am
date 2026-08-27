@@ -17,8 +17,15 @@ bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld rigctlcom rig
 # Keep test registries sorted and one entry per line.
 # This keeps independent additions from editing shared lines.
 DIRECT_TESTS = \
+	testbandmetadata \
+	testctlparser \
 	testdebug \
 	testid5100 \
+	testicomfallback \
+	testftx1parsers \
+	testgeministatus \
+	testgs100 \
+	testicomts \
 	testthd7x \
 	testthd75emu
 
@@ -95,6 +102,13 @@ rigctlsync_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/security
 testdebug_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testid5100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testid5100_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+testicomfallback_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+testctlparser_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testgeministatus_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testgs100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testicomts_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+testgeministatus_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/amplifiers/gemini
+testftx1parsers_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/yaesu/ftx1
 if TESTS_HAVE_LIBUSB
     rigtestlibusb_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) $(LIBUSB_CFLAGS)
 endif
@@ -114,6 +128,13 @@ rigctltcp_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rigctlsync_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 testdebug_LDADD = $(PTHREAD_LIBS) $(LDADD)
 testid5100_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+testicomfallback_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+testctlparser_SOURCES = testctlparser.c $(RIGCOMMONSRC)
+testctlparser_LDADD = $(PTHREAD_LIBS) $(READLINE_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
+testicomts_LDADD = $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+testgeministatus_LDADD = $(PTHREAD_LIBS) $(top_builddir)/amplifiers/gemini/libhamlib-gemini.la $(LDADD)
+testgs100_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/gomspace/libhamlib-gomspace.la $(LDADD)
+testftx1parsers_LDADD = $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
 if TESTS_HAVE_LIBUSB
     rigtestlibusb_LDADD = $(LIBUSB_LIBS)
 endif
@@ -160,6 +181,7 @@ EXTRA_DIST = \
 	rig_split_lst.awk \
 	rigmatrix_head.html \
 	testcaps.sh \
+	testctlbounds.sh \
 	testctld.pl \
 	testrotctld.pl
 
@@ -168,7 +190,8 @@ EXTRA_DIST = \
 check_SCRIPTS = \
 	amptest.sh \
 	testcaps.sh \
-	$(GENERATED_TEST_WRAPPERS)
+	$(GENERATED_TEST_WRAPPERS) \
+	testctlbounds.sh
 
 TESTS = $(check_SCRIPTS) $(DIRECT_TESTS)
 
@@ -178,8 +201,20 @@ $(top_builddir)/src/libhamlib.la:
 $(top_builddir)/lib/libmisc.la:
 	$(MAKE) -C $(top_builddir)/lib/ libmisc.la
 
+$(top_builddir)/rigs/dummy/libhamlib-dummy.la:
+	$(MAKE) -C $(top_builddir)/rigs/dummy/ libhamlib-dummy.la
+
 $(top_builddir)/rigs/icom/libhamlib-icom.la:
 	$(MAKE) -C $(top_builddir)/rigs/icom/ libhamlib-icom.la
+
+$(top_builddir)/amplifiers/gemini/libhamlib-gemini.la:
+	$(MAKE) -C $(top_builddir)/amplifiers/gemini/ libhamlib-gemini.la
+
+$(top_builddir)/rigs/gomspace/libhamlib-gomspace.la:
+	$(MAKE) -C $(top_builddir)/rigs/gomspace/ libhamlib-gomspace.la
+
+$(top_builddir)/rigs/yaesu/libhamlib-yaesu.la:
+	$(MAKE) -C $(top_builddir)/rigs/yaesu/ libhamlib-yaesu.la
 
 testrig.sh:
 	echo 'LD_LIBRARY_PATH=$(top_builddir)/src/.libs:$(top_builddir)/dummy/.libs ./testrig 1' > testrig.sh

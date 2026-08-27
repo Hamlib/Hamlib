@@ -50,6 +50,10 @@ Version 4.7.3
           GitHub PR #2119.  (TNX Terrell Deppe)
         * TH-D75: New dedicated backend.  GitHub PR #2159.  (TNX David
           Christle)
+        * Fix: Backport parser bounds hardening to 4.7.  GitHub PR #2122.
+          (TNX David Christle)
+        * Fix(icom): Backport optional command fallback to 4.7.  GitHub PR
+          #2138.  (TNX David Christle)
 
 
 Version 4.7.2

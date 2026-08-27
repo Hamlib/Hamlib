@@ -28,6 +28,8 @@
  *       Refer to CAT manual for exact menu numbers and parameter ranges.
  */
 
+#include <errno.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 #include <hamlib/rig.h>
@@ -186,6 +188,35 @@ int ftx1_set_ex_menu(RIG *rig, int group, int section, int item, int value, int 
     return newcat_set_cmd(rig);
 }
 
+int ftx1_parse_ex_menu_response(const char *response, int group, int section,
+                                int item, int *value)
+{
+    char expected[9];
+    char *endptr;
+    long parsed_value;
+
+    SNPRINTF(expected, sizeof(expected), "EX%02d%02d%02d",
+             group, section, item);
+
+    if (strncmp(response, expected, sizeof(expected) - 1) != 0)
+    {
+        return -RIG_EPROTO;
+    }
+
+    errno = 0;
+    parsed_value = strtol(response + sizeof(expected) - 1, &endptr, 10);
+
+    if (endptr == response + sizeof(expected) - 1 || errno == ERANGE
+            || parsed_value < INT_MIN || parsed_value > INT_MAX
+            || endptr[0] != ';' || endptr[1] != '\0')
+    {
+        return -RIG_EPROTO;
+    }
+
+    *value = (int)parsed_value;
+    return RIG_OK;
+}
+
 /*
  * ftx1_get_ex_menu - Get FTX-1 extended menu parameter
  */
@@ -207,32 +238,16 @@ int ftx1_get_ex_menu(RIG *rig, int group, int section, int item, int *value)
         return ret;
     }
 
-    /* Response: EX P1 P2 P3 P4; - parse value after 8 chars (EX + 6 digits) */
-    if (strlen(priv->ret_data) > 8)
+    /* Response: EX P1 P2 P3 P4; */
+    if (ftx1_parse_ex_menu_response(priv->ret_data, group, section, item,
+                                    value) != RIG_OK)
     {
-        char *valstr = priv->ret_data + 8;
-        /* Remove trailing semicolon */
-        char *semi = strchr(valstr, ';');
-        if (semi) *semi = '\0';
-
-        char *endptr;
-        long parsed_value = strtol(valstr, &endptr, 10);
-        if (endptr == valstr)
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: failed to parse value from '%s'\n",
-                      __func__, valstr);
-            return -RIG_EPROTO;
-        }
-        *value = (int)parsed_value;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: value=%d\n", __func__, *value);
-    }
-    else
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: response too short '%s'\n",
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid EX response '%s'\n",
                   __func__, priv->ret_data);
         return -RIG_EPROTO;
     }
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: value=%d\n", __func__, *value);
     return RIG_OK;
 }
 

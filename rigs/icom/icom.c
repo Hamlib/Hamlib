@@ -1742,12 +1742,14 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct rig_state *rs = STATE(rig);
     struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
+    const struct icom_priv_caps *priv_caps = rig->caps->priv;
     unsigned char freqbuf[MAXFRAMELEN];
     int freq_len = sizeof(freqbuf);
     int freqbuf_offset = 1;
     int retval = RIG_OK;
     int civ_731_mode_save = 0;
     int force_vfo_swap = 0;
+    int probing_x25 = 0;
     vfo_t vfo_save = rs->current_vfo;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called for %s, curr_vfo=%s\n", __func__,
@@ -1812,6 +1814,9 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if ((rs->targetable_vfo & RIG_TARGETABLE_FREQ) && !force_vfo_swap)
     {
+        probing_x25 = priv->x25cmdfails < 0
+                      && !priv_caps->x25x26_always;
+
         retval = icom_get_freq_x25(rig, vfo, &freq_len, freqbuf, &freqbuf_offset);
 
         if (freq_len == 3 && freqbuf[2] == 0xff)
@@ -1829,7 +1834,9 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
     // If the command 0x25 is not supported, swap VFO (if required) and read the frequency
-    if (!(rs->targetable_vfo & RIG_TARGETABLE_FREQ) || retval == -RIG_ENAVAIL
+    if (!(rs->targetable_vfo & RIG_TARGETABLE_FREQ)
+            || retval == -RIG_ENAVAIL
+            || (probing_x25 && retval == -RIG_ERJCTED)
             || force_vfo_swap)
     {
         freqbuf_offset = 1;
@@ -2766,6 +2773,9 @@ static int icom_get_mode_without_data(RIG *rig, vfo_t vfo, rmode_t *mode,
     if ((rs->targetable_vfo & RIG_TARGETABLE_MODE) && !RIG_IS_IC7800
             && !force_vfo_swap)
     {
+        int probing_x26 = priv_data->x26cmdfails < 0
+                          && !priv_caps->x25x26_always;
+
         retval = icom_get_mode_x26(rig, vfo, &mode_len, modebuf);
 
         if (retval == RIG_OK)
@@ -2778,7 +2788,8 @@ static int icom_get_mode_without_data(RIG *rig, vfo_t vfo, rmode_t *mode,
             modebuf[2] = modebuf[4]; // copy filter to 2-byte format
             mode_len = 2;
         }
-        else if (retval == -RIG_ENAVAIL) // In case it's been disabled
+        else if (retval == -RIG_ENAVAIL
+                 || (probing_x26 && retval == -RIG_ERJCTED))
         {
             retval = icom_transaction(rig, C_RD_MODE, -1, NULL, 0, modebuf, &mode_len);
         }
@@ -2786,6 +2797,11 @@ static int icom_get_mode_without_data(RIG *rig, vfo_t vfo, rmode_t *mode,
     else
     {
         retval = icom_transaction(rig, C_RD_MODE, -1, NULL, 0, modebuf, &mode_len);
+    }
+
+    if (retval != RIG_OK)
+    {
+        RETURNFUNC2(retval);
     }
 
     if (--mode_len == 3)
@@ -2806,11 +2822,6 @@ static int icom_get_mode_without_data(RIG *rig, vfo_t vfo, rmode_t *mode,
                   "%s(%d): modebuf[0]=0x%02x, modebuf[1]=0x%02x, mode_len=%d\n", __func__,
                   __LINE__, modebuf[0],
                   modebuf[1], mode_len);
-    }
-
-    if (retval != RIG_OK)
-    {
-        RETURNFUNC2(retval);
     }
 
     /*
@@ -2978,10 +2989,10 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     case RIG_MODE_FM:
 
         // Check data mode state for the modes above
-        if ((rs->targetable_vfo & RIG_TARGETABLE_MODE) && !force_vfo_swap)
+        if ((rs->targetable_vfo & RIG_TARGETABLE_MODE) && !force_vfo_swap
+                && priv->x26cmdfails <= 0)
         {
-            // The data mode state is already read using command 0x26 for rigs with targetable mode
-            // Fake the response in databuf
+            // Command 0x26 includes the data mode state.
             databuf[2] = priv->datamode;
             data_len = 3;
         }
@@ -6958,6 +6969,46 @@ int icom_mem_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
     RETURNFUNC(RIG_OK);
 }
 
+int icom_ts_to_sc(const struct ts_sc_list *list, shortfreq_t ts,
+                  unsigned char *sc)
+{
+    if (list == NULL || sc == NULL)
+    {
+        return -RIG_EINVAL;
+    }
+
+    for (int i = 0; list[i].ts != 0; i++)
+    {
+        if (list[i].ts == ts)
+        {
+            *sc = list[i].sc;
+            return RIG_OK;
+        }
+    }
+
+    return -RIG_EINVAL;
+}
+
+int icom_sc_to_ts(const struct ts_sc_list *list, unsigned char sc,
+                  shortfreq_t *ts)
+{
+    if (list == NULL || ts == NULL)
+    {
+        return -RIG_EPROTO;
+    }
+
+    for (int i = 0; list[i].ts != 0; i++)
+    {
+        if (list[i].sc == sc)
+        {
+            *ts = list[i].ts;
+            return RIG_OK;
+        }
+    }
+
+    return -RIG_EPROTO;
+}
+
 /*
  * icom_set_ts
  * Assumes rig!=NULL, rig->caps->priv!=NULL
@@ -6966,25 +7017,15 @@ int icom_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 {
     const struct icom_priv_caps *priv_caps;
     unsigned char ackbuf[MAXFRAMELEN];
-    int i, ack_len = sizeof(ackbuf), retval;
-    int ts_sc = 0;
+    unsigned char ts_sc;
+    int ack_len = sizeof(ackbuf), retval;
 
     ENTERFUNC;
     priv_caps = (const struct icom_priv_caps *) rig->caps->priv;
 
-    for (i = 0; i < HAMLIB_TSLSTSIZ; i++)
-    {
-        if (priv_caps->ts_sc_list[i].ts == ts)
-        {
-            ts_sc = priv_caps->ts_sc_list[i].sc;
-            break;
-        }
-    }
+    retval = icom_ts_to_sc(priv_caps->ts_sc_list, ts, &ts_sc);
 
-    if (i >= HAMLIB_TSLSTSIZ)
-    {
-        RETURNFUNC(-RIG_EINVAL);   /* not found, unsupported */
-    }
+    if (retval != RIG_OK) { RETURNFUNC(retval); }
 
     retval = icom_transaction(rig, C_SET_TS, ts_sc, NULL, 0, ackbuf, &ack_len);
 
@@ -7010,10 +7051,15 @@ int icom_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 {
     const struct icom_priv_caps *priv_caps;
     unsigned char tsbuf[MAXFRAMELEN];
-    int ts_len, i, retval;
+    int ts_len, retval;
 
     ENTERFUNC;
     priv_caps = (const struct icom_priv_caps *) rig->caps->priv;
+
+    if (priv_caps->ts_sc_list == NULL)
+    {
+        RETURNFUNC(-RIG_EPROTO);
+    }
 
     retval = icom_transaction(rig, C_SET_TS, -1, NULL, 0, tsbuf, &ts_len);
 
@@ -7033,21 +7079,9 @@ int icom_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
         RETURNFUNC(-RIG_ERJCTED);
     }
 
-    for (i = 0; i < HAMLIB_TSLSTSIZ; i++)
-    {
-        if (priv_caps->ts_sc_list[i].sc == tsbuf[1])
-        {
-            *ts = priv_caps->ts_sc_list[i].ts;
-            break;
-        }
-    }
+    retval = icom_sc_to_ts(priv_caps->ts_sc_list, tsbuf[1], ts);
 
-    if (i >= HAMLIB_TSLSTSIZ)
-    {
-        RETURNFUNC(-RIG_EPROTO);   /* not found, unsupported */
-    }
-
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC(retval);
 }
 
 
