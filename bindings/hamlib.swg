@@ -69,7 +69,7 @@
   len = $1_dim0;
   $result = PyList_New(len);
   for (i = 0; i < len; i++) {
-    PyList_SetItem($result,i,PyInt_FromLong((long)$1[i]));
+    PyList_SetItem($result,i,PyLong_FromLong((long)$1[i]));
   }
 }
 
@@ -78,7 +78,7 @@
   len = $1_dim0;
   $result = PyList_New(len);
   for (i = 0; i < len; i++) {
-    PyList_SetItem($result,i,PyInt_FromLong((long)$1[i]));
+    PyList_SetItem($result,i,PyLong_FromLong((long)$1[i]));
   }
 }
 

@@ -5,7 +5,7 @@
 .\"
 .\" Note: Please keep this page in sync with the source, rigctl.c
 .\"
-.TH RIGCTL "1" "2026-07-31" "Hamlib" "Hamlib Utilities"
+.TH RIGCTL "1" "2026-08-23" "Hamlib" "Hamlib Utilities"
 .
 .
 .SH NAME
@@ -933,7 +933,7 @@ in Hz.
 .BR U ", " set_func " \(aq" \fIFunc\fP "\(aq \(aq" "\fIFunc Status\fP" \(aq
 Set
 .RI \(aq Func \(aq
-and
+to
 .RI \(aq "Func Status" \(aq.
 .IP
 Func is a token:
@@ -1063,7 +1063,7 @@ Use this to determine the supported functions of a given radio backend.
 .BR L ", " set_level " \(aq" \fILevel\fP "\(aq \(aq" "\fILevel Value\fP" \(aq
 Set
 .RI \(aq Level \(aq
-and
+to
 .RI \(aq "Level Value" \(aq.
 .IP
 Level is a token:
@@ -1185,6 +1185,10 @@ WPM
 Passing a \(oq?\(cq (query) as the first argument instead of a Level token
 will return a space separated list of radio backend supported set level
 tokens.  Use this to determine the supported levels of a given radio backend.
+
+Passing a \(oq?\(cq (query) as the second argument instead of a "\fILevel Value\fP"
+will return the range and granularity for numeric levels or the list of values for string levels.
+
 .
 .TP
 .BR l ", " get_level " \(aq" \fILevel\fP \(aq
