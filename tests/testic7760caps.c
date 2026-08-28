@@ -14,9 +14,11 @@
  * than by page, because Icom repaginates between revisions.
  */
 
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 
+#include "cal.h"
 #include "icom.h"
 
 static const struct cmdparams *find_level_cmd(const struct cmdparams *cmds,
@@ -205,6 +207,43 @@ static int test_filter_defaults(RIG *rig)
 }
 
 /*
+ * Reading the Id meter is 15 16, and the command table gives four
+ * points along its scale: 00 00 = 0 A, 00 77 = 5 A, 01 65 = 10 A and
+ * 02 41 = 15 A.
+ */
+static int test_id_meter_calibration(void)
+{
+    static const struct
+    {
+        int raw;
+        float expected;
+    } cases[] =
+    {
+        { 0, 0.0f },
+        { 77, 5.0f },
+        { 121, 7.5f },  /* halfway between the 5 A and 10 A points */
+        { 165, 10.0f },
+        { 241, 15.0f },
+    };
+    size_t i;
+    int fail = 0;
+
+    for (i = 0; i < sizeof(cases) / sizeof(cases[0]); i++)
+    {
+        float actual = rig_raw2val_float(cases[i].raw, &ic7760_caps.id_meter_cal);
+
+        if (fabsf(actual - cases[i].expected) > 0.0001f)
+        {
+            fprintf(stderr, "Id meter at raw %d: expected %.2f A, got %.2f A\n",
+                    cases[i].raw, cases[i].expected, actual);
+            fail = 1;
+        }
+    }
+
+    return fail;
+}
+
+/*
  * Command 16 02 offers two preamplifiers, 01 and 02.  The basic manual
  * gives P.AMP 1 as approximately 12 dB and P.AMP 2 as approximately
  * 20 dB of gain.
@@ -317,6 +356,7 @@ int main(void)
     fail |= test_absent_capabilities();
     fail |= test_memory_channel_counts();
     fail |= test_preamp_gains();
+    fail |= test_id_meter_calibration();
 
     rig_register(&ic7760_caps);
     rig = rig_init(RIG_MODEL_IC7760);
