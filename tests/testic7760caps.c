@@ -500,6 +500,32 @@ static int test_id_meter_calibration(void)
 }
 
 /*
+ * The CI-V Baud Rate menu offers 4800, 9600, 19200 and Auto, so those
+ * are the ends of the range the backend may claim.  The setting applies
+ * to the REMOTE jack; the USB port runs at whatever rate the host opens.
+ */
+static int test_serial_rates(void)
+{
+    int fail = 0;
+
+    if (ic7760_caps.serial_rate_min != 4800)
+    {
+        fprintf(stderr, "serial_rate_min: expected 4800, got %d\n",
+                ic7760_caps.serial_rate_min);
+        fail = 1;
+    }
+
+    if (ic7760_caps.serial_rate_max != 19200)
+    {
+        fprintf(stderr, "serial_rate_max: expected 19200, got %d\n",
+                ic7760_caps.serial_rate_max);
+        fail = 1;
+    }
+
+    return fail;
+}
+
+/*
  * Command 16 02 offers two preamplifiers, 01 and 02.  The basic manual
  * gives P.AMP 1 as approximately 12 dB and P.AMP 2 as approximately
  * 20 dB of gain.
@@ -613,6 +639,7 @@ int main(void)
     fail |= test_present_capabilities();
     fail |= test_memory_channel_counts();
     fail |= test_preamp_gains();
+    fail |= test_serial_rates();
     fail |= test_id_meter_calibration();
     fail |= test_transmit_power_ranges();
     fail |= test_level_granularity();
