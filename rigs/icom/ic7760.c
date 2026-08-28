@@ -287,7 +287,8 @@ struct rig_caps ic7760_caps =
     .ctcss_list =  common_ctcss_list,
     .dcs_list =  NULL,
     .preamp =   { 12, 20, RIG_DBLST_END, },
-    .attenuator =   { 6, 12, 18, RIG_DBLST_END, },
+    // 3 to 45 dB in 3 dB steps; the list holds seven of the fifteen
+    .attenuator =   { 6, 12, 18, 24, 30, 36, 45, RIG_DBLST_END, },
     .max_rit =  Hz(9999),
     .max_xit =  Hz(9999),
     .max_ifshift =  Hz(0),

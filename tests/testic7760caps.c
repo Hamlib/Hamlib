@@ -806,6 +806,55 @@ static int test_preamp_gains(void)
     return 0;
 }
 
+/*
+ * Command 11 carries the attenuation as BCD dB.  The rig takes 3 to 45
+ * in steps of 3 and rejects anything else, which is fifteen settings,
+ * and HAMLIB_MAXDBLSTSIZ has room for seven of them.  The list is a
+ * subset, then, but every entry has to be a setting the rig accepts and
+ * the strongest one has to be reachable.
+ */
+static int test_attenuator_steps(void)
+{
+    size_t i;
+    int previous = 0;
+    int fail = 0;
+
+    for (i = 0; i < HAMLIB_MAXDBLSTSIZ && ic7760_caps.attenuator[i] != 0; i++)
+    {
+        int att = ic7760_caps.attenuator[i];
+
+        if (att < 3 || att > 45 || att % 3 != 0)
+        {
+            fprintf(stderr, "attenuator %d dB is not a setting of command 11\n",
+                    att);
+            fail = 1;
+        }
+
+        if (att <= previous)
+        {
+            fprintf(stderr, "attenuator list is not ascending at %d dB\n", att);
+            fail = 1;
+        }
+
+        previous = att;
+    }
+
+    if (i == HAMLIB_MAXDBLSTSIZ)
+    {
+        fprintf(stderr, "attenuator list is not terminated\n");
+        fail = 1;
+    }
+
+    if (previous != 45)
+    {
+        fprintf(stderr, "strongest attenuator advertised is %d dB, the rig"
+                " goes to 45 dB\n", previous);
+        fail = 1;
+    }
+
+    return fail;
+}
+
 struct name_search
 {
     const char *wanted;
@@ -899,6 +948,7 @@ int main(void)
     fail |= test_present_capabilities();
     fail |= test_memory_channel_counts();
     fail |= test_preamp_gains();
+    fail |= test_attenuator_steps();
     fail |= test_serial_rates();
     fail |= test_id_meter_calibration();
     fail |= test_transmit_power_ranges();
