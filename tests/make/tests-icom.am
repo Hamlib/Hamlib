@@ -17,6 +17,14 @@ TESTS += testic7760caps
 testic7760caps_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testic7760caps_LDADD = $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 
+check_PROGRAMS += testic7760civ
+TESTS += testic7760civ
+testic7760civ_SOURCES = testic7760civ.c testicomsock.c testicomsock.h
+testic7760civ_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+testic7760civ_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testic7760civ_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+
 check_PROGRAMS += testic9700civ
 TESTS += testic9700civ
 testic9700civ_SOURCES = testic9700civ.c testicomsock.c testicomsock.h

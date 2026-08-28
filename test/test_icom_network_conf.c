@@ -376,8 +376,7 @@ void test_powerstat_read_flag_inherited(void)
         { RIG_MODEL_IC705NET,     RIG_MODEL_IC705,     1 },
         { RIG_MODEL_IC905NET,     RIG_MODEL_IC905,     1 },
         { RIG_MODEL_IC7300MK2NET, RIG_MODEL_IC7300MK2, 1 },
-        /* not established for the IC-7760, so it keeps the plain read */
-        { RIG_MODEL_IC7760NET,    RIG_MODEL_IC7760,    0 },
+        { RIG_MODEL_IC7760NET,    RIG_MODEL_IC7760,    1 },
     };
     size_t i;
 
