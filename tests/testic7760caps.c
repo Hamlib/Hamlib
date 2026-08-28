@@ -207,6 +207,53 @@ static int test_filter_defaults(RIG *rig)
 }
 
 /*
+ * The specifications give the transmit output power as 1 to 200 W in
+ * SSB, CW, FM, RTTY and PSK, and 0.25 to 50 W in AM.  Every transmit
+ * range has to say so, in both region lists.
+ */
+static int check_power_range(const freq_range_t *range, const char *list)
+{
+    int is_am = (range->modes & (RIG_MODE_AM | RIG_MODE_PKTAM)) != 0;
+    int low = is_am ? mW(250) : W(1);
+    int high = is_am ? W(50) : W(200);
+
+    if (range->low_power == low && range->high_power == high) { return 0; }
+
+    fprintf(stderr,
+            "%s %.0f-%.0f Hz (%s): expected %d..%d mW, got %d..%d mW\n",
+            list, range->startf, range->endf, is_am ? "AM" : "other",
+            low, high, range->low_power, range->high_power);
+    return 1;
+}
+
+static int test_transmit_power_ranges(void)
+{
+    static const struct
+    {
+        const freq_range_t *list;
+        const char *name;
+    } lists[] =
+    {
+        { ic7760_caps.tx_range_list1, "tx_range_list1" },
+        { ic7760_caps.tx_range_list2, "tx_range_list2" },
+    };
+    size_t i;
+    int j;
+    int fail = 0;
+
+    for (i = 0; i < sizeof(lists) / sizeof(lists[0]); i++)
+    {
+        for (j = 0; j < HAMLIB_FRQRANGESIZ
+                && !RIG_IS_FRNG_END(lists[i].list[j]); j++)
+        {
+            fail |= check_power_range(&lists[i].list[j], lists[i].name);
+        }
+    }
+
+    return fail;
+}
+
+/*
  * Reading the Id meter is 15 16, and the command table gives four
  * points along its scale: 00 00 = 0 A, 00 77 = 5 A, 01 65 = 10 A and
  * 02 41 = 15 A.
@@ -357,6 +404,7 @@ int main(void)
     fail |= test_memory_channel_counts();
     fail |= test_preamp_gains();
     fail |= test_id_meter_calibration();
+    fail |= test_transmit_power_ranges();
 
     rig_register(&ic7760_caps);
     rig = rig_init(RIG_MODEL_IC7760);
