@@ -98,12 +98,70 @@ static int test_absent_capabilities(void)
     return fail;
 }
 
+/*
+ * Keyer memory content (1A 02) addresses channels 01=M1 to 08=M8, and
+ * the Voice TX memory (28 00) transmits 01=T1 to 08=T8.
+ */
+static int test_memory_channel_counts(void)
+{
+    static const struct
+    {
+        const char *name;
+        chan_type_t type;
+        int startc;
+        int endc;
+    } expected[] =
+    {
+        { "memory", RIG_MTYPE_MEM, 1, 99 },
+        { "scan edge", RIG_MTYPE_EDGE, 100, 101 },
+        { "keyer memory", RIG_MTYPE_MORSE, 1, 8 },
+        { "voice memory", RIG_MTYPE_VOICE, 1, 8 },
+    };
+    size_t i;
+    int j;
+    int fail = 0;
+
+    for (i = 0; i < sizeof(expected) / sizeof(expected[0]); i++)
+    {
+        int found = 0;
+
+        for (j = 0; j < HAMLIB_CHANLSTSIZ
+                && ic7760_caps.chan_list[j].type != RIG_MTYPE_NONE; j++)
+        {
+            const struct chan_list *chan = &ic7760_caps.chan_list[j];
+
+            if (chan->type != expected[i].type) { continue; }
+
+            found = 1;
+
+            if (chan->startc != expected[i].startc
+                    || chan->endc != expected[i].endc)
+            {
+                fprintf(stderr, "%s channels: expected %d..%d, got %d..%d\n",
+                        expected[i].name, expected[i].startc, expected[i].endc,
+                        chan->startc, chan->endc);
+                fail = 1;
+            }
+        }
+
+        if (!found)
+        {
+            fprintf(stderr, "%s channels are not listed at all\n",
+                    expected[i].name);
+            fail = 1;
+        }
+    }
+
+    return fail;
+}
+
 int main(void)
 {
     int fail = 0;
 
     fail |= test_vox_delay_subcommand();
     fail |= test_absent_capabilities();
+    fail |= test_memory_channel_counts();
 
     return fail;
 }
