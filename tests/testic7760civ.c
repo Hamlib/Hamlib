@@ -12,6 +12,9 @@
  * Drives ic7760_caps over a socket pair and records the command byte of
  * every CI-V frame the backend emits, so that commands the IC-7760 does
  * not implement can be asserted against.
+ *
+ * Command numbers refer to the IC-7760 CI-V REFERENCE GUIDE, revision
+ * A7788-8EX-2 (May 2025).
  */
 
 #include <pthread.h>
