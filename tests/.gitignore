@@ -57,4 +57,7 @@ testrigcaps
 testrigcaps.sh
 testrigopen
 testtrn
+testtunercontrol
+testtunercontrol_marker
+testtunercontrol_stub.sh
 tuner_control.log

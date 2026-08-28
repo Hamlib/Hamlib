@@ -30,6 +30,7 @@ DIRECT_TESTS = \
 	testrigctlprotocol \
 	testthd7x \
 	testthd75emu \
+	testtunercontrol \
 	testid5100
 
 GENERATED_TEST_WRAPPERS = \
