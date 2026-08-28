@@ -8480,18 +8480,9 @@ int icom_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
             RETURNFUNC2(-RIG_EINVAL);
         }
 
+        // The RX antenna option is carried by the antenna selection frame
         antopt_len = 1;
         antopt[0] = option.i;
-        // we have to set the rx option by itself apparently
-        rig_debug(RIG_DEBUG_TRACE, "%s: setting antopt=%d\n", __func__, antopt[0]);
-        retval = icom_transaction(rig, C_CTL_ANT, i_ant,
-                                  antopt, antopt_len, ackbuf, &ack_len);
-
-        if (retval != RIG_OK)
-        {
-            RETURNFUNC2(retval);
-        }
-
         rig_debug(RIG_DEBUG_TRACE,
                   "%s: antack_len=%d so antopt_len=%d, antopt=0x%02x\n",
                   __func__, priv_caps->antack_len, antopt_len, antopt[0]);
