@@ -155,13 +155,74 @@ static int test_memory_channel_counts(void)
     return fail;
 }
 
+/*
+ * Default IF filter widths, from the IC-7760 basic manual.  rig2icom_mode()
+ * picks FIL1 for a width wider than the normal passband, FIL2 for the
+ * normal one and FIL3 for a narrower one, so the caps list has to hold
+ * each mode's FIL2, FIL3 and FIL1 width in that order.
+ */
+static int test_filter_defaults(RIG *rig)
+{
+    static const struct
+    {
+        const char *name;
+        rmode_t mode;
+        pbwidth_t fil2;
+        pbwidth_t fil3;
+        pbwidth_t fil1;
+    } filters[] =
+    {
+        { "SSB", RIG_MODE_USB, 2400, 1800, 3000 },
+        { "CW", RIG_MODE_CW, 500, 250, 1200 },
+        { "PSK", RIG_MODE_PSK, 500, 250, 1200 },
+        { "RTTY", RIG_MODE_RTTY, 500, 250, 2400 },
+        { "AM", RIG_MODE_AM, 6000, 3000, 9000 },
+        { "FM", RIG_MODE_FM, 10000, 7000, 15000 },
+    };
+    size_t i;
+    int fail = 0;
+
+    for (i = 0; i < sizeof(filters) / sizeof(filters[0]); i++)
+    {
+        pbwidth_t normal = rig_passband_normal(rig, filters[i].mode);
+        pbwidth_t narrow = rig_passband_narrow(rig, filters[i].mode);
+        pbwidth_t wide = rig_passband_wide(rig, filters[i].mode);
+
+        if (normal != filters[i].fil2 || narrow != filters[i].fil3
+                || wide != filters[i].fil1)
+        {
+            fprintf(stderr,
+                    "%s filters: expected FIL2/FIL3/FIL1 %ld/%ld/%ld, got %ld/%ld/%ld\n",
+                    filters[i].name, (long) filters[i].fil2, (long) filters[i].fil3,
+                    (long) filters[i].fil1, (long) normal, (long) narrow, (long) wide);
+            fail = 1;
+        }
+    }
+
+    return fail;
+}
+
 int main(void)
 {
+    RIG *rig;
     int fail = 0;
 
     fail |= test_vox_delay_subcommand();
     fail |= test_absent_capabilities();
     fail |= test_memory_channel_counts();
+
+    rig_register(&ic7760_caps);
+    rig = rig_init(RIG_MODEL_IC7760);
+
+    if (rig == NULL)
+    {
+        fprintf(stderr, "rig_init failed\n");
+        return 1;
+    }
+
+    fail |= test_filter_defaults(rig);
+
+    rig_cleanup(rig);
 
     return fail;
 }
