@@ -267,9 +267,12 @@ struct rig_caps ic7760_caps =
     },
     /* mode/filter list, remember: order matters! */
     .filters =  {
-        {RIG_MODE_SSB | RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, kHz(2.4)},
-        {RIG_MODE_SSB | RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, kHz(1.8)},
-        {RIG_MODE_SSB | RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, kHz(3)},
+        {RIG_MODE_SSB, kHz(2.4)},
+        {RIG_MODE_SSB, kHz(1.8)},
+        {RIG_MODE_SSB, kHz(3)},
+        {RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, kHz(1.2)},
+        {RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, Hz(500)},
+        {RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, kHz(3)},
         {RIG_MODE_CW | RIG_MODE_CWR | RIG_MODE_RTTY | RIG_MODE_RTTYR | RIG_MODE_PSK | RIG_MODE_PSKR, Hz(500)},
         {RIG_MODE_CW | RIG_MODE_CWR | RIG_MODE_RTTY | RIG_MODE_RTTYR | RIG_MODE_PSK | RIG_MODE_PSKR, Hz(250)},
         {RIG_MODE_CW | RIG_MODE_CWR | RIG_MODE_PSK | RIG_MODE_PSKR, kHz(1.2)},

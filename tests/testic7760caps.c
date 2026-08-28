@@ -173,6 +173,7 @@ static int test_filter_defaults(RIG *rig)
     } filters[] =
     {
         { "SSB", RIG_MODE_USB, 2400, 1800, 3000 },
+        { "SSB-D", RIG_MODE_PKTUSB, 1200, 500, 3000 },
         { "CW", RIG_MODE_CW, 500, 250, 1200 },
         { "PSK", RIG_MODE_PSK, 500, 250, 1200 },
         { "RTTY", RIG_MODE_RTTY, 500, 250, 2400 },
