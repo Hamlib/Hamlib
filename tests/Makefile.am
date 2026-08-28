@@ -27,6 +27,7 @@ DIRECT_TESTS = \
 	testgs100 \
 	testguohetec \
 	testic7760caps \
+	testic7760civ \
 	testic9700civ \
 	testicomant \
 	testicomgetvfo \
@@ -124,12 +125,14 @@ testctlparser_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testgeministatus_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testgs100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testguohetec_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testic7760civ_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testic9700civ_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testicomant_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testicomgetvfo_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testicomscan_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testid5100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testic7760caps_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+testic7760civ_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testic9700civ_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testicomant_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testicomgetvfo_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
@@ -169,6 +172,8 @@ testctlparser_SOURCES = testctlparser.c $(RIGCOMMONSRC)
 testctlparser_LDADD = $(PTHREAD_LIBS) $(READLINE_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
 testrigctlprotocol_LDADD = $(LDADD)
 testic7760caps_LDADD = $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+testic7760civ_SOURCES = testic7760civ.c testicomsock.c testicomsock.h
+testic7760civ_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testic9700civ_SOURCES = testic9700civ.c testicomsock.c testicomsock.h
 testic9700civ_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testicomant_SOURCES = testicomant.c testicomsock.c testicomsock.h
