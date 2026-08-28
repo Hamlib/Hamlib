@@ -208,6 +208,63 @@ static int test_filter_defaults(RIG *rig)
 }
 
 /*
+ * Command 10 carries the tuning step as 00 to 08, and the backend turns
+ * a step in hertz into that byte through its own ts_sc_list.  Every step
+ * the caps advertise has to survive that conversion, and every code the
+ * rig accepts has to be advertised, or set_ts and get_ts disagree with
+ * what the rig was told it can do.
+ */
+static int test_tuning_steps_are_reachable(void)
+{
+    const struct icom_priv_caps *priv = (const struct icom_priv_caps *)
+                                        ic7760_caps.priv;
+    unsigned char sc;
+    shortfreq_t ts;
+    int i;
+    int fail = 0;
+
+    for (i = 0; i < HAMLIB_TSLSTSIZ
+            && !RIG_IS_TS_END(ic7760_caps.tuning_steps[i]); i++)
+    {
+        shortfreq_t step = ic7760_caps.tuning_steps[i].ts;
+
+        if (icom_ts_to_sc(priv->ts_sc_list, step, &sc) != RIG_OK)
+        {
+            fprintf(stderr, "tuning step %ld Hz is advertised but has no"
+                    " command 10 code\n", (long) step);
+            fail = 1;
+        }
+    }
+
+    for (sc = 0x00; sc <= 0x08; sc++)
+    {
+        int advertised = 0;
+
+        if (icom_sc_to_ts(priv->ts_sc_list, sc, &ts) != RIG_OK)
+        {
+            fprintf(stderr, "command 10 code %02X has no tuning step\n", sc);
+            fail = 1;
+            continue;
+        }
+
+        for (i = 0; i < HAMLIB_TSLSTSIZ
+                && !RIG_IS_TS_END(ic7760_caps.tuning_steps[i]); i++)
+        {
+            if (ic7760_caps.tuning_steps[i].ts == ts) { advertised = 1; }
+        }
+
+        if (!advertised)
+        {
+            fprintf(stderr, "command 10 code %02X is %ld Hz, which the caps do"
+                    " not advertise\n", sc, (long) ts);
+            fail = 1;
+        }
+    }
+
+    return fail;
+}
+
+/*
  * CW pitch is 14 09, documented as 300 Hz to 900 Hz in 5 Hz steps, and
  * keying speed is 14 0C, documented as 6 to 48 WPM.  The keyer range is
  * narrower than the icom default of 4 to 60, so it stays overridden.
@@ -447,6 +504,7 @@ int main(void)
     fail |= test_id_meter_calibration();
     fail |= test_transmit_power_ranges();
     fail |= test_level_granularity();
+    fail |= test_tuning_steps_are_reachable();
 
     rig_register(&ic7760_caps);
     rig = rig_init(RIG_MODEL_IC7760);
