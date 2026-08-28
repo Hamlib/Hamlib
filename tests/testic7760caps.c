@@ -208,6 +208,64 @@ static int test_filter_defaults(RIG *rig)
 }
 
 /*
+ * Command 16 12 selects the AGC time constant and takes 01=FAST,
+ * 02=MID or 03=SLOW.  It has no 00: the rig answers FA to 16 12 00.
+ * Switching the AGC off is reached through 1A 04 instead, whose 00 is
+ * OFF, and hamlib exposes that as an AGC time of zero.
+ */
+static int test_agc_levels(void)
+{
+    static const enum agc_level_e expected[] =
+    {
+        RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW
+    };
+    const struct icom_priv_caps *priv = (const struct icom_priv_caps *)
+                                        ic7760_caps.priv;
+    int count = (int)(sizeof(expected) / sizeof(expected[0]));
+    int i;
+    int fail = 0;
+
+    if (ic7760_caps.agc_level_count != count)
+    {
+        fprintf(stderr, "agc_level_count: expected %d, got %d\n", count,
+                ic7760_caps.agc_level_count);
+        fail = 1;
+    }
+
+    for (i = 0; i < count; i++)
+    {
+        if (ic7760_caps.agc_levels[i] != expected[i])
+        {
+            fprintf(stderr, "agc_levels[%d]: expected %d, got %d\n", i,
+                    (int) expected[i], (int) ic7760_caps.agc_levels[i]);
+            fail = 1;
+        }
+    }
+
+    for (i = 0; i <= HAMLIB_MAX_AGC_LEVELS
+            && priv->agc_levels[i].level != RIG_AGC_LAST; i++)
+    {
+        if (priv->agc_levels[i].level == RIG_AGC_OFF)
+        {
+            fprintf(stderr, "AGC OFF maps to 16 12 %02X, which the rig"
+                    " rejects\n", priv->agc_levels[i].icom_level);
+            fail = 1;
+        }
+
+        if (priv->agc_levels[i].icom_level < 1
+                || priv->agc_levels[i].icom_level > 3)
+        {
+            fprintf(stderr, "AGC level %d maps to %d, outside the 01..03 the"
+                    " command accepts\n", (int) priv->agc_levels[i].level,
+                    priv->agc_levels[i].icom_level);
+            fail = 1;
+        }
+    }
+
+    return fail;
+}
+
+/*
  * Command 0E starts the scans: 01 programmed or memory, 02 programmed,
  * 03 delta-f, 12 and 13 their fine variants, 22 memory and 23 select
  * memory.  There is no priority scan among them.
@@ -526,6 +584,7 @@ int main(void)
     fail |= test_level_granularity();
     fail |= test_tuning_steps_are_reachable();
     fail |= test_scan_operations();
+    fail |= test_agc_levels();
 
     rig_register(&ic7760_caps);
     rig = rig_init(RIG_MODEL_IC7760);
