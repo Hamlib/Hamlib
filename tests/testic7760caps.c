@@ -9,8 +9,9 @@
  */
 
 /*
- * Expected values are taken from the IC-7760 CI-V REFERENCE GUIDE
- * (A7788-8EX, Oct. 2024); page numbers below refer to that document.
+ * Expected values are taken from the IC-7760 CI-V REFERENCE GUIDE,
+ * revision A7788-8EX-2 (May 2025).  Commands are cited by number rather
+ * than by page, because Icom repaginates between revisions.
  */
 
 #include <stdio.h>
@@ -34,7 +35,7 @@ static const struct cmdparams *find_level_cmd(const struct cmdparams *cmds,
     return NULL;
 }
 
-/* p. 14: VOX delay is 1A 05 03 65, data 00 ~ 20 */
+/* VOX delay is 1A 05 03 65, data 00 ~ 20 in 0.1 s steps */
 static int test_vox_delay_subcommand(void)
 {
     const struct icom_priv_caps *priv = (const struct icom_priv_caps *)
@@ -63,8 +64,8 @@ static int test_vox_delay_subcommand(void)
 
 /*
  * Capabilities the IC-7760 has no CI-V command for.  Command 14 skips
- * subcommand 10 (p. 3-4) and command 16 skips subcommand 4C (p. 4-5), so
- * neither the dual-watch balance nor voice squelch control exists.
+ * subcommand 10 and command 16 skips subcommand 4C, so neither the
+ * dual-watch balance nor voice squelch control exists.
  */
 static int test_absent_capabilities(void)
 {
