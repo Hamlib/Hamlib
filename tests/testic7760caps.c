@@ -564,7 +564,7 @@ static int test_agc_levels(void)
 static int test_scan_operations(void)
 {
     scan_t expected = RIG_SCAN_MEM | RIG_SCAN_VFO | RIG_SCAN_PROG
-                      | RIG_SCAN_DELTA;
+                      | RIG_SCAN_DELTA | RIG_SCAN_SLCT;
 
     if (ic7760_caps.scan_ops == expected) { return 0; }
 
