@@ -61,11 +61,48 @@ static int test_vox_delay_subcommand(void)
     return 0;
 }
 
+/*
+ * Capabilities the IC-7760 has no CI-V command for.  Command 14 skips
+ * subcommand 10 (p. 3-4) and command 16 skips subcommand 4C (p. 4-5), so
+ * neither the dual-watch balance nor voice squelch control exists.
+ */
+static int test_absent_capabilities(void)
+{
+    static const struct
+    {
+        const char *name;
+        setting_t level;
+        setting_t func;
+    } absent[] =
+    {
+        { "BALANCE (14 10)", RIG_LEVEL_BALANCE, 0 },
+        { "VSC (16 4C)", 0, RIG_FUNC_VSC },
+    };
+    size_t i;
+    int fail = 0;
+
+    for (i = 0; i < sizeof(absent) / sizeof(absent[0]); i++)
+    {
+        if ((ic7760_caps.has_get_level & absent[i].level) != 0
+                || (ic7760_caps.has_set_level & absent[i].level) != 0
+                || (ic7760_caps.has_get_func & absent[i].func) != 0
+                || (ic7760_caps.has_set_func & absent[i].func) != 0)
+        {
+            fprintf(stderr, "%s is advertised but the rig has no such command\n",
+                    absent[i].name);
+            fail = 1;
+        }
+    }
+
+    return fail;
+}
+
 int main(void)
 {
     int fail = 0;
 
     fail |= test_vox_delay_subcommand();
+    fail |= test_absent_capabilities();
 
     return fail;
 }
