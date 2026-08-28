@@ -168,7 +168,10 @@ struct rig_caps ic7760_caps =
     .ptt_type =  RIG_PTT_RIG,
     .dcd_type =  RIG_DCD_RIG,
     .port_type =  RIG_PORT_SERIAL,
-    .serial_rate_min =  300, // the manual does not show serial speeds
+    // The CI-V Baud Rate menu offers 4800, 9600, 19200 and Auto, and
+    // governs the REMOTE jack only; the USB CI-V port runs at whatever
+    // rate the host opens it with
+    .serial_rate_min =  4800,
     .serial_rate_max =  19200,
     .serial_data_bits =  8,
     .serial_stop_bits =  1,
