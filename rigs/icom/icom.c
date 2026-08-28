@@ -8773,7 +8773,7 @@ int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
             RETURNFUNC(retval);
         }
 
-        scan_sc = S_SCAN_START;
+        scan_sc = S_SCAN_SLCTN;
         break;
 
     case RIG_SCAN_PRIO:
