@@ -19,7 +19,9 @@
 #include <string.h>
 
 #include "cal.h"
+#include "hamlib/rig_state.h"
 #include "icom.h"
+#include "icom_defs.h"
 #include "idx_builtin.h"
 
 static const struct cmdparams *find_level_cmd(const struct cmdparams *cmds,
@@ -235,6 +237,262 @@ static int test_filter_defaults(RIG *rig)
                     (long) filters[i].fil1, (long) normal, (long) narrow, (long) wide);
             fail = 1;
         }
+    }
+
+    return fail;
+}
+
+/*
+ * The spectrum scope is commands 27 00 to 27 20.  A waveform is 689
+ * points ranging 00 to C8, sent over USB in fifteen pieces of which the
+ * first carries only the header, leaving 50 points per piece.  The span
+ * is held here as the full width, because the backend halves it before
+ * putting it on the wire.
+ */
+static int test_spectrum_scope(void)
+{
+    static const struct
+    {
+        int range_id;
+        freq_t low;
+        freq_t high;
+    } ranges[] =
+    {
+        {  1,    30000,  1600000 },
+        {  2,  1600000,  2000000 },
+        {  3,  2000000,  6000000 },
+        {  4,  6000000,  8000000 },
+        {  5,  8000000, 11000000 },
+        {  6, 11000000, 15000000 },
+        {  7, 15000000, 20000000 },
+        {  8, 20000000, 22000000 },
+        {  9, 22000000, 26000000 },
+        { 10, 26000000, 30000000 },
+        { 11, 30000000, 45000000 },
+        { 12, 45000000, 60000000 },
+    };
+    static const freq_t spans[] =
+    {
+        5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000, 0
+    };
+    const struct icom_priv_caps *priv = (const struct icom_priv_caps *)
+                                        ic7760_caps.priv;
+    const struct icom_spectrum_scope_caps *scope = &priv->spectrum_scope_caps;
+    const gran_t *ref = &ic7760_caps.level_gran[LVL_SPECTRUM_REF];
+    size_t i;
+    int fail = 0;
+
+    if ((ic7760_caps.has_get_func & RIG_FUNC_SPECTRUM) == 0
+            || (ic7760_caps.has_get_level & RIG_LEVEL_SPECTRUM_SPAN) == 0)
+    {
+        fprintf(stderr, "the spectrum scope is not advertised\n");
+        return 1;
+    }
+
+    /*
+     * The rig outputs waveform data only while both the scope itself
+     * (27 10) and the data output (27 11) are on, so a client needs the
+     * scope switch as well before it can start streaming.
+     */
+    if ((ic7760_caps.has_get_func & RIG_FUNC_SCOPE) == 0
+            || (ic7760_caps.has_set_func & RIG_FUNC_SCOPE) == 0)
+    {
+        fprintf(stderr, "the scope on/off switch (27 10) is not advertised\n");
+        fail = 1;
+    }
+
+    if (scope->spectrum_line_length != 689
+            || scope->single_frame_data_length != 50
+            || scope->data_level_min != 0 || scope->data_level_max != 200)
+    {
+        fprintf(stderr, "scope waveform: expected 689 points of 0..200 in"
+                " pieces of 50, got %d points of %d..%d in pieces of %d\n",
+                scope->spectrum_line_length, scope->data_level_min,
+                scope->data_level_max, scope->single_frame_data_length);
+        fail = 1;
+    }
+
+    for (i = 0; i < sizeof(ranges) / sizeof(ranges[0]); i++)
+    {
+        const struct icom_spectrum_edge_frequency_range *r =
+            &priv->spectrum_edge_frequency_ranges[i];
+
+        if (r->range_id != ranges[i].range_id || r->low_freq != ranges[i].low
+                || r->high_freq != ranges[i].high)
+        {
+            fprintf(stderr, "edge range %d: expected %.0f-%.0f Hz, got id %d"
+                    " %.0f-%.0f Hz\n", ranges[i].range_id, ranges[i].low,
+                    ranges[i].high, r->range_id, r->low_freq, r->high_freq);
+            fail = 1;
+        }
+    }
+
+    for (i = 0; i < sizeof(spans) / sizeof(spans[0]); i++)
+    {
+        if (ic7760_caps.spectrum_spans[i] != spans[i])
+        {
+            fprintf(stderr, "span %d: expected %.0f Hz, got %.0f Hz\n",
+                    (int) i, spans[i], ic7760_caps.spectrum_spans[i]);
+            fail = 1;
+        }
+    }
+
+    /* The reference level runs -30.0 to +10.0 dB in 0.5 dB steps */
+    if (ref->min.f != -30.0f || ref->max.f != 10.0f || ref->step.f != 0.5f)
+    {
+        fprintf(stderr, "scope reference level: expected -30.0..10.0 step 0.5,"
+                " got %.1f..%.1f step %.1f\n", ref->min.f, ref->max.f,
+                ref->step.f);
+        fail = 1;
+    }
+
+    return fail;
+}
+
+struct spectrum_capture
+{
+    int events;
+    int length;
+    int first_point;
+    int last_point;
+    freq_t center;
+    freq_t span;
+};
+
+static int record_spectrum_line(RIG *rig, struct rig_spectrum_line *line,
+                                rig_ptr_t data)
+{
+    struct spectrum_capture *capture = (struct spectrum_capture *) data;
+
+    capture->events++;
+    capture->length = line->spectrum_data_length;
+    capture->center = line->center_freq;
+    capture->span = line->span_freq;
+
+    if (line->spectrum_data_length > 0)
+    {
+        capture->first_point = line->spectrum_data[0];
+        capture->last_point =
+            line->spectrum_data[line->spectrum_data_length - 1];
+    }
+
+    return 0;
+}
+
+/* FE FE E0 B2 27 00 <scope> <division> <divisions> <data...> FD */
+static size_t build_scope_frame(unsigned char *frame, int division,
+                                int divisions, const unsigned char *data,
+                                size_t data_len)
+{
+    size_t len = 0;
+    size_t i;
+
+    frame[len++] = 0xfe;
+    frame[len++] = 0xfe;
+    frame[len++] = CTRLID;
+    frame[len++] = 0xb2;
+    frame[len++] = C_CTL_SCP;
+    frame[len++] = S_SCP_DAT;
+    frame[len++] = 0x00;                    /* main scope */
+    frame[len++] = (unsigned char)(((division / 10) << 4) | (division % 10));
+    frame[len++] = (unsigned char)(((divisions / 10) << 4) | (divisions % 10));
+
+    for (i = 0; i < data_len; i++) { frame[len++] = data[i]; }
+
+    frame[len++] = 0xfd;
+
+    return len;
+}
+
+/*
+ * Waveform data is unsolicited, so 27 00 reaches hamlib only through the
+ * asynchronous frame path.  Over USB one sweep is fifteen frames: a
+ * header, thirteen carrying 50 points each and a last carrying 39, which
+ * is the 689 point line the scope caps declare.  In centre mode the rig
+ * sends half the span, so 25 kHz on the wire is a 50 kHz line.
+ */
+static int test_spectrum_streaming(RIG *rig)
+{
+    static const unsigned char header[] =
+    {
+        SCOPE_MODE_CENTER,
+        0x00, 0x00, 0x10, 0x14, 0x00,   /* centre 14.100000 MHz */
+        0x00, 0x50, 0x02, 0x00, 0x00,   /* span 25 kHz */
+        0x00                            /* in range */
+    };
+    unsigned char data[50];
+    unsigned char frame[60];
+    struct spectrum_capture capture = { 0, 0, -1, -1, 0, 0 };
+    size_t len;
+    int division;
+    int fail = 0;
+
+    if (!ic7760_caps.async_data_supported
+            || ic7760_caps.read_frame_direct == NULL
+            || ic7760_caps.is_async_frame == NULL
+            || ic7760_caps.process_async_frame == NULL)
+    {
+        fprintf(stderr, "waveform data arrives unsolicited, but the"
+                " asynchronous frame path is not wired up\n");
+        return 1;
+    }
+
+    /* the callback API is only open once the rig counts as connected */
+    STATE(rig)->comm_state = 1;
+    rig_set_spectrum_callback(rig, record_spectrum_line, &capture);
+
+    len = build_scope_frame(frame, 1, 15, header, sizeof(header));
+
+    if (!ic7760_caps.is_async_frame(rig, len, frame))
+    {
+        fprintf(stderr, "a 27 00 frame was not taken for asynchronous data\n");
+        fail = 1;
+    }
+
+    ic7760_caps.process_async_frame(rig, len, frame);
+
+    memset(data, 1, sizeof(data));
+
+    for (division = 2; division <= 15; division++)
+    {
+        size_t points = (division == 15) ? 39 : 50;
+
+        if (division == 15) { memset(data, 200, sizeof(data)); }
+
+        len = build_scope_frame(frame, division, 15, data, points);
+        ic7760_caps.process_async_frame(rig, len, frame);
+    }
+
+    rig_set_spectrum_callback(rig, NULL, NULL);
+    STATE(rig)->comm_state = 0;
+
+    if (capture.events != 1)
+    {
+        fprintf(stderr, "a fifteen frame sweep raised %d spectrum events,"
+                " expected one\n", capture.events);
+        return fail | 1;
+    }
+
+    if (capture.length != 689)
+    {
+        fprintf(stderr, "a fifteen frame sweep carried %d points, expected"
+                " 689\n", capture.length);
+        fail = 1;
+    }
+
+    if (capture.first_point != 1 || capture.last_point != 200)
+    {
+        fprintf(stderr, "sweep points run %d..%d, expected the second frame's"
+                " 1 and the last frame's 200\n", capture.first_point,
+                capture.last_point);
+        fail = 1;
+    }
+
+    if (capture.center != 14100000.0 || capture.span != 50000.0)
+    {
+        fprintf(stderr, "sweep centre/span read %.0f/%.0f Hz, expected"
+                " 14100000/50000\n", capture.center, capture.span);
+        fail = 1;
     }
 
     return fail;
@@ -570,9 +828,10 @@ static int match_name(RIG *rig, const struct confparams *cfp, rig_ptr_t data)
 /*
  * ext_tokens is a whitelist over caps->extlevels and caps->extfuncs, so
  * both tables have to be present for the declared tokens to be
- * enumerable.  DRIVE gain is 14 14 and DIGI-SEL is 16 4E with its level
- * on 14 13; the spectrum scope tokens must stay filtered out, because
- * the backend implements none of the 27 commands.
+ * enumerable.  DRIVE gain is 14 14, DIGI-SEL is 16 4E with its level on
+ * 14 13, and the scope select is 27 12.  TX inhibit is 16 66, which the
+ * rig has but the backend does not drive, so it has to stay filtered
+ * out - that is what keeps the whitelist honest.
  */
 static int test_ext_tokens_are_enumerable(RIG *rig)
 {
@@ -586,7 +845,8 @@ static int test_ext_tokens_are_enumerable(RIG *rig)
         { "drive_gain", 0, 1 },
         { "digi_sel_level", 0, 1 },
         { "digi_sel", 1, 1 },
-        { "SPECTRUM_SELECT", 0, 0 },
+        { "SPECTRUM_SELECT", 0, 1 },
+        { "TX_INHIBIT", 1, 0 },
     };
     size_t i;
     int fail = 0;
@@ -646,6 +906,7 @@ int main(void)
     fail |= test_tuning_steps_are_reachable();
     fail |= test_scan_operations();
     fail |= test_agc_levels();
+    fail |= test_spectrum_scope();
 
     rig_register(&ic7760_caps);
     rig = rig_init(RIG_MODEL_IC7760);
@@ -658,6 +919,7 @@ int main(void)
 
     fail |= test_filter_defaults(rig);
     fail |= test_ext_tokens_are_enumerable(rig);
+    fail |= test_spectrum_streaming(rig);
 
     rig_cleanup(rig);
 

@@ -36,9 +36,9 @@
 #define IC7760_AM_TX_MODES (RIG_MODE_AM|RIG_MODE_PKTAM)
 #define IC7760_ALL_RX_MODES IC7760_OTHER_TX_MODES | IC7760_AM_TX_MODES
 
-#define IC7760_FUNCS (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_ANF|RIG_FUNC_LOCK|RIG_FUNC_RIT|RIG_FUNC_XIT|RIG_FUNC_TUNER|RIG_FUNC_APF|RIG_FUNC_SYNC|RIG_FUNC_DUAL_WATCH|RIG_FUNC_TRANSCEIVE)
+#define IC7760_FUNCS (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_ANF|RIG_FUNC_LOCK|RIG_FUNC_RIT|RIG_FUNC_XIT|RIG_FUNC_TUNER|RIG_FUNC_APF|RIG_FUNC_SYNC|RIG_FUNC_DUAL_WATCH|RIG_FUNC_TRANSCEIVE|RIG_FUNC_SCOPE|RIG_FUNC_SPECTRUM|RIG_FUNC_SPECTRUM_HOLD)
 
-#define IC7760_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF_RAW|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_APF|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX|RIG_LEVEL_VOXDELAY|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS|RIG_LEVEL_COMP_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_ID_METER|RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB|RIG_LEVEL_AGC_TIME)
+#define IC7760_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF_RAW|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_APF|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX|RIG_LEVEL_VOXDELAY|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS|RIG_LEVEL_COMP_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_ID_METER|RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB|RIG_LEVEL_AGC_TIME|RIG_LEVEL_SPECTRUM_MODE|RIG_LEVEL_SPECTRUM_SPAN|RIG_LEVEL_SPECTRUM_SPEED|RIG_LEVEL_SPECTRUM_REF|RIG_LEVEL_SPECTRUM_AVG|RIG_LEVEL_SPECTRUM_EDGE_LOW|RIG_LEVEL_SPECTRUM_EDGE_HIGH)
 
 #define IC7760_VFOS (RIG_VFO_MAIN|RIG_VFO_SUB|RIG_VFO_MEM)
 #define IC7760_PARMS (RIG_PARM_ANN|RIG_PARM_BACKLIGHT)
@@ -107,12 +107,15 @@ static const struct cmdparams ic7760_extcmds[] =
     { {.s = RIG_PARM_BACKLIGHT}, CMD_PARAM_TYPE_PARM, C_CTL_LVL, S_LVL_BRIGHT, SC_MOD_RW, 0, {0}, CMD_DAT_LVL, 2 },
     { {.s = RIG_LEVEL_VOXDELAY}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x03, 0x65}, CMD_DAT_INT, 1 },
     { {.s = RIG_FUNC_TRANSCEIVE}, CMD_PARAM_TYPE_FUNC, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x50}, CMD_DAT_BOL, 1 },
+    { {.s = RIG_LEVEL_SPECTRUM_AVG}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x02, 0x12}, CMD_DAT_INT, 1 },
     { { 0 } }
 };
 
 static int ic7760_ext_tokens[] =
 {
-    TOK_DRIVE_GAIN, TOK_DIGI_SEL_FUNC, TOK_DIGI_SEL_LEVEL, TOK_BACKEND_NONE
+    TOK_DRIVE_GAIN, TOK_DIGI_SEL_FUNC, TOK_DIGI_SEL_LEVEL,
+    TOK_SCOPE_MSS, TOK_SCOPE_SDS, TOK_SCOPE_STX, TOK_SCOPE_CFQ,
+    TOK_SCOPE_EDG, TOK_SCOPE_VBW, TOK_SCOPE_RBW, TOK_BACKEND_NONE
 };
 
 static const struct icom_clock_cmds ic7760_clock_cmds =
@@ -137,6 +140,81 @@ static const struct icom_priv_caps ic7760_priv_caps =
         { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
         { .level = RIG_AGC_SLOW, .icom_level = 3 },
         { .level = RIG_AGC_LAST, .icom_level = -1 },
+    },
+    .spectrum_scope_caps = {
+        .spectrum_line_length = 689,
+        .single_frame_data_length = 50,
+        .data_level_min = 0,
+        .data_level_max = 200,
+        .signal_strength_min = -100,
+        .signal_strength_max = 0,
+    },
+    .spectrum_edge_frequency_ranges = {
+        {
+            .range_id = 1,
+            .low_freq = 30000,
+            .high_freq = 1600000,
+        },
+        {
+            .range_id = 2,
+            .low_freq = 1600000,
+            .high_freq = 2000000,
+        },
+        {
+            .range_id = 3,
+            .low_freq = 2000000,
+            .high_freq = 6000000,
+        },
+        {
+            .range_id = 4,
+            .low_freq = 6000000,
+            .high_freq = 8000000,
+        },
+        {
+            .range_id = 5,
+            .low_freq = 8000000,
+            .high_freq = 11000000,
+        },
+        {
+            .range_id = 6,
+            .low_freq = 11000000,
+            .high_freq = 15000000,
+        },
+        {
+            .range_id = 7,
+            .low_freq = 15000000,
+            .high_freq = 20000000,
+        },
+        {
+            .range_id = 8,
+            .low_freq = 20000000,
+            .high_freq = 22000000,
+        },
+        {
+            .range_id = 9,
+            .low_freq = 22000000,
+            .high_freq = 26000000,
+        },
+        {
+            .range_id = 10,
+            .low_freq = 26000000,
+            .high_freq = 30000000,
+        },
+        {
+            .range_id = 11,
+            .low_freq = 30000000,
+            .high_freq = 45000000,
+        },
+        {
+            .range_id = 12,
+            .low_freq = 45000000,
+            .high_freq = 60000000,
+        },
+        {
+            .range_id = 0,
+            .low_freq = 0,
+            .high_freq = 0,
+        },
     },
     .extcmds = ic7760_extcmds,
     .x25x26_always = 1,
@@ -193,6 +271,9 @@ struct rig_caps ic7760_caps =
 #include "level_gran_icom.h"
 #undef NO_LVL_KEYSPD
         [LVL_KEYSPD] = { .min = { .i = 6 }, .max = { .i = 48 }, .step = { .i = 1 } },
+        [LVL_SPECTRUM_SPEED] = { .min = { .i = 0 }, .max = { .i = 2 }, .step = { .i = 1 } },
+        [LVL_SPECTRUM_REF] = { .min = { .f = -30.0f }, .max = { .f = 10.0f }, .step = { .f = 0.5f } },
+        [LVL_SPECTRUM_AVG] = { .min = { .i = 0 }, .max = { .i = 3 }, .step = { .i = 1 } },
     },
     .parm_gran =  {
         [PARM_BACKLIGHT] = {.min = {.f = 0.0f}, .max = {.f = 1.0f}, .step = {.f = 1.0f / 255.0f}},
@@ -213,7 +294,7 @@ struct rig_caps ic7760_caps =
     .agc_level_count = 3,
     .agc_levels = { RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW },
     //  ?? 7700 can have a different mode on VFOB but requires VFO swap
-    .targetable_vfo = RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
+    .targetable_vfo = RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE | RIG_TARGETABLE_SPECTRUM,
     .vfo_ops =  IC7760_VFO_OPS,
     .scan_ops =  IC7760_SCAN_OPS,
     .transceive =  RIG_TRN_RIG,
@@ -288,6 +369,29 @@ struct rig_caps ic7760_caps =
         {RIG_MODE_FM | RIG_MODE_PKTFM, kHz(15)},
         RIG_FLT_END,
     },
+    .spectrum_scopes = {
+        { .id = 0, .name = "Main", },
+        { .id = 1, .name = "Sub", },
+        { .id = -1, .name = NULL, },
+    },
+    .spectrum_modes = {
+        RIG_SPECTRUM_MODE_CENTER,
+        RIG_SPECTRUM_MODE_FIXED,
+        RIG_SPECTRUM_MODE_CENTER_SCROLL,
+        RIG_SPECTRUM_MODE_FIXED_SCROLL,
+        RIG_SPECTRUM_MODE_NONE,
+    },
+    /* The rig takes half of these, so 2.5 kHz through 500 kHz */
+    .spectrum_spans = {
+        5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000, 0,
+    },
+    .spectrum_avg_modes = {
+        { .id = 0, .name = "OFF", },
+        { .id = 1, .name = "2", },
+        { .id = 2, .name = "3", },
+        { .id = 3, .name = "4", },
+        { .id = -1, .name = NULL, },
+    },
     .str_cal = IC7760_STR_CAL,
     .swr_cal = IC7760_SWR_CAL,
     .alc_cal = IC7760_ALC_CAL,
@@ -295,6 +399,11 @@ struct rig_caps ic7760_caps =
     .comp_meter_cal = IC7760_COMP_METER_CAL,
     .vd_meter_cal = IC7760_VD_METER_CAL,
     .id_meter_cal = IC7760_ID_METER_CAL,
+
+    .async_data_supported = 1,
+    .read_frame_direct = icom_read_frame_direct,
+    .is_async_frame = icom_is_async_frame,
+    .process_async_frame = icom_process_async_frame,
 
     .cfgparams =  icom_cfg_params,
     .set_conf =  icom_set_conf,
