@@ -201,6 +201,8 @@ struct rig_caps ic7760_caps =
     },
 
     .ext_tokens = ic7760_ext_tokens,
+    .extfuncs = icom_ext_funcs,
+    .extlevels = icom_ext_levels,
     .ctcss_list =  common_ctcss_list,
     .dcs_list =  NULL,
     .preamp =   { 10, 20, RIG_DBLST_END, }, /* FIXME: TBC */
@@ -323,6 +325,8 @@ struct rig_caps ic7760_caps =
     .get_level =  icom_get_level,
     .set_ext_level =  icom_set_ext_level,
     .get_ext_level =  icom_get_ext_level,
+    .set_ext_func =  icom_set_ext_func,
+    .get_ext_func =  icom_get_ext_func,
     .set_func =  icom_set_func,
     .get_func =  icom_get_func,
     .set_parm =  icom_set_parm,
