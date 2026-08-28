@@ -29,12 +29,14 @@
 #include "testicomsock.h"
 
 #define MAX_RECORDED_FRAMES 32
+#define MAX_FRAME_LEN 32
 
 struct peer_case
 {
     int fd;
-    unsigned char commands[MAX_RECORDED_FRAMES];
-    size_t command_count;
+    unsigned char frames[MAX_RECORDED_FRAMES][MAX_FRAME_LEN];
+    size_t frame_len[MAX_RECORDED_FRAMES];
+    size_t frame_count;
 };
 
 static const unsigned char nak[] = { 0xfe, 0xfe, 0xe0, 0xb2, 0xfa, 0xfd };
@@ -52,9 +54,12 @@ static void *run_peer(void *arg)
 
     while (read_frame(test->fd, frame, sizeof(frame), &length) == 0)
     {
-        if (length > 4 && test->command_count < MAX_RECORDED_FRAMES)
+        if (length > 4 && length <= MAX_FRAME_LEN
+                && test->frame_count < MAX_RECORDED_FRAMES)
         {
-            test->commands[test->command_count++] = frame[4];
+            memcpy(test->frames[test->frame_count], frame, length);
+            test->frame_len[test->frame_count] = length;
+            test->frame_count++;
         }
 
         if (write_all(test->fd, nak, sizeof(nak)) != 0) { break; }
@@ -67,9 +72,27 @@ static int saw_command(const struct peer_case *test, unsigned char command)
 {
     size_t i;
 
-    for (i = 0; i < test->command_count; i++)
+    for (i = 0; i < test->frame_count; i++)
     {
-        if (test->commands[i] == command) { return 1; }
+        if (test->frames[i][4] == command) { return 1; }
+    }
+
+    return 0;
+}
+
+/* Frame layout is FE FE <rig> <ctrl> <command> <subcommand> ... FD */
+static int saw_subcommand(const struct peer_case *test, unsigned char command,
+                          unsigned char subcommand)
+{
+    size_t i;
+
+    for (i = 0; i < test->frame_count; i++)
+    {
+        if (test->frame_len[i] > 5 && test->frames[i][4] == command
+                && test->frames[i][5] == subcommand)
+        {
+            return 1;
+        }
     }
 
     return 0;
@@ -79,10 +102,12 @@ int main(void)
 {
     int sockets[2];
     pthread_t thread;
-    struct peer_case test = { .fd = -1, .command_count = 0 };
+    struct peer_case test = { .fd = -1, .frame_count = 0 };
     struct icom_priv_data *priv;
     powerstat_t status = RIG_POWER_OFF;
+    value_t backlight;
     RIG *rig;
+    int parm_retval;
     int failed = 0;
 
     rig_register(&ic7760_caps);
@@ -122,6 +147,9 @@ int main(void)
 
     rig_get_powerstat(rig, &status);
 
+    backlight.f = 1.0f;
+    parm_retval = rig_set_parm(rig, RIG_PARM_BACKLIGHT, backlight);
+
     close_test_socket(sockets[0]);
     close_test_socket(sockets[1]);
     pthread_join(thread, NULL);
@@ -137,9 +165,26 @@ int main(void)
         failed = 1;
     }
 
-    if (test.command_count == 0)
+    if (test.frame_count == 0)
     {
         fprintf(stderr, "get_powerstat sent nothing at all\n");
+        failed = 1;
+    }
+
+    /*
+     * The backlight brightness is command 14 19, data 00 00 ~ 02 55.
+     * rig_set_parm() must reach the rig rather than being rejected by the
+     * backend for lack of a mapping.
+     */
+    if (parm_retval == -RIG_EINVAL)
+    {
+        fprintf(stderr, "set_parm BACKLIGHT was rejected by the backend\n");
+        failed = 1;
+    }
+
+    if (!saw_subcommand(&test, 0x14, 0x19))
+    {
+        fprintf(stderr, "set_parm BACKLIGHT did not send 14 19\n");
         failed = 1;
     }
 
