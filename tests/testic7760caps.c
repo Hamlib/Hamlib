@@ -20,6 +20,7 @@
 
 #include "cal.h"
 #include "icom.h"
+#include "idx_builtin.h"
 
 static const struct cmdparams *find_level_cmd(const struct cmdparams *cmds,
         setting_t level)
@@ -199,6 +200,46 @@ static int test_filter_defaults(RIG *rig)
                     "%s filters: expected FIL2/FIL3/FIL1 %ld/%ld/%ld, got %ld/%ld/%ld\n",
                     filters[i].name, (long) filters[i].fil2, (long) filters[i].fil3,
                     (long) filters[i].fil1, (long) normal, (long) narrow, (long) wide);
+            fail = 1;
+        }
+    }
+
+    return fail;
+}
+
+/*
+ * CW pitch is 14 09, documented as 300 Hz to 900 Hz in 5 Hz steps, and
+ * keying speed is 14 0C, documented as 6 to 48 WPM.  The keyer range is
+ * narrower than the icom default of 4 to 60, so it stays overridden.
+ */
+static int test_level_granularity(void)
+{
+    static const struct
+    {
+        const char *name;
+        int idx;
+        int min;
+        int max;
+        int step;
+    } grans[] =
+    {
+        { "CW pitch", LVL_CWPITCH, 300, 900, 5 },
+        { "keying speed", LVL_KEYSPD, 6, 48, 1 },
+    };
+    size_t i;
+    int fail = 0;
+
+    for (i = 0; i < sizeof(grans) / sizeof(grans[0]); i++)
+    {
+        const gran_t *gran = &ic7760_caps.level_gran[grans[i].idx];
+
+        if (gran->min.i != grans[i].min || gran->max.i != grans[i].max
+                || gran->step.i != grans[i].step)
+        {
+            fprintf(stderr,
+                    "%s: expected min %d, max %d, step %d; got %d, %d, %d\n",
+                    grans[i].name, grans[i].min, grans[i].max, grans[i].step,
+                    gran->min.i, gran->max.i, gran->step.i);
             fail = 1;
         }
     }
@@ -405,6 +446,7 @@ int main(void)
     fail |= test_preamp_gains();
     fail |= test_id_meter_calibration();
     fail |= test_transmit_power_ranges();
+    fail |= test_level_granularity();
 
     rig_register(&ic7760_caps);
     rig = rig_init(RIG_MODEL_IC7760);
