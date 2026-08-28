@@ -12,6 +12,14 @@ testg90rit_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testg90rit_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) \
 	$(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 
+check_PROGRAMS += testicomant
+TESTS += testicomant
+testicomant_SOURCES = testicomant.c testicomsock.c testicomsock.h
+testicomant_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+testicomant_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testicomant_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+
 check_PROGRAMS += testicomfallback
 TESTS += testicomfallback
 testicomfallback_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
