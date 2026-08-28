@@ -247,7 +247,7 @@ struct rig_caps ic7760_caps =
         FRQ_RNG_HF(2, IC7760_OTHER_TX_MODES, W(1), W(200), IC7760_VFOS, IC7760_ANTS),
         FRQ_RNG_6m(2, IC7760_OTHER_TX_MODES, W(1), W(200), IC7760_VFOS, IC7760_ANTS),
         FRQ_RNG_HF(2, IC7760_AM_TX_MODES, W(.25), W(50), IC7760_VFOS, IC7760_ANTS), /* AM class */
-        FRQ_RNG_6m(2, IC7760_AM_TX_MODES, W(.251), W(50), IC7760_VFOS, IC7760_ANTS), /* AM class */
+        FRQ_RNG_6m(2, IC7760_AM_TX_MODES, W(.25), W(50), IC7760_VFOS, IC7760_ANTS), /* AM class */
         /* USA only, TBC: end of range and modes */
         {MHz(5.33050), MHz(5.33350), IC7760_OTHER_TX_MODES, W(1), W(200), IC7760_VFOS, IC7760_ANTS}, /* USA only */
         {MHz(5.34650), MHz(5.34950), IC7760_OTHER_TX_MODES, W(1), W(200), IC7760_VFOS, IC7760_ANTS}, /* USA only */
