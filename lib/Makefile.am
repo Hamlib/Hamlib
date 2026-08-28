@@ -3,5 +3,6 @@ EXTRA_DIST = getopt.c getopt.h getopt_long.c usleep.c \
 
 noinst_LTLIBRARIES = libmisc.la
 
-libmisc_la_SOURCES = cJSON.c cJSON.h asyncpipe.c asyncpipe.h precise_time.c
+libmisc_la_SOURCES = cJSON.c cJSON.h asyncpipe.c asyncpipe.h precise_time.c \
+	kvparse.c kvparse.h
 libmisc_la_LIBADD = $(LTLIBOBJS) $(NET_LIBS)

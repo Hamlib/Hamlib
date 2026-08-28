@@ -351,6 +351,7 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
     case RIG_PORT_NONE:
     case RIG_PORT_RPC:
+    case RIG_PORT_CUSTOM:   /* backend opens its own transport in rig_open */
         break;  /* ez :) */
 
     case RIG_PORT_NETWORK:

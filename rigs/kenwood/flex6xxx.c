@@ -427,7 +427,7 @@ static int flex6k_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
     char buf[10];
-    char kmode;
+    int kmode;
     int idx;
     int err;
 
@@ -498,7 +498,7 @@ static int powersdr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
     char buf[64];
-    char kmode;
+    int kmode;
     int idx;
     int err;
 

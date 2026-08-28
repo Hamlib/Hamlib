@@ -23,9 +23,9 @@ pad-header
 align-pointer=name
 align-reference=type
 
-# Add brackets to unbracketed one line conditional statements
+# Add braces to unbraced one line conditional statements
 # (e.g. 'if', 'for', 'while'...).
-add-brackets
+add-braces
 
 # Don't break one-line blocks.
 keep-one-line-blocks

@@ -286,7 +286,8 @@ th_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int
 th_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    char kmode, mdbuf[8];
+    char mdbuf[8];
+    int kmode;
     const struct kenwood_priv_caps *priv = (const struct kenwood_priv_caps *)
                                            rig->caps->priv;
 
@@ -447,7 +448,8 @@ th_set_vfo(RIG *rig, vfo_t vfo)
 
     /* No "VMC" cmd on THD72A/THD74 */
     if (rig->caps->rig_model == RIG_MODEL_THD72A
-            || rig->caps->rig_model == RIG_MODEL_THD74)
+            || rig->caps->rig_model == RIG_MODEL_THD74
+            || rig->caps->rig_model == RIG_MODEL_THD75)
     {
         return RIG_OK;
     }
@@ -556,7 +558,8 @@ th_get_vfo_char(RIG *rig, vfo_t *vfo, char *vfoch)
 
     /* No "VMC" on THD72A/THD74 */
     if (rig->caps->rig_model == RIG_MODEL_THD72A
-            || rig->caps->rig_model == RIG_MODEL_THD74)
+            || rig->caps->rig_model == RIG_MODEL_THD74
+            || rig->caps->rig_model == RIG_MODEL_THD75)
     {
         *vfoch = '0'; /* FIXME: fake */
 
