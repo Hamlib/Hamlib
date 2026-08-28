@@ -145,7 +145,8 @@ static const struct icom_priv_caps ic7760_priv_caps =
     .x1ax03_supported = 1,
     .mode_with_filter = 1,
     .data_mode_supported = 1,
-    .clock_cmds = &ic7760_clock_cmds
+    .clock_cmds = &ic7760_clock_cmds,
+    .power_status_read_not_supported = 1
 };
 
 
