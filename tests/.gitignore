@@ -47,6 +47,7 @@ testgrid.sh
 testgs100
 testicomant
 testicomgetvfo
+testicomscan
 testicomts
 testlibusb
 testloc

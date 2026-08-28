@@ -36,6 +36,14 @@ testicomgetvfo_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testicomgetvfo_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(READLINE_LIBS) \
 	$(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 
+check_PROGRAMS += testicomscan
+TESTS += testicomscan
+testicomscan_SOURCES = testicomscan.c testicomsock.c testicomsock.h
+testicomscan_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+testicomscan_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testicomscan_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+
 check_PROGRAMS += testicomts
 TESTS += testicomts
 testicomts_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
