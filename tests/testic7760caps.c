@@ -208,6 +208,26 @@ static int test_filter_defaults(RIG *rig)
 }
 
 /*
+ * Command 0E starts the scans: 01 programmed or memory, 02 programmed,
+ * 03 delta-f, 12 and 13 their fine variants, 22 memory and 23 select
+ * memory.  There is no priority scan among them.
+ */
+static int test_scan_operations(void)
+{
+    scan_t expected = RIG_SCAN_MEM | RIG_SCAN_VFO | RIG_SCAN_PROG
+                      | RIG_SCAN_DELTA;
+
+    if (ic7760_caps.scan_ops == expected) { return 0; }
+
+    fprintf(stderr, "scan_ops: expected %#x, got %#x%s\n",
+            (unsigned) expected, (unsigned) ic7760_caps.scan_ops,
+            (ic7760_caps.scan_ops & RIG_SCAN_PRIO)
+            ? " (priority scan is advertised, but command 0E has no such"
+            " subcommand)" : "");
+    return 1;
+}
+
+/*
  * Command 10 carries the tuning step as 00 to 08, and the backend turns
  * a step in hertz into that byte through its own ts_sc_list.  Every step
  * the caps advertise has to survive that conversion, and every code the
@@ -505,6 +525,7 @@ int main(void)
     fail |= test_transmit_power_ranges();
     fail |= test_level_granularity();
     fail |= test_tuning_steps_are_reachable();
+    fail |= test_scan_operations();
 
     rig_register(&ic7760_caps);
     rig = rig_init(RIG_MODEL_IC7760);
