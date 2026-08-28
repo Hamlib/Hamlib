@@ -103,6 +103,39 @@ static int test_absent_capabilities(void)
 }
 
 /*
+ * Capabilities the rig documents and the backend has to advertise.
+ * Dual watch is 07 C0, 07 C1 and 07 C2; the CI-V transceive switch is
+ * 1A 05 01 50.
+ */
+static int test_present_capabilities(void)
+{
+    static const struct
+    {
+        const char *name;
+        setting_t func;
+    } present[] =
+    {
+        { "DUAL_WATCH (07 C2)", RIG_FUNC_DUAL_WATCH },
+        { "TRANSCEIVE (1A 05 01 50)", RIG_FUNC_TRANSCEIVE },
+    };
+    size_t i;
+    int fail = 0;
+
+    for (i = 0; i < sizeof(present) / sizeof(present[0]); i++)
+    {
+        if ((ic7760_caps.has_get_func & present[i].func) == 0
+                || (ic7760_caps.has_set_func & present[i].func) == 0)
+        {
+            fprintf(stderr, "%s is supported by the rig but not advertised\n",
+                    present[i].name);
+            fail = 1;
+        }
+    }
+
+    return fail;
+}
+
+/*
  * Keyer memory content (1A 02) addresses channels 01=M1 to 08=M8, and
  * the Voice TX memory (28 00) transmits 01=T1 to 08=T8.
  */
@@ -577,6 +610,7 @@ int main(void)
 
     fail |= test_vox_delay_subcommand();
     fail |= test_absent_capabilities();
+    fail |= test_present_capabilities();
     fail |= test_memory_channel_counts();
     fail |= test_preamp_gains();
     fail |= test_id_meter_calibration();
