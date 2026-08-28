@@ -98,6 +98,26 @@ static int saw_subcommand(const struct peer_case *test, unsigned char command,
     return 0;
 }
 
+/* Frames whose setting is addressed by two more bytes after the subcommand */
+static int saw_extended(const struct peer_case *test, unsigned char command,
+                        unsigned char subcommand, unsigned char ext1,
+                        unsigned char ext2)
+{
+    size_t i;
+
+    for (i = 0; i < test->frame_count; i++)
+    {
+        if (test->frame_len[i] > 7 && test->frames[i][4] == command
+                && test->frames[i][5] == subcommand
+                && test->frames[i][6] == ext1 && test->frames[i][7] == ext2)
+        {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 int main(void)
 {
     int sockets[2];
@@ -149,6 +169,8 @@ int main(void)
 
     backlight.f = 1.0f;
     parm_retval = rig_set_parm(rig, RIG_PARM_BACKLIGHT, backlight);
+    rig_set_func(rig, RIG_VFO_CURR, RIG_FUNC_DUAL_WATCH, 1);
+    rig_set_func(rig, RIG_VFO_CURR, RIG_FUNC_TRANSCEIVE, 1);
 
     close_test_socket(sockets[0]);
     close_test_socket(sockets[1]);
@@ -185,6 +207,20 @@ int main(void)
     if (!saw_subcommand(&test, 0x14, 0x19))
     {
         fprintf(stderr, "set_parm BACKLIGHT did not send 14 19\n");
+        failed = 1;
+    }
+
+    /* Dual watch is 07 C1 to switch on, 07 C0 off and 07 C2 to read. */
+    if (!saw_subcommand(&test, 0x07, 0xc1))
+    {
+        fprintf(stderr, "set_func DUAL_WATCH did not send 07 C1\n");
+        failed = 1;
+    }
+
+    /* CI-V transceive is 1A 05 01 50, data 00 or 01. */
+    if (!saw_extended(&test, 0x1a, 0x05, 0x01, 0x50))
+    {
+        fprintf(stderr, "set_func TRANSCEIVE did not send 1A 05 01 50\n");
         failed = 1;
     }
 
