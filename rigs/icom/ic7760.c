@@ -132,7 +132,6 @@ static const struct icom_priv_caps ic7760_priv_caps =
     .ant_count = 4,
     .agc_levels_present = 1,
     .agc_levels = {
-        { .level = RIG_AGC_OFF, .icom_level = 0 },
         { .level = RIG_AGC_FAST, .icom_level = 1 },
         { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
         { .level = RIG_AGC_SLOW, .icom_level = 3 },
@@ -207,8 +206,8 @@ struct rig_caps ic7760_caps =
     .max_rit =  Hz(9999),
     .max_xit =  Hz(9999),
     .max_ifshift =  Hz(0),
-    .agc_level_count = 4,
-    .agc_levels = { RIG_AGC_OFF, RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW },
+    .agc_level_count = 3,
+    .agc_levels = { RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW },
     //  ?? 7700 can have a different mode on VFOB but requires VFO swap
     .targetable_vfo = RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
     .vfo_ops =  IC7760_VFO_OPS,
