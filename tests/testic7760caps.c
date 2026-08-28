@@ -15,6 +15,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 
 #include "icom.h"
 
@@ -203,6 +204,87 @@ static int test_filter_defaults(RIG *rig)
     return fail;
 }
 
+struct name_search
+{
+    const char *wanted;
+    int found;
+};
+
+static int match_name(RIG *rig, const struct confparams *cfp, rig_ptr_t data)
+{
+    struct name_search *search = (struct name_search *) data;
+
+    if (cfp != NULL && cfp->name != NULL
+            && strcmp(cfp->name, search->wanted) == 0)
+    {
+        search->found = 1;
+    }
+
+    return 1;
+}
+
+/*
+ * ext_tokens is a whitelist over caps->extlevels and caps->extfuncs, so
+ * both tables have to be present for the declared tokens to be
+ * enumerable.  DRIVE gain is 14 14 and DIGI-SEL is 16 4E with its level
+ * on 14 13; the spectrum scope tokens must stay filtered out, because
+ * the backend implements none of the 27 commands.
+ */
+static int test_ext_tokens_are_enumerable(RIG *rig)
+{
+    static const struct
+    {
+        const char *name;
+        int is_func;
+        int expected;
+    } tokens[] =
+    {
+        { "drive_gain", 0, 1 },
+        { "digi_sel_level", 0, 1 },
+        { "digi_sel", 1, 1 },
+        { "SPECTRUM_SELECT", 0, 0 },
+    };
+    size_t i;
+    int fail = 0;
+
+    for (i = 0; i < sizeof(tokens) / sizeof(tokens[0]); i++)
+    {
+        struct name_search search = { tokens[i].name, 0 };
+
+        if (tokens[i].is_func)
+        {
+            rig_ext_func_foreach(rig, match_name, &search);
+        }
+        else
+        {
+            rig_ext_level_foreach(rig, match_name, &search);
+        }
+
+        if (search.found != tokens[i].expected)
+        {
+            fprintf(stderr, "ext token %s: expected %s, but it is %s\n",
+                    tokens[i].name,
+                    tokens[i].expected ? "enumerable" : "filtered out",
+                    search.found ? "enumerable" : "missing");
+            fail = 1;
+        }
+    }
+
+    /*
+     * Listing an ext func is only half of it: rig_set_ext_func() and
+     * rig_get_ext_func() answer ENAVAIL unless the backend implements
+     * them, which would leave digi_sel visible but unreachable.
+     */
+    if (ic7760_caps.set_ext_func == NULL || ic7760_caps.get_ext_func == NULL)
+    {
+        fprintf(stderr, "the ext funcs are listed but cannot be set or read,"
+                " so digi_sel cannot be reached\n");
+        fail = 1;
+    }
+
+    return fail;
+}
+
 int main(void)
 {
     RIG *rig;
@@ -222,6 +304,7 @@ int main(void)
     }
 
     fail |= test_filter_defaults(rig);
+    fail |= test_ext_tokens_are_enumerable(rig);
 
     rig_cleanup(rig);
 
