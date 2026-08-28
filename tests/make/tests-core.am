@@ -40,3 +40,6 @@ testmodecompat_LDADD = $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
 
 check_PROGRAMS += testpoll
 TESTS += testpoll
+
+check_PROGRAMS += testtunercontrol
+TESTS += testtunercontrol
