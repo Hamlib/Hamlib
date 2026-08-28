@@ -2,9 +2,7 @@ name: Windows mingw-w64 cross C/C++ (features)
 
 on:
   push:
-    branches: [ master, feature/* ]
   pull_request:
-    branches: [ master ]
 
 env:
   # Same libusb Windows binary release the official build scripts use
