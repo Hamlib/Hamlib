@@ -204,6 +204,29 @@ static int test_filter_defaults(RIG *rig)
     return fail;
 }
 
+/*
+ * Command 16 02 offers two preamplifiers, 01 and 02.  The basic manual
+ * gives P.AMP 1 as approximately 12 dB and P.AMP 2 as approximately
+ * 20 dB of gain.
+ */
+static int test_preamp_gains(void)
+{
+    static const int expected[] = { 12, 20, 0 };
+    size_t i;
+
+    for (i = 0; i < sizeof(expected) / sizeof(expected[0]); i++)
+    {
+        if (ic7760_caps.preamp[i] != expected[i])
+        {
+            fprintf(stderr, "preamp %d: expected %d dB, got %d dB\n",
+                    (int) i + 1, expected[i], ic7760_caps.preamp[i]);
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 struct name_search
 {
     const char *wanted;
@@ -293,6 +316,7 @@ int main(void)
     fail |= test_vox_delay_subcommand();
     fail |= test_absent_capabilities();
     fail |= test_memory_channel_counts();
+    fail |= test_preamp_gains();
 
     rig_register(&ic7760_caps);
     rig = rig_init(RIG_MODEL_IC7760);
