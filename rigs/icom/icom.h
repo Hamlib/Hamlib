@@ -586,6 +586,7 @@ extern struct rig_caps icr30_caps;
 #define RIG_IS_IC7610 (STATE(rig)->rig_model == RIG_MODEL_IC7610)
 #define RIG_IS_IC765 (STATE(rig)->rig_model == RIG_MODEL_IC765)
 #define RIG_IS_IC7700 (STATE(rig)->rig_model == RIG_MODEL_IC7700)
+#define RIG_IS_IC7760 (STATE(rig)->rig_model == RIG_MODEL_IC7760)
 #define RIG_IS_IC775 (STATE(rig)->rig_model == RIG_MODEL_IC775)
 #define RIG_IS_IC78 (STATE(rig)->rig_model == RIG_MODEL_IC78)
 #define RIG_IS_IC7800 (STATE(rig)->rig_model == RIG_MODEL_IC7800)

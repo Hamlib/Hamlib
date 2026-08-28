@@ -8287,6 +8287,7 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status)
             || RIG_IS_IC7600
             || RIG_IS_IC7610
             || RIG_IS_IC7700
+            || RIG_IS_IC7760
             || RIG_IS_IC7800
             || RIG_IS_IC785X
             || RIG_IS_IC9700
