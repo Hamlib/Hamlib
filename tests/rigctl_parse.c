@@ -5378,7 +5378,7 @@ declare_proto_rig(dump_state)
                 PTTPORT(rig)->type.ptt);
         fprintf(fout, "targetable_vfo=0x%x\n", rig->caps->targetable_vfo);
         fprintf(fout, "has_set_vfo=%d\n", rig->caps->set_vfo != NULL);
-        fprintf(fout, "has_get_vfo=%d\n", rig->caps->get_vfo != NULL);
+        fprintf(fout, "has_get_vfo=%d\n", rig_has_get_vfo(rig));
         fprintf(fout, "has_set_freq=%d\n", rig->caps->set_freq != NULL);
         fprintf(fout, "has_get_freq=%d\n", rig->caps->get_freq != NULL);
         fprintf(fout, "has_set_conf=%d\n", rig->caps->set_conf != NULL);

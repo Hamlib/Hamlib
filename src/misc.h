@@ -137,6 +137,8 @@ extern HAMLIB_EXPORT(void) rig_set_vfo_state(RIG *rig, vfo_t current_vfo,
 extern HAMLIB_EXPORT(void) rig_set_split_routing_state(
     RIG *rig, split_t split, vfo_t rx_vfo, vfo_t tx_vfo);
 extern HAMLIB_EXPORT(void) rig_observe_current_vfo(RIG *rig, vfo_t vfo);
+/* The backend has get_vfo and this rig has not refused it */
+extern HAMLIB_EXPORT(int) rig_has_get_vfo(RIG *rig);
 
 extern HAMLIB_EXPORT(int) parse_hoststr(char *hoststr, int hoststr_len, char host[256], char port[6]);
 
