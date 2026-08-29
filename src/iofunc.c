@@ -152,6 +152,17 @@ static int create_sync_data_pipe(hamlib_port_t *p)
     int flags;
 
     status = pipe(sync_pipe_fds);
+
+    if (status != 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: synchronous data pipe open status=%d, err=%s\n",
+                  __func__, status, strerror(errno));
+        close_sync_data_pipe(p);
+        return (-RIG_EINTERNAL);
+    }
+
+    p->fd_sync_read = sync_pipe_fds[0];
+    p->fd_sync_write = sync_pipe_fds[1];
     flags = fcntl(sync_pipe_fds[0], F_GETFL);
     flags |= O_NONBLOCK;
 
@@ -170,19 +181,19 @@ static int create_sync_data_pipe(hamlib_port_t *p)
                   __func__, strerror(errno));
     }
 
+    status = pipe(sync_pipe_fds);
+
     if (status != 0)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: synchronous data pipe open status=%d, err=%s\n",
-                  __func__,
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: synchronous data error code pipe open status=%d, err=%s\n", __func__,
                   status, strerror(errno));
         close_sync_data_pipe(p);
         return (-RIG_EINTERNAL);
     }
 
-    p->fd_sync_read = sync_pipe_fds[0];
-    p->fd_sync_write = sync_pipe_fds[1];
-
-    status = pipe(sync_pipe_fds);
+    p->fd_sync_error_read = sync_pipe_fds[0];
+    p->fd_sync_error_write = sync_pipe_fds[1];
     flags = fcntl(sync_pipe_fds[0], F_GETFL);
     flags |= O_NONBLOCK;
 
@@ -200,18 +211,6 @@ static int create_sync_data_pipe(hamlib_port_t *p)
         rig_debug(RIG_DEBUG_ERR, "%s: error setting O_NONBLOCK on error_write=%s\n",
                   __func__, strerror(errno));
     }
-
-    if (status != 0)
-    {
-        rig_debug(RIG_DEBUG_ERR,
-                  "%s: synchronous data error code pipe open status=%d, err=%s\n", __func__,
-                  status, strerror(errno));
-        close_sync_data_pipe(p);
-        return (-RIG_EINTERNAL);
-    }
-
-    p->fd_sync_error_read = sync_pipe_fds[0];
-    p->fd_sync_error_write = sync_pipe_fds[1];
 
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s: created data pipe for synchronous transactions\n", __func__);
