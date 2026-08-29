@@ -8496,6 +8496,7 @@ static int async_data_handler_start(RIG *rig)
 
     if (rs->async_data_handler_priv_data == NULL)
     {
+        rs->async_data_handler_thread_run = 0;
         RETURNFUNC(-RIG_ENOMEM);
     }
 
@@ -8511,8 +8512,11 @@ static int async_data_handler_start(RIG *rig)
     {
         /* nothing will feed the pipes, so hand the port back to direct reads */
         RIGPORT(rig)->asyncio = 0;
+        rs->async_data_handler_thread_run = 0;
+        free(rs->async_data_handler_priv_data);
+        rs->async_data_handler_priv_data = NULL;
         rig_debug(RIG_DEBUG_ERR, "%s: pthread_create error: %s\n", __func__,
-                  strerror(errno));
+                  strerror(err));
         RETURNFUNC(-RIG_EINTERNAL);
     }
 
