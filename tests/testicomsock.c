@@ -39,6 +39,22 @@ int write_test_socket(int fd, const void *buffer, size_t length)
 #endif
 }
 
+void set_read_timeout(int fd, int ms)
+{
+#ifdef _WIN32
+    DWORD timeout = (DWORD) ms;
+
+    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (const char *) &timeout,
+               sizeof(timeout));
+#else
+    struct timeval timeout;
+
+    timeout.tv_sec = ms / 1000;
+    timeout.tv_usec = (ms % 1000) * 1000;
+    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+#endif
+}
+
 int open_test_connection(int sockets[2])
 {
 #ifdef _WIN32

@@ -134,11 +134,41 @@ static int frame_is(const struct peer_case *test, size_t index,
            && memcmp(&test->frames[index][4], payload, len) == 0;
 }
 
+/*
+ * Hamlib builds Icom frames of up to MAXFRAMELEN bytes, so the peer has
+ * to be able to read one that long.  read_frame() gives up once its
+ * buffer is full, which ends the peer thread and leaves every command
+ * after it unanswered.
+ */
+static int send_oversized_frame(int fd)
+{
+    unsigned char frame[MAXFRAMELEN];
+    size_t i;
+
+    frame[0] = 0xfe;
+    frame[1] = 0xfe;
+    frame[2] = 0xb2;
+    frame[3] = 0xe0;
+    frame[4] = 0x17;                        /* send CW message */
+
+    for (i = 5; i < sizeof(frame) - 1; i++) { frame[i] = 0x20; }
+
+    frame[sizeof(frame) - 1] = 0xfd;
+
+    return write_all(fd, frame, sizeof(frame));
+}
+
 int main(void)
 {
     int sockets[2];
     pthread_t thread;
-    struct peer_case test = { .fd = -1, .frame_count = 0, .band_sel_answer = -1 };
+    struct peer_case test =
+    {
+        .fd = -1, .frame_count = 0, .band_sel_answer = -1
+    };
+    unsigned char oversized_reply[MAXFRAMELEN];
+    size_t oversized_reply_len = 0;
+    int oversized_answered;
     struct icom_priv_data *priv;
     static const unsigned char backlight_full[] = { 0x14, 0x19, 0x02, 0x55 };
     static const unsigned char dual_watch_on[] = { 0x07, 0xc1 };
@@ -225,6 +255,17 @@ int main(void)
     STATE(rig)->comm_state = 1;
     STATE(rig)->current_vfo = RIG_VFO_MAIN;
 
+    /*
+     * Before anything else, so that a peer which survived leaves the
+     * socket empty for the exchanges that follow.
+     */
+    send_oversized_frame(sockets[0]);
+    set_read_timeout(sockets[0], 1000);
+    oversized_answered = read_frame(sockets[0], oversized_reply,
+                                    sizeof(oversized_reply),
+                                    &oversized_reply_len) == 0;
+    set_read_timeout(sockets[0], 0);
+
     rig_get_powerstat(rig, &status);
 
     backlight.f = 1.0f;
@@ -278,6 +319,13 @@ int main(void)
     close_test_socket(sockets[0]);
     close_test_socket(sockets[1]);
     pthread_join(thread, NULL);
+
+    if (!oversized_answered)
+    {
+        fprintf(stderr, "a frame of %d bytes stopped the peer, so nothing after"
+                " it was answered\n", MAXFRAMELEN);
+        failed = 1;
+    }
 
     /*
      * The command table defines 18 00 and 18 01 to switch the transceiver
