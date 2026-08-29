@@ -200,6 +200,17 @@ static void morse_busy_store(struct rig_state *rs, bool busy)
     __atomic_store_n(&rs->morse_busy, busy, __ATOMIC_RELAXED);
 }
 
+static int no_get_vfo_load(const struct rig_state *rs)
+{
+    return __atomic_load_n(&rs->no_get_vfo, __ATOMIC_RELAXED);
+}
+
+static void no_get_vfo_set(struct rig_state *rs)
+{
+    // Set under the API mutex but read outside it; it publishes no other state.
+    __atomic_store_n(&rs->no_get_vfo, 1, __ATOMIC_RELAXED);
+}
+
 /*
  * Data structure to track the opened rig (by rig_open)
  */
@@ -3508,7 +3519,7 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
         RETURNFUNC(RIG_OK);
     }
 
-    if (rig->caps->get_vfo)
+    if (rig->caps->get_vfo && !no_get_vfo_load(STATE(rig)))
     {
         retcode = rig_get_vfo(rig, &curr_vfo);
 
@@ -3634,7 +3645,7 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
     rs = STATE(rig);
 
 //    if (caps->get_vfo == NULL && RIG_ICOM != RIG_BACKEND_NUM(rig->caps->rig_model))
-    if (caps->get_vfo == NULL)
+    if (caps->get_vfo == NULL || no_get_vfo_load(rs))
     {
         rig_debug(RIG_DEBUG_WARN, "%s: no get_vfo\n", __func__);
         ELAPSED2;
@@ -3663,7 +3674,12 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
     HAMLIB_TRACE;
     LOCK(1);
 
-    if (rig->caps->get_vfo)
+    if (no_get_vfo_load(rs))
+    {
+        // The refusal came in while this caller waited for the lock
+        retcode = -RIG_ENAVAIL;
+    }
+    else if (rig->caps->get_vfo)
     {
         retcode = rig->caps->get_vfo(rig, &result_vfo);
 
@@ -3676,7 +3692,9 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
         {
             if (RIG_ICOM == RIG_BACKEND_NUM(rig->caps->rig_model))
             {
-                rig->caps->get_vfo = NULL;
+                /* rig_caps is one static per model, shared by every rig
+                   opened from it, so remember this on the handle */
+                no_get_vfo_set(rs);
                 *vfo = RIG_VFO_A;
                 LOCK(0);
                 RETURNFUNC(RIG_OK);

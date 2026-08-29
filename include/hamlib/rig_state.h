@@ -263,6 +263,7 @@ struct rig_state {
                                                     RIG_RESAMPLE_* + 1, so 0 =
                                                     built-in default (medium) */
     rig_comm_reason_t comm_reason;          /*!< Why comm_status last changed */
+    int no_get_vfo;         /*!< Set when this rig answered get_vfo with an error, so it is not asked again */
 // New rig_state items go before this line ============================================
 };
 
