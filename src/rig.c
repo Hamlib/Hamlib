@@ -1275,6 +1275,14 @@ int HAMLIB_API rig_open(RIG *rig)
         RETURNFUNC2(status);
     }
 
+    /*
+     * The sync pipes exist now, but asyncio routes every read through
+     * them and nothing writes to them until the reader thread runs.  Both
+     * this routine and the backend's open hook talk to the rig before
+     * that, so read straight from the port until the thread is up.
+     */
+    rp->asyncio = 0;
+
     switch (pttp->type.ptt)
     {
     case RIG_PTT_NONE:
@@ -8494,11 +8502,15 @@ static int async_data_handler_start(RIG *rig)
     async_data_handler_priv = (async_data_handler_priv_data *)
                               rs->async_data_handler_priv_data;
     async_data_handler_priv->args.rig = rig;
+    /* from here on the reader thread owns the port and feeds the pipes */
+    RIGPORT(rig)->asyncio = 1;
     int err = pthread_create(&async_data_handler_priv->thread_id, NULL,
                              async_data_handler, &async_data_handler_priv->args);
 
     if (err)
     {
+        /* nothing will feed the pipes, so hand the port back to direct reads */
+        RIGPORT(rig)->asyncio = 0;
         rig_debug(RIG_DEBUG_ERR, "%s: pthread_create error: %s\n", __func__,
                   strerror(errno));
         RETURNFUNC(-RIG_EINTERNAL);
@@ -8581,6 +8593,8 @@ static int async_data_handler_stop(RIG *rig)
         rs->async_data_handler_priv_data = NULL;
     }
 
+    /* nothing feeds the pipes any more, so read straight from the port */
+    RIGPORT(rig)->asyncio = 0;
 
     RETURNFUNC(RIG_OK);
 }
