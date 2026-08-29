@@ -39,6 +39,8 @@ struct peer_case
     size_t frame_len[MAX_RECORDED_FRAMES];
     /* the peer counts while the main thread takes marks, hence atomic */
     atomic_size_t frame_count;
+    /* which band 07 D2 answers with, or -1 to reject it like the rest */
+    atomic_int band_sel_answer;
 };
 
 static const unsigned char nak[] = { 0xfe, 0xfe, 0xe0, 0xb2, 0xfa, 0xfd };
@@ -62,6 +64,22 @@ static void *run_peer(void *arg)
             memcpy(test->frames[test->frame_count], frame, length);
             test->frame_len[test->frame_count] = length;
             test->frame_count++;
+        }
+
+        /*
+         * 07 D2 reads the selected band, so it has to come back with a
+         * band rather than a rejection for the answer to be decoded.
+         */
+        if (length == 7 && frame[4] == 0x07 && frame[5] == 0xd2
+                && test->band_sel_answer >= 0)
+        {
+            unsigned char band[] = { 0xfe, 0xfe, 0xe0, 0xb2, 0x07, 0xd2, 0x00, 0xfd };
+
+            band[6] = (unsigned char) test->band_sel_answer;
+
+            if (write_all(test->fd, band, sizeof(band)) != 0) { break; }
+
+            continue;
         }
 
         if (write_all(test->fd, nak, sizeof(nak)) != 0) { break; }
@@ -120,7 +138,7 @@ int main(void)
 {
     int sockets[2];
     pthread_t thread;
-    struct peer_case test = { .fd = -1, .frame_count = 0 };
+    struct peer_case test = { .fd = -1, .frame_count = 0, .band_sel_answer = -1 };
     struct icom_priv_data *priv;
     static const unsigned char backlight_full[] = { 0x14, 0x19, 0x02, 0x55 };
     static const unsigned char dual_watch_on[] = { 0x07, 0xc1 };
@@ -132,8 +150,12 @@ int main(void)
     static const unsigned char read_sub_freq[] = { 0x25, 0x01 };
     static const unsigned char read_main_mode[] = { 0x26, 0x00 };
     static const unsigned char read_sub_mode[] = { 0x26, 0x01 };
+    static const unsigned char read_band_sel[] = { 0x07, 0xd2 };
     powerstat_t status = RIG_POWER_OFF;
     size_t main_freq_mark, sub_freq_mark, main_mode_mark, sub_mode_mark;
+    size_t band_sel_mark;
+    vfo_t selected_main = RIG_VFO_NONE, selected_sub = RIG_VFO_NONE;
+    int main_sel_retval, sub_sel_retval;
     rmode_t mode;
     pbwidth_t width;
     freq_t freq;
@@ -225,6 +247,18 @@ int main(void)
     rig_get_mode(rig, RIG_VFO_MAIN, &mode, &width);
     sub_mode_mark = test.frame_count;
     rig_get_mode(rig, RIG_VFO_SUB, &mode, &width);
+
+    /*
+     * 07 D2 reads which band the front panel has selected, answering 00
+     * for Main and 01 for Sub.  rig_get_vfo() caches its answer, so both
+     * bands are only seen with the cache switched off.
+     */
+    rig_set_cache_timeout_ms(rig, HAMLIB_CACHE_ALL, 0);
+    band_sel_mark = test.frame_count;
+    test.band_sel_answer = 0x00;
+    main_sel_retval = rig_get_vfo(rig, &selected_main);
+    test.band_sel_answer = 0x01;
+    sub_sel_retval = rig_get_vfo(rig, &selected_sub);
 
     close_test_socket(sockets[0]);
     close_test_socket(sockets[1]);
@@ -335,6 +369,37 @@ int main(void)
     if (!frame_is(&test, sub_mode_mark, read_sub_mode, sizeof(read_sub_mode)))
     {
         fprintf(stderr, "get_mode SUB did not send 26 01 with Sub selected\n");
+        failed = 1;
+    }
+
+    /*
+     * Without get_vfo wired up the backend cannot follow the front
+     * panel, and dumpcaps reports the rig cannot read its VFO at all.
+     */
+    if (main_sel_retval == -RIG_ENAVAIL || sub_sel_retval == -RIG_ENAVAIL)
+    {
+        fprintf(stderr, "get_vfo is not wired up, so the Main/Sub selection"
+                " cannot be read\n");
+        failed = 1;
+    }
+
+    if (!frame_is(&test, band_sel_mark, read_band_sel, sizeof(read_band_sel)))
+    {
+        fprintf(stderr, "get_vfo did not send 07 D2\n");
+        failed = 1;
+    }
+
+    if (selected_main != RIG_VFO_MAIN)
+    {
+        fprintf(stderr, "get_vfo read 07 D2 00 as %s, not Main\n",
+                rig_strvfo(selected_main));
+        failed = 1;
+    }
+
+    if (selected_sub != RIG_VFO_SUB)
+    {
+        fprintf(stderr, "get_vfo read 07 D2 01 as %s, not Sub\n",
+                rig_strvfo(selected_sub));
         failed = 1;
     }
 

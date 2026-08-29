@@ -882,6 +882,22 @@ static int match_name(RIG *rig, const struct confparams *cfp, rig_ptr_t data)
  * rig has but the backend does not drive, so it has to stay filtered
  * out - that is what keeps the whitelist honest.
  */
+/*
+ * 07 D2 reads which of Main and Sub is selected, so the backend can
+ * follow the front panel instead of trusting its own last set_vfo.
+ */
+static int test_band_selection_is_readable(void)
+{
+    if (ic7760_caps.get_vfo == NULL)
+    {
+        fprintf(stderr, "the rig reads its Main/Sub selection with 07 D2, but"
+                " get_vfo is not wired up\n");
+        return 1;
+    }
+
+    return 0;
+}
+
 static int test_ext_tokens_are_enumerable(RIG *rig)
 {
     static const struct
@@ -957,6 +973,7 @@ int main(void)
     fail |= test_scan_operations();
     fail |= test_agc_levels();
     fail |= test_spectrum_scope();
+    fail |= test_band_selection_is_readable();
 
     rig_register(&ic7760_caps);
     rig = rig_init(RIG_MODEL_IC7760);
