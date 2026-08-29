@@ -32,6 +32,7 @@
 int close_test_socket(int fd);
 int read_test_socket(int fd, void *buffer, size_t length);
 int write_test_socket(int fd, const void *buffer, size_t length);
+void set_read_timeout(int fd, int ms);
 int open_test_connection(int sockets[2]);
 
 /* Stops the fake rig reading sockets[1]: closing the backend's end,
