@@ -27,6 +27,7 @@ DIRECT_TESTS = \
 	testgeministatus \
 	testgs100 \
 	testicomts \
+	testnewcatset \
 	testthd7x \
 	testthd75emu
 
@@ -107,6 +108,7 @@ testicomfallback_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testctlparser_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testgeministatus_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testgs100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testnewcatset_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testicomts_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testgeministatus_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/amplifiers/gemini
 testftx1parsers_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/yaesu/ftx1
@@ -138,6 +140,7 @@ testgeministatus_LDADD = $(PTHREAD_LIBS) $(top_builddir)/amplifiers/gemini/libha
 testgs100_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/gomspace/libhamlib-gomspace.la $(LDADD)
 testftx1parsers_LDADD = $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
 testft991idmeter_LDADD = $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
+testnewcatset_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
 if TESTS_HAVE_LIBUSB
     rigtestlibusb_LDADD = $(LIBUSB_LIBS)
 endif
