@@ -29,6 +29,7 @@ DIRECT_TESTS = \
 	testic7760caps \
 	testic7760civ \
 	testicomant \
+	testicomgetvfo \
 	testicomscan \
 	testicomts \
 	testrigctlprotocol \
@@ -124,11 +125,13 @@ testgs100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testguohetec_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testic7760civ_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testicomant_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testicomgetvfo_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testicomscan_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testid5100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testic7760caps_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testic7760civ_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testicomant_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+testicomgetvfo_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testicomscan_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testicomts_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testid5100_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
@@ -168,6 +171,8 @@ testic7760civ_SOURCES = testic7760civ.c testicomsock.c testicomsock.h
 testic7760civ_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testicomant_SOURCES = testicomant.c testicomsock.c testicomsock.h
 testicomant_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+testicomgetvfo_SOURCES = testicomgetvfo.c testicomsock.c testicomsock.h
+testicomgetvfo_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testicomscan_SOURCES = testicomscan.c testicomsock.c testicomsock.h
 testicomscan_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testicomts_LDADD = $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
