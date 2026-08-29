@@ -262,6 +262,7 @@ struct rig_state {
     int stream_resample_quality;               /*!< Stream resampler quality:
                                                     RIG_RESAMPLE_* + 1, so 0 =
                                                     built-in default (medium) */
+    int no_get_vfo;         /*!< Set when this rig answered get_vfo with an error, so it is not asked again */
 // New rig_state items go before this line ============================================
 };
 

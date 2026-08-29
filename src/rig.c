@@ -3423,7 +3423,7 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
         RETURNFUNC(RIG_OK);
     }
 
-    if (rig->caps->get_vfo)
+    if (rig->caps->get_vfo && !rs->no_get_vfo)
     {
         retcode = rig_get_vfo(rig, &curr_vfo);
 
@@ -3551,7 +3551,7 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
     cachep = CACHE(rig);
 
 //    if (caps->get_vfo == NULL && RIG_ICOM != RIG_BACKEND_NUM(rig->caps->rig_model))
-    if (caps->get_vfo == NULL)
+    if (caps->get_vfo == NULL || rs->no_get_vfo)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: no get_vfo\n", __func__);
         ELAPSED2;
@@ -3594,7 +3594,9 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
         {
             if (RIG_ICOM == RIG_BACKEND_NUM(rig->caps->rig_model))
             {
-                rig->caps->get_vfo = NULL;
+                /* rig_caps is one static per model, shared by every rig
+                   opened from it, so remember this on the handle */
+                rs->no_get_vfo = 1;
                 *vfo = RIG_VFO_A;
                 LOCK(0);
                 RETURNFUNC(RIG_OK);
