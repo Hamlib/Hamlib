@@ -115,12 +115,26 @@ int main(void)
     int slct_retval;
     int failed = 0;
 
+#ifdef _WIN32
+    WSADATA wsa_data;
+
+    if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0)
+    {
+        fprintf(stderr, "WSAStartup failed\n");
+        return 1;
+    }
+
+#endif
+
     rig_register(&ic7300_caps);
     rig = rig_init(RIG_MODEL_IC7300);
 
     if (rig == NULL)
     {
         fprintf(stderr, "rig_init failed\n");
+#ifdef _WIN32
+        WSACleanup();
+#endif
         return 1;
     }
 
@@ -128,6 +142,9 @@ int main(void)
     {
         fprintf(stderr, "test socket setup failed\n");
         rig_cleanup(rig);
+#ifdef _WIN32
+        WSACleanup();
+#endif
         return 1;
     }
 
@@ -138,6 +155,9 @@ int main(void)
         close_test_socket(sockets[0]);
         close_test_socket(sockets[1]);
         rig_cleanup(rig);
+#ifdef _WIN32
+        WSACleanup();
+#endif
         return 1;
     }
 
@@ -180,6 +200,10 @@ int main(void)
     STATE(rig)->comm_state = 0;
     RIGPORT(rig)->fd = -1;
     rig_cleanup(rig);
+
+#ifdef _WIN32
+    WSACleanup();
+#endif
 
     return failed;
 }
