@@ -115,7 +115,8 @@ static int ic7760_ext_tokens[] =
 {
     TOK_DRIVE_GAIN, TOK_DIGI_SEL_FUNC, TOK_DIGI_SEL_LEVEL,
     TOK_SCOPE_MSS, TOK_SCOPE_SDS, TOK_SCOPE_STX, TOK_SCOPE_CFQ,
-    TOK_SCOPE_EDG, TOK_SCOPE_VBW, TOK_SCOPE_RBW, TOK_BACKEND_NONE
+    TOK_SCOPE_EDG, TOK_SCOPE_VBW, TOK_SCOPE_RBW,
+    TOK_IPP_FUNC, TOK_TX_INHIBIT_FUNC, TOK_DPP_FUNC, TOK_BACKEND_NONE
 };
 
 static const struct icom_clock_cmds ic7760_clock_cmds =
@@ -259,7 +260,7 @@ struct rig_caps ic7760_caps =
     .post_write_delay =  0,
     .timeout =  1000,
     .retry =  3,
-    .has_get_func =  IC7760_FUNCS,
+    .has_get_func =  IC7760_FUNCS | RIG_FUNC_OVF_STATUS,
     .has_set_func =  IC7760_FUNCS,
     .has_get_level =  IC7760_LEVELS,
     .has_set_level =  RIG_LEVEL_SET(IC7760_LEVELS),

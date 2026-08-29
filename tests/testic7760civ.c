@@ -151,11 +151,15 @@ int main(void)
     static const unsigned char read_main_mode[] = { 0x26, 0x00 };
     static const unsigned char read_sub_mode[] = { 0x26, 0x01 };
     static const unsigned char read_band_sel[] = { 0x07, 0xd2 };
+    static const unsigned char read_ovf[] = { 0x15, 0x07 };
+    static const unsigned char ip_plus_on[] = { 0x16, 0x65, 0x01 };
     powerstat_t status = RIG_POWER_OFF;
     size_t main_freq_mark, sub_freq_mark, main_mode_mark, sub_mode_mark;
-    size_t band_sel_mark;
+    size_t band_sel_mark, ovf_mark, ip_plus_mark;
     vfo_t selected_main = RIG_VFO_NONE, selected_sub = RIG_VFO_NONE;
     int main_sel_retval, sub_sel_retval;
+    int ovf_retval, ip_plus_retval;
+    int ovf_status = 0;
     rmode_t mode;
     pbwidth_t width;
     freq_t freq;
@@ -259,6 +263,17 @@ int main(void)
     main_sel_retval = rig_get_vfo(rig, &selected_main);
     test.band_sel_answer = 0x01;
     sub_sel_retval = rig_get_vfo(rig, &selected_sub);
+
+    /*
+     * The OVF indicator is read with 15 07, and IP Plus is switched with
+     * 16 65.  Both are implemented by the shared Icom code, so all the
+     * rig has to do is advertise them.
+     */
+    ovf_mark = test.frame_count;
+    ovf_retval = rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_OVF_STATUS, &ovf_status);
+    ip_plus_mark = test.frame_count;
+    ip_plus_retval = rig_set_ext_func(rig, RIG_VFO_CURR,
+                                      rig_ext_token_lookup(rig, "IPP"), 1);
 
     close_test_socket(sockets[0]);
     close_test_socket(sockets[1]);
@@ -400,6 +415,30 @@ int main(void)
     {
         fprintf(stderr, "get_vfo read 07 D2 01 as %s, not Sub\n",
                 rig_strvfo(selected_sub));
+        failed = 1;
+    }
+
+    if (ovf_retval == -RIG_ENAVAIL)
+    {
+        fprintf(stderr, "get_func OVF_STATUS was rejected by the backend\n");
+        failed = 1;
+    }
+
+    if (!frame_is(&test, ovf_mark, read_ovf, sizeof(read_ovf)))
+    {
+        fprintf(stderr, "get_func OVF_STATUS did not send 15 07\n");
+        failed = 1;
+    }
+
+    if (ip_plus_retval == -RIG_EINVAL)
+    {
+        fprintf(stderr, "set_ext_func IPP was rejected by the backend\n");
+        failed = 1;
+    }
+
+    if (!frame_is(&test, ip_plus_mark, ip_plus_on, sizeof(ip_plus_on)))
+    {
+        fprintf(stderr, "set_ext_func IPP did not send 16 65 01\n");
         failed = 1;
     }
 
