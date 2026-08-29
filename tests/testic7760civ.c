@@ -18,6 +18,7 @@
  */
 
 #include <pthread.h>
+#include <stdatomic.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -36,7 +37,8 @@ struct peer_case
     int fd;
     unsigned char frames[MAX_RECORDED_FRAMES][MAX_FRAME_LEN];
     size_t frame_len[MAX_RECORDED_FRAMES];
-    size_t frame_count;
+    /* the peer counts while the main thread takes marks, hence atomic */
+    atomic_size_t frame_count;
 };
 
 static const unsigned char nak[] = { 0xfe, 0xfe, 0xe0, 0xb2, 0xfa, 0xfd };
@@ -101,6 +103,19 @@ static int saw_payload(const struct peer_case *test,
     return 0;
 }
 
+/*
+ * Each of the calls below sends exactly one frame, so the frame recorded
+ * at the mark taken before a call is that call's own and can be matched
+ * whole rather than searched for.
+ */
+static int frame_is(const struct peer_case *test, size_t index,
+                    const unsigned char *payload, size_t len)
+{
+    return index < test->frame_count
+           && test->frame_len[index] == len + 5
+           && memcmp(&test->frames[index][4], payload, len) == 0;
+}
+
 int main(void)
 {
     int sockets[2];
@@ -113,7 +128,15 @@ int main(void)
     static const unsigned char ant1_rx_on[] = { 0x12, 0x00, 0x01 };
     static const unsigned char voice_mem_3[] = { 0x28, 0x00, 0x03 };
     static const unsigned char voice_mem_stop[] = { 0x28, 0x00, 0x00 };
+    static const unsigned char read_main_freq[] = { 0x25, 0x00 };
+    static const unsigned char read_sub_freq[] = { 0x25, 0x01 };
+    static const unsigned char read_main_mode[] = { 0x26, 0x00 };
+    static const unsigned char read_sub_mode[] = { 0x26, 0x01 };
     powerstat_t status = RIG_POWER_OFF;
+    size_t main_freq_mark, sub_freq_mark, main_mode_mark, sub_mode_mark;
+    rmode_t mode;
+    pbwidth_t width;
+    freq_t freq;
     int voice_retval;
     value_t backlight;
     value_t ant_option;
@@ -186,6 +209,22 @@ int main(void)
     rig_set_ant(rig, RIG_VFO_CURR, RIG_ANT_1, ant_option);
     voice_retval = rig_send_voice_mem(rig, RIG_VFO_CURR, 3);
     rig_stop_voice_mem(rig, RIG_VFO_CURR);
+
+    /*
+     * Commands 25 and 26 name the band outright, so the byte they carry
+     * does not depend on which band is selected.  Ask for both bands
+     * with Sub selected, where reading that byte as selected and
+     * unselected instead comes out reversed.
+     */
+    STATE(rig)->current_vfo = RIG_VFO_SUB;
+    main_freq_mark = test.frame_count;
+    rig_get_freq(rig, RIG_VFO_MAIN, &freq);
+    sub_freq_mark = test.frame_count;
+    rig_get_freq(rig, RIG_VFO_SUB, &freq);
+    main_mode_mark = test.frame_count;
+    rig_get_mode(rig, RIG_VFO_MAIN, &mode, &width);
+    sub_mode_mark = test.frame_count;
+    rig_get_mode(rig, RIG_VFO_SUB, &mode, &width);
 
     close_test_socket(sockets[0]);
     close_test_socket(sockets[1]);
@@ -271,6 +310,31 @@ int main(void)
     if (!saw_payload(&test, voice_mem_stop, sizeof(voice_mem_stop)))
     {
         fprintf(stderr, "stop_voice_mem did not send 28 00 00\n");
+        failed = 1;
+    }
+
+    /* 25 and 26 take 00 for Main and 01 for Sub. */
+    if (!frame_is(&test, main_freq_mark, read_main_freq, sizeof(read_main_freq)))
+    {
+        fprintf(stderr, "get_freq MAIN did not send 25 00 with Sub selected\n");
+        failed = 1;
+    }
+
+    if (!frame_is(&test, sub_freq_mark, read_sub_freq, sizeof(read_sub_freq)))
+    {
+        fprintf(stderr, "get_freq SUB did not send 25 01 with Sub selected\n");
+        failed = 1;
+    }
+
+    if (!frame_is(&test, main_mode_mark, read_main_mode, sizeof(read_main_mode)))
+    {
+        fprintf(stderr, "get_mode MAIN did not send 26 00 with Sub selected\n");
+        failed = 1;
+    }
+
+    if (!frame_is(&test, sub_mode_mark, read_sub_mode, sizeof(read_sub_mode)))
+    {
+        fprintf(stderr, "get_mode SUB did not send 26 01 with Sub selected\n");
         failed = 1;
     }
 

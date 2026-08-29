@@ -10056,7 +10056,8 @@ static int icom_get_vfo_number_x25x26(RIG *rig, vfo_t vfo)
     struct rig_state *rs = STATE(rig);
 
     // Rigs with *only* Main/Sub VFOs can directly address VFOs: 0 = Main, 1 = Sub
-    if (RIG_IS_IC7600 || RIG_IS_IC7610 || RIG_IS_IC7800 || RIG_IS_IC785X)
+    if (RIG_IS_IC7600 || RIG_IS_IC7610 || RIG_IS_IC7760 || RIG_IS_IC7800
+            || RIG_IS_IC785X)
     {
         vfo_t actual_vfo = vfo_fixup(rig, vfo, cachep->split);
 
