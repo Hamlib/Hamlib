@@ -883,6 +883,30 @@ static int match_name(RIG *rig, const struct confparams *cfp, rig_ptr_t data)
  * out - that is what keeps the whitelist honest.
  */
 /*
+ * The OVF indicator is read with 15 07.  icom_set_func() has no case for
+ * it, so advertising it as settable would only ever answer EINVAL.
+ */
+static int test_overflow_status_is_read_only(void)
+{
+    int fail = 0;
+
+    if ((ic7760_caps.has_get_func & RIG_FUNC_OVF_STATUS) == 0)
+    {
+        fprintf(stderr, "OVF status (15 07) is readable but not advertised\n");
+        fail = 1;
+    }
+
+    if ((ic7760_caps.has_set_func & RIG_FUNC_OVF_STATUS) != 0)
+    {
+        fprintf(stderr, "OVF status is advertised as settable, but the rig has"
+                " no command to set it\n");
+        fail = 1;
+    }
+
+    return fail;
+}
+
+/*
  * 07 D2 reads which of Main and Sub is selected, so the backend can
  * follow the front panel instead of trusting its own last set_vfo.
  */
@@ -911,7 +935,11 @@ static int test_ext_tokens_are_enumerable(RIG *rig)
         { "digi_sel_level", 0, 1 },
         { "digi_sel", 1, 1 },
         { "SPECTRUM_SELECT", 0, 1 },
-        { "TX_INHIBIT", 1, 0 },
+        { "IPP", 1, 1 },
+        { "TX_INHIBIT", 1, 1 },
+        { "DPP", 1, 1 },
+        /* 1A 05 03 10 is the Count Up Trigger on this rig, not PW2 */
+        { "ICPW2", 1, 0 },
     };
     size_t i;
     int fail = 0;
@@ -974,6 +1002,7 @@ int main(void)
     fail |= test_agc_levels();
     fail |= test_spectrum_scope();
     fail |= test_band_selection_is_readable();
+    fail |= test_overflow_status_is_read_only();
 
     rig_register(&ic7760_caps);
     rig = rig_init(RIG_MODEL_IC7760);
