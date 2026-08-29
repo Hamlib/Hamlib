@@ -17,6 +17,7 @@ bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld rigctlcom rig
 # Keep test registries sorted and one entry per line.
 # This keeps independent additions from editing shared lines.
 DIRECT_TESTS = \
+	testasyncio \
 	testbandmetadata \
 	testctlparser \
 	testdaemonclient \
@@ -114,6 +115,7 @@ rigctlcom_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/security
 rigctltcp_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/security
 rigctlsync_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/security
 testdebug_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testasyncio_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testnetrigctl_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testsendraw_CFLAGS = $(AM_CFLAGS)
 testdaemonclient_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
@@ -149,6 +151,7 @@ rigctlcom_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rigctltcp_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rigctlsync_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 testdebug_LDADD = $(PTHREAD_LIBS) $(LDADD)
+testasyncio_LDADD = $(PTHREAD_LIBS) $(LDADD)
 testid5100_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testicomfallback_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testsendraw_SOURCES = testsendraw.c
