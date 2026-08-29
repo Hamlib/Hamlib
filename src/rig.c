@@ -200,6 +200,24 @@ static void morse_busy_store(struct rig_state *rs, bool busy)
     __atomic_store_n(&rs->morse_busy, busy, __ATOMIC_RELAXED);
 }
 
+/* Per-rig bookkeeping of the core, kept out of the installed headers */
+struct rig_private
+{
+    int no_get_vfo;     /* this rig answered get_vfo with an error */
+};
+
+static void no_get_vfo_set(RIG *rig)
+{
+    // Set under the API mutex but read outside it; it publishes no other state.
+    __atomic_store_n(&rig->private_addr->no_get_vfo, 1, __ATOMIC_RELAXED);
+}
+
+int HAMLIB_API rig_has_get_vfo(RIG *rig)
+{
+    return rig->caps->get_vfo != NULL
+           && !__atomic_load_n(&rig->private_addr->no_get_vfo, __ATOMIC_RELAXED);
+}
+
 /*
  * Data structure to track the opened rig (by rig_open)
  */
@@ -594,6 +612,9 @@ static void vaporize(RIG *rig)
         free(STATE(rig));
         STATE(rig) = NULL;
     }
+
+    free(rig->private_addr);
+    rig->private_addr = NULL;
     /* Other buffers go here, as they are converted
      *  to pointers/calloc - WIP
      */
@@ -723,6 +744,15 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     if (!rig->cache_addr)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: Cache allocation failed\n", __func__);
+        vaporize(rig);
+        return NULL;
+    }
+
+    rig->private_addr = calloc(1, sizeof(struct rig_private));
+
+    if (!rig->private_addr)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: Private data allocation failed\n", __func__);
         vaporize(rig);
         return NULL;
     }
@@ -3508,7 +3538,7 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
         RETURNFUNC(RIG_OK);
     }
 
-    if (rig->caps->get_vfo)
+    if (rig_has_get_vfo(rig))
     {
         retcode = rig_get_vfo(rig, &curr_vfo);
 
@@ -3613,7 +3643,6 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
  */
 int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
 {
-    const struct rig_caps *caps;
     struct rig_state *rs;
     int retcode = -RIG_EINTERNAL;
     int cache_ms;
@@ -3630,11 +3659,10 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
     ENTERFUNC;
     ELAPSED1;
 
-    caps = rig->caps;
     rs = STATE(rig);
 
 //    if (caps->get_vfo == NULL && RIG_ICOM != RIG_BACKEND_NUM(rig->caps->rig_model))
-    if (caps->get_vfo == NULL)
+    if (!rig_has_get_vfo(rig))
     {
         rig_debug(RIG_DEBUG_WARN, "%s: no get_vfo\n", __func__);
         ELAPSED2;
@@ -3663,7 +3691,12 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
     HAMLIB_TRACE;
     LOCK(1);
 
-    if (rig->caps->get_vfo)
+    if (!rig_has_get_vfo(rig))
+    {
+        // The refusal came in while this caller waited for the lock
+        retcode = -RIG_ENAVAIL;
+    }
+    else
     {
         retcode = rig->caps->get_vfo(rig, &result_vfo);
 
@@ -3676,7 +3709,9 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
         {
             if (RIG_ICOM == RIG_BACKEND_NUM(rig->caps->rig_model))
             {
-                rig->caps->get_vfo = NULL;
+                /* rig_caps is one static per model, shared by every rig
+                   opened from it, so remember this on the handle */
+                no_get_vfo_set(rig);
                 *vfo = RIG_VFO_A;
                 LOCK(0);
                 RETURNFUNC(RIG_OK);

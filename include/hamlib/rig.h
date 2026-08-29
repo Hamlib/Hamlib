@@ -272,6 +272,7 @@ enum rig_debug_level_e {
 struct rig;
 struct rig_state;
 struct rig_cache;
+struct rig_private;
 struct hamlib_port;
 typedef struct hamlib_port hamlib_port_t;
 
@@ -3038,6 +3039,8 @@ struct s_rig {
     hamlib_port_t *dcdport_addr;    /*!< address of DCD control port struct */
     HL_PRIVATE
     struct rig_state *state_addr;   /*!< address of rig_state struct */
+    HL_PRIVATE
+    struct rig_private *private_addr; /*!< address of the core's private per-rig data */
 };
 
 
