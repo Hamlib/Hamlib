@@ -111,7 +111,10 @@ int main(void)
     static const unsigned char dual_watch_on[] = { 0x07, 0xc1 };
     static const unsigned char transceive_on[] = { 0x1a, 0x05, 0x01, 0x50, 0x01 };
     static const unsigned char ant1_rx_on[] = { 0x12, 0x00, 0x01 };
+    static const unsigned char voice_mem_3[] = { 0x28, 0x00, 0x03 };
+    static const unsigned char voice_mem_stop[] = { 0x28, 0x00, 0x00 };
     powerstat_t status = RIG_POWER_OFF;
+    int voice_retval;
     value_t backlight;
     value_t ant_option;
     RIG *rig;
@@ -161,6 +164,8 @@ int main(void)
     rig_set_func(rig, RIG_VFO_CURR, RIG_FUNC_TRANSCEIVE, 1);
     ant_option.i = 1;
     rig_set_ant(rig, RIG_VFO_CURR, RIG_ANT_1, ant_option);
+    voice_retval = rig_send_voice_mem(rig, RIG_VFO_CURR, 3);
+    rig_stop_voice_mem(rig, RIG_VFO_CURR);
 
     close_test_socket(sockets[0]);
     close_test_socket(sockets[1]);
@@ -222,6 +227,30 @@ int main(void)
     if (!saw_payload(&test, ant1_rx_on, sizeof(ant1_rx_on)))
     {
         fprintf(stderr, "set_ant ANT1 did not send 12 00 01\n");
+        failed = 1;
+    }
+
+    /*
+     * The voice memories are advertised as eight channels, so a client
+     * has to be able to transmit them: 28 00 with the memory as its data
+     * byte, 01 through 08, and 28 00 00 to stop.
+     */
+    if (voice_retval == -RIG_ENAVAIL)
+    {
+        fprintf(stderr, "send_voice_mem is not wired up, so the advertised"
+                " voice memories cannot be transmitted\n");
+        failed = 1;
+    }
+
+    if (!saw_payload(&test, voice_mem_3, sizeof(voice_mem_3)))
+    {
+        fprintf(stderr, "send_voice_mem 3 did not send 28 00 03\n");
+        failed = 1;
+    }
+
+    if (!saw_payload(&test, voice_mem_stop, sizeof(voice_mem_stop)))
+    {
+        fprintf(stderr, "stop_voice_mem did not send 28 00 00\n");
         failed = 1;
     }
 
