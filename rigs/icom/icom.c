@@ -8287,6 +8287,7 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status)
             || RIG_IS_IC7600
             || RIG_IS_IC7610
             || RIG_IS_IC7700
+            || RIG_IS_IC7760
             || RIG_IS_IC7800
             || RIG_IS_IC785X
             || RIG_IS_IC9700
@@ -8480,18 +8481,9 @@ int icom_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
             RETURNFUNC2(-RIG_EINVAL);
         }
 
+        // The RX antenna option is carried by the antenna selection frame
         antopt_len = 1;
         antopt[0] = option.i;
-        // we have to set the rx option by itself apparently
-        rig_debug(RIG_DEBUG_TRACE, "%s: setting antopt=%d\n", __func__, antopt[0]);
-        retval = icom_transaction(rig, C_CTL_ANT, i_ant,
-                                  antopt, antopt_len, ackbuf, &ack_len);
-
-        if (retval != RIG_OK)
-        {
-            RETURNFUNC2(retval);
-        }
-
         rig_debug(RIG_DEBUG_TRACE,
                   "%s: antack_len=%d so antopt_len=%d, antopt=0x%02x\n",
                   __func__, priv_caps->antack_len, antopt_len, antopt[0]);
@@ -8782,7 +8774,7 @@ int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
             RETURNFUNC(retval);
         }
 
-        scan_sc = S_SCAN_START;
+        scan_sc = S_SCAN_SLCTN;
         break;
 
     case RIG_SCAN_PRIO:
@@ -10064,7 +10056,8 @@ static int icom_get_vfo_number_x25x26(RIG *rig, vfo_t vfo)
     struct rig_state *rs = STATE(rig);
 
     // Rigs with *only* Main/Sub VFOs can directly address VFOs: 0 = Main, 1 = Sub
-    if (RIG_IS_IC7600 || RIG_IS_IC7610 || RIG_IS_IC7800 || RIG_IS_IC785X)
+    if (RIG_IS_IC7600 || RIG_IS_IC7610 || RIG_IS_IC7760 || RIG_IS_IC7800
+            || RIG_IS_IC785X)
     {
         vfo_t actual_vfo = vfo_fixup(rig, vfo, cachep->split);
 

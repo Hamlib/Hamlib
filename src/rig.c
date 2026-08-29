@@ -1275,6 +1275,14 @@ int HAMLIB_API rig_open(RIG *rig)
         RETURNFUNC2(status);
     }
 
+    /*
+     * The sync pipes exist now, but asyncio routes every read through
+     * them and nothing writes to them until the reader thread runs.  Both
+     * this routine and the backend's open hook talk to the rig before
+     * that, so read straight from the port until the thread is up.
+     */
+    rp->asyncio = 0;
+
     switch (pttp->type.ptt)
     {
     case RIG_PTT_NONE:
@@ -3415,7 +3423,7 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
         RETURNFUNC(RIG_OK);
     }
 
-    if (rig->caps->get_vfo)
+    if (rig->caps->get_vfo && !rs->no_get_vfo)
     {
         retcode = rig_get_vfo(rig, &curr_vfo);
 
@@ -3543,7 +3551,7 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
     cachep = CACHE(rig);
 
 //    if (caps->get_vfo == NULL && RIG_ICOM != RIG_BACKEND_NUM(rig->caps->rig_model))
-    if (caps->get_vfo == NULL)
+    if (caps->get_vfo == NULL || rs->no_get_vfo)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: no get_vfo\n", __func__);
         ELAPSED2;
@@ -3586,7 +3594,9 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
         {
             if (RIG_ICOM == RIG_BACKEND_NUM(rig->caps->rig_model))
             {
-                rig->caps->get_vfo = NULL;
+                /* rig_caps is one static per model, shared by every rig
+                   opened from it, so remember this on the handle */
+                rs->no_get_vfo = 1;
                 *vfo = RIG_VFO_A;
                 LOCK(0);
                 RETURNFUNC(RIG_OK);
@@ -8488,19 +8498,27 @@ static int async_data_handler_start(RIG *rig)
 
     if (rs->async_data_handler_priv_data == NULL)
     {
+        rs->async_data_handler_thread_run = 0;
         RETURNFUNC(-RIG_ENOMEM);
     }
 
     async_data_handler_priv = (async_data_handler_priv_data *)
                               rs->async_data_handler_priv_data;
     async_data_handler_priv->args.rig = rig;
+    /* from here on the reader thread owns the port and feeds the pipes */
+    RIGPORT(rig)->asyncio = 1;
     int err = pthread_create(&async_data_handler_priv->thread_id, NULL,
                              async_data_handler, &async_data_handler_priv->args);
 
     if (err)
     {
+        /* nothing will feed the pipes, so hand the port back to direct reads */
+        RIGPORT(rig)->asyncio = 0;
+        rs->async_data_handler_thread_run = 0;
+        free(rs->async_data_handler_priv_data);
+        rs->async_data_handler_priv_data = NULL;
         rig_debug(RIG_DEBUG_ERR, "%s: pthread_create error: %s\n", __func__,
-                  strerror(errno));
+                  strerror(err));
         RETURNFUNC(-RIG_EINTERNAL);
     }
 
@@ -8581,6 +8599,8 @@ static int async_data_handler_stop(RIG *rig)
         rs->async_data_handler_priv_data = NULL;
     }
 
+    /* nothing feeds the pipes any more, so read straight from the port */
+    RIGPORT(rig)->asyncio = 0;
 
     RETURNFUNC(RIG_OK);
 }
