@@ -56,6 +56,9 @@
 #elif HAVE_WS2TCPIP_H
 #  include <ws2tcpip.h>
 #  include <fcntl.h>
+#  ifdef __MINGW32__
+#    include <io.h>
+#  endif
 #  if defined(HAVE_WSPIAPI_H)
 #    include <wspiapi.h>
 #  endif
@@ -1288,20 +1291,51 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-static FILE *get_fsockout(struct handle_data *handle_data_arg)
+static FILE *get_fsockout(FILE *fsockin)
 {
 #ifdef __MINGW32__
-    int sock_osfhandle = _open_osfhandle(handle_data_arg->sock, _O_RDONLY);
-    return _fdopen(sock_osfhandle, "wb");
+    int sock_osfhandle = _dup(_fileno(fsockin));
+    FILE *stream;
+
+    if (sock_osfhandle == -1)
+    {
+        return NULL;
+    }
+
+    stream = _fdopen(sock_osfhandle, "wb");
+
+    if (!stream)
+    {
+        _close(sock_osfhandle);
+    }
+
+    return stream;
 #else
-    return fdopen(handle_data_arg->sock, "wb");
+    int sock_fd = dup(fileno(fsockin));
+    FILE *stream;
+
+    if (sock_fd < 0)
+    {
+        return NULL;
+    }
+
+    stream = fdopen(sock_fd, "wb");
+
+    if (!stream)
+    {
+        close(sock_fd);
+    }
+
+    return stream;
 #endif
 }
 
-static FILE *get_fsockin(struct handle_data *handle_data_arg)
+static FILE *get_fsockin(struct handle_data *handle_data_arg,
+                         int *socket_fd_owned)
 {
 #ifdef __MINGW32__
-    int sock_osfhandle = _open_osfhandle(handle_data_arg->sock, _O_RDONLY);
+    int sock_osfhandle = _open_osfhandle(handle_data_arg->sock, _O_RDWR);
+    FILE *stream;
 
     if (sock_osfhandle == -1)
     {
@@ -1309,9 +1343,24 @@ static FILE *get_fsockin(struct handle_data *handle_data_arg)
         return NULL;
     }
 
-    return _fdopen(sock_osfhandle,  "rb");
+    *socket_fd_owned = 0;
+    stream = _fdopen(sock_osfhandle, "rb");
+
+    if (!stream)
+    {
+        _close(sock_osfhandle);
+    }
+
+    return stream;
 #else
-    return fdopen(handle_data_arg->sock, "rb");
+    FILE *stream = fdopen(handle_data_arg->sock, "rb");
+
+    if (stream)
+    {
+        *socket_fd_owned = 0;
+    }
+
+    return stream;
 #endif
 }
 
@@ -1323,6 +1372,7 @@ void *handle_socket(void *arg)
     struct handle_data *handle_data_arg = (struct handle_data *)arg;
     FILE *fsockin = NULL;
     FILE *fsockout = NULL;
+    int socket_fd_owned = 1;
     int retcode = RIG_OK;
     char host[NI_MAXHOST];
     char serv[NI_MAXSERV];
@@ -1332,7 +1382,7 @@ void *handle_socket(void *arg)
     rig_powerstat = RIG_POWER_ON; // defaults to power on
     struct timespec powerstat_check_time;
 
-    fsockin = get_fsockin(handle_data_arg);
+    fsockin = get_fsockin(handle_data_arg, &socket_fd_owned);
 
     if (!fsockin)
     {
@@ -1342,14 +1392,11 @@ void *handle_socket(void *arg)
         goto handle_exit;
     }
 
-    fsockout = get_fsockout(handle_data_arg);
+    fsockout = get_fsockout(fsockin);
 
     if (!fsockout)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: fdopen out: %s\n", __func__, strerror(errno));
-        fclose(fsockin);
-        fsockin = NULL;
-
         goto handle_exit;
     }
 
@@ -1536,9 +1583,12 @@ handle_exit:
 
 // for MINGW we close the handle before fclose
 #ifdef __MINGW32__
-    retcode = closesocket(handle_data_arg->sock);
+    if (socket_fd_owned)
+    {
+        retcode = closesocket(handle_data_arg->sock);
 
-    if (retcode != 0) { rig_debug(RIG_DEBUG_ERR, "%s: fclose(fsockin) %s\n", __func__, strerror(retcode)); }
+        if (retcode != 0) { rig_debug(RIG_DEBUG_ERR, "%s: fclose(fsockin) %s\n", __func__, strerror(retcode)); }
+    }
 
 #endif
 
@@ -1548,9 +1598,12 @@ handle_exit:
 
 // for everybody else we close the handle after fclose
 #ifndef __MINGW32__
-    retcode = close(handle_data_arg->sock);
+    if (socket_fd_owned)
+    {
+        retcode = close(handle_data_arg->sock);
 
-    if (retcode != 0 && errno != EBADF) { rig_debug(RIG_DEBUG_ERR, "%s: close(handle_data_arg->sock) %s\n", __func__, strerror(errno)); }
+        if (retcode != 0 && errno != EBADF) { rig_debug(RIG_DEBUG_ERR, "%s: close(handle_data_arg->sock) %s\n", __func__, strerror(errno)); }
+    }
 
 #endif
 
@@ -1558,7 +1611,6 @@ handle_exit:
                         NULL);      // Tell pthreads we're done with the data
     free(arg);
 
-    pthread_exit(NULL);
     return NULL;
 }
 
