@@ -2365,7 +2365,10 @@ int HAMLIB_API parse_hoststr(char *hoststr, int hoststr_len, char host[256],
  */
 int HAMLIB_API rig_flush_force(hamlib_port_t *port, int flush_async_data)
 {
-    if (port->type.rig == RIG_PORT_NONE)
+    /* RIG_PORT_CUSTOM: the backend owns its transport (e.g. the Icom network
+     * session's three UDP sockets), so there is nothing here for the core to
+     * flush. */
+    if (port->type.rig == RIG_PORT_NONE || port->type.rig == RIG_PORT_CUSTOM)
     {
         return RIG_OK;
     }
@@ -2957,6 +2960,20 @@ static const struct
     { 0xffffffff, "" },
 };
 
+static struct
+{
+    rig_comm_reason_t reason;
+    const char *str;
+} comm_reason_str[] =
+{
+    { RIG_COMM_REASON_NONE, "NONE" },
+    { RIG_COMM_REASON_PEER_DISCONNECT, "PEER_DISCONNECT" },
+    { RIG_COMM_REASON_LINK_TIMEOUT, "LINK_TIMEOUT" },
+    { RIG_COMM_REASON_SOCKET_ERROR, "SOCKET_ERROR" },
+    { RIG_COMM_REASON_AUTH_FAILED, "AUTH_FAILED" },
+    { 0xffffffff, "" },
+};
+
 /**
  * \brief Convert enum RIG_COMM_STATUS... to alpha string
  * \param status RIG_COMM_STATUS_...
@@ -2969,6 +2986,27 @@ const char *HAMLIB_API rig_strcommstatus(rig_comm_status_t status)
         if (status == comm_status_str[i].status)
         {
             return comm_status_str[i].str;
+        }
+    }
+
+    return "";
+}
+
+/**
+ * \brief Render a communication-status reason as a string
+ * \param reason The reason
+ *
+ * \return the reason's name, or an empty string if it is not a known reason.
+ *
+ * \sa rig_strcommstatus()
+ */
+const char *HAMLIB_API rig_strcommreason(rig_comm_reason_t reason)
+{
+    for (int i = 0; comm_reason_str[i].str[0] != '\0'; i++)
+    {
+        if (reason == comm_reason_str[i].reason)
+        {
+            return comm_reason_str[i].str;
         }
     }
 

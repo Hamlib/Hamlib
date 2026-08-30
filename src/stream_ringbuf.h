@@ -30,9 +30,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-/* HAMLIB_ATOMIC is defined in hamlib/rig.h */
-
-
 /* Ring buffer for streaming audio/I/Q data between producer and consumer. */
 struct rig_stream_ringbuf
 {
@@ -46,6 +43,9 @@ struct rig_stream_ringbuf
     pthread_mutex_t lock;
     pthread_cond_t data_available;  /* Signal when data written */
     int closing;                    /* 1 = shutting down; wakes blocked reader */
+    int failed;                     /* 1 = source died; read reports -RIG_EIO
+                                       rather than the -RIG_ENAVAIL of a
+                                       deliberate close */
     int use_monotonic;              /* 1 if condvar uses CLOCK_MONOTONIC */
     HAMLIB_ATOMIC int overrun_count;
     HAMLIB_ATOMIC int underrun_count;
@@ -97,7 +97,7 @@ void stream_ringbuf_reset(struct rig_stream_ringbuf *rb);
 
 /* Lower-level primitives for consumers that need to snapshot additional
  * state atomically with the read.  The caller must hold rb->lock around
- * both calls (see the enriched-read path in stream.c). */
+ * both calls. */
 
 /* Wait for readable data.  Returns 0 when data is available, -1 on timeout
  * (bumps underrun_count). */

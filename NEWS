@@ -15,6 +15,11 @@ Version 5.x -- future
           a dummy reference backend, the rigstreamtest diagnostic tool, and
           the stream_* rigctld commands.  See HAMLIB_STREAMING.md and
           HAMLIB_STREAMING_BACKEND_GUIDE.md.
+        * New Icom network backends using Icom's RS-BA1/LAN protocol: CI-V
+          control over UDP plus audio and I/Q streaming.  Models IC-7610,
+          IC-9700, IC-705, IC-905, IC-7760 and IC-7300MK2 (Network), numbered
+          3095-3100.  Configured with the net_* parameters; see
+          rigs/icom/ICOM.md.
         * rig_get_conf deprecated and replaced by rig_get_conf2
         * rot_get_conf deprecated and replaced by rot_get_conf2
         * Change FT1000MP Mark V model names to align with FT1000MP

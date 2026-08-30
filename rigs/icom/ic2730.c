@@ -57,6 +57,7 @@ static const struct icom_priv_caps ic2730_priv_caps =
     0x90,   /* default address */
     0,      /* 731 mode */
     1,      /* no XCHG */
+    .power_status_read_not_supported = 1
 };
 
 struct rig_caps ic2730_caps =

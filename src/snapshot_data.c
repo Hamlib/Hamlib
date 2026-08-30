@@ -39,6 +39,14 @@ static int snapshot_serialize_rig(cJSON *rig_node, RIG *rig)
         goto error;
     }
 
+    node = cJSON_AddStringToObject(rig_node, "statusReason",
+                                   rig_strcommreason(rs->comm_reason));
+
+    if (node == NULL)
+    {
+        goto error;
+    }
+
     // TODO: need to store last error code
     node = cJSON_AddStringToObject(rig_node, "errorMsg", "");
 
