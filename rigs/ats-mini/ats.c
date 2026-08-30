@@ -98,7 +98,12 @@ static int p_ats_update_state(RIG *rig) {
                 break;
             }
             case 4: {
-                strncpy(tmp_mon_data->bandname, token, (MINI_BANDNAME_LEN - 1));
+                if (strlen(token) >= MINI_BANDNAME_LEN) {
+                    rig_debug(RIG_DEBUG_ERR, "UNEXPECTED bandname");
+                    free(tmp_mon_data);
+                    return RIG_EPROTO;
+                }
+                memcpy(tmp_mon_data->bandname, token, (MINI_BANDNAME_LEN - 1));
                 break;
             }
             case 5: {
@@ -157,7 +162,7 @@ static int p_ats_update_state(RIG *rig) {
 
     if (tmp_mon_data->seq_no != mon_data->seq_no) {
         mon_data->freq = tmp_mon_data->freq;
-        strncpy(mon_data->bandname, tmp_mon_data->bandname, (MINI_BANDNAME_LEN - 1));
+        memcpy(mon_data->bandname, tmp_mon_data->bandname, (MINI_BANDNAME_LEN - 1));
         mon_data->mode = tmp_mon_data->mode;
         mon_data->step = tmp_mon_data->step;
         mon_data->bandwidth = tmp_mon_data->bandwidth;
@@ -181,7 +186,7 @@ static int p_ats_set_band(RIG *rig, mini_band_id_t band_id) {
     }
 
     char start_bandname[MINI_BANDNAME_LEN];
-    strncpy(start_bandname, mon_data->bandname, (MINI_BANDNAME_LEN - 1));
+    memcpy(start_bandname, mon_data->bandname, (MINI_BANDNAME_LEN - 1));
 
     rig_debug(RIG_DEBUG_WARN, "%s: start %s, requested %s\n", __func__, start_bandname, mini_band_ids[band_id]);
     while (1) {
