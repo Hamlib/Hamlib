@@ -1282,6 +1282,8 @@ class TestClass:
 'cvar',
 'hamlib_copyright',
 'hamlib_version']
+        if 'typing' in self.actual_properties:
+            self.actual_properties.remove('typing')  # remove symbol added by SWIG 4.5
         assert expected_properties == self.actual_properties
 
     @classmethod
