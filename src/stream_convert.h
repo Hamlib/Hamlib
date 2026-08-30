@@ -73,6 +73,9 @@ int rig_stream_resample(const float *src, int src_rate,
                         size_t src_samples, size_t *dst_samples,
                         int channels, int quality);
 
+/* Return non-zero when one conversion stage can serve the rate pair. */
+int stream_conv_rate_supported(int src_rate, int dst_rate);
+
 /* --- Persistent per-stream conversion context (frontend data path) --- */
 
 /* Opaque context carrying the stream's conversion pipeline state: scratch
@@ -92,8 +95,9 @@ typedef size_t (*stream_conv_sink_fn)(void *ctx, const void *buf,
  * channels when narrowing from more; I/Q only selects a subset. Rate
  * conversion requires libsamplerate (fails otherwise) and resamples I/Q
  * as interleaved I/Q float pairs; quality is the RIG_RESAMPLE_* sinc
- * converter to use (ignored without rate conversion). Returns 0 and
- * sets *out, or -1. */
+ * converter to use (ignored without rate conversion). Returns RIG_OK and
+ * sets *out, -RIG_EINVAL for unsupported geometry or resampler setup, or
+ * -RIG_ENOMEM when Hamlib scratch allocation fails. */
 int stream_conv_init(struct stream_conv **out,
                      rig_stream_format_t src_fmt, int src_rate, int src_ch,
                      rig_stream_format_t dst_fmt, int dst_rate, int dst_ch,
