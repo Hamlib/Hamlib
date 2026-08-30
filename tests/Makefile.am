@@ -223,6 +223,13 @@ check_SCRIPTS = \
 
 TESTS = $(check_SCRIPTS) $(DIRECT_TESTS)
 
+if HAVE_USRP
+check_PROGRAMS += testusrp
+TESTS += testusrp
+testusrp_SOURCES = testusrp.cc
+testusrp_LDADD = $(top_builddir)/rigs/kit/libhamlib-kit.la $(LDADD)
+endif
+
 $(top_builddir)/src/libhamlib.la:
 	$(MAKE) -C $(top_builddir)/src/ libhamlib.la
 
