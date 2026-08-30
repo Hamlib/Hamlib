@@ -7562,7 +7562,19 @@ int newcat_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    RETURNFUNC(newcat_set_cmd(rig));
+    if (op == RIG_OP_TUNE)
+    {
+        priv->question_mark_response_means_rejected = 1;
+    }
+
+    err = newcat_set_cmd(rig);
+
+    if (op == RIG_OP_TUNE)
+    {
+        priv->question_mark_response_means_rejected = 0;
+    }
+
+    RETURNFUNC(err);
 }
 
 
@@ -10668,10 +10680,6 @@ int newcat_set_cmd_validate(RIG *rig)
     {
         strcpy(valcmd, "PC;");
     }
-    else if (strncmp(priv->cmd_str, "AC", 2) == 0)
-    {
-        strcpy(valcmd, "");
-    }
     else if (strncmp(priv->cmd_str, "SY", 2) == 0)
     {
         strcpy(valcmd, "SY;");
@@ -10765,6 +10773,106 @@ repeat:
 
     RETURNFUNC(-RIG_EPROTO);
 }
+
+static int newcat_set_ac_cmd(RIG *rig)
+{
+    hamlib_port_t *rp = RIGPORT(rig);
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
+    const char *verify_cmd = RIG_MODEL_FT9000 == rig->caps->rig_model ?
+                             "AI;" : "ID;";
+    int frame_limit = rp->retry > 0 ? rp->retry + 2 : 2;
+    int result = RIG_OK;
+    int frame;
+    int rc;
+
+    rig_flush(rp);
+    rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
+
+    rc = write_block(rp, (unsigned char *) priv->cmd_str,
+                     strlen(priv->cmd_str));
+
+    if (rc != RIG_OK)
+    {
+        return rc;
+    }
+
+    // The query reply delimits any conditional error response from AC.
+    rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", verify_cmd);
+    rc = write_block(rp, (unsigned char *) verify_cmd, strlen(verify_cmd));
+
+    if (rc != RIG_OK)
+    {
+        return rc;
+    }
+
+    for (frame = 0; frame < frame_limit; frame++)
+    {
+        size_t response_len;
+
+        rc = read_string(rp, (unsigned char *) priv->ret_data,
+                         sizeof(priv->ret_data), &cat_term,
+                         sizeof(cat_term), 0, 1);
+
+        if (rc <= 0)
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: failed to synchronize after '%s': %s\n",
+                      __func__, priv->cmd_str, rigerror(rc));
+            return rc < 0 ? rc : -RIG_ETIMEOUT;
+        }
+
+        rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s\n",
+                  __func__, rc, priv->ret_data);
+        response_len = strlen(priv->ret_data);
+
+        if (response_len == 0 || priv->ret_data[response_len - 1] != cat_term)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: malformed response '%s'\n",
+                      __func__, priv->ret_data);
+            result = -RIG_EPROTO;
+            continue;
+        }
+
+        if (strncmp(verify_cmd, priv->ret_data, strlen(verify_cmd) - 1) == 0)
+        {
+            return result;
+        }
+
+        if (response_len == 2)
+        {
+            switch (priv->ret_data[0])
+            {
+            case '?':
+                result = priv->question_mark_response_means_rejected ?
+                         -RIG_ERJCTED : -RIG_BUSBUSY;
+                rig_debug(RIG_DEBUG_ERR, "%s: command rejected: '%s'\n",
+                          __func__, priv->cmd_str);
+                continue;
+
+            case 'N':
+                result = -RIG_ENAVAIL;
+                continue;
+
+            case 'E':
+                result = -RIG_EIO;
+                continue;
+
+            case 'O':
+                result = -RIG_EPROTO;
+                continue;
+            }
+        }
+
+        rig_debug(RIG_DEBUG_ERR, "%s: unexpected response '%s'\n",
+                  __func__, priv->ret_data);
+        result = -RIG_EPROTO;
+    }
+
+    rig_debug(RIG_DEBUG_ERR, "%s: synchronization response not received\n",
+              __func__);
+    return -RIG_EPROTO;
+}
+
 /*
  * Writes a null  terminated command string from  priv->cmd_str to the
  * CAT  port that is not expected to have a response.
@@ -10783,6 +10891,12 @@ int newcat_set_cmd(RIG *rig)
     int rc = -RIG_EPROTO;
 
     ENTERFUNC;
+
+    if (strncmp(priv->cmd_str, "AC", 2) == 0)
+    {
+        RETURNFUNC(newcat_set_ac_cmd(rig));
+    }
+
     /* pick a basic quick query command for verification */
     char const *const verify_cmd = RIG_MODEL_FT9000 == rig->caps->rig_model ?
                                    "AI;" : "ID;";

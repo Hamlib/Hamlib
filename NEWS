@@ -40,6 +40,8 @@ Version 5.x -- future
           Christle)
         * ID-5100: Correct ID-5100 VFO switching.  GitHub PR #2129 (TNX
           David Christle)
+        * Fix(rigctl): Enforce locale-neutral decimal protocol.  GitHub
+          PR #2131.  (TNX David Christle)
 
 Version 4.7.2
         * 2026-06-21
