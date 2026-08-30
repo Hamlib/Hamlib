@@ -274,6 +274,8 @@ extern int ftx1_parse_clar_offset(const char *response, char vfo,
                                   shortfreq_t *offset);
 extern int ftx1_parse_ex_menu_response(const char *response, int group,
                                        int section, int item, int *value);
+extern int ftx1_parse_monitor_response(const char *response, int selector,
+                                       int *level);
 extern int ftx1_parse_smeter_response(const char *response, int p1, int *value);
 
 #endif /* _FTX1_H */

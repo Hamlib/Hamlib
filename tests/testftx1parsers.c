@@ -130,6 +130,36 @@ static int expect_smeter(const char *response, int p1, int expected,
     return 0;
 }
 
+static int expect_monitor(const char *response, int selector, int expected,
+                          int expected_level)
+{
+    int level = 42;
+    int ret = ftx1_parse_monitor_response(response, selector, &level);
+
+    if (ret != expected)
+    {
+        fprintf(stderr, "ML response '%s': expected %d, got %d\n",
+                response, expected, ret);
+        return 1;
+    }
+
+    if (ret == RIG_OK && level != expected_level)
+    {
+        fprintf(stderr, "ML response '%s': expected %d, got %d\n",
+                response, expected_level, level);
+        return 1;
+    }
+
+    if (ret != RIG_OK && level != 42)
+    {
+        fprintf(stderr, "ML response '%s' changed output on failure\n",
+                response);
+        return 1;
+    }
+
+    return 0;
+}
+
 int main(void)
 {
     static const char *invalid_states[] =
@@ -144,6 +174,10 @@ int main(void)
     {
         "EX0301051;", "EX030104;", "EX0301041junk;",
         "EX0301042147483648;"
+    };
+    static const char *invalid_monitor[] =
+    {
+        "ML0002;", "ML2000;", "ML0000"
     };
 
     if (expect_clar_state("CF00000000;", '0', RIG_OK, '0', '0') != 0
@@ -182,6 +216,24 @@ int main(void)
     for (size_t i = 0; i < sizeof(invalid_ex) / sizeof(invalid_ex[0]); i++)
     {
         if (expect_ex(invalid_ex[i], -RIG_EPROTO, 0) != 0)
+        {
+            return 1;
+        }
+    }
+
+    if (expect_monitor("ML0000;", 0, RIG_OK, 0) != 0
+            || expect_monitor("ML0001;", 0, RIG_OK, 1) != 0
+            || expect_monitor("ML1000;", 1, RIG_OK, 0) != 0
+            || expect_monitor("ML1100;", 1, RIG_OK, 100) != 0
+            || expect_monitor("ML1101;", 1, -RIG_EPROTO, 0) != 0)
+    {
+        return 1;
+    }
+
+    for (size_t i = 0; i < sizeof(invalid_monitor)
+            / sizeof(invalid_monitor[0]); i++)
+    {
+        if (expect_monitor(invalid_monitor[i], 0, -RIG_EPROTO, 0) != 0)
         {
             return 1;
         }
