@@ -13,6 +13,12 @@ Version 5.x -- future
           SW and PC CAT commands.  The power meter full scale (6W stock,
           12W with the PA0RDT PA modification) is read from the radio at
           open time.
+        * New data streaming subsystem (experimental): audio and I/Q streams
+          between a backend and an application through the rig_stream_* API,
+          or over the network from rigctld via a UDP wire protocol.  Includes
+          a dummy reference backend, the rigstreamtest diagnostic tool, and
+          the stream_* rigctld commands.  See HAMLIB_STREAMING.md and
+          HAMLIB_STREAMING_BACKEND_GUIDE.md.
         * rig_get_conf deprecated and replaced by rig_get_conf2
         * rot_get_conf deprecated and replaced by rot_get_conf2
         * Change FT1000MP Mark V model names to align with FT1000MP
@@ -30,6 +36,16 @@ Version 5.x -- future
           Jon Snow)
         * Fix(dummy): Copy string parameter values. GitHub PR #2115
           (TNX David Christle)
+        * Feature: Add data streaming subsystem for audio and I/Q.
+          GitHub PR #2116.  (TNX Mikael Nousiainen)
+        * New: TCI 2.0 (Expert Electronics) backend, CAT only.  GitHub
+          PR #2083.  (TNX Jeff Francis)
+        * TH-D75: New dedicated backend.  GitHub PR #2120.  (TNX David
+          Christle)
+        * ID-5100: Correct ID-5100 VFO switching.  GitHub PR #2129 (TNX
+          David Christle)
+        * Fix(rigctl): Enforce locale-neutral decimal protocol.  GitHub
+          PR #2131.  (TNX David Christle)
 
 Version 4.7.2
         * 2026-06-21

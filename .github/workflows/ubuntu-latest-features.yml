@@ -2,9 +2,7 @@ name: Ubuntu latest C/C++ (features)
 
 on:
   push:
-    branches: [ master, feature/* ]
   pull_request:
-    branches: [ master ]
 
 jobs:
   build:
@@ -29,11 +27,14 @@ jobs:
             --with-perl-binding=yes
             --with-python-binding=yes
             --with-readline=yes
+            --with-samplerate=yes
             --with-tcl-binding=yes
             --with-xml-support=yes
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
+    - name: Raise kernel socket buffer ceiling for network test suites
+      run: sudo sysctl -w net.core.wmem_max=8388608 net.core.rmem_max=8388608
     - name: Install dependencies on Ubuntu latest
       run: |
         sudo apt update
@@ -44,6 +45,7 @@ jobs:
         sudo apt -y install grep
         sudo apt -y install python3-dev python3-pytest
         sudo apt -y install lua5.4 liblua5.4-dev libperl-dev tcl-dev
+        sudo apt -y install libsamplerate0-dev
         sudo apt -y install swig
     - name: bootstrap
       run: |
@@ -53,6 +55,9 @@ jobs:
       run: ./configure ${{ matrix.configure_args }}
     - name: make distcheck
       run: make distcheck V=0 --no-print-directory AM_DISTCHECK_CONFIGURE_FLAGS="${{ matrix.configure_args }} --without-perl-binding"
+    - name: Dump test logs on failure
+      if: failure()
+      run: find . -name test-suite.log -print -exec cat {} \;
     - name: 'tar files'
       run: tar -cvf ubuntu_latest_features.tar $(pwd)
     - name: 'Upload Build Artifact'

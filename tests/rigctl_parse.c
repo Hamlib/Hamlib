@@ -29,6 +29,7 @@
 #include "hamlib/config.h"
 
 #include <stdint.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -74,8 +75,19 @@ extern int read_history();
 #include "iofunc.h"
 #include "riglist.h"
 #include "sprintflst.h"
+#include "rigctl_protocol.h"
 
 #include "rigctl_parse.h"
+#include "rigctld_stream.h"
+#include "stream_convert.h"
+#include "rigctld_client.h"
+
+#ifdef HAVE_NETDB_H
+#  include <netdb.h>
+#endif
+
+#include "stream.h"
+#include "kvparse.h"
 
 /* Hash table implementation See:  http://uthash.sourceforge.net/ */
 #include "uthash.h"
@@ -274,6 +286,17 @@ declare_proto_rig(cm108_get_bit);
 declare_proto_rig(cm108_set_bit);
 declare_proto_rig(set_conf);
 declare_proto_rig(get_conf);
+declare_proto_rig(stream_caps);
+declare_proto_rig(stream_open);
+declare_proto_rig(stream_close);
+declare_proto_rig(stream_status);
+declare_proto_rig(stream_pause);
+declare_proto_rig(stream_resume);
+declare_proto_rig(stream_mute);
+declare_proto_rig(stream_unmute);
+declare_proto_rig(stream_metadata_read);
+declare_proto_rig(stream_drain);
+declare_proto_rig(stream_list);
 
 
 /*
@@ -393,6 +416,17 @@ static struct test_table test_list[] =
     { 0xac, "set_conf",    ACTION(set_conf), ARG_NOVFO | ARG_IN, "Token", "Token Value" },
     { 0xad, "get_conf",    ACTION(get_conf), ARG_NOVFO | ARG_IN1 | ARG_OUT2, "Token", "Value"},
     { 0xa7, "test",    ACTION(test), ARG_NOVFO | ARG_IN, "routine" },
+    { 0xb0, "stream_caps",   ACTION(stream_caps),   ARG_OUT | ARG_NOVFO },
+    { 0xb1, "stream_open",  ACTION(stream_open),   ARG_IN1 | ARG_IN2 | ARG_IN3 | ARG_OUT | ARG_NOVFO, "Type", "Format", "Rate" },
+    { 0xb2, "stream_close", ACTION(stream_close),  ARG_IN1 | ARG_NOVFO, "Stream ID" },
+    { 0xb3, "stream_status",       ACTION(stream_status),       ARG_IN1 | ARG_OUT | ARG_NOVFO, "Stream ID" },
+    { 0xb4, "stream_pause",        ACTION(stream_pause),        ARG_IN1 | ARG_NOVFO, "Stream ID" },
+    { 0xb5, "stream_resume",       ACTION(stream_resume),       ARG_IN1 | ARG_NOVFO, "Stream ID" },
+    { 0xb6, "stream_mute",         ACTION(stream_mute),         ARG_IN1 | ARG_NOVFO, "Stream ID" },
+    { 0xb7, "stream_unmute",       ACTION(stream_unmute),       ARG_IN1 | ARG_NOVFO, "Stream ID" },
+    { 0xb8, "stream_metadata_read", ACTION(stream_metadata_read), ARG_IN1 | ARG_OUT | ARG_NOVFO, "Stream ID" },
+    { 0xb9, "stream_drain",        ACTION(stream_drain),        ARG_IN1 | ARG_NOVFO, "Stream ID" },
+    { 0xba, "stream_list",         ACTION(stream_list),         ARG_OUT | ARG_NOVFO },
     { 0x00, "", NULL },
 };
 
@@ -590,6 +624,229 @@ static int scanfc(FILE *fin, const char *format, void *p)
     while (1);
 }
 
+static int parse_protocol_freq(const char *token, freq_t *value)
+{
+    return rigctl_parse_double(token, RIGCTL_DECIMAL_DOT_OR_COMMA, value) == RIG_OK;
+}
+
+static int scan_protocol_freq(FILE *fin, freq_t *value)
+{
+    char token[128];
+
+    if (scanfc(fin, "%127s", token) != 1)
+    {
+        return 0;
+    }
+
+    return parse_protocol_freq(token, value);
+}
+
+static int print_protocol_decimal(FILE *fout, const char *format, double value)
+{
+    char buffer[64];
+    int status;
+
+    status = rigctl_format_decimal(buffer, sizeof(buffer), format, value);
+
+    if (status == RIG_OK)
+    {
+        fputs(buffer, fout);
+    }
+
+    return status;
+}
+
+static int format_protocol_freq(char *buffer, size_t buffer_size, freq_t freq)
+{
+    const char *unit;
+    double value;
+    int decimal_places = 10;
+    char format[8];
+    int length;
+    int status;
+    size_t used;
+
+    if (freq >= GHz(1) || freq <= -GHz(1))
+    {
+        unit = "GHz";
+        value = freq / GHz(1);
+    }
+    else if (freq >= MHz(1) || freq <= -MHz(1))
+    {
+        unit = "MHz";
+        value = freq / MHz(1);
+        decimal_places = 7;
+    }
+    else if (freq >= kHz(1) || freq <= -kHz(1))
+    {
+        unit = "kHz";
+        value = freq / kHz(1);
+        decimal_places = 4;
+    }
+    else
+    {
+        unit = "Hz";
+        value = freq;
+        decimal_places = 1;
+    }
+
+    snprintf(format, sizeof(format), "%%.%df", decimal_places);
+    status = rigctl_format_decimal(buffer, buffer_size, format, value);
+
+    if (status != RIG_OK)
+    {
+        return status;
+    }
+
+    used = strlen(buffer);
+    length = snprintf(buffer + used, buffer_size - used, " %s", unit);
+    return length < 0 ? -RIG_EPROTO
+           : (size_t)length >= buffer_size - used ? -RIG_ETRUNC : RIG_OK;
+}
+
+static int parse_clock_offset(const char *token, int *utc_offset)
+{
+    int hours;
+    int minutes = 0;
+    int sign;
+    size_t length;
+
+    if (token == NULL || utc_offset == NULL || (token[0] != '+' && token[0] != '-'))
+    {
+        return -RIG_EINVAL;
+    }
+
+    length = strlen(token);
+
+    if (length != 3 && length != 5 && length != 6)
+    {
+        return -RIG_EINVAL;
+    }
+
+    if (!isdigit((unsigned char)token[1]) || !isdigit((unsigned char)token[2]))
+    {
+        return -RIG_EINVAL;
+    }
+
+    sign = token[0] == '-' ? -1 : 1;
+    hours = (token[1] - '0') * 10 + token[2] - '0';
+
+    if (length == 5)
+    {
+        if (!isdigit((unsigned char)token[3]) || !isdigit((unsigned char)token[4]))
+        {
+            return -RIG_EINVAL;
+        }
+
+        minutes = (token[3] - '0') * 10 + token[4] - '0';
+    }
+    else if (length == 6)
+    {
+        if (token[3] != ':' || !isdigit((unsigned char)token[4])
+                || !isdigit((unsigned char)token[5]))
+        {
+            return -RIG_EINVAL;
+        }
+
+        minutes = (token[4] - '0') * 10 + token[5] - '0';
+    }
+
+    if (hours > 23 || minutes > 59)
+    {
+        return -RIG_EINVAL;
+    }
+
+    *utc_offset = sign * (hours * 100 + minutes);
+    return RIG_OK;
+}
+
+static int parse_protocol_clock(const char *timestamp, int *year, int *month,
+                                int *day, int *hour, int *minute, int *second,
+                                double *msec, int *utc_offset)
+{
+    const char *offset;
+    char fraction[32];
+    int fields;
+    int position;
+
+    if (timestamp == NULL || year == NULL || month == NULL || day == NULL
+            || hour == NULL || minute == NULL || second == NULL || msec == NULL
+            || utc_offset == NULL || strlen(timestamp) < 19)
+    {
+        return -RIG_EINVAL;
+    }
+
+    if (timestamp[4] != '-' || timestamp[7] != '-' || timestamp[10] != 'T'
+            || timestamp[13] != ':')
+    {
+        return -RIG_EINVAL;
+    }
+
+    if (timestamp[16] == '+' || timestamp[16] == '-')
+    {
+        fields = sscanf(timestamp, "%4d-%2d-%2dT%2d:%2d%n", year, month, day,
+                        hour, minute, &position);
+        *second = 0;
+        *msec = 0;
+        offset = timestamp + 16;
+    }
+    else if (timestamp[19] == '+' || timestamp[19] == '-')
+    {
+        fields = sscanf(timestamp, "%4d-%2d-%2dT%2d:%2d:%2d%n", year, month, day,
+                        hour, minute, second, &position);
+        *msec = 0;
+        offset = timestamp + 19;
+    }
+    else
+    {
+        size_t fraction_length;
+
+        fields = sscanf(timestamp, "%4d-%2d-%2dT%2d:%2d:%2d%n", year, month, day,
+                        hour, minute, second, &position);
+
+        if (timestamp[19] != '.')
+        {
+            return -RIG_EINVAL;
+        }
+
+        offset = timestamp + 19;
+
+        while (*offset != '+' && *offset != '-' && *offset != '\0')
+        {
+            ++offset;
+        }
+
+        fraction_length = (size_t)(offset - (timestamp + 19));
+
+        if (fraction_length == 0 || fraction_length >= sizeof(fraction))
+        {
+            return -RIG_EINVAL;
+        }
+
+        memcpy(fraction, timestamp + 19, fraction_length);
+        fraction[fraction_length] = '\0';
+
+        if (rigctl_parse_double(fraction, RIGCTL_DECIMAL_DOT_ONLY, msec) != RIG_OK)
+        {
+            return -RIG_EINVAL;
+        }
+    }
+
+    if (fields != (timestamp[16] == '+' || timestamp[16] == '-' ? 5 : 6)
+            || position != (timestamp[16] == '+' || timestamp[16] == '-' ? 16 : 19))
+    {
+        return -RIG_EINVAL;
+    }
+
+    return parse_clock_offset(offset, utc_offset);
+}
+
+#define PRINT_PROTOCOL_DECIMAL(format, value) \
+    do { \
+        int protocol_status = print_protocol_decimal(fout, format, value); \
+        if (protocol_status != RIG_OK) { RETURNFUNC2(protocol_status); } \
+    } while (0)
+
 
 /*
  * function to get the next word from the command line or from stdin
@@ -696,9 +953,10 @@ void rigctl_parse_init(/* int threaded */)
     int retval;
 
     retval = pthread_key_create(&thread_data_key, NULL);
+
     if (retval != 0)
     {
-	rig_debug(RIG_DEBUG_ERR, "%s: Thread data key not created\n", __func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: Thread data key not created\n", __func__);
     }
 
     return;
@@ -923,10 +1181,10 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             }
         }
 
-        if (strcmp(command,"skip-init")==0)
+        if (strcmp(command, "skip-init") == 0)
         {
             // no-op now since it's automatic in non-interactive mode
-            return(RIG_OK);
+            return (RIG_OK);
         }
 
         cmd_entry = find_cmd_entry(cmd);
@@ -1822,9 +2080,14 @@ readline_repeat:
         else if (strcmp(cmd_entry->arg1, "Password") == 0) { preCmd = 1; }
     }
 
-    connection = pthread_getspecific(thread_data_key);  // Get state of this connection
+    connection = pthread_getspecific(
+                     thread_data_key);  // Get state of this connection
 
-    if (use_password && !(connection ? connection->is_passwordOK : 0) && (cmd_entry->arg1 != NULL) && !preCmd)
+    /* Streaming commands are gated even when they take no arguments */
+    int is_stream_cmd = (cmd >= 0xb0 && cmd <= 0xba);
+
+    if (use_password && !(connection ? connection->is_passwordOK : 0)
+            && (cmd_entry->arg1 != NULL || is_stream_cmd) && !preCmd)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: password has not been provided\n", __func__);
         fflush(fin);
@@ -1851,6 +2114,33 @@ readline_repeat:
                       "%s: command %s not allowed when rig is powered off\n", __func__,
                       cmd_entry->name);
             retcode = -RIG_EPOWER;
+        }
+        else if (cmd >= 0xb0 && cmd <= 0xba && !is_rigctld)
+        {
+            /* Streaming is served by rigctld only; checked ahead of the
+             * protocol-format rules so a local rigctl reports the feature as
+             * unavailable rather than complaining about the response format. */
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: streaming command 0x%02x is available in rigctld only\n",
+                      __func__, cmd);
+            retcode = -RIG_ENAVAIL;
+        }
+        else if (cmd >= 0xb0 && cmd <= 0xba && !*ext_resp_ptr)
+        {
+            /* Streaming commands require extended response protocol */
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: streaming command 0x%02x requires ext_resp (+)\n",
+                      __func__, cmd);
+            retcode = -RIG_EPROTO;
+        }
+        else if (cmd > 0xb0 && cmd <= 0xba && !g_stream_registry.initialized)
+        {
+            /* Every command past stream_caps works on the registry, which only
+             * rigctld owns; stream_caps is a pure capability query. */
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: streaming command 0x%02x needs a stream registry\n",
+                      __func__, cmd);
+            retcode = -RIG_ENAVAIL;
         }
         else
         {
@@ -1978,7 +2268,8 @@ void usage_rig(FILE *fout)
 
     for (int i = 0; test_list[i].cmd != 0; i++)
     {
-        int nbspaces = 20; // longest arguments are 32 chars: "TX Frequency,TX Mode,TX Passband"
+        int nbspaces =
+            20; // longest arguments are 32 chars: "TX Frequency,TX Mode,TX Passband"
         fprintf(fout,
                 "%c: %-19s(", // longest commands are 19 chars, eg. "set_split_freq_mode"
                 isprint(test_list[i].cmd) ? test_list[i].cmd : '?',
@@ -2192,7 +2483,7 @@ declare_proto_rig(set_freq)
 
     ENTERFUNC2;
 
-    CHKSCN1ARG(sscanf(arg1, "%"SCNfreq, &freq));
+    CHKSCN1ARG(parse_protocol_freq(arg1, &freq));
     retval = rig_set_freq(rig, vfo, freq);
 
     if (retval == RIG_OK)
@@ -2997,7 +3288,7 @@ declare_proto_rig(set_split_freq)
 
     ENTERFUNC2;
 
-    CHKSCN1ARG(sscanf(arg1, "%"SCNfreq, &txfreq));
+    CHKSCN1ARG(parse_protocol_freq(arg1, &txfreq));
 
     RETURNFUNC2(rig_set_split_freq(rig, txvfo, txfreq));
 }
@@ -3109,7 +3400,7 @@ declare_proto_rig(set_split_freq_mode)
         RETURNFUNC2(RIG_OK);
     }
 
-    CHKSCN1ARG(sscanf(arg1, "%"SCNfreq, &freq));
+    CHKSCN1ARG(parse_protocol_freq(arg1, &freq));
     mode = rig_parse_mode(arg2);
     CHKSCN1ARG(sscanf(arg3, "%d", &width));
     RETURNFUNC2(rig_set_split_freq_mode(rig, txvfo, freq, mode, (pbwidth_t) width));
@@ -3283,8 +3574,8 @@ declare_proto_rig(power2mW)
 
     ENTERFUNC2;
 
-    CHKSCN1ARG(sscanf(arg1, "%f", &power));
-    CHKSCN1ARG(sscanf(arg2, "%"SCNfreq, &freq));
+    CHKSCN1ARG(rigctl_parse_float(arg1, RIGCTL_DECIMAL_DOT_OR_COMMA, &power) == RIG_OK);
+    CHKSCN1ARG(parse_protocol_freq(arg2, &freq));
     mode = rig_parse_mode(arg3);
 
     status = rig_power2mW(rig, &mwp, power, freq, mode);
@@ -3317,7 +3608,7 @@ declare_proto_rig(mW2power)
     ENTERFUNC2;
 
     CHKSCN1ARG(sscanf(arg1, "%u", &mwp));
-    CHKSCN1ARG(sscanf(arg2, "%"SCNfreq, &freq));
+    CHKSCN1ARG(parse_protocol_freq(arg2, &freq));
     mode = rig_parse_mode(arg3);
 
     status = rig_mW2power(rig, &power, mwp, freq, mode);
@@ -3332,7 +3623,8 @@ declare_proto_rig(mW2power)
         fprintf(fout, "%s: ", cmd->arg4);
     }
 
-    fprintf(fout, "%f%c", power, resp_sep);
+    PRINT_PROTOCOL_DECIMAL("%f", power);
+    fputc(resp_sep, fout);
 
     RETURNFUNC2(status);
 }
@@ -3377,14 +3669,22 @@ declare_proto_rig(set_level)
         if (level == RIG_LEVEL_METER)
         {
             fprintf(fout, "COMP ALC SWR ID/IC VDD DB PO TEMP%c", resp_sep);
-        } else {
+        }
+        else
+        {
             const gran_t *gran = STATE(rig)->level_gran;
             int idx = rig_setting2idx(level);
 
             if (RIG_LEVEL_IS_FLOAT(level))
             {
-                fprintf(fout, "(%f..%f/%f)%c", gran[idx].min.f,
-                        gran[idx].max.f, gran[idx].step.f, resp_sep);
+                fputc('(', fout);
+                PRINT_PROTOCOL_DECIMAL("%f", gran[idx].min.f);
+                fputs("..", fout);
+                PRINT_PROTOCOL_DECIMAL("%f", gran[idx].max.f);
+                fputc('/', fout);
+                PRINT_PROTOCOL_DECIMAL("%f", gran[idx].step.f);
+                fputc(')', fout);
+                fputc(resp_sep, fout);
             }
             else
             {
@@ -3396,11 +3696,6 @@ declare_proto_rig(set_level)
         RETURNFUNC2(RIG_OK);
     }
 
-
-    // some Java apps send comma in international setups so substitute period
-    char *p = strchr(arg2, ',');
-
-    if (p) { *p = '.'; }
 
     if (!rig_has_set_level(rig, level))
     {
@@ -3427,11 +3722,11 @@ declare_proto_rig(set_level)
             break;
 
         case RIG_CONF_INT:
-            CHKSCN1ARG(sscanf(arg2, "%f", &val.f));
+            CHKSCN1ARG(rigctl_parse_float(arg2, RIGCTL_DECIMAL_DOT_OR_COMMA, &val.f) == RIG_OK);
             break;
 
         case RIG_CONF_NUMERIC:
-            CHKSCN1ARG(sscanf(arg2, "%g", &val.f));
+            CHKSCN1ARG(rigctl_parse_float(arg2, RIGCTL_DECIMAL_DOT_OR_COMMA, &val.f) == RIG_OK);
             break;
 
         case RIG_CONF_STRING:
@@ -3468,7 +3763,7 @@ declare_proto_rig(set_level)
 
     if (RIG_LEVEL_IS_FLOAT(level))
     {
-        CHKSCN1ARG(sscanf(arg2, "%f", &val.f));
+        CHKSCN1ARG(rigctl_parse_float(arg2, RIGCTL_DECIMAL_DOT_OR_COMMA, &val.f) == RIG_OK);
     }
     else
     {
@@ -3542,11 +3837,13 @@ declare_proto_rig(get_level)
             break;
 
         case RIG_CONF_NUMERIC:
-            fprintf(fout, "%g%c", val.f, resp_sep);
+            PRINT_PROTOCOL_DECIMAL("%g", val.f);
+            fputc(resp_sep, fout);
             break;
 
         case RIG_CONF_INT:
-            fprintf(fout, "%.0f%c", val.f, resp_sep);
+            PRINT_PROTOCOL_DECIMAL("%.0f", val.f);
+            fputc(resp_sep, fout);
             break;
 
         case RIG_CONF_STRING:
@@ -3606,7 +3903,8 @@ declare_proto_rig(get_level)
 
     if (RIG_LEVEL_IS_FLOAT(level))
     {
-        fprintf(fout, "%g%c", val.f, resp_sep);
+        PRINT_PROTOCOL_DECIMAL("%g", val.f);
+        fputc(resp_sep, fout);
     }
     else
     {
@@ -3739,7 +4037,8 @@ declare_proto_rig(set_parm)
 
     parm = rig_parse_parm(arg1);
 
-    if ((parm == RIG_PARM_BANDSELECT || parm == RIG_PARM_KEYERTYPE) && !strcmp(arg2, "?"))
+    if ((parm == RIG_PARM_BANDSELECT || parm == RIG_PARM_KEYERTYPE)
+            && !strcmp(arg2, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
         rig_sprintf_parm_gran(s, sizeof(s) - 1, parm, rig->caps->parm_gran);
@@ -3793,11 +4092,11 @@ declare_proto_rig(set_parm)
             break;
 
         case RIG_CONF_INT:
-            CHKSCN1ARG(sscanf(arg2, "%f", &val.f));
+            CHKSCN1ARG(rigctl_parse_float(arg2, RIGCTL_DECIMAL_DOT_OR_COMMA, &val.f) == RIG_OK);
             break;
 
         case RIG_CONF_NUMERIC:
-            CHKSCN1ARG(sscanf(arg2, "%g", &val.f));
+            CHKSCN1ARG(rigctl_parse_float(arg2, RIGCTL_DECIMAL_DOT_OR_COMMA, &val.f) == RIG_OK);
             break;
 
         case RIG_CONF_STRING:
@@ -3827,11 +4126,12 @@ declare_proto_rig(set_parm)
 
     if (RIG_PARM_IS_FLOAT(parm))
     {
-        CHKSCN1ARG(sscanf(arg2, "%f", &val.f));
+        CHKSCN1ARG(rigctl_parse_float(arg2, RIGCTL_DECIMAL_DOT_OR_COMMA, &val.f) == RIG_OK);
     }
     else if (RIG_PARM_IS_STRING(parm))
     {
 #if 0
+
         if (parm == RIG_PARM_KEYERTYPE)
         {
             val.i = atoi(arg2);
@@ -3924,11 +4224,13 @@ declare_proto_rig(get_parm)
             break;
 
         case RIG_CONF_INT:
-            fprintf(fout, "%.0f%c", val.f, resp_sep);
+            PRINT_PROTOCOL_DECIMAL("%.0f", val.f);
+            fputc(resp_sep, fout);
             break;
 
         case RIG_CONF_NUMERIC:
-            fprintf(fout, "%g%c", val.f, resp_sep);
+            PRINT_PROTOCOL_DECIMAL("%g", val.f);
+            fputc(resp_sep, fout);
             break;
 
         case RIG_CONF_STRING:
@@ -3974,7 +4276,8 @@ declare_proto_rig(get_parm)
     else if (RIG_PARM_IS_FLOAT(parm))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: float\n", __func__);
-        fprintf(fout, "%f%c", val.f, resp_sep);
+        PRINT_PROTOCOL_DECIMAL("%f", val.f);
+        fputc(resp_sep, fout);
     }
     else if (RIG_PARM_IS_STRING(parm))
     {
@@ -4177,7 +4480,7 @@ declare_proto_rig(set_channel)
             fprintf_flush(fout, "Frequency: ");
         }
 
-        CHKSCN1ARG(scanfc(fin, "%"SCNfreq, &chan.freq));
+        CHKSCN1ARG(scan_protocol_freq(fin, &chan.freq));
     }
 
     if (mem_caps->mode)
@@ -4208,7 +4511,7 @@ declare_proto_rig(set_channel)
             fprintf_flush(fout, "tx freq: ");
         }
 
-        CHKSCN1ARG(scanfc(fin, "%"SCNfreq, &chan.tx_freq));
+        CHKSCN1ARG(scan_protocol_freq(fin, &chan.tx_freq));
     }
 
     if (mem_caps->tx_mode)
@@ -4499,8 +4802,8 @@ declare_proto_rig(get_info)
 int dump_chan(FILE *fout, RIG *rig, channel_t *chan)
 {
     int idx, firstloop = 1;
-    char freqbuf[16];
-    char widthbuf[16];
+    char freqbuf[32];
+    char widthbuf[32];
     char prntbuf[256];
 
     ENTERFUNC2;
@@ -4516,34 +4819,52 @@ int dump_chan(FILE *fout, RIG *rig, channel_t *chan)
             chan->ant,
             chan->split == RIG_SPLIT_ON ? "ON" : "OFF");
 
-    sprintf_freq(freqbuf, sizeof(freqbuf), chan->freq);
-    sprintf_freq(widthbuf, sizeof(widthbuf), chan->width);
+    if (format_protocol_freq(freqbuf, sizeof(freqbuf), chan->freq) != RIG_OK
+            || format_protocol_freq(widthbuf, sizeof(widthbuf), chan->width) != RIG_OK)
+    {
+        RETURNFUNC2(-RIG_EINVAL);
+    }
     fprintf(fout,
             "Freq:   %s\tMode:   %s\tWidth:   %s\n",
             freqbuf,
             rig_strrmode(chan->mode),
             widthbuf);
 
-    sprintf_freq(freqbuf, sizeof(freqbuf), chan->tx_freq);
-    sprintf_freq(widthbuf, sizeof(widthbuf), chan->tx_width);
+    if (format_protocol_freq(freqbuf, sizeof(freqbuf), chan->tx_freq) != RIG_OK
+            || format_protocol_freq(widthbuf, sizeof(widthbuf), chan->tx_width) != RIG_OK)
+    {
+        RETURNFUNC2(-RIG_EINVAL);
+    }
     fprintf(fout,
             "txFreq: %s\ttxMode: %s\ttxWidth: %s\n",
             freqbuf,
             rig_strrmode(chan->tx_mode),
             widthbuf);
 
-    sprintf_freq(freqbuf, sizeof(freqbuf), chan->rptr_offs);
+    if (format_protocol_freq(freqbuf, sizeof(freqbuf), chan->rptr_offs) != RIG_OK)
+    {
+        RETURNFUNC2(-RIG_EINVAL);
+    }
     fprintf(fout,
             "Shift: %s, Offset: %s%s, ",
             rig_strptrshift(chan->rptr_shift),
             chan->rptr_offs > 0 ? "+" : "",
             freqbuf);
 
-    sprintf_freq(freqbuf, sizeof(freqbuf), chan->tuning_step);
+    if (format_protocol_freq(freqbuf, sizeof(freqbuf), chan->tuning_step) != RIG_OK)
+    {
+        RETURNFUNC2(-RIG_EINVAL);
+    }
     fprintf(fout, "Step: %s, ", freqbuf);
-    sprintf_freq(freqbuf, sizeof(freqbuf), chan->rit);
+    if (format_protocol_freq(freqbuf, sizeof(freqbuf), chan->rit) != RIG_OK)
+    {
+        RETURNFUNC2(-RIG_EINVAL);
+    }
     fprintf(fout, "RIT: %s%s, ", chan->rit > 0 ? "+" : "", freqbuf);
-    sprintf_freq(freqbuf, sizeof(freqbuf), chan->xit);
+    if (format_protocol_freq(freqbuf, sizeof(freqbuf), chan->xit) != RIG_OK)
+    {
+        RETURNFUNC2(-RIG_EINVAL);
+    }
     fprintf(fout, "XIT: %s%s\n", chan->xit > 0 ? "+" : "", freqbuf);
 
     fprintf(fout, "CTCSS: %u.%uHz, ", chan->ctcss_tone / 10, chan->ctcss_tone % 10);
@@ -4591,7 +4912,9 @@ int dump_chan(FILE *fout, RIG *rig, channel_t *chan)
 
         if (RIG_LEVEL_IS_FLOAT(level))
         {
-            fprintf(fout, " %s: %g%%", level_s, 100 * chan->levels[idx].f);
+            fprintf(fout, " %s: ", level_s);
+            PRINT_PROTOCOL_DECIMAL("%g", 100 * chan->levels[idx].f);
+            fputc('%', fout);
         }
         else
         {
@@ -4624,11 +4947,19 @@ int dump_chan(FILE *fout, RIG *rig, channel_t *chan)
             break;
 
         case RIG_CONF_INT:
-            SNPRINTF(lstr, sizeof(lstr), "%.0f", chan->ext_levels[idx].val.f);
+            if (rigctl_format_decimal(lstr, sizeof(lstr), "%.0f",
+                                      chan->ext_levels[idx].val.f) != RIG_OK)
+            {
+                RETURNFUNC2(-RIG_EINVAL);
+            }
             break;
 
         case RIG_CONF_NUMERIC:
-            SNPRINTF(lstr, sizeof(lstr), "%g", chan->ext_levels[idx].val.f);
+            if (rigctl_format_decimal(lstr, sizeof(lstr), "%g",
+                                      chan->ext_levels[idx].val.f) != RIG_OK)
+            {
+                RETURNFUNC2(-RIG_EINVAL);
+            }
             break;
 
         case RIG_CONF_CHECKBUTTON:
@@ -4698,10 +5029,10 @@ declare_proto_rig(dump_state)
     for (i = 0; i < HAMLIB_FRQRANGESIZ
             && !RIG_IS_FRNG_END(rs->rx_range_list[i]); i++)
     {
-        fprintf(fout,
-                "%"FREQFMT" %"FREQFMT" 0x%"PRXll" %d %d 0x%x 0x%x\n",
-                rs->rx_range_list[i].startf,
-                rs->rx_range_list[i].endf,
+        PRINT_PROTOCOL_DECIMAL("%"FREQFMT, rs->rx_range_list[i].startf);
+        fputc(' ', fout);
+        PRINT_PROTOCOL_DECIMAL("%"FREQFMT, rs->rx_range_list[i].endf);
+        fprintf(fout, " 0x%"PRXll" %d %d 0x%x 0x%x\n",
                 rs->rx_range_list[i].modes,
                 rs->rx_range_list[i].low_power,
                 rs->rx_range_list[i].high_power,
@@ -4714,10 +5045,10 @@ declare_proto_rig(dump_state)
     for (i = 0; i < HAMLIB_FRQRANGESIZ
             && !RIG_IS_FRNG_END(rs->tx_range_list[i]); i++)
     {
-        fprintf(fout,
-                "%"FREQFMT" %"FREQFMT" 0x%"PRXll" %d %d 0x%x 0x%x\n",
-                rs->tx_range_list[i].startf,
-                rs->tx_range_list[i].endf,
+        PRINT_PROTOCOL_DECIMAL("%"FREQFMT, rs->tx_range_list[i].startf);
+        fputc(' ', fout);
+        PRINT_PROTOCOL_DECIMAL("%"FREQFMT, rs->tx_range_list[i].endf);
+        fprintf(fout, " 0x%"PRXll" %d %d 0x%x 0x%x\n",
                 rs->tx_range_list[i].modes,
                 rs->tx_range_list[i].low_power,
                 rs->tx_range_list[i].high_power,
@@ -4852,13 +5183,18 @@ declare_proto_rig(dump_state)
 
             if (RIG_LEVEL_IS_FLOAT(level))
             {
-                fprintf(fout, "%d=%g,%g,%g;", i, rs->level_gran[i].min.f,
-                        rs->level_gran[i].max.f, rs->level_gran[i].step.f);
+                fprintf(fout, "%d=", i);
+                PRINT_PROTOCOL_DECIMAL("%g", rs->level_gran[i].min.f);
+                fputc(',', fout);
+                PRINT_PROTOCOL_DECIMAL("%g", rs->level_gran[i].max.f);
+                fputc(',', fout);
+                PRINT_PROTOCOL_DECIMAL("%g", rs->level_gran[i].step.f);
+                fputc(';', fout);
             }
             else
             {
-                fprintf(fout, "%d=%d,%d,%d;", i, rs->level_gran[i].min.i,
-                        rs->level_gran[i].max.i, rs->level_gran[i].step.i);
+                fprintf(fout, "%d=%d,%d,%d;", i, rs->parm_gran[i].min.i,
+                        rs->parm_gran[i].max.i, rs->parm_gran[i].step.i);
             }
         }
 
@@ -4870,8 +5206,13 @@ declare_proto_rig(dump_state)
 
             if (RIG_PARM_IS_FLOAT(parm))
             {
-                fprintf(fout, "%d=%g,%g,%g;", i, rs->parm_gran[i].min.f,
-                        rs->parm_gran[i].max.f, rs->parm_gran[i].step.f);
+                fprintf(fout, "%d=", i);
+                PRINT_PROTOCOL_DECIMAL("%g", rs->parm_gran[i].min.f);
+                fputc(',', fout);
+                PRINT_PROTOCOL_DECIMAL("%g", rs->parm_gran[i].max.f);
+                fputc(',', fout);
+                PRINT_PROTOCOL_DECIMAL("%g", rs->parm_gran[i].step.f);
+                fputc(';', fout);
             }
             else if (RIG_PARM_IS_STRING(parm))
             {
@@ -5648,7 +5989,7 @@ static int rigctld_password_check(RIG *rig, const char *md5)
     /* Brute force, constant time comparison */
     for (int i = 0; i <= len; i++)
     {
-	hits += (int)(padded[i] == mymd5[i]);
+        hits += (int)(padded[i] == mymd5[i]);
     }
 
     retval = (hits == len + 1);     // Entire string + terminator
@@ -5671,6 +6012,7 @@ declare_proto_rig(password)
     {
         retval = rigctld_password_check(rig, key);
         connection = pthread_getspecific(thread_data_key);
+
         if (connection)
         {
             connection->is_passwordOK = retval;
@@ -5803,7 +6145,7 @@ declare_proto_rig(set_clock)
     int year, mon, day, hour = -1, min = -1, sec = 0;
     double msec = -1;
     int utc_offset = 0;
-    int n;
+    int status;
     char timebuf[64];
 
     ENTERFUNC2;
@@ -5812,48 +6154,33 @@ declare_proto_rig(set_clock)
     {
         date_strget(timebuf, sizeof(timebuf), 1);
         rig_debug(RIG_DEBUG_VERBOSE, "%s: local time set = %s\n", __func__, timebuf);
-        n = sscanf(timebuf, "%04d-%02d-%02dT%02d:%02d:%02d%lf%d", &year, &mon, &day,
-                   &hour,
-                   &min, &sec, &msec, &utc_offset);
+        status = parse_protocol_clock(timebuf, &year, &mon, &day, &hour, &min,
+                                      &sec, &msec, &utc_offset);
     }
     else if (arg1 && strcasecmp(arg1, "utc") == 0)
     {
         date_strget(timebuf, sizeof(timebuf), 0);
         rig_debug(RIG_DEBUG_VERBOSE, "%s: utc time set = %s\n", __func__, timebuf);
-        n = sscanf(timebuf, "%04d-%02d-%02dT%02d:%02d:%02d%lf%d", &year, &mon, &day,
-                   &hour,
-                   &min, &sec, &msec, &utc_offset);
-    }
-    else if (arg1 && (arg1[16] == '+' || arg1[16] == '-'))
-    {
-        // YYYY-MM-DDTHH:MM+ZZ
-        n = sscanf(arg1, "%04d-%02d-%02dT%02d:%02d%d", &year, &mon, &day, &hour,
-                   &min, &utc_offset);
-    }
-    else if (arg1 && (arg1[19] == '+' || arg1[19] == '-'))
-    {
-        // YYYY-MM-DDTHH:MM:SS+ZZ
-        n = sscanf(arg1, "%04d-%02d-%02dT%02d:%02d:%02d%d", &year, &mon, &day, &hour,
-                   &min, &sec, &utc_offset);
-    }
-    else if (arg1 && (arg1[23] == '+' || arg1[23] == '-'))
-    {
-        // YYYY-MM-DDTHH:MM:SS.SSS+ZZ
-        n = sscanf(arg1, "%04d-%02d-%02dT%02d:%02d:%02d%lf%d", &year, &mon, &day, &hour,
-                   &min, &sec, &msec, &utc_offset);
+        status = parse_protocol_clock(timebuf, &year, &mon, &day, &hour, &min,
+                                      &sec, &msec, &utc_offset);
     }
     else
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: '%s' not valid time format\n", __func__, arg1);
+        status = parse_protocol_clock(arg1, &year, &mon, &day, &hour, &min,
+                                      &sec, &msec, &utc_offset);
+    }
+
+    if (status != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: '%s' not valid time format\n", __func__,
+                  arg1 ? arg1 : "(null)");
         RETURNFUNC2(-RIG_EINVAL);
     }
 
     rig_debug(RIG_DEBUG_VERBOSE,
-              "%s: n=%d, %04d-%02d-%02dT%02d:%02d:%02d.%0.3f%s%02d\n",
-              __func__, n, year, mon, day, hour, min, sec, msec, utc_offset >= 0 ? "+" : "-",
+              "%s: %04d-%02d-%02dT%02d:%02d:%02d.%0.3f%s%02d\n",
+              __func__, year, mon, day, hour, min, sec, msec, utc_offset >= 0 ? "+" : "-",
               (unsigned)abs(utc_offset));
-
-    if (abs(utc_offset) < 24) { utc_offset *= 100; } // allow for minutes offset too
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: utc_offset=%d\n", __func__, utc_offset);
 
@@ -5876,8 +6203,14 @@ declare_proto_rig(get_clock)
     retval = rig_get_clock(rig, &year, &month, &day, &hour, &min, &sec, &msec,
                            &utc_offset);
     aoffset = abs(utc_offset);
-    fprintf(fout, "%04d-%02d-%02dT%02d:%02d:%06.3f%s%02d:%02d\n", year, month, day,
-            hour, min, sec + msec / 1000, utc_offset >= 0 ? "+" : "-",
+    fprintf(fout, "%04d-%02d-%02dT%02d:%02d:", year, month, day, hour, min);
+
+    if (print_protocol_decimal(fout, "%06.3f", sec + msec / 1000) != RIG_OK)
+    {
+        return -RIG_EINVAL;
+    }
+
+    fprintf(fout, "%s%02d:%02d\n", utc_offset >= 0 ? "+" : "-",
             aoffset / 100, aoffset % 100);
 
     return retval;
@@ -6072,6 +6405,7 @@ declare_proto_rig(send_raw)
     }
 
     reply_len = result;
+
     if (!is_binary) { buf[buf_len - 1] = 0; }  // null terminate in case it's a string
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
@@ -6231,4 +6565,1016 @@ declare_proto_rig(set_conf)
     }
 
     return (ret);
+}
+
+
+
+
+/* 0xb0 — query streaming capabilities */
+declare_proto_rig(stream_caps)
+{
+    int count;
+    int i;
+
+    ENTERFUNC2;
+
+    count = rig_stream_caps_count(rig);
+
+    if (count == 0)
+    {
+        /* No streaming capabilities */
+        RETURNFUNC2(RIG_OK);
+    }
+
+    for (i = 0; i < count; i++)
+    {
+        const struct rig_stream_caps *cap = rig_stream_caps_at(rig, i);
+        /* Sized for full effective + native lists. */
+        char line[1024];
+
+        if (!cap)
+        {
+            break;
+        }
+
+        if (stream_caps_format_line(cap, 1, line, sizeof(line)) < 0)
+        {
+            continue;
+        }
+
+        fprintf(fout, "%s%c", line, resp_sep);
+    }
+
+    RETURNFUNC2(RIG_OK);
+}
+
+
+/* Parse a numeric stream_open key=value into *out, enforcing [min, max].
+ * Logs and returns -1 on invalid input. */
+static int stream_open_kv_long(const struct hamlib_kv_pair *kv,
+                               long min, long max, long *out)
+{
+    char *endptr;
+    long val;
+
+    errno = 0;
+    val = strtol(kv->value, &endptr, 10);
+
+    if (endptr == kv->value || *endptr != '\0' || errno != 0
+            || val < min || val > max)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid %s '%s'\n",
+                  __func__, kv->key, kv->value);
+        return -1;
+    }
+
+    *out = val;
+    return 0;
+}
+
+
+/* 0xb1 — open a streaming channel */
+/* Optional key=value parameters accepted by \stream_open. -1 means "unset",
+ * so the registry default applies; parameters belonging to the stream config
+ * itself are written straight into cfg. */
+struct stream_open_opts
+{
+    char *multicast_spec;
+    int ttl;
+    int meta_interval;
+    int meta_refresh;
+    int transport_buffer_ms;
+    int transport_buffer_bytes;
+    int keepalive_timeout;
+};
+
+static void stream_open_parse_opts(FILE *fin, struct rig_stream_config *cfg,
+                                   struct stream_open_opts *opts)
+{
+    struct hamlib_kv_pair kv[12];
+    int nkv = hamlib_parse_kv_args(fin, kv, 12);
+    int i;
+
+    for (i = 0; i < nkv; i++)
+    {
+        if (strcmp(kv[i].key, "multicast") == 0)
+        {
+            opts->multicast_spec = strdup(kv[i].value);
+        }
+        else if (strcmp(kv[i].key, "require_native") == 0)
+        {
+            long val;
+
+            if (stream_open_kv_long(&kv[i], 0, 1, &val) == 0)
+            {
+                cfg->require_native = (int)val;
+            }
+        }
+        else if (strcmp(kv[i].key, "ttl") == 0)
+        {
+            long val;
+
+            if (stream_open_kv_long(&kv[i], 1, 255, &val) == 0)
+            {
+                opts->ttl = (int)val;
+            }
+        }
+        else if (strcmp(kv[i].key, "metadata_interval") == 0)
+        {
+            long val;
+
+            if (stream_open_kv_long(&kv[i], 0, 60000, &val) == 0)
+            {
+                opts->meta_interval = (int)val;
+            }
+        }
+        else if (strcmp(kv[i].key, "keepalive_timeout") == 0)
+        {
+            long val;
+
+            if (stream_open_kv_long(&kv[i], RIGCTLD_SUBSCRIBE_TIMEOUT_MIN,
+                                    RIGCTLD_SUBSCRIBE_TIMEOUT_MAX, &val) == 0)
+            {
+                opts->keepalive_timeout = (int)val;
+            }
+        }
+        else if (strcmp(kv[i].key, "metadata_refresh") == 0)
+        {
+            long val;
+
+            if (stream_open_kv_long(&kv[i], 0, 60000, &val) == 0)
+            {
+                opts->meta_refresh = (int)val;
+            }
+        }
+        else if (strcmp(kv[i].key, "transport_buffer_ms") == 0)
+        {
+            long val;
+
+            if (stream_open_kv_long(&kv[i], 0, 60000, &val) == 0)
+            {
+                opts->transport_buffer_ms = (int)val;
+            }
+        }
+        else if (strcmp(kv[i].key, "transport_buffer_bytes") == 0)
+        {
+            long val;
+
+            if (stream_open_kv_long(&kv[i], 0, RIG_STREAM_TRANSPORT_BUFFER_MAX,
+                                    &val) == 0)
+            {
+                opts->transport_buffer_bytes = (int)val;
+            }
+        }
+        else if (strcmp(kv[i].key, "mtu") == 0)
+        {
+            long val;
+
+            /* 0 = default; the library clamps to its supported range. */
+            if (stream_open_kv_long(&kv[i], 0, 65535, &val) == 0)
+            {
+                cfg->mtu = (unsigned int)val;
+            }
+        }
+        else if (strcmp(kv[i].key, "channels") == 0)
+        {
+            long val;
+
+            /* Only the wire limit (uint8 header field) is enforced here;
+             * rig_stream_open() validates the count against the caps
+             * entry, which for coherent I/Q can exceed stereo. */
+            if (stream_open_kv_long(&kv[i], 1, 255, &val) == 0)
+            {
+                cfg->channels = (int)val;
+            }
+        }
+        else if (strcmp(kv[i].key, "time_stale_coarse") == 0)
+        {
+            long val;
+
+            if (stream_open_kv_long(&kv[i], 0, 3600000, &val) == 0)
+            {
+                cfg->time_stale_coarse_ms = (unsigned int)val;
+            }
+        }
+        else if (strcmp(kv[i].key, "time_stale_invalidate") == 0)
+        {
+            long val;
+
+            if (stream_open_kv_long(&kv[i], 0, 3600000, &val) == 0)
+            {
+                cfg->time_stale_invalidate_ms = (unsigned int)val;
+            }
+        }
+        else
+        {
+            rig_debug(RIG_DEBUG_WARN, "%s: unknown param '%s'\n",
+                      __func__, kv[i].key);
+        }
+    }
+}
+
+
+declare_proto_rig(stream_open)
+{
+    struct rig_stream_config cfg;
+    rig_stream_t *backend_stream = NULL;
+    struct rigctld_stream *stream = NULL;
+    int stream_id;
+    int udp_sock = -1;
+    int udp_port = 0;
+    int retval;
+
+    /* Optional key=value parameters; -1 = unset (registry default applies) */
+    struct stream_open_opts opts = { NULL, -1, -1, -1, -1, -1, -1 };
+
+    ENTERFUNC2;
+
+    /* Parse text arguments into stream config */
+    if (rigctld_stream_config_from_args(arg1, arg2, arg3, &cfg) < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid args type=%s format=%s rate=%s\n",
+                  __func__, arg1 ? arg1 : "NULL",
+                  arg2 ? arg2 : "NULL", arg3 ? arg3 : "NULL");
+        RETURNFUNC2(-RIG_EINVAL);
+    }
+
+    /* Optional key=value parameters follow the positional arguments */
+    if (interactive)
+    {
+        stream_open_parse_opts(fin, &cfg, &opts);
+    }
+
+    /* TX multicast not supported */
+    if (opts.multicast_spec
+            && (cfg.type == RIG_STREAM_TYPE_AUDIO_TX
+                || cfg.type == RIG_STREAM_TYPE_IQ_TX))
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: multicast not supported for TX streams\n",
+                  __func__);
+        free(opts.multicast_spec);
+        RETURNFUNC2(-RIG_EINVAL);
+    }
+
+    /* Allocate stream_id */
+    stream_id = rigctld_stream_registry_next_id(&g_stream_registry);
+
+    if (stream_id < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: stream ID allocation failed\n", __func__);
+        free(opts.multicast_spec);
+        RETURNFUNC2(-RIG_ENOMEM);
+    }
+
+    /* Open backend stream */
+    retval = rig_stream_open(rig, &cfg, &backend_stream);
+
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: rig_stream_open failed: %s\n",
+                  __func__, rigerror(retval));
+        free(opts.multicast_spec);
+        RETURNFUNC2(retval);
+    }
+
+    /* Create UDP socket — multicast or unicast */
+    if (opts.multicast_spec)
+    {
+        struct sockaddr_storage mcast_addr;
+        socklen_t mcast_addrlen;
+        int mcast_ttl;
+
+        if (rigctld_stream_multicast_addr_parse(opts.multicast_spec, &mcast_addr,
+                                                &mcast_addrlen) < 0)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: invalid multicast address '%s'\n",
+                      __func__, opts.multicast_spec);
+            free(opts.multicast_spec);
+            rig_stream_close(rig, backend_stream);
+            RETURNFUNC2(-RIG_EINVAL);
+        }
+
+        if (rigctld_stream_registry_multicast_in_use(&g_stream_registry,
+                &mcast_addr))
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: multicast group:port already in use\n",
+                      __func__);
+            free(opts.multicast_spec);
+            rig_stream_close(rig, backend_stream);
+            RETURNFUNC2(-RIG_EINVAL);
+        }
+
+        mcast_ttl = (opts.ttl > 0) ? opts.ttl : g_stream_registry.multicast_ttl;
+
+        if (rigctld_stream_multicast_socket_create(&mcast_addr, mcast_addrlen,
+                mcast_ttl, &udp_sock, &udp_port) < 0)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: multicast socket creation failed\n",
+                      __func__);
+            free(opts.multicast_spec);
+            rig_stream_close(rig, backend_stream);
+            RETURNFUNC2(-RIG_EIO);
+        }
+
+        /* Allocate and populate registry entry */
+        stream = rigctld_stream_alloc();
+
+        if (!stream)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: stream alloc failed\n", __func__);
+            socket_close(udp_sock);
+            free(opts.multicast_spec);
+            rig_stream_close(rig, backend_stream);
+            RETURNFUNC2(-RIG_ENOMEM);
+        }
+
+        stream->multicast = 1;
+        stream->multicast_addr = mcast_addr;
+        stream->multicast_addr_len = mcast_addrlen;
+        stream->multicast_ttl = mcast_ttl;
+        free(opts.multicast_spec);
+        opts.multicast_spec = NULL;
+    }
+    else
+    {
+        /* Unicast: ephemeral port */
+        if (rigctld_stream_udp_socket_create(&udp_sock, &udp_port) < 0)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: UDP socket creation failed\n",
+                      __func__);
+            rig_stream_close(rig, backend_stream);
+            RETURNFUNC2(-RIG_EIO);
+        }
+
+        /* Size the send buffer (RX: server sends) or receive buffer (TX:
+         * server receives) from the negotiated rate so a burst of scheduling
+         * latency does not overflow the kernel buffer. */
+        {
+            int fb = rig_stream_format_sample_size(cfg.format);
+            fb = (fb > 0 ? fb : 1) * (cfg.channels > 0 ? cfg.channels : 1);
+            /* Precedence: \stream_open key > rig conf token > CLI default. */
+            unsigned int tok_ms = STATE(rig)->stream_transport_buffer_ms;
+            unsigned int tok_bytes = STATE(rig)->stream_transport_buffer_bytes;
+            unsigned int dur = (opts.transport_buffer_ms >= 0)
+                               ? (unsigned int)opts.transport_buffer_ms
+                               : (tok_ms ? tok_ms
+                                  : (unsigned int)g_stream_registry.transport_buffer_ms);
+            size_t xb = (opts.transport_buffer_bytes >= 0)
+                        ? (size_t)opts.transport_buffer_bytes
+                        : (tok_bytes ? (size_t)tok_bytes
+                           : (size_t)g_stream_registry.transport_buffer_bytes);
+            size_t sz = stream_transport_buffer_bytes(cfg.sample_rate, fb, dur, xb);
+            int which = stream_type_is_rx(cfg.type) ? SO_SNDBUF : SO_RCVBUF;
+            stream_apply_transport_buffer(udp_sock, which, sz);
+        }
+
+        stream = rigctld_stream_alloc();
+
+        if (!stream)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: stream alloc failed\n", __func__);
+            socket_close(udp_sock);
+            rig_stream_close(rig, backend_stream);
+            RETURNFUNC2(-RIG_ENOMEM);
+        }
+    }
+
+    stream->stream_id = stream_id;
+    stream->type = cfg.type;
+    stream->config = cfg;
+    stream->backend_stream = backend_stream;
+    stream->rig = rig;
+    stream->udp_sock = udp_sock;
+    stream->udp_port = udp_port;
+    stream->client_id = rigctld_client_id_get();
+    stream->source_id = (uint16_t)g_stream_registry.source_id;
+    /* Precedence: \stream_open key > rig conf token > CLI/registry default. */
+    stream->subscribe_timeout_s = (opts.keepalive_timeout > 0)
+                                  ? opts.keepalive_timeout
+                                  : (STATE(rig)->stream_keepalive_timeout_s
+                                     ? (int)STATE(rig)->stream_keepalive_timeout_s
+                                     : g_stream_registry.keepalive_timeout_s);
+    stream->metadata_interval_ms = (opts.meta_interval > 0)
+                                   ? opts.meta_interval
+                                   : (STATE(rig)->stream_metadata_interval_ms
+                                      ? (int)STATE(rig)->stream_metadata_interval_ms
+                                      : g_stream_registry.metadata_interval_ms);
+    stream->metadata_refresh_ms = (opts.meta_refresh >= 0)
+                                  ? opts.meta_refresh
+                                  : (STATE(rig)->stream_metadata_refresh_ms
+                                     ? (int)STATE(rig)->stream_metadata_refresh_ms
+                                     : g_stream_registry.metadata_refresh_ms);
+
+    /* Anti-hijack token from the system CSPRNG; IP validation is a second
+     * factor where the client address is known. */
+    stream->subscribe_token = rigctld_stream_generate_token();
+
+    /* Capture TCP client IP for subscribe validation */
+    {
+        socklen_t addr_len = sizeof(stream->tcp_client_addr);
+
+        if (getpeername(fileno(fout),
+                        (struct sockaddr *)&stream->tcp_client_addr,
+                        &addr_len) < 0)
+        {
+            /* Not a socket (e.g. test harness) — leave zeroed, skip IP check */
+            memset(&stream->tcp_client_addr, 0, sizeof(stream->tcp_client_addr));
+        }
+    }
+
+    if (rigctld_stream_registry_insert(&g_stream_registry, stream) < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: registry insert failed\n", __func__);
+        socket_close(udp_sock);
+        rig_stream_close(rig, backend_stream);
+        rigctld_stream_free(stream);
+        RETURNFUNC2(-RIG_ENOMEM);
+    }
+
+    /* Start feeder thread for RX streams */
+    if (rigctld_stream_feeder_start(stream) < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: feeder start failed for stream %d\n",
+                  __func__, stream_id);
+        rigctld_stream_registry_remove(&g_stream_registry, cfg.type, stream_id);
+        socket_close(udp_sock);
+        rig_stream_close(rig, backend_stream);
+        rigctld_stream_free(stream);
+        RETURNFUNC2(-RIG_EIO);
+    }
+
+    /* Effective, frame-aligned payload the server will packetize with (after
+     * the configured MTU is clamped) — the client adopts it so both
+     * directions of the path use a consistent datagram size. */
+    int max_payload = rig_stream_get_max_payload(backend_stream);
+
+    /* Return stream_id and UDP port to client */
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
+        fprintf(fout, "stream_id: %d%c", stream_id, resp_sep);
+        fprintf(fout, "source_id: %u%c", stream->source_id, resp_sep);
+        fprintf(fout, "udp_port: %d%c", udp_port, resp_sep);
+        fprintf(fout, "subscribe_token: %u%c",
+                stream->subscribe_token, resp_sep);
+        fprintf(fout, "max_payload: %d%c", max_payload, resp_sep);
+        /* Server-side conversion stages, comma-separated stage names
+         * (RIG_STREAM_CONV_* with the prefix stripped); empty = the
+         * backend serves the request natively. */
+        {
+            char convbuf[64];
+            stream_conversions_str(rig_stream_get_conversions(backend_stream),
+                                   convbuf, sizeof(convbuf));
+            fprintf(fout, "conversions: %s%c", convbuf, resp_sep);
+        }
+
+        if (stream->multicast)
+        {
+            char addr_str[INET6_ADDRSTRLEN];
+            getnameinfo((struct sockaddr *)&stream->multicast_addr,
+                        stream->multicast_addr_len,
+                        addr_str, sizeof(addr_str), NULL, 0,
+                        NI_NUMERICHOST);
+            fprintf(fout, "multicast: %s%c", addr_str, resp_sep);
+        }
+    }
+    else
+    {
+        fprintf(fout, "%d%c%u%c%d%c%u%c%d%c", stream_id, resp_sep,
+                stream->source_id, resp_sep,
+                udp_port, resp_sep,
+                stream->subscribe_token, resp_sep,
+                max_payload, resp_sep);
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: opened stream id=%d type=%s udp_port=%d\n",
+              __func__, stream_id, stream_type_name(cfg.type), udp_port);
+
+    RETURNFUNC2(RIG_OK);
+}
+
+
+/* 0xb2 — close a streaming channel */
+declare_proto_rig(stream_close)
+{
+    int stream_id;
+    int caller_id;
+    int err = -RIG_EINVAL;
+    struct rigctld_stream *stream;
+
+    ENTERFUNC2;
+
+    if (!arg1 || sscanf(arg1, "%d", &stream_id) != 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid stream_id arg '%s'\n",
+                  __func__, arg1 ? arg1 : "NULL");
+        RETURNFUNC2(-RIG_EINVAL);
+    }
+
+    caller_id = rigctld_client_id_get();
+
+    /* Atomically find, check ownership, and remove from registry */
+    stream = rigctld_stream_registry_find_remove_by_id(
+                 &g_stream_registry, stream_id, caller_id, &err);
+
+    if (!stream)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: stream_id %d: %s\n",
+                  __func__, stream_id,
+                  err == -RIG_EACCESS ? "access denied" : "not found");
+        RETURNFUNC2(err);
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: closing stream id=%d type=%s\n",
+              __func__, stream_id, stream_type_name(stream->type));
+
+    rigctld_stream_feeder_stop(stream);
+    rigctld_stream_cleanup_resources(stream);
+
+    RETURNFUNC2(RIG_OK);
+}
+
+
+/* Parse a stream_id argument, look up in registry, and verify ownership.
+ * On success: returns stream pointer with g_stream_registry LOCKED.
+ *             Caller MUST call rigctld_stream_registry_unlock() when done.
+ * On failure: returns NULL with lock released; *err set to error code. */
+static struct rigctld_stream *lookup_stream_by_arg(const char *arg,
+        const char *func_name,
+        int *err)
+{
+    int stream_id;
+    int caller_id = rigctld_client_id_get();
+
+    if (!arg || sscanf(arg, "%d", &stream_id) != 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid stream_id arg '%s'\n",
+                  func_name, arg ? arg : "NULL");
+        *err = -RIG_EINVAL;
+        return NULL;
+    }
+
+    rigctld_stream_registry_lock(&g_stream_registry);
+
+    struct rigctld_stream *stream =
+        rigctld_stream_registry_find_by_id_unlocked(&g_stream_registry,
+            stream_id);
+
+    if (!stream)
+    {
+        rigctld_stream_registry_unlock(&g_stream_registry);
+        rig_debug(RIG_DEBUG_ERR, "%s: stream_id %d not found\n",
+                  func_name, stream_id);
+        *err = -RIG_EINVAL;
+        return NULL;
+    }
+
+    if (stream->auto_closed)
+    {
+        rigctld_stream_registry_unlock(&g_stream_registry);
+        rig_debug(RIG_DEBUG_ERR, "%s: stream_id %d was auto-closed\n",
+                  func_name, stream_id);
+        *err = -RIG_EINVAL;
+        return NULL;
+    }
+
+    if (stream->client_id != caller_id)
+    {
+        rigctld_stream_registry_unlock(&g_stream_registry);
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: stream %d owned by client %d, caller is %d\n",
+                  func_name, stream_id, stream->client_id, caller_id);
+        *err = -RIG_EACCESS;
+        return NULL;
+    }
+
+    /* Returns with registry lock HELD — caller must unlock */
+    return stream;
+}
+
+
+/* 0xb3 — query stream status */
+declare_proto_rig(stream_status)
+{
+    struct rigctld_stream *stream;
+    int err = -RIG_EINVAL;
+
+    ENTERFUNC2;
+
+    stream = lookup_stream_by_arg(arg1, __func__, &err);
+
+    if (!stream)
+    {
+        RETURNFUNC2(err);
+    }
+
+    if (!stream->backend_stream)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: stream %d has no backend\n",
+                  __func__, stream->stream_id);
+        rigctld_stream_registry_unlock(&g_stream_registry);
+        RETURNFUNC2(-RIG_EINTERNAL);
+    }
+
+    struct rig_stream_stats stats;
+
+    memset(&stats, 0, sizeof(stats));
+    rig_stream_get_stats(rig, stream->backend_stream, &stats);
+
+    struct rig_stream_time_anchor anchor;
+    int have_anchor = rig_stream_get_time_anchor(stream->backend_stream,
+                      &anchor) == RIG_OK;
+    int paused = stream->backend_stream->paused;
+    int muted = stream->backend_stream->muted;
+
+    /* Snapshot every field printed below while holding the registry lock, then
+     * release it before any fprintf() to the client socket. A slow or stalled
+     * client must not block other stream commands, feeder self-termination, or
+     * registry teardown by holding the global mutex across blocking writes. */
+    rig_stream_type_t s_type = stream->type;
+    int s_stream_id = stream->stream_id;
+    int s_sample_rate = stream->config.sample_rate;
+    rig_stream_format_t s_format = stream->config.format;
+    int s_channels = stream->config.channels;
+    int s_udp_port = stream->udp_port;
+    int s_packet_count = stream->packet_count;
+    unsigned s_gap_count = (unsigned)stream->gap_count;
+    int s_multicast = stream->multicast;
+    struct sockaddr_storage s_multicast_addr = stream->multicast_addr;
+    socklen_t s_multicast_addr_len = stream->multicast_addr_len;
+    int s_multicast_ttl = stream->multicast_ttl;
+    int s_conversions = rig_stream_get_conversions(stream->backend_stream);
+    char s_convbuf[64];
+
+    stream_conversions_str(s_conversions, s_convbuf, sizeof(s_convbuf));
+    uint64_t s_codec_frames = stats.codec_frames;
+
+    rigctld_stream_registry_unlock(&g_stream_registry);
+
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
+        fprintf(fout, "type: %s%c", stream_type_name(s_type), resp_sep);
+        fprintf(fout, "stream_id: %d%c", s_stream_id, resp_sep);
+        fprintf(fout, "sample_rate: %u%c", s_sample_rate, resp_sep);
+        fprintf(fout, "format: %s%c", stream_format_name(s_format), resp_sep);
+        fprintf(fout, "channels: %d%c", s_channels, resp_sep);
+        fprintf(fout, "udp_port: %d%c", s_udp_port, resp_sep);
+        fprintf(fout, "paused: %d%c", paused, resp_sep);
+        fprintf(fout, "muted: %d%c", muted, resp_sep);
+        fprintf(fout, "conversions: %s%c", s_convbuf, resp_sep);
+        fprintf(fout, "codec_frames: %llu%c",
+                (unsigned long long)s_codec_frames, resp_sep);
+        fprintf(fout, "packet_count: %d%c", s_packet_count, resp_sep);
+        fprintf(fout, "gap_count: %u%c", s_gap_count, resp_sep);
+        fprintf(fout, "overruns: %u%c", stats.overruns, resp_sep);
+        fprintf(fout, "underruns: %u%c", stats.underruns, resp_sep);
+        fprintf(fout, "backend_gaps: %u%c", stats.gaps, resp_sep);
+        fprintf(fout, "backend_gaps_unknown: %u%c", stats.gaps_unknown, resp_sep);
+        fprintf(fout, "link_loss: %u%c", stats.link_loss, resp_sep);
+        fprintf(fout, "tx_late: %u%c", stats.tx_late, resp_sep);
+        fprintf(fout, "dropped_samples_gap: %llu%c",
+                (unsigned long long)stats.dropped_samples_gap, resp_sep);
+        fprintf(fout, "dropped_samples_overrun: %llu%c",
+                (unsigned long long)stats.dropped_samples_overrun, resp_sep);
+        fprintf(fout, "dropped_samples_link: %llu%c",
+                (unsigned long long)stats.dropped_samples_link, resp_sep);
+
+        if (have_anchor)
+        {
+            fprintf(fout, "time_anchor_index: %llu%c",
+                    (unsigned long long)anchor.sample_index, resp_sep);
+            fprintf(fout, "time_anchor_seconds: %lld%c",
+                    (long long)anchor.seconds, resp_sep);
+            fprintf(fout, "time_source: %u%c", anchor.source, resp_sep);
+            fprintf(fout, "time_flags: 0x%02x%c", anchor.flags, resp_sep);
+            fprintf(fout, "time_accuracy: %u%c", anchor.accuracy, resp_sep);
+        }
+
+        if (s_multicast)
+        {
+            char addr_str[INET6_ADDRSTRLEN];
+            getnameinfo((struct sockaddr *)&s_multicast_addr,
+                        s_multicast_addr_len,
+                        addr_str, sizeof(addr_str), NULL, 0,
+                        NI_NUMERICHOST);
+            fprintf(fout, "multicast: %s%c", addr_str, resp_sep);
+            fprintf(fout, "ttl: %d%c", s_multicast_ttl, resp_sep);
+        }
+    }
+    else
+    {
+        fprintf(fout,
+                "%s%c%d%c%u%c%s%c%d%c%d%c%d%c%d%c%d%c%u%c%u%c%u%c%u%c%u%c%u%c%u%c%llu%c%llu%c%llu%c%s%c%llu%c",
+                stream_type_name(s_type), resp_sep,
+                s_stream_id, resp_sep,
+                s_sample_rate, resp_sep,
+                stream_format_name(s_format), resp_sep,
+                s_channels, resp_sep,
+                s_udp_port, resp_sep,
+                paused, resp_sep,
+                muted, resp_sep,
+                s_packet_count, resp_sep,
+                s_gap_count, resp_sep,
+                stats.overruns, resp_sep,
+                stats.underruns, resp_sep,
+                stats.gaps, resp_sep,
+                stats.gaps_unknown, resp_sep,
+                stats.link_loss, resp_sep,
+                stats.tx_late, resp_sep,
+                (unsigned long long)stats.dropped_samples_gap, resp_sep,
+                (unsigned long long)stats.dropped_samples_overrun, resp_sep,
+                (unsigned long long)stats.dropped_samples_link, resp_sep,
+                s_convbuf, resp_sep,
+                (unsigned long long)s_codec_frames, resp_sep);
+    }
+
+    RETURNFUNC2(RIG_OK);
+}
+
+
+/* 0xb4 — pause a stream */
+declare_proto_rig(stream_pause)
+{
+    struct rigctld_stream *stream;
+    int err = -RIG_EINVAL;
+    int retval;
+
+    ENTERFUNC2;
+
+    stream = lookup_stream_by_arg(arg1, __func__, &err);
+
+    if (!stream) { RETURNFUNC2(err); }
+
+    /* Release the registry lock before the (possibly blocking) backend call so
+     * one client's pause cannot stall every other client's stream command. The
+     * backend stream cannot be freed underneath us: rig_stream_close() drains
+     * its in-use count, which this call holds for its duration. */
+    rig_stream_t *backend = stream->backend_stream;
+    rigctld_stream_registry_unlock(&g_stream_registry);
+    retval = rig_stream_pause(rig, backend);
+    RETURNFUNC2(retval);
+}
+
+
+/* 0xb5 — resume a stream */
+declare_proto_rig(stream_resume)
+{
+    struct rigctld_stream *stream;
+    int err = -RIG_EINVAL;
+    int retval;
+
+    ENTERFUNC2;
+
+    stream = lookup_stream_by_arg(arg1, __func__, &err);
+
+    if (!stream) { RETURNFUNC2(err); }
+
+    /* See stream_pause: drop the registry lock before the backend call. */
+    rig_stream_t *backend = stream->backend_stream;
+    rigctld_stream_registry_unlock(&g_stream_registry);
+    retval = rig_stream_resume(rig, backend);
+    RETURNFUNC2(retval);
+}
+
+
+/* 0xb6 — mute a stream */
+declare_proto_rig(stream_mute)
+{
+    struct rigctld_stream *stream;
+    int err = -RIG_EINVAL;
+    int retval;
+
+    ENTERFUNC2;
+
+    stream = lookup_stream_by_arg(arg1, __func__, &err);
+
+    if (!stream) { RETURNFUNC2(err); }
+
+    retval = rig_stream_mute(rig, stream->backend_stream);
+    rigctld_stream_registry_unlock(&g_stream_registry);
+    RETURNFUNC2(retval);
+}
+
+
+/* 0xb7 — unmute a stream */
+declare_proto_rig(stream_unmute)
+{
+    struct rigctld_stream *stream;
+    int err = -RIG_EINVAL;
+    int retval;
+
+    ENTERFUNC2;
+
+    stream = lookup_stream_by_arg(arg1, __func__, &err);
+
+    if (!stream) { RETURNFUNC2(err); }
+
+    retval = rig_stream_unmute(rig, stream->backend_stream);
+    rigctld_stream_registry_unlock(&g_stream_registry);
+    RETURNFUNC2(retval);
+}
+
+
+/* 0xb8 — get current metadata for a stream */
+declare_proto_rig(stream_metadata_read)
+{
+    struct rigctld_stream *stream;
+    struct rig_stream_metadata meta;
+    int err = -RIG_EINVAL;
+
+    ENTERFUNC2;
+
+    stream = lookup_stream_by_arg(arg1, __func__, &err);
+
+    if (!stream) { RETURNFUNC2(err); }
+
+    memset(&meta, 0, sizeof(meta));
+    int retval = rig_stream_read_metadata(rig,
+                                          stream->backend_stream,
+                                          &meta);
+
+    rigctld_stream_registry_unlock(&g_stream_registry);
+
+    if (retval != RIG_OK)
+    {
+        RETURNFUNC2(retval);
+    }
+
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
+        fprintf(fout, "center_freq: %.0f%c", meta.center_freq, resp_sep);
+        fprintf(fout, "vfo_freq: %.0f%c", meta.vfo_freq, resp_sep);
+        fprintf(fout, "vfo_id: %d%c", meta.vfo_id, resp_sep);
+        fprintf(fout, "ptt: %d%c", meta.ptt, resp_sep);
+        fprintf(fout, "field_mask: %u%c", meta.field_mask, resp_sep);
+        fprintf(fout, "sample_index: %" PRIu64 "%c", meta.sample_index, resp_sep);
+    }
+    else
+    {
+        fprintf(fout, "%.0f%c%.0f%c%d%c%d%c%" PRIu32 "%c%" PRIu64 "%c",
+                meta.center_freq, resp_sep,
+                meta.vfo_freq, resp_sep,
+                meta.vfo_id, resp_sep,
+                meta.ptt, resp_sep,
+                meta.field_mask, resp_sep,
+                meta.sample_index, resp_sep);
+    }
+
+    RETURNFUNC2(RIG_OK);
+}
+
+
+/* 0xb9 — flush a stream's ring buffer */
+declare_proto_rig(stream_drain)
+{
+    struct rigctld_stream *stream;
+    int err = -RIG_EINVAL;
+    int retval;
+
+    ENTERFUNC2;
+
+    stream = lookup_stream_by_arg(arg1, __func__, &err);
+
+    if (!stream) { RETURNFUNC2(err); }
+
+    /* See stream_pause: drop the registry lock before the 1 s flush so it does
+     * not stall every other client's stream command for its whole duration. */
+    rig_stream_t *backend = stream->backend_stream;
+    rigctld_stream_registry_unlock(&g_stream_registry);
+    retval = rig_stream_drain(rig, backend, 1000);
+    RETURNFUNC2(retval);
+}
+
+
+/* 0xba — list all active streams */
+declare_proto_rig(stream_list)
+{
+    /* Snapshot of per-stream data gathered under lock */
+    struct stream_list_entry
+    {
+        int stream_id;
+        unsigned int source_id;
+        rig_stream_type_t type;
+        rig_stream_format_t format;
+        unsigned int sample_rate;
+        int channels;
+        int udp_port;
+        int paused;
+        int muted;
+        int owner;          /* 1 if caller owns this stream */
+        int conversions;    /* RIG_STREAM_CONV_* stages, 0 = native */
+        uint64_t codec_frames;  /* whole codec frames produced (0 = raw) */
+    };
+
+    struct stream_list_entry entries[RIG_STREAM_TYPE_COUNT * RIGCTLD_MAX_STREAMS];
+    int count = 0;
+    rig_stream_type_t type;
+    int i;
+    int caller_id = rigctld_client_id_get();
+
+    ENTERFUNC2;
+
+    /* Gather data under lock.
+     * The registry lock held during iteration prevents concurrent removal,
+     * making per-stream lock unnecessary for read-only field access
+     * (paused, muted, backend_stream pointer). */
+    pthread_mutex_lock(&g_stream_registry.lock);
+
+    for (type = 0; type < RIG_STREAM_TYPE_COUNT; type++)
+    {
+        for (i = 0; i < RIGCTLD_MAX_STREAMS; i++)
+        {
+            struct rigctld_stream *s = g_stream_registry.streams[type][i];
+
+            if (!s || !s->backend_stream)
+            {
+                continue;
+            }
+
+            entries[count].stream_id = s->stream_id;
+            entries[count].source_id = s->source_id;
+            entries[count].type = s->type;
+            entries[count].format = s->config.format;
+            entries[count].sample_rate = s->config.sample_rate;
+            entries[count].channels = s->config.channels;
+            entries[count].owner = (s->client_id == caller_id) ? 1 : 0;
+            entries[count].udp_port = entries[count].owner ? s->udp_port : 0;
+            entries[count].paused = s->backend_stream->paused;
+            entries[count].muted = s->backend_stream->muted;
+            entries[count].conversions =
+                rig_stream_get_conversions(s->backend_stream);
+            {
+                struct rig_stream_stats lst;
+                memset(&lst, 0, sizeof(lst));
+                rig_stream_get_stats(s->rig, s->backend_stream, &lst);
+                entries[count].codec_frames = lst.codec_frames;
+            }
+            count++;
+        }
+    }
+
+    pthread_mutex_unlock(&g_stream_registry.lock);
+
+    /* Print after releasing lock */
+    for (i = 0; i < count; i++)
+    {
+        if (i > 0)
+        {
+            fprintf(fout, "%c", resp_sep);  /* Blank line separator */
+        }
+
+        if ((interactive && prompt)
+                || (interactive && !prompt && ext_resp))
+        {
+            fprintf(fout, "stream_id: %d%c",
+                    entries[i].stream_id, resp_sep);
+            fprintf(fout, "source_id: %u%c",
+                    entries[i].source_id, resp_sep);
+            fprintf(fout, "type: %s%c",
+                    stream_type_name(entries[i].type), resp_sep);
+            fprintf(fout, "format: %s%c",
+                    stream_format_name(entries[i].format), resp_sep);
+            fprintf(fout, "sample_rate: %u%c",
+                    entries[i].sample_rate, resp_sep);
+            fprintf(fout, "channels: %d%c",
+                    entries[i].channels, resp_sep);
+            fprintf(fout, "udp_port: %d%c",
+                    entries[i].udp_port, resp_sep);
+            fprintf(fout, "paused: %d%c",
+                    entries[i].paused, resp_sep);
+            fprintf(fout, "muted: %d%c",
+                    entries[i].muted, resp_sep);
+            fprintf(fout, "owner: %d%c",
+                    entries[i].owner, resp_sep);
+            {
+                char convbuf[64];
+                stream_conversions_str(entries[i].conversions,
+                                       convbuf, sizeof(convbuf));
+                fprintf(fout, "conversions: %s%c", convbuf, resp_sep);
+            }
+            fprintf(fout, "codec_frames: %llu%c",
+                    (unsigned long long)entries[i].codec_frames, resp_sep);
+        }
+        else
+        {
+            char convbuf[64];
+
+            stream_conversions_str(entries[i].conversions,
+                                   convbuf, sizeof(convbuf));
+            fprintf(fout, "%d%c%u%c%s%c%s%c%u%c%d%c%d%c%d%c%d%c%d%c%s%c%llu%c",
+                    entries[i].stream_id, resp_sep,
+                    entries[i].source_id, resp_sep,
+                    stream_type_name(entries[i].type), resp_sep,
+                    stream_format_name(entries[i].format), resp_sep,
+                    entries[i].sample_rate, resp_sep,
+                    entries[i].channels, resp_sep,
+                    entries[i].udp_port, resp_sep,
+                    entries[i].paused, resp_sep,
+                    entries[i].muted, resp_sep,
+                    entries[i].owner, resp_sep,
+                    convbuf, resp_sep,
+                    (unsigned long long)entries[i].codec_frames, resp_sep);
+        }
+    }
+
+    RETURNFUNC2(RIG_OK);
 }

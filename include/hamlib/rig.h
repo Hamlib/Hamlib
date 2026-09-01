@@ -68,6 +68,22 @@
 #define HAVE_STRUCT_TIMESPEC
 #endif
 
+/* Cross-thread stream counters require C11 atomics for correct
+ * read-modify-write semantics. HAMLIB_ATOMIC expands to _Atomic in C;
+ * no atomic struct members are exposed to C++ translation units. SWIG parses
+ * this header but is not a C compiler, so it takes the empty definition (no
+ * public struct uses HAMLIB_ATOMIC — only the internal src/stream*.h do). */
+#if defined(__cplusplus) || defined(SWIG)
+#define HAMLIB_ATOMIC
+#else
+#if defined(__STDC_NO_ATOMICS__) || \
+    !defined(__STDC_VERSION__) || __STDC_VERSION__ < 201112L
+#error "Hamlib requires a C11 compiler with atomics (<stdatomic.h>)"
+#endif
+#include <stdatomic.h>
+#define HAMLIB_ATOMIC _Atomic
+#endif
+
 /* Rig list is in a separate file so as not to mess up w/ this one */
 #include <hamlib/riglist.h>
 //#include <hamlib/config.h>
@@ -327,6 +343,9 @@ typedef enum rig_port_e {
     RIG_PORT_CM108,         /*!< CM108 GPIO */
     RIG_PORT_GPIO,          /*!< GPIO */
     RIG_PORT_GPION,         /*!< GPIO inverted */
+    RIG_PORT_CUSTOM,        /*!< Backend-managed transport that needs more than a single
+                                 TCP/UDP socket (e.g. the Icom network protocol's
+                                 multi-socket session); the frontend opens no port. */
 } rig_port_t;
 
 
@@ -395,6 +414,26 @@ enum agc_level_e {
     RIG_AGC_ON,             /*!< Turns AGC ON -- Kenwood -- restores last level set */
     RIG_AGC_NONE            /*!< Rig does not have CAT AGC control */
 };
+
+/* AGC level name strings — used in string tables and gran enum values */
+#define RIG_AGC_STRING_OFF       "OFF"
+#define RIG_AGC_STRING_SUPERFAST "SUPERFAST"
+#define RIG_AGC_STRING_FAST      "FAST"
+#define RIG_AGC_STRING_SLOW      "SLOW"
+#define RIG_AGC_STRING_USER      "USER"
+#define RIG_AGC_STRING_MEDIUM    "MEDIUM"
+#define RIG_AGC_STRING_AUTO      "AUTO"
+#define RIG_AGC_STRING_LONG      "LONG"
+
+/* AGC enum pairs for gran_t.step.s (number=name format) */
+#define RIG_AGC_ENUM_OFF       "0=" RIG_AGC_STRING_OFF
+#define RIG_AGC_ENUM_SUPERFAST "1=" RIG_AGC_STRING_SUPERFAST
+#define RIG_AGC_ENUM_FAST      "2=" RIG_AGC_STRING_FAST
+#define RIG_AGC_ENUM_SLOW      "3=" RIG_AGC_STRING_SLOW
+#define RIG_AGC_ENUM_USER      "4=" RIG_AGC_STRING_USER
+#define RIG_AGC_ENUM_MEDIUM    "5=" RIG_AGC_STRING_MEDIUM
+#define RIG_AGC_ENUM_AUTO      "6=" RIG_AGC_STRING_AUTO
+#define RIG_AGC_ENUM_LONG      "7=" RIG_AGC_STRING_LONG
 
 
 //! @cond Doxygen_Suppress
@@ -1029,6 +1068,26 @@ enum meter_level_e {
 };
 #endif
 
+/* METER level name strings — used in string tables and gran enum values */
+#define RIG_METER_STRING_SWR   "SWR"
+#define RIG_METER_STRING_COMP  "COMP"
+#define RIG_METER_STRING_ALC   "ALC"
+#define RIG_METER_STRING_IC    "IC"
+#define RIG_METER_STRING_DB    "DB"
+#define RIG_METER_STRING_PO    "PO"
+#define RIG_METER_STRING_VDD   "VDD"
+#define RIG_METER_STRING_TEMP  "TEMP"
+
+/* METER enum pairs for gran_t.step.s (number=name format) */
+#define RIG_METER_ENUM_SWR   "1=" RIG_METER_STRING_SWR
+#define RIG_METER_ENUM_COMP  "2=" RIG_METER_STRING_COMP
+#define RIG_METER_ENUM_ALC   "4=" RIG_METER_STRING_ALC
+#define RIG_METER_ENUM_IC    "8=" RIG_METER_STRING_IC
+#define RIG_METER_ENUM_DB    "16=" RIG_METER_STRING_DB
+#define RIG_METER_ENUM_PO    "32=" RIG_METER_STRING_PO
+#define RIG_METER_ENUM_VDD   "64=" RIG_METER_STRING_VDD
+#define RIG_METER_ENUM_TEMP  "128=" RIG_METER_STRING_TEMP
+
 
 /**
  * \brief Universal approach for passing values
@@ -1134,6 +1193,10 @@ typedef uint64_t rig_level_e;
 #define RIG_LEVEL_READONLY_LIST (RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_STRENGTH|RIG_LEVEL_RAWSTR|RIG_LEVEL_COMP_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_ID_METER|RIG_LEVEL_TEMP_METER|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS)
 
 #define RIG_LEVEL_IS_FLOAT(l) ((l)&RIG_LEVEL_FLOAT_LIST)
+#define RIG_LEVEL_ENUM_LIST (RIG_LEVEL_AGC|RIG_LEVEL_METER)
+#define RIG_LEVEL_IS_ENUM(l) ((l)&RIG_LEVEL_ENUM_LIST)
+#define RIG_LEVEL_STRING_LIST (0)
+#define RIG_LEVEL_IS_STRING(l) ((l)&RIG_LEVEL_STRING_LIST)
 #define RIG_LEVEL_SET(l) ((l)&~RIG_LEVEL_READONLY_LIST)
 //! @endcond
 
@@ -1203,6 +1266,8 @@ enum multicast_item_e {
 
 #define RIG_PARM_IS_FLOAT(l) ((l)&RIG_PARM_FLOAT_LIST)
 #define RIG_PARM_IS_STRING(l) ((l)&RIG_PARM_STRING_LIST)
+#define RIG_PARM_ENUM_LIST (0)
+#define RIG_PARM_IS_ENUM(l) ((l)&RIG_PARM_ENUM_LIST)
 #define RIG_PARM_SET(l) ((l)&~RIG_PARM_READONLY_LIST)
 //! @endcond
 
@@ -1751,6 +1816,16 @@ struct gran {
  */
 typedef struct gran gran_t;
 
+/* Comma-join helpers for constructing gran_t.step.s enum/string values */
+#define GRAN_VALUES1(a) a
+#define GRAN_VALUES2(a,b) a "," b
+#define GRAN_VALUES3(a,b,c) a "," b "," c
+#define GRAN_VALUES4(a,b,c,d) a "," b "," c "," d
+#define GRAN_VALUES5(a,b,c,d,e) a "," b "," c "," d "," e
+#define GRAN_VALUES6(a,b,c,d,e,f) a "," b "," c "," d "," e "," f
+#define GRAN_VALUES7(a,b,c,d,e,f,g) a "," b "," c "," d "," e "," f "," g
+#define GRAN_VALUES8(a,b,c,d,e,f,g,h) a "," b "," c "," d "," e "," f "," g "," h
+
 
 /**
  * \brief Calibration table struct
@@ -1877,6 +1952,342 @@ struct rig_spectrum_line
     size_t spectrum_data_length;     /*!< Number of bytes of 8-bit spectrum data in the data buffer. The amount of data may vary if the rig has multiple spectrum scopes, depending on the scope. */
     unsigned char *spectrum_data; /*!< 8-bit spectrum data covering bandwidth of either the span_freq in center mode or from low edge to high edge in fixed mode. A higher value represents higher signal strength. */
 };
+
+/*
+ * Audio and I/Q streaming types
+ */
+
+/* Sample format flags — can be OR'd for capability bitmask.
+ * Sample payload is little-endian on the wire. */
+#define RIG_STREAM_FORMAT_PCM_S8      (1<<0)
+#define RIG_STREAM_FORMAT_PCM_U8      (1<<1)
+#define RIG_STREAM_FORMAT_PCM_S16     (1<<2)
+#define RIG_STREAM_FORMAT_PCM_F32     (1<<3)
+#define RIG_STREAM_FORMAT_OPUS        (1<<4)
+/* Bits 5-15 free for future audio formats */
+#define RIG_STREAM_FORMAT_IQ_CS8      (1<<16)
+#define RIG_STREAM_FORMAT_IQ_CU8      (1<<17)
+#define RIG_STREAM_FORMAT_IQ_CS16     (1<<18)
+#define RIG_STREAM_FORMAT_IQ_CF32     (1<<19)
+
+typedef uint32_t rig_stream_format_t;
+
+typedef enum {
+    RIG_STREAM_TYPE_AUDIO_RX = 0,
+    RIG_STREAM_TYPE_AUDIO_TX,
+    RIG_STREAM_TYPE_IQ_RX,
+    RIG_STREAM_TYPE_IQ_TX,
+    RIG_STREAM_TYPE_COUNT           /* sentinel — not a valid type */
+} rig_stream_type_t;
+
+/* Sized so the frontend-derived effective rate list (union of native,
+ * curated standard, and integer-divisible rates) does not trim in
+ * realistic cases. */
+#define HAMLIB_MAX_STREAM_RATES 32
+#define HAMLIB_MAX_STREAM_CAPS  8
+#define HAMLIB_MAX_STREAMS      32
+/* Entries in a caps channel-count list (0-terminated, like the rate
+ * lists). Bounds the ALLOWED-COUNT list, not the counts themselves. */
+#define HAMLIB_MAX_STREAM_CHANNEL_COUNTS 16
+
+/* Stream capability flags */
+#define RIG_STREAM_CAP_TIMED_TX_COARSE  (1ULL<<0)  /* start-at-T play-out gating */
+#define RIG_STREAM_CAP_TIMED_TX_SAMPLE  (1ULL<<1)  /* sample-accurate hw scheduling */
+#define RIG_STREAM_CAP_BURST_PTT        (1ULL<<2)  /* SOB/EOB auto-keys PTT */
+#define RIG_STREAM_CAP_HW_TIME          (1ULL<<3)  /* hardware time source available */
+/* caps_flags is a single 64-bit namespace: future flags extend it with
+ * (1ULL<<n) — the wire carries flag NAMES, so no key ever changes. */
+
+/* Active conversion stages between the hardware and an open stream, reported
+ * by rig_stream_get_conversions(). 0 means a native stream: the bytes pass
+ * untouched between the hardware and the application. Anything else marks a
+ * converted stream and names exactly which stages the frontend runs. */
+#define RIG_STREAM_CONV_NONE      0       /* native stream */
+#define RIG_STREAM_CONV_FORMAT   (1<<0)   /* sample format converted */
+#define RIG_STREAM_CONV_RATE     (1<<1)   /* resampled */
+#define RIG_STREAM_CONV_CHANNELS (1<<2)   /* channel count mapped */
+
+/* Streaming capability descriptor. Two views share this struct:
+ *
+ * - BACKENDS author it with the classic fields (formats, sample_rates,
+ *   channels) describing the HARDWARE-NATIVE truth, and leave the
+ *   native_* fields zero.
+ * - APPLICATIONS read it through rig_stream_caps_at(), which (after
+ *   rig_open) serves a frontend-derived copy in which the classic fields
+ *   have been widened to the EFFECTIVE set — everything rig_stream_open
+ *   accepts, conversions included — and native_* carries what the backend
+ *   declared. A request outside the native set but inside the effective set
+ *   is served through frontend conversion (see RIG_STREAM_CONV_*). */
+struct rig_stream_caps {
+    rig_stream_type_t type;
+    rig_stream_format_t formats;            /* Openable formats (effective set
+                                             * in the derived app view; backends
+                                             * declare native here) */
+    int32_t sample_rates[HAMLIB_MAX_STREAM_RATES]; /* Openable rates, 0-terminated
+                                             * (effective in the app view) */
+    int32_t channels[HAMLIB_MAX_STREAM_CHANNEL_COUNTS]; /* Openable channel
+                                             * counts, 0-terminated ascending
+                                             * list (effective in the app
+                                             * view; backends declare the
+                                             * hardware-native counts, which
+                                             * need not be contiguous). The
+                                             * list is exact: every openable
+                                             * count is listed, none implied */
+    int32_t max_streams;                    /* Concurrent streams of this type */
+    int32_t tx_schedule_horizon_ms;         /* Max lead time for a timed TX
+                                             * burst (0 = not schedulable) */
+    uint64_t caps_flags;                    /* RIG_STREAM_CAP_* (8-aligned
+                                             * offset by construction) */
+
+    /* Hardware-native view, filled by the frontend in the derived caps
+     * served by rig_stream_caps_at(). Backends leave these zero — except
+     * a relaying backend serving pre-derived caps (see the stream_caps
+     * pointer in struct rig_caps). */
+    rig_stream_format_t native_formats;
+    int32_t native_sample_rates[HAMLIB_MAX_STREAM_RATES]; /* 0-terminated */
+    int32_t native_channels[HAMLIB_MAX_STREAM_CHANNEL_COUNTS]; /* 0-terminated */
+
+    uint32_t _reserved32[1];                /* ABI headroom, tail-only. Policy:
+                                             * 32-bit scalars carve from here
+                                             * (this slot also keeps the u64
+                                             * reserve 8-aligned with no hidden
+                                             * padding)... */
+    uint64_t _reserved[4];                  /* ...64-bit scalars carve from the
+                                             * front of this array. NEVER append
+                                             * fields after it: rig_caps.
+                                             * stream_caps is a publicly
+                                             * indexable array, so sizeof is
+                                             * frozen for the ABI major. */
+};
+
+struct rig_stream_config {
+    size_t struct_size;                     /* Set by rig_stream_config_alloc()
+                                             * to sizeof(struct rig_stream_config).
+                                             * rig_stream_open() rejects 0, so a
+                                             * config MUST come from the allocator;
+                                             * this makes appended fields ABI-safe. */
+    rig_stream_type_t type;
+    rig_stream_format_t format;             /* Single RIG_STREAM_FORMAT_* value */
+    int32_t sample_rate;
+    int32_t channels;
+    int32_t frame_samples;                  /* Samples per frame (0 = backend default) */
+    size_t buffer_bytes;                    /* Ring buffer capacity in bytes (0 = default) */
+    uint32_t buffer_duration_ms;            /* If non-zero and buffer_bytes==0, derive size */
+    uint32_t time_stale_coarse_ms;          /* Staleness: downgrade accuracy to
+                                             * COARSE (0 = rig/built-in default) */
+    uint32_t time_stale_invalidate_ms;      /* Staleness: clear time_valid
+                                             * (0 = rig/built-in default) */
+    uint32_t mtu;                           /* Sender path MTU in bytes for
+                                             * datagram packetization (0 =
+                                             * default 1500). Clamped to a
+                                             * jumbo-frame ceiling; query the
+                                             * effective, frame-aligned payload
+                                             * with rig_stream_get_max_payload(). */
+    uint32_t transport_buffer_ms;           /* Transport buffer as ms of stream
+                                             * data (0 = rig token / built-in
+                                             * 250 ms). Overridden by transport_buffer_bytes. */
+    uint32_t transport_buffer_bytes;        /* Explicit transport buffer bytes
+                                             * (0 = derive from transport_buffer_ms/rate) */
+    int32_t require_native;                 /* 1 = open only as a native stream:
+                                             * fail with -RIG_ENAVAIL rather than
+                                             * install a conversion. 0 (default) =
+                                             * convert when the request is in the
+                                             * effective but not the native set. */
+};
+
+typedef struct rig_stream rig_stream_t;     /* Opaque — defined in src/stream.h */
+
+/* Metadata field presence flags. Bit order follows the struct field order
+ * (and wire offsets): vfo_id, ptt, center_freq, vfo_freq. */
+#define RIG_STREAM_META_VFO_ID       (1<<0)  /* vfo_id is valid */
+#define RIG_STREAM_META_PTT       (1<<1)  /* ptt is valid */
+#define RIG_STREAM_META_CENTER_FREQ (1<<2)  /* center_freq is valid (I/Q streams) */
+#define RIG_STREAM_META_VFO_FREQ  (1<<3)  /* vfo_freq is valid (optional) */
+/* Bits (1<<4) and above are reserved; the metadata block grows append-only at
+ * fixed offsets. Earmarks: (1<<4) = SPECTRAL_INVERSION, plus a future RF_OFFSET
+ * (transverter antenna-plane freq).
+ * Do not reuse a reserved bit for something else. */
+
+struct rig_stream_metadata {
+    uint32_t field_mask;        /* Which fields are valid (RIG_STREAM_META_*) */
+    uint64_t sample_index;      /* Sample index this metadata applies to (matches
+                                   the 64-bit packet-header timestamp) */
+    uint8_t  vfo_id;            /* VFO identifier */
+    uint8_t  ptt;               /* PTT state (0=RX, 1=TX) */
+    freq_t   center_freq;       /* RF center of the I/Q window in Hz; the
+                                   frequency that maps to DC/baseband. Mandatory
+                                   for I/Q streams (equals vfo_freq for radios
+                                   whose window tracks the dial). Unused for
+                                   audio. */
+    freq_t   vfo_freq;          /* Primary demod (dial) frequency in Hz.
+                                   Optional: for a multi-slice I/Q window it is
+                                   the primary slice or absent. */
+    uint64_t _reserved[4];      /* ABI headroom; new fields carve 8-byte slots
+                                   from the front. Library fillers zero it;
+                                   callers SHOULD zero-init the struct. */
+};
+
+/*
+ * Stream time model: capture-time anchors and timed transmit
+ */
+
+/* Provenance of an absolute-time value */
+enum rig_stream_time_source {
+    RIG_STREAM_TIME_SRC_NONE = 0,   /* no time reference */
+    RIG_STREAM_TIME_SRC_HOST,       /* host CLOCK_REALTIME */
+    RIG_STREAM_TIME_SRC_GPS,        /* GPS-disciplined */
+    RIG_STREAM_TIME_SRC_NTP,        /* NTP-disciplined host clock */
+    RIG_STREAM_TIME_SRC_PTP,        /* IEEE 1588 */
+    RIG_STREAM_TIME_SRC_RADIO       /* radio-reported, untraceable epoch */
+};
+
+/* Coarse absolute-time accuracy hint (orthogonal to SAMPLE_REFERENCED) */
+enum rig_stream_time_accuracy {
+    RIG_STREAM_TIME_ACC_UNKNOWN = 0,
+    RIG_STREAM_TIME_ACC_COARSE,         /* > 1 ms */
+    RIG_STREAM_TIME_ACC_MS,             /* ~1 ms (NTP-synced host) */
+    RIG_STREAM_TIME_ACC_US,             /* ~1 us */
+    RIG_STREAM_TIME_ACC_100NS           /* <= 100 ns (GPS/PPS) */
+};
+
+/* Time flags — RX uses LOCKED/HOLDOVER/DISCONTINUITY/SAMPLE_REFERENCED,
+ * TX uses SOB/EOB. Bit 6 reserved for a leap-second straddle marker. */
+#define RIG_STREAM_TIME_FLAG_LOCKED            (1<<0)
+#define RIG_STREAM_TIME_FLAG_HOLDOVER          (1<<1)  /* lost lock, coasting */
+#define RIG_STREAM_TIME_FLAG_DISCONTINUITY     (1<<2)  /* gap/overrun precedes */
+#define RIG_STREAM_TIME_FLAG_SOB               (1<<3)  /* TX: start of burst */
+#define RIG_STREAM_TIME_FLAG_EOB               (1<<4)  /* TX: end of burst */
+#define RIG_STREAM_TIME_FLAG_TX_TIMED          (1<<0)  /* TX: seconds/picoseconds
+                                                     hold a scheduled UTC
+                                                     instant (shares the bit
+                                                     with RX-only LOCKED) */
+#define RIG_STREAM_TIME_FLAG_SAMPLE_REFERENCED (1<<5)  /* tied to the radio
+                                                     sample clock */
+#define RIG_STREAM_TIME_FLAG_DISC_OVERRUN      (1<<7)  /* with DISCONTINUITY: cause
+                                                     was a consumer-side ring
+                                                     overrun, not radio loss */
+
+/* Cause attribution for rig_stream_read_info.drop_flags */
+#define RIG_STREAM_DROP_GAP      (1<<0)  /* radio/network-side marked gap */
+#define RIG_STREAM_DROP_OVERRUN  (1<<1)  /* ring overrun (consumer slow) */
+#define RIG_STREAM_DROP_UNSIZED  (1<<2)  /* an unknown-size gap also precedes;
+                                            dropped_samples is a lower bound */
+#define RIG_STREAM_DROP_LINK     (1<<3)  /* network client: app-link UDP loss */
+
+/* Correlates a producer sample index with UTC wall-clock time */
+struct rig_stream_time_anchor {
+    uint64_t sample_index;      /* ring-buffer producer domain */
+    int64_t  seconds;           /* UTC, Unix epoch */
+    uint64_t picoseconds;       /* 0..999,999,999,999 */
+    uint8_t  source;            /* enum rig_stream_time_source */
+    uint8_t  flags;             /* RIG_STREAM_TIME_FLAG_* */
+    uint8_t  accuracy;          /* enum rig_stream_time_accuracy */
+    uint64_t _reserved[4];      /* ABI headroom; fillers zero it (see above) */
+};
+
+/* Per-read result info (RX); filled by rig_stream_read when non-NULL */
+struct rig_stream_read_info {
+    uint64_t sample_index;      /* producer index of first returned sample */
+    uint32_t dropped_samples;   /* known-size hole before this read, any
+                                   cause (marked gap and/or overrun) */
+    uint8_t  drop_flags;        /* RIG_STREAM_DROP_* cause attribution */
+    int32_t  time_valid;        /* 1 if the time fields are meaningful */
+    int64_t  seconds;           /* UTC, Unix epoch */
+    uint64_t picoseconds;       /* 0..999,999,999,999 */
+    uint8_t  time_source;       /* enum rig_stream_time_source */
+    uint8_t  time_flags;        /* RIG_STREAM_TIME_FLAG_* */
+    uint8_t  time_accuracy;     /* enum rig_stream_time_accuracy */
+    uint32_t codec_frame_samples; /* Codec streams: decoded duration of the
+                                   * returned codec frame in samples (0 =
+                                   * unknown). Raw streams: 0. (Occupies
+                                   * former tail padding; the reserved
+                                   * array below is untouched.) */
+    uint64_t _reserved[4];      /* ABI headroom; rig_stream_read zeroes it.
+                                   Policy: scalar additions fill padding
+                                   holes first, then carve whole slots from
+                                   the FRONT of this array — keep it one
+                                   array. */
+};
+
+/* Per-write burst target (TX); passed to rig_stream_write when non-NULL.
+ * No source/accuracy: the target is a request, not a measurement. */
+struct rig_stream_write_info {
+    int32_t  time_valid;        /* 0 = send immediately (no scheduling) */
+    int64_t  seconds;           /* UTC target */
+    uint64_t picoseconds;       /* 0..999,999,999,999 */
+    uint8_t  flags;             /* SOB/EOB */
+    uint32_t codec_frame_samples; /* Codec streams: decoded duration of the
+                                   * written codec frame in samples, declared
+                                   * by the application (0 allowed = unknown;
+                                   * timing features then degrade). Ignored
+                                   * for raw streams. (Occupies former tail
+                                   * padding; the reserved array below is
+                                   * untouched.) */
+    uint64_t _reserved[2];      /* ABI headroom; caller SHOULD zero-init.
+                                   Same carve policy as
+                                   rig_stream_read_info. */
+};
+
+/* Stream health snapshot returned by rig_stream_get_stats() */
+struct rig_stream_stats {
+    /* event counts (local ring) */
+    uint32_t overruns;          /* local ring full on write; oldest overwritten */
+    uint32_t underruns;         /* local blocking read timed out empty */
+    uint32_t gaps;              /* radio/network-side gaps marked by backend */
+    uint32_t gaps_unknown;      /* subset of gaps with unknown size */
+    uint32_t link_loss;         /* network client only: app-link UDP loss */
+    uint32_t tx_late;           /* timed TX bursts that missed their slot */
+    /* remote (server-reported) event counts, network client only */
+    uint32_t remote_overruns;   /* TX ring overruns / RX overrun-replay upstream */
+    uint32_t remote_underruns;  /* TX ring underruns reported by the server */
+    uint32_t write_events_dropped; /* write-status events dropped on FIFO overflow */
+    /* lost-sample totals (per cause) */
+    uint64_t dropped_samples_gap;     /* lower bound if gaps_unknown > 0 */
+    uint64_t dropped_samples_overrun;
+    uint64_t dropped_samples_link;    /* network client only */
+    uint64_t codec_frames;         /* Codec streams: whole codec frames
+                                      produced through the ring (equals
+                                      the datagram count today — one frame
+                                      per datagram — but counts frames,
+                                      surviving any future packing).
+                                      0 on raw streams. */
+    uint64_t _reserved[5];         /* ABI headroom; rig_stream_get_stats
+                                      zeroes it (see rig_stream_metadata) */
+};
+
+/* Write-status event kind (TX streams). Delivered by
+ * rig_stream_wait_write_status(); RX issues arrive inline via
+ * rig_stream_read_info instead. */
+enum rig_stream_write_event {
+    RIG_STREAM_WRITE_EVENT_NONE     = 0,
+    RIG_STREAM_WRITE_EVENT_LATE     = 1,  /* timed-TX burst missed its slot */
+    RIG_STREAM_WRITE_EVENT_UNDERRUN = 2,  /* TX ring emptied (writer too slow) */
+    RIG_STREAM_WRITE_EVENT_OVERRUN  = 3   /* TX ring full (writer too fast) */
+};
+
+/* rig_stream_write_status.flags bits */
+#define RIG_STREAM_WRITE_STATUS_TIME_VALID (1<<0) /* seconds/picoseconds valid */
+#define RIG_STREAM_WRITE_STATUS_REMOTE     (1<<1) /* occurred on the remote radio */
+
+/* Async write-status event, returned by rig_stream_wait_write_status().
+ * Mirrors rig_stream_read_info (what / where / when). The event channel is
+ * TX-stream only. seconds/picoseconds are meaningful only when the TIME_VALID
+ * flag is set; dropped_samples/lateness are 0 when not applicable. */
+struct rig_stream_write_status {
+    uint16_t event;             /* enum rig_stream_write_event */
+    uint16_t flags;             /* RIG_STREAM_WRITE_STATUS_* */
+    uint64_t sample_index;      /* producer index the event refers to */
+    uint32_t dropped_samples;   /* samples lost on UNDERRUN/OVERRUN; 0 if N/A */
+    int64_t  lateness;          /* samples a timed burst was late (LATE); 0 if N/A */
+    int32_t  time_valid;        /* 1 if seconds/picoseconds are meaningful */
+    int64_t  seconds;           /* UTC, Unix epoch */
+    uint64_t picoseconds;       /* 0..999,999,999,999 */
+    uint8_t  time_source;       /* enum rig_stream_time_source */
+    uint8_t  time_flags;        /* RIG_STREAM_TIME_FLAG_* */
+    uint8_t  time_accuracy;     /* enum rig_stream_time_accuracy */
+    uint64_t _reserved[4];      /* ABI headroom; filler zeroes it */
+};
+
 
 /**
  * Config item for deferred processing
@@ -2224,8 +2635,70 @@ struct rig_caps {
     int (*password)(RIG *rig, const char *key1); /*!< Send encrypted password if rigctld is secured with -A/--password */
     int (*set_lock_mode)(RIG *rig, int mode);
     int (*get_lock_mode)(RIG *rig, int *mode);
+
     short timeout_retry;    /*!< number of retries to make in case of read timeout errors, some serial interfaces may require this, 0 to use default value, -1 to disable */
     short morse_qsize;  /*!< max length of morse message rig can accept in one command */
+
+    /* Data streaming caps: a 0-terminated array (terminator has formats==0),
+     * or NULL. A pointer, not an embedded array, so the descriptor
+     * (struct rig_stream_caps) can gain fields without changing sizeof(rig_caps).
+     * Backends with static caps point at a `static const` array; backends that
+     * build caps at runtime (netrigctl, icom_network) fill a mutable buffer they
+     * own and assign it here.
+     *
+     * Backends declare the HARDWARE-NATIVE formats, rates and channel counts
+     * in the classic fields and nothing else; the frontend derives the wider
+     * effective (openable-via-conversion) view it serves to applications
+     * through rig_stream_caps_at(). Applications must use that accessor, not
+     * this pointer.
+     *
+     * Exception: a backend that fills the native_* fields too (non-zero
+     * native_formats) is declaring BOTH views pre-derived, and the frontend
+     * serves them verbatim. netrigctl uses this to relay the remote
+     * server's authoritative effective/native split, since conversion for
+     * such streams happens server-side. */
+    const struct rig_stream_caps *stream_caps; /*!< Streaming capabilities, 0-terminated by type, or NULL */
+
+    /* Data streaming API backend hooks. Only stream_open and stream_close are
+     * required; the frontend drives the data path through stream->ringbuf.
+     * Each remaining hook is an optional override the frontend invokes only
+     * when non-NULL, otherwise applying the default noted on that hook. */
+
+    /* Required: start device I/O for the stream (e.g. spawn the producer or
+     * consumer thread that feeds or drains stream->ringbuf). */
+    int (*stream_open)(RIG *rig, struct rig_stream *stream);
+    /* Required: stop device I/O and free per-stream backend state. */
+    int (*stream_close)(RIG *rig, struct rig_stream *stream);
+    /* Optional: deliver RX samples through a custom transport (e.g. direct
+     * DMA). Default reads from stream->ringbuf. */
+    int (*stream_read)(RIG *rig, struct rig_stream *stream,
+                       void *buffer, size_t buffer_size,
+                       size_t *bytes_read, int timeout_ms,
+                       struct rig_stream_read_info *info);
+    /* Optional: send TX samples through a custom transport (direct-to-hardware
+     * or network). Default writes to stream->ringbuf. */
+    int (*stream_write)(RIG *rig, struct rig_stream *stream,
+                        const void *buffer, size_t buffer_size,
+                        size_t *bytes_written, int timeout_ms,
+                        const struct rig_stream_write_info *info);
+    /* Optional: flush a hardware TX FIFO. Default polls stream->ringbuf until
+     * it is empty or the timeout expires. */
+    int (*stream_drain)(RIG *rig, struct rig_stream *stream, int timeout_ms);
+    /* Optional: tell the radio to stop sending. Default sets stream->paused,
+     * after which the frontend withholds RX data. */
+    int (*stream_pause)(RIG *rig, struct rig_stream *stream);
+    /* Optional: tell the radio to resume sending. Default clears
+     * stream->paused. */
+    int (*stream_resume)(RIG *rig, struct rig_stream *stream);
+    /* Optional: apply timed or device-specific metadata. Default applies the
+     * fields via rig_set_freq()/rig_set_vfo()/PTT on the stream's VFO. */
+    int (*stream_apply_metadata)(RIG *rig, struct rig_stream *stream,
+                                 const struct rig_stream_metadata *meta);
+    /* Optional: return the radio's sample-clock timestamp. Default returns
+     * host CLOCK_REALTIME (RIG_STREAM_TIME_SRC_HOST, millisecond accuracy). */
+    int (*stream_hardware_time)(RIG *rig, struct rig_stream *stream,
+                                struct rig_stream_time_anchor *now);
+
 //    int (*bandwidth2rig)(RIG  *rig, enum bandwidth_t bandwidth);
 //    enum bandwidth_t (*rig2bandwidth)(RIG  *rig, int rigbandwidth);
 };
@@ -3103,6 +3576,298 @@ extern HAMLIB_EXPORT(int)
 rig_set_spectrum_callback(RIG *,
                           spectrum_cb_t,
                           rig_ptr_t);
+
+/* Audio and I/Q streaming API */
+
+/*!
+ * \brief Number of streaming capability descriptors a rig advertises.
+ * \return the count (0 if the rig has no streaming caps or is NULL).
+ */
+extern HAMLIB_EXPORT(int)
+rig_stream_caps_count(RIG *rig);
+
+/*!
+ * \brief Access the i-th streaming capability descriptor of \a rig.
+ *
+ * The returned descriptor carries both capability views: the classic
+ * fields (formats, sample_rates, channels) hold the EFFECTIVE
+ * set — every configuration rig_stream_open() will serve, conversions
+ * included — and the native_* fields hold the hardware-native truth.
+ * A request inside the effective but outside the native set is served
+ * through conversion; see RIG_STREAM_CONV_*, rig_stream_get_conversions()
+ * and rig_stream_config.require_native.
+ *
+ * The returned pointer is owned by the library and is valid for the lifetime
+ * of \a rig. Its contents are immutable — treat it as read-only. The caller
+ * MUST NOT free it; to retain values, copy the fields out.
+ *
+ * \return the i-th descriptor, or NULL if \a index is out of range
+ *         (see rig_stream_caps_count()).
+ */
+extern HAMLIB_EXPORT(const struct rig_stream_caps *)
+rig_stream_caps_at(RIG *rig, int index);
+
+/*!
+ * \brief Report the active conversion stages of an open stream.
+ *
+ * Returns the RIG_STREAM_CONV_* bitmask describing what runs between the
+ * hardware and this stream. RIG_STREAM_CONV_NONE (0) means a native
+ * stream: bytes pass untouched. The value is set at open and constant for
+ * the stream's lifetime. For a network rig (netrigctl) the conversion
+ * runs on the server, and this reports the server's value.
+ *
+ * \return the bitmask (>= 0), or -RIG_EINVAL on a NULL stream.
+ */
+extern HAMLIB_EXPORT(int)
+rig_stream_get_conversions(const rig_stream_t *stream);
+
+/*!
+ * \brief Allocate a zeroed stream configuration owned by the library.
+ *
+ * Applications MUST obtain a \c rig_stream_config through this call rather
+ * than allocating one themselves, and release it with
+ * rig_stream_config_free(). Because the library allocates the buffer, it is
+ * always sized to the library's own view of the struct, so fields appended
+ * to the struct in later releases stay ABI-compatible: an application that
+ * only sets the fields it knows keeps working against a newer or older
+ * library. Every unset field is 0, which selects the built-in default for
+ * that field.
+ *
+ * \return a new zeroed configuration, or NULL on allocation failure.
+ */
+extern HAMLIB_EXPORT(struct rig_stream_config *)
+rig_stream_config_alloc(void);
+
+/*!
+ * \brief Free a configuration returned by rig_stream_config_alloc().
+ *
+ * A NULL pointer is a no-op. The configuration may be freed as soon as
+ * rig_stream_open() returns; the stream keeps its own copy.
+ */
+extern HAMLIB_EXPORT(void)
+rig_stream_config_free(struct rig_stream_config *config);
+
+/*!
+ * \brief Open a data stream on \a rig from an allocated configuration.
+ *
+ * \a config must come from rig_stream_config_alloc() (its \c struct_size gates
+ * ABI compatibility; a zero \c struct_size is rejected). \a config->format must
+ * be a single supported RIG_STREAM_FORMAT_* bit. On success \a *stream receives
+ * the opaque handle; free it with rig_stream_close(). \a config may be freed
+ * immediately after this call returns.
+ *
+ * \return RIG_OK, or a negative error (-RIG_EINVAL for a bad config/format,
+ *         -RIG_ENIMPL if the backend has no streaming, and backend errors).
+ */
+extern HAMLIB_EXPORT(int)
+rig_stream_open(RIG *rig,
+                const struct rig_stream_config *config,
+                rig_stream_t **stream);
+
+/*!
+ * \brief Close a stream opened with rig_stream_open() and free it.
+ *
+ * Wakes any thread blocked in rig_stream_read() or
+ * rig_stream_wait_write_status() and waits for it to return before the handle
+ * is destroyed, so a close may race an in-flight blocking call safely. The
+ * handle must not be used again after this returns.
+ *
+ * \return RIG_OK, or -RIG_EINVAL for a NULL/unknown stream.
+ */
+extern HAMLIB_EXPORT(int)
+rig_stream_close(RIG *rig,
+                 rig_stream_t *stream);
+
+/*!
+ * \brief Read up to \a buffer_size bytes of RX stream data.
+ *
+ * \a timeout_ms < 0 blocks until data arrives or the stream closes; 0 polls
+ * without blocking; > 0 bounds the wait. \a *bytes_read is set to the byte
+ * count (0 on timeout). \a info, when non-NULL, is filled with per-read
+ * position/drop/time details. A paused stream returns -RIG_ETIMEOUT with
+ * \a *bytes_read == 0; a muted stream returns silence (zeros).
+ *
+ * \return RIG_OK on data, -RIG_ETIMEOUT if none arrived in time,
+ *         -RIG_ENAVAIL if the stream is closing, -RIG_EINVAL on bad args.
+ */
+extern HAMLIB_EXPORT(int)
+rig_stream_read(RIG *rig,
+                rig_stream_t *stream,
+                void *buffer,
+                size_t buffer_size,
+                size_t *bytes_read,
+                int timeout_ms,
+                struct rig_stream_read_info *info);
+
+/*!
+ * \brief Write \a buffer_size bytes of TX stream data.
+ *
+ * \a timeout_ms follows the same < 0 / 0 / > 0 convention as
+ * rig_stream_read(). \a *bytes_written is set to the accepted byte count. \a
+ * info, when non-NULL, carries a timed-burst target (seconds/picoseconds) and
+ * SOB/EOB flags. A muted stream accepts the write for pacing but discards the
+ * samples (nothing is transmitted).
+ *
+ * \return RIG_OK, or a negative error (-RIG_EINVAL on bad args, -RIG_ENAVAIL
+ *         if timed TX is requested but unsupported).
+ */
+extern HAMLIB_EXPORT(int)
+rig_stream_write(RIG *rig,
+                 rig_stream_t *stream,
+                 const void *buffer,
+                 size_t buffer_size,
+                 size_t *bytes_written,
+                 int timeout_ms,
+                 const struct rig_stream_write_info *info);
+
+/*!
+ * \brief Block until the TX ring drains or \a timeout_ms elapses.
+ *
+ * \a timeout_ms > 0 bounds the wait; 0 returns immediately. Default
+ * implementation polls the ring; a backend may flush a hardware FIFO instead.
+ *
+ * \return RIG_OK when drained, -RIG_ETIMEOUT otherwise, -RIG_EINVAL on bad args.
+ */
+extern HAMLIB_EXPORT(int)
+rig_stream_drain(RIG *rig,
+                 rig_stream_t *stream,
+                 int timeout_ms);
+
+/*!
+ * \brief Read the accumulated counters of \a stream into \a stats.
+ *
+ * \a stats is zeroed first, so counters the stream does not track read as 0.
+ * The values are cumulative since the stream was opened and cover local ring
+ * overruns and underruns, gaps with their attributed sample counts, and the
+ * remote-side counters reported over a network transport.
+ *
+ * \return RIG_OK, or -RIG_EINVAL on bad args or an unknown stream.
+ */
+extern HAMLIB_EXPORT(int)
+rig_stream_get_stats(RIG *rig,
+                     rig_stream_t *stream,
+                     struct rig_stream_stats *stats);
+
+/*!
+ * \brief Fetch the next write-status event on a TX stream.
+ *
+ * \a timeout_ms < 0 blocks until an event arrives or the stream closes; 0 is
+ * a non-blocking poll / drain; > 0 bounds the wait. A successful call consumes
+ * the event and fills \a status, which the caller SHOULD zero-initialise.
+ *
+ * \return RIG_OK on an event, -RIG_ETIMEOUT if none arrived in time,
+ *         -RIG_ENAVAIL if the stream is closing or is not a TX stream,
+ *         -RIG_EINVAL on bad args.
+ */
+extern HAMLIB_EXPORT(int)
+rig_stream_wait_write_status(RIG *rig,
+                             rig_stream_t *stream,
+                             struct rig_stream_write_status *status,
+                             int timeout_ms);
+
+/* Convention: getters that read only state cached on the opaque stream handle
+ * take rig_stream_t* alone; any call that reaches the backend or rig-wide state
+ * takes RIG* (e.g. rig_stream_get_hardware_time queries the device clock). */
+/*!
+ * \brief Most recent time anchor recorded for \a stream.
+ *
+ * An anchor ties a sample index to an instant, which is what lets a caller map
+ * stream positions onto time.
+ *
+ * \return RIG_OK, -RIG_ENAVAIL if no anchor has been recorded yet, or
+ *         -RIG_EINVAL on bad args.
+ */
+extern HAMLIB_EXPORT(int)
+rig_stream_get_time_anchor(rig_stream_t *stream,
+                           struct rig_stream_time_anchor *anchor);
+
+/*!
+ * \brief Samples written to \a stream since it was opened.
+ *
+ * Samples dropped by the pacing logic count too, so the value tracks stream
+ * position rather than how much data is currently buffered.
+ *
+ * \return the sample count, or 0 if \a stream is NULL.
+ */
+extern HAMLIB_EXPORT(uint64_t)
+rig_stream_get_samples_written(const rig_stream_t *stream);
+
+/*!
+ * \brief Current device time for \a stream.
+ *
+ * A backend that exposes a sample clock answers from the hardware. Otherwise
+ * \a now is filled from the host clock and marked RIG_STREAM_TIME_SRC_HOST,
+ * which is not tied to the radio's sample clock.
+ *
+ * \return RIG_OK, -RIG_EINVAL on bad args or an unknown stream, or a backend
+ *         error.
+ */
+extern HAMLIB_EXPORT(int)
+rig_stream_get_hardware_time(RIG *rig,
+                             rig_stream_t *stream,
+                             struct rig_stream_time_anchor *now);
+
+/*!
+ * \brief Direction and payload kind of \a stream.
+ * \return the RIG_STREAM_TYPE_* value, or RIG_STREAM_TYPE_COUNT if \a stream
+ *         is NULL.
+ */
+extern HAMLIB_EXPORT(rig_stream_type_t)
+rig_stream_get_type(const rig_stream_t *stream);
+
+/*!
+ * \brief Identifier assigned to \a stream when it was opened.
+ * \return the stream ID, or -1 if \a stream is NULL.
+ */
+extern HAMLIB_EXPORT(int)
+rig_stream_get_id(const rig_stream_t *stream);
+
+/*!
+ * \brief Effective, frame-aligned sample payload budget (bytes) for a stream.
+ *
+ * Reports the per-datagram sample payload the sender will use, after the
+ * configured \c mtu is clamped to the supported range and rounded down to a
+ * whole frame. A TX client uses this to size its own packetization to match;
+ * a value derived from a raised MTU indicates jumbo datagrams are in use.
+ *
+ * \return the payload budget in bytes, or -1 if \a stream is NULL.
+ */
+extern HAMLIB_EXPORT(int)
+rig_stream_get_max_payload(const rig_stream_t *stream);
+
+/*! \brief Pause device I/O: a paused RX stream withholds data (reads time out);
+ *  the ring is left intact. The frontend flag is set only if the backend hook
+ *  (when present) succeeds. \return RIG_OK or a negative error. */
+extern HAMLIB_EXPORT(int)
+rig_stream_pause(RIG *rig, rig_stream_t *stream);
+
+/*! \brief Resume a paused stream (see rig_stream_pause()).
+ *  \return RIG_OK or a negative error. */
+extern HAMLIB_EXPORT(int)
+rig_stream_resume(RIG *rig, rig_stream_t *stream);
+
+/*! \brief Mute: RX reads return silence and TX writes are discarded, while the
+ *  stream keeps running for pacing. \return RIG_OK or -RIG_EINVAL. */
+extern HAMLIB_EXPORT(int)
+rig_stream_mute(RIG *rig, rig_stream_t *stream);
+
+/*! \brief Unmute a muted stream (see rig_stream_mute()).
+ *  \return RIG_OK or -RIG_EINVAL. */
+extern HAMLIB_EXPORT(int)
+rig_stream_unmute(RIG *rig, rig_stream_t *stream);
+
+/*! \brief Copy the most recent metadata (frequency/PTT/center) for the stream
+ *  into \a meta. \return RIG_OK or a negative error. */
+extern HAMLIB_EXPORT(int)
+rig_stream_read_metadata(RIG *rig, rig_stream_t *stream,
+                               struct rig_stream_metadata *meta);
+
+/*! \brief Apply metadata to a TX stream (retune/PTT via the backend or the
+ *  default set_freq/set_vfo/PTT path); duplicate fields are suppressed.
+ *  \return RIG_OK or a negative error. */
+extern HAMLIB_EXPORT(int)
+rig_stream_write_metadata(RIG *rig, rig_stream_t *stream,
+                          const struct rig_stream_metadata *meta);
 
 extern HAMLIB_EXPORT(int)
 rig_set_twiddle(RIG *rig,

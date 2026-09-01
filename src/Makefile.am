@@ -1,8 +1,12 @@
-AM_CFLAGS += $(LIBUSB_CFLAGS)
+AM_CFLAGS += $(LIBUSB_CFLAGS) $(SAMPLERATE_CFLAGS)
 
 BUILT_SOURCES = hamlibdatetime.h
 
 DISTCLEANFILES = hamlibdatetime.h
+
+# The Windows DLL link emits libhamlib.def (WINLDFLAGS --output-def);
+# remove it so distcleancheck passes on MinGW builds.
+CLEANFILES = libhamlib.def
 
 RIGSRC = hamlibdatetime.h rig.c serial.c serial.h misc.c misc.h register.c register.h event.c \
 	event.h cal.c cal.h conf.c tones.c tones.h rotator.c locator.c rot_reg.c \
@@ -10,9 +14,17 @@ RIGSRC = hamlibdatetime.h rig.c serial.c serial.h misc.c misc.h register.c regis
    	mem.c settings.c parallel.c parallel.h usb_port.c usb_port.h debug.c \
    	network.c network.h cm108.c cm108.h gpio.c gpio.h idx_builtin.h token.h \
    	par_nt.h microham.c microham.h amplifier.c amp_reg.c amp_conf.c \
-   	amp_conf.h amp_settings.c amp_ext.c sleep.c sleep.h sprintflst.c \
+   	amp_conf.h amp_settings.c amp_ext.c \
+   	sleep.c sleep.h sprintflst.c \
    	sprintflst.h cache.c cache.h snapshot_data.c snapshot_data.h fifo.c fifo.h \
-    serial_cfg_params.h mutex.h
+	serial_cfg_params.h mutex.h \
+	stream.c stream.h stream_ringbuf.c stream_ringbuf.h \
+	stream_anchor.c stream_anchor.h stream_account.c stream_account.h \
+	stream_convert.c stream_convert.h \
+	stream_codec.c stream_codec.h \
+	stream_proto.c stream_proto.h stream_time.c stream_time.h \
+	stream_net.c stream_net.h \
+	rigctl_protocol.c rigctl_protocol.h
 
 if VERSIONDLL
 RIGSRC +=	\
@@ -24,7 +36,7 @@ libhamlib_la_SOURCES = $(RIGSRC) $(VERSIONDLL)
 libhamlib_la_LDFLAGS = $(WINLDFLAGS) $(OSXLDFLAGS) -no-undefined -version-info $(ABI_VERSION):$(ABI_REVISION):$(ABI_AGE)
 
 libhamlib_la_LIBADD = $(top_builddir)/lib/libmisc.la $(top_builddir)/security/libsecurity.la \
-	$(BACKENDEPS) $(RIG_BACKENDEPS) $(ROT_BACKENDEPS) $(AMP_BACKENDEPS) $(NET_LIBS) $(MATH_LIBS) $(LIBUSB_LIBS) $(INDI_LIBS)
+	$(BACKENDEPS) $(RIG_BACKENDEPS) $(ROT_BACKENDEPS) $(AMP_BACKENDEPS) $(NET_LIBS) $(MATH_LIBS) $(LIBUSB_LIBS) $(INDI_LIBS) $(SAMPLERATE_LIBS)
 
 libhamlib_la_DEPENDENCIES = $(top_builddir)/lib/libmisc.la $(top_builddir)/security/libsecurity.la $(BACKENDEPS) $(RIG_BACKENDEPS) $(ROT_BACKENDEPS) $(AMP_BACKENDEPS) 
 

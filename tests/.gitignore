@@ -17,6 +17,7 @@ rigfreqwalk
 rigmatrix
 rigmem
 rigsmtr
+rigstreamtest
 rigswr
 rigtestlibusb
 rigtestmcast
@@ -34,6 +35,8 @@ testcache.sh
 testcookie
 testcookie.sh
 testctlparser
+testdebug
+testdummyparm
 testfreq
 testfreq.sh
 testftx1parsers
@@ -46,6 +49,8 @@ testlibusb
 testloc
 testloc.sh
 testmW2power
+testnetrigctl
+testnetrigctl.sh
 testrig
 testrig.sh
 testrigcaps

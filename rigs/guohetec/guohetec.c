@@ -19,7 +19,6 @@
  *
  */
 
-#include <string.h>
 #include "hamlib/rig.h"
 #include "hamlib/port.h"
 #include "iofunc.h"
@@ -27,24 +26,23 @@
 #include "riglist.h"
 #include "guohetec.h"
 
-// Common response validation function implementations
-int validate_packet_header(const unsigned char *reply, const char *func_name)
+enum
+{
+    GUOHE_FRAME_HEADER_LENGTH = 5,
+    GUOHE_STATUS_MIN_PACKET_LENGTH = 15,
+    GUOHE_STATUS_COMMAND = 0x0B
+};
+
+static int validate_packet_header(const unsigned char *reply,
+                                  const char *func_name)
 {
     if (reply[0] != 0xA5 || reply[1] != 0xA5 || 
         reply[2] != 0xA5 || reply[3] != 0xA5) {
         rig_debug(RIG_DEBUG_ERR, "%s: Invalid packet header, using cached values\n", func_name);
-        return -1;
+        return -RIG_EPROTO;
     }
-    return 0;
-}
 
-int validate_data_length(const unsigned char *reply, int reply_size, const char *func_name)
-{
-    if (reply[4] == 0 || reply[4] > reply_size - 5) {
-        rig_debug(RIG_DEBUG_ERR, "%s: Invalid data length %d, using cached values\n", func_name, reply[4]);
-        return -1;
-    }
-    return 0;
+    return RIG_OK;
 }
 
 // CRC16/CCITT-FALSE
@@ -157,154 +155,156 @@ uint16_t CRC16Check(const unsigned char *buf, int len)
      return result;
  }
 
-// Common response validation functions
-
-/**
- * Read rig response with validation
- * @param rig RIG structure
- * @param reply Reply buffer
- * @param reply_size Size of reply buffer
- * @param func_name Function name for debug messages
- * @return 0 on success, -1 on error
- */
-int read_rig_response(RIG *rig, unsigned char *reply, int reply_size, 
-                     const char *func_name)
+int guohetec_read_response(RIG *rig, unsigned char *reply, size_t reply_size,
+                           const char *func_name)
 {
     hamlib_port_t *rp = RIGPORT(rig);
     int ret;
-    
-    // Read header
-    ret = read_block(rp, reply, 5);
-    if (ret < 0) {
+
+    if (reply_size < GUOHE_FRAME_HEADER_LENGTH)
+    {
+        return -RIG_EINVAL;
+    }
+
+    ret = read_block(rp, reply, GUOHE_FRAME_HEADER_LENGTH);
+
+    if (ret < 0)
+    {
         rig_debug(RIG_DEBUG_ERR, "%s: Failed to read header, using cached values\n", func_name);
-        return -1;
+        return ret;
     }
-    
-    // Validate data length
-    if (reply[4] == 0 || reply[4] > reply_size - 5) {
+
+    if (validate_packet_header(reply, func_name) < 0)
+    {
+        return -RIG_EPROTO;
+    }
+
+    if (reply[4] == 0 || reply[4] > reply_size - GUOHE_FRAME_HEADER_LENGTH)
+    {
         rig_debug(RIG_DEBUG_ERR, "%s: Invalid data length %d, using cached values\n", func_name, reply[4]);
-        return -1;
+        return -RIG_EPROTO;
     }
-    
-    // Read data section
-    ret = read_block(rp, &reply[5], reply[4]);
-    if (ret < 0) {
+
+    ret = read_block(rp, &reply[GUOHE_FRAME_HEADER_LENGTH], reply[4]);
+
+    if (ret < 0)
+    {
         rig_debug(RIG_DEBUG_ERR, "%s: Failed to read data, using cached values\n", func_name);
-        return -1;
+        return ret;
     }
-    
-    // Validate response length matches expected
-    if (ret != reply[4]) {
-        rig_debug(RIG_DEBUG_ERR, "%s: Data read mismatch: expected %d, got %d, using cached values\n", 
-                 func_name, reply[4], ret);
-        return -1;
+
+    if (ret != reply[4])
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: Data read mismatch: expected %d, got %d, using cached values\n",
+                  func_name, reply[4], ret);
+        return -RIG_EPROTO;
     }
-    
-    return 0;
+
+    return GUOHE_FRAME_HEADER_LENGTH + ret;
 }
 
-/**
- * Validate basic rig response
- * @param rig RIG structure
- * @param reply Reply buffer
- * @param reply_size Size of reply buffer
- * @param func_name Function name for debug messages
- * @return 0 on success, -1 on error
- */
-int validate_rig_response(RIG *rig, const unsigned char *reply, int reply_size, 
-                         const char *func_name)
+int guohetec_decode_status(const unsigned char *reply, size_t reply_size,
+                           struct guohetec_status *status,
+                           const char *func_name)
 {
-    // Validate packet header
-    if (validate_packet_header(reply, func_name) < 0) {
-        return -1;
+    size_t expected_size;
+    size_t crc_offset;
+    uint16_t received_crc;
+    uint16_t calculated_crc;
+
+    if (reply == NULL || status == NULL || func_name == NULL)
+    {
+        return -RIG_EINVAL;
     }
-    
-    // Validate data length
-    if (validate_data_length(reply, reply_size, func_name) < 0) {
-        return -1;
+
+    if (reply_size < GUOHE_FRAME_HEADER_LENGTH ||
+            validate_packet_header(reply, func_name) < 0)
+    {
+        return -RIG_EPROTO;
     }
-    
-    return 0;
+
+    if (reply[4] < GUOHE_STATUS_MIN_PACKET_LENGTH)
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: Status response too short: %u, using cached values\n",
+                  func_name, reply[4]);
+        return -RIG_EPROTO;
+    }
+
+    expected_size = GUOHE_FRAME_HEADER_LENGTH + reply[4];
+
+    if (reply_size != expected_size)
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: Status response length mismatch: expected %zu, got %zu, using cached values\n",
+                  func_name, expected_size, reply_size);
+        return -RIG_EPROTO;
+    }
+
+    if (reply[5] != GUOHE_STATUS_COMMAND)
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: Unexpected status response command: 0x%02X, using cached values\n",
+                  func_name, reply[5]);
+        return -RIG_EPROTO;
+    }
+
+    crc_offset = expected_size - 2;
+    received_crc = ((uint16_t)reply[crc_offset] << 8) |
+                   reply[crc_offset + 1];
+    calculated_crc = CRC16Check(&reply[4], reply[4] - 1);
+
+    if (received_crc != calculated_crc)
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: CRC check failed (received: %04X, calculated: %04X), using cached values\n",
+                  func_name, received_crc, calculated_crc);
+        return -RIG_EPROTO;
+    }
+
+    status->ptt = reply[6];
+    status->mode_a = reply[7];
+    status->mode_b = reply[8];
+    status->freq_a = (uint32_t)from_be(&reply[9], 4);
+    status->freq_b = (uint32_t)from_be(&reply[13], 4);
+    status->vfo = reply[17] == 1 ? RIG_VFO_B : RIG_VFO_A;
+
+    return RIG_OK;
 }
 
-/**
- * Validate frequency response with CRC check
- * @param rig RIG structure
- * @param reply Reply buffer
- * @param reply_size Size of reply buffer
- * @param func_name Function name for debug messages
- * @return 0 on success, -1 on error
- */
-int validate_freq_response(RIG *rig, const unsigned char *reply, int reply_size, 
-                          const char *func_name)
+int guohetec_get_status(RIG *rig, struct guohetec_status *status,
+                        const char *func_name)
 {
-    // Basic validation
-    if (validate_rig_response(rig, reply, reply_size, func_name) < 0) {
-        return -1;
-    }
-    
-    // Validate buffer boundaries for CRC
-    int expected_total_length = 5 + reply[4] + 2; // header(5) + data_length + CRC(2)
-    if (expected_total_length > reply_size) {
-        rig_debug(RIG_DEBUG_ERR, "%s: Response too large for buffer: %d > %d, using cached values\n", 
-                 func_name, expected_total_length, reply_size);
-        return -1;
-    }
-    
-    // CRC check
-    uint16_t recv_crc = (reply[31] << 8) | reply[32]; // Last 2 bytes are CRC
-    uint16_t calc_crc = CRC16Check(&reply[4], 27);
-    if (recv_crc != calc_crc) {
-        rig_debug(RIG_DEBUG_ERR, "%s: CRC check failed (received: %04X, calculated: %04X), using cached values\n", 
-                 func_name, recv_crc, calc_crc);
-        return -1;
-    }
-    
-    // Validate frequency field offset
-    int freq_b_offset = 13; // VFOB frequency starting position
-    if (freq_b_offset + 3 >= expected_total_length - 2) { // -2 for CRC
-        rig_debug(RIG_DEBUG_ERR, "%s: Frequency field offset out of bounds, using cached values\n", func_name);
-        return -1;
-    }
-    
-    return 0;
-}
+    unsigned char command[GUOHE_STATUS_CMD_LENGTH] = {
+        0xA5, 0xA5, 0xA5, 0xA5, 0x03, GUOHE_STATUS_COMMAND, 0x00, 0x00
+    };
+    unsigned char reply[GUOHE_MAX_FRAME_LENGTH];
+    hamlib_port_t *rp = RIGPORT(rig);
+    uint16_t crc;
+    int ret;
 
-/**
- * Validate mode response with bounds checking
- * @param rig RIG structure
- * @param reply Reply buffer
- * @param reply_size Size of reply buffer
- * @param func_name Function name for debug messages
- * @param min_length Minimum required data length
- * @return 0 on success, -1 on error
- */
-int validate_mode_response(RIG *rig, const unsigned char *reply, int reply_size, 
-                          const char *func_name, int min_length)
-{
-    // Basic validation
-    if (validate_rig_response(rig, reply, reply_size, func_name) < 0) {
-        return -1;
+    crc = CRC16Check(&command[4], 2);
+    command[6] = crc >> 8;
+    command[7] = crc & 0xFF;
+
+    rig_flush(rp);
+    ret = write_block(rp, command, sizeof(command));
+
+    if (ret != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: Failed to write status request\n", func_name);
+        return ret;
     }
-    
-    // Validate minimum length for mode data
-    if (reply[4] < min_length) {
-        rig_debug(RIG_DEBUG_ERR, "%s: Response too short for mode data, using cached values\n", func_name);
-        return -1;
+
+    ret = guohetec_read_response(rig, reply, sizeof(reply), func_name);
+
+    if (ret < 0)
+    {
+        return ret;
     }
-    
-    // Validate mode field indices are within bounds
-    if (reply[7] >= GUOHE_MODE_TABLE_MAX) {
-        rig_debug(RIG_DEBUG_ERR, "%s: Invalid mode A index %d, using cached values\n", func_name, reply[7]);
-        return -1;
-    }
-    
-    if (reply[8] >= GUOHE_MODE_TABLE_MAX) {
-        rig_debug(RIG_DEBUG_ERR, "%s: Invalid mode B index %d, using cached values\n", func_name, reply[8]);
-        return -1;
-    }
-    
-    return 0;
+
+    return guohetec_decode_status(reply, (size_t)ret, status, func_name);
 }
 
 // Initialization function
@@ -321,7 +321,7 @@ DECLARE_INITRIG_BACKEND(guohetec) {
 
 // Probe function implementation
 DECLARE_PROBERIG_BACKEND(guohetec) {
-    uint8_t cmd[PMR171_CMD_LENGTH] = {
+    uint8_t cmd[GUOHE_STATUS_CMD_LENGTH] = {
         0xA5, 0xA5, 0xA5, 0xA5, 
         0x03,                   
         0x0B,                   
@@ -334,7 +334,8 @@ DECLARE_PROBERIG_BACKEND(guohetec) {
     const int rates[] = {9600, 19200, 38400, 57600, 115200, 0};
     
     for (int i = 0; rates[i]; i++) {
-        uint8_t reply[PMR171_REPLY_LENGTH];
+        uint8_t reply[GUOHE_MAX_FRAME_LENGTH];
+        struct guohetec_status status;
         
         port->parm.serial.rate = rates[i];
         port->timeout = 500; 
@@ -345,39 +346,35 @@ DECLARE_PROBERIG_BACKEND(guohetec) {
         
         rig_flush(port);
         
-        int retval = write_block(port, cmd, PMR171_CMD_LENGTH);
+        int retval = write_block(port, cmd, GUOHE_STATUS_CMD_LENGTH);
         if (retval != RIG_OK) {
             continue;
         }
         
-        retval = read_block(port, reply, 6);
-        if (retval < 6 || memcmp(reply, "\xA5\xA5\xA5\xA5", 4) != 0) {
+        retval = read_block(port, reply, GUOHE_FRAME_HEADER_LENGTH);
+        if (retval < GUOHE_FRAME_HEADER_LENGTH ||
+                validate_packet_header(reply, __func__) < 0) {
             continue;
         }
         
         uint8_t pkt_len = reply[4];
-        if (pkt_len < 2 || pkt_len > (PMR171_REPLY_LENGTH - 5)) {
+        if (pkt_len == 0 ||
+                pkt_len > (GUOHE_MAX_FRAME_LENGTH - GUOHE_FRAME_HEADER_LENGTH)) {
             continue;
         }
         
-        retval = read_block(port, &reply[6], pkt_len - 1);
-        if (retval < (pkt_len - 1)) {
+        retval = read_block(port, &reply[GUOHE_FRAME_HEADER_LENGTH], pkt_len);
+        if (retval != pkt_len) {
             continue;
         }
-        
-        uint16_t recv_crc = (reply[pkt_len + 4] << 8) | reply[pkt_len + 5];
-        uint16_t calc_crc = CRC16Check(&reply[4], pkt_len + 1);
-        
-        if (recv_crc != calc_crc) {
+
+        if (guohetec_decode_status(reply,
+                                   GUOHE_FRAME_HEADER_LENGTH + pkt_len,
+                                   &status, __func__) < 0) {
             continue;
         }
-        
-        if (reply[5] != 0x0B) {
-            continue;
-        }
-        
-        uint32_t freq = (reply[9] << 24) | (reply[10] << 16) | 
-                       (reply[11] << 8) | reply[12];
+
+        uint32_t freq = status.freq_a;
         if (freq < 100000 || freq > 470000000) {
             continue;
         }
@@ -397,4 +394,3 @@ DECLARE_PROBERIG_BACKEND(guohetec) {
     
     return RIG_MODEL_NONE;
 }
-

@@ -239,6 +239,29 @@ struct rig_state {
     client_t client;        /*!< Client application of the library. */
     pthread_mutex_t api_mutex;      /*!< Lock for any API entry. */
     bool morse_busy;                /*!< Advisory to use cache when morse_handler is busy */
+    void *stream_state;             /*!< Opaque pointer to streaming subsystem state */
+    unsigned int stream_time_stale_coarse_ms;     /*!< Default staleness threshold for
+                                                       accuracy downgrade (0 = built-in) */
+    unsigned int stream_time_stale_invalidate_ms; /*!< Default staleness threshold for
+                                                       time invalidation (0 = built-in) */
+    unsigned int stream_transport_buffer_ms;            /*!< Default transport buffer as ms of
+                                                    stream data (0 = built-in 250 ms) */
+    unsigned int stream_transport_buffer_bytes;         /*!< Default transport buffer explicit
+                                                    bytes (0 = derive from rate) */
+    unsigned int stream_metadata_refresh_ms;   /*!< Default metadata refresh cadence in
+                                                    ms (0 = built-in) */
+    unsigned int stream_metadata_interval_ms;  /*!< Default metadata change-poll interval
+                                                    in ms (0 = built-in) */
+    int stream_source_id;                      /*!< Stream source ID carried in every
+                                                    stream packet (-1 = derive from static
+                                                    configuration, 0 = emit unset) */
+    unsigned int stream_keepalive_timeout_s;   /*!< Seconds of stream silence before the
+                                                    server drops a client (0 = built-in) */
+    unsigned int stream_keepalive_interval_s;  /*!< Stream keepalive ping interval in
+                                                    seconds (0 = built-in) */
+    int stream_resample_quality;               /*!< Stream resampler quality:
+                                                    RIG_RESAMPLE_* + 1, so 0 =
+                                                    built-in default (medium) */
 // New rig_state items go before this line ============================================
 };
 

@@ -28,6 +28,7 @@
 #include "sprintflst.h"
 #include "rigctl_parse.h"
 #include "../rigs/icom/icom.h"
+#include "dumpcaps.h"
 
 void range_print(FILE *fout, const struct freq_range_list range_list[], int rx);
 int range_sanity_check(const struct freq_range_list range_list[], int rx);
@@ -784,6 +785,12 @@ int dumpstate(RIG *rig, FILE *fout)
     }
 
     fprintf(fout, "\n");
+
+    /* The served view: for netrigctl the session caps hold the remote
+     * server's advertisement for THIS connection, so the dump shows the
+     * relayed effective + native sets — the model declaration (dump_caps'
+     * business) has no streaming entries of its own. */
+    dumpcaps_stream_state(rig, fout);
 
     fprintf(fout, "Has priv data:\t%c\n", rs->priv != NULL ? 'Y' : 'N');
     /*

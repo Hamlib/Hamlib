@@ -73,6 +73,7 @@
 #include "sprintflst.h"
 #include "hamlibdatetime.h"
 #include "cache.h"
+#include "stream.h"
 
 /**
  * \brief Hamlib short license name
@@ -737,6 +738,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->comm_state = 0;
     rs->comm_status = RIG_COMM_STATUS_DISCONNECTED;
     rs->tuner_control_pathname = DEFAULT_TUNER_CONTROL_PATHNAME;
+    rs->stream_source_id = -1;
     strncpy(rs->client_version, "Hamlib", sizeof(rs->client_version));
 
     rp->fd = -1;
@@ -981,7 +983,8 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
 
     /* emulation by frontend */
     if ((caps->has_get_level & RIG_LEVEL_STRENGTH) == 0
-            && (caps->has_get_level & RIG_LEVEL_RAWSTR) == RIG_LEVEL_RAWSTR)
+            && (caps->has_get_level & RIG_LEVEL_RAWSTR) == RIG_LEVEL_RAWSTR
+            && caps->str_cal.size)
     {
         rs->has_get_level |= RIG_LEVEL_STRENGTH;
     }
@@ -1163,7 +1166,11 @@ int HAMLIB_API rig_open(RIG *rig)
 
 #endif
 
-    if (is_network)
+    /* A backend that manages its own transport (RIG_PORT_CUSTOM, e.g. the Icom
+     * network backend's multi-socket session) or has no port (RIG_PORT_NONE) must
+     * not have its explicit port_type overridden by the pathname-based heuristic. */
+    if (is_network && rp->type.rig != RIG_PORT_NONE
+            && rp->type.rig != RIG_PORT_CUSTOM)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: using network address %s\n", __func__,
                   rp->pathname);
@@ -1179,7 +1186,9 @@ int HAMLIB_API rig_open(RIG *rig)
                 || rig->caps->rig_model == RIG_MODEL_SMARTSDR_H
            )
         {
-            if (strstr(rp->pathname, "127.0.0.1"))
+            /* Allow 127.0.0.1:<port> for local TCP simulators (e.g. simflex). */
+            if (strstr(rp->pathname, "127.0.0.1") != NULL
+                    && strchr(rp->pathname, ':') == NULL)
             {
                 rig_debug_clear();
                 rig_debug(RIG_DEBUG_ERR,
@@ -1706,6 +1715,17 @@ int HAMLIB_API rig_open(RIG *rig)
 
     rs->comm_status = RIG_COMM_STATUS_OK;
 
+    /* Initialize streaming subsystem state — unless the backend already
+     * created it from its rig_open hook by publishing session caps
+     * (stream_set_session_caps creates the state on first use). */
+    if (rs->stream_state == NULL
+            && rig_stream_state_init((struct rig_stream_state **)&rs->stream_state)
+            != 0)
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: stream state init failed\n", __func__);
+        /* Non-fatal — streaming just won't be available */
+    }
+
     add_opened_rig(rig);
 
     RETURNFUNC2(RIG_OK);
@@ -1871,6 +1891,13 @@ int HAMLIB_API rig_close(RIG *rig)
     dcdp->fd = pttp->fd = -1;
 
     port_close(rp, rp->type.rig);
+
+    /* Clean up streaming subsystem state */
+    if (rs->stream_state)
+    {
+        rig_stream_state_cleanup(rs->stream_state);
+        rs->stream_state = NULL;
+    }
 
     // zero split so it will allow it to be set again on open for rigctld
     CACHE(rig)->split = 0;
@@ -2341,6 +2368,16 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         rig_debug(RIG_DEBUG_TRACE, "%s: not a TARGETABLE_FREQ vfo=%s\n", __func__,
                   rig_strvfo(vfo));
 
+        // The ID-5100 cannot report its current A/B side, so an unknown side
+        // cannot be restored after a targeted write.
+        if (rig->caps->rig_model == RIG_MODEL_ID5100 &&
+                (vfo_save == RIG_VFO_CURR || vfo_save == RIG_VFO_NONE))
+        {
+            ELAPSED2;
+            LOCK(0);
+            RETURNFUNC(-RIG_ENTARGET);
+        }
+
         if (!caps->set_vfo)
         {
             ELAPSED2;
@@ -2669,25 +2706,22 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     {
         int rc2;
 
+        // The ID-5100 cannot report its current A/B side, so an unknown side
+        // cannot be restored after a targeted read.
+        if (rig->caps->rig_model == RIG_MODEL_ID5100 &&
+                (curr_vfo == RIG_VFO_CURR || curr_vfo == RIG_VFO_NONE))
+        {
+            ELAPSED2;
+            LOCK(0);
+            RETURNFUNC(-RIG_ENTARGET);
+        }
+
         if (!caps->set_vfo)
         {
             ELAPSED2;
             LOCK(0);
             RETURNFUNC(-RIG_ENAVAIL);
         }
-
-#if 1 // this seems redundant as we ask for freq a few lines below
-        HAMLIB_TRACE;
-        retcode = caps->get_freq(rig, vfo, freq);
-
-        if (retcode != RIG_OK)
-        {
-            ELAPSED2;
-            LOCK(0);
-            RETURNFUNC(retcode);
-        }
-
-#endif
 
         retcode = caps->set_vfo(rig, vfo);
 
