@@ -1184,14 +1184,40 @@ void test_rx_converted_stream_e2e(void)
     TEST_CHECK(ret == RIG_OK);
 
     /* require_native on the convertible config is refused... */
-    cfg.require_native = 1;
+    cfg.require_native = RIG_STREAM_CONV_ALL;
     stream = NULL;
     ret = rig_stream_open(rig, &cfg, &stream);
     TEST_CHECK(ret == -RIG_ENAVAIL);
     TEST_MSG("require_native open: got %d, expected %d", ret, -RIG_ENAVAIL);
     TEST_CHECK(stream == NULL);
 
+    /* ...and so is naming just the stage this request needs, which crosses
+     * the wire by name for the server to enforce. */
+    cfg.require_native = RIG_STREAM_CONV_FORMAT;
+    stream = NULL;
+    ret = rig_stream_open(rig, &cfg, &stream);
+    TEST_CHECK(ret == -RIG_ENAVAIL);
+    TEST_MSG("FORMAT demand: got %d, expected %d", ret, -RIG_ENAVAIL);
+    TEST_CHECK(stream == NULL);
+
+    /* Demanding only the stages it does not need serves the conversion:
+     * the relay case — native rate, frontend format conversion. */
+    cfg.require_native = RIG_STREAM_CONV_RATE | RIG_STREAM_CONV_CHANNELS;
+    stream = NULL;
+    ret = rig_stream_open(rig, &cfg, &stream);
+    TEST_CHECK(ret == RIG_OK);
+    TEST_MSG("rate+channels demand returned %d", ret);
+
+    if (stream)
+    {
+        TEST_CHECK(rig_stream_get_conversions(stream)
+                   == RIG_STREAM_CONV_FORMAT);
+        rig_stream_close(rig, stream);
+        stream = NULL;
+    }
+
     /* ...while its native form succeeds and reports a native stream. */
+    cfg.require_native = RIG_STREAM_CONV_ALL;
     cfg.format = RIG_STREAM_FORMAT_PCM_F32;
     ret = rig_stream_open(rig, &cfg, &stream);
     TEST_CHECK(ret == RIG_OK);

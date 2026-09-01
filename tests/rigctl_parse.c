@@ -6648,11 +6648,15 @@ struct stream_open_opts
     int keepalive_timeout;
 };
 
-static void stream_open_parse_opts(FILE *fin, struct rig_stream_config *cfg,
-                                   struct stream_open_opts *opts)
+/* Returns 0, or -1 if a parameter was rejected outright (only require_native
+ * is that strict — see below); the whole argument line is consumed either
+ * way, so the caller can simply fail the command. */
+static int stream_open_parse_opts(FILE *fin, struct rig_stream_config *cfg,
+                                  struct stream_open_opts *opts)
 {
     struct hamlib_kv_pair kv[12];
     int nkv = hamlib_parse_kv_args(fin, kv, 12);
+    int err = 0;
     int i;
 
     for (i = 0; i < nkv; i++)
@@ -6663,11 +6667,22 @@ static void stream_open_parse_opts(FILE *fin, struct rig_stream_config *cfg,
         }
         else if (strcmp(kv[i].key, "require_native") == 0)
         {
-            long val;
+            uint32_t mask;
 
-            if (stream_open_kv_long(&kv[i], 0, 1, &val) == 0)
+            /* Comma-separated stage names (FORMAT, RATE, CHANNELS), ALL or
+             * NONE. Unlike every other key here, a bad value fails the open
+             * instead of falling back to the default: silently ignoring it
+             * would serve a converted stream to a client that asked for a
+             * guarantee. */
+            if (stream_native_req_parse(kv[i].value, &mask) < 0)
             {
-                cfg->require_native = (int)val;
+                rig_debug(RIG_DEBUG_ERR, "%s: invalid require_native '%s'\n",
+                          __func__, kv[i].value);
+                err = -1;
+            }
+            else
+            {
+                cfg->require_native = mask;
             }
         }
         else if (strcmp(kv[i].key, "ttl") == 0)
@@ -6772,6 +6787,8 @@ static void stream_open_parse_opts(FILE *fin, struct rig_stream_config *cfg,
                       __func__, kv[i].key);
         }
     }
+
+    return err;
 }
 
 
@@ -6802,7 +6819,11 @@ declare_proto_rig(stream_open)
     /* Optional key=value parameters follow the positional arguments */
     if (interactive)
     {
-        stream_open_parse_opts(fin, &cfg, &opts);
+        if (stream_open_parse_opts(fin, &cfg, &opts) < 0)
+        {
+            free(opts.multicast_spec);
+            RETURNFUNC2(-RIG_EINVAL);
+        }
     }
 
     /* TX multicast not supported */

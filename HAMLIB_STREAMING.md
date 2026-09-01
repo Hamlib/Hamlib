@@ -359,9 +359,15 @@ installed between that source and the stream. Requests beyond the rules
 more channels than the mapping allows) fail with `-RIG_EINVAL`.
 
 `rig_stream_get_conversions()` reports the installed stages
-(`RIG_STREAM_CONV_FORMAT/RATE/CHANNELS`, 0 = native stream). A config
-with `require_native = 1` refuses conversion with `-RIG_ENAVAIL`
-(distinct from `-RIG_EINVAL` for the impossible). One exception to the
+(`RIG_STREAM_CONV_FORMAT/RATE/CHANNELS`, 0 = native stream). The same
+constants go the other way in `require_native`, a bitmask of the stages
+the open must NOT install: any stage both required and needed refuses the
+open with `-RIG_ENAVAIL` (distinct from `-RIG_EINVAL` for the
+impossible), while stages left out of the mask still convert. So
+`require_native = RIG_STREAM_CONV_RATE` demands the hardware's own sample
+rate — the stage that costs latency — and accepts the frontend's format
+conversion, and `RIG_STREAM_CONV_ALL` demands a fully native stream.
+One exception to the
 authoring rule: a relaying backend (netrigctl) fills the `native_*`
 fields too, declaring both views pre-derived; the frontend then serves
 the entry verbatim and delegates conversion to the far side (see §6.1).
@@ -383,8 +389,12 @@ struct rig_stream_config {
     unsigned int        mtu;                /* sender path MTU, 0 = default 1500 (see 6.8) */
     unsigned int        transport_buffer_ms;         /* UDP socket buffer as ms of stream data; 0 = rig token / built-in 250 ms */
     unsigned int        transport_buffer_bytes;      /* explicit UDP socket buffer bytes; 0 = derive from transport_buffer_ms/rate */
-    int                 require_native;     /* 1 = open only as a native stream:
-                                             * -RIG_ENAVAIL rather than convert */
+    uint32_t            require_native;     /* RIG_STREAM_CONV_* stages that must
+                                             * be native: -RIG_ENAVAIL rather
+                                             * than install a listed stage.
+                                             * 0 = convert as needed,
+                                             * RIG_STREAM_CONV_ALL = fully
+                                             * native (see 3.3) */
 };
 ```
 
@@ -509,8 +519,10 @@ rejects a stack-declared one (see "Object ownership & lifetimes"). Ask for a
 format and rate from the effective caps; `rig_stream_caps_count()` and
 `rig_stream_caps_at()` enumerate them (§3.3). After a successful open,
 `rig_stream_get_conversions()` tells you whether the stream is served
-natively or through conversion; set `cfg->require_native = 1` to demand
-hardware-native service. Pass a `struct rig_stream_read_info *` as the last
+natively or through conversion; set `cfg->require_native` to the
+`RIG_STREAM_CONV_*` stages that must not run (`RIG_STREAM_CONV_ALL` for a
+fully hardware-native stream) to have the open refused instead of
+converted. Pass a `struct rig_stream_read_info *` as the last
 argument instead of `NULL` when you need the producer sample index, drop
 counts and capture time.
 
@@ -552,7 +564,8 @@ Semantics:
   `sample_rate` or `channels`, an unknown stream type, a `struct_size` of 0,
   and exhaustion of either the caps `max_streams` limit or the
   `HAMLIB_MAX_STREAMS` slots for that type — all with `-RIG_EINVAL`. A
-  convertible request with `require_native = 1` fails with `-RIG_ENAVAIL`.
+  request whose conversion stages intersect `require_native` fails with
+  `-RIG_ENAVAIL`.
 - **close** unregisters the stream, wakes any blocked reader or
   write-status waiter, then waits for every `rig_stream_*` call already in
   flight on that stream to return before the handle is torn down. A
@@ -838,9 +851,17 @@ exceed the signed-char range used by the short-form parser:
      channels=<1..255>        stream channel count (default 1; validated
                               against the caps entry — coherent I/Q may
                               exceed stereo)
-     require_native=<0|1>     1 = open only as a hardware-native stream;
-                              a convertible request is refused with
-                              RPRT -RIG_ENAVAIL (default 0 = convert)
+     require_native=<stages>  conversion stages that must NOT run, as a
+                              comma-separated list of FORMAT, RATE and
+                              CHANNELS, or ALL (every stage, i.e. a fully
+                              hardware-native stream) or NONE (default).
+                              A request needing a listed stage is refused
+                              with RPRT -RIG_ENAVAIL; stages left out still
+                              convert, so require_native=RATE demands the
+                              native sample rate but accepts a format
+                              conversion. An unknown stage name fails the
+                              open with RPRT -RIG_EINVAL rather than being
+                              ignored
      time_stale_coarse=<ms>   staleness → COARSE threshold (see details below)
      time_stale_invalidate=<ms> staleness → time-invalid threshold (see details below)
      keepalive_timeout=<s>    silence before the client is dropped, clamped
@@ -861,7 +882,7 @@ max_payload: <bytes>         effective frame-aligned payload budget (see 6.8)
 conversions: <C1,C2,...>     server-side conversion stages, comma-
                              separated RIG_STREAM_CONV_* names with the
                              prefix stripped (FORMAT, RATE, CHANNELS);
-                             empty = native stream
+                             NONE = native stream
 [multicast: <addr>]          (only for multicast streams)
 ```
 
@@ -890,20 +911,30 @@ defined field of `struct rig_stream_caps`, and the same format (minus
 the `native_*` keys, which a bare declaration does not have) is what
 `dump_caps` prints in its streaming section, so one parser serves both.
 A parser MUST skip unknown keys and unknown flag names: future
-capability flags extend the `flags=` list without a new key.
+capability flags extend the `flags=` list without a new key. Every
+list-valued key here carries `NONE` when its list is empty (see the
+value syntaxes below).
 
 Every key uses one of
 three value syntaxes, and each key always uses the same one:
 
 - **name list** — comma-separated symbolic names, no spaces
-  (`formats=PCM_S16,PCM_F32`). One name is a one-element list; a list
-  may be empty (`flags=` on an entry with no capability flags, like
-  `conversions:` on a native stream).
+  (`formats=PCM_S16,PCM_F32`). One name is a one-element list.
 - **integer list** — comma-separated decimal integers, ascending, no
   spaces (`rates=24000,48000`, `channels=1,2`). Ranges are **not** part of
   the grammar — a contiguous set is spelled out (`channels=1,2,3,4`).
 - **scalar** — a single decimal integer (`max_streams=4`,
   `tx_horizon_ms=30000`).
+
+**An empty list is spelled `NONE`**, in every list-valued key of the
+streaming protocol and whichever of the two list syntaxes it uses:
+`flags=NONE` on an entry with no capability flags, `channels=NONE` on one
+that declares no channel counts, `conversions: NONE` on a native stream,
+`require_native=NONE` for a demand of nothing. Nothing this
+implementation writes carries an empty value, so a reader never has to
+tell "the empty list" apart from "the field is missing". A parser SHOULD
+still accept an empty value as the empty list: earlier drafts wrote one,
+and an absent key means the same thing.
 
 The effective sets are
 what `\stream_open` serves — through server-side conversion where they
@@ -955,7 +986,7 @@ udp_port: <port>
 paused: <0|1>
 muted: <0|1>
 conversions: <C1,C2,...>     server-side conversion stages (see
-                             stream_open; empty = native stream)
+                             stream_open; NONE = native stream)
 codec_frames: <n>            whole codec frames produced (0 = raw stream)
 packet_count: <n>            UDP datagrams sent (RX) / accepted (TX)
 gap_count: <n>               inbound datagrams missing by sequence
@@ -1005,7 +1036,7 @@ udp_port: <port>             0 unless the caller owns the stream
 paused: <0|1>
 muted: <0|1>
 owner: <0|1>                 1 = opened by this TCP connection
-conversions: <C1,C2,...>     (empty = native stream)
+conversions: <C1,C2,...>     (NONE = native stream)
 codec_frames: <n>
 ```
 
@@ -1013,7 +1044,7 @@ codec_frames: <n>
 verbatim (`>` marks client input). The dummy's native audio format is
 PCM_F32, so this PCM_S16 open is served through server-side format
 conversion — visible as `conversions: FORMAT` in the open response and
-everywhere after (a native stream shows an empty value):
+everywhere after (a native stream shows `conversions: NONE`):
 
 ```
 > +\stream_open AUDIO_RX PCM_S16 48000 channels=2

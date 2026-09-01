@@ -2969,7 +2969,7 @@ void test_timed_tx_horizon_rejected(void)
 /* Helper: open an AUDIO_RX stream with the given format/rate, returning
  * the stream (or NULL) and the open return code in *ret_out. */
 static rig_stream_t *open_audio_rx(RIG *rig, rig_stream_format_t fmt,
-                                   int rate, int require_native,
+                                   int rate, uint32_t require_native,
                                    int *ret_out)
 {
     struct rig_stream_config *config = rig_stream_config_alloc();
@@ -3025,8 +3025,9 @@ void test_conversions_bitmask(void)
     close_dummy(rig);
 }
 
-/* require_native: native requests open with a hard guarantee, convertible
- * ones are refused with the distinct -RIG_ENAVAIL. */
+/* require_native, whole-mask form: RIG_STREAM_CONV_ALL demands a fully
+ * native stream, so native requests open with a hard guarantee while any
+ * convertible one is refused with the distinct -RIG_ENAVAIL. */
 void test_require_native(void)
 {
     RIG *rig = open_dummy();
@@ -3034,18 +3035,84 @@ void test_require_native(void)
 
     int ret;
     rig_stream_t *st = open_audio_rx(rig, RIG_STREAM_FORMAT_PCM_F32, 48000,
-                                     1, &ret);
+                                     RIG_STREAM_CONV_ALL, &ret);
     TEST_ASSERT(ret == RIG_OK && st != NULL);
     TEST_CHECK(rig_stream_get_conversions(st) == RIG_STREAM_CONV_NONE);
     rig_stream_close(rig, st);
 
-    st = open_audio_rx(rig, RIG_STREAM_FORMAT_PCM_S16, 48000, 1, &ret);
+    st = open_audio_rx(rig, RIG_STREAM_FORMAT_PCM_S16, 48000,
+                       RIG_STREAM_CONV_ALL, &ret);
     TEST_CHECK(ret == -RIG_ENAVAIL && st == NULL);
     TEST_MSG("expected -RIG_ENAVAIL, got %d", ret);
 
 #ifdef HAVE_SAMPLERATE
-    st = open_audio_rx(rig, RIG_STREAM_FORMAT_PCM_F32, 44100, 1, &ret);
+    st = open_audio_rx(rig, RIG_STREAM_FORMAT_PCM_F32, 44100,
+                       RIG_STREAM_CONV_ALL, &ret);
     TEST_CHECK(ret == -RIG_ENAVAIL && st == NULL);
+#endif
+
+    /* An empty mask is the default: convert whatever the request needs. */
+    st = open_audio_rx(rig, RIG_STREAM_FORMAT_PCM_S16, 48000, 0, &ret);
+    TEST_ASSERT(ret == RIG_OK && st != NULL);
+    TEST_CHECK(rig_stream_get_conversions(st) == RIG_STREAM_CONV_FORMAT);
+    rig_stream_close(rig, st);
+
+    close_dummy(rig);
+}
+
+/* require_native, per-stage form: only the stages listed are refused, and
+ * the rest still convert. Against the F32-native dummy at its native rates,
+ * that is the relay case — demand the sample rate, take the frontend's
+ * format conversion. */
+void test_require_native_per_stage(void)
+{
+    RIG *rig = open_dummy();
+    TEST_ASSERT(rig != NULL);
+
+    int ret;
+
+    /* S16 at a native rate needs the format stage only. Demanding it
+     * natively refuses... */
+    rig_stream_t *st = open_audio_rx(rig, RIG_STREAM_FORMAT_PCM_S16, 48000,
+                                     RIG_STREAM_CONV_FORMAT, &ret);
+    TEST_CHECK(ret == -RIG_ENAVAIL && st == NULL);
+    TEST_MSG("format demand on a format-converted open: got %d", ret);
+
+    /* ...while demanding the other two stages lets the same open through. */
+    st = open_audio_rx(rig, RIG_STREAM_FORMAT_PCM_S16, 48000,
+                       RIG_STREAM_CONV_RATE | RIG_STREAM_CONV_CHANNELS, &ret);
+    TEST_ASSERT(ret == RIG_OK && st != NULL);
+    TEST_CHECK(rig_stream_get_conversions(st) == RIG_STREAM_CONV_FORMAT);
+    rig_stream_close(rig, st);
+
+#ifdef HAVE_SAMPLERATE
+    /* Resampling is the stage the split exists for: forbidding it alone
+     * refuses an off-rate open... */
+    st = open_audio_rx(rig, RIG_STREAM_FORMAT_PCM_S16, 44100,
+                       RIG_STREAM_CONV_RATE, &ret);
+    TEST_CHECK(ret == -RIG_ENAVAIL && st == NULL);
+    TEST_MSG("rate demand on a resampled open: got %d", ret);
+
+    /* ...and so does forbidding the format stage, since both run here. */
+    st = open_audio_rx(rig, RIG_STREAM_FORMAT_PCM_S16, 44100,
+                       RIG_STREAM_CONV_FORMAT, &ret);
+    TEST_CHECK(ret == -RIG_ENAVAIL && st == NULL);
+
+    /* Forbidding a stage the request never needed is not a refusal. */
+    st = open_audio_rx(rig, RIG_STREAM_FORMAT_PCM_S16, 44100,
+                       RIG_STREAM_CONV_CHANNELS, &ret);
+    TEST_ASSERT(ret == RIG_OK && st != NULL);
+    TEST_CHECK(rig_stream_get_conversions(st)
+               == (RIG_STREAM_CONV_FORMAT | RIG_STREAM_CONV_RATE));
+    rig_stream_close(rig, st);
+
+    /* Native format at a non-native rate: only the rate stage runs, so a
+     * format demand is satisfied by a resampled stream. */
+    st = open_audio_rx(rig, RIG_STREAM_FORMAT_PCM_F32, 44100,
+                       RIG_STREAM_CONV_FORMAT, &ret);
+    TEST_ASSERT(ret == RIG_OK && st != NULL);
+    TEST_CHECK(rig_stream_get_conversions(st) == RIG_STREAM_CONV_RATE);
+    rig_stream_close(rig, st);
 #endif
 
     close_dummy(rig);
@@ -3332,6 +3399,7 @@ TEST_LIST =
     { "audio_rx_tone_s8",             test_audio_rx_tone_s8 },
     { "conversions_bitmask",          test_conversions_bitmask },
     { "require_native",               test_require_native },
+    { "require_native_per_stage",     test_require_native_per_stage },
     { "codec_rx_frame_sequence",      test_codec_rx_frame_sequence },
     { "codec_loopback_roundtrip",     test_codec_loopback_roundtrip },
 #ifdef HAVE_SAMPLERATE
