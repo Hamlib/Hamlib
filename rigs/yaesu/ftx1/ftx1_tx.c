@@ -251,6 +251,16 @@ int ftx1_get_tuner(RIG *rig, int *mode)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
+    int type;
+    if (ftx1_get_effective_tuner_type(rig, &type) == RIG_OK &&
+        type == FTX1_TUNER_TYPE_ATAS)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: ATAS tuner type detected, always "
+                                     "reporting tuner active\n", __func__);
+        *mode = 1;
+        return RIG_OK;
+    }
+
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AC;");
 
     ret = newcat_get_cmd(rig);
