@@ -228,11 +228,47 @@ int ftx1_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             }
             return ftx1_set_breakin(rig, 0);
         case RIG_FUNC_TONE:
-            return ftx1_set_ctcss_mode(rig, status ? FTX1_CTCSS_MODE_ENC : FTX1_CTCSS_MODE_OFF);
+            {
+                tone_t ctcss_mode;
+                int ret = ftx1_get_ctcss_mode(rig, &ctcss_mode);
+                if (ret != RIG_OK) return ret;
+                if (status == 0) {
+                    if (ctcss_mode == FTX1_CTCSS_MODE_ENC || ctcss_mode == FTX1_CTCSS_MODE_TSQ)
+                        return ftx1_set_ctcss_mode(rig, FTX1_CTCSS_MODE_OFF);
+                } else {
+                    if (ctcss_mode != FTX1_CTCSS_MODE_ENC && ctcss_mode != FTX1_CTCSS_MODE_TSQ)
+                        return ftx1_set_ctcss_mode(rig, FTX1_CTCSS_MODE_ENC);
+                }
+                return RIG_OK;  /* No change needed */
+            }
         case RIG_FUNC_TSQL:
-            return ftx1_set_ctcss_mode(rig, status ? FTX1_CTCSS_MODE_TSQ : FTX1_CTCSS_MODE_OFF);
+            {
+                tone_t ctcss_mode;
+                int ret = ftx1_get_ctcss_mode(rig, &ctcss_mode);
+                if (ret != RIG_OK) return ret;
+                if (status == 0) {
+                    if (ctcss_mode == FTX1_CTCSS_MODE_TSQ)
+                        return ftx1_set_ctcss_mode(rig, FTX1_CTCSS_MODE_ENC);
+                } else {
+                    if (ctcss_mode != FTX1_CTCSS_MODE_TSQ)
+                        return ftx1_set_ctcss_mode(rig, FTX1_CTCSS_MODE_TSQ);
+                }
+                return RIG_OK;  /* No change needed */
+            }
         case RIG_FUNC_CSQL:
-            return ftx1_set_ctcss_mode(rig, status ? FTX1_CTCSS_MODE_DCS : FTX1_CTCSS_MODE_OFF);
+            {
+                tone_t ctcss_mode;
+                int ret = ftx1_get_ctcss_mode(rig, &ctcss_mode);
+                if (ret != RIG_OK) return ret;
+                if (status == 0) {
+                    if (ctcss_mode == FTX1_CTCSS_MODE_DCS)
+                        return ftx1_set_ctcss_mode(rig, FTX1_CTCSS_MODE_OFF);
+                } else {
+                    if (ctcss_mode != FTX1_CTCSS_MODE_DCS)
+                        return ftx1_set_ctcss_mode(rig, FTX1_CTCSS_MODE_DCS);
+                }
+                return RIG_OK;  /* No change needed */
+            }
         case RIG_FUNC_RIT:
             /* FTX-1: Setting RX CLAR to 0 disables it; to enable, use set_rit with offset */
             if (!status) return ftx1_set_rx_clar(rig, vfo, 0);
@@ -305,7 +341,7 @@ int ftx1_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
             {
                 tone_t ctcss_mode;
                 ret = ftx1_get_ctcss_mode(rig, &ctcss_mode);
-                if (ret == RIG_OK) *status = (ctcss_mode == FTX1_CTCSS_MODE_ENC) ? 1 : 0;
+                if (ret == RIG_OK) *status = (ctcss_mode == FTX1_CTCSS_MODE_ENC || ctcss_mode == FTX1_CTCSS_MODE_TSQ) ? 1 : 0;
                 return ret;
             }
         case RIG_FUNC_TSQL:
