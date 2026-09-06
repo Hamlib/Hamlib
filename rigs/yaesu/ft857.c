@@ -112,6 +112,7 @@ enum ft857_native_cmd_e
     FT857_NATIVE_CAT_PWR_ON,
     FT857_NATIVE_CAT_PWR_OFF,
     FT857_NATIVE_CAT_EEPROM_READ,
+    FT857_NATIVE_CAT_EEPROM_WRITE,
     FT857_NATIVE_SIZE     /* end marker */
 };
 
@@ -135,7 +136,7 @@ static int ft857_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
 // static int ft857_get_vfo(RIG *rig, vfo_t *vfo);
 static int ft857_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 static int ft857_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
-// static int ft857_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+static int ft857_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 static int ft857_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 static int ft857_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 // static int ft857_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
@@ -217,6 +218,7 @@ static const yaesu_cmd_set_t ncmd[] =
     { 1, { 0x00, 0x00, 0x00, 0x00, 0x0f } }, /* pwr on */
     { 1, { 0x00, 0x00, 0x00, 0x00, 0x8f } }, /* pwr off */
     { 0, { 0x00, 0x00, 0x00, 0x00, 0xbb } }, /* eeprom read */
+    { 0, { 0x00, 0x00, 0x00, 0x00, 0xbc } }, /* eeprom write -- see ft857_set_level() ATT/PREAMP */
 };
 
 enum ft857_digi
@@ -281,8 +283,9 @@ struct rig_caps ft857_caps =
     .retry =      0,
     .has_get_func =       RIG_FUNC_NONE,
     .has_set_func =   RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL | RIG_FUNC_CSQL | RIG_FUNC_RIT,
-    .has_get_level =  RIG_LEVEL_STRENGTH | RIG_LEVEL_RFPOWER | RIG_LEVEL_RFPOWER_METER_WATTS,
-    .has_set_level =  RIG_LEVEL_BAND_SELECT,
+    .has_get_level =  RIG_LEVEL_STRENGTH | RIG_LEVEL_RFPOWER | RIG_LEVEL_RFPOWER_METER_WATTS |
+                       RIG_LEVEL_ATT | RIG_LEVEL_PREAMP,
+    .has_set_level =  RIG_LEVEL_BAND_SELECT | RIG_LEVEL_ATT | RIG_LEVEL_PREAMP,
     .has_get_parm =   RIG_PARM_NONE,
     .has_set_parm =   RIG_PARM_NONE,
     .level_gran =
@@ -292,8 +295,8 @@ struct rig_caps ft857_caps =
     .parm_gran =      {},
     .ctcss_list =     common_ctcss_list,
     .dcs_list =       common_dcs_list,   /* only 104 supported */
-    .preamp =         { RIG_DBLST_END, },
-    .attenuator =     { RIG_DBLST_END, },
+    .preamp =         { 10, RIG_DBLST_END, }, /* IPO bypass; actual gain undocumented by Yaesu */
+    .attenuator =     { 10, RIG_DBLST_END, }, /* confirmed 10 dB, FT-857D Operating Manual p.45 */
     .max_rit =        Hz(9990),
     .max_xit =        Hz(0),
     .max_ifshift =    Hz(0),
@@ -401,6 +404,7 @@ struct rig_caps ft857_caps =
     .set_powerstat =    ft817_set_powerstat,
 
     .get_level =      ft857_get_level,
+    .set_level =      ft857_set_level,
     .set_func =       ft857_set_func,
     .vfo_op =             ft857_vfo_op,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
@@ -514,6 +518,62 @@ static int ft857_read_eeprom(RIG *rig, unsigned short addr, unsigned char *out)
     *out = data[addr % 2];
 
     return RIG_OK;
+}
+
+/*
+ * FT-857(D) ATT/IPO(preamp bypass) state has no dedicated CAT get/set level
+ * command -- it lives only in per-band EEPROM bytes (bit 4 = ATT, bit 5 = IPO),
+ * reverse-engineered and cross-checked against the FT-857D Operating Manual p.45
+ * ("the Attenuator will reduce all signals by 10 dB ... This feature is not
+ * available on the 144 MHz and 430 MHz bands") and the FT8x7EE EEPROM map
+ * (https://www.yo3ggx.ro/ft8x7ee/eeprom.html).
+ */
+struct ft857_band_eeprom
+{
+    freq_t lo, hi;
+    unsigned short addr;
+};
+
+static const struct ft857_band_eeprom ft857_att_ipo_bands[] =
+{
+    { kHz(1800),  MHz(2),      0x00BC },  /* 160m */
+    { kHz(3500),  MHz(4),      0x00D8 },  /* 80m */
+    { kHz(5300),  kHz(5500),   0x0260 },  /* 60m (US channelized) */
+    { kHz(7000),  kHz(7300),   0x0110 },  /* 40m */
+    { kHz(10100), kHz(10150),  0x012C },  /* 30m */
+    { kHz(14000), kHz(14350),  0x0148 },  /* 20m */
+    { kHz(18068), kHz(18168),  0x0164 },  /* 17m */
+    { kHz(21000), kHz(21450),  0x0180 },  /* 15m */
+    { kHz(24890), kHz(24990),  0x019C },  /* 12m */
+    { kHz(28000), MHz(29.7),   0x01B8 },  /* 10m */
+    { MHz(50),    MHz(54),     0x01D4 },  /* 6m */
+};
+
+/*
+ * Resolves the current band's ATT/IPO EEPROM address from the cached frequency.
+ * Returns -RIG_EINVAL for 2m/70cm and anything outside the table above -- per the
+ * manual, ATT/IPO genuinely don't exist on those bands, this isn't a gap to fill.
+ */
+static int ft857_att_ipo_addr(RIG *rig, vfo_t vfo, unsigned short *addr)
+{
+    freq_t freq;
+    rmode_t mode;
+    pbwidth_t width;
+    int freq_ms, mode_ms, width_ms;
+    size_t i;
+
+    rig_get_cache(rig, vfo, &freq, &freq_ms, &mode, &mode_ms, &width, &width_ms);
+
+    for (i = 0; i < sizeof(ft857_att_ipo_bands) / sizeof(ft857_att_ipo_bands[0]); i++)
+    {
+        if (freq >= ft857_att_ipo_bands[i].lo && freq < ft857_att_ipo_bands[i].hi)
+        {
+            *addr = ft857_att_ipo_bands[i].addr;
+            return RIG_OK;
+        }
+    }
+
+    return -RIG_EINVAL;
 }
 
 static int ft857_get_status(RIG *rig, int status)
@@ -941,11 +1001,112 @@ int ft857_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         return ft857_get_pometer_level(rig, val, &rig->caps->rfpower_meter_cal, 1.0);
 
+    case RIG_LEVEL_ATT:
+    case RIG_LEVEL_PREAMP:
+    {
+        unsigned short addr;
+        unsigned char eeprom_byte;
+        int ret;
+
+        ret = ft857_att_ipo_addr(rig, vfo, &addr);
+
+        if (ret != RIG_OK)
+        {
+            return ret;
+        }
+
+        ret = ft857_read_eeprom(rig, addr, &eeprom_byte);
+
+        if (ret != RIG_OK)
+        {
+            return ret;
+        }
+
+        if (level == RIG_LEVEL_ATT)
+        {
+            val->i = (eeprom_byte & 0x10) ? 10 : 0;
+        }
+        else
+        {
+            /* IPO ON (bit 5) means the preamp is bypassed */
+            val->i = (eeprom_byte & 0x20) ? 0 : 10;
+        }
+
+        return RIG_OK;
+    }
+
     default:
         return -RIG_EINVAL;
     }
 
     return RIG_OK;
+}
+
+int ft857_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
+    unsigned short addr;
+    unsigned char lo, hi, new_lo, bit;
+    unsigned char data[YAESU_CMD_LENGTH];
+    int want_on;
+    int ret;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
+
+    switch (level)
+    {
+    case RIG_LEVEL_ATT:
+        bit = 0x10;
+        break;
+
+    case RIG_LEVEL_PREAMP:
+        bit = 0x20;
+        break;
+
+    default:
+        return -RIG_EINVAL;
+    }
+
+    ret = ft857_att_ipo_addr(rig, vfo, &addr);
+
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    ret = ft857_read_eeprom(rig, addr, &lo);
+
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    /* neighbor byte shares the same EEPROM word; preserve it untouched -- its
+     * contents are undocumented by every source consulted for this table */
+    ret = ft857_read_eeprom(rig, addr + 1, &hi);
+
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    /* IPO ON (bit 5) means the preamp is bypassed -- RIG_LEVEL_PREAMP val.i > 0
+     * means "preamp engaged", the inverse of the EEPROM's IPO polarity */
+    want_on = (level == RIG_LEVEL_PREAMP) ? (val.i == 0) : (val.i != 0);
+
+    new_lo = want_on ? (lo | bit) : (lo & ~bit);
+
+    if (new_lo == lo)
+    {
+        return RIG_OK;   /* already in the requested state -- skip the EEPROM write */
+    }
+
+    memcpy(data, ncmd[FT857_NATIVE_CAT_EEPROM_WRITE].nseq, YAESU_CMD_LENGTH);
+    data[0] = addr >> 8;
+    data[1] = addr & 0xfe;
+    data[2] = new_lo;
+    data[3] = hi;
+
+    return ft857_send_icmd(rig, FT857_NATIVE_CAT_EEPROM_WRITE, data);
 }
 
 int ft857_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
