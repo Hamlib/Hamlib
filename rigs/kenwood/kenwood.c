@@ -2592,12 +2592,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
     else if (RIG_IS_TS990S)
     {
-        /* The TS990s has targetable read mode but can only set the mode
-           of the current VFO :( So we need to toggle the operating VFO
-           to set the "back" VFO mode. This is done here rather than not
-           setting caps.targetable_vfo to not include
-           RIG_TARGETABLE_MODE since the toggle is not required for
-           reading the mode. */
+        /* OM reads address either band, but writes affect the operating band. */
         vfo_t curr_vfo;
 
         err = kenwood_get_vfo_main_sub(rig, &curr_vfo);
@@ -2614,16 +2609,16 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         SNPRINTF(buf, sizeof(buf), "OM0%c", c);  /* target vfo is ignored */
         err = kenwood_transaction(rig, buf, NULL, 0);
 
-        if (err == RIG_OK && vfo != RIG_VFO_CURR && vfo != curr_vfo)
+        if (vfo != RIG_VFO_CURR && vfo != curr_vfo)
         {
             int err2;
 
             err2 = kenwood_set_vfo_main_sub(rig, curr_vfo);
 
-            if (err2 != RIG_OK) { RETURNFUNC2(err2); }
+            if (err == RIG_OK) { err = err2; }
         }
 
-        return RIG_OK;
+        RETURNFUNC2(err);
     }
     else
     {
