@@ -2943,30 +2943,30 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     vfo = vfo_fixup_current(rig, vfo);
 
-    // if we're not asking for bandwidth and the mode is already set we don't need to do it
-    // this will prevent flashing on some rigs like the TS-870
-    if (caps->get_mode && width == RIG_PASSBAND_NOCHANGE)
+    // Resolve a generic packet request against a specific DATA profile before setting it.
+    if (caps->get_mode && (width == RIG_PASSBAND_NOCHANGE
+                           || mode == RIG_MODE_PKTUSB || mode == RIG_MODE_PKTLSB)
+            && ((caps->targetable_vfo & RIG_TARGETABLE_MODE)
+                || vfo == rig_get_current_vfo_state(rig)))
     {
         rmode_t mode_curr;
         pbwidth_t width_curr;
         retcode = caps->get_mode(rig, vfo, &mode_curr, &width_curr);
 
-        // For Icom rigs we may need to force the filter so we always set mode
-#if 0
-        // This should not be necessary anymore with the new filter method for Icom rigs
-        // Hopefully fixes issue https://github.com/Hamlib/Hamlib/issues/1580
-        if (retcode == RIG_OK && mode_satisfies_request(mode, mode_curr)
-                && RIG_ICOM != RIG_BACKEND_NUM(rig->caps->rig_model))
-#else
         if (retcode == RIG_OK && mode_satisfies_request(mode, mode_curr))
-#endif
         {
-            rig_debug(RIG_DEBUG_VERBOSE,
-                      "%s: mode already %s and bw change not requested\n", __func__,
-                      rig_strrmode(mode));
-            ELAPSED2;
-            LOCK(0);
-            RETURNFUNC(RIG_OK);
+            mode = mode_curr;
+
+            if (width == RIG_PASSBAND_NOCHANGE)
+            {
+                rig_set_cache_mode(rig, vfo, mode_curr, width_curr);
+                rig_debug(RIG_DEBUG_VERBOSE,
+                          "%s: mode already %s and bw change not requested\n", __func__,
+                          rig_strrmode(mode_curr));
+                ELAPSED2;
+                LOCK(0);
+                RETURNFUNC(RIG_OK);
+            }
         }
     }
 
@@ -2995,7 +2995,7 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             rig_get_cache(rig, vfo, &cache_freq, &cache_ms_freq, &cache_mode,
                           &cache_ms_mode, &cache_width, &cache_ms_width);
 
-            if (cache_mode == mode)
+            if (cache_mode == mode && width == RIG_PASSBAND_NOCHANGE)
             {
                 rig_debug(RIG_DEBUG_TRACE, "%s: mode not changing, so ignoring\n",
                           __func__);
@@ -3028,7 +3028,37 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             RETURNFUNC(retcode);
         }
 
-        retcode = caps->set_mode(rig, vfo, mode, width);
+        int skip_set_mode = 0;
+
+        if (caps->get_mode && (width == RIG_PASSBAND_NOCHANGE
+                               || mode == RIG_MODE_PKTUSB || mode == RIG_MODE_PKTLSB))
+        {
+            rmode_t mode_curr;
+            pbwidth_t width_curr;
+
+            retcode = caps->get_mode(rig, vfo, &mode_curr, &width_curr);
+
+            if (retcode == RIG_OK && mode_satisfies_request(mode, mode_curr))
+            {
+                mode = mode_curr;
+
+                if (width == RIG_PASSBAND_NOCHANGE)
+                {
+                    width = width_curr;
+                    skip_set_mode = 1;
+                }
+            }
+            else
+            {
+                retcode = RIG_OK;
+            }
+        }
+
+        if (retcode == RIG_OK && !skip_set_mode)
+        {
+            retcode = caps->set_mode(rig, vfo, mode, width);
+        }
+
         /* try and revert even if we had an error above */
         rc2 = caps->set_vfo(rig, curr_vfo);
 
@@ -5204,14 +5234,8 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
                            || (rig->caps->rig_model == RIG_MODEL_NETRIGCTL)))
     {
         HAMLIB_TRACE;
-        retcode = caps->set_mode(rig, tx_vfo, tx_mode, tx_width);
+        retcode = rig_set_mode(rig, tx_vfo, tx_mode, tx_width);
         ELAPSED2;
-
-        if (retcode == RIG_OK)
-        {
-            rig_set_cache_mode(rig, tx_vfo, tx_mode, tx_width);
-        }
-
         RETURNFUNC(retcode);
     }
 
