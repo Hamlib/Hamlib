@@ -17,9 +17,6 @@
 
 #include "rigctl_parse.h"
 
-int lock_mode;
-powerstat_t rig_powerstat = RIG_POWER_ON;
-
 static char captured_description[sizeof(((channel_t *)0)->channel_desc)];
 
 static int capture_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
