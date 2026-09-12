@@ -175,7 +175,7 @@ if HTML_MATRIX
 EXTRA_PROGRAMS = rigmatrix
 # rigmatrix needs libgd
 rigmatrix_LDFLAGS = -lgd -lz
-rigmatrix.html: rigmatrix_head.html rigmatrix listrigs
+rigmatrix.html: rigmatrix_head.html rigmatrix listrigs rigctl
 	mkdir -p sup-info/support
 	( cat $(srcdir)/rigmatrix_head.html && cd sup-info && ../rigmatrix ) > sup-info/rigmatrix.html
 	for f in $$(./listrigs | tail -n +2 | cut -f1) ; do ( ./rigctl -m $$f -u > sup-info/support/model$$f.txt || exit 0 ) ; done
