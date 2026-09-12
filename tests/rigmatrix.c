@@ -732,6 +732,7 @@ int main(int argc, char *argv[])
 
     bitmap_func = 0;
     prntbuf[0] = '\0';
+    nbytes_total = 0;
     pbuf = prntbuf;
 
     for (i = 0; i < RIG_SETTING_MAX; i++)
@@ -775,6 +776,7 @@ int main(int argc, char *argv[])
 
     bitmap_level = 0;
     prntbuf[0] = '\0';
+    nbytes_total = 0;
     pbuf = prntbuf;
 
     for (i = 0; i < RIG_SETTING_MAX; i++)
@@ -818,6 +820,7 @@ int main(int argc, char *argv[])
 
     bitmap_parm = 0;
     prntbuf[0] = '\0';
+    nbytes_total = 0;
     pbuf = prntbuf;
 
     for (i = 0; i < RIG_SETTING_MAX; i++)
@@ -862,6 +865,7 @@ int main(int argc, char *argv[])
 
     bitmap_vfo_ops = 0;
     prntbuf[0] = '\0';
+    nbytes_total = 0;
     pbuf = prntbuf;
 
     for (i = 0; i < RIG_SETTING_MAX; i++)
