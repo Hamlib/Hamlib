@@ -56,6 +56,10 @@ Version 4.7.3
           #2138.  (TNX David Christle)
         * Fix(icom): Backport ID-5100 VFO switching to 4.7.  GitHub PR #2130.
           (TNX David Christle)
+        * QMX: Add SWR and RF power meter readback using the QRP Labs
+          SW and PC CAT commands.  The power meter full scale (6W stock,
+          12W with the PA0RDT PA modification) is read from the radio at
+          open time. (TNX Jan Szumiec)
 
 
 Version 4.7.2
