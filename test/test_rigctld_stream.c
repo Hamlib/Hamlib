@@ -859,6 +859,92 @@ void test_registry_close_by_client(void)
 }
 
 
+void test_registry_close_all(void)
+{
+    struct rigctld_stream_registry reg;
+    rigctld_stream_registry_init(&reg);
+
+    struct rigctld_stream *s1 = rigctld_stream_alloc();
+    struct rigctld_stream *s2 = rigctld_stream_alloc();
+    struct rigctld_stream *s3 = rigctld_stream_alloc();
+    TEST_ASSERT(s1 != NULL && s2 != NULL && s3 != NULL);
+
+    s1->stream_id = 1;
+    s1->type = RIG_STREAM_TYPE_AUDIO_RX;
+    s1->client_id = 10;
+    s2->stream_id = 2;
+    s2->type = RIG_STREAM_TYPE_AUDIO_TX;
+    s2->client_id = 20;
+    s3->stream_id = 3;
+    s3->type = RIG_STREAM_TYPE_IQ_RX;
+    s3->client_id = 10;
+
+    TEST_ASSERT(rigctld_stream_registry_insert(&reg, s1) == 0);
+    TEST_ASSERT(rigctld_stream_registry_insert(&reg, s2) == 0);
+    TEST_ASSERT(rigctld_stream_registry_insert(&reg, s3) == 0);
+
+    TEST_CHECK(rigctld_stream_registry_close_all(&reg) == 3);
+    TEST_CHECK(rigctld_stream_registry_count(&reg) == 0);
+    TEST_CHECK(rigctld_stream_registry_close_all(&reg) == 0);
+
+    /* Closing all leaves the registry initialized and reusable. */
+    struct rigctld_stream *replacement = rigctld_stream_alloc();
+    TEST_ASSERT(replacement != NULL);
+    replacement->stream_id = 4;
+    replacement->type = RIG_STREAM_TYPE_AUDIO_RX;
+    replacement->client_id = 30;
+    TEST_ASSERT(rigctld_stream_registry_insert(&reg, replacement) == 0);
+    TEST_CHECK(rigctld_stream_registry_count(&reg) == 1);
+    TEST_CHECK(rigctld_stream_registry_close_all(&reg) == 1);
+
+    rigctld_stream_registry_destroy(&reg);
+}
+
+
+static HAMLIB_ATOMIC int close_all_feeder_exited;
+
+
+static void *close_all_test_feeder(void *arg)
+{
+    struct rigctld_stream *stream = arg;
+
+    while (stream->running)
+    {
+        usleep(1000);
+    }
+
+    close_all_feeder_exited = 1;
+    return NULL;
+}
+
+
+void test_registry_close_all_stops_feeder(void)
+{
+    struct rigctld_stream_registry reg;
+    struct rigctld_stream *stream;
+
+    rigctld_stream_registry_init(&reg);
+    stream = rigctld_stream_alloc();
+    TEST_ASSERT(stream != NULL);
+
+    stream->stream_id = 1;
+    stream->type = RIG_STREAM_TYPE_AUDIO_RX;
+    stream->client_id = 10;
+    stream->running = 1;
+    close_all_feeder_exited = 0;
+    TEST_ASSERT(pthread_create(&stream->feeder_thread, NULL,
+                               close_all_test_feeder, stream) == 0);
+    stream->feeder_started = 1;
+    TEST_ASSERT(rigctld_stream_registry_insert(&reg, stream) == 0);
+
+    TEST_CHECK(rigctld_stream_registry_close_all(&reg) == 1);
+    TEST_CHECK(close_all_feeder_exited == 1);
+    TEST_CHECK(rigctld_stream_registry_count(&reg) == 0);
+
+    rigctld_stream_registry_destroy(&reg);
+}
+
+
 void test_registry_insert_full(void)
 {
     struct rigctld_stream_registry reg;
@@ -2683,6 +2769,8 @@ TEST_LIST =
     { "registry_remove",          test_registry_remove },
     { "registry_multiple_types",  test_registry_multiple_types },
     { "registry_close_by_client", test_registry_close_by_client },
+    { "registry_close_all",       test_registry_close_all },
+    { "registry_close_all_stops_feeder", test_registry_close_all_stops_feeder },
     { "registry_insert_full",     test_registry_insert_full },
     { "stream_alloc_defaults",    test_stream_alloc_defaults },
 

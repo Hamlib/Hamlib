@@ -3420,6 +3420,87 @@ void test_tx_metadata_truncated_rejected(void)
 
 /* --- Stream control command tests --- */
 
+static int registry_lock_observed;
+
+
+static int stream_control_lock_probe(RIG *rig, struct rig_stream *stream)
+{
+    int ret;
+
+    (void)rig;
+    (void)stream;
+    ret = pthread_mutex_trylock(&g_stream_registry.lock);
+    registry_lock_observed = ret == EBUSY;
+
+    if (ret == 0)
+    {
+        pthread_mutex_unlock(&g_stream_registry.lock);
+    }
+
+    return RIG_OK;
+}
+
+
+static int stream_drain_lock_probe(RIG *rig, struct rig_stream *stream,
+                                   int timeout_ms)
+{
+    (void)timeout_ms;
+    return stream_control_lock_probe(rig, stream);
+}
+
+
+void test_cmd_stream_controls_hold_registry_lock(void)
+{
+    RIG *rig = stream_test_begin();
+    char buf[1024];
+    char cmd[64];
+    int stream_id = -1;
+    int udp_port = -1;
+
+    TEST_ASSERT(rig != NULL);
+
+    struct rig_caps probe_caps = *rig->caps;
+    probe_caps.stream_pause = stream_control_lock_probe;
+    probe_caps.stream_resume = stream_control_lock_probe;
+    probe_caps.stream_drain = stream_drain_lock_probe;
+    rig->caps = &probe_caps;
+
+    int ret = run_cmd(rig, "\\stream_open AUDIO_TX PCM_S16 48000",
+                      buf, sizeof(buf));
+    TEST_CHECK(ret == RIG_OK);
+
+    if (ret == RIG_OK)
+    {
+        TEST_CHECK(parse_open_response(buf, &stream_id, &udp_port) == 0);
+    }
+
+    if (stream_id >= 0)
+    {
+        registry_lock_observed = 0;
+        snprintf(cmd, sizeof(cmd), "\\stream_pause %d", stream_id);
+        TEST_CHECK(run_cmd(rig, cmd, buf, sizeof(buf)) == RIG_OK);
+        TEST_CHECK(registry_lock_observed);
+
+        registry_lock_observed = 0;
+        snprintf(cmd, sizeof(cmd), "\\stream_resume %d", stream_id);
+        TEST_CHECK(run_cmd(rig, cmd, buf, sizeof(buf)) == RIG_OK);
+        TEST_CHECK(registry_lock_observed);
+
+        registry_lock_observed = 0;
+        snprintf(cmd, sizeof(cmd), "\\stream_drain %d", stream_id);
+        TEST_CHECK(run_cmd(rig, cmd, buf, sizeof(buf)) == RIG_OK);
+        TEST_CHECK(registry_lock_observed);
+    }
+
+    if (stream_id >= 0)
+    {
+        snprintf(cmd, sizeof(cmd), "\\stream_close %d", stream_id);
+        run_cmd(rig, cmd, buf, sizeof(buf));
+    }
+
+    stream_test_end(rig);
+}
+
 void test_cmd_stream_pause_resume(void)
 {
     RIG *rig = stream_test_begin();
@@ -6047,6 +6128,8 @@ TEST_LIST =
     { "tx_metadata_truncated_rejected",     test_tx_metadata_truncated_rejected },
 
     /* Stream control commands */
+    { "cmd_stream_controls_hold_registry_lock",
+      test_cmd_stream_controls_hold_registry_lock },
     { "cmd_stream_pause_resume",            test_cmd_stream_pause_resume },
     { "cmd_stream_mute_unmute",             test_cmd_stream_mute_unmute },
     { "cmd_stream_pause_not_found",         test_cmd_stream_pause_not_found },

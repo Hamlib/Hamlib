@@ -71,6 +71,7 @@ struct rigctld_proc
 {
     pid_t pid;
     int port;
+    int idle;
     char log_path[64];
 };
 
@@ -279,6 +280,9 @@ static int start_rigctld_once(struct rigctld_proc *proc,
 
     if (proc->pid == 0)
     {
+        char *child_argv[16];
+        int child_argc = 0;
+
         /* Child: silence stdout, but capture stderr in a per-daemon log;
          * /dev/null for stderr made failures undiagnosable. On redirect
          * failure the inherited stream simply stays in place. */
@@ -289,28 +293,32 @@ static int start_rigctld_once(struct rigctld_proc *proc,
             if (freopen("/dev/null", "w", stderr) == NULL) {}
         }
 
-        if (source_id_opt && set_conf_opt)
+        child_argv[child_argc++] = (char *)"rigctld";
+        child_argv[child_argc++] = (char *)"-m";
+        child_argv[child_argc++] = (char *)"1";
+        child_argv[child_argc++] = (char *)"-t";
+        child_argv[child_argc++] = port_str;
+        child_argv[child_argc++] = (char *)verbosity;
+
+        if (proc->idle)
         {
-            execlp(rigctld_path, "rigctld", "-m", "1", "-t", port_str, verbosity,
-                   "--stream-source-id", source_id_opt,
-                   "--set-conf", set_conf_opt, NULL);
-        }
-        else if (source_id_opt)
-        {
-            execlp(rigctld_path, "rigctld", "-m", "1", "-t", port_str, verbosity,
-                   "--stream-source-id", source_id_opt, NULL);
-        }
-        else if (set_conf_opt)
-        {
-            execlp(rigctld_path, "rigctld", "-m", "1", "-t", port_str, verbosity,
-                   "--set-conf", set_conf_opt, NULL);
-        }
-        else
-        {
-            execlp(rigctld_path, "rigctld", "-m", "1", "-t", port_str, verbosity,
-                   NULL);
+            child_argv[child_argc++] = (char *)"-R";
         }
 
+        if (source_id_opt)
+        {
+            child_argv[child_argc++] = (char *)"--stream-source-id";
+            child_argv[child_argc++] = (char *)source_id_opt;
+        }
+
+        if (set_conf_opt)
+        {
+            child_argv[child_argc++] = (char *)"--set-conf";
+            child_argv[child_argc++] = (char *)set_conf_opt;
+        }
+
+        child_argv[child_argc] = NULL;
+        execvp(rigctld_path, child_argv);
         _exit(127);
     }
 
@@ -328,6 +336,13 @@ static int start_rigctld_once(struct rigctld_proc *proc,
 
 static int start_rigctld(struct rigctld_proc *proc)
 {
+    return start_rigctld_opt(proc, NULL, NULL);
+}
+
+
+static int start_idle_rigctld(struct rigctld_proc *proc)
+{
+    proc->idle = 1;
     return start_rigctld_opt(proc, NULL, NULL);
 }
 
@@ -2661,6 +2676,226 @@ static int query_source_id_raw(int port)
 }
 
 
+struct raw_stream_connection
+{
+    int tcp_sock;
+    int udp_sock;
+};
+
+
+static int send_all(int sock, const void *buf, size_t len)
+{
+    const unsigned char *p = buf;
+
+    while (len > 0)
+    {
+        ssize_t n = send(sock, p, len, 0);
+
+        if (n <= 0)
+        {
+            return -1;
+        }
+
+        p += n;
+        len -= (size_t)n;
+    }
+
+    return 0;
+}
+
+
+static int raw_stream_open_once(int port, struct raw_stream_connection *conn)
+{
+    struct sockaddr_in addr;
+    const char *cmd = "+\\stream_open AUDIO_RX PCM_S16 48000\n";
+    char response[1024] = "";
+    size_t total = 0;
+    int stream_id = -1;
+    int udp_port = -1;
+    unsigned int subscribe_token = 0;
+
+    conn->tcp_sock = -1;
+    conn->udp_sock = -1;
+    conn->tcp_sock = socket(AF_INET, SOCK_STREAM, 0);
+
+    if (conn->tcp_sock < 0)
+    {
+        return -1;
+    }
+
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    addr.sin_port = htons(port);
+
+    if (connect(conn->tcp_sock, (struct sockaddr *)&addr, sizeof(addr)) < 0
+            || send_all(conn->tcp_sock, cmd, strlen(cmd)) < 0)
+    {
+        goto fail;
+    }
+
+    while (total < sizeof(response) - 1 && strstr(response, "RPRT") == NULL)
+    {
+        fd_set fds;
+        struct timeval tv = { 3, 0 };
+        FD_ZERO(&fds);
+        FD_SET(conn->tcp_sock, &fds);
+
+        if (select(conn->tcp_sock + 1, &fds, NULL, NULL, &tv) <= 0)
+        {
+            goto fail;
+        }
+
+        ssize_t n = recv(conn->tcp_sock, response + total,
+                         sizeof(response) - 1 - total, 0);
+
+        if (n <= 0)
+        {
+            goto fail;
+        }
+
+        total += (size_t)n;
+        response[total] = '\0';
+    }
+
+    const char *id_line = strstr(response, "stream_id: ");
+    const char *port_line = strstr(response, "udp_port: ");
+    const char *token_line = strstr(response, "subscribe_token: ");
+
+    if (!strstr(response, "RPRT 0") || !id_line || !port_line || !token_line
+            || sscanf(id_line, "stream_id: %d", &stream_id) != 1
+            || sscanf(port_line, "udp_port: %d", &udp_port) != 1
+            || sscanf(token_line, "subscribe_token: %u", &subscribe_token) != 1)
+    {
+        goto fail;
+    }
+
+    conn->udp_sock = socket(AF_INET, SOCK_DGRAM, 0);
+
+    if (conn->udp_sock < 0)
+    {
+        goto fail;
+    }
+
+    unsigned char packet[RIG_STREAM_HEADER_SIZE];
+    struct rig_stream_packet_header hdr;
+    stream_control_header_init(&hdr, RIG_STREAM_TYPE_AUDIO_RX,
+                               (uint16_t)stream_id, subscribe_token,
+                               RIG_STREAM_CTRL_SUBSCRIBE);
+    stream_packet_header_pack(&hdr, packet);
+    addr.sin_port = htons((uint16_t)udp_port);
+
+    if (sendto(conn->udp_sock, packet, sizeof(packet), 0,
+               (struct sockaddr *)&addr, sizeof(addr)) != (ssize_t)sizeof(packet))
+    {
+        goto fail;
+    }
+
+    fd_set fds;
+    struct timeval tv = { 3, 0 };
+    FD_ZERO(&fds);
+    FD_SET(conn->udp_sock, &fds);
+
+    if (select(conn->udp_sock + 1, &fds, NULL, NULL, &tv) <= 0)
+    {
+        goto fail;
+    }
+
+    ssize_t n = recv(conn->udp_sock, packet, sizeof(packet), 0);
+
+    if (n < RIG_STREAM_HEADER_SIZE
+            || stream_packet_header_unpack(packet, (size_t)n, &hdr) != 0
+            || hdr.stream_id != stream_id
+            || hdr.subscribe_token != subscribe_token
+            || !(hdr.control & RIG_STREAM_CTRL_SUBSCRIBE_ACK))
+    {
+        goto fail;
+    }
+
+    return 0;
+
+fail:
+
+    if (conn->udp_sock >= 0)
+    {
+        close(conn->udp_sock);
+        conn->udp_sock = -1;
+    }
+
+    if (conn->tcp_sock >= 0)
+    {
+        close(conn->tcp_sock);
+        conn->tcp_sock = -1;
+    }
+
+    return -1;
+}
+
+
+static int raw_stream_open(int port, struct raw_stream_connection *conn)
+{
+    for (int attempt = 0; attempt < 3; attempt++)
+    {
+        if (raw_stream_open_once(port, conn) == 0)
+        {
+            return 0;
+        }
+
+        usleep(100000);
+    }
+
+    return -1;
+}
+
+
+/* In idle mode the last control disconnect closes the backend rig. A live RX
+ * feeder must be joined before that close, even when the client never sends
+ * stream_close. */
+void test_idle_abrupt_disconnect_closes_stream(void)
+{
+    struct rigctld_proc proc = {0};
+    struct raw_stream_connection first = { -1, -1 };
+    struct raw_stream_connection reopened = { -1, -1 };
+
+    if (start_idle_rigctld(&proc) < 0)
+    {
+        TEST_CHECK_(0, "could not start idle rigctld");
+        return;
+    }
+
+    int opened = raw_stream_open(proc.port, &first);
+    TEST_CHECK(opened == 0);
+
+    if (opened < 0)
+    {
+        stop_rigctld(&proc);
+        return;
+    }
+
+    /* Drop the control session without a stream_close command. */
+    close(first.tcp_sock);
+    close(first.udp_sock);
+    usleep(250000);
+
+    TEST_CHECK(rigctld_alive(&proc));
+    opened = raw_stream_open(proc.port, &reopened);
+    TEST_CHECK(opened == 0);
+
+    if (reopened.tcp_sock >= 0)
+    {
+        close(reopened.tcp_sock);
+    }
+
+    if (reopened.udp_sock >= 0)
+    {
+        close(reopened.udp_sock);
+    }
+
+    usleep(250000);
+    stop_rigctld(&proc);
+}
+
+
 /* rigctld --stream-source-id stamps the CLI value; without it a stable
  * derived ID in 0x1000-0xFFFF is used, unchanged across a daemon restart
  * on the same static configuration. */
@@ -2724,6 +2959,7 @@ TEST_LIST =
     { "open_close_reopen",         test_open_close_reopen },
     { "rx_pause_resume",           test_rx_pause_resume },
     { "tx_flush_forwards",         test_tx_flush_forwards },
+    { "idle_abrupt_disconnect_closes_stream", test_idle_abrupt_disconnect_closes_stream },
     { "stream_source_id_cli_and_derived", test_stream_source_id_cli_and_derived },
     { "subscribe_retransmits_after_loss", test_subscribe_retransmits_after_loss },
     { "subscribe_ignores_non_ack_first", test_subscribe_ignores_non_ack_first },
