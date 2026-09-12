@@ -747,9 +747,9 @@ int main(int argc, char *argv[])
         bitmap_func |= func;
         nbytes = strlen("<TD></TD>") + strlen(s) + 1;
         nbytes_total += nbytes;
-        pbuf += snprintf(pbuf, sizeof(pbuf) - nbytes_total, "<TD>%s</TD>", s);
+        pbuf += snprintf(pbuf, sizeof(prntbuf) - nbytes_total, "<TD>%s</TD>", s);
 
-        if (strlen(pbuf) > sizeof(pbuf) + nbytes)
+        if (strlen(pbuf) > sizeof(prntbuf) + nbytes)
         {
             printf("Buffer overflow in %s\n", __func__);
         }
@@ -790,9 +790,9 @@ int main(int argc, char *argv[])
         bitmap_level |= level;
         nbytes = strlen("<TD></TD>") + strlen(s) + 1;
         nbytes_total += nbytes;
-        pbuf += snprintf(pbuf, sizeof(pbuf) - nbytes_total, "<TD>%s</TD>", s);
+        pbuf += snprintf(pbuf, sizeof(prntbuf) - nbytes_total, "<TD>%s</TD>", s);
 
-        if (strlen(pbuf) > sizeof(pbuf) + nbytes)
+        if (strlen(pbuf) > sizeof(prntbuf) + nbytes)
         {
             printf("Buffer overflow in %s\n", __func__);
         }
@@ -833,9 +833,10 @@ int main(int argc, char *argv[])
         bitmap_parm |= parm;
         nbytes = strlen("<TD></TD>") + strlen(s) + 1;
         nbytes_total += nbytes;
-        pbuf += snprintf(pbuf, sizeof(pbuf) - nbytes_total, "<TD>%s</TD>", s);
 
-        if (strlen(pbuf) > sizeof(pbuf) + nbytes)
+        pbuf += snprintf(pbuf, sizeof(prntbuf) - nbytes_total, "<TD>%s</TD>", s);
+
+        if (strlen(pbuf) > sizeof(prntbuf) + nbytes)
         {
             printf("Buffer overflow in %s\n", __func__);
         }
@@ -876,9 +877,9 @@ int main(int argc, char *argv[])
         bitmap_vfo_ops |= op;
         nbytes = strlen("<TD></TD>") + strlen(s) + 1;
         nbytes_total += nbytes;
-        pbuf += snprintf(pbuf, sizeof(pbuf) - nbytes_total, "<TD>%s</TD>", s);
+        pbuf += snprintf(pbuf, sizeof(prntbuf) - nbytes_total, "<TD>%s</TD>", s);
 
-        if (strlen(pbuf) > sizeof(pbuf) + nbytes)
+        if (strlen(pbuf) > sizeof(prntbuf) + nbytes)
         {
             printf("Buffer overflow in %s\n", __func__);
         }
