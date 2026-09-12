@@ -23,7 +23,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <time.h>
 
 #include <gd.h>
 #include <gdfontg.h>
@@ -666,7 +665,6 @@ static int create_png_range(const freq_range_t rx_range_list[],
 
 int main(int argc, char *argv[])
 {
-    time_t gentime;
     int set_or_get;
     int i, nbytes, nbytes_total = 0;
     char *pbuf, prntbuf[4096];
@@ -898,8 +896,7 @@ int main(int argc, char *argv[])
 
     printf("<P>");
 
-    time(&gentime);
-    printf("Rigmatrix generated %s\n", ctime(&gentime));
+    printf("Rigmatrix generated for %s\n", hamlib_version2);
 
     printf("</body></html>\n");
 
