@@ -128,7 +128,8 @@ testicomts_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testid5100_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testicomfallback_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testgeministatus_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/amplifiers/gemini
-testftx1parsers_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/yaesu/ftx1
+testftx1parsers_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/yaesu \
+	-I$(top_srcdir)/rigs/yaesu/ftx1
 testft991idmeter_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/yaesu
 testguohetec_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/guohetec
 if TESTS_HAVE_LIBUSB
