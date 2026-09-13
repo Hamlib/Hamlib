@@ -350,11 +350,20 @@ int HAMLIB_API serial_open(hamlib_port_t *rp)
 
     rp->fd = fd;
 
+    /* Set Exclusive Mode on the TTY device */
+    if (IOCTL(fd, TIOCEXCL, NULL) < 0)
+    {
+        perror("Failed to set TIOCEXCL");
+    }
+
     err = serial_setup(rp);
 
     if (err != RIG_OK)
     {
-        CLOSE(fd);
+        if (CLOSE(fd) < 0)
+        {
+            perror("Failed to close file descriptor");
+        }
         return (err);
     }
 
@@ -975,6 +984,12 @@ int ser_open(hamlib_port_t *p)
     }
 
     p->fd = ret;
+
+    /* Set Exclusive Mode on the TTY device */
+    if (ret >= 0 && IOCTL(ret, TIOCEXCL, NULL) < 0)
+    {
+        perror("Failed to set TIOCEXCL");
+    }
     return (ret);
 }
 
@@ -1083,6 +1098,10 @@ int ser_close(hamlib_port_t *p)
     }
 
     rc = CLOSE(p->fd);
+    if (rc < 0)
+    {
+        perror("Failed to close file descriptor");
+    }
     p->fd = -1;
     return (rc);
 }
