@@ -319,6 +319,7 @@ static int start_rigctld_once(struct rigctld_proc *proc,
     {
         kill(proc->pid, SIGTERM);
         waitpid(proc->pid, NULL, 0);
+        proc->pid = -1;
         return -1;
     }
 
