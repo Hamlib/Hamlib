@@ -19,9 +19,6 @@
 
 #include "rigctl_parse.h"
 
-int lock_mode;
-powerstat_t rig_powerstat = RIG_POWER_ON;
-
 static char captured_description[sizeof(((channel_t *)0)->channel_desc)];
 static freq_t captured_freq;
 static double captured_msec;
