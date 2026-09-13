@@ -1009,10 +1009,10 @@ int rig_stream_net_parse_caps_line(const char *line,
         }
     }
 
-    /* Parse formats= (comma-separated format names) */
+    /* Parse formats= (comma-separated format names, or STREAM_LIST_NONE) */
     val = find_kv(line, "formats", &vlen);
 
-    if (val != NULL && vlen > 0)
+    if (val != NULL && vlen > 0 && !stream_list_none(val, (size_t)vlen))
     {
         char fbuf[256];
         copy_kv_value(val, vlen, fbuf, sizeof(fbuf));
@@ -1037,7 +1037,7 @@ int rig_stream_net_parse_caps_line(const char *line,
      * HAMLIB_MAX_STREAM_RATES effective list. */
     val = find_kv(line, "rates", &vlen);
 
-    if (val != NULL && vlen > 0)
+    if (val != NULL && vlen > 0 && !stream_list_none(val, (size_t)vlen))
     {
         char rbuf[256];
         copy_kv_value(val, vlen, rbuf, sizeof(rbuf));
@@ -1062,11 +1062,12 @@ int rig_stream_net_parse_caps_line(const char *line,
     }
 
     /* Parse flags= (comma-separated RIG_STREAM_CAP_* names, prefix
-     * stripped; optional — absent or empty means none; unknown names are
-     * skipped for forward compatibility) */
+     * stripped; optional — absent, STREAM_LIST_NONE, or empty from an
+     * older peer all mean none; unknown names are skipped for forward
+     * compatibility) */
     val = find_kv(line, "flags", &vlen);
 
-    if (val != NULL && vlen > 0)
+    if (val != NULL && vlen > 0 && !stream_list_none(val, (size_t)vlen))
     {
         char flbuf[128];
         copy_kv_value(val, vlen, flbuf, sizeof(flbuf));
@@ -1100,7 +1101,7 @@ int rig_stream_net_parse_caps_line(const char *line,
     /* Parse native_formats= (comma-separated format names) */
     val = find_kv(line, "native_formats", &vlen);
 
-    if (val != NULL && vlen > 0)
+    if (val != NULL && vlen > 0 && !stream_list_none(val, (size_t)vlen))
     {
         char fbuf[256];
         copy_kv_value(val, vlen, fbuf, sizeof(fbuf));
@@ -1124,7 +1125,7 @@ int rig_stream_net_parse_caps_line(const char *line,
     /* Parse native_rates= (comma-separated integers) */
     val = find_kv(line, "native_rates", &vlen);
 
-    if (val != NULL && vlen > 0)
+    if (val != NULL && vlen > 0 && !stream_list_none(val, (size_t)vlen))
     {
         char rbuf[256];
         copy_kv_value(val, vlen, rbuf, sizeof(rbuf));
@@ -1151,7 +1152,7 @@ int rig_stream_net_parse_caps_line(const char *line,
     /* Parse native_channels= (comma-separated allowed counts) */
     val = find_kv(line, "native_channels", &vlen);
 
-    if (val != NULL && vlen > 0)
+    if (val != NULL && vlen > 0 && !stream_list_none(val, (size_t)vlen))
     {
         char cbuf[128];
         copy_kv_value(val, vlen, cbuf, sizeof(cbuf));
@@ -1161,7 +1162,7 @@ int rig_stream_net_parse_caps_line(const char *line,
     /* Parse channels= (comma-separated allowed counts) */
     val = find_kv(line, "channels", &vlen);
 
-    if (val != NULL && vlen > 0)
+    if (val != NULL && vlen > 0 && !stream_list_none(val, (size_t)vlen))
     {
         char cbuf[128];
         copy_kv_value(val, vlen, cbuf, sizeof(cbuf));

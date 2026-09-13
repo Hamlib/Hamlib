@@ -3000,7 +3000,8 @@ static int netrigctl_stream_open(RIG *rig, struct rig_stream *stream)
 {
     int ret;
     /* Larger than CMD_MAX: type + format + rate + key=value options. */
-    char cmd[128];
+    char cmd[160];
+    char native_req[64] = "";
     char buf[BUF_MAX];
     hamlib_port_t *rp = RIGPORT(rig);
     struct rig_stream_net_session *sess;
@@ -3018,13 +3019,31 @@ static int netrigctl_stream_open(RIG *rig, struct rig_stream *stream)
     /* Streaming commands require '+' ext_resp prefix. The server performs
      * any format conversion, so the full requested shape is forwarded:
      * channels (the server would otherwise default to 1 and serve
-     * mislabeled data) and a native-only demand for it to enforce too. */
+     * mislabeled data) and the native-only demand for it to enforce too —
+     * by stage name, so the server refuses exactly the stages this client
+     * required and converts the rest. */
+    if (stream->config.require_native != RIG_STREAM_CONV_NONE)
+    {
+        char stages[48];
+
+        if (stream_native_req_str(stream->config.require_native, stages,
+                                  sizeof(stages)) < 0)
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: cannot render require_native 0x%x\n",
+                      __func__, (unsigned)stream->config.require_native);
+            return -RIG_EINVAL;
+        }
+
+        SNPRINTF(native_req, sizeof(native_req), " require_native=%s", stages);
+    }
+
     SNPRINTF(cmd, sizeof(cmd), "+\\stream_open %s %s %d channels=%d%s\n",
              stream_type_name(stream->type),
              stream_format_name(stream->config.format),
              stream->config.sample_rate,
              stream->config.channels,
-             stream->config.require_native ? " require_native=1" : "");
+             native_req);
 
     ret = netrigctl_transaction(rig, cmd, strlen(cmd), buf);
 
@@ -3084,9 +3103,10 @@ static int netrigctl_stream_open(RIG *rig, struct rig_stream *stream)
         }
         else if (strncmp(buf, "conversions:", 12) == 0)
         {
-            /* Comma-separated stage names; empty value = native stream.
-             * Unknown names are skipped by the shared parser so a future
-             * server may add stages without breaking this client. */
+            /* Comma-separated stage names; NONE (or, from an older
+             * server, an empty value) = native stream. Unknown names are
+             * skipped by the shared parser so a future server may add
+             * stages without breaking this client. */
             conversions = stream_conversions_parse(buf + 12);
             rig_debug(RIG_DEBUG_VERBOSE, "%s: conversions=0x%x\n",
                       __func__, conversions);
