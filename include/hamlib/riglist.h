@@ -59,7 +59,7 @@
  *
  * \sa rig_model_t
  */
-#define RIG_MAKE_MODEL(a,b) (MAX_MODELS_PER_BACKEND*(a)+(b))
+#define RIG_MAKE_MODEL(a,b) (MAX_MODELS_PER_BACKEND*((a))+((b)))
 
 /** Convenience macro to derive the backend family number from the model number. */
 #define RIG_BACKEND_NUM(a) ((a)/MAX_MODELS_PER_BACKEND)

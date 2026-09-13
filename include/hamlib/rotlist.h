@@ -65,7 +65,7 @@
  *
  * \sa rot_model_t
  */
-#define ROT_MAKE_MODEL(a,b) (100*(a)+(b))
+#define ROT_MAKE_MODEL(a,b) (100*((a))+((b)))
 
 /** Convenience macro to derive the backend family number from the model number. */
 #define ROT_BACKEND_NUM(a) ((a)/100)
