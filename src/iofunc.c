@@ -356,8 +356,11 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
     case RIG_PORT_NETWORK:
     case RIG_PORT_UDP_NETWORK:
-        /* FIXME: hardcoded network port */
-        status = network_open(p, 4532);
+        /* A pathname without a port falls back to rigctld's, which is right
+         * for the network rigs that speak it and wrong for a radio with a
+         * port of its own. Such a backend names it and is reached by host
+         * alone; the rest are unaffected. */
+        status = network_open(p, p->default_port ? p->default_port : 4532);
 
         if (status < 0)
         {

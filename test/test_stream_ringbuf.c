@@ -479,6 +479,27 @@ void test_ringbuf_init_zero_capacity(void)
 }
 
 
+/* Pausing tells the producer to stop, so an empty buffer afterwards is the
+ * expected state and not a loss of data. Charging it as an underrun made a
+ * clean transmit run end with one, describing only that the run had ended. */
+void test_ringbuf_paused_is_not_an_underrun(void)
+{
+    struct rig_stream_ringbuf rb;
+    unsigned char dst[64];
+    uint32_t before;
+
+    stream_ringbuf_init(&rb, 1024);
+    rb.paused = 1;
+    before = rb.underrun_count;
+
+    TEST_CHECK(stream_ringbuf_read(&rb, dst, sizeof(dst), 50) == 0);
+    TEST_CHECK(rb.underrun_count == before);
+    TEST_MSG("a paused read must not be counted as an underrun");
+
+    stream_ringbuf_destroy(&rb);
+}
+
+
 /* A consumer that starts before the producer has delivered anything is early,
  * not starved. Counting that left every stream reporting one underrun it
  * never suffered, which is indistinguishable from the first real one. */
@@ -520,6 +541,28 @@ void test_ringbuf_underrun_counts_again_after_reset(void)
 }
 
 
+/* The counter must still work: starving while the producer is meant to be
+ * running is exactly what it is for. */
+void test_ringbuf_empty_still_underruns(void)
+{
+    struct rig_stream_ringbuf rb;
+    unsigned char data[16];
+    unsigned char dst[64];
+    uint32_t before;
+
+    stream_ringbuf_init(&rb, 1024);
+    stream_ringbuf_write(&rb, data, sizeof(data));
+    stream_ringbuf_read(&rb, dst, sizeof(data), 20);
+    before = rb.underrun_count;
+
+    TEST_CHECK(stream_ringbuf_read(&rb, dst, sizeof(dst), 20) == 0);
+    TEST_CHECK(rb.underrun_count == before + 1);
+    TEST_MSG("an unpaused starved read must still count");
+
+    stream_ringbuf_destroy(&rb);
+}
+
+
 TEST_LIST =
 {
     { "stream_ringbuf_init_zero_capacity", test_ringbuf_init_zero_capacity },
@@ -538,5 +581,9 @@ TEST_LIST =
     { "stream_ringbuf_reset",          test_ringbuf_reset },
     { "stream_ringbuf_power_of_two",   test_ringbuf_power_of_two },
     { "stream_ringbuf_concurrent",     test_ringbuf_concurrent },
+    { "stream_ringbuf_paused_is_not_an_underrun", test_ringbuf_paused_is_not_an_underrun },
+    { "stream_ringbuf_startup_silence_is_not_an_underrun", test_ringbuf_startup_silence_is_not_an_underrun },
+    { "stream_ringbuf_underrun_counts_again_after_reset", test_ringbuf_underrun_counts_again_after_reset },
+    { "stream_ringbuf_empty_still_underruns",     test_ringbuf_empty_still_underruns },
     { NULL, NULL }
 };
