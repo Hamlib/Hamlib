@@ -1672,7 +1672,7 @@ void test_get_latest_metadata(void)
 
     /* Set a known frequency in cache */
     rig_set_cache_freq(rig, RIG_VFO_A, 14074000);
-    CACHE(rig)->ptt = RIG_PTT_OFF;
+    rig_set_cache_ptt(rig, RIG_PTT_OFF);
 
     struct rig_stream_config *config = rig_stream_config_alloc();
     TEST_ASSERT(config != NULL);
@@ -1799,7 +1799,7 @@ void test_metadata_field_mask(void)
 
     /* Set freq to 0 — should still have FREQ bit set */
     rig_set_cache_freq(rig, RIG_VFO_A, 0);
-    CACHE(rig)->ptt = RIG_PTT_OFF;
+    rig_set_cache_ptt(rig, RIG_PTT_OFF);
 
     struct rig_stream_config *config = rig_stream_config_alloc();
     TEST_ASSERT(config != NULL);

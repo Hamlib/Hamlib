@@ -627,6 +627,8 @@ int ft857_get_vfo(RIG *rig, vfo_t *vfo)
 {
     unsigned char c;
     static int ignore = 0;
+    int cache_ms;
+    int timeout_ms;
     *vfo = RIG_VFO_B;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
@@ -634,14 +636,14 @@ int ft857_get_vfo(RIG *rig, vfo_t *vfo)
     // Some 857's cannot read so we'll just return the cached value if we've seen an error
     if (ignore)
     {
-        *vfo = CACHE(rig)->vfo;
+        rig_get_cached_vfo(rig, vfo, &cache_ms, &timeout_ms);
         return RIG_OK;
     }
 
     if (ft857_read_eeprom(rig, 0x0068, &c) < 0)   /* get vfo status */
     {
         ignore = 1;
-        *vfo = CACHE(rig)->vfo;
+        rig_get_cached_vfo(rig, vfo, &cache_ms, &timeout_ms);
         return RIG_OK;
     }
 
@@ -1433,4 +1435,3 @@ int ft857_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 }
 
 /* ---------------------------------------------------------------------- */
-
