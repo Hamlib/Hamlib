@@ -252,6 +252,31 @@ static int run_cmd(RIG *rig, const char *cmd_str, char *outbuf,
  * Run a command with ext_resp mode enabled.
  * Produces labeled output like "stream_id: 0\n".
  */
+/* The multicast group is asserted on, so it stays fixed; the port must not.
+ * Two copies of this suite running at once -- two developers, or parallel CI
+ * jobs sharing a host -- would bind the same group:port and the second open
+ * fails with "already in use", which reads as a broken test rather than a
+ * clash. Deriving the port from the pid keeps concurrent runs apart. Slots
+ * separate the ports used within one run; the duplicate-rejection test reuses
+ * a slot deliberately. */
+#define MCAST_GROUP "239.1.2.3"
+
+static int mcast_port(int slot)
+{
+    return 20000 + ((int)(getpid() % 2000) * 8) + slot;
+}
+
+/* Run a \stream_open whose multicast address belongs to this process. */
+static int run_mcast_open(RIG *rig, const char *prefix, int slot,
+                          const char *suffix, char *outbuf, size_t outbuf_size)
+{
+    char cmd[256];
+    SNPRINTF(cmd, sizeof(cmd), "%s multicast=" MCAST_GROUP ":%d%s",
+             prefix, mcast_port(slot), suffix);
+    return run_cmd(rig, cmd, outbuf, outbuf_size);
+}
+
+
 static int run_cmd_ext(RIG *rig, const char *cmd_str, char *outbuf,
                        size_t outbuf_size)
 {
@@ -4663,9 +4688,8 @@ void test_cmd_stream_open_multicast_ipv4(void)
     RIG *rig = stream_test_begin();
     char buf[1024];
 
-    int ret = run_cmd(rig,
-                      "\\stream_open AUDIO_RX PCM_S16 48000 multicast=239.1.2.3:5000",
-                      buf, sizeof(buf));
+    int ret = run_mcast_open(rig, "\\stream_open AUDIO_RX PCM_S16 48000", 0, "",
+        buf, sizeof(buf));
     TEST_CHECK(ret == 0);
     TEST_MSG("stream_open returned %d", ret);
 
@@ -4674,8 +4698,9 @@ void test_cmd_stream_open_multicast_ipv4(void)
     TEST_CHECK(parse_open_response(buf, &stream_id, &udp_port) == 0);
     TEST_MSG("response: '%s'", buf);
     TEST_CHECK(stream_id > 0);
-    TEST_CHECK(udp_port == 5000);
-    TEST_MSG("udp_port: got %d, expected 5000", udp_port);
+    TEST_CHECK(udp_port == mcast_port(0));
+    TEST_MSG("udp_port: got %d, expected %d", udp_port,
+             mcast_port(0));
 
     /* Verify multicast address in response */
     char mcast_addr[64] = "";
@@ -4706,9 +4731,8 @@ void test_cmd_stream_open_multicast_tx_rejected(void)
     char buf[1024];
 
     /* TX multicast should be rejected */
-    int ret = run_cmd(rig,
-                      "\\stream_open AUDIO_TX PCM_S16 48000 multicast=239.1.2.3:5000",
-                      buf, sizeof(buf));
+    int ret = run_mcast_open(rig, "\\stream_open AUDIO_TX PCM_S16 48000", 0, "",
+        buf, sizeof(buf));
     TEST_CHECK(ret != 0);
     TEST_MSG("TX multicast should be rejected, got ret=%d", ret);
 
@@ -4743,18 +4767,16 @@ void test_cmd_stream_open_multicast_duplicate(void)
     char buf[1024];
 
     /* First open should succeed */
-    int ret = run_cmd(rig,
-                      "\\stream_open AUDIO_RX PCM_S16 48000 multicast=239.1.2.3:5000",
-                      buf, sizeof(buf));
+    int ret = run_mcast_open(rig, "\\stream_open AUDIO_RX PCM_S16 48000", 0, "",
+        buf, sizeof(buf));
     TEST_CHECK(ret == 0);
 
     int stream_id = -1, udp_port = -1;
     parse_open_response(buf, &stream_id, &udp_port);
 
     /* Second open with same group:port should fail */
-    ret = run_cmd(rig,
-                  "\\stream_open AUDIO_RX PCM_S16 48000 multicast=239.1.2.3:5000",
-                  buf, sizeof(buf));
+    ret = run_mcast_open(rig, "\\stream_open AUDIO_RX PCM_S16 48000", 0, "",
+        buf, sizeof(buf));
     TEST_CHECK(ret != 0);
     TEST_MSG("duplicate group:port should be rejected, got ret=%d", ret);
 
@@ -4775,9 +4797,8 @@ void test_cmd_stream_open_multicast_ttl_override(void)
     RIG *rig = stream_test_begin();
     char buf[1024];
 
-    int ret = run_cmd(rig,
-                      "\\stream_open AUDIO_RX PCM_S16 48000 multicast=239.1.2.3:5002 ttl=4",
-                      buf, sizeof(buf));
+    int ret = run_mcast_open(rig, "\\stream_open AUDIO_RX PCM_S16 48000", 1, " ttl=4",
+        buf, sizeof(buf));
     TEST_CHECK(ret == 0);
     TEST_MSG("stream_open returned %d", ret);
 
@@ -4984,9 +5005,8 @@ void test_cmd_stream_status_multicast(void)
     RIG *rig = stream_test_begin();
     char buf[1024];
 
-    int ret = run_cmd(rig,
-                      "\\stream_open AUDIO_RX PCM_S16 48000 multicast=239.1.2.3:5003 ttl=3",
-                      buf, sizeof(buf));
+    int ret = run_mcast_open(rig, "\\stream_open AUDIO_RX PCM_S16 48000", 2, " ttl=3",
+        buf, sizeof(buf));
     TEST_CHECK(ret == 0);
 
     int stream_id = -1, udp_port = -1;
@@ -5311,9 +5331,8 @@ void test_rx_multicast_no_timeout(void)
     TEST_CHECK(rig != NULL);
     char buf[1024];
 
-    int ret = run_cmd(rig,
-                      "\\stream_open AUDIO_RX PCM_S16 48000 multicast=239.1.2.3:5010",
-                      buf, sizeof(buf));
+    int ret = run_mcast_open(rig, "\\stream_open AUDIO_RX PCM_S16 48000", 3, "",
+        buf, sizeof(buf));
     TEST_CHECK(ret == 0);
 
     int stream_id = -1, udp_port = -1;

@@ -399,6 +399,15 @@ the frontend derives the wider effective set it advertises to applications
 and installs any needed conversion at stream open
 (rig_stream_get_conversions() reports what runs on a stream).
 
+The streaming subsystem itself is documented at the top of the source tree:
+HAMLIB_STREAMING.md (protocol and API design, including the native/effective
+capability model and format conversion) and HAMLIB_STREAMING_BACKEND_GUIDE.md
+(adding streaming support to a backend). In short: a backend declares only
+its hardware-native formats, sample rates and channel counts in stream_caps;
+the frontend derives the wider effective set it advertises to applications
+and installs any needed conversion at stream open
+(rig_stream_get_conversions() reports what runs on a stream).
+
 Likewise, a complete test of the build system is accomplished with 'make
 distcheck' which exercises a complete build sequence from creating a
 distribution tarball, building, installing, uninstalling, and cleaning Hamlib.
