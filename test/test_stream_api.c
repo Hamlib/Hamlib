@@ -315,6 +315,47 @@ static struct rig_caps stub_caps_codec_stream =
     .stream_close = stub_stream_close,
 };
 
+/* A native rate chosen so 8000 Hz is just outside libsamplerate's
+ * single-stage ratio range while nearby standard and arbitrary rates remain
+ * reachable. Both directions exercise RX downsampling and TX upsampling. */
+static const struct rig_stream_caps stub_ratio_stream_caps[] =
+{
+    {
+        .type = RIG_STREAM_TYPE_AUDIO_RX,
+        .formats = RIG_STREAM_FORMAT_PCM_F32,
+        .sample_rates = { 2056000, 0 },
+        .channels = { 1, 0 },
+        .max_streams = 1,
+    },
+    {
+        .type = RIG_STREAM_TYPE_AUDIO_TX,
+        .formats = RIG_STREAM_FORMAT_PCM_F32,
+        .sample_rates = { 2056000, 0 },
+        .channels = { 1, 0 },
+        .max_streams = 1,
+    },
+    { 0 }
+};
+
+static struct rig_caps stub_caps_ratio_stream =
+{
+    .rig_model = 7,
+    .model_name = "Stub Ratio Stream",
+    .mfg_name = "Test",
+    .version = "1.0",
+    .status = RIG_STATUS_STABLE,
+    .rig_type = RIG_TYPE_TRANSCEIVER,
+    .port_type = RIG_PORT_NONE,
+    .timeout = 1000,
+    .retry = 0,
+    .stream_caps = stub_ratio_stream_caps,
+    .rig_init = stub_rig_init,
+    .rig_cleanup = stub_rig_cleanup,
+    .rig_open = stub_rig_open,
+    .rig_close = stub_rig_close,
+    .stream_open = stub_stream_open,
+    .stream_close = stub_stream_close,
+};
 
 /* Helper: set up a RIG with the given caps, call rig_open-equivalent init. */
 static RIG *setup_rig(struct rig_caps *caps)
@@ -494,6 +535,87 @@ void test_caps_derived_rates(void)
     TEST_CHECK(iq->sample_rates[2] == 0);
 #endif
 
+    teardown_rig(rig);
+}
+
+void test_rate_ratio_limits(void)
+{
+    RIG *rig = setup_rig(&stub_caps_ratio_stream);
+    TEST_ASSERT(rig != NULL);
+
+    const struct rig_stream_caps *rx = rig_stream_caps_at(rig, 0);
+    const struct rig_stream_caps *tx = rig_stream_caps_at(rig, 1);
+    TEST_ASSERT(rx != NULL && tx != NULL);
+
+#ifdef HAVE_SAMPLERATE
+    TEST_CHECK(!rate_in_list(rx->sample_rates, 8000));
+    TEST_CHECK(!rate_in_list(tx->sample_rates, 8000));
+    TEST_CHECK(rate_in_list(rx->sample_rates, 11025));
+    TEST_CHECK(rate_in_list(tx->sample_rates, 11025));
+#endif
+
+    struct rig_stream_config *cfg = rig_stream_config_alloc();
+    TEST_ASSERT(cfg != NULL);
+    cfg->format = RIG_STREAM_FORMAT_PCM_F32;
+    cfg->channels = 1;
+    cfg->buffer_bytes = 64;
+
+    static const rig_stream_type_t types[] =
+    {
+        RIG_STREAM_TYPE_AUDIO_RX,
+        RIG_STREAM_TYPE_AUDIO_TX,
+    };
+    static const struct
+    {
+        int rate;
+        int expected;
+    } cases[] =
+    {
+        { 8000, -RIG_EINVAL },
+#ifdef HAVE_SAMPLERATE
+        { 22222, RIG_OK },
+#else
+        { 22222, -RIG_EINVAL },
+#endif
+    };
+
+    for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++)
+    {
+        cfg->sample_rate = cases[i].rate;
+
+        for (size_t j = 0; j < sizeof(types) / sizeof(types[0]); j++)
+        {
+            rig_stream_t *stream = NULL;
+            cfg->type = types[j];
+            int ret = rig_stream_open(rig, cfg, &stream);
+            TEST_CHECK(ret == cases[i].expected);
+
+            if (ret == RIG_OK)
+            {
+                TEST_ASSERT(stream != NULL);
+                TEST_CHECK(rig_stream_get_conversions(stream)
+                           == RIG_STREAM_CONV_RATE);
+
+                if (types[j] == RIG_STREAM_TYPE_AUDIO_TX)
+                {
+                    float input[1024] = { 0 };
+                    size_t written = 0;
+                    TEST_CHECK(rig_stream_write(rig, stream, input,
+                                                sizeof(input), &written,
+                                                0, NULL) == RIG_OK);
+                    TEST_CHECK(written == sizeof(input));
+                }
+
+                rig_stream_close(rig, stream);
+            }
+            else
+            {
+                TEST_CHECK(stream == NULL);
+            }
+        }
+    }
+
+    rig_stream_config_free(cfg);
     teardown_rig(rig);
 }
 
@@ -2387,6 +2509,7 @@ TEST_LIST =
     { "get_stream_caps",          test_get_stream_caps },
     { "caps_derived_formats",     test_caps_derived_formats },
     { "caps_derived_rates",       test_caps_derived_rates },
+    { "rate_ratio_limits",        test_rate_ratio_limits },
     { "caps_derived_channels",    test_caps_derived_channels },
     { "channel_list_exact",       test_channel_list_exact },
     { "codec_format_native_only", test_codec_format_native_only },

@@ -331,11 +331,6 @@ static const int stream_curated_rates[] =
 #define STREAM_MAX_DECIM_FACTOR 10
 #endif
 
-static int stream_type_is_iq_type(rig_stream_type_t type)
-{
-    return type == RIG_STREAM_TYPE_IQ_RX || type == RIG_STREAM_TYPE_IQ_TX;
-}
-
 #ifdef HAVE_SAMPLERATE
 /* Append rate to a 0-terminated list if absent and there is room; the
  * caller adds in priority order, so on overflow the least useful entries
@@ -373,6 +368,8 @@ static int stream_rate_list_max(const int *rates)
 
     return max;
 }
+
+static int stream_rate_source(const int *native_rates, int requested_rate);
 
 #endif /* HAVE_SAMPLERATE */
 
@@ -425,7 +422,7 @@ static void chan_list_add(int *list, int count)
 static void stream_derive_caps(struct rig_stream_caps *dst,
                                const struct rig_stream_caps *src)
 {
-    int is_iq = stream_type_is_iq_type(src->type);
+    int is_iq = stream_type_is_iq(src->type);
 
     *dst = *src;
 
@@ -493,11 +490,11 @@ static void stream_derive_caps(struct rig_stream_caps *dst,
     }
 
 #ifdef HAVE_SAMPLERATE
-    /* Rates (resampler built): native, then curated standards, then
-     * integer divisions of each native rate (factors 2..10, exact results
-     * only) — in that priority order, deduplicated, ascending. This list
-     * is discoverability; acceptance at open is rule-based. Audio may go
-     * up to the largest native rate, I/Q only strictly below it
+    /* Rates (resampler built): native, then reachable curated standards,
+     * then integer divisions of each native rate (factors 2..10, exact
+     * results only) — in that priority order, deduplicated, ascending. This
+     * list is discoverability; acceptance at open is rule-based. Audio may
+     * go up to the largest native rate, I/Q only strictly below it
      * (downward-only: the I/Q sample rate is the represented bandwidth).
      * Without the resampler the effective rates equal the native rates. */
     {
@@ -507,8 +504,11 @@ static void stream_derive_caps(struct rig_stream_caps *dst,
         for (int i = 0; stream_curated_rates[i] != 0; i++)
         {
             int r = stream_curated_rates[i];
+            int native_rate = stream_rate_source(src->sample_rates, r);
 
-            if ((is_iq && r < native_max) || (!is_iq && r <= native_max))
+            if (((is_iq && r < native_max) || (!is_iq && r <= native_max))
+                    && native_rate > 0
+                    && stream_conv_rate_supported(native_rate, r))
             {
                 stream_rate_list_add(dst->sample_rates, r);
             }
@@ -815,29 +815,27 @@ static int caps_rate_native(const struct rig_stream_caps *caps, int rate)
     return rate_in_list(caps->sample_rates, rate);
 }
 
-
 #ifdef HAVE_SAMPLERATE
-/* Smallest native rate >= rate (the cheapest downconversion source), or 0
- * when the request exceeds every native rate — the effective set is
- * bounded by the largest native rate for audio and I/Q alike. */
-static int caps_rate_source(const struct rig_stream_caps *caps, int rate)
+/* Smallest native rate at or above the requested rate, or zero. */
+static int stream_rate_source(const int *native_rates, int requested_rate)
 {
     int best = 0;
 
     for (int i = 0; i < HAMLIB_MAX_STREAM_RATES
-            && caps->sample_rates[i] != 0; i++)
+            && native_rates[i] != 0; i++)
     {
-        int r = caps->sample_rates[i];
+        int rate = native_rates[i];
 
-        if (r >= rate && (best == 0 || r < best))
+        if (rate >= requested_rate && (best == 0 || rate < best))
         {
-            best = r;
+            best = rate;
         }
     }
 
     return best;
 }
 #endif
+
 
 /* Resolution for a pre-derived caps entry (native_formats set — a relaying
  * backend such as netrigctl): conversion happens on the far side of the
@@ -938,8 +936,7 @@ static int resolve_stream_source(const struct rig_stream_config *config,
                                  struct rig_stream_config *backend_cfg,
                                  int *conversions)
 {
-    int is_iq = config->type == RIG_STREAM_TYPE_IQ_RX
-                || config->type == RIG_STREAM_TYPE_IQ_TX;
+    int is_iq = stream_type_is_iq(config->type);
     rig_stream_format_t family = is_iq ? STREAM_IQ_FORMAT_MASK
                                  : STREAM_PCM_FORMAT_MASK;
     int conv = RIG_STREAM_CONV_NONE;
@@ -1046,19 +1043,29 @@ static int resolve_stream_source(const struct rig_stream_config *config,
         return RIG_OK;    /* conv stays RIG_STREAM_CONV_NONE */
     }
 
-    /* Rate: native, or (resampler built) any rate up to the largest
-     * native rate — audio and I/Q alike; I/Q upsampling beyond the
-     * hardware is impossible by this bound (sample rate = bandwidth). */
+    /* Rate: native, or any rate that a single resampler stage can convert
+     * against the smallest suitable native source. I/Q remains bounded by
+     * the native bandwidth just like audio is bounded by its largest rate. */
     if (!caps_rate_native(caps, config->sample_rate))
     {
 #ifdef HAVE_SAMPLERATE
-        int src_rate = caps_rate_source(caps, config->sample_rate);
+        int src_rate = stream_rate_source(caps->sample_rates,
+                                          config->sample_rate);
 
         if (src_rate <= 0)
         {
             rig_debug(RIG_DEBUG_ERR,
                       "%s: rate %d exceeds the largest native rate\n",
                       __func__, config->sample_rate);
+            return -RIG_EINVAL;
+        }
+
+        if (!stream_conv_rate_supported(src_rate, config->sample_rate))
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: rate conversion %d <-> %d exceeds the "
+                      "resampler ratio limit\n",
+                      __func__, config->sample_rate, src_rate);
             return -RIG_EINVAL;
         }
 
@@ -1292,10 +1299,9 @@ int HAMLIB_API rig_stream_open(RIG *rig,
     s->backend_config = backend_cfg;
     s->conversions = conversions;
 
-    /* The ring buffer holds the CONSUMER's format: the client's request on
+    /* The ring buffer holds the consumer's format: the client's request on
      * RX, the backend-native side on TX. */
-    int is_rx = config->type == RIG_STREAM_TYPE_AUDIO_RX
-                || config->type == RIG_STREAM_TYPE_IQ_RX;
+    int is_rx = stream_type_is_rx(config->type);
     const struct rig_stream_config *ring_cfg = is_rx ? config
                                                : &s->backend_config;
 
@@ -1324,40 +1330,28 @@ int HAMLIB_API rig_stream_open(RIG *rig,
      * reported), so no local pipeline is installed for it. */
     if (conversions != RIG_STREAM_CONV_NONE && found_caps->native_formats == 0)
     {
-        int is_iq = config->type == RIG_STREAM_TYPE_IQ_RX
-                    || config->type == RIG_STREAM_TYPE_IQ_TX;
+        int is_iq = stream_type_is_iq(config->type);
         int quality = stream_resample_quality(rig);
-        int conv_ret;
+        const struct rig_stream_config *src_cfg = is_rx ? &backend_cfg
+                : config;
+        const struct rig_stream_config *dst_cfg = is_rx ? config
+                : &backend_cfg;
+        int conv_ret = stream_conv_init(&s->conv,
+                                        src_cfg->format,
+                                        src_cfg->sample_rate,
+                                        src_cfg->channels,
+                                        dst_cfg->format,
+                                        dst_cfg->sample_rate,
+                                        dst_cfg->channels, is_iq, quality);
 
-        if (is_rx)
-        {
-            conv_ret = stream_conv_init(&s->conv,
-                                        backend_cfg.format,
-                                        backend_cfg.sample_rate,
-                                        backend_cfg.channels,
-                                        config->format,
-                                        config->sample_rate,
-                                        config->channels, is_iq, quality);
-        }
-        else
-        {
-            conv_ret = stream_conv_init(&s->conv,
-                                        config->format,
-                                        config->sample_rate,
-                                        config->channels,
-                                        backend_cfg.format,
-                                        backend_cfg.sample_rate,
-                                        backend_cfg.channels, is_iq, quality);
-        }
-
-        if (conv_ret != 0)
+        if (conv_ret != RIG_OK)
         {
             rig_debug(RIG_DEBUG_ERR,
                       "%s: conversion pipeline init failed (0x%x)\n",
                       __func__, conversions);
             free(s);
             pthread_mutex_unlock(&ss->stream_mutex);
-            return -RIG_ENOMEM;
+            return conv_ret;
         }
     }
 
@@ -1444,7 +1438,11 @@ static size_t conv_ring_sink(void *ctx, const void *buf, size_t len)
 {
     struct rig_stream *s = ctx;
 
-    return stream_ringbuf_write(&s->ringbuf, buf, len);
+    stream_ringbuf_write(&s->ringbuf, buf, len);
+
+    /* The overwrite ring consumes the full producer span even when only its
+     * last capacity bytes remain readable. */
+    return len;
 }
 
 size_t stream_backend_write(struct rig_stream *stream, const void *buf,
