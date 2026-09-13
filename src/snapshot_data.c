@@ -82,7 +82,8 @@ static int snapshot_serialize_rig(cJSON *rig_node, RIG *rig)
     char *p;
     cJSON *modes_array = cJSON_CreateArray();
 
-    for (p = strtok(buf, " "); p; p = strtok(NULL, " "))
+    char *saveptr = NULL;
+    for (p = strtok_r(buf, " ", &saveptr); p; p = strtok_r(NULL, " ", &saveptr))
     {
         if (strlen(buf) > 0)
         {
