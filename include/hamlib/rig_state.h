@@ -26,6 +26,7 @@
 
 //#include <hamlib/rig.h>
 //#include <pthread.h>
+#include <stdbool.h>
 
 __BEGIN_DECLS
 
@@ -246,6 +247,7 @@ struct rig_state {
     int freq_skip; /*!< allow frequency skip for gpredict RX/TX freq set */
     client_t client;        /*!< Client application of the library. */
     pthread_mutex_t api_mutex;      /*!< Lock for any API entry. */
+    bool morse_busy;                /*!< Advisory to use cache when morse_handler is busy */
 // New rig_state items go before this line ============================================
 };
 
