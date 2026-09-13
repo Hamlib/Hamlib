@@ -1291,8 +1291,14 @@ int main(int argc, char *argv[])
 static FILE *get_fsockout(struct handle_data *handle_data_arg)
 {
 #ifdef __MINGW32__
-    int sock_osfhandle = _open_osfhandle(handle_data_arg->sock, _O_RDONLY);
-    return _fdopen(sock_osfhandle, "wb");
+    /* Reuse the osfhandle get_fsockin() already opened on this socket instead of
+     * opening a second one -- see struct handle_data's own sock_osfhandle comment
+     * for why (this used to double-open, and handle_exit's fclose() calls on the
+     * two independently-wrapped handles then double-closed the same underlying
+     * Windows handle). get_fsockin() is always called before get_fsockout() in
+     * handle_socket(), so sock_osfhandle is already set by the time we get here.
+     */
+    return _fdopen(handle_data_arg->sock_osfhandle, "wb");
 #else
     return fdopen(handle_data_arg->sock, "wb");
 #endif
@@ -1301,15 +1307,15 @@ static FILE *get_fsockout(struct handle_data *handle_data_arg)
 static FILE *get_fsockin(struct handle_data *handle_data_arg)
 {
 #ifdef __MINGW32__
-    int sock_osfhandle = _open_osfhandle(handle_data_arg->sock, _O_RDONLY);
+    handle_data_arg->sock_osfhandle = _open_osfhandle(handle_data_arg->sock, _O_RDONLY);
 
-    if (sock_osfhandle == -1)
+    if (handle_data_arg->sock_osfhandle == -1)
     {
         rig_debug(RIG_DEBUG_ERR, "_open_osfhandle error: %s\n", strerror(errno));
         return NULL;
     }
 
-    return _fdopen(sock_osfhandle,  "rb");
+    return _fdopen(handle_data_arg->sock_osfhandle,  "rb");
 #else
     return fdopen(handle_data_arg->sock, "rb");
 #endif
@@ -1534,17 +1540,23 @@ void *handle_socket(void *arg)
 
 handle_exit:
 
-// for MINGW we close the handle before fclose
 #ifdef __MINGW32__
-    retcode = closesocket(handle_data_arg->sock);
-
-    if (retcode != 0) { rig_debug(RIG_DEBUG_ERR, "%s: fclose(fsockin) %s\n", __func__, strerror(retcode)); }
-
-#endif
-
+    /* fsockin/fsockout share one CRT fd wrapping handle_data_arg->sock (see
+     * get_fsockin()/get_fsockout()) -- closing it via either FILE*'s fclose()
+     * already releases the underlying Windows handle. A prior closesocket() call
+     * here, plus fclose()-ing BOTH streams, each independently closed the same
+     * handle again, fatal on Windows (CloseHandle() on an already-closed handle,
+     * unlike POSIX's harmless EBADF on a redundant close()). fclose() only the
+     * one that's actually set; the other's now-detached FILE* is simply
+     * abandoned rather than closed a second time.
+     */
+    if (fsockin) { fclose(fsockin); }
+    else if (fsockout) { fclose(fsockout); }
+#else
     if (fsockin) { fclose(fsockin); }
 
     if (fsockout) { fclose(fsockout); }
+#endif
 
 // for everybody else we close the handle after fclose
 #ifndef __MINGW32__
