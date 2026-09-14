@@ -116,6 +116,47 @@
 }
 
 /*
+ * G90-specific capabilities, kept separate from the X108G_* macros above
+ * so X108G/X6100/X6200/X5105 are unaffected.
+ *
+ * Sources: Radioddity "Xiegu G90 CAT control and digital modes" manual v1.0
+ * (2021-06-23) and the official Radioddity G90 spec sheet.
+ *
+ * - HF+60m only: 0.5-30MHz RX, no 6m/2m/70cm/VHF/UHF.
+ * - No RIG_FUNC_NR / RIG_LEVEL_NR: no noise reduction on this rig.
+ * - RIG_FUNC_TUNER added: built-in ATU, CI-V 0x1C/0x01.
+ * - RIG_LEVEL_VOXDELAY, RIG_FUNC_ARO: not implemented on this rig.
+ * - RIG_LEVEL_BKINDL/MICGAIN/PBT_IN/PBT_OUT/NOTCHF_RAW/VOXGAIN/ALC/COMP:
+ *   undocumented 0x14 subcommands; manual states these return a fixed 255.
+ * - RIG_LEVEL_RF kept though undocumented; confirmed working.
+ * - RIG_FUNC_ANF dropped: no auto notch filter on this rig.
+ * - RIG_MODE_FMN kept (S_FMN == S_FM == 0x05, not a distinct mode);
+ *   RIG_MODE_WFM dropped (S_WFM == 0x06, no broadcast-FM reception).
+ */
+#define G90_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_FMN|RIG_MODE_PKTUSB|RIG_MODE_PKTLSB)
+#define G90_NOT_TS_MODES (G90_ALL_RX_MODES &~ X108G_1HZ_TS_MODES)
+
+#define G90_FUNCS (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_VSC|RIG_FUNC_LOCK|RIG_FUNC_TUNER)
+
+#define G90_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SWR)
+
+#define G90_MEM_CAP {    \
+        .freq = 1,  \
+        .mode = 1,  \
+        .width = 1, \
+        .split = 1, \
+        .tx_freq = 1,   \
+        .tx_mode = 1,   \
+        .tx_width = 1,  \
+        .rptr_offs = 1, \
+        .rptr_shift = 1, \
+        .ctcss_tone = 1, \
+        .ctcss_sql = 1, \
+        .funcs = G90_FUNCS, \
+        .levels = RIG_LEVEL_SET(G90_LEVELS), \
+}
+
+/*
  * Prototypes
 */
 static int x108g_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
@@ -741,6 +782,28 @@ struct rig_caps x6200_caps =
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
+/*
+ * RIG_LEVEL_RFPOWER only. At full power, G90 firmware replies with a
+ * non-conformant BCD byte (0x5f) instead of 0x02 0x55 (255), which
+ * decodes to a value above the declared 1.0 max. Clamped here rather
+ * than in icom_get_level() since it's G90-specific.
+ */
+static int g90_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+    int retval;
+
+    ENTERFUNC;
+
+    retval = icom_get_level(rig, vfo, level, val);
+
+    if (level == RIG_LEVEL_RFPOWER && retval == RIG_OK && val->f > 1.0f)
+    {
+        val->f = 1.0f;
+    }
+
+    RETURNFUNC(retval);
+}
+
 static struct icom_priv_caps g90_priv_caps =
 {
     0xa4,   /* default address */
@@ -761,7 +824,7 @@ struct rig_caps g90_caps =
     RIG_MODEL(RIG_MODEL_G90),
     .model_name = "G90",
     .mfg_name =  "Xiegu",
-    .version =  BACKEND_VER ".11",
+    .version =  BACKEND_VER ".12",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -778,10 +841,10 @@ struct rig_caps g90_caps =
     .post_write_delay =  0,
     .timeout =  1000,
     .retry =  3,
-    .has_get_func =  X108G_FUNCS,
-    .has_set_func =  X108G_FUNCS,
-    .has_get_level =  X108G_LEVELS,
-    .has_set_level =  RIG_LEVEL_SET(X108G_LEVELS),
+    .has_get_func =  G90_FUNCS,
+    .has_set_func =  G90_FUNCS,
+    .has_get_level =  G90_LEVELS,
+    .has_set_level =  RIG_LEVEL_SET(G90_LEVELS),
     .has_get_parm =  X108G_PARMS,
     .has_set_parm =  RIG_PARM_SET(X108G_PARMS),
     .level_gran = {
@@ -803,55 +866,45 @@ struct rig_caps g90_caps =
     .chan_desc_sz =  0, /* TODO */
 
     .chan_list =  {
-        {   1,  99, RIG_MTYPE_MEM,  X108G_MEM_CAP },
-        { 100, 105, RIG_MTYPE_EDGE, X108G_MEM_CAP },    /* two by two */
-        { 106, 107, RIG_MTYPE_CALL, X108G_MEM_CAP },
+        {   1,  99, RIG_MTYPE_MEM,  G90_MEM_CAP },
+        { 100, 105, RIG_MTYPE_EDGE, G90_MEM_CAP },    /* two by two */
+        { 106, 107, RIG_MTYPE_CALL, G90_MEM_CAP },
         RIG_CHAN_END,
     },
 
-    .rx_range_list1 =   { {kHz(30), MHz(199.999999), X108G_ALL_RX_MODES, -1, -1, X108G_VFOS},
-        {MHz(400), MHz(470), X108G_ALL_RX_MODES, -1, -1, X108G_VFOS}, RIG_FRNG_END,
+    .rx_range_list1 =   { {kHz(500), MHz(30), G90_ALL_RX_MODES, -1, -1, X108G_VFOS}, RIG_FRNG_END,
     },
     .tx_range_list1 =   {
-        FRQ_RNG_HF(1, X108G_OTHER_TX_MODES, W(2), W(100), X108G_VFOS, RIG_ANT_1),
-        FRQ_RNG_6m(1, X108G_OTHER_TX_MODES, W(2), W(100), X108G_VFOS, RIG_ANT_1),
-        FRQ_RNG_2m(1, X108G_OTHER_TX_MODES, W(2), W(50), X108G_VFOS, RIG_ANT_2),
-        FRQ_RNG_70cm(1, X108G_OTHER_TX_MODES, W(2), W(35), X108G_VFOS, RIG_ANT_2),
-        FRQ_RNG_HF(1, X108G_AM_TX_MODES, W(1), W(40), X108G_VFOS, RIG_ANT_1), /* AM class */
-        FRQ_RNG_6m(1, X108G_AM_TX_MODES, W(1), W(40), X108G_VFOS, RIG_ANT_1), /* AM class */
-        FRQ_RNG_2m(1, X108G_AM_TX_MODES, W(2), W(20), X108G_VFOS, RIG_ANT_2),
-        FRQ_RNG_70cm(1, X108G_OTHER_TX_MODES, W(2), W(14), X108G_VFOS, RIG_ANT_2),
+        FRQ_RNG_HF(1, X108G_OTHER_TX_MODES, W(2), W(20), X108G_VFOS, RIG_ANT_1),
+        FRQ_RNG_60m(1, X108G_OTHER_TX_MODES, W(2), W(20), X108G_VFOS, RIG_ANT_1),
+        FRQ_RNG_HF(1, X108G_AM_TX_MODES, W(1), W(20), X108G_VFOS, RIG_ANT_1), /* AM class */
+        FRQ_RNG_60m(1, X108G_AM_TX_MODES, W(1), W(20), X108G_VFOS, RIG_ANT_1), /* AM class */
         RIG_FRNG_END,
     },
 
-    .rx_range_list2 =   { {kHz(30), MHz(199.999999), X108G_ALL_RX_MODES, -1, -1, X108G_VFOS},
-        {MHz(400), MHz(470), X108G_ALL_RX_MODES, -1, -1, X108G_VFOS}, RIG_FRNG_END,
+    .rx_range_list2 =   { {kHz(500), MHz(30), G90_ALL_RX_MODES, -1, -1, X108G_VFOS}, RIG_FRNG_END,
     },
-    .tx_range_list2 =  { /* needs the 5 MHz channels added */
-        FRQ_RNG_HF(2, X108G_OTHER_TX_MODES, W(2), W(100), X108G_VFOS, RIG_ANT_1),
-        FRQ_RNG_6m(2, X108G_OTHER_TX_MODES, W(2), W(100), X108G_VFOS, RIG_ANT_1),
-        FRQ_RNG_2m(2, X108G_OTHER_TX_MODES, W(2), W(50), X108G_VFOS, RIG_ANT_2),
-        FRQ_RNG_70cm(2, X108G_OTHER_TX_MODES, W(2), W(35), X108G_VFOS, RIG_ANT_2),
-        FRQ_RNG_HF(2, X108G_AM_TX_MODES, W(1), W(40), X108G_VFOS, RIG_ANT_1), /* AM class */
-        FRQ_RNG_6m(2, X108G_AM_TX_MODES, W(1), W(40), X108G_VFOS, RIG_ANT_1), /* AM class */
-        FRQ_RNG_2m(2, X108G_AM_TX_MODES, W(2), W(20), X108G_VFOS, RIG_ANT_2),
-        FRQ_RNG_70cm(2, X108G_OTHER_TX_MODES, W(2), W(14), X108G_VFOS, RIG_ANT_2),
+    .tx_range_list2 =  {
+        FRQ_RNG_HF(2, X108G_OTHER_TX_MODES, W(2), W(20), X108G_VFOS, RIG_ANT_1),
+        FRQ_RNG_60m(2, X108G_OTHER_TX_MODES, W(2), W(20), X108G_VFOS, RIG_ANT_1),
+        FRQ_RNG_HF(2, X108G_AM_TX_MODES, W(1), W(20), X108G_VFOS, RIG_ANT_1), /* AM class */
+        FRQ_RNG_60m(2, X108G_AM_TX_MODES, W(1), W(20), X108G_VFOS, RIG_ANT_1), /* AM class */
         RIG_FRNG_END,
     },
 
     .tuning_steps = {
         {X108G_1HZ_TS_MODES, 1},
-        {X108G_NOT_TS_MODES, 10},
-        {X108G_ALL_RX_MODES, Hz(100)},
-        {X108G_ALL_RX_MODES, kHz(1)},
-        {X108G_ALL_RX_MODES, kHz(5)},
-        {X108G_ALL_RX_MODES, kHz(9)},
-        {X108G_ALL_RX_MODES, kHz(10)},
-        {X108G_ALL_RX_MODES, kHz(12.5)},
-        {X108G_ALL_RX_MODES, kHz(20)},
-        {X108G_ALL_RX_MODES, kHz(25)},
-        {X108G_ALL_RX_MODES, kHz(100)},
-        {X108G_NOT_TS_MODES, MHz(1)},
+        {G90_NOT_TS_MODES, 10},
+        {G90_ALL_RX_MODES, Hz(100)},
+        {G90_ALL_RX_MODES, kHz(1)},
+        {G90_ALL_RX_MODES, kHz(5)},
+        {G90_ALL_RX_MODES, kHz(9)},
+        {G90_ALL_RX_MODES, kHz(10)},
+        {G90_ALL_RX_MODES, kHz(12.5)},
+        {G90_ALL_RX_MODES, kHz(20)},
+        {G90_ALL_RX_MODES, kHz(25)},
+        {G90_ALL_RX_MODES, kHz(100)},
+        {G90_NOT_TS_MODES, MHz(1)},
         RIG_TS_END,
     },
 
@@ -870,7 +923,6 @@ struct rig_caps g90_caps =
         {RIG_MODE_AM, kHz(6)},
         {RIG_MODE_AM, kHz(3)},
         {RIG_MODE_AM, kHz(9)},
-        {RIG_MODE_WFM, kHz(280)},
         RIG_FLT_END,
     },
 
@@ -896,7 +948,7 @@ struct rig_caps g90_caps =
 
     .decode_event =  icom_decode_event,
     .set_level =  icom_set_level,
-    .get_level =  icom_get_level,
+    .get_level =  g90_get_level,
     .set_func =  icom_set_func,
     .get_func =  icom_get_func,
     .set_parm =  NULL,
