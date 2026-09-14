@@ -2,9 +2,7 @@ name: Windows mingw-w64 cross C/C++ (no features)
 
 on:
   push:
-    branches: [ master, feature/* ]
   pull_request:
-    branches: [ master ]
 
 jobs:
   build:

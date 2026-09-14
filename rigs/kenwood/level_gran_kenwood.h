@@ -33,7 +33,9 @@
         [LVL_BKIN_DLYMS]    = { .min = { .i = 30 },    .max = { .i = 3000 }, .step = { .i = 1 } },
 #endif
         /* level with misc units */
+#if !defined(NO_LVL_SWR)
         [LVL_SWR]           = { .min = { .f = 0 },     .max = { .f = 5.0 },  .step = { .f = 1.0f/255.0f } },
+#endif
         [LVL_BAND_SELECT]   = { .min = { .i = 0 },     .max = { .i = 16 },   .step = { .i = 1 } },
         /* levels with 0-1 values -- increment based on rig's range */
 #if !defined(NO_LVL_NR)
@@ -50,7 +52,9 @@
 #endif
         [LVL_RFPOWER]       = { .min = { .f = .05 },   .max = { .f = 1 },    .step = { .f = 1.0f/100.0f } },
         [LVL_RFPOWER_METER] = { .min = { .f = .0 },    .max = { .f = 1 },    .step = { .f = 1.0f/255.0f } },
+#if !defined(NO_LVL_RFPOWER_METER_WATTS)
         [LVL_RFPOWER_METER_WATTS] = { .min = { .f = .0 },    .max = { .f = 100 },    .step = { .f = 1.0f/255.0f } },
+#endif
         [LVL_COMP_METER]    = { .min = { .f = .0 },    .max = { .f = 1 },    .step = { .f = 1.0f/255.0f } },
         [LVL_ID_METER]      = { .min = { .f = .0 },    .max = { .f = 1 },    .step = { .f = 1.0f/255.0f } },
         [LVL_VD_METER]      = { .min = { .f = .0 },    .max = { .f = 1 },    .step = { .f = 1.0f/255.0f } },

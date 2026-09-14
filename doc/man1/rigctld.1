@@ -5,7 +5,7 @@
 .\"
 .\" Note: Please keep this page in sync with the source, rigctld.c
 .\"
-.TH RIGCTLD "1" "2026-01-06" "Hamlib" "Hamlib Utilities"
+.TH RIGCTLD "1" "2026-07-31" "Hamlib" "Hamlib Utilities"
 .
 .
 .SH NAME
@@ -2020,6 +2020,18 @@ The
 is intentionally simple.  Commands are entered on a single line with any
 needed values.  In practice, reliable results are obtained by terminating each
 command string with a newline character, \(oq\\n\(cq.
+.
+.PP
+Numeric command arguments and numeric responses use a locale-independent
+decimal format.  Canonical output uses the ASCII dot (\fB.\fP) as the decimal
+separator.  A decimal number is a complete, finite token with an optional
+sign, at least one digit, an optional fractional part, and an optional
+exponent, for example \fB-12.5e+3\fP.  For compatibility,
+.B rigctld
+also accepts a decimal comma in a standalone scalar decimal argument.  A
+comma is rejected in compound fields and fields whose format uses commas as
+delimiters.  Existing command-specific formats and precision are unchanged,
+and frequencies retain their \fBfreq_t\fP representation.
 .
 .PP
 Example set frequency and mode commands (Perl code (typed text shown in bold)):

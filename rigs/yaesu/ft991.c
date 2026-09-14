@@ -224,15 +224,18 @@ struct rig_caps ft991_caps =
 #define NO_LVL_SQL
 #define NO_LVL_MONITOR_GAIN
 #define NO_LVL_RFPOWER
+#define NO_LVL_ID_METER
 #include "level_gran_yaesu.h"
 #undef NO_LVL_MICGAIN
 #undef NO_LVL_SQL
 #undef NO_LVL_MONITOR_GAIN
 #undef NO_LVL_RFPOWER
+#undef NO_LVL_ID_METER
         [LVL_MICGAIN] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f / 100.0f } },
         [LVL_SQL] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f / 100.0f } },
         [LVL_MONITOR_GAIN] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f / 100.0f } },
         [LVL_RFPOWER] = { .min = { .f = .05 }, .max = { .f = 1.0 }, .step = { .f = 1.0f / 100.0f } },
+        [LVL_ID_METER] = { .min = { .f = 0.0f }, .max = { .f = 25.5f }, .step = { .f = 0.1f } },
     },
     .parm_gran =  {
         [PARM_BANDSELECT] = {.step = {.s = "BAND160M,BAND80M,BANDUNUSED,BAND40M,BAND30M,BAND20M,BAND17M,BAND15M,BAND12M,BAND10M,BAND6M,BANDGEN,BANDMW,BANDUNUSED,BANDAIR,BAND70CM,BAND33CM"}}

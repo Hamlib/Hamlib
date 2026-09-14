@@ -75,6 +75,7 @@ extern int read_history();
 #include "iofunc.h"
 #include "riglist.h"
 #include "sprintflst.h"
+#include "rigctl_protocol.h"
 
 #include "rigctl_parse.h"
 #include "rigctld_stream.h"
@@ -622,6 +623,229 @@ static int scanfc(FILE *fin, const char *format, void *p)
     }
     while (1);
 }
+
+static int parse_protocol_freq(const char *token, freq_t *value)
+{
+    return rigctl_parse_double(token, RIGCTL_DECIMAL_DOT_OR_COMMA, value) == RIG_OK;
+}
+
+static int scan_protocol_freq(FILE *fin, freq_t *value)
+{
+    char token[128];
+
+    if (scanfc(fin, "%127s", token) != 1)
+    {
+        return 0;
+    }
+
+    return parse_protocol_freq(token, value);
+}
+
+static int print_protocol_decimal(FILE *fout, const char *format, double value)
+{
+    char buffer[64];
+    int status;
+
+    status = rigctl_format_decimal(buffer, sizeof(buffer), format, value);
+
+    if (status == RIG_OK)
+    {
+        fputs(buffer, fout);
+    }
+
+    return status;
+}
+
+static int format_protocol_freq(char *buffer, size_t buffer_size, freq_t freq)
+{
+    const char *unit;
+    double value;
+    int decimal_places = 10;
+    char format[8];
+    int length;
+    int status;
+    size_t used;
+
+    if (freq >= GHz(1) || freq <= -GHz(1))
+    {
+        unit = "GHz";
+        value = freq / GHz(1);
+    }
+    else if (freq >= MHz(1) || freq <= -MHz(1))
+    {
+        unit = "MHz";
+        value = freq / MHz(1);
+        decimal_places = 7;
+    }
+    else if (freq >= kHz(1) || freq <= -kHz(1))
+    {
+        unit = "kHz";
+        value = freq / kHz(1);
+        decimal_places = 4;
+    }
+    else
+    {
+        unit = "Hz";
+        value = freq;
+        decimal_places = 1;
+    }
+
+    snprintf(format, sizeof(format), "%%.%df", decimal_places);
+    status = rigctl_format_decimal(buffer, buffer_size, format, value);
+
+    if (status != RIG_OK)
+    {
+        return status;
+    }
+
+    used = strlen(buffer);
+    length = snprintf(buffer + used, buffer_size - used, " %s", unit);
+    return length < 0 ? -RIG_EPROTO
+           : (size_t)length >= buffer_size - used ? -RIG_ETRUNC : RIG_OK;
+}
+
+static int parse_clock_offset(const char *token, int *utc_offset)
+{
+    int hours;
+    int minutes = 0;
+    int sign;
+    size_t length;
+
+    if (token == NULL || utc_offset == NULL || (token[0] != '+' && token[0] != '-'))
+    {
+        return -RIG_EINVAL;
+    }
+
+    length = strlen(token);
+
+    if (length != 3 && length != 5 && length != 6)
+    {
+        return -RIG_EINVAL;
+    }
+
+    if (!isdigit((unsigned char)token[1]) || !isdigit((unsigned char)token[2]))
+    {
+        return -RIG_EINVAL;
+    }
+
+    sign = token[0] == '-' ? -1 : 1;
+    hours = (token[1] - '0') * 10 + token[2] - '0';
+
+    if (length == 5)
+    {
+        if (!isdigit((unsigned char)token[3]) || !isdigit((unsigned char)token[4]))
+        {
+            return -RIG_EINVAL;
+        }
+
+        minutes = (token[3] - '0') * 10 + token[4] - '0';
+    }
+    else if (length == 6)
+    {
+        if (token[3] != ':' || !isdigit((unsigned char)token[4])
+                || !isdigit((unsigned char)token[5]))
+        {
+            return -RIG_EINVAL;
+        }
+
+        minutes = (token[4] - '0') * 10 + token[5] - '0';
+    }
+
+    if (hours > 23 || minutes > 59)
+    {
+        return -RIG_EINVAL;
+    }
+
+    *utc_offset = sign * (hours * 100 + minutes);
+    return RIG_OK;
+}
+
+static int parse_protocol_clock(const char *timestamp, int *year, int *month,
+                                int *day, int *hour, int *minute, int *second,
+                                double *msec, int *utc_offset)
+{
+    const char *offset;
+    char fraction[32];
+    int fields;
+    int position;
+
+    if (timestamp == NULL || year == NULL || month == NULL || day == NULL
+            || hour == NULL || minute == NULL || second == NULL || msec == NULL
+            || utc_offset == NULL || strlen(timestamp) < 19)
+    {
+        return -RIG_EINVAL;
+    }
+
+    if (timestamp[4] != '-' || timestamp[7] != '-' || timestamp[10] != 'T'
+            || timestamp[13] != ':')
+    {
+        return -RIG_EINVAL;
+    }
+
+    if (timestamp[16] == '+' || timestamp[16] == '-')
+    {
+        fields = sscanf(timestamp, "%4d-%2d-%2dT%2d:%2d%n", year, month, day,
+                        hour, minute, &position);
+        *second = 0;
+        *msec = 0;
+        offset = timestamp + 16;
+    }
+    else if (timestamp[19] == '+' || timestamp[19] == '-')
+    {
+        fields = sscanf(timestamp, "%4d-%2d-%2dT%2d:%2d:%2d%n", year, month, day,
+                        hour, minute, second, &position);
+        *msec = 0;
+        offset = timestamp + 19;
+    }
+    else
+    {
+        size_t fraction_length;
+
+        fields = sscanf(timestamp, "%4d-%2d-%2dT%2d:%2d:%2d%n", year, month, day,
+                        hour, minute, second, &position);
+
+        if (timestamp[19] != '.')
+        {
+            return -RIG_EINVAL;
+        }
+
+        offset = timestamp + 19;
+
+        while (*offset != '+' && *offset != '-' && *offset != '\0')
+        {
+            ++offset;
+        }
+
+        fraction_length = (size_t)(offset - (timestamp + 19));
+
+        if (fraction_length == 0 || fraction_length >= sizeof(fraction))
+        {
+            return -RIG_EINVAL;
+        }
+
+        memcpy(fraction, timestamp + 19, fraction_length);
+        fraction[fraction_length] = '\0';
+
+        if (rigctl_parse_double(fraction, RIGCTL_DECIMAL_DOT_ONLY, msec) != RIG_OK)
+        {
+            return -RIG_EINVAL;
+        }
+    }
+
+    if (fields != (timestamp[16] == '+' || timestamp[16] == '-' ? 5 : 6)
+            || position != (timestamp[16] == '+' || timestamp[16] == '-' ? 16 : 19))
+    {
+        return -RIG_EINVAL;
+    }
+
+    return parse_clock_offset(offset, utc_offset);
+}
+
+#define PRINT_PROTOCOL_DECIMAL(format, value) \
+    do { \
+        int protocol_status = print_protocol_decimal(fout, format, value); \
+        if (protocol_status != RIG_OK) { RETURNFUNC2(protocol_status); } \
+    } while (0)
 
 
 /*
@@ -2259,7 +2483,7 @@ declare_proto_rig(set_freq)
 
     ENTERFUNC2;
 
-    CHKSCN1ARG(sscanf(arg1, "%"SCNfreq, &freq));
+    CHKSCN1ARG(parse_protocol_freq(arg1, &freq));
     retval = rig_set_freq(rig, vfo, freq);
 
     if (retval == RIG_OK)
@@ -3064,7 +3288,7 @@ declare_proto_rig(set_split_freq)
 
     ENTERFUNC2;
 
-    CHKSCN1ARG(sscanf(arg1, "%"SCNfreq, &txfreq));
+    CHKSCN1ARG(parse_protocol_freq(arg1, &txfreq));
 
     RETURNFUNC2(rig_set_split_freq(rig, txvfo, txfreq));
 }
@@ -3176,7 +3400,7 @@ declare_proto_rig(set_split_freq_mode)
         RETURNFUNC2(RIG_OK);
     }
 
-    CHKSCN1ARG(sscanf(arg1, "%"SCNfreq, &freq));
+    CHKSCN1ARG(parse_protocol_freq(arg1, &freq));
     mode = rig_parse_mode(arg2);
     CHKSCN1ARG(sscanf(arg3, "%d", &width));
     RETURNFUNC2(rig_set_split_freq_mode(rig, txvfo, freq, mode, (pbwidth_t) width));
@@ -3350,8 +3574,8 @@ declare_proto_rig(power2mW)
 
     ENTERFUNC2;
 
-    CHKSCN1ARG(sscanf(arg1, "%f", &power));
-    CHKSCN1ARG(sscanf(arg2, "%"SCNfreq, &freq));
+    CHKSCN1ARG(rigctl_parse_float(arg1, RIGCTL_DECIMAL_DOT_OR_COMMA, &power) == RIG_OK);
+    CHKSCN1ARG(parse_protocol_freq(arg2, &freq));
     mode = rig_parse_mode(arg3);
 
     status = rig_power2mW(rig, &mwp, power, freq, mode);
@@ -3384,7 +3608,7 @@ declare_proto_rig(mW2power)
     ENTERFUNC2;
 
     CHKSCN1ARG(sscanf(arg1, "%u", &mwp));
-    CHKSCN1ARG(sscanf(arg2, "%"SCNfreq, &freq));
+    CHKSCN1ARG(parse_protocol_freq(arg2, &freq));
     mode = rig_parse_mode(arg3);
 
     status = rig_mW2power(rig, &power, mwp, freq, mode);
@@ -3399,7 +3623,8 @@ declare_proto_rig(mW2power)
         fprintf(fout, "%s: ", cmd->arg4);
     }
 
-    fprintf(fout, "%f%c", power, resp_sep);
+    PRINT_PROTOCOL_DECIMAL("%f", power);
+    fputc(resp_sep, fout);
 
     RETURNFUNC2(status);
 }
@@ -3452,8 +3677,14 @@ declare_proto_rig(set_level)
 
             if (RIG_LEVEL_IS_FLOAT(level))
             {
-                fprintf(fout, "(%f..%f/%f)%c", gran[idx].min.f,
-                        gran[idx].max.f, gran[idx].step.f, resp_sep);
+                fputc('(', fout);
+                PRINT_PROTOCOL_DECIMAL("%f", gran[idx].min.f);
+                fputs("..", fout);
+                PRINT_PROTOCOL_DECIMAL("%f", gran[idx].max.f);
+                fputc('/', fout);
+                PRINT_PROTOCOL_DECIMAL("%f", gran[idx].step.f);
+                fputc(')', fout);
+                fputc(resp_sep, fout);
             }
             else
             {
@@ -3465,11 +3696,6 @@ declare_proto_rig(set_level)
         RETURNFUNC2(RIG_OK);
     }
 
-
-    // some Java apps send comma in international setups so substitute period
-    char *p = strchr(arg2, ',');
-
-    if (p) { *p = '.'; }
 
     if (!rig_has_set_level(rig, level))
     {
@@ -3496,11 +3722,11 @@ declare_proto_rig(set_level)
             break;
 
         case RIG_CONF_INT:
-            CHKSCN1ARG(sscanf(arg2, "%f", &val.f));
+            CHKSCN1ARG(rigctl_parse_float(arg2, RIGCTL_DECIMAL_DOT_OR_COMMA, &val.f) == RIG_OK);
             break;
 
         case RIG_CONF_NUMERIC:
-            CHKSCN1ARG(sscanf(arg2, "%g", &val.f));
+            CHKSCN1ARG(rigctl_parse_float(arg2, RIGCTL_DECIMAL_DOT_OR_COMMA, &val.f) == RIG_OK);
             break;
 
         case RIG_CONF_STRING:
@@ -3537,7 +3763,7 @@ declare_proto_rig(set_level)
 
     if (RIG_LEVEL_IS_FLOAT(level))
     {
-        CHKSCN1ARG(sscanf(arg2, "%f", &val.f));
+        CHKSCN1ARG(rigctl_parse_float(arg2, RIGCTL_DECIMAL_DOT_OR_COMMA, &val.f) == RIG_OK);
     }
     else
     {
@@ -3611,11 +3837,13 @@ declare_proto_rig(get_level)
             break;
 
         case RIG_CONF_NUMERIC:
-            fprintf(fout, "%g%c", val.f, resp_sep);
+            PRINT_PROTOCOL_DECIMAL("%g", val.f);
+            fputc(resp_sep, fout);
             break;
 
         case RIG_CONF_INT:
-            fprintf(fout, "%.0f%c", val.f, resp_sep);
+            PRINT_PROTOCOL_DECIMAL("%.0f", val.f);
+            fputc(resp_sep, fout);
             break;
 
         case RIG_CONF_STRING:
@@ -3675,7 +3903,8 @@ declare_proto_rig(get_level)
 
     if (RIG_LEVEL_IS_FLOAT(level))
     {
-        fprintf(fout, "%g%c", val.f, resp_sep);
+        PRINT_PROTOCOL_DECIMAL("%g", val.f);
+        fputc(resp_sep, fout);
     }
     else
     {
@@ -3863,11 +4092,11 @@ declare_proto_rig(set_parm)
             break;
 
         case RIG_CONF_INT:
-            CHKSCN1ARG(sscanf(arg2, "%f", &val.f));
+            CHKSCN1ARG(rigctl_parse_float(arg2, RIGCTL_DECIMAL_DOT_OR_COMMA, &val.f) == RIG_OK);
             break;
 
         case RIG_CONF_NUMERIC:
-            CHKSCN1ARG(sscanf(arg2, "%g", &val.f));
+            CHKSCN1ARG(rigctl_parse_float(arg2, RIGCTL_DECIMAL_DOT_OR_COMMA, &val.f) == RIG_OK);
             break;
 
         case RIG_CONF_STRING:
@@ -3897,7 +4126,7 @@ declare_proto_rig(set_parm)
 
     if (RIG_PARM_IS_FLOAT(parm))
     {
-        CHKSCN1ARG(sscanf(arg2, "%f", &val.f));
+        CHKSCN1ARG(rigctl_parse_float(arg2, RIGCTL_DECIMAL_DOT_OR_COMMA, &val.f) == RIG_OK);
     }
     else if (RIG_PARM_IS_STRING(parm))
     {
@@ -3995,11 +4224,13 @@ declare_proto_rig(get_parm)
             break;
 
         case RIG_CONF_INT:
-            fprintf(fout, "%.0f%c", val.f, resp_sep);
+            PRINT_PROTOCOL_DECIMAL("%.0f", val.f);
+            fputc(resp_sep, fout);
             break;
 
         case RIG_CONF_NUMERIC:
-            fprintf(fout, "%g%c", val.f, resp_sep);
+            PRINT_PROTOCOL_DECIMAL("%g", val.f);
+            fputc(resp_sep, fout);
             break;
 
         case RIG_CONF_STRING:
@@ -4045,7 +4276,8 @@ declare_proto_rig(get_parm)
     else if (RIG_PARM_IS_FLOAT(parm))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: float\n", __func__);
-        fprintf(fout, "%f%c", val.f, resp_sep);
+        PRINT_PROTOCOL_DECIMAL("%f", val.f);
+        fputc(resp_sep, fout);
     }
     else if (RIG_PARM_IS_STRING(parm))
     {
@@ -4248,7 +4480,7 @@ declare_proto_rig(set_channel)
             fprintf_flush(fout, "Frequency: ");
         }
 
-        CHKSCN1ARG(scanfc(fin, "%"SCNfreq, &chan.freq));
+        CHKSCN1ARG(scan_protocol_freq(fin, &chan.freq));
     }
 
     if (mem_caps->mode)
@@ -4279,7 +4511,7 @@ declare_proto_rig(set_channel)
             fprintf_flush(fout, "tx freq: ");
         }
 
-        CHKSCN1ARG(scanfc(fin, "%"SCNfreq, &chan.tx_freq));
+        CHKSCN1ARG(scan_protocol_freq(fin, &chan.tx_freq));
     }
 
     if (mem_caps->tx_mode)
@@ -4570,8 +4802,8 @@ declare_proto_rig(get_info)
 int dump_chan(FILE *fout, RIG *rig, channel_t *chan)
 {
     int idx, firstloop = 1;
-    char freqbuf[16];
-    char widthbuf[16];
+    char freqbuf[32];
+    char widthbuf[32];
     char prntbuf[256];
 
     ENTERFUNC2;
@@ -4587,34 +4819,52 @@ int dump_chan(FILE *fout, RIG *rig, channel_t *chan)
             chan->ant,
             chan->split == RIG_SPLIT_ON ? "ON" : "OFF");
 
-    sprintf_freq(freqbuf, sizeof(freqbuf), chan->freq);
-    sprintf_freq(widthbuf, sizeof(widthbuf), chan->width);
+    if (format_protocol_freq(freqbuf, sizeof(freqbuf), chan->freq) != RIG_OK
+            || format_protocol_freq(widthbuf, sizeof(widthbuf), chan->width) != RIG_OK)
+    {
+        RETURNFUNC2(-RIG_EINVAL);
+    }
     fprintf(fout,
             "Freq:   %s\tMode:   %s\tWidth:   %s\n",
             freqbuf,
             rig_strrmode(chan->mode),
             widthbuf);
 
-    sprintf_freq(freqbuf, sizeof(freqbuf), chan->tx_freq);
-    sprintf_freq(widthbuf, sizeof(widthbuf), chan->tx_width);
+    if (format_protocol_freq(freqbuf, sizeof(freqbuf), chan->tx_freq) != RIG_OK
+            || format_protocol_freq(widthbuf, sizeof(widthbuf), chan->tx_width) != RIG_OK)
+    {
+        RETURNFUNC2(-RIG_EINVAL);
+    }
     fprintf(fout,
             "txFreq: %s\ttxMode: %s\ttxWidth: %s\n",
             freqbuf,
             rig_strrmode(chan->tx_mode),
             widthbuf);
 
-    sprintf_freq(freqbuf, sizeof(freqbuf), chan->rptr_offs);
+    if (format_protocol_freq(freqbuf, sizeof(freqbuf), chan->rptr_offs) != RIG_OK)
+    {
+        RETURNFUNC2(-RIG_EINVAL);
+    }
     fprintf(fout,
             "Shift: %s, Offset: %s%s, ",
             rig_strptrshift(chan->rptr_shift),
             chan->rptr_offs > 0 ? "+" : "",
             freqbuf);
 
-    sprintf_freq(freqbuf, sizeof(freqbuf), chan->tuning_step);
+    if (format_protocol_freq(freqbuf, sizeof(freqbuf), chan->tuning_step) != RIG_OK)
+    {
+        RETURNFUNC2(-RIG_EINVAL);
+    }
     fprintf(fout, "Step: %s, ", freqbuf);
-    sprintf_freq(freqbuf, sizeof(freqbuf), chan->rit);
+    if (format_protocol_freq(freqbuf, sizeof(freqbuf), chan->rit) != RIG_OK)
+    {
+        RETURNFUNC2(-RIG_EINVAL);
+    }
     fprintf(fout, "RIT: %s%s, ", chan->rit > 0 ? "+" : "", freqbuf);
-    sprintf_freq(freqbuf, sizeof(freqbuf), chan->xit);
+    if (format_protocol_freq(freqbuf, sizeof(freqbuf), chan->xit) != RIG_OK)
+    {
+        RETURNFUNC2(-RIG_EINVAL);
+    }
     fprintf(fout, "XIT: %s%s\n", chan->xit > 0 ? "+" : "", freqbuf);
 
     fprintf(fout, "CTCSS: %u.%uHz, ", chan->ctcss_tone / 10, chan->ctcss_tone % 10);
@@ -4662,7 +4912,9 @@ int dump_chan(FILE *fout, RIG *rig, channel_t *chan)
 
         if (RIG_LEVEL_IS_FLOAT(level))
         {
-            fprintf(fout, " %s: %g%%", level_s, 100 * chan->levels[idx].f);
+            fprintf(fout, " %s: ", level_s);
+            PRINT_PROTOCOL_DECIMAL("%g", 100 * chan->levels[idx].f);
+            fputc('%', fout);
         }
         else
         {
@@ -4695,11 +4947,19 @@ int dump_chan(FILE *fout, RIG *rig, channel_t *chan)
             break;
 
         case RIG_CONF_INT:
-            SNPRINTF(lstr, sizeof(lstr), "%.0f", chan->ext_levels[idx].val.f);
+            if (rigctl_format_decimal(lstr, sizeof(lstr), "%.0f",
+                                      chan->ext_levels[idx].val.f) != RIG_OK)
+            {
+                RETURNFUNC2(-RIG_EINVAL);
+            }
             break;
 
         case RIG_CONF_NUMERIC:
-            SNPRINTF(lstr, sizeof(lstr), "%g", chan->ext_levels[idx].val.f);
+            if (rigctl_format_decimal(lstr, sizeof(lstr), "%g",
+                                      chan->ext_levels[idx].val.f) != RIG_OK)
+            {
+                RETURNFUNC2(-RIG_EINVAL);
+            }
             break;
 
         case RIG_CONF_CHECKBUTTON:
@@ -4769,10 +5029,10 @@ declare_proto_rig(dump_state)
     for (i = 0; i < HAMLIB_FRQRANGESIZ
             && !RIG_IS_FRNG_END(rs->rx_range_list[i]); i++)
     {
-        fprintf(fout,
-                "%"FREQFMT" %"FREQFMT" 0x%"PRXll" %d %d 0x%x 0x%x\n",
-                rs->rx_range_list[i].startf,
-                rs->rx_range_list[i].endf,
+        PRINT_PROTOCOL_DECIMAL("%"FREQFMT, rs->rx_range_list[i].startf);
+        fputc(' ', fout);
+        PRINT_PROTOCOL_DECIMAL("%"FREQFMT, rs->rx_range_list[i].endf);
+        fprintf(fout, " 0x%"PRXll" %d %d 0x%x 0x%x\n",
                 rs->rx_range_list[i].modes,
                 rs->rx_range_list[i].low_power,
                 rs->rx_range_list[i].high_power,
@@ -4785,10 +5045,10 @@ declare_proto_rig(dump_state)
     for (i = 0; i < HAMLIB_FRQRANGESIZ
             && !RIG_IS_FRNG_END(rs->tx_range_list[i]); i++)
     {
-        fprintf(fout,
-                "%"FREQFMT" %"FREQFMT" 0x%"PRXll" %d %d 0x%x 0x%x\n",
-                rs->tx_range_list[i].startf,
-                rs->tx_range_list[i].endf,
+        PRINT_PROTOCOL_DECIMAL("%"FREQFMT, rs->tx_range_list[i].startf);
+        fputc(' ', fout);
+        PRINT_PROTOCOL_DECIMAL("%"FREQFMT, rs->tx_range_list[i].endf);
+        fprintf(fout, " 0x%"PRXll" %d %d 0x%x 0x%x\n",
                 rs->tx_range_list[i].modes,
                 rs->tx_range_list[i].low_power,
                 rs->tx_range_list[i].high_power,
@@ -4923,13 +5183,18 @@ declare_proto_rig(dump_state)
 
             if (RIG_LEVEL_IS_FLOAT(level))
             {
-                fprintf(fout, "%d=%g,%g,%g;", i, rs->level_gran[i].min.f,
-                        rs->level_gran[i].max.f, rs->level_gran[i].step.f);
+                fprintf(fout, "%d=", i);
+                PRINT_PROTOCOL_DECIMAL("%g", rs->level_gran[i].min.f);
+                fputc(',', fout);
+                PRINT_PROTOCOL_DECIMAL("%g", rs->level_gran[i].max.f);
+                fputc(',', fout);
+                PRINT_PROTOCOL_DECIMAL("%g", rs->level_gran[i].step.f);
+                fputc(';', fout);
             }
             else
             {
-                fprintf(fout, "%d=%d,%d,%d;", i, rs->level_gran[i].min.i,
-                        rs->level_gran[i].max.i, rs->level_gran[i].step.i);
+                fprintf(fout, "%d=%d,%d,%d;", i, rs->parm_gran[i].min.i,
+                        rs->parm_gran[i].max.i, rs->parm_gran[i].step.i);
             }
         }
 
@@ -4941,8 +5206,13 @@ declare_proto_rig(dump_state)
 
             if (RIG_PARM_IS_FLOAT(parm))
             {
-                fprintf(fout, "%d=%g,%g,%g;", i, rs->parm_gran[i].min.f,
-                        rs->parm_gran[i].max.f, rs->parm_gran[i].step.f);
+                fprintf(fout, "%d=", i);
+                PRINT_PROTOCOL_DECIMAL("%g", rs->parm_gran[i].min.f);
+                fputc(',', fout);
+                PRINT_PROTOCOL_DECIMAL("%g", rs->parm_gran[i].max.f);
+                fputc(',', fout);
+                PRINT_PROTOCOL_DECIMAL("%g", rs->parm_gran[i].step.f);
+                fputc(';', fout);
             }
             else if (RIG_PARM_IS_STRING(parm))
             {
@@ -5875,7 +6145,7 @@ declare_proto_rig(set_clock)
     int year, mon, day, hour = -1, min = -1, sec = 0;
     double msec = -1;
     int utc_offset = 0;
-    int n;
+    int status;
     char timebuf[64];
 
     ENTERFUNC2;
@@ -5884,48 +6154,33 @@ declare_proto_rig(set_clock)
     {
         date_strget(timebuf, sizeof(timebuf), 1);
         rig_debug(RIG_DEBUG_VERBOSE, "%s: local time set = %s\n", __func__, timebuf);
-        n = sscanf(timebuf, "%04d-%02d-%02dT%02d:%02d:%02d%lf%d", &year, &mon, &day,
-                   &hour,
-                   &min, &sec, &msec, &utc_offset);
+        status = parse_protocol_clock(timebuf, &year, &mon, &day, &hour, &min,
+                                      &sec, &msec, &utc_offset);
     }
     else if (arg1 && strcasecmp(arg1, "utc") == 0)
     {
         date_strget(timebuf, sizeof(timebuf), 0);
         rig_debug(RIG_DEBUG_VERBOSE, "%s: utc time set = %s\n", __func__, timebuf);
-        n = sscanf(timebuf, "%04d-%02d-%02dT%02d:%02d:%02d%lf%d", &year, &mon, &day,
-                   &hour,
-                   &min, &sec, &msec, &utc_offset);
-    }
-    else if (arg1 && (arg1[16] == '+' || arg1[16] == '-'))
-    {
-        // YYYY-MM-DDTHH:MM+ZZ
-        n = sscanf(arg1, "%04d-%02d-%02dT%02d:%02d%d", &year, &mon, &day, &hour,
-                   &min, &utc_offset);
-    }
-    else if (arg1 && (arg1[19] == '+' || arg1[19] == '-'))
-    {
-        // YYYY-MM-DDTHH:MM:SS+ZZ
-        n = sscanf(arg1, "%04d-%02d-%02dT%02d:%02d:%02d%d", &year, &mon, &day, &hour,
-                   &min, &sec, &utc_offset);
-    }
-    else if (arg1 && (arg1[23] == '+' || arg1[23] == '-'))
-    {
-        // YYYY-MM-DDTHH:MM:SS.SSS+ZZ
-        n = sscanf(arg1, "%04d-%02d-%02dT%02d:%02d:%02d%lf%d", &year, &mon, &day, &hour,
-                   &min, &sec, &msec, &utc_offset);
+        status = parse_protocol_clock(timebuf, &year, &mon, &day, &hour, &min,
+                                      &sec, &msec, &utc_offset);
     }
     else
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: '%s' not valid time format\n", __func__, arg1);
+        status = parse_protocol_clock(arg1, &year, &mon, &day, &hour, &min,
+                                      &sec, &msec, &utc_offset);
+    }
+
+    if (status != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: '%s' not valid time format\n", __func__,
+                  arg1 ? arg1 : "(null)");
         RETURNFUNC2(-RIG_EINVAL);
     }
 
     rig_debug(RIG_DEBUG_VERBOSE,
-              "%s: n=%d, %04d-%02d-%02dT%02d:%02d:%02d.%0.3f%s%02d\n",
-              __func__, n, year, mon, day, hour, min, sec, msec, utc_offset >= 0 ? "+" : "-",
+              "%s: %04d-%02d-%02dT%02d:%02d:%02d.%0.3f%s%02d\n",
+              __func__, year, mon, day, hour, min, sec, msec, utc_offset >= 0 ? "+" : "-",
               (unsigned)abs(utc_offset));
-
-    if (abs(utc_offset) < 24) { utc_offset *= 100; } // allow for minutes offset too
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: utc_offset=%d\n", __func__, utc_offset);
 
@@ -5948,8 +6203,14 @@ declare_proto_rig(get_clock)
     retval = rig_get_clock(rig, &year, &month, &day, &hour, &min, &sec, &msec,
                            &utc_offset);
     aoffset = abs(utc_offset);
-    fprintf(fout, "%04d-%02d-%02dT%02d:%02d:%06.3f%s%02d:%02d\n", year, month, day,
-            hour, min, sec + msec / 1000, utc_offset >= 0 ? "+" : "-",
+    fprintf(fout, "%04d-%02d-%02dT%02d:%02d:", year, month, day, hour, min);
+
+    if (print_protocol_decimal(fout, "%06.3f", sec + msec / 1000) != RIG_OK)
+    {
+        return -RIG_EINVAL;
+    }
+
+    fprintf(fout, "%s%02d:%02d\n", utc_offset >= 0 ? "+" : "-",
             aoffset / 100, aoffset % 100);
 
     return retval;
