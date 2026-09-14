@@ -1827,11 +1827,12 @@ int HAMLIB_API rig_stream_read(RIG *rig,
 
     pthread_mutex_lock(&rb->lock);
 
-    if (rb->closing)
+    if (rb->closing || rb->failed)
     {
+        int failed = rb->failed;
         pthread_mutex_unlock(&rb->lock);
         *bytes_read = 0;
-        ret = -RIG_ENAVAIL;
+        ret = failed ? -RIG_EIO : -RIG_ENAVAIL;
         goto out;
     }
 
@@ -1840,6 +1841,7 @@ int HAMLIB_API rig_stream_read(RIG *rig,
     if (stream_ringbuf_wait_data_locked(rb, timeout_ms) < 0)
     {
         int closing = rb->closing;
+        int failed = rb->failed;
 
         if (--stream->blocked_waiters == 0 && closing)
         {
@@ -1848,7 +1850,65 @@ int HAMLIB_API rig_stream_read(RIG *rig,
 
         pthread_mutex_unlock(&rb->lock);
         *bytes_read = 0;
-        ret = closing ? -RIG_ENAVAIL : -RIG_ETIMEOUT;
+        ret = closing ? -RIG_ENAVAIL : (failed ? -RIG_EIO : -RIG_ETIMEOUT);
+        goto out;
+    }
+
+    if (stream->is_codec)
+    {
+        /* Codec stream: exactly ONE whole codec frame per call. The
+         * record's start index and duration drive the accounting; a
+         * buffer of rig_stream_get_max_payload() bytes always
+         * suffices. */
+        size_t flen = 0;
+        uint32_t fdur = 0;
+        uint64_t fidx = 0;
+        int cret = codec_consume_locked(stream, buffer, buffer_size,
+                                        &flen, &fdur, &fidx);
+
+        if (cret != RIG_OK)
+        {
+            if (--stream->blocked_waiters == 0 && rb->closing)
+            {
+                pthread_cond_signal(&stream->quiesced);
+            }
+
+            pthread_mutex_unlock(&rb->lock);
+            *bytes_read = 0;
+            ret = cret;
+            goto out;
+        }
+
+        stream_consume_account_locked(stream, fidx, fdur, info);
+        pthread_mutex_unlock(&rb->lock);
+
+        /* Muted: the frame is consumed and DISCARDED — zeroed bytes are
+         * not a valid codec frame, so the app gets no data instead. */
+        if (stream->muted)
+        {
+            *bytes_read = 0;
+        }
+        else
+        {
+            *bytes_read = flen;
+        }
+
+        if (info)
+        {
+            info->codec_frame_samples = fdur;
+            stream_fill_read_time(stream, info);
+        }
+
+        pthread_mutex_lock(&rb->lock);
+
+        if (--stream->blocked_waiters == 0 && rb->closing)
+        {
+            pthread_cond_signal(&stream->quiesced);
+        }
+
+        pthread_mutex_unlock(&rb->lock);
+
+        ret = RIG_OK;
         goto out;
     }
 

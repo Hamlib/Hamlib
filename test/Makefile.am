@@ -27,7 +27,7 @@ AM_CPPFLAGS = -DIN_HAMLIB -D__USE_MINGW_ANSI_STDIO=1 -DWIN32_LEAN_AND_MEAN -I$(t
 
 LDADD = $(top_builddir)/src/libhamlib.la $(top_builddir)/lib/libmisc.la $(DL_LIBS) -lm
 
-check_PROGRAMS = test_stream_ringbuf test_stream_convert test_stream_codec test_stream_time test_stream_account test_stream_api test_dummy_stream test_rigctld_stream test_rigstreamtest test_rigctld_commands test_netrigctl_stream
+check_PROGRAMS = test_stream_ringbuf test_stream_convert test_stream_codec test_stream_time test_stream_account test_stream_api test_dummy_stream test_rigctld_stream test_rigstreamtest test_rigctld_commands test_netrigctl_stream test_icom_network_proto test_icom_network_seqbuf test_icom_network_session test_icom_network_conf test_icom_network_stream test_icom_network_reconnect
 
 test_stream_codec_SOURCES = test_stream_codec.c
 test_stream_codec_LDADD = $(LDADD)
@@ -77,8 +77,35 @@ test_rigctld_commands_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/tests -I$(top_bu
 test_rigctld_commands_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 test_rigctld_commands_LDADD = $(LDADD) $(PTHREAD_LIBS) $(READLINE_LIBS) $(NET_LIBS)
 
-# Manual system test against a real Icom LAN radio; built but never run by
-# `make check` (needs hardware and credentials).
+test_icom_network_proto_SOURCES = test_icom_network_proto.c
+test_icom_network_proto_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+test_icom_network_proto_LDADD = $(LDADD)
+
+test_icom_network_seqbuf_SOURCES = test_icom_network_seqbuf.c
+test_icom_network_seqbuf_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+test_icom_network_seqbuf_LDADD = $(LDADD)
+
+test_icom_network_session_SOURCES = test_icom_network_session.c \
+	icom_network_mock.c icom_network_mock.h
+
+test_icom_network_stream_SOURCES = test_icom_network_stream.c \
+	icom_network_mock.c icom_network_mock.h
+test_icom_network_stream_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+test_icom_network_stream_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+test_icom_network_stream_LDADD = $(LDADD) $(PTHREAD_LIBS) $(NET_LIBS)
+test_icom_network_session_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+test_icom_network_session_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+test_icom_network_session_LDADD = $(LDADD) $(PTHREAD_LIBS) $(NET_LIBS)
+
+test_icom_network_conf_SOURCES = test_icom_network_conf.c
+test_icom_network_conf_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+test_icom_network_conf_LDADD = $(LDADD) $(PTHREAD_LIBS) $(NET_LIBS)
+
+test_icom_network_reconnect_SOURCES = test_icom_network_reconnect.c \
+	icom_network_mock.c icom_network_mock.h
+test_icom_network_reconnect_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+test_icom_network_reconnect_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+test_icom_network_reconnect_LDADD = $(LDADD) $(PTHREAD_LIBS) $(NET_LIBS)
 
 TESTS = $(check_PROGRAMS)
 

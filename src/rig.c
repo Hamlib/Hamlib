@@ -1049,6 +1049,48 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
  *
  * \sa rig_init(), rig_close()
  */
+/* Report the rig's power state during open and clear auto_power_on when it is
+ * already on. Split out of rig_open() because the probe has to run at
+ * different points depending on who owns the transport: for an ordinary port
+ * the core has already opened it, but a RIG_PORT_CUSTOM backend only opens its
+ * own transport inside caps->rig_open(), so probing before that would talk to
+ * a closed port. */
+static void rig_open_check_powerstat(RIG *rig, int skip_init)
+{
+    struct rig_state *rs = STATE(rig);
+    powerstat_t powerflag;
+    int status;
+
+    if (rig->caps->get_powerstat == NULL || skip_init)
+    {
+        return;
+    }
+
+    status = rig_get_powerstat(rig, &powerflag);
+
+    if (status == RIG_OK && (powerflag == RIG_POWER_OFF
+                             || powerflag == RIG_POWER_STANDBY)
+            && rs->auto_power_on == 0)
+    {
+        // rig_open() should succeed even if the rig is powered off, so simply log power status
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: rig power is off, use --set-conf=auto_power_on=1 or set_powerstat if power on is wanted\n",
+                  __func__);
+    }
+
+    // don't need auto_power_on if power is already on
+    if (status == RIG_OK && powerflag == RIG_POWER_ON) { rs->auto_power_on = 0; }
+
+    if (status == -RIG_ETIMEOUT)
+    {
+        // rig_open() should succeed even if get_powerstat() fails,
+        // as many rigs cannot get power status while powered off
+        rig_debug(RIG_DEBUG_ERR, "%s: Some rigs cannot get_powerstat while off\n",
+                  __func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: Known rigs: K3, K3S\n", __func__);
+    }
+}
+
 int HAMLIB_API rig_open(RIG *rig)
 {
     struct rig_caps *caps;
@@ -1510,32 +1552,13 @@ int HAMLIB_API rig_open(RIG *rig)
 
     if (caps->rig_open != NULL)
     {
-        if (caps->get_powerstat != NULL && !skip_init)
+        /* A RIG_PORT_CUSTOM backend owns its transport and only opens it in
+         * caps->rig_open(), so its power probe has to wait until after that. */
+        int custom_port = (rp->type.rig == RIG_PORT_CUSTOM);
+
+        if (!custom_port)
         {
-            powerstat_t powerflag;
-            status = rig_get_powerstat(rig, &powerflag);
-
-            if (status == RIG_OK && (powerflag == RIG_POWER_OFF
-                                     || powerflag == RIG_POWER_STANDBY)
-                    && rs->auto_power_on == 0)
-            {
-                // rig_open() should succeed even if the rig is powered off, so simply log power status
-                rig_debug(RIG_DEBUG_ERR,
-                          "%s: rig power is off, use --set-conf=auto_power_on=1 or set_powerstat if power on is wanted\n",
-                          __func__);
-            }
-
-            // don't need auto_power_on if power is already on
-            if (status == RIG_OK && powerflag == RIG_POWER_ON) { STATE(rig)->auto_power_on = 0; }
-
-            if (status == -RIG_ETIMEOUT)
-            {
-                // rig_open() should succeed even if get_powerstat() fails,
-                // as many rigs cannot get power status while powered off
-                rig_debug(RIG_DEBUG_ERR, "%s: Some rigs cannot get_powerstat while off\n",
-                          __func__);
-                rig_debug(RIG_DEBUG_ERR, "%s: Known rigs: K3, K3S\n", __func__);
-            }
+            rig_open_check_powerstat(rig, skip_init);
         }
 
         status = caps->rig_open(rig);
@@ -1547,6 +1570,11 @@ int HAMLIB_API rig_open(RIG *rig)
             rs->comm_state = 0;
             rs->comm_status = RIG_COMM_STATUS_ERROR;
             RETURNFUNC2(status);
+        }
+
+        if (custom_port)
+        {
+            rig_open_check_powerstat(rig, skip_init);
         }
     }
 
@@ -1784,6 +1812,17 @@ int HAMLIB_API rig_close(RIG *rig)
         network_multicast_publisher_stop(rig);
     }
 
+    /* Streams go first, before the backend closes and before the ports do.
+     * Their threads run on backend resources, so a backend that releases
+     * anything in rig_close would be pulling it out from under a thread that
+     * is still reading it; and a stream_close that has to tell the radio to
+     * stop needs the link it is told over to still be open. */
+    if (rs->stream_state)
+    {
+        rig_stream_state_cleanup(rs->stream_state);
+        rs->stream_state = NULL;
+    }
+
     // Let the backend say 73 to the rig.
     // and ignore the return code.
     if (caps->rig_close)
@@ -1891,13 +1930,6 @@ int HAMLIB_API rig_close(RIG *rig)
     dcdp->fd = pttp->fd = -1;
 
     port_close(rp, rp->type.rig);
-
-    /* Clean up streaming subsystem state */
-    if (rs->stream_state)
-    {
-        rig_stream_state_cleanup(rs->stream_state);
-        rs->stream_state = NULL;
-    }
 
     // zero split so it will allow it to be set again on open for rigctld
     CACHE(rig)->split = 0;

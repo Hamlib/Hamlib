@@ -2096,6 +2096,145 @@ run. `--help` lists the remaining options.
 `-P`/`--ptt` and `--power` key a real transmitter. They are meant for hardware
 runs and should be pointed into a dummy load.
 
+### 12.1 System-test scripts
+
+Two wrapper scripts run every streaming mode in sequence and report a pass/fail
+line per mode. Both find `rigstreamtest` via `$RIGSTREAMTEST`, then the current
+directory, then their own directory, then `$PATH`, so they run from anywhere.
+
+**`tests/rigstreamtest-dummy.sh`** — the dummy backend, no hardware. Part of
+`make check`, so it also guards the subsystem against regressions in CI:
+
+```sh
+./tests/rigstreamtest-dummy.sh
+```
+
+**`tests/rigstreamtest-hw.sh`** — the same sweep against a real radio. It asks
+the model what it advertises (`rigstreamtest --list-streams`), runs only the
+modes that exist, records every received audio stream to a timestamped WAV for
+listening, and prints a summary. It is not part of `make check`.
+
+```sh
+# receive-only sweep; writes WAVs to streamtest-<model>-<timestamp>/
+./tests/rigstreamtest-hw.sh -m 3096 -r 192.168.0.192 \
+    -C net_username=USER,net_password=PASS
+```
+
+Transmit is opt-in and deliberately awkward: `--tx` requires both `--freq` and
+`--power`, because transmitting on whatever the radio happened to be tuned to,
+at whatever power it was left at, is never the intent.
+
+```sh
+# transmit tests into a dummy load at 1% power
+./tests/rigstreamtest-hw.sh -m 3096 -r 192.168.0.192 \
+    -C net_username=USER,net_password=PASS \
+    --tx --vfo MainA --freq 144300000 --mode USB --power 0.01
+```
+
+`--vfo`, `--freq` and `--mode` accept one or two comma-separated values and are
+passed through to `rigstreamtest`, which applies them after opening the rig and
+puts the previous values back on exit (`--no-restore` keeps them). Naming two
+VFOs also turns dual watch on, which is what makes a dual-receiver rig deliver
+two distinct channels.
+
+### 12.2 Icom network models
+
+The Icom LAN backend exposes one model per radio. All of them offer
+`AUDIO_RX`, `AUDIO_TX` and `IQ_RX`:
+
+| Model | Radio |
+|---|---|
+| 3095 | IC-7610 (Network) |
+| 3096 | IC-9700 (Network) |
+| 3097 | IC-705 (Network) |
+| 3098 | IC-905 (Network) |
+| 3099 | IC-7760 (Network) |
+| 3100 | IC-7300MK2 (Network) |
+
+The host is the radio's address, and `net_username`/`net_password` are the
+radio's own network user credentials:
+
+```sh
+./tests/rigstreamtest-hw.sh -m 3095 -r IP_ADDRESS \
+    -C net_username=USER,net_password=PASS
+```
+
+**Stereo receive.** A dual-receiver radio can put its two receivers on the two
+channels of one stream, but that needs the two-channel *wire* codec, which is
+negotiated when the session opens and so has to be selected by config rather
+than inferred from the stream. The script picks `-c 2` whenever the model
+advertises two channels; add `net_rx_codec=3` ("LPCM 2ch 16bit") to make the
+radio actually send them:
+
+```sh
+./tests/rigstreamtest-hw.sh -m 3096 -r IP_ADDRESS \
+    -C net_username=USER,net_password=PASS,net_rx_codec=3 \
+    --vfo MainA,SubA --freq 145500000,434500000 --mode FM,FM
+```
+
+Left is the first VFO, right is the second. Without `net_rx_codec=3` the file is
+still two-channel, but both channels carry the same mono audio.
+
+### 12.3 Worked examples
+
+All transmit examples assume a dummy load. The radio transmits on the *first*
+VFO given, so with two VFOs the `full_duplex` recording shows what both
+receivers did while the transmitter was keyed.
+
+**IC-7610 — stereo receive on two HF bands at once, transmitting on the first:**
+
+```sh
+./tests/rigstreamtest-hw.sh -m 3095 -r IP_ADDRESS \
+    -C net_username=USER,net_password=PASS,net_rx_codec=3 \
+    --vfo MainA,SubA --freq 14200000,7100000 --mode USB,LSB \
+    --tx --power 0.01
+```
+
+**IC-7300MK2 — single receiver, so mono; HF transmit at 5%:**
+
+```sh
+./tests/rigstreamtest-hw.sh -m 3100 -r IP_ADDRESS \
+    -C net_username=USER,net_password=PASS \
+    --tx --vfo VFOA --freq 14200000 --mode USB --power 0.05
+```
+
+**IC-705 — a 10 W radio, so 10% is about 1 W:**
+
+```sh
+./tests/rigstreamtest-hw.sh -m 3097 -r IP_ADDRESS \
+    -C net_username=USER,net_password=PASS \
+    --tx --vfo VFOA --freq 28400000 --mode USB --power 0.10
+```
+
+**IC-9700 — stereo receive across 2 m and 70 cm, transmitting on 2 m:**
+
+```sh
+./tests/rigstreamtest-hw.sh -m 3096 -r IP_ADDRESS \
+    -C net_username=USER,net_password=PASS,net_rx_codec=3 \
+    --vfo MainA,SubA --freq 144300000,432200000 --mode USB,USB \
+    --tx --power 0.01
+```
+
+The two dual-receiver radios differ in how their receivers tune, which decides
+what a stereo capture can show:
+
+- **IC-7610** — the two receivers tune independently, including across bands, so
+  `MainA` on 20 m and `SubA` on 40 m works directly.
+- **IC-9700** — normal dual watch keeps both receivers on the same band. For
+  2 m on one channel and 70 cm on the other, either set both VFOs in one
+  session as above, or enable satellite mode. Note that a session opened
+  against a radio *already* in satellite mode will have every frequency and
+  mode command rejected, because `icom_satmode_fix()` only adjusts the command
+  set when `SATMODE` is set or read through Hamlib, never at `rig_open`.
+
+Two model-specific notes, both learned the hard way:
+
+- On an IC-9700, `MainA`/`SubA` address the two receivers independently; plain
+  `Main`/`Sub` and `VFOA`/`VFOB` both land on the primary receiver.
+- A closed squelch makes a receiver send *exact digital silence*, which looks
+  identical to a dead channel in a recording. Open the squelch on both VFOs
+  (`rigctl L SubA SQL 0`) before concluding that stereo is broken.
+
 ---
 
 ## 13. Building and tests

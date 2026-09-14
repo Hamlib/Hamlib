@@ -44,6 +44,34 @@
 
 
 static volatile sig_atomic_t running = 1;
+/* --format: the sample format to ask for, or 0 to take the float default.
+ * Asking for the format a session serves natively is the only way to exercise
+ * a backend's own path rather than the frontend's conversion of it, and the
+ * only way --require-native can succeed against a backend that does not serve
+ * float. Receive-only: the transmit paths synthesise float samples. */
+static rig_stream_format_t g_format = 0;
+
+static rig_stream_format_t format_from_name(const char *name)
+{
+    if (!strcmp(name, "u8"))   { return RIG_STREAM_FORMAT_PCM_U8; }
+
+    if (!strcmp(name, "s8"))   { return RIG_STREAM_FORMAT_PCM_S8; }
+
+    if (!strcmp(name, "s16"))  { return RIG_STREAM_FORMAT_PCM_S16; }
+
+    if (!strcmp(name, "f32"))  { return RIG_STREAM_FORMAT_PCM_F32; }
+
+    if (!strcmp(name, "cs8"))  { return RIG_STREAM_FORMAT_IQ_CS8; }
+
+    if (!strcmp(name, "cu8"))  { return RIG_STREAM_FORMAT_IQ_CU8; }
+
+    if (!strcmp(name, "cs16")) { return RIG_STREAM_FORMAT_IQ_CS16; }
+
+    if (!strcmp(name, "cf32")) { return RIG_STREAM_FORMAT_IQ_CF32; }
+
+    return 0;
+}
+
 static int g_require_native = 0;  /* --require-native: fail instead of
                                    * accepting a converted stream */
 
@@ -119,10 +147,26 @@ static void usage(const char *prog)
             "  --tx-secs <sec>        TX phase seconds per cycle (0 = RX-only)\n"
             "  --cycles <n>           Number of cycles (0 = until -d / Ctrl-C)\n"
             "  --power <0.0..1.0>     RF power for TX phases (sets RFPOWER level)\n"
+            "\n"
+            "Rig setup, applied after open and restored on exit unless\n"
+            "--no-restore is given:\n"
+            "  --vfo <V>[,<V>]        VFO(s) to set up, e.g. MainA,SubA\n"
+            "  --freq <Hz>[,<Hz>]     frequency per VFO, in the same order\n"
+            "  --mode <M>[,<M>]       mode per VFO, e.g. FM or USB,FM\n"
+            "  --dual-watch[=0|1]     dual watch on/off (on by default when\n"
+            "                         two VFOs are given)\n"
+            "  --no-restore           leave the rig as configured\n"
+            "  --list-streams         print advertised stream caps and exit\n"
+            "                         (no rig connection needed)\n"
             "  --iq                   Use I/Q streams for the phases (default: audio)\n"
             "  --stats-secs <sec>     Interim stats interval (default 5)\n"
             "  --buffer-ms <ms>       Ring buffer size as ms of stream data\n"
             "  --require-native       Fail instead of accepting a converted stream\n"
+            "  --format <fmt>         Sample format to request, instead of float:\n"
+            "                         u8, s8, s16, f32 (audio) or cs8, cu8, cs16,\n"
+            "                         cf32 (I/Q). Receive only. Pair with\n"
+            "                         --require-native to prove a stream is served\n"
+            "                         with no conversion at all.\n"
             "                         (0 = backend default)\n"
             "\n"
             "Full-duplex soak (--full-duplex): RX and TX streams run concurrently\n"
@@ -230,9 +274,10 @@ static int run_rx_single(RIG *rig, rig_stream_type_t type,
     }
 
     config->type = type;
-    config->format = (type == RIG_STREAM_TYPE_IQ_RX)
-                     ? RIG_STREAM_FORMAT_IQ_CF32
-                     : RIG_STREAM_FORMAT_PCM_F32;
+    config->format = g_format ? g_format
+                     : ((type == RIG_STREAM_TYPE_IQ_RX)
+                        ? RIG_STREAM_FORMAT_IQ_CF32
+                        : RIG_STREAM_FORMAT_PCM_F32);
     config->sample_rate = sample_rate;
     config->channels = channels;
     config->require_native = g_require_native;
@@ -386,6 +431,166 @@ static int run_rx_single(RIG *rig, rig_stream_type_t type,
 
 /* Run TX: generate a test tone and write it to the stream. Audio and I/Q are
  * handled identically; use_iq selects the stream type, format and tone. */
+/* Stream for a while and leave the stream OPEN, so the caller can close the rig
+ * out from under it. That is the harder teardown path: the backend has to tear
+ * down a running stream as part of closing, rather than being handed a tidy
+ * already-closed one. */
+static int stream_and_leave_open(RIG *rig, rig_stream_type_t type,
+                                 int sample_rate, int channels,
+                                 int duration_sec, uint64_t *bytes_out)
+{
+    struct rig_stream_config *config = rig_stream_config_alloc();
+    rig_stream_t *stream = NULL;
+    static char buf[65536];
+    uint64_t total = 0;
+    time_t end;
+    int retval;
+
+    *bytes_out = 0;
+
+    if (!config)
+    {
+        return -RIG_ENOMEM;
+    }
+
+    config->type = type;
+    config->format = g_format ? g_format
+                     : ((type == RIG_STREAM_TYPE_IQ_RX)
+                        ? RIG_STREAM_FORMAT_IQ_CF32
+                        : RIG_STREAM_FORMAT_PCM_F32);
+    config->sample_rate = sample_rate;
+    config->channels = channels;
+    config->require_native = g_require_native;
+
+    retval = rig_stream_open(rig, config, &stream);
+    rig_stream_config_free(config);
+
+    if (retval != RIG_OK)
+    {
+        fprintf(stderr, "rig_stream_open failed: %s\n", rigerror(retval));
+        return retval;
+    }
+
+    end = time(NULL) + duration_sec;
+
+    while (time(NULL) < end)
+    {
+        size_t got = 0;
+
+        if (rig_stream_read(rig, stream, buf, sizeof(buf), &got, 200, NULL)
+                == RIG_OK)
+        {
+            total += got;
+        }
+    }
+
+    *bytes_out = total;
+    /* No rig_stream_close: closing the rig must take the stream with it. */
+    return RIG_OK;
+}
+
+
+/* Close and reopen the rig between short receive bursts.
+ *
+ * An application that disconnects and comes straight back is where a transport
+ * releases its resources late: a networked radio holds the session slot for a
+ * moment after its client goes away, and a reopen inside that window fails.
+ * Nothing here is backend-specific -- it is rig_close/rig_open around an
+ * ordinary stream -- so it exercises any backend's teardown and re-establish
+ * path, not just a networked one.
+ *
+ * With dirty_close set, even-numbered cycles close the rig with the stream
+ * still running while odd ones close tidily, so one run compares the two
+ * teardown paths against the same radio. */
+static int run_reconnect(RIG *rig, rig_stream_type_t type, int sample_rate,
+                         int channels, int duration_sec, int cycles,
+                         int gap_ms, int dirty_close)
+{
+    int cycle;
+    int stream_failures = 0;
+
+    /* Without a duration each cycle streams nothing, and every cycle then
+     * "succeeds" without a byte moving -- a green result proving only that
+     * open and close return. Refuse rather than report that. */
+    if (duration_sec <= 0)
+    {
+        fprintf(stderr, "reconnect needs -d/--duration: a cycle that streams "
+                "nothing proves nothing\n");
+        return -RIG_EINVAL;
+    }
+
+    if (cycles < 2)
+    {
+        fprintf(stderr, "reconnect needs at least 2 cycles to reconnect at "
+                "all (got %d)\n", cycles);
+        return -RIG_EINVAL;
+    }
+
+    for (cycle = 1; cycle <= cycles; cycle++)
+    {
+        int rc;
+
+        int dirty = dirty_close && (cycle % 2 == 0);
+
+        printf("--- reconnect cycle %d of %d (%s close) ---\n", cycle, cycles,
+               dirty ? "dirty" : "clean");
+        fflush(stdout);
+
+        if (dirty)
+        {
+            uint64_t bytes = 0;
+            rc = stream_and_leave_open(rig, type, sample_rate, channels,
+                                       duration_sec, &bytes);
+
+            if (rc == RIG_OK && bytes == 0)
+            {
+                printf("cycle %d: stream opened but carried nothing\n", cycle);
+                rc = -1;
+            }
+            else if (rc == RIG_OK)
+            {
+                printf("cycle %d: %llu bytes, closing the rig with the stream "
+                       "still open\n", cycle, (unsigned long long)bytes);
+            }
+        }
+        else
+        {
+            rc = run_rx_single(rig, type, sample_rate, channels, duration_sec,
+                               NULL, NULL);
+        }
+
+        if (rc != 0)
+        {
+            printf("cycle %d: the stream did not run\n", cycle);
+            stream_failures++;
+        }
+
+        if (cycle == cycles)
+        {
+            break;
+        }
+
+        rig_close(rig);
+        hl_usleep((unsigned long)gap_ms * 1000);
+        rc = rig_open(rig);
+
+        if (rc != RIG_OK)
+        {
+            /* Nothing further can run, and this is the failure the test is
+             * for, so say which cycle and stop rather than cascading. */
+            printf("cycle %d: reopen after %d ms failed: %s\n",
+                   cycle, gap_ms, rigerror(rc));
+            printf("Reconnect: FAILED (reopen)\n");
+            return -1;
+        }
+    }
+
+    printf("Reconnect: %d of %d cycles carried data\n",
+           cycles - stream_failures, cycles);
+    return stream_failures == 0 ? 0 : -1;
+}
+
+
 static int run_tx_single(RIG *rig, int use_iq, int sample_rate, int channels,
                          int duration_sec, int do_ptt, int frame_ms)
 {
@@ -1131,6 +1336,7 @@ struct duplex_opts
     int frame_ms;
     int buffer_ms;
     int stats_secs;
+    const char *wav_path;   /* record the RX stream, NULL = do not record */
 };
 
 /* Milliseconds elapsed since a monotonic start. */
@@ -1153,6 +1359,8 @@ struct fd_rx_arg
     int channels;
     uint64_t bytes;         /* thread-local; read loosely by the controller */
     struct err_tally err;   /* thread-local; merged after join */
+    FILE *wav_fp;           /* NULL = not recording */
+    uint32_t wav_bytes;     /* PCM payload written so far */
 };
 
 static void *duplex_rx_thread(void *arg)
@@ -1183,6 +1391,12 @@ static void *duplex_rx_thread(void *arg)
         if (ret == RIG_OK && got > 0)
         {
             a->bytes += got;
+
+            if (a->wav_fp)
+            {
+                wav_append_f32(a->wav_fp, buf, got / sizeof(float),
+                               &a->wav_bytes);
+            }
         }
         else if (ret != RIG_OK && ret != -RIG_ETIMEOUT)
         {
@@ -1397,6 +1611,23 @@ static int run_full_duplex(RIG *rig, const struct duplex_opts *o)
     memset(&txa, 0, sizeof(txa));
     rxa.rig = rig; rxa.stream = rx;
     rxa.sample_rate = o->sample_rate; rxa.channels = o->channels;
+
+    if (o->wav_path)
+    {
+        rxa.wav_fp = fopen(o->wav_path, "wb");
+
+        if (!rxa.wav_fp)
+        {
+            fprintf(stderr, "Cannot open WAV file: %s\n", o->wav_path);
+            rig_stream_close(rig, rx);
+            rig_stream_close(rig, tx);
+            return -RIG_EIO;
+        }
+
+        wav_write_header(rxa.wav_fp, o->sample_rate, o->channels);
+        printf("Writing RX WAV to: %s\n", o->wav_path);
+    }
+
     txa.rig = rig; txa.stream = tx;
     txa.sample_rate = o->sample_rate; txa.channels = tx_chans;
     txa.frame_ms = o->frame_ms; txa.iq = o->use_iq;
@@ -1514,6 +1745,14 @@ static int run_full_duplex(RIG *rig, const struct duplex_opts *o)
            (unsigned long long)ts.remote_overruns,
            (unsigned long long)ts.remote_underruns,
            (unsigned long long)ts.write_events_dropped);
+    if (rxa.wav_fp)
+    {
+        wav_finalize(rxa.wav_fp, rxa.wav_bytes);
+        fclose(rxa.wav_fp);
+        rxa.wav_fp = NULL;
+        printf("RX WAV written: %u bytes audio data\n", rxa.wav_bytes);
+    }
+
     printf("issues: read_err=%llu write_err=%llu short_write=%llu "
            "ptt_fail=%llu power_fail=%llu\n",
            (unsigned long long)err.read_err, (unsigned long long)err.write_err,
@@ -1538,6 +1777,251 @@ static int run_full_duplex(RIG *rig, const struct duplex_opts *o)
 }
 
 
+/* Frequency/mode/dual-watch applied before the streams open, with the previous
+ * values kept so they can be put back afterwards. Up to two VFOs, because that
+ * is what a dual-receiver rig exposes and what dual watch needs. */
+#define MAX_SETUP_VFOS 2
+
+struct rig_setup
+{
+    int      count;                   /* VFOs the user named */
+    vfo_t    vfo[MAX_SETUP_VFOS];
+    char     vfo_name[MAX_SETUP_VFOS][16];
+    freq_t   freq[MAX_SETUP_VFOS];    /* 0 = leave alone */
+    rmode_t  mode[MAX_SETUP_VFOS];    /* RIG_MODE_NONE = leave alone */
+    int      dual_watch;              /* -1 = leave alone, else 0/1 */
+    int      restore;                 /* put everything back on exit */
+
+    /* previous state, captured in rig_setup_apply() */
+    int      have_saved;
+    freq_t   saved_freq[MAX_SETUP_VFOS];
+    rmode_t  saved_mode[MAX_SETUP_VFOS];
+    pbwidth_t saved_width[MAX_SETUP_VFOS];
+    int      saved_dual_watch;
+    int      have_saved_dual_watch;
+};
+
+/* Split "a,b" into at most MAX_SETUP_VFOS fields. Returns the count, or -1 if
+ * more fields were given than can be used. */
+static int split_csv(const char *arg, char out[MAX_SETUP_VFOS][64])
+{
+    int n = 0;
+    const char *p = arg;
+
+    while (*p && n < MAX_SETUP_VFOS)
+    {
+        const char *comma = strchr(p, ',');
+        size_t len = comma ? (size_t)(comma - p) : strlen(p);
+
+        if (len >= 64) { len = 63; }
+
+        memcpy(out[n], p, len);
+        out[n][len] = '\0';
+        n++;
+
+        if (!comma) { return n; }
+
+        p = comma + 1;
+    }
+
+    return *p ? -1 : n;
+}
+
+/* Apply the requested frequency/mode/dual-watch, saving what was there. A
+ * failure is reported but not fatal: the streams are still worth exercising. */
+static void rig_setup_apply(RIG *rig, struct rig_setup *su)
+{
+    int i;
+
+    if (su->count == 0 && su->dual_watch < 0) { return; }
+
+    if (su->dual_watch >= 0)
+    {
+        value_t v;
+
+        if (rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_DUAL_WATCH,
+                         &su->saved_dual_watch) == RIG_OK)
+        {
+            su->have_saved_dual_watch = 1;
+        }
+
+        v.i = su->dual_watch;
+        int ret = rig_set_func(rig, RIG_VFO_CURR, RIG_FUNC_DUAL_WATCH, v.i);
+
+        if (ret != RIG_OK)
+        {
+            fprintf(stderr, "Warning: dual watch %s failed: %s\n",
+                    su->dual_watch ? "on" : "off", rigerror(ret));
+        }
+        else
+        {
+            printf("Dual watch: %s\n", su->dual_watch ? "on" : "off");
+        }
+    }
+
+    for (i = 0; i < su->count; i++)
+    {
+        int ret;
+
+        if (rig_get_freq(rig, su->vfo[i], &su->saved_freq[i]) == RIG_OK
+                && rig_get_mode(rig, su->vfo[i], &su->saved_mode[i],
+                                &su->saved_width[i]) == RIG_OK)
+        {
+            su->have_saved = 1;
+        }
+
+        if (su->freq[i] > 0)
+        {
+            ret = rig_set_freq(rig, su->vfo[i], su->freq[i]);
+
+            if (ret != RIG_OK)
+            {
+                fprintf(stderr, "Warning: set %s freq %.0f Hz failed: %s\n",
+                        su->vfo_name[i], su->freq[i], rigerror(ret));
+            }
+        }
+
+        if (su->mode[i] != RIG_MODE_NONE)
+        {
+            ret = rig_set_mode(rig, su->vfo[i], su->mode[i],
+                               RIG_PASSBAND_NORMAL);
+
+            if (ret != RIG_OK)
+            {
+                fprintf(stderr, "Warning: set %s mode %s failed: %s\n",
+                        su->vfo_name[i], rig_strrmode(su->mode[i]),
+                        rigerror(ret));
+            }
+        }
+
+        if (su->freq[i] > 0 || su->mode[i] != RIG_MODE_NONE)
+        {
+            freq_t f = 0;
+            rmode_t m = RIG_MODE_NONE;
+            pbwidth_t w = 0;
+            rig_get_freq(rig, su->vfo[i], &f);
+            rig_get_mode(rig, su->vfo[i], &m, &w);
+            printf("%s: %.0f Hz %s\n", su->vfo_name[i], f, rig_strrmode(m));
+        }
+    }
+}
+
+static void rig_setup_restore(RIG *rig, const struct rig_setup *su)
+{
+    int i;
+
+    if (!su->restore) { return; }
+
+    for (i = 0; i < su->count && su->have_saved; i++)
+    {
+        if (su->freq[i] > 0 && su->saved_freq[i] > 0)
+        {
+            rig_set_freq(rig, su->vfo[i], su->saved_freq[i]);
+        }
+
+        if (su->mode[i] != RIG_MODE_NONE && su->saved_mode[i] != RIG_MODE_NONE)
+        {
+            rig_set_mode(rig, su->vfo[i], su->saved_mode[i],
+                         su->saved_width[i]);
+        }
+    }
+
+    if (su->dual_watch >= 0 && su->have_saved_dual_watch)
+    {
+        rig_set_func(rig, RIG_VFO_CURR, RIG_FUNC_DUAL_WATCH,
+                     su->saved_dual_watch);
+    }
+
+    if (su->count > 0 || su->have_saved_dual_watch)
+    {
+        printf("Rig state restored.\n");
+    }
+}
+
+/* Print what the model advertises and exit; no rig_open, so this works with no
+ * radio attached and is what a driving script uses to pick its options. */
+static int list_streams(RIG *rig)
+{
+    int n = rig_stream_caps_count(rig);
+    int i, j;
+
+    printf("model: %d\n", rig->caps->rig_model);
+    printf("model_name: %s\n", rig->caps->model_name);
+    printf("streams: %d\n", n);
+
+    for (i = 0; i < n; i++)
+    {
+        const struct rig_stream_caps *c = rig_stream_caps_at(rig, i);
+        const char *name = "unknown";
+
+        if (!c) { continue; }
+
+        switch (c->type)
+        {
+        case RIG_STREAM_TYPE_AUDIO_RX: name = "audio_rx"; break;
+
+        case RIG_STREAM_TYPE_AUDIO_TX: name = "audio_tx"; break;
+
+        case RIG_STREAM_TYPE_IQ_RX:    name = "iq_rx";    break;
+
+        case RIG_STREAM_TYPE_IQ_TX:    name = "iq_tx";    break;
+
+        default: break;
+        }
+
+        printf("stream: type=%s channels=", name);
+
+        for (j = 0; j < HAMLIB_MAX_STREAM_CHANNEL_COUNTS && c->channels[j]; j++)
+        {
+            printf("%s%d", j ? "," : "", c->channels[j]);
+        }
+
+        printf(" max_streams=%d rates=", c->max_streams);
+
+        for (j = 0; j < HAMLIB_MAX_STREAM_RATES && c->sample_rates[j]; j++)
+        {
+            printf("%s%d", j ? "," : "", c->sample_rates[j]);
+        }
+
+        {
+            static const struct
+            {
+                rig_stream_format_t bit;
+                const char *name;
+            } fmts[] =
+            {
+                { RIG_STREAM_FORMAT_PCM_S8,  "PCM_S8"  },
+                { RIG_STREAM_FORMAT_PCM_U8,  "PCM_U8"  },
+                { RIG_STREAM_FORMAT_PCM_S16, "PCM_S16" },
+                { RIG_STREAM_FORMAT_PCM_F32, "PCM_F32" },
+                { RIG_STREAM_FORMAT_IQ_CS8,  "IQ_CS8"  },
+                { RIG_STREAM_FORMAT_IQ_CU8,  "IQ_CU8"  },
+                { RIG_STREAM_FORMAT_IQ_CS16, "IQ_CS16" },
+                { RIG_STREAM_FORMAT_IQ_CF32, "IQ_CF32" },
+            };
+            int first = 1;
+            size_t k;
+
+            printf(" formats=");
+
+            for (k = 0; k < sizeof(fmts) / sizeof(fmts[0]); k++)
+            {
+                if (c->formats & fmts[k].bit)
+                {
+                    printf("%s%s", first ? "" : ",", fmts[k].name);
+                    first = 0;
+                }
+            }
+
+            if (first) { printf("none"); }
+        }
+
+        printf("\n");
+    }
+
+    return 0;
+}
+
 int main(int argc, char *argv[])
 {
     rig_model_t model = RIG_MODEL_NONE;
@@ -1548,6 +2032,11 @@ int main(int argc, char *argv[])
     int sample_rate = 24000;
     int channels = 2;
     int duration = 0;
+    /* Reconnect cycling: enough repetitions to catch a slot released late,
+     * and a gap longer than a radio typically holds one. */
+    int reconnect_cycles = 3;
+    int reconnect_gap_ms = 2000;
+    int dirty_close = 0;
     int verbose = 0;
     int do_ptt = 0;
     int frame_ms = 20;
@@ -1556,14 +2045,24 @@ int main(int argc, char *argv[])
     /* Alternating-soak and full-duplex options (long-only). */
     int rx_secs = 0, tx_secs = 0, cycles = 0, stats_secs = 5;
     int use_iq = 0, set_power = 0, buffer_ms = 0;
+    int list_streams_only = 0;
+    struct rig_setup setup;
+    char csv[MAX_SETUP_VFOS][64];
+    int csv_n;
     int full_duplex = 0, tone_on_ms = 0, tone_off_ms = 0;
     float power = 0.0f;
+
+    memset(&setup, 0, sizeof(setup));
+    setup.dual_watch = -1;    /* leave alone unless asked */
+    setup.restore = 1;        /* put the rig back by default */
     enum
     {
         OPT_RX_SECS = 1000, OPT_TX_SECS, OPT_CYCLES,
         OPT_POWER, OPT_IQ, OPT_STATS_SECS, OPT_BUFFER_MS,
         OPT_FULL_DUPLEX, OPT_TONE_ON, OPT_TONE_OFF,
-        OPT_REQUIRE_NATIVE
+        OPT_VFO, OPT_FREQ, OPT_MODE, OPT_DUAL_WATCH, OPT_LIST_STREAMS,
+        OPT_NO_RESTORE, OPT_REQUIRE_NATIVE, OPT_FORMAT,
+        OPT_RECONNECT_CYCLES, OPT_RECONNECT_GAP, OPT_DIRTY_CLOSE
     };
 
     static struct option long_opts[] =
@@ -1589,9 +2088,19 @@ int main(int argc, char *argv[])
         { "stats-secs",  required_argument, NULL, OPT_STATS_SECS },
         { "buffer-ms",   required_argument, NULL, OPT_BUFFER_MS },
         { "require-native", no_argument,    NULL, OPT_REQUIRE_NATIVE },
+        { "format",       required_argument, NULL, OPT_FORMAT },
+        { "reconnect-cycles", required_argument, NULL, OPT_RECONNECT_CYCLES },
+        { "reconnect-gap", required_argument, NULL, OPT_RECONNECT_GAP },
+        { "dirty-close", no_argument,       NULL, OPT_DIRTY_CLOSE },
         { "full-duplex", no_argument,       NULL, OPT_FULL_DUPLEX },
         { "tone-on-ms",     required_argument, NULL, OPT_TONE_ON },
         { "tone-off-ms",    required_argument, NULL, OPT_TONE_OFF },
+        { "vfo",         required_argument, NULL, OPT_VFO },
+        { "freq",        required_argument, NULL, OPT_FREQ },
+        { "mode",        required_argument, NULL, OPT_MODE },
+        { "dual-watch",  optional_argument, NULL, OPT_DUAL_WATCH },
+        { "list-streams", no_argument,      NULL, OPT_LIST_STREAMS },
+        { "no-restore",  no_argument,       NULL, OPT_NO_RESTORE },
         { NULL, 0, NULL, 0 }
     };
 
@@ -1669,6 +2178,91 @@ int main(int argc, char *argv[])
             cycles = atoi(optarg);
             break;
 
+        case OPT_VFO:
+            csv_n = split_csv(optarg, csv);
+
+            if (csv_n < 1)
+            {
+                fprintf(stderr, "Error: --vfo takes at most %d names\n",
+                        MAX_SETUP_VFOS);
+                return 1;
+            }
+
+            setup.count = csv_n;
+
+            for (int i = 0; i < csv_n; i++)
+            {
+                setup.vfo[i] = rig_parse_vfo(csv[i]);
+
+                if (setup.vfo[i] == RIG_VFO_NONE)
+                {
+                    fprintf(stderr, "Error: unknown VFO '%s'\n", csv[i]);
+                    return 1;
+                }
+
+                snprintf(setup.vfo_name[i], sizeof(setup.vfo_name[i]), "%s",
+                         csv[i]);
+                setup.mode[i] = RIG_MODE_NONE;
+            }
+
+            break;
+
+        case OPT_FREQ:
+            csv_n = split_csv(optarg, csv);
+
+            if (csv_n < 1)
+            {
+                fprintf(stderr, "Error: --freq takes at most %d values\n",
+                        MAX_SETUP_VFOS);
+                return 1;
+            }
+
+            for (int i = 0; i < csv_n; i++)
+            {
+                setup.freq[i] = (freq_t)atof(csv[i]);
+            }
+
+            if (setup.count < csv_n) { setup.count = csv_n; }
+
+            break;
+
+        case OPT_MODE:
+            csv_n = split_csv(optarg, csv);
+
+            if (csv_n < 1)
+            {
+                fprintf(stderr, "Error: --mode takes at most %d values\n",
+                        MAX_SETUP_VFOS);
+                return 1;
+            }
+
+            for (int i = 0; i < csv_n; i++)
+            {
+                setup.mode[i] = rig_parse_mode(csv[i]);
+
+                if (setup.mode[i] == RIG_MODE_NONE)
+                {
+                    fprintf(stderr, "Error: unknown mode '%s'\n", csv[i]);
+                    return 1;
+                }
+            }
+
+            if (setup.count < csv_n) { setup.count = csv_n; }
+
+            break;
+
+        case OPT_DUAL_WATCH:
+            setup.dual_watch = optarg ? atoi(optarg) : 1;
+            break;
+
+        case OPT_LIST_STREAMS:
+            list_streams_only = 1;
+            break;
+
+        case OPT_NO_RESTORE:
+            setup.restore = 0;
+            break;
+
         case OPT_POWER:
             power = (float)atof(optarg);
             set_power = 1;
@@ -1697,6 +2291,30 @@ int main(int argc, char *argv[])
             g_require_native = 1;
             break;
 
+        case OPT_FORMAT:
+            g_format = format_from_name(optarg);
+
+            if (g_format == 0)
+            {
+                fprintf(stderr, "Unknown --format '%s' (want one of: "
+                        "u8, s8, s16, f32, cs8, cu8, cs16, cf32)\n", optarg);
+                return 1;
+            }
+
+            break;
+
+        case OPT_RECONNECT_CYCLES:
+            reconnect_cycles = atoi(optarg);
+            break;
+
+        case OPT_RECONNECT_GAP:
+            reconnect_gap_ms = atoi(optarg);
+            break;
+
+        case OPT_DIRTY_CLOSE:
+            dirty_close = 1;
+            break;
+
         case OPT_FULL_DUPLEX:
             full_duplex = 1;
             break;
@@ -1721,6 +2339,31 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Error: --model is required\n");
         usage(argv[0]);
         return 1;
+    }
+
+    /* --format changes what the ring carries, and everything that writes a
+     * file or synthesises a tone assumes the float default: the WAV writer
+     * emits a 16-bit header from float samples, the I/Q dump writes float
+     * pairs, and the transmit paths generate a float sine. Refuse the
+     * combinations rather than write a file whose header contradicts its
+     * contents, or transmit noise. */
+    if (g_format != 0 && g_format != RIG_STREAM_FORMAT_PCM_F32
+            && g_format != RIG_STREAM_FORMAT_IQ_CF32)
+    {
+        if (wav_path || iq_out_path)
+        {
+            fprintf(stderr,
+                    "--format works with neither -w/--wav nor -o/--iq-out: "
+                    "both write float samples\n");
+            return 1;
+        }
+
+        if (do_ptt || strstr(stream_type, "_tx") != NULL)
+        {
+            fprintf(stderr, "--format is receive-only: the transmit paths "
+                    "synthesise float samples\n");
+            return 1;
+        }
     }
 
     /* Set debug level based on verbosity. */
@@ -1764,6 +2407,13 @@ int main(int argc, char *argv[])
         }
     }
 
+    if (list_streams_only)
+    {
+        int lret = list_streams(rig);
+        rig_cleanup(rig);
+        return lret;
+    }
+
     printf("Opening rig model %d", model);
 
     if (rig_file)
@@ -1783,6 +2433,15 @@ int main(int argc, char *argv[])
     }
 
     printf("Rig opened: %s\n", rig->caps->model_name);
+
+    /* Two VFOs only make sense with both receivers running, so turn dual watch
+     * on unless the user said otherwise. */
+    if (setup.count > 1 && setup.dual_watch < 0)
+    {
+        setup.dual_watch = 1;
+    }
+
+    rig_setup_apply(rig, &setup);
 
     /* Full-duplex mode: both streams concurrent, PTT cycled. Overrides the
      * alternating and single-shot dispatches. */
@@ -1804,6 +2463,7 @@ int main(int argc, char *argv[])
         fo.frame_ms = frame_ms;
         fo.buffer_ms = buffer_ms;
         fo.stats_secs = stats_secs;
+        fo.wav_path = wav_path;
 
         int fd_rc = run_full_duplex(rig, &fo);
         retval = fd_rc ? -RIG_EIO : RIG_OK;
@@ -1813,6 +2473,14 @@ int main(int argc, char *argv[])
     else if (rx_secs > 0 || tx_secs > 0)
     {
         struct alt_opts ao;
+
+        if (wav_path)
+        {
+            fprintf(stderr, "Ignoring -w: the alternating soak opens and\n"
+                    "closes the RX stream each cycle; use --full-duplex to\n"
+                    "record.\n");
+        }
+
         memset(&ao, 0, sizeof(ao));
         ao.rx_secs = rx_secs;
         ao.tx_secs = tx_secs;
@@ -1857,12 +2525,21 @@ int main(int argc, char *argv[])
     {
         retval = run_loopback(rig, sample_rate, channels, duration, wav_path);
     }
+    else if (strcmp(stream_type, "reconnect") == 0)
+    {
+        retval = run_reconnect(rig, RIG_STREAM_TYPE_AUDIO_RX, sample_rate,
+                               channels, duration, reconnect_cycles,
+                               reconnect_gap_ms, dirty_close);
+    }
     else
     {
         fprintf(stderr, "Unknown stream type: %s\n", stream_type);
-        fprintf(stderr, "Valid types: audio_rx, audio_tx, iq_rx, iq_tx, loopback\n");
+        fprintf(stderr, "Valid types: audio_rx, audio_tx, iq_rx, iq_tx, "
+                "loopback, reconnect\n");
         retval = -RIG_EINVAL;
     }
+
+    rig_setup_restore(rig, &setup);
 
     printf("Closing rig...\n");
     rig_close(rig);

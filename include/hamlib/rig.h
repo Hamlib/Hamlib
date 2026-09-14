@@ -2907,6 +2907,21 @@ typedef unsigned int rig_comm_status_t;
 #define RIG_COMM_STATUS_WARNING       0x04
 #define RIG_COMM_STATUS_ERROR         0x05
 
+/**
+ * \brief Why the communication status last changed.
+ *
+ * Qualifies #rig_comm_status_t: the status says the link is down, this says
+ * what brought it down. Backends that can distinguish the causes set it when
+ * they set the status; the rest leave it #RIG_COMM_REASON_NONE.
+ */
+typedef unsigned int rig_comm_reason_t;
+
+#define RIG_COMM_REASON_NONE            0x00  /*!< Not known or not applicable */
+#define RIG_COMM_REASON_PEER_DISCONNECT 0x01  /*!< The rig ended the session */
+#define RIG_COMM_REASON_LINK_TIMEOUT    0x02  /*!< The rig stopped responding */
+#define RIG_COMM_REASON_SOCKET_ERROR    0x03  /*!< The transport reported an error */
+#define RIG_COMM_REASON_AUTH_FAILED     0x04  /*!< The rig rejected the credentials */
+
 
 //! @cond Doxygen_Suppress
 typedef int (*vprintf_cb_t)(enum rig_debug_level_e,
@@ -4021,6 +4036,7 @@ extern HAMLIB_EXPORT(const char *) rig_strstatus(enum rig_status_e status);
 extern HAMLIB_EXPORT(const char *) rig_strmtype(chan_type_t mtype);
 extern HAMLIB_EXPORT(const char *) rig_strspectrummode(enum rig_spectrum_mode_e mode);
 extern HAMLIB_EXPORT(const char *) rig_strcommstatus(rig_comm_status_t vfo);
+extern HAMLIB_EXPORT(const char *) rig_strcommreason(rig_comm_reason_t reason);
 
 extern HAMLIB_EXPORT(rmode_t) rig_parse_mode(const char *s);
 extern HAMLIB_EXPORT(vfo_t) rig_parse_vfo(const char *s);
