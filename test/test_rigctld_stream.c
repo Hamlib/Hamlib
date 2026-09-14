@@ -2577,9 +2577,24 @@ static int recv_write_status_event(int fd, const struct rigctld_stream *stream,
  * detail (sample_index via the header, lateness/dropped in the block). */
 void test_write_status_emit(void)
 {
-    int rx_fd = -1, rx_port = 0, tx_fd = -1, tx_port = 0;
-    TEST_ASSERT(rigctld_stream_udp_socket_create(&rx_fd, &rx_port) == 0);
-    TEST_ASSERT(rigctld_stream_udp_socket_create(&tx_fd, &tx_port) == 0);
+    int rx_fd = socket(AF_INET, SOCK_DGRAM, 0);
+    int tx_fd = socket(AF_INET, SOCK_DGRAM, 0);
+    TEST_ASSERT(rx_fd >= 0);
+    TEST_ASSERT(tx_fd >= 0);
+
+    /* This test exercises WRITE_STATUS framing, not IPv6 availability.  Use
+     * IPv4 loopback so builds that intentionally disable IPv6 on lo still
+     * test the emit path.  IPv6 parsing and socket creation are covered by
+     * their dedicated tests. */
+    struct sockaddr_in dst;
+    memset(&dst, 0, sizeof(dst));
+    dst.sin_family = AF_INET;
+    dst.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    dst.sin_port = 0;
+    TEST_ASSERT(bind(rx_fd, (struct sockaddr *)&dst, sizeof(dst)) == 0);
+
+    socklen_t dst_len = sizeof(dst);
+    TEST_ASSERT(getsockname(rx_fd, (struct sockaddr *)&dst, &dst_len) == 0);
 
     struct rigctld_stream stream;
     memset(&stream, 0, sizeof(stream));
@@ -2592,13 +2607,8 @@ void test_write_status_emit(void)
     stream.config.format = RIG_STREAM_FORMAT_PCM_S16;
     stream.format_id = RIG_STREAM_FMT_ID_PCM_S16;
 
-    struct sockaddr_in6 dst;
-    memset(&dst, 0, sizeof(dst));
-    dst.sin6_family = AF_INET6;
-    dst.sin6_addr = in6addr_loopback;
-    dst.sin6_port = htons((uint16_t)rx_port);
     memcpy(&stream.client_addr, &dst, sizeof(dst));
-    stream.client_addr_len = sizeof(dst);
+    stream.client_addr_len = dst_len;
     stream.client_addr_known = 1;
 
     struct rig_stream_write_status ev;
@@ -2606,20 +2616,24 @@ void test_write_status_emit(void)
     ev.event = RIG_STREAM_WRITE_EVENT_LATE;
     ev.sample_index = 12345;
     ev.lateness = 480;
-    rigctld_stream_emit_write_status(&stream, &ev);
+    int ret = rigctld_stream_emit_write_status(&stream, &ev);
+    TEST_ASSERT_(ret == 0, "emit returned %d", ret);
 
-    struct rig_stream_write_status got;
-    TEST_CHECK(recv_write_status_event(rx_fd, &stream, &got)
-               == RIG_STREAM_WRITE_EVENT_LATE);
+    struct rig_stream_write_status got = { 0 };
+    int event = recv_write_status_event(rx_fd, &stream, &got);
+    TEST_ASSERT_(event == RIG_STREAM_WRITE_EVENT_LATE,
+                 "receive returned %d", event);
     TEST_CHECK_(got.sample_index == 12345, "sample_index=%llu",
                 (unsigned long long)got.sample_index);
     TEST_CHECK_(got.lateness == 480, "lateness=%lld", (long long)got.lateness);
 
     ev.event = RIG_STREAM_WRITE_EVENT_OVERRUN;
     ev.dropped_samples = 64;
-    rigctld_stream_emit_write_status(&stream, &ev);
-    TEST_CHECK(recv_write_status_event(rx_fd, &stream, &got)
-               == RIG_STREAM_WRITE_EVENT_OVERRUN);
+    ret = rigctld_stream_emit_write_status(&stream, &ev);
+    TEST_ASSERT_(ret == 0, "emit returned %d", ret);
+    event = recv_write_status_event(rx_fd, &stream, &got);
+    TEST_ASSERT_(event == RIG_STREAM_WRITE_EVENT_OVERRUN,
+                 "receive returned %d", event);
     TEST_CHECK(got.dropped_samples == 64);
 
     /* Nothing more emitted. */
