@@ -1,0 +1,21 @@
+check_PROGRAMS += testicomfallback
+TESTS += testicomfallback
+testicomfallback_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+testicomfallback_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testicomfallback_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+
+check_PROGRAMS += testicomts
+TESTS += testicomts
+testicomts_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+testicomts_LDADD = $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+
+check_PROGRAMS += testid5100
+TESTS += testid5100
+testid5100_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+testid5100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testid5100_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+
+$(top_builddir)/rigs/icom/libhamlib-icom.la:
+	$(MAKE) -C $(top_builddir)/rigs/icom/ libhamlib-icom.la

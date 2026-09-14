@@ -1,0 +1,14 @@
+check_PROGRAMS += testelecraftvfo
+TESTS += testelecraftvfo
+testelecraftvfo_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testelecraftvfo_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/kenwood/libhamlib-kenwood.la $(LDADD)
+
+check_PROGRAMS += testthd75emu
+TESTS += testthd75emu
+
+check_PROGRAMS += testthd7x
+TESTS += testthd7x
+
+$(top_builddir)/rigs/kenwood/libhamlib-kenwood.la:
+	$(MAKE) -C $(top_builddir)/rigs/kenwood/ libhamlib-kenwood.la

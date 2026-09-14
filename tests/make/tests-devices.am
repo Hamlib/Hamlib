@@ -1,0 +1,19 @@
+check_PROGRAMS += testgeministatus
+TESTS += testgeministatus
+testgeministatus_CPPFLAGS = $(AM_CPPFLAGS) \
+	-I$(top_srcdir)/amplifiers/gemini
+testgeministatus_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testgeministatus_LDADD = $(PTHREAD_LIBS) \
+	$(top_builddir)/amplifiers/gemini/libhamlib-gemini.la $(LDADD)
+
+check_PROGRAMS += testgs100
+TESTS += testgs100
+testgs100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testgs100_LDADD = $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/gomspace/libhamlib-gomspace.la $(LDADD)
+
+$(top_builddir)/amplifiers/gemini/libhamlib-gemini.la:
+	$(MAKE) -C $(top_builddir)/amplifiers/gemini/ libhamlib-gemini.la
+
+$(top_builddir)/rigs/gomspace/libhamlib-gomspace.la:
+	$(MAKE) -C $(top_builddir)/rigs/gomspace/ libhamlib-gomspace.la

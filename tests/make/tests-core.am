@@ -1,0 +1,7 @@
+check_PROGRAMS += testbandmetadata
+TESTS += testbandmetadata
+
+check_PROGRAMS += testdebug
+TESTS += testdebug
+testdebug_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testdebug_LDADD = $(PTHREAD_LIBS) $(LDADD)

@@ -14,27 +14,6 @@ DISTCLEANFILES = rigctl.log rigctl.sum testbcd.log testbcd.sum
 
 bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld rigctlcom rigctltcp rigctlsync ampctl ampctld rigtestmcast rigtestmcastrx $(TESTLIBUSB)
 
-# Keep test registries sorted and one entry per line.
-# This keeps independent additions from editing shared lines.
-DIRECT_TESTS = \
-	testbandmetadata \
-	testctlparser \
-	testdebug \
-	testdummyparm \
-	testft991idmeter \
-	testelecraftvfo \
-	testftx1parsers \
-	testgeministatus \
-	testgs100 \
-	testguohetec \
-	testicomfallback \
-	testicomts \
-	testnewcatset \
-	testrigctlprotocol \
-	testthd7x \
-	testthd75emu \
-	testid5100
-
 GENERATED_TEST_WRAPPERS = \
 	test2038.sh \
 	testbcd.sh \
@@ -43,8 +22,6 @@ GENERATED_TEST_WRAPPERS = \
 	testfreq.sh \
 	testgrid.sh \
 	testloc.sh \
-	testnetrigctl.sh \
-	testnetrigctllocale.sh \
 	testrig.sh \
 	testrigcaps.sh
 
@@ -63,11 +40,9 @@ check_PROGRAMS = \
 	testgrid \
 	testloc \
 	testmW2power \
-	testnetrigctl \
 	testrig \
 	testrigcaps \
-	testrigopen \
-	$(DIRECT_TESTS)
+	testrigopen
 # Document building testsecurity
 ### check_PROGRAMS += testsecurity
 
@@ -114,23 +89,6 @@ ampctld_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/src
 rigctlcom_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_srcdir)/src -I$(top_builddir)/security
 rigctltcp_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_srcdir)/src -I$(top_builddir)/security
 rigctlsync_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_srcdir)/src -I$(top_builddir)/security
-testdebug_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
-testnetrigctl_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
-testctlparser_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
-testgeministatus_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
-testgs100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
-testguohetec_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
-testid5100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
-testnewcatset_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
-testicomfallback_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
-testelecraftvfo_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
-testicomts_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
-testid5100_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
-testicomfallback_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
-testgeministatus_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/amplifiers/gemini
-testftx1parsers_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/yaesu/ftx1
-testft991idmeter_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/yaesu
-testguohetec_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/guohetec
 if TESTS_HAVE_LIBUSB
     rigtestlibusb_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) $(LIBUSB_CFLAGS)
 endif
@@ -148,26 +106,10 @@ rigmem_LDADD = $(LIBXML2_LIBS) $(LDADD)
 rigctlcom_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rigctltcp_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rigctlsync_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
-testdebug_LDADD = $(PTHREAD_LIBS) $(LDADD)
 rigstreamtest_LDADD = $(PTHREAD_LIBS) $(LDADD)
 rigstreamtest_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 rigstreamtest_CPPFLAGS = -I$(top_srcdir)/src -I$(top_builddir)/src \
     $(AM_CPPFLAGS)
-testnetrigctl_SOURCES = testnetrigctl.c $(top_srcdir)/rigs/dummy/dummy_common.c
-testnetrigctl_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
-testctlparser_SOURCES = testctlparser.c $(RIGCOMMONSRC)
-testctlparser_LDADD = $(PTHREAD_LIBS) $(READLINE_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
-testrigctlprotocol_LDADD = $(LDADD)
-testicomts_LDADD = $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
-testid5100_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
-testicomfallback_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
-testgeministatus_LDADD = $(PTHREAD_LIBS) $(top_builddir)/amplifiers/gemini/libhamlib-gemini.la $(LDADD)
-testgs100_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/gomspace/libhamlib-gomspace.la $(LDADD)
-testelecraftvfo_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/kenwood/libhamlib-kenwood.la $(LDADD)
-testftx1parsers_LDADD = $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
-testft991idmeter_LDADD = $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
-testguohetec_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/guohetec/libhamlib-guohetec.la $(LDADD)
-testnewcatset_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
 if TESTS_HAVE_LIBUSB
     rigtestlibusb_LDADD = $(LIBUSB_LIBS)
 endif
@@ -217,7 +159,8 @@ EXTRA_DIST = \
 	testcaps.sh \
 	testctlbounds.sh \
 	testctld.pl \
-	testrotctld.pl
+	testrotctld.pl \
+	make/README.md
 
 # Support 'make check' target for simple tests
 # Omitting cachetest.sh because it needs 2 instances of rigctld running
@@ -228,7 +171,7 @@ check_SCRIPTS = \
 	testctlbounds.sh \
 	$(GENERATED_TEST_WRAPPERS)
 
-TESTS = $(check_SCRIPTS) $(DIRECT_TESTS)
+TESTS = $(check_SCRIPTS)
 
 $(top_builddir)/src/libhamlib.la:
 	$(MAKE) -C $(top_builddir)/src/ libhamlib.la
@@ -236,38 +179,9 @@ $(top_builddir)/src/libhamlib.la:
 $(top_builddir)/lib/libmisc.la:
 	$(MAKE) -C $(top_builddir)/lib/ libmisc.la
 
-$(top_builddir)/rigs/dummy/libhamlib-dummy.la:
-	$(MAKE) -C $(top_builddir)/rigs/dummy/ libhamlib-dummy.la
-
-$(top_builddir)/rigs/icom/libhamlib-icom.la:
-	$(MAKE) -C $(top_builddir)/rigs/icom/ libhamlib-icom.la
-
-$(top_builddir)/amplifiers/gemini/libhamlib-gemini.la:
-	$(MAKE) -C $(top_builddir)/amplifiers/gemini/ libhamlib-gemini.la
-
-$(top_builddir)/rigs/gomspace/libhamlib-gomspace.la:
-	$(MAKE) -C $(top_builddir)/rigs/gomspace/ libhamlib-gomspace.la
-
-$(top_builddir)/rigs/guohetec/libhamlib-guohetec.la:
-	$(MAKE) -C $(top_builddir)/rigs/guohetec/ libhamlib-guohetec.la
-
-$(top_builddir)/rigs/kenwood/libhamlib-kenwood.la:
-	$(MAKE) -C $(top_builddir)/rigs/kenwood/ libhamlib-kenwood.la
-
-$(top_builddir)/rigs/yaesu/libhamlib-yaesu.la:
-	$(MAKE) -C $(top_builddir)/rigs/yaesu/ libhamlib-yaesu.la
-
 testrig.sh:
 	echo 'LD_LIBRARY_PATH=$(top_builddir)/src/.libs:$(top_builddir)/dummy/.libs ./testrig 1' > testrig.sh
 	chmod +x ./testrig.sh
-
-testnetrigctl.sh:
-	echo './testnetrigctl' > testnetrigctl.sh
-	chmod +x ./testnetrigctl.sh
-
-testnetrigctllocale.sh:
-	echo './testnetrigctl --locale' > testnetrigctllocale.sh
-	chmod +x ./testnetrigctllocale.sh
 
 testfreq.sh:
 	echo './testfreq' > testfreq.sh
@@ -309,3 +223,14 @@ CLEANFILES = \
 	rigtestlibusb \
 	tuner_control.log \
 	$(GENERATED_TEST_WRAPPERS)
+
+# Keep each subsystem's test registration, flags, sources, libraries, and
+# backend prerequisites together. See make/README.md for the layout rules.
+include $(srcdir)/make/tests-core.am
+include $(srcdir)/make/tests-network.am
+include $(srcdir)/make/tests-dummy.am
+include $(srcdir)/make/tests-icom.am
+include $(srcdir)/make/tests-kenwood.am
+include $(srcdir)/make/tests-yaesu.am
+include $(srcdir)/make/tests-guohetec.am
+include $(srcdir)/make/tests-devices.am
