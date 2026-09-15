@@ -469,9 +469,12 @@ void test_numeric_ranges_enforced(void)
     TEST_CHECK(rig_set_conf(rig, TOK_NET_CONTROL_PORT, "65536") == -RIG_EINVAL);
     TEST_CHECK(rig_set_conf(rig, TOK_NET_CONTROL_PORT, "-1") == -RIG_EINVAL);
 
-    TEST_CHECK(rig_set_conf(rig, TOK_NET_RX_LATENCY, "10") == RIG_OK);
+    /* The RX reorder window may be 0: in-order delivery, no waiting. */
+    TEST_CHECK(rig_get_conf2(rig, TOK_NET_RX_LATENCY, val, sizeof(val)) == RIG_OK);
+    TEST_CHECK_(strcmp(val, "0") == 0, "default window \"%s\", expected 0", val);
+    TEST_CHECK(rig_set_conf(rig, TOK_NET_RX_LATENCY, "0") == RIG_OK);
     TEST_CHECK(rig_set_conf(rig, TOK_NET_RX_LATENCY, "1000") == RIG_OK);
-    TEST_CHECK(rig_set_conf(rig, TOK_NET_RX_LATENCY, "9") == -RIG_EINVAL);
+    TEST_CHECK(rig_set_conf(rig, TOK_NET_RX_LATENCY, "-1") == -RIG_EINVAL);
     TEST_CHECK(rig_set_conf(rig, TOK_NET_RX_LATENCY, "1001") == -RIG_EINVAL);
 
     TEST_CHECK(rig_set_conf(rig, TOK_NET_TX_LATENCY, "10") == RIG_OK);

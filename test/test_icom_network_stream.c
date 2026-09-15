@@ -735,6 +735,356 @@ void test_iq_needs_the_16bit_stereo_codec(void)
 }
 
 
+/* ---- loss accounting and failure, end to end ---- */
+
+static void script_audio(struct mock_server *mock, const uint16_t *seqs,
+                         int count)
+{
+    int i;
+
+    for (i = 0; i < count; i++)
+    {
+        mock->audio_script[i] = seqs[i];
+        mock->audio_script_bytes[i] = 16;
+    }
+
+    mock->audio_script_count = count;
+    mock->audio_script_go = 1;
+}
+
+/* Read until want bytes arrived or 20 idle reads passed, OR-ing drop flags and
+ * summing index holes. */
+static size_t read_all(RIG *rig, rig_stream_t *stream, uint8_t *buf,
+                       size_t want, uint8_t *flags, uint32_t *dropped)
+{
+    size_t total = 0;
+    int idle = 0;
+
+    *flags = 0;
+    *dropped = 0;
+
+    while (total < want && idle < 20)
+    {
+        struct rig_stream_read_info info;
+        size_t got = 0;
+
+        if (rig_stream_read(rig, stream, buf + total, want - total, &got, 100,
+                            &info) == RIG_OK && got > 0)
+        {
+            total += got;
+            *flags |= info.drop_flags;
+            *dropped += info.dropped_samples;
+            idle = 0;
+        }
+        else
+        {
+            idle++;
+        }
+    }
+
+    return total;
+}
+
+/* A lost audio packet is concealed with silence where it belongs: the stream
+ * keeps its timeline, the read reports GAP|CONCEALED, and the loss reaches the
+ * stream statistics instead of vanishing. No retransmit is asked for at the
+ * default window of 0. */
+void test_rx_audio_gap_concealed(void)
+{
+    static const uint16_t script[] = { 1, 2, 4 };
+    struct mock_server mock;
+    struct rig_stream_stats st;
+    rig_stream_t *stream = NULL;
+    uint8_t buf[256];
+    uint8_t flags;
+    uint32_t dropped;
+    size_t got;
+    RIG *rig;
+
+    mock_start(&mock);
+    rig = open_against_mock(&mock, NULL);
+    TEST_ASSERT(rig != NULL);
+    TEST_ASSERT(stream_open(rig, RIG_STREAM_TYPE_AUDIO_RX,
+                            RIG_STREAM_FORMAT_PCM_S16, 48000, 1,
+                            &stream) == RIG_OK);
+
+    /* The stream-open packet (8 samples) first, then the script. */
+    got = read_all(rig, stream, buf, sizeof(mock_audio), &flags, &dropped);
+    TEST_ASSERT(got == sizeof(mock_audio));
+
+    script_audio(&mock, script, 3);
+    got = read_all(rig, stream, buf, 4 * 16, &flags, &dropped);
+
+    TEST_CHECK_(got == 4 * 16, "got %zu bytes: 1, 2, a 16-byte fill, 4", got);
+
+    if (got == 4 * 16)
+    {
+        int16_t v[4];
+        int i;
+
+        for (i = 0; i < 4; i++)
+        {
+            v[i] = (int16_t)(buf[i * 16] | (buf[i * 16 + 1] << 8));
+        }
+
+        TEST_CHECK_(v[0] == 1 && v[1] == 2 && v[2] == 0 && v[3] == 4,
+                    "sample runs %d %d %d %d, expected 1 2 0(fill) 4",
+                    v[0], v[1], v[2], v[3]);
+    }
+
+    TEST_CHECK_(flags == (RIG_STREAM_DROP_GAP | RIG_STREAM_DROP_CONCEALED),
+                "drop_flags=0x%x", flags);
+    TEST_CHECK(dropped == 0);
+
+    TEST_CHECK(rig_stream_get_stats(rig, stream, &st) == RIG_OK);
+    TEST_CHECK_(st.gaps == 1, "gaps=%u", st.gaps);
+    TEST_CHECK_(st.concealed_samples_gap == 8, "concealed=%llu",
+                (unsigned long long)st.concealed_samples_gap);
+    TEST_CHECK(st.dropped_samples_gap == 0);
+    TEST_CHECK(st.fail_reason == RIG_COMM_REASON_NONE);
+    TEST_CHECK_(mock.audio_retransmit_requests == 0,
+                "window 0 must not request retransmits, saw %d",
+                mock.audio_retransmit_requests);
+
+    rig_stream_close(rig, stream);
+    rig_close(rig);
+    rig_cleanup(rig);
+    mock_stop(&mock);
+}
+
+/* A lost I/Q packet is a hole in the sample index, never invented samples. */
+void test_rx_iq_gap_marked(void)
+{
+    static const uint16_t script[] = { 1, 2, 4 };
+    struct mock_server mock;
+    struct rig_stream_stats st;
+    rig_stream_t *stream = NULL;
+    uint8_t buf[256];
+    uint8_t flags;
+    uint32_t dropped;
+    size_t got;
+    RIG *rig;
+
+    mock_start(&mock);
+    rig = open_against_mock(&mock, "net_iq_mode=1");
+    TEST_ASSERT(rig != NULL);
+    TEST_ASSERT(stream_open(rig, RIG_STREAM_TYPE_IQ_RX,
+                            RIG_STREAM_FORMAT_IQ_CS16, 48000, 1,
+                            &stream) == RIG_OK);
+
+    got = read_all(rig, stream, buf, sizeof(mock_audio), &flags, &dropped);
+    TEST_ASSERT(got == sizeof(mock_audio));
+
+    script_audio(&mock, script, 3);
+    got = read_all(rig, stream, buf, 3 * 16, &flags, &dropped);
+
+    TEST_CHECK_(got == 3 * 16, "got %zu bytes: no fill for I/Q", got);
+    TEST_CHECK_(flags & RIG_STREAM_DROP_GAP, "drop_flags=0x%x", flags);
+    TEST_CHECK(!(flags & RIG_STREAM_DROP_CONCEALED));
+    TEST_CHECK_(dropped == 4, "dropped_samples=%u (16 bytes / 4)", dropped);
+
+    TEST_CHECK(rig_stream_get_stats(rig, stream, &st) == RIG_OK);
+    TEST_CHECK(st.gaps == 1);
+    TEST_CHECK_(st.dropped_samples_gap == 4, "dropped_samples_gap=%llu",
+                (unsigned long long)st.dropped_samples_gap);
+    TEST_CHECK(st.concealed_samples_gap == 0);
+
+    rig_stream_close(rig, stream);
+    rig_close(rig);
+    rig_cleanup(rig);
+    mock_stop(&mock);
+}
+
+/* With a reorder window, a packet the radio resends in answer to the backend's
+ * request fills its place: the stream sees no loss at all. */
+void test_rx_audio_window_recovers_retransmit(void)
+{
+    static const uint16_t script[] = { 1, 2, 4 };
+    struct mock_server mock;
+    struct rig_stream_stats st;
+    rig_stream_t *stream = NULL;
+    uint8_t buf[256];
+    uint8_t flags;
+    uint32_t dropped;
+    size_t got;
+    RIG *rig;
+
+    mock_start(&mock);
+    rig = open_against_mock(&mock, "net_rx_latency=300");
+    TEST_ASSERT(rig != NULL);
+    TEST_ASSERT(stream_open(rig, RIG_STREAM_TYPE_AUDIO_RX,
+                            RIG_STREAM_FORMAT_PCM_S16, 48000, 1,
+                            &stream) == RIG_OK);
+
+    got = read_all(rig, stream, buf, sizeof(mock_audio), &flags, &dropped);
+    TEST_ASSERT(got == sizeof(mock_audio));
+
+    mock.audio_withheld = 3;
+    mock.audio_withheld_bytes = 16;
+    script_audio(&mock, script, 3);
+    got = read_all(rig, stream, buf, 4 * 16, &flags, &dropped);
+
+    TEST_CHECK_(got == 4 * 16, "got %zu bytes", got);
+
+    if (got == 4 * 16)
+    {
+        TEST_CHECK(buf[32] == 3 && buf[48] == 4);
+    }
+
+    TEST_CHECK_(flags == 0, "drop_flags=0x%x", flags);
+    TEST_CHECK(mock.audio_retransmit_requests >= 1);
+    TEST_CHECK(rig_stream_get_stats(rig, stream, &st) == RIG_OK);
+    TEST_CHECK(st.gaps == 0);
+
+    rig_stream_close(rig, stream);
+    rig_close(rig);
+    rig_cleanup(rig);
+    mock_stop(&mock);
+}
+
+/* A jump too long to be a loss (a restart of the radio's counter) is reported
+ * as an unsized gap: nothing is invented, and the event is still counted. */
+void test_rx_audio_restart_unsized(void)
+{
+    static const uint16_t script[] = { 1, 2, 900 };
+    struct mock_server mock;
+    struct rig_stream_stats st;
+    rig_stream_t *stream = NULL;
+    uint8_t buf[256];
+    uint8_t flags;
+    uint32_t dropped;
+    size_t got;
+    RIG *rig;
+
+    mock_start(&mock);
+    rig = open_against_mock(&mock, NULL);
+    TEST_ASSERT(rig != NULL);
+    TEST_ASSERT(stream_open(rig, RIG_STREAM_TYPE_AUDIO_RX,
+                            RIG_STREAM_FORMAT_PCM_S16, 48000, 1,
+                            &stream) == RIG_OK);
+
+    got = read_all(rig, stream, buf, sizeof(mock_audio), &flags, &dropped);
+    TEST_ASSERT(got == sizeof(mock_audio));
+
+    script_audio(&mock, script, 3);
+    got = read_all(rig, stream, buf, 3 * 16, &flags, &dropped);
+
+    TEST_CHECK_(got == 3 * 16, "got %zu bytes: no fill for an unsized gap", got);
+    TEST_CHECK_(flags & RIG_STREAM_DROP_UNSIZED, "drop_flags=0x%x", flags);
+    TEST_CHECK(rig_stream_get_stats(rig, stream, &st) == RIG_OK);
+    TEST_CHECK_(st.gaps_unknown == 1, "gaps_unknown=%u", st.gaps_unknown);
+    TEST_CHECK(st.concealed_samples_gap == 0);
+
+    rig_stream_close(rig, stream);
+    rig_close(rig);
+    rig_cleanup(rig);
+    mock_stop(&mock);
+}
+
+/* Time anchors carry the backend's own sample position, so under RX rate
+ * conversion the frontend's rescale is applied once. The mock's stream-open
+ * packet is 8 samples at 48 kHz, i.e. 4 samples in a 24 kHz stream. */
+void test_rx_anchor_index_under_rate_conversion(void)
+{
+    struct mock_server mock;
+    struct rig_stream_time_anchor anchor;
+    rig_stream_t *stream = NULL;
+    uint8_t buf[256];
+    size_t got = 0;
+    int tries;
+    RIG *rig;
+
+    mock_start(&mock);
+    rig = open_against_mock(&mock, NULL);
+    TEST_ASSERT(rig != NULL);
+
+    if (stream_open(rig, RIG_STREAM_TYPE_AUDIO_RX, RIG_STREAM_FORMAT_PCM_S16,
+                    24000, 1, &stream) != RIG_OK)
+    {
+        /* No rate conversion in this build: nothing to check. */
+        rig_close(rig);
+        rig_cleanup(rig);
+        mock_stop(&mock);
+        return;
+    }
+
+    TEST_CHECK(rig_stream_get_conversions(stream) & RIG_STREAM_CONV_RATE);
+
+    for (tries = 0; tries < 10; tries++)
+    {
+        rig_stream_read(rig, stream, buf, sizeof(buf), &got, 100, NULL);
+    }
+
+    /* The RX thread anchors once a second; let it push one after the packet. */
+    usleep(1300 * 1000);
+
+    TEST_CHECK(rig_stream_get_time_anchor(stream, &anchor) == RIG_OK);
+    TEST_CHECK_(anchor.sample_index == 4,
+                "anchor index %llu, expected 4 (8 native samples at half rate)",
+                (unsigned long long)anchor.sample_index);
+
+    rig_stream_close(rig, stream);
+    rig_close(rig);
+    rig_cleanup(rig);
+    mock_stop(&mock);
+}
+
+/* A radio that goes silent ends its streams with -RIG_EIO, both ways, and says
+ * why: a reader is not left seeing an idle stream forever. */
+void test_session_loss_fails_streams(void)
+{
+    struct mock_server mock;
+    struct rig_stream_stats st;
+    rig_stream_t *rx = NULL, *tx = NULL;
+    uint8_t buf[256];
+    size_t got = 0, written = 0;
+    int ret = RIG_OK, tries;
+    RIG *rig;
+
+    mock_start(&mock);
+    rig = open_against_mock(&mock, "net_liveness_timeout=1000");
+    TEST_ASSERT(rig != NULL);
+    TEST_ASSERT(stream_open(rig, RIG_STREAM_TYPE_AUDIO_RX,
+                            RIG_STREAM_FORMAT_PCM_S16, 48000, 1, &rx) == RIG_OK);
+    TEST_ASSERT(stream_open(rig, RIG_STREAM_TYPE_AUDIO_TX,
+                            RIG_STREAM_FORMAT_PCM_S16, 48000, 1, &tx) == RIG_OK);
+
+    mock.go_silent = 1;
+
+    /* Buffered data first, then the failure; timeouts until liveness trips. */
+    for (tries = 0; tries < 100; tries++)
+    {
+        ret = rig_stream_read(rig, rx, buf, sizeof(buf), &got, 100, NULL);
+
+        if (ret != RIG_OK && ret != -RIG_ETIMEOUT) { break; }
+    }
+
+    TEST_CHECK_(ret == -RIG_EIO, "read ended with %d, expected -RIG_EIO", ret);
+    TEST_CHECK(rig_stream_get_stats(rig, rx, &st) == RIG_OK);
+    TEST_CHECK_(st.fail_reason == RIG_COMM_REASON_LINK_TIMEOUT,
+                "fail_reason=%u", st.fail_reason);
+
+    memset(buf, 0, sizeof(buf));
+
+    for (tries = 0; tries < 50; tries++)
+    {
+        ret = rig_stream_write(rig, tx, buf, sizeof(buf), &written, 100, NULL);
+
+        if (ret != RIG_OK) { break; }
+
+        usleep(20 * 1000);
+    }
+
+    TEST_CHECK_(ret == -RIG_EIO, "write ended with %d, expected -RIG_EIO", ret);
+
+    rig_stream_close(rig, tx);
+    rig_stream_close(rig, rx);
+    rig_close(rig);
+    rig_cleanup(rig);
+    mock_stop(&mock);
+}
+
+
 TEST_LIST =
 {
     { "rig_open_close",            test_stream_rig_open_close },
@@ -752,5 +1102,11 @@ TEST_LIST =
     { "linear8_serves_u8_natively", test_linear8_serves_u8_natively },
     { "iq_needs_the_16bit_stereo_codec", test_iq_needs_the_16bit_stereo_codec },
     { "mulaw_is_served_through_the_pivot", test_mulaw_is_served_through_the_pivot },
+    { "rx_audio_gap_concealed",    test_rx_audio_gap_concealed },
+    { "rx_iq_gap_marked",          test_rx_iq_gap_marked },
+    { "rx_audio_window_recovers_retransmit", test_rx_audio_window_recovers_retransmit },
+    { "session_loss_fails_streams", test_session_loss_fails_streams },
+    { "rx_audio_restart_unsized",  test_rx_audio_restart_unsized },
+    { "rx_anchor_index_under_rate_conversion", test_rx_anchor_index_under_rate_conversion },
     { NULL, NULL }
 };

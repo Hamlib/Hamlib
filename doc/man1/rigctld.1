@@ -1937,8 +1937,12 @@ Close a stream and release its UDP socket.
 .
 .TP
 .BR stream_status " \(aq" \fIStreamId\fP \(aq
-Get per-stream state and counters: packet counts, per-cause sample losses,
-overruns, underruns, late timed transmissions, the active
+Get per-stream state and counters: packet counts, per-cause sample losses
+and concealed (silence-filled) samples, overruns, underruns, late timed
+transmissions,
+.I fail_reason
+(NONE while the stream's source is healthy, otherwise why it failed), the
+active
 .I conversions
 stage-name list (see
 .BR stream_open ),

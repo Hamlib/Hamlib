@@ -35,6 +35,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <time.h>
 
 #include "hamlib/rig.h"
 
@@ -221,7 +222,7 @@ void test_session_audio_rx(void)
     /* start audio: the mock emits one audio payload on stream-open */
     TEST_CHECK(icom_network_audio_start(s) == RIG_OK);
 
-    n = icom_network_audio_recv(s, rx, sizeof(rx), 1000);
+    n = icom_network_audio_recv(s, rx, sizeof(rx), 1000, NULL);
     TEST_CHECK(n == (int)sizeof(mock_audio));
 
     if (n == (int)sizeof(mock_audio))
@@ -511,6 +512,426 @@ void test_session_sequence_resync(void)
     TEST_CHECK(icom_network_civ_recv(s, rx, sizeof(rx), 1000) > 0);
 
     icom_network_session_disconnect(s);
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
+/* A lost handshake reply is recovered the way the protocol intends: the gap
+ * the radio's next tracked packet leaves is noticed and the reply requested
+ * again. Resending the request does not help, because the radio has already
+ * received that sequence and does not answer it twice. */
+void test_session_handshake_recovers_lost_reply(void)
+{
+    struct mock_server mock;
+    struct icom_network_session_config config;
+    struct icom_network_session *s;
+    struct timespec t0, t1;
+    long elapsed_ms;
+
+    mock_start(&mock);
+    capability_config(&config, &mock, "IC-7610");
+    mock.ctrl_tracked = 1;
+    mock.ctrl_ignore_resends = 1;
+    mock.drop_capabilities_replies = 1;
+
+    s = icom_network_session_alloc(&config);
+    TEST_ASSERT(s != NULL);
+
+    clock_gettime(CLOCK_MONOTONIC, &t0);
+    TEST_CHECK(icom_network_session_connect(s) == RIG_OK);
+    clock_gettime(CLOCK_MONOTONIC, &t1);
+    elapsed_ms = (t1.tv_sec - t0.tv_sec) * 1000
+                 + (t1.tv_nsec - t0.tv_nsec) / 1000000;
+
+    TEST_CHECK_(mock.ctrl_retransmit_requests >= 1,
+                "the lost capabilities reply must be requested again");
+    TEST_CHECK_(elapsed_ms < 3000, "connect took %ld ms", elapsed_ms);
+
+    icom_network_session_disconnect(s);
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
+/* A connect that fails after login gives the token back and disconnects, so
+ * the radio does not hold the slot and refuse the next attempt. */
+void test_session_failed_connect_releases_slot(void)
+{
+    struct mock_server mock;
+    struct icom_network_session_config config;
+    struct icom_network_session *s;
+    int waited;
+
+    mock_start(&mock);
+    capability_config(&config, &mock, "IC-7610");
+    mock.status_error = 0xffffffffu;
+
+    s = icom_network_session_alloc(&config);
+    TEST_ASSERT(s != NULL);
+    TEST_CHECK(icom_network_session_connect(s) == -RIG_EPROTO);
+
+    for (waited = 0; waited < 100 && (mock.saw_token_remove == 0
+                                      || mock.saw_ctrl_disconnect == 0); waited++)
+    {
+        usleep(10 * 1000);
+    }
+
+    TEST_CHECK_(mock.saw_token_remove >= 1,
+                "the token must be removed after a failed connect");
+    TEST_CHECK_(mock.saw_ctrl_disconnect >= 1,
+                "the control socket must disconnect after a failed connect");
+    icom_network_session_free(s);
+
+    /* And a new attempt then succeeds. */
+    mock.status_error = 0;
+    s = icom_network_session_alloc(&config);
+    TEST_ASSERT(s != NULL);
+    TEST_CHECK(icom_network_session_connect(s) == RIG_OK);
+    icom_network_session_disconnect(s);
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
+
+/* ---- audio ordering and loss (reorder window) ---- */
+
+struct audio_rx_item
+{
+    int seq;                          /* the payload's first sample value */
+    int bytes;
+    struct icom_network_audio_loss loss;
+};
+
+/* Start audio with the given reorder window and swallow the one packet the mock
+ * emits on stream-open (sequence 0), so scripts start from a clean baseline. */
+static struct icom_network_session *audio_session(struct mock_server *mock,
+        uint32_t reorder_ms)
+{
+    struct icom_network_session_config config;
+    struct icom_network_session *s;
+    uint8_t rx[2048];
+
+    capability_config(&config, mock, "IC-7610");
+    config.rx_reorder_ms = reorder_ms;
+    s = icom_network_session_alloc(&config);
+    TEST_ASSERT(s != NULL);
+    TEST_ASSERT(icom_network_session_connect(s) == RIG_OK);
+    TEST_ASSERT(icom_network_audio_start(s) == RIG_OK);
+    TEST_ASSERT(icom_network_audio_recv(s, rx, sizeof(rx), 1000, NULL) > 0);
+
+    return s;
+}
+
+static void audio_script(struct mock_server *mock, const uint16_t *seqs,
+                         int count)
+{
+    int i;
+
+    for (i = 0; i < count; i++)
+    {
+        mock->audio_script[i] = seqs[i];
+        mock->audio_script_bytes[i] = 16;
+    }
+
+    mock->audio_script_count = count;
+    mock->audio_script_go = 1;
+}
+
+/* Collect up to max payloads, stopping after idle_ms with nothing new. */
+static int audio_collect(struct icom_network_session *s,
+                         struct audio_rx_item *items, int max, int idle_ms)
+{
+    uint8_t rx[2048];
+    int count = 0;
+
+    while (count < max)
+    {
+        struct icom_network_audio_loss loss;
+        int n = icom_network_audio_recv(s, rx, sizeof(rx), idle_ms, &loss);
+
+        if (n <= 0) { break; }
+
+        items[count].seq = rx[0] | (rx[1] << 8);
+        items[count].bytes = n;
+        items[count].loss = loss;
+        count++;
+    }
+
+    return count;
+}
+
+/* Window 0: a gap is attached to the payload after it, sized from the packet
+ * sizes already seen, and no retransmit is ever asked for. */
+void test_session_audio_window0_gap(void)
+{
+    static const uint16_t script[] = { 1, 2, 5, 6 };
+    struct mock_server mock;
+    struct icom_network_session *s;
+    struct audio_rx_item got[8];
+    int n;
+
+    mock_start(&mock);
+    s = audio_session(&mock, 0);
+
+    audio_script(&mock, script, 4);
+    n = audio_collect(s, got, 8, 500);
+
+    TEST_CHECK_(n == 4, "got %d payloads, expected 4", n);
+
+    if (n == 4)
+    {
+        TEST_CHECK(got[0].seq == 1 && got[1].seq == 2);
+        TEST_CHECK(got[2].seq == 5 && got[3].seq == 6);
+        TEST_CHECK(got[0].loss.lost_packets == 0 && got[1].loss.lost_packets == 0);
+        TEST_CHECK_(got[2].loss.lost_packets == 2, "lost_packets=%u",
+                    got[2].loss.lost_packets);
+        TEST_CHECK_(got[2].loss.lost_bytes == 32, "lost_bytes=%u (2 x 16)",
+                    got[2].loss.lost_bytes);
+        TEST_CHECK(got[3].loss.lost_packets == 0);
+    }
+
+    usleep(300 * 1000);
+    TEST_CHECK_(mock.audio_retransmit_requests == 0,
+                "window 0 must not request retransmits, saw %d",
+                mock.audio_retransmit_requests);
+
+    icom_network_audio_stop(s);
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
+/* Window 0: a packet that arrives after the one following it is dropped, never
+ * played out of order. */
+void test_session_audio_window0_late_dropped(void)
+{
+    static const uint16_t script[] = { 1, 3, 2, 4 };
+    struct mock_server mock;
+    struct icom_network_session *s;
+    struct audio_rx_item got[8];
+    struct stream_reorder_stats st;
+    int n;
+
+    mock_start(&mock);
+    s = audio_session(&mock, 0);
+
+    audio_script(&mock, script, 4);
+    n = audio_collect(s, got, 8, 500);
+
+    TEST_CHECK_(n == 3, "got %d payloads, expected 3", n);
+
+    if (n == 3)
+    {
+        TEST_CHECK(got[0].seq == 1 && got[1].seq == 3 && got[2].seq == 4);
+        TEST_CHECK(got[1].loss.lost_packets == 1);
+    }
+
+    icom_network_session_audio_stats(s, &st);
+    TEST_CHECK_(st.late == 1, "late=%llu", (unsigned long long)st.late);
+
+    icom_network_audio_stop(s);
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
+/* A window puts a reordered packet back in place, with no loss reported. */
+void test_session_audio_window_reorders(void)
+{
+    static const uint16_t script[] = { 1, 3, 2, 4 };
+    struct mock_server mock;
+    struct icom_network_session *s;
+    struct audio_rx_item got[8];
+    int n, i;
+
+    mock_start(&mock);
+    s = audio_session(&mock, 200);
+
+    audio_script(&mock, script, 4);
+    n = audio_collect(s, got, 8, 600);
+
+    TEST_CHECK_(n == 4, "got %d payloads, expected 4", n);
+
+    for (i = 0; i < n; i++)
+    {
+        TEST_CHECK_(got[i].seq == i + 1, "payload %d is seq %d", i, got[i].seq);
+        TEST_CHECK(got[i].loss.lost_packets == 0 && !got[i].loss.lost_unsized);
+    }
+
+    icom_network_audio_stop(s);
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
+/* A window asks the radio for a missing packet and slots the resend into place:
+ * nothing is lost. */
+void test_session_audio_window_retransmit_recovers(void)
+{
+    static const uint16_t script[] = { 1, 2, 4, 5 };
+    struct mock_server mock;
+    struct icom_network_session *s;
+    struct audio_rx_item got[8];
+    int n, i;
+
+    mock_start(&mock);
+    s = audio_session(&mock, 300);
+
+    mock.audio_withheld = 3;
+    mock.audio_withheld_bytes = 16;
+    audio_script(&mock, script, 4);
+    n = audio_collect(s, got, 8, 800);
+
+    TEST_CHECK_(n == 5, "got %d payloads, expected 5", n);
+
+    for (i = 0; i < n; i++)
+    {
+        TEST_CHECK_(got[i].seq == i + 1, "payload %d is seq %d", i, got[i].seq);
+        TEST_CHECK(got[i].loss.lost_packets == 0);
+    }
+
+    TEST_CHECK(mock.audio_retransmit_requests >= 1);
+    TEST_CHECK(mock.audio_withheld == -1);
+
+    icom_network_audio_stop(s);
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
+/* A lost resend is asked for again within a short window: requests are spaced
+ * by half the window, so a 60 ms window gets a second attempt that a fixed
+ * 100 ms spacing would never make. */
+void test_session_audio_short_window_retries(void)
+{
+    static const uint16_t script[] = { 1, 2, 4, 5 };
+    struct mock_server mock;
+    struct icom_network_session *s;
+    struct audio_rx_item got[8];
+    int n, i;
+
+    mock_start(&mock);
+    s = audio_session(&mock, 60);
+
+    mock.audio_withheld = 3;
+    mock.audio_withheld_bytes = 16;
+    mock.audio_withheld_ignore = 1;
+    audio_script(&mock, script, 4);
+    n = audio_collect(s, got, 8, 600);
+
+    TEST_CHECK_(n == 5, "got %d payloads, expected 5 (seq 3 recovered)", n);
+
+    for (i = 0; i < n; i++)
+    {
+        TEST_CHECK_(got[i].seq == i + 1, "payload %d is seq %d", i, got[i].seq);
+        TEST_CHECK(got[i].loss.lost_packets == 0);
+    }
+
+    TEST_CHECK_(mock.audio_retransmit_requests >= 2,
+                "requests=%d, expected a second attempt",
+                mock.audio_retransmit_requests);
+
+    icom_network_audio_stop(s);
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
+/* The second request is sent when it falls due even if nothing else arrives
+ * to wake the receiver: with a 50 ms window it goes out at 25 ms, and the
+ * receiver would otherwise sleep until the deadline and give up. */
+void test_session_audio_retry_without_traffic(void)
+{
+    static const uint16_t script[] = { 1, 2, 4 };
+    struct mock_server mock;
+    struct icom_network_session *s;
+    struct audio_rx_item got[8];
+    int n, i;
+
+    mock_start(&mock);
+    s = audio_session(&mock, 50);
+
+    mock.audio_withheld = 3;
+    mock.audio_withheld_bytes = 16;
+    mock.audio_withheld_ignore = 1;
+    audio_script(&mock, script, 3);
+    n = audio_collect(s, got, 8, 600);
+
+    TEST_CHECK_(n == 4, "got %d payloads, expected 4 (seq 3 recovered)", n);
+
+    for (i = 0; i < n; i++)
+    {
+        TEST_CHECK_(got[i].seq == i + 1, "payload %d is seq %d", i, got[i].seq);
+        TEST_CHECK(got[i].loss.lost_packets == 0);
+    }
+
+    TEST_CHECK_(mock.audio_retransmit_requests >= 2,
+                "requests=%d, expected a second attempt",
+                mock.audio_retransmit_requests);
+
+    icom_network_audio_stop(s);
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
+/* A window gives up on a packet that never comes, after the window, and
+ * reports it once. */
+void test_session_audio_window_gives_up(void)
+{
+    static const uint16_t script[] = { 1, 2, 4, 5 };
+    struct mock_server mock;
+    struct icom_network_session *s;
+    struct audio_rx_item got[8];
+    int n;
+
+    mock_start(&mock);
+    s = audio_session(&mock, 100);
+
+    audio_script(&mock, script, 4);
+    n = audio_collect(s, got, 8, 600);
+
+    TEST_CHECK_(n == 4, "got %d payloads, expected 4", n);
+
+    if (n == 4)
+    {
+        TEST_CHECK(got[2].seq == 4);
+        TEST_CHECK_(got[2].loss.lost_packets == 1, "lost_packets=%u",
+                    got[2].loss.lost_packets);
+        TEST_CHECK(got[3].loss.lost_packets == 0);
+    }
+
+    icom_network_audio_stop(s);
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
+/* A reader that falls behind loses the oldest payloads, and the loss is carried
+ * to the first payload it does get, exactly in bytes. */
+void test_session_audio_queue_overflow_reported(void)
+{
+    struct mock_server mock;
+    struct icom_network_session *s;
+    struct audio_rx_item got[128];
+    uint16_t script[100];
+    uint32_t overrun = 0;
+    int n, i;
+
+    mock_start(&mock);
+    s = audio_session(&mock, 0);
+
+    for (i = 0; i < 100; i++) { script[i] = (uint16_t)(i + 1); }
+
+    audio_script(&mock, script, 100);
+    usleep(500 * 1000);                 /* do not read while they arrive */
+    n = audio_collect(s, got, 128, 300);
+
+    for (i = 0; i < n; i++) { overrun += got[i].loss.overrun_bytes; }
+
+    TEST_CHECK_(n < 100, "the queue cannot hold all 100 (got %d)", n);
+    TEST_CHECK_(overrun == (uint32_t)(100 - n) * 16,
+                "overrun_bytes=%u, expected %d x 16", overrun, 100 - n);
+
+    if (n > 0)
+    {
+        TEST_CHECK(got[0].loss.overrun_bytes == overrun);
+        TEST_CHECK_(got[0].seq == 100 - n + 1, "first kept is seq %d", got[0].seq);
+    }
+
+    icom_network_audio_stop(s);
     icom_network_session_free(s);
     mock_stop(&mock);
 }
@@ -854,6 +1275,16 @@ TEST_LIST =
     { "stale_frame_drain",           test_session_stale_frame_drain },
     { "async_routing",               test_session_async_routing },
     { "audio_rx",                    test_session_audio_rx },
+    { "failed_connect_releases_slot", test_session_failed_connect_releases_slot },
+    { "handshake_recovers_lost_reply", test_session_handshake_recovers_lost_reply },
+    { "audio_window0_gap",           test_session_audio_window0_gap },
+    { "audio_window0_late_dropped",  test_session_audio_window0_late_dropped },
+    { "audio_window_reorders",       test_session_audio_window_reorders },
+    { "audio_window_retransmit_recovers", test_session_audio_window_retransmit_recovers },
+    { "audio_window_gives_up",       test_session_audio_window_gives_up },
+    { "audio_short_window_retries",  test_session_audio_short_window_retries },
+    { "audio_retry_without_traffic", test_session_audio_retry_without_traffic },
+    { "audio_queue_overflow_reported", test_session_audio_queue_overflow_reported },
     { "capability_name_is_echoed",   test_session_capability_name_is_echoed },
     { "capability_select_by_name",   test_session_capability_select_by_name },
     { "capability_select_by_index",  test_session_capability_select_by_index },

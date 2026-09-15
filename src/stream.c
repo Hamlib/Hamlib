@@ -1463,6 +1463,14 @@ size_t stream_backend_write(struct rig_stream *stream, const void *buf,
         return 0;
     }
 
+    /* A failed stream's source is gone by definition: nothing produced after
+     * the failure is accepted, so readers can drain to the end and see
+     * -RIG_EIO even from a producer that has not stopped yet. */
+    if (stream_is_failed(stream))
+    {
+        return 0;
+    }
+
     if (!stream->conv)
     {
         return stream_ringbuf_write(&stream->ringbuf, buf, bytes);
@@ -1589,6 +1597,12 @@ ssize_t stream_backend_write_frame(struct rig_stream *stream,
                                    const void *buf, size_t len,
                                    uint32_t duration_samples)
 {
+    /* As stream_backend_write(): nothing enters a failed stream. */
+    if (stream && stream_is_failed(stream))
+    {
+        return 0;
+    }
+
     return codec_produce(stream, buf, len, duration_samples, 0, 0, 1);
 }
 
@@ -1597,6 +1611,11 @@ ssize_t stream_backend_write_frame_indexed(struct rig_stream *stream,
                                            uint32_t duration_samples,
                                            uint64_t start_index)
 {
+    if (stream && stream_is_failed(stream))
+    {
+        return 0;
+    }
+
     return codec_produce(stream, buf, len, duration_samples, 1, start_index,
                          1);
 }
@@ -1666,8 +1685,11 @@ int stream_backend_read_frame(struct rig_stream *stream, void *buf,
 
     if (stream_ringbuf_wait_data_locked(rb, timeout_ms) < 0)
     {
+        /* A dead application-side producer is not a late one. */
+        int ret = (rb->failed && !rb->closing) ? -RIG_EIO : -RIG_ETIMEOUT;
+
         pthread_mutex_unlock(&rb->lock);
-        return -RIG_ETIMEOUT;
+        return ret;
     }
 
     int ret = codec_consume_locked(stream, buf, cap, len,
@@ -1768,6 +1790,26 @@ int HAMLIB_API rig_stream_close(RIG *rig, rig_stream_t *stream)
 /* rig_stream_read                                                     */
 /* ------------------------------------------------------------------ */
 
+/* The one mapping from ring state to a read's terminal result, used before
+ * and after the wait so the two can never disagree. A deliberate close wins:
+ * it is the application's own action and must not turn into an I/O error
+ * report. A failed ring keeps handing out what it holds and reports -RIG_EIO
+ * only once empty. RIG_OK means neither applies. Caller holds rb->lock. */
+static int stream_read_terminal_locked(const struct rig_stream_ringbuf *rb)
+{
+    if (rb->closing)
+    {
+        return -RIG_ENAVAIL;
+    }
+
+    if (rb->failed && rb->count == 0)
+    {
+        return -RIG_EIO;
+    }
+
+    return RIG_OK;
+}
+
 int HAMLIB_API rig_stream_read(RIG *rig,
                                rig_stream_t *stream,
                                void *buffer,
@@ -1827,12 +1869,12 @@ int HAMLIB_API rig_stream_read(RIG *rig,
 
     pthread_mutex_lock(&rb->lock);
 
-    if (rb->closing || rb->failed)
+    ret = stream_read_terminal_locked(rb);
+
+    if (ret != RIG_OK)
     {
-        int failed = rb->failed;
         pthread_mutex_unlock(&rb->lock);
         *bytes_read = 0;
-        ret = failed ? -RIG_EIO : -RIG_ENAVAIL;
         goto out;
     }
 
@@ -1840,66 +1882,12 @@ int HAMLIB_API rig_stream_read(RIG *rig,
 
     if (stream_ringbuf_wait_data_locked(rb, timeout_ms) < 0)
     {
-        int closing = rb->closing;
-        int failed = rb->failed;
+        ret = stream_read_terminal_locked(rb);
 
-        if (--stream->blocked_waiters == 0 && closing)
+        if (ret == RIG_OK)
         {
-            pthread_cond_signal(&stream->quiesced);
+            ret = -RIG_ETIMEOUT;
         }
-
-        pthread_mutex_unlock(&rb->lock);
-        *bytes_read = 0;
-        ret = closing ? -RIG_ENAVAIL : (failed ? -RIG_EIO : -RIG_ETIMEOUT);
-        goto out;
-    }
-
-    if (stream->is_codec)
-    {
-        /* Codec stream: exactly ONE whole codec frame per call. The
-         * record's start index and duration drive the accounting; a
-         * buffer of rig_stream_get_max_payload() bytes always
-         * suffices. */
-        size_t flen = 0;
-        uint32_t fdur = 0;
-        uint64_t fidx = 0;
-        int cret = codec_consume_locked(stream, buffer, buffer_size,
-                                        &flen, &fdur, &fidx);
-
-        if (cret != RIG_OK)
-        {
-            if (--stream->blocked_waiters == 0 && rb->closing)
-            {
-                pthread_cond_signal(&stream->quiesced);
-            }
-
-            pthread_mutex_unlock(&rb->lock);
-            *bytes_read = 0;
-            ret = cret;
-            goto out;
-        }
-
-        stream_consume_account_locked(stream, fidx, fdur, info);
-        pthread_mutex_unlock(&rb->lock);
-
-        /* Muted: the frame is consumed and DISCARDED — zeroed bytes are
-         * not a valid codec frame, so the app gets no data instead. */
-        if (stream->muted)
-        {
-            *bytes_read = 0;
-        }
-        else
-        {
-            *bytes_read = flen;
-        }
-
-        if (info)
-        {
-            info->codec_frame_samples = fdur;
-            stream_fill_read_time(stream, info);
-        }
-
-        pthread_mutex_lock(&rb->lock);
 
         if (--stream->blocked_waiters == 0 && rb->closing)
         {
@@ -1907,8 +1895,7 @@ int HAMLIB_API rig_stream_read(RIG *rig,
         }
 
         pthread_mutex_unlock(&rb->lock);
-
-        ret = RIG_OK;
+        *bytes_read = 0;
         goto out;
     }
 
@@ -2095,6 +2082,16 @@ int HAMLIB_API rig_stream_write(RIG *rig,
 
     int ret = RIG_OK;
 
+    /* The source is gone: nothing written now can ever reach the radio, and
+     * accepting it would only fill the ring and report overruns for a dead
+     * stream. */
+    if (stream_is_failed(stream))
+    {
+        *bytes_written = 0;
+        ret = -RIG_EIO;
+        goto out;
+    }
+
     /* Muted: accept the write for the caller's pacing but discard it so
      * nothing is transmitted (neither the backend nor the ring sees it). */
     if (stream->muted)
@@ -2160,6 +2157,14 @@ int HAMLIB_API rig_stream_write(RIG *rig,
             {
                 *bytes_written = 0;
                 ret = -RIG_ETIMEOUT;
+                goto out;
+            }
+
+            /* The consumer died while we waited for space: it never will. */
+            if (stream_is_failed(stream))
+            {
+                *bytes_written = 0;
+                ret = -RIG_EIO;
                 goto out;
             }
 
@@ -2335,10 +2340,23 @@ void stream_skip_samples(struct rig_stream *stream, uint64_t dropped_samples,
 
     pthread_mutex_lock(&stream->ringbuf.lock);
 
-    stream->pending_drop_flags |= drop_flag;
+    /* The local-overrun marker is internal: the reader sees a plain OVERRUN. */
+    stream->pending_drop_flags |= (drop_flag == STREAM_DROP_LOCAL_OVERRUN)
+                                  ? RIG_STREAM_DROP_OVERRUN : drop_flag;
 
     switch (drop_flag)
     {
+    case STREAM_DROP_LOCAL_OVERRUN:
+        stream->backend_overruns++;
+
+        if (dropped_samples == 0)
+        {
+            stream->pending_drop_flags |= RIG_STREAM_DROP_UNSIZED;
+        }
+
+        stream->dropped_samples_overrun += dropped_samples;
+        break;
+
     case RIG_STREAM_DROP_GAP:
         stream->gap_count++;
 
@@ -2387,6 +2405,150 @@ void stream_skip_samples(struct rig_stream *stream, uint64_t dropped_samples,
 }
 
 
+/* The byte that means silence in a sample format: the midpoint of the range,
+ * which is 0 for signed and float formats but 0x80 for unsigned bytes. */
+static unsigned char stream_silence_byte(rig_stream_format_t format)
+{
+    return (format == RIG_STREAM_FORMAT_PCM_U8
+            || format == RIG_STREAM_FORMAT_IQ_CU8) ? 0x80 : 0x00;
+}
+
+
+int stream_fill_gap(struct rig_stream *stream, uint64_t native_samples,
+                    uint8_t cause)
+{
+    unsigned char silence[4096];
+    uint64_t fill_samples, rest_samples, remaining;
+    int bpf;
+
+    if (!stream || stream->is_codec
+            || (cause != RIG_STREAM_DROP_GAP && cause != RIG_STREAM_DROP_OVERRUN))
+    {
+        return -RIG_EINVAL;
+    }
+
+    uint8_t skip_flag = (cause == RIG_STREAM_DROP_GAP)
+                        ? RIG_STREAM_DROP_GAP : STREAM_DROP_LOCAL_OVERRUN;
+
+    bpf = stream_format_bytes_per_frame(stream->backend_config.format,
+                                        stream->backend_config.channels);
+
+    /* Nothing to size the fill by: report the loss without inventing
+     * anything. */
+    if (native_samples == 0 || bpf <= 0)
+    {
+        stream_skip_samples(stream, native_samples, skip_flag);
+        return RIG_OK;
+    }
+
+    /* Conceal at most one second; a longer outage is a hole, not a pause. */
+    fill_samples = native_samples;
+
+    if (stream->backend_config.sample_rate > 0
+            && fill_samples > (uint64_t)stream->backend_config.sample_rate)
+    {
+        fill_samples = (uint64_t)stream->backend_config.sample_rate;
+    }
+
+    rest_samples = native_samples - fill_samples;
+
+    /* Flags and counters first, so the read that consumes the silence
+     * already carries them. */
+    pthread_mutex_lock(&stream->ringbuf.lock);
+
+    uint64_t concealed = stream_scale_backend_samples(stream, fill_samples);
+
+    stream->pending_drop_flags |= cause | RIG_STREAM_DROP_CONCEALED;
+
+    if (cause == RIG_STREAM_DROP_GAP)
+    {
+        stream->gap_count++;
+        stream->concealed_samples_gap += concealed;
+    }
+    else
+    {
+        stream->backend_overruns++;
+        stream->concealed_samples_overrun += concealed;
+    }
+
+    pthread_mutex_unlock(&stream->ringbuf.lock);
+
+    memset(silence, stream_silence_byte(stream->backend_config.format),
+           sizeof(silence));
+    remaining = fill_samples * (uint64_t)bpf;
+
+    while (remaining > 0)
+    {
+        size_t chunk = sizeof(silence) - (sizeof(silence) % (size_t)bpf);
+
+        if ((uint64_t)chunk > remaining)
+        {
+            chunk = (size_t)remaining;
+        }
+
+        (void)stream_backend_write(stream, silence, chunk);
+        remaining -= chunk;
+    }
+
+    /* The part beyond the cap is reported as an index hole. It adds to the
+     * same event, so it must not count a second one. */
+    if (rest_samples > 0)
+    {
+        uint64_t hole = stream_scale_backend_samples(stream, rest_samples);
+
+        pthread_mutex_lock(&stream->ringbuf.lock);
+
+        if (cause == RIG_STREAM_DROP_GAP)
+        {
+            stream->dropped_samples_gap += hole;
+        }
+        else
+        {
+            stream->dropped_samples_overrun += hole;
+        }
+
+        stream->skipped_samples += hole;
+        stream->skip_samples_unread += hole;
+        pthread_mutex_unlock(&stream->ringbuf.lock);
+    }
+
+    return RIG_OK;
+}
+
+
+void stream_mark_failed(struct rig_stream *stream, unsigned int reason)
+{
+    if (!stream)
+    {
+        return;
+    }
+
+    pthread_mutex_lock(&stream->ringbuf.lock);
+
+    if (!stream->ringbuf.failed)
+    {
+        stream->ringbuf.failed = 1;
+        stream->fail_reason = reason;
+    }
+
+    pthread_cond_broadcast(&stream->ringbuf.data_available);
+    pthread_cond_broadcast(&stream->write_event_available);
+    pthread_mutex_unlock(&stream->ringbuf.lock);
+}
+
+
+int stream_is_failed(struct rig_stream *stream)
+{
+    int failed;
+
+    pthread_mutex_lock(&stream->ringbuf.lock);
+    failed = stream->ringbuf.failed;
+    pthread_mutex_unlock(&stream->ringbuf.lock);
+
+    return failed;
+}
+
+
 int HAMLIB_API rig_stream_get_stats(RIG *rig, rig_stream_t *stream,
                                     struct rig_stream_stats *stats)
 {
@@ -2406,7 +2568,8 @@ int HAMLIB_API rig_stream_get_stats(RIG *rig, rig_stream_t *stream,
     pthread_mutex_lock(&stream->ringbuf.lock);
 
     /* overruns/underruns are LOCAL-ring only; remote losses are separate. */
-    stats->overruns = (uint32_t)stream->ringbuf.overrun_count;
+    stats->overruns = (uint32_t)stream->ringbuf.overrun_count
+                      + stream->backend_overruns;
     stats->underruns = (uint32_t)stream->ringbuf.underrun_count;
     stats->gaps = (uint32_t)stream->gap_count;
     stats->gaps_unknown = stream->gaps_unknown;
@@ -2419,6 +2582,9 @@ int HAMLIB_API rig_stream_get_stats(RIG *rig, rig_stream_t *stream,
     stats->dropped_samples_overrun = stream->dropped_samples_overrun;
     stats->dropped_samples_link = stream->dropped_samples_link;
     stats->codec_frames = stream->codec_frames;
+    stats->concealed_samples_gap = stream->concealed_samples_gap;
+    stats->concealed_samples_overrun = stream->concealed_samples_overrun;
+    stats->fail_reason = stream->fail_reason;
 
     pthread_mutex_unlock(&stream->ringbuf.lock);
 
@@ -2596,6 +2762,14 @@ int HAMLIB_API rig_stream_wait_write_status(RIG *rig, rig_stream_t *stream,
             *status = stream->write_events[idx];
             stream->write_event_count--;
             ret = RIG_OK;
+            break;
+        }
+
+        /* Events recorded before the failure are still delivered above; once
+         * they are gone no new one can arrive. */
+        if (stream->ringbuf.failed)
+        {
+            ret = -RIG_EIO;
             break;
         }
 

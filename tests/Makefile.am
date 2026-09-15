@@ -215,6 +215,7 @@ EXTRA_DIST = \
 	rigmatrix_head.html \
 	rigstreamtest-dummy.sh \
 	rigstreamtest-hw.sh \
+	rigstreamtest-hw-loss.sh \
 	testcaps.sh \
 	testctlbounds.sh \
 	testctld.pl \

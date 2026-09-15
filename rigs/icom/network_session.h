@@ -29,6 +29,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "stream_reorder.h"
+
 /* Opaque session handle. */
 struct icom_network_session;
 
@@ -57,6 +59,10 @@ struct icom_network_session_config
     uint8_t  tx_codec;
     uint32_t sample_rate;   /* negotiated audio/IQ sample rate (Hz) */
     uint32_t tx_buffer_ms;  /* TX jitter-buffer length sent to the radio (ms) */
+    uint32_t rx_reorder_ms; /* RX audio reorder window (ms): how long a missing
+                               packet is waited for before it is given up.
+                               0 = in-order delivery with no audio retransmit
+                               requests, since a resend could never be used */
     int      tx_enable;     /* request a TX audio session (0 = RX only) */
 };
 
@@ -116,6 +122,11 @@ int icom_network_session_is_valid(const struct icom_network_session *s);
 void icom_network_session_resync_counts(const struct icom_network_session *s,
                                         unsigned *civ, unsigned *audio);
 
+/* Snapshot of the audio reorder window's counters (released, late,
+ * duplicates, gaps, lost packets, resyncs) since the session was allocated. */
+void icom_network_session_audio_stats(const struct icom_network_session *s,
+                                      struct stream_reorder_stats *stats);
+
 /* Whether the selected radio advertises TX audio at the negotiated rate.
  * Valid only after a successful connect; a TX stream must not be opened when
  * this is 0. */
@@ -154,10 +165,26 @@ int icom_network_civ_recv(struct icom_network_session *s,
  * The backend's stream pump decodes/encodes PCM and moves it to/from the ring
  * buffer.
  */
+/* Audio lost immediately before a received payload. Sizes are in wire
+ * bytes; the backend turns them into samples with the codec's geometry. */
+struct icom_network_audio_loss
+{
+    uint32_t lost_packets;   /* packets given up by the reorder window */
+    uint32_t lost_bytes;     /* their size, estimated from the sizes seen at
+                                the same position in earlier frames; 0 when
+                                nothing is known yet */
+    int      lost_unsized;   /* a loss of unknown size (a resync) precedes */
+    uint32_t overrun_bytes;  /* payload bytes the session queue dropped
+                                because the reader fell behind (exact) */
+};
+
 int icom_network_audio_start(struct icom_network_session *s);
 void icom_network_audio_stop(struct icom_network_session *s);
+/* loss, when not NULL, is filled with what was lost before this payload (all
+ * zero on a clean link). */
 int icom_network_audio_recv(struct icom_network_session *s, unsigned char *buf,
-                            size_t buffer_length, int timeout_ms);
+                            size_t buffer_length, int timeout_ms,
+                            struct icom_network_audio_loss *loss);
 int icom_network_audio_send(struct icom_network_session *s,
                             const unsigned char *buf, size_t length);
 

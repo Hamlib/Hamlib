@@ -100,7 +100,9 @@ void stream_ringbuf_reset(struct rig_stream_ringbuf *rb);
  * both calls. */
 
 /* Wait for readable data.  Returns 0 when data is available, -1 on timeout
- * (bumps underrun_count). */
+ * (bumps underrun_count), on close, or on a failed ring with nothing left to
+ * read (neither bumps underrun_count).  A failed ring still returns 0 while
+ * it holds data. */
 int stream_ringbuf_wait_data_locked(struct rig_stream_ringbuf *rb,
                                     int timeout_ms);
 

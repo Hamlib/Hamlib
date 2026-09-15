@@ -85,6 +85,19 @@ static void icom_network_session_close_fd(int fd)
 #define ICOM_NETWORK_SESSION_CIV_QUEUE_LENGTH   32
 #define ICOM_NETWORK_SESSION_AUDIO_FRAME_MAX 1600
 #define ICOM_NETWORK_SESSION_AUDIO_QUEUE_LENGTH 64
+/* Audio reorder window geometry. The fastest audio flow is 16-bit stereo at
+ * 48 kHz, three packets per 20 ms frame, i.e. 150 packets a second, so 256
+ * positions cover the longest (1000 ms) window with room to spare. A forward
+ * jump of more than MAX_GAP packets is treated as a restart, not a loss. */
+#define ICOM_NETWORK_SESSION_AUDIO_REORDER_SLOTS 256
+#define ICOM_NETWORK_SESSION_AUDIO_MAX_GAP       256
+/* Packets per radio frame tracked for loss sizing (stereo LPCM16 needs 3). */
+#define ICOM_NETWORK_SESSION_AUDIO_PHASES_MAX    8
+/* Spacing of repeated audio retransmit requests: half the reorder window, so
+ * even a short window gets a second attempt when the first resend is lost,
+ * within these bounds. Measured on an IC-7610 over a LAN, resends mostly
+ * arrive within 20 ms, so asking again sooner than that only duplicates. */
+#define ICOM_NETWORK_SESSION_AUDIO_RETRANSMIT_MIN_MS 20
 
 #define ICOM_NETWORK_SESSION_IDLE_MS        100
 #define ICOM_NETWORK_SESSION_PING_MS        500
@@ -157,9 +170,9 @@ struct icom_network_session
     volatile int stop_reconnect;
 
     /* Counts of sequence resyncs, i.e. how often the missing set had to be
-     * abandoned because the link lost more than the replay window can recover. */
+     * abandoned because the link lost more than the replay window can recover.
+     * Audio's lives in the reorder window's statistics. */
     unsigned civ_resyncs;
-    unsigned audio_resyncs;
 
     uint8_t  radio_identity[16];  /* echoed back to select the radio */
     char     radio_name[33];      /* selected radio's name, as the server
@@ -185,12 +198,29 @@ struct icom_network_session
     } civ_rx_q[ICOM_NETWORK_SESSION_CIV_QUEUE_LENGTH];
     int civ_rx_head, civ_rx_tail, civ_rx_count;
 
-    /* audio receive queue (encoded codec payloads from the radio) */
+    /* audio receive queue (encoded codec payloads from the radio), each
+     * carrying what was lost just before it */
     pthread_mutex_t audio_rx_lock;
     pthread_cond_t  audio_rx_cond;
-    struct { uint8_t data[ICOM_NETWORK_SESSION_AUDIO_FRAME_MAX]; size_t length; }
-    audio_rx_q[ICOM_NETWORK_SESSION_AUDIO_QUEUE_LENGTH];
+    struct
+    {
+        uint8_t data[ICOM_NETWORK_SESSION_AUDIO_FRAME_MAX];
+        size_t length;
+        struct icom_network_audio_loss loss;
+    } audio_rx_q[ICOM_NETWORK_SESSION_AUDIO_QUEUE_LENGTH];
     int audio_rx_head, audio_rx_tail, audio_rx_count;
+
+    /* Audio sequence ordering; touched only by the audio thread, except the
+     * statistics snapshot, which is copied under audio_rx_lock. */
+    struct stream_reorder *audio_reorder;
+    struct stream_reorder_stats audio_reorder_stats;
+    /* Gaps released by the window, waiting for the payload they precede. */
+    struct icom_network_audio_loss audio_pending_loss;
+    /* The radio splits each 20 ms frame into the same run of packet sizes, so
+     * a lost packet is sized from the last packet seen at the same position
+     * (sequence modulo packets per frame). */
+    uint32_t audio_phase_count;
+    uint16_t audio_phase_bytes[ICOM_NETWORK_SESSION_AUDIO_PHASES_MAX];
     volatile int audio_active;
     uint16_t audio_send_sequence;
 
@@ -372,6 +402,33 @@ static int icom_network_session_rx_common(struct icom_network_session *s,
         uint8_t *buf, int n,
         enum icom_network_packet_kind *kind);
 static void *icom_network_session_reconnect_thread(void *arg);
+static void icom_network_session_teardown(struct icom_network_session *s);
+static void icom_network_session_request_retransmits(struct
+        icom_network_session_socket *sock, int64_t now);
+
+/* Note the sequence number of a tracked packet from the radio (a data packet,
+ * which includes its idles and every handshake reply), so that one lost on the
+ * way is noticed by the gap the next leaves and can be asked for again.
+ * Resending our own request cannot recover a lost reply: the radio has
+ * already received that sequence and does not answer it twice. */
+static void icom_network_session_track_rx(
+    struct icom_network_session_socket *sock, const uint8_t *buf, int n)
+{
+    uint16_t type, sequence;
+
+    if (n < ICOM_NETWORK_HEADER_LEN) { return; }
+
+    type = icom_network_get_le16(buf + ICOM_NETWORK_OFF_TYPE);
+    sequence = icom_network_get_le16(buf + ICOM_NETWORK_OFF_SEQUENCE);
+
+    if (type != ICOM_NETWORK_PACKET_TYPE_DATA || sequence == 0) { return; }
+
+    if (icom_network_rxtrack_observe(&sock->rxtrack, sequence,
+                                     icom_network_now_ms()))
+    {
+        icom_network_rxtrack_reset(&sock->rxtrack);
+    }
+}
 
 /*
  * Read packets on socket s until one matches, within timeout_ms. want_ctl >= 0
@@ -404,6 +461,9 @@ static int icom_network_session_await(struct icom_network_session_socket *s,
             last_idle = icom_network_now_ms();
         }
 
+        /* Ask again for any reply the radio sent that never arrived. */
+        icom_network_session_request_retransmits(s, icom_network_now_ms());
+
         n = icom_network_session_recv_timeout(s->fd, rbuf, recv_buffer_length, 50);
 
         if (n <= 0) { continue; }
@@ -426,6 +486,8 @@ static int icom_network_session_await(struct icom_network_session_socket *s,
         {
             continue;
         }
+
+        icom_network_session_track_rx(s, rbuf, n);
 
         if (want_ctl >= 0)
         {
@@ -887,7 +949,8 @@ static void *icom_network_session_civ_thread(void *arg)
 /* ------------------------------------------------------------------ */
 
 static void icom_network_session_audio_rx_push(struct icom_network_session *s,
-        const uint8_t *data, size_t length)
+        const uint8_t *data, size_t length,
+        const struct icom_network_audio_loss *loss)
 {
     if (length > ICOM_NETWORK_SESSION_AUDIO_FRAME_MAX)
     {
@@ -898,14 +961,28 @@ static void icom_network_session_audio_rx_push(struct icom_network_session *s,
 
     if (s->audio_rx_count == ICOM_NETWORK_SESSION_AUDIO_QUEUE_LENGTH)
     {
-        /* drop the oldest frame to keep the freshest audio */
+        /* Drop the oldest frame to keep the freshest audio, but never
+         * silently: its bytes, and whatever was lost before it, become part
+         * of the loss reported with the frame the reader gets next. */
+        const struct icom_network_audio_loss *old =
+                &s->audio_rx_q[s->audio_rx_tail].loss;
+        size_t old_length = s->audio_rx_q[s->audio_rx_tail].length;
+        struct icom_network_audio_loss *next;
+
         s->audio_rx_tail = (s->audio_rx_tail + 1) %
                            ICOM_NETWORK_SESSION_AUDIO_QUEUE_LENGTH;
         s->audio_rx_count--;
+
+        next = &s->audio_rx_q[s->audio_rx_tail].loss;
+        next->overrun_bytes += (uint32_t)old_length + old->overrun_bytes;
+        next->lost_packets += old->lost_packets;
+        next->lost_bytes += old->lost_bytes;
+        next->lost_unsized |= old->lost_unsized;
     }
 
     memcpy(s->audio_rx_q[s->audio_rx_head].data, data, length);
     s->audio_rx_q[s->audio_rx_head].length = length;
+    s->audio_rx_q[s->audio_rx_head].loss = *loss;
     s->audio_rx_head = (s->audio_rx_head + 1) %
                        ICOM_NETWORK_SESSION_AUDIO_QUEUE_LENGTH;
     s->audio_rx_count++;
@@ -914,13 +991,87 @@ static void icom_network_session_audio_rx_push(struct icom_network_session *s,
     pthread_mutex_unlock(&s->audio_rx_lock);
 }
 
-/* One audio data packet: keep the sequence tracker honest and hand the payload
- * to the ring. */
+/* Estimated wire size of `count` lost packets starting at `sequence`: the
+ * last size seen at each one's position within the frame, else the average of
+ * the positions seen so far, else 0 (unknown). */
+static uint32_t icom_network_session_audio_lost_bytes(
+    const struct icom_network_session *s, uint32_t sequence, uint32_t count)
+{
+    uint32_t known = 0, known_bytes = 0, total = 0, unknown = 0, i;
+
+    for (i = 0; i < s->audio_phase_count; i++)
+    {
+        if (s->audio_phase_bytes[i] > 0)
+        {
+            known++;
+            known_bytes += s->audio_phase_bytes[i];
+        }
+    }
+
+    if (known == 0)
+    {
+        return 0;
+    }
+
+    for (i = 0; i < count; i++)
+    {
+        uint16_t bytes = s->audio_phase_bytes[((uint16_t)(sequence + i))
+                                              % s->audio_phase_count];
+
+        if (bytes > 0) { total += bytes; }
+        else { unknown++; }
+    }
+
+    return total + unknown * (known_bytes / known);
+}
+
+/* Move everything the reorder window has ready onto the audio queue, in
+ * sequence order, with each released gap attached to the payload after it. */
+static void icom_network_session_audio_release(struct icom_network_session *s,
+        int64_t now)
+{
+    struct stream_reorder_item item;
+    int kind;
+
+    while ((kind = stream_reorder_pop(s->audio_reorder, now, &item))
+            != STREAM_REORDER_NONE)
+    {
+        if (kind == STREAM_REORDER_GAP)
+        {
+            if (item.unsized)
+            {
+                s->audio_pending_loss.lost_unsized = 1;
+            }
+            else
+            {
+                s->audio_pending_loss.lost_packets += item.lost;
+                s->audio_pending_loss.lost_bytes +=
+                    icom_network_session_audio_lost_bytes(s, item.seq,
+                        item.lost);
+            }
+
+            continue;
+        }
+
+        icom_network_session_audio_rx_push(s, item.data, item.length,
+                                           &s->audio_pending_loss);
+        memset(&s->audio_pending_loss, 0, sizeof(s->audio_pending_loss));
+    }
+
+    pthread_mutex_lock(&s->audio_rx_lock);
+    stream_reorder_get_stats(s->audio_reorder, &s->audio_reorder_stats);
+    pthread_mutex_unlock(&s->audio_rx_lock);
+}
+
+/* One audio data packet: let the reorder window place it, learn its size for
+ * sizing later losses, and release whatever is now in order. */
 static void icom_network_session_audio_handle_frame(struct icom_network_session *s,
         const uint8_t *buf, int n)
 {
     struct icom_network_packet_audio au;
     uint16_t sequence;
+    int64_t now = icom_network_now_ms();
+    int result;
 
     if (icom_network_packet_parse_audio(buf, n, &au) != RIG_OK)
     {
@@ -928,19 +1079,80 @@ static void icom_network_session_audio_handle_frame(struct icom_network_session 
     }
 
     sequence = icom_network_get_le16(buf + ICOM_NETWORK_OFF_SEQUENCE);
+    result = stream_reorder_push(s->audio_reorder, sequence, au.data,
+                                 au.payload_length, now);
 
-    int resync = icom_network_rxtrack_observe(&s->audio.rxtrack, sequence,
-                 icom_network_now_ms());
+    if (result == STREAM_REORDER_ACCEPTED || result == STREAM_REORDER_RESYNC)
+    {
+        s->audio_phase_bytes[sequence % s->audio_phase_count] =
+            (uint16_t)au.payload_length;
+    }
 
-    if (resync)
+    if (result == STREAM_REORDER_RESYNC)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: audio sequence resync at %u\n", __func__,
                   (unsigned)sequence);
-        icom_network_rxtrack_reset(&s->audio.rxtrack);
-        s->audio_resyncs++;
+    }
+    else if (result == STREAM_REORDER_LATE)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: late audio packet %u dropped\n",
+                  __func__, (unsigned)sequence);
     }
 
-    icom_network_session_audio_rx_push(s, au.data, au.payload_length);
+    icom_network_session_audio_release(s, now);
+}
+
+/* How long to wait before asking for a missing audio packet again. */
+static int64_t icom_network_session_audio_retransmit_period(
+    const struct icom_network_session *s)
+{
+    int64_t period = (int64_t)stream_reorder_window_ms(s->audio_reorder) / 2;
+
+    if (period < ICOM_NETWORK_SESSION_AUDIO_RETRANSMIT_MIN_MS)
+    {
+        period = ICOM_NETWORK_SESSION_AUDIO_RETRANSMIT_MIN_MS;
+    }
+
+    if (period > ICOM_NETWORK_SESSION_RETRANSMIT_MS)
+    {
+        period = ICOM_NETWORK_SESSION_RETRANSMIT_MS;
+    }
+
+    return period;
+}
+
+/* Ask for the audio packets still missing inside the reorder window, again
+ * every half window while it lasts. With a zero window nothing is ever asked
+ * for: a resend could only arrive behind audio already delivered. */
+static void icom_network_session_request_audio_retransmits(
+    struct icom_network_session *s, int64_t now)
+{
+    uint32_t missing[64];
+    uint16_t sequences[64];
+    uint8_t packet[ICOM_NETWORK_HEADER_LEN + 64 * 4];
+    size_t n, i;
+    int length;
+
+    n = stream_reorder_missing(s->audio_reorder, now,
+                               icom_network_session_audio_retransmit_period(s),
+                               missing, sizeof(missing) / sizeof(missing[0]));
+
+    if (n == 0) { return; }
+
+    for (i = 0; i < n; i++)
+    {
+        sequences[i] = (uint16_t)missing[i];
+    }
+
+    length = icom_network_packet_build_retransmit(packet, sizeof(packet),
+             sequences, n, s->audio.local_id, s->audio.remote_id);
+
+    if (length > 0)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: requesting %zu audio packet(s) from %u\n",
+                  __func__, n, (unsigned)sequences[0]);
+        send(s->audio.fd, packet, length, 0);
+    }
 }
 
 static void *icom_network_session_audio_thread(void *arg)
@@ -951,8 +1163,22 @@ static void *icom_network_session_audio_thread(void *arg)
 
     while (!s->stop && s->audio_active)
     {
-        int64_t now;
-        int n = icom_network_session_recv_timeout(s->audio.fd, buf, sizeof(buf), 50);
+        int64_t now = icom_network_now_ms();
+        /* Wake for a held packet's deadline, and for a retransmit request
+         * falling due, even when nothing arrives. */
+        int64_t due = stream_reorder_next_deadline(s->audio_reorder, now);
+        int64_t retry = stream_reorder_next_request(s->audio_reorder, now,
+                        icom_network_session_audio_retransmit_period(s));
+        int wait;
+
+        if (retry >= 0 && (due < 0 || retry < due))
+        {
+            due = retry;
+        }
+
+        wait = (due >= 0 && due < 50) ? (int)due : 50;
+        int n = icom_network_session_recv_timeout(s->audio.fd, buf, sizeof(buf),
+                wait);
 
         if (n > 0)
         {
@@ -968,7 +1194,8 @@ static void *icom_network_session_audio_thread(void *arg)
         }
 
         now = icom_network_now_ms();
-        icom_network_session_request_retransmits(&s->audio, now);
+        icom_network_session_audio_release(s, now);
+        icom_network_session_request_audio_retransmits(s, now);
 
         /* The audio stream keeps alive with pings (not idles); the radio also
          * derives this stream's clock from them and uses it to decide whether
@@ -1028,6 +1255,19 @@ icom_network_session_alloc(const struct icom_network_session_config *config)
         s->config.control_port = ICOM_NETWORK_PORT_CONTROL;
     }
 
+    s->audio_reorder = stream_reorder_new(s->config.rx_reorder_ms, 16,
+                                          ICOM_NETWORK_SESSION_AUDIO_REORDER_SLOTS,
+                                          ICOM_NETWORK_SESSION_AUDIO_MAX_GAP,
+                                          ICOM_NETWORK_SESSION_AUDIO_FRAME_MAX);
+
+    if (s->audio_reorder == NULL)
+    {
+        icom_network_session_free(s);
+        return NULL;
+    }
+
+    s->audio_phase_count = 1;
+
     return s;
 }
 
@@ -1082,7 +1322,20 @@ void icom_network_session_resync_counts(const struct icom_network_session *s,
 {
     if (civ) { *civ = s->civ_resyncs; }
 
-    if (audio) { *audio = s->audio_resyncs; }
+    if (audio)
+    {
+        pthread_mutex_lock((pthread_mutex_t *)&s->audio_rx_lock);
+        *audio = (unsigned)s->audio_reorder_stats.resyncs;
+        pthread_mutex_unlock((pthread_mutex_t *)&s->audio_rx_lock);
+    }
+}
+
+void icom_network_session_audio_stats(const struct icom_network_session *s,
+                                      struct stream_reorder_stats *stats)
+{
+    pthread_mutex_lock((pthread_mutex_t *)&s->audio_rx_lock);
+    *stats = s->audio_reorder_stats;
+    pthread_mutex_unlock((pthread_mutex_t *)&s->audio_rx_lock);
 }
 
 int icom_network_session_tx_audio_available(const struct icom_network_session
@@ -1479,6 +1732,8 @@ static int icom_network_session_stage_reconnect_data_socket(
 
     sock->local_id = icom_network_session_local_id(sock->fd);
     sock->remote_id = 0;
+    /* A new port is a new stream with its own sequence numbers. */
+    icom_network_rxtrack_reset(&sock->rxtrack);
 
     return RIG_OK;
 }
@@ -1595,7 +1850,84 @@ static void icom_network_session_stage_drain_civ(struct icom_network_session *s)
     }
 }
 
-int icom_network_session_connect(struct icom_network_session *s)
+/* Give the session token back: the radio holds a slot for it otherwise. */
+static void icom_network_session_send_token_remove(
+    struct icom_network_session *s)
+{
+    uint8_t packet[0x40];
+    uint16_t sequence;
+    int packet_length;
+
+    if (s->token == 0) { return; }
+
+    pthread_mutex_lock(&s->control.lock);
+    sequence = s->control.send_sequence++;
+    pthread_mutex_unlock(&s->control.lock);
+    packet_length = icom_network_packet_build_token(packet, sizeof(packet),
+                    ICOM_NETWORK_TOKEN_REMOVE,
+                    s->auth_inner_sequence++, s->token_request,
+                    s->token, NULL, sequence, s->control.local_id,
+                    s->control.remote_id);
+
+    /* Either way the radio keeps the session slot reserved until its own
+     * timeout, so say which step failed. */
+    if (packet_length < 0)
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: could not build the token-remove "
+                                  "packet\n", __func__);
+    }
+    else if (icom_network_session_send_tracked(&s->control, packet,
+             packet_length, 1) != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: token remove not sent\n", __func__);
+    }
+}
+
+/* A connect that fails part-way must not leave the radio holding what it has
+ * already granted. Once logged in, the radio keeps a token and a session slot
+ * for this client; walking away from them (the sockets just closing) makes it
+ * refuse the next attempts -- with status errors, then plain timeouts -- until
+ * its own timeout expires, tens of seconds later. So hand the token back and
+ * disconnect, as a normal teardown does. No receive threads run yet, so the
+ * control socket is serviced here for the grace period, to answer the radio's
+ * retransmit request should the token-remove itself be lost. */
+static void icom_network_session_abort_connect(struct icom_network_session *s)
+{
+    uint8_t rbuf[ICOM_NETWORK_SESSION_PACKET_MAX];
+    int64_t deadline;
+
+    if (s->control.fd < 0) { return; }
+
+    if (s->token != 0)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: releasing the session token after a "
+                                     "failed connect\n", __func__);
+        icom_network_session_send_token_remove(s);
+        deadline = icom_network_now_ms() + ICOM_NETWORK_SESSION_DISCONNECT_GRACE_MS;
+
+        while (icom_network_now_ms() < deadline)
+        {
+            enum icom_network_packet_kind kind;
+            int n = icom_network_session_recv_timeout(s->control.fd, rbuf,
+                    sizeof(rbuf), 50);
+
+            if (n > 0)
+            {
+                (void)icom_network_session_rx_common(NULL, &s->control, rbuf, n,
+                                                     &kind);
+            }
+        }
+
+        s->token = 0;
+    }
+
+    (void)icom_network_session_send_control(&s->control,
+                                            ICOM_NETWORK_CTL_DISCONNECT);
+}
+
+/* The handshake stages in order; any failure after the control socket is up
+ * gives back what the radio granted so far (see abort_connect). */
+static int icom_network_session_handshake(struct icom_network_session *s)
 {
     int ret;
 
@@ -1647,9 +1979,28 @@ int icom_network_session_connect(struct icom_network_session *s)
 
     if (ret != RIG_OK) { return ret; }
 
-    ret = icom_network_session_stage_threads(s);
+    return icom_network_session_stage_threads(s);
+}
 
-    if (ret != RIG_OK) { return ret; }
+int icom_network_session_connect(struct icom_network_session *s)
+{
+    int ret = icom_network_session_handshake(s);
+
+    if (ret != RIG_OK)
+    {
+        if (s->control.thread_running || s->civ.thread_running)
+        {
+            /* Got as far as the threads: the full teardown applies. */
+            s->connected = 1;
+            icom_network_session_teardown(s);
+        }
+        else
+        {
+            icom_network_session_abort_connect(s);
+        }
+
+        return ret;
+    }
 
     s->connected = 1;
     s->lost = 0;
@@ -1766,6 +2117,32 @@ int icom_network_audio_start(struct icom_network_session *s)
 
     if (s->audio_active) { return RIG_OK; }
 
+    /* A new flow starts its own sequence: forget the previous one, and learn
+     * the packet sizes afresh. One 20 ms frame of the negotiated codec is
+     * split into payloads of at most ICOM_NETWORK_AUDIO_MAX_PAYLOAD. */
+    {
+        uint32_t frame_bytes = s->config.sample_rate
+                               * ICOM_NETWORK_AUDIO_FRAME_MS / 1000
+                               * (uint32_t)icom_network_codec_sample_bytes(
+                                   s->config.rx_codec)
+                               * (uint32_t)icom_network_codec_channels(
+                                   s->config.rx_codec);
+        uint32_t phases = (frame_bytes + ICOM_NETWORK_AUDIO_MAX_PAYLOAD - 1)
+                          / ICOM_NETWORK_AUDIO_MAX_PAYLOAD;
+
+        if (phases < 1) { phases = 1; }
+
+        if (phases > ICOM_NETWORK_SESSION_AUDIO_PHASES_MAX)
+        {
+            phases = ICOM_NETWORK_SESSION_AUDIO_PHASES_MAX;
+        }
+
+        stream_reorder_reset(s->audio_reorder);
+        memset(&s->audio_pending_loss, 0, sizeof(s->audio_pending_loss));
+        memset(s->audio_phase_bytes, 0, sizeof(s->audio_phase_bytes));
+        s->audio_phase_count = phases;
+    }
+
     /* audio stream open: just the probe + ready handshake. The
      * audio stream (unlike CI-V) uses no openclose packet; the radio starts
      * streaming after the handshake. */
@@ -1833,10 +2210,13 @@ void icom_network_audio_stop(struct icom_network_session *s)
 }
 
 int icom_network_audio_recv(struct icom_network_session *s, unsigned char *buf,
-                            size_t buffer_length, int timeout_ms)
+                            size_t buffer_length, int timeout_ms,
+                            struct icom_network_audio_loss *loss)
 {
     int ret = -RIG_ETIMEOUT;
     struct timespec ts;
+
+    if (loss) { memset(loss, 0, sizeof(*loss)); }
 
     icom_network_deadline_from_now(&ts, timeout_ms);
 
@@ -1858,6 +2238,9 @@ int icom_network_audio_recv(struct icom_network_session *s, unsigned char *buf,
         if (n > buffer_length) { n = buffer_length; }
 
         memcpy(buf, s->audio_rx_q[s->audio_rx_tail].data, n);
+
+        if (loss) { *loss = s->audio_rx_q[s->audio_rx_tail].loss; }
+
         s->audio_rx_tail = (s->audio_rx_tail + 1) %
                            ICOM_NETWORK_SESSION_AUDIO_QUEUE_LENGTH;
         s->audio_rx_count--;
@@ -1975,33 +2358,7 @@ static void icom_network_session_teardown(struct icom_network_session *s)
     icom_network_session_send_stream_close(&s->civ);
 
     /* release the session slot with a token-remove on the control socket */
-    if (s->token != 0)
-    {
-        uint8_t packet[0x40];
-        uint16_t sequence;
-        int packet_length;
-        pthread_mutex_lock(&s->control.lock);
-        sequence = s->control.send_sequence++;
-        pthread_mutex_unlock(&s->control.lock);
-        packet_length = icom_network_packet_build_token(packet, sizeof(packet),
-                        ICOM_NETWORK_TOKEN_REMOVE,
-                        s->auth_inner_sequence++, s->token_request,
-                        s->token, NULL, sequence, s->control.local_id,
-                        s->control.remote_id);
-
-        /* Either way the radio keeps the session slot reserved until its own
-         * timeout, so say which step failed. */
-        if (packet_length < 0)
-        {
-            rig_debug(RIG_DEBUG_WARN, "%s: could not build the token-remove "
-                      "packet\n", __func__);
-        }
-        else if (icom_network_session_send_tracked(&s->control, packet,
-                 packet_length, 1) != RIG_OK)
-        {
-            rig_debug(RIG_DEBUG_WARN, "%s: token remove not sent\n", __func__);
-        }
-    }
+    icom_network_session_send_token_remove(s);
 
     /* Give the radio a moment to request retransmits of those tracked packets;
      * the still-running threads answer them. Skipped when the session is known
@@ -2144,5 +2501,6 @@ void icom_network_session_free(struct icom_network_session *s)
     pthread_cond_destroy(&s->civ_rx_cond);
     pthread_mutex_destroy(&s->audio_rx_lock);
     pthread_cond_destroy(&s->audio_rx_cond);
+    stream_reorder_free(s->audio_reorder);
     free(s);
 }

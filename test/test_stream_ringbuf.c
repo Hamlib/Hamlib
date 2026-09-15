@@ -27,6 +27,8 @@
 #include "stream.h"
 #include <string.h>
 #include <pthread.h>
+#include <time.h>
+#include <unistd.h>
 
 
 void test_ringbuf_init_destroy(void)
@@ -542,8 +544,93 @@ void test_ringbuf_empty_still_underruns(void)
 }
 
 
+/* A failed ring still hands out what it holds, and only then reports the
+ * failure -- without calling the empty ring an underrun. */
+void test_ringbuf_failed_drains_then_stops(void)
+{
+    struct rig_stream_ringbuf rb;
+    unsigned char data[16];
+    unsigned char dst[64];
+
+    memset(data, 0x5a, sizeof(data));
+    stream_ringbuf_init(&rb, 1024);
+    stream_ringbuf_write(&rb, data, sizeof(data));
+    rb.failed = 1;
+
+    TEST_CHECK(stream_ringbuf_read(&rb, dst, sizeof(dst), 500) == sizeof(data));
+    TEST_MSG("data produced before the failure must still be readable");
+
+    TEST_CHECK(stream_ringbuf_read(&rb, dst, sizeof(dst), 500) == 0);
+    TEST_CHECK(rb.underrun_count == 0);
+    TEST_MSG("a failed, empty ring is not a starved one; underruns=%d",
+             rb.underrun_count);
+
+    stream_ringbuf_destroy(&rb);
+}
+
+
+struct failed_wake_ctx
+{
+    struct rig_stream_ringbuf *rb;
+    size_t got;
+    long elapsed_ms;
+};
+
+static void *failed_wake_reader(void *arg)
+{
+    struct failed_wake_ctx *c = arg;
+    unsigned char dst[64];
+    struct timespec t0, t1;
+
+    clock_gettime(CLOCK_MONOTONIC, &t0);
+    c->got = stream_ringbuf_read(c->rb, dst, sizeof(dst), 3000);
+    clock_gettime(CLOCK_MONOTONIC, &t1);
+    c->elapsed_ms = (t1.tv_sec - t0.tv_sec) * 1000
+                    + (t1.tv_nsec - t0.tv_nsec) / 1000000;
+    return NULL;
+}
+
+/* A reader in a TIMED wait must wake when the ring fails, rather than sleep
+ * out its deadline and book an underrun against a dead source. */
+void test_ringbuf_failed_wakes_timed_wait(void)
+{
+    struct rig_stream_ringbuf rb;
+    unsigned char data[16];
+    unsigned char dst[16];
+    struct failed_wake_ctx ctx;
+    pthread_t th;
+
+    stream_ringbuf_init(&rb, 1024);
+    /* Produce and drain, so an expired wait WOULD count as an underrun. */
+    stream_ringbuf_write(&rb, data, sizeof(data));
+    stream_ringbuf_read(&rb, dst, sizeof(dst), 20);
+
+    ctx.rb = &rb;
+    ctx.got = 99;
+    ctx.elapsed_ms = -1;
+    TEST_ASSERT(pthread_create(&th, NULL, failed_wake_reader, &ctx) == 0);
+
+    usleep(150 * 1000);
+    pthread_mutex_lock(&rb.lock);
+    rb.failed = 1;
+    pthread_cond_broadcast(&rb.data_available);
+    pthread_mutex_unlock(&rb.lock);
+    pthread_join(th, NULL);
+
+    TEST_CHECK(ctx.got == 0);
+    TEST_CHECK_(ctx.elapsed_ms < 1500,
+                "woke after %ld ms, expected well before the 3000 ms deadline",
+                ctx.elapsed_ms);
+    TEST_CHECK_(rb.underrun_count == 0, "underruns=%d", rb.underrun_count);
+
+    stream_ringbuf_destroy(&rb);
+}
+
+
 TEST_LIST =
 {
+    { "stream_ringbuf_failed_drains_then_stops", test_ringbuf_failed_drains_then_stops },
+    { "stream_ringbuf_failed_wakes_timed_wait", test_ringbuf_failed_wakes_timed_wait },
     { "stream_ringbuf_init_zero_capacity", test_ringbuf_init_zero_capacity },
     { "stream_ringbuf_init_destroy",   test_ringbuf_init_destroy },
     { "stream_ringbuf_write_read",     test_ringbuf_write_read },

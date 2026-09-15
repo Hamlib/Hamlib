@@ -138,6 +138,20 @@ enum icom_network_codec
     ICOM_NETWORK_CODEC_ADPCM      = 0x80, /* mono ADPCM, decoding to 16-bit */
 };
 
+/* Channel count carried on the wire by a negotiated codec. */
+int icom_network_codec_channels(uint8_t net_codec);
+
+/* Bytes per sample carried on the wire by a negotiated codec (the LPCM16
+ * family, and anything not listed, is 2). */
+int icom_network_codec_sample_bytes(uint8_t net_codec);
+
+/* Largest audio payload per packet: the radio splits a larger frame, e.g. a
+ * 1920-byte LPCM16 frame travels as 556 + 1364. */
+#define ICOM_NETWORK_AUDIO_MAX_PAYLOAD 1364
+
+/* The radio frames its own audio in 20 ms chunks for every codec. */
+#define ICOM_NETWORK_AUDIO_FRAME_MS 20
+
 /* Classification of a received packet, derived from (length, type, payload). */
 enum icom_network_packet_kind
 {
@@ -205,9 +219,9 @@ struct icom_network_packet_audio
 #define ICOM_NETWORK_SUPPORTED_RATES { 48000, 24000, 16000, 12000, 8000 }
 #define ICOM_NETWORK_SUPPORTED_RATE_COUNT 5
 
-/* Default audio jitter-buffer length, used for both directions when the
- * corresponding config token is left at zero. Keep in step with the defaults
- * declared for net_rx_latency / net_tx_latency. */
+/* Default TX audio jitter-buffer length sent to the radio, used when
+ * net_tx_latency is left at zero. Keep in step with its declared default.
+ * (net_rx_latency is the receive reorder window and defaults to 0.) */
 #define ICOM_NETWORK_DEFAULT_LATENCY_MS 150
 
 /* Silence from the radio before a session is declared lost. Ten missed pings at

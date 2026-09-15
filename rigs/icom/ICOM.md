@@ -76,7 +76,7 @@ their ranges at runtime.
 | `net_rx_codec` | RX wire codec | **index** into the list below | 0 |
 | `net_tx_codec` | TX wire codec | **index** into the list below | 0 |
 | `net_sample_rate` | Wire sample rate | **index**: 0=48000, 1=24000, 2=16000, 3=12000, 4=8000 | 0 |
-| `net_rx_latency` | RX jitter buffer | 10–1000 ms | 150 |
+| `net_rx_latency` | RX reorder window (see *Packet loss* below) | 0–1000 ms, 0 = none | 0 |
 | `net_tx_latency` | TX jitter buffer | 10–1000 ms | 150 |
 | `net_tx_enable` | Reserve a TX audio path | 0 / 1 | 1 |
 | `net_tx_frame_ms` | TX wire frame length | 5–100 ms | 20 |
@@ -161,13 +161,13 @@ Note that "native" says the frontend added nothing, not that no work happened:
 a µLaw session serves `PCM_S16` natively even though the backend decoded every
 sample to produce it.
 
-To see it on a radio, ask for the format and demand it arrive unconverted:
+To see it on a radio, ask for the format and demand it arrive unconverted
+(`rigstreamtest` reports the stream as native when no conversion stage runs):
 
 ```sh
 # 8-bit stereo codec: U8 is native, and carries half the bytes of S16
 rigstreamtest -m 3095 -r ADDR -C net_username=...,net_password=...,net_rx_codec=5 \
     -t audio_rx --format u8 --require-native -s 48000 -c 2 -d 5
-# Stream AUDIO_RX: conversions=0x0 (native stream)
 
 # the whole sweep, one case per format the model declares
 tests/rigstreamtest-hw.sh -m 3095 -r ADDR -C net_username=...,net_password=... \
@@ -175,19 +175,19 @@ tests/rigstreamtest-hw.sh -m 3095 -r ADDR -C net_username=...,net_password=... \
 ```
 
 A format the model declares but *this* session cannot serve natively is
-reported as a skip naming what would have converted (`0x1` format, `0x2` rate,
-`0x4` channels), not as a failure — the model declaration covers every
+reported as a skip naming the stages that would have converted (FORMAT, RATE,
+CHANNELS), not as a failure — the model declaration covers every
 configuration the radio has, and one session is only ever a slice of it.
+`rigstreamtest` prints that refusal as a line of its own,
+`refused: native stream required, needs=<stages>`, which is what the sweep
+matches.
 
 Anything else an application asks for is met by the frontend, which converts
 between its stream and the radio's. Asking for float samples, or a rate the
 session did not negotiate, or a channel count the codec does not carry, all
-work; `rigstreamtest` prints which conversion stages are active, and
-`--require-native` refuses a stream that would need any of them:
-
-```
-Stream AUDIO_RX: conversions=0x5 (converted stream)
-```
+work; `rigstreamtest` prints which conversion stages are active (for example
+FORMAT and CHANNELS for float stereo from a mono 16-bit session), and
+`--require-native` refuses a stream that would need any of them.
 
 Rate conversion needs libsamplerate at build time. Without it the negotiated
 rate is the only rate a stream can open at, so choose it with
@@ -287,9 +287,76 @@ probe/present -> ready -> login -> token create -> capabilities
     -> reconnect data sockets -> CI-V stream open -> keepalive threads
 ```
 
-Every packet carries a sequence number. Lost packets are re-requested and
-replayed from a small transmit buffer; a loss burst wider than that buffer can
-recover causes a resynchronisation instead, logged and counted.
+Every packet carries a sequence number. On the CI-V socket lost packets are
+re-requested and replayed from a small transmit buffer; a loss burst wider than
+that buffer can recover causes a resynchronisation instead, logged and counted.
+Audio and I/Q follow their own rules, below.
+
+The handshake is protected the same way. A reply from the radio that is lost
+on the way (login, capabilities, connection info) is noticed from the gap in
+the radio's sequence numbers and requested again; resending the request would
+not help, because the radio has already received it and does not answer it
+twice. A connect that fails part-way hands its token back and disconnects
+before returning. Otherwise the radio would keep the half-open session's slot
+and refuse the next attempts for tens of seconds.
+
+### Packet loss on audio and I/Q
+
+Received audio and I/Q packets are delivered **in sequence order**, never in
+the order they happen to arrive, and every loss is reported to the stream:
+
+- **`net_rx_latency=0` (the default).** Nothing is held back: each packet is
+  passed on as it arrives. A missing packet is given up as soon as the next one
+  arrives, and anything that turns up later — a reordered packet, a duplicate —
+  is dropped rather than played out of order. No retransmits are requested,
+  because a resend could only arrive behind audio already delivered.
+- **`net_rx_latency=N` (1–1000 ms).** Packets are held up to N ms, counted from
+  the packet after a hole, so reordered packets are put back in place and
+  missing ones are requested from the radio while they can still arrive in
+  time. This adds up to N ms of latency; on a clean LAN a few tens of
+  milliseconds is enough for one retransmit.
+
+Whatever is still missing when the window closes is reported, not hidden:
+
+- **Audio** is filled with silence for its measured length, so playback stays
+  continuous; the read carries `RIG_STREAM_DROP_GAP | RIG_STREAM_DROP_CONCEALED`
+  and `rig_stream_get_stats()` counts `gaps` and `concealed_samples_gap`.
+- **I/Q** is left as a hole in the sample index (`info.dropped_samples`,
+  `dropped_samples_gap`): invented samples would corrupt the phase a
+  demodulator tracks.
+- A burst too long to size (a restart of the radio's counter) is reported as an
+  unsized gap (`gaps_unknown`).
+- If the application reads too slowly and the backend's receive queue
+  overflows, the dropped audio is reported as a local overrun (`overruns`,
+  `concealed_samples_overrun`) rather than disappearing.
+- An ADPCM decoder is reset at every loss, so it does not predict across it.
+
+The radio splits each 20 ms frame into packets of at most 1364 bytes (16-bit
+mono is 1364 + 556, 16-bit stereo 1364 + 1364 + 1112), so a lost packet's
+length is taken from the last packet seen at the same position in the frame.
+
+**Choosing a window.** Measured on an IC-7610 (16-bit mono at 48 kHz, about
+100 packets a second), from a Mac on Wi-Fi (8–37 ms ping to the radio), with 5%
+of the packets from the radio dropped deliberately. Each entry is the number of
+packets still lost after 20 s, out of about 2000:
+
+| Window | 0 ms | 20 ms | 50 ms | 100 ms | 200 ms |
+|---|---|---|---|---|---|
+| Packets lost | 96 | 5 | 1 | 1 | 0 |
+
+A resend usually arrives within 20 ms. While the window lasts, the backend asks
+again every half window, but never more often than every 20 ms. A 20 ms window
+therefore gets a single attempt, which fails when the resend is lost as well. A
+50 ms window's second attempt helps only if its resend comes back within the
+remaining 25 ms. In practice:
+- **0** for the lowest latency: every loss is concealed and counted;
+- **20 ms** recovers about 95% of losses with a single attempt each;
+- **50 ms or more** adds a second attempt and recovered about 99% in this test.
+
+To measure your own link, use `tests/rigstreamtest-hw-loss.sh` (macOS or Linux,
+needs `sudo`). It makes the link lossy on purpose and reports, for each loss rate and
+window, how many losses remain and how many retransmits were requested. Pick the
+smallest window after which the remaining losses stop falling.
 
 ### Code layout
 
@@ -394,9 +461,12 @@ An unsolicited disconnect from the radio ends it immediately. Either way:
   quiet) or `SOCKET_ERROR`;
 - both are published in the multicast snapshot as `status` and `statusReason`
   (multicast is off by default; enable it with `-C multicast_data_addr=224.0.0.1`);
-- open streams end, and `rig_stream_read()` returns `-RIG_EIO` rather than
-  blocking — distinguishable from `-RIG_ETIMEOUT`, which only means no samples
-  have arrived yet.
+- open streams end: `rig_stream_read()` hands over what was already buffered
+  and then returns `-RIG_EIO` rather than blocking — distinguishable from
+  `-RIG_ETIMEOUT`, which only means no samples have arrived yet — and
+  `rig_stream_write()` returns `-RIG_EIO` at once. `rig_stream_get_stats()`
+  reports the same cause in `fail_reason`. A supervisor can treat `-RIG_EIO`
+  as "restart the stream (or the process)", and `-RIG_ETIMEOUT` as "idle".
 
 ### Reading it from a program
 
@@ -418,7 +488,10 @@ Use `HAMLIB_STATE()`, not `STATE()` — the latter is internal to the library.
 Over the network, a multicast subscriber gets the same two values as `status`
 and `statusReason` in the JSON snapshot. **There is currently no way to read
 them over the rigctld text protocol**; a `rigctld` client sees only the
-per-command errors.
+per-command errors. Streams do carry it, though: when a stream's source fails,
+rigctld sends its client an ERROR frame with the reason, so a netrigctl stream
+behind rigctld returns `-RIG_EIO` just like a local one, with the same
+`fail_reason`; `\stream_status` shows it as `fail_reason`.
 
 Control calls keep returning `-RIG_ETIMEOUT` rather than failing fast. That is
 deliberate: a false positive must not be able to break control of a working

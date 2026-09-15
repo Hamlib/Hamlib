@@ -428,7 +428,10 @@ int  rig_stream_open (RIG *rig, const struct rig_stream_config *config,
 int  rig_stream_close(RIG *rig, rig_stream_t *stream);
 
 /* Data exchange (blocking, timeout-based).
- * The trailing info parameter reports/carries per-call timing; pass NULL when timing is not needed. */
+ * The trailing info parameter reports/carries per-call timing; pass NULL when timing is not needed.
+ * Results: RIG_OK; -RIG_ETIMEOUT (nothing within timeout_ms); -RIG_ENAVAIL (the
+ * stream is being closed); -RIG_EIO (the stream's source died -- see
+ * "Source failure" below: a read first returns what was already buffered). */
 int  rig_stream_read (RIG *rig, rig_stream_t *stream, void *buffer,
                       size_t buffer_size, size_t *bytes_read, int timeout_ms,
                       struct rig_stream_read_info *info);
@@ -455,7 +458,8 @@ int  rig_stream_get_stats(RIG *rig, rig_stream_t *stream,
                           struct rig_stream_stats *stats);
 
 /* Async write-status events on a TX stream (blocking with timeout; see §8.9).
- * timeout_ms <0 blocks, 0 polls, >0 bounds; RIG_OK / -RIG_ETIMEOUT / -RIG_ENAVAIL */
+ * timeout_ms <0 blocks, 0 polls, >0 bounds; RIG_OK / -RIG_ETIMEOUT / -RIG_ENAVAIL /
+ * -RIG_EIO (source failed, after any events recorded before it) */
 int  rig_stream_wait_write_status(RIG *rig, rig_stream_t *stream,
                                   struct rig_stream_write_status *status,
                                   int timeout_ms);
@@ -620,8 +624,10 @@ lost-sample totals, so loss *ratios* by cause are directly computable:
 
 ```c
 struct rig_stream_stats {
-    /* event counts (local ring) */
-    uint32_t overruns;      /* local ring full on write; oldest overwritten */
+    /* event counts (local) */
+    uint32_t overruns;      /* local overrun: ring full on write (oldest
+                               overwritten), or a backend receive queue that
+                               overflowed before the ring */
     uint32_t underruns;     /* local blocking read timed out empty —
                                counted only once the producer has ever
                                delivered (startup silence is not an
@@ -634,6 +640,8 @@ struct rig_stream_stats {
     uint32_t remote_overruns;    /* server TX ring overrun / RX overrun-replay */
     uint32_t remote_underruns;   /* server TX ring underrun */
     uint32_t write_events_dropped;  /* write-status events dropped on FIFO overflow */
+    uint32_t fail_reason;   /* RIG_COMM_REASON_* the source died with;
+                               RIG_COMM_REASON_NONE while healthy */
     /* lost-sample totals (per cause) */
     uint64_t dropped_samples_gap;     /* lower bound if gaps_unknown > 0 */
     uint64_t dropped_samples_overrun;
@@ -643,6 +651,10 @@ struct rig_stream_stats {
                                          count (one frame per datagram) but
                                          counts FRAMES, surviving any future
                                          packing */
+    /* concealed-sample totals: losses replaced with silence
+       (RIG_STREAM_DROP_CONCEALED), NOT part of dropped_samples_* */
+    uint64_t concealed_samples_gap;
+    uint64_t concealed_samples_overrun;
 };
 ```
 
@@ -652,6 +664,16 @@ server-reported TX under/overrun is counted separately in `remote_overruns` /
 `remote_underruns` (delivered by the `WRITE_STATUS` frame, §8.9), so local and
 remote causes stay distinguishable. The server-only view remains queryable via
 `\stream_status` (see loss classification).
+
+**Source failure.** When a backend's source dies for good — the radio
+session timed out or was ended, the transport failed — the stream is marked
+failed with a reason. Every blocked call wakes. `rig_stream_read()` returns
+the data already buffered and then `-RIG_EIO`; `rig_stream_write()` and
+`rig_stream_wait_write_status()` return `-RIG_EIO`; `fail_reason` names the
+cause. A deliberate `rig_stream_close()` always reports `-RIG_ENAVAIL`, even
+on a failed stream. A failed stream stays failed: close it and open a new
+one once the rig is back. A remote rigctld forwards the failure as an ERROR
+frame (§6.2), so a netrigctl client stream behaves the same way.
 
 The overflow policy for raw streams is **overwrite-oldest**: a full ring
 buffer never blocks the producer; the oldest unread bytes are dropped and
@@ -970,6 +992,10 @@ tx_late: <n>                 timed-TX deadline misses
 dropped_samples_gap: <n>     per-cause dropped-sample totals
 dropped_samples_overrun: <n>
 dropped_samples_link: <n>
+concealed_samples_gap: <n>   losses replaced with silence, per cause
+concealed_samples_overrun: <n>
+fail_reason: <REASON>        NONE while the source is healthy, else why
+                             it died (e.g. LINK_TIMEOUT)
 time_anchor_index: <n>       latest time anchor (§8); these five appear
 time_anchor_seconds: <s>     only once the stream has an anchor
 time_source: <n>
@@ -1048,6 +1074,9 @@ tx_late: 0
 dropped_samples_gap: 0
 dropped_samples_overrun: 0
 dropped_samples_link: 0
+concealed_samples_gap: 0
+concealed_samples_overrun: 0
+fail_reason: NONE
 time_anchor_index: 12000
 time_anchor_seconds: 1786606908
 time_source: 1
@@ -1150,7 +1179,7 @@ receiver **MUST** treat a reserved or unadvertised format ID as an error.
 | 0x0002 | PONG           | server → client | keepalive reply |
 | 0x0004 | SUBSCRIBE      | client → server | RX subscribe request |
 | 0x0008 | SUBSCRIBE_ACK  | server → client | subscription acknowledged |
-| 0x0010 | ERROR          | server → client | payload is an error frame |
+| 0x0010 | ERROR          | server → client | the stream's source failed; payload is a 12-byte error block |
 | 0x0020 | TIME           | either | payload begins with a 20-byte time block |
 | 0x0040 | METADATA       | either | payload is a metadata frame, not samples |
 | 0x0080 | WRITE_STATUS   | server → client | payload is a 36-byte write-status block |
@@ -1159,9 +1188,20 @@ Bits are grouped by role: keepalive pair, handshake pair, then the
 payload-affecting bits, with each request/reply pair on adjacent bits. Bits
 **`0x0100`–`0x8000` are reserved** and MUST be sent as zero; a receiver **MUST**
 drop a control frame carrying bits it does not recognize rather than ingest it
-as data. `ERROR` is reserved for a server→client error frame, but **version 1
-defines no ERROR payload format** — a receiver treats an ERROR frame as a
-no-op drop. `TIME` is valid only on a data frame or a time-only frame.
+as data. `ERROR` tells the client that the server's backend source for the
+stream died (see "Source failure", §4). Its payload is a **12-byte error
+block**, big-endian: `version` (u16, currently 1), reserved (u16, 0),
+`rig_error` (i32, the Hamlib code the server's read or write returned, e.g.
+`-RIG_EIO`) and `comm_reason` (u32, `RIG_COMM_REASON_*`). Like `PONG` it is
+sent with `seq = 0` and never enters gap accounting. The server stops
+serving the stream, answers each later PING and re-SUBSCRIBE with PONG/ACK
+plus another ERROR (so one lost datagram cannot hide the failure), and keeps
+the stream until it is closed or keepalive expires; on a multicast stream it
+repeats ERROR to the group once a second. A client marks its stream failed
+with that reason, so reads drain and then return `-RIG_EIO`. A receiver
+ignores an ERROR block of an unknown version, and a header-only ERROR frame
+from an older peer is a no-op drop. `TIME` is valid only on a data frame or
+a time-only frame.
 `WRITE_STATUS` reports an async TX under/overrun or late burst back to a TX
 client (see §8.9); it carries its own payload and draws a `seq` value.
 
@@ -1385,11 +1425,15 @@ rigctld runs one feeder thread per active stream:
   while polling metadata on its interval and answering PING.
   It reads via the enriched API and stamps data packets with the
   watchdog-checked capture time; on idle it emits time-only packets so
-  time keeps advancing.
+  time keeps advancing. When the backend read returns `-RIG_EIO` it sends
+  an ERROR frame, stops reading, and only answers the client (with ERROR
+  reminders) until the stream is closed or keepalive expires.
 - **TX feeder**: receives UDP, validates the header,
   detects `seq` gaps, writes samples to the backend ring buffer, and
   dispatches TX metadata frames. It extracts embedded burst
-  targets (SOB/EOB) into the backend's target channel.
+  targets (SOB/EOB) into the backend's target channel. A backend write
+  returning `-RIG_EIO` is answered with an ERROR frame (at most every
+  250 ms while the client keeps sending).
 
 Per-stream atomic counters (`packet_count`, `gap_count`, `send_drops`)
 are readable via `\stream_status`.
@@ -1671,6 +1715,9 @@ struct rig_stream_read_info {       /* filled by rig_stream_read */
 #define RIG_STREAM_DROP_UNSIZED  (1<<2)  /* an unknown-size gap also precedes;
                                             dropped_samples is a lower bound */
 #define RIG_STREAM_DROP_LINK     (1<<3)  /* network client: app-link UDP loss */
+#define RIG_STREAM_DROP_CONCEALED (1<<4) /* with GAP or OVERRUN: the loss was
+                                            filled with silence, so it is not
+                                            in dropped_samples */
 ```
 
 The backend pushes anchors (`rig_stream_push_time_anchor()`) at
@@ -1765,13 +1812,26 @@ just announced by the backend. Consequences:
 - Fill policy belongs to the app, which now has exact position + size: it
   can insert zeros, interpolate, or reset its DSP.
 
-Per family: **audio RX** keeps zero-fill for smooth live playback (the
-zeros are real samples — `dropped_samples` stays 0) plus the
-DISCONTINUITY anchor so recorders know they are synthetic. **I/Q RX**
-uses `mark_gap` + anchor, no fill — mis-sized fills are the thing that
-corrupts FFT phase, and exactly-sized fills are reproducible app-side.
-Unknown sizes degrade gracefully: `mark_gap(0)` → DROP_UNSIZED,
+Per family: **audio RX** conceals a sized loss with silence for smooth
+live playback (`stream_fill_gap()`): the fill is real samples, so
+`dropped_samples` stays 0 and the index has no hole, but the read carries
+`RIG_STREAM_DROP_GAP | RIG_STREAM_DROP_CONCEALED` with DISCONTINUITY, and
+`concealed_samples_gap` counts it — the loss stays visible to monitoring and
+recorders. **I/Q RX** uses `mark_gap` + anchor, no fill — mis-sized fills
+are the thing that corrupts FFT phase, and exactly-sized fills are
+reproducible app-side. A backend's own receive queue overflowing is a local
+overrun, reported the same way with `RIG_STREAM_DROP_OVERRUN`. Unknown sizes
+degrade gracefully: `mark_gap(0)` / `stream_fill_gap(0)` → DROP_UNSIZED,
 `gaps_unknown`, position-only.
+
+A backend whose transport numbers its datagrams delivers them in sequence
+order through the shared reorder window (`stream_reorder`, see
+`HAMLIB_STREAMING_BACKEND_GUIDE.md` §5.1.1): a late, retransmitted or
+duplicate packet is either put back in place within the window or dropped,
+never played out of order or counted as both lost and delivered.
+
+On the wire a concealed loss has no timestamp jump, only the DISCONTINUITY
+flag, so a remote netrigctl client counts it as an unsized upstream gap.
 
 ### 8.8 Timed transmit
 
@@ -1807,11 +1867,10 @@ UTC; `rig_stream_get_hardware_time()` returns the radio clock as an
 anchor (source/flags/accuracy) so an app knows the achievable precision
 before scheduling.
 
-The `ERROR` control bit (0x0010) is **reserved**: no ERROR frame is emitted
-yet, and its payload format is undefined. The netrigctl client drops any
-received ERROR frame defensively, so an error payload is never mistaken for
-sample data. Reporting a missed timed-TX slot (or a TX ring under/overrun)
-to a remote client is handled by the `WRITE_STATUS` frame (§8.9), not ERROR.
+The `ERROR` control bit (0x0010) reports a failed source (§6.2), never a
+per-burst problem: reporting a missed timed-TX slot (or a TX ring
+under/overrun) to a remote client is handled by the `WRITE_STATUS` frame
+(§8.9), not ERROR.
 
 ### 8.9 On the wire: the write-status block
 
@@ -2136,6 +2195,26 @@ passed through to `rigstreamtest`, which applies them after opening the rig and
 puts the previous values back on exit (`--no-restore` keeps them). Naming two
 VFOs also turns dual watch on, which is what makes a dual-receiver rig deliver
 two distinct channels.
+
+**`tests/rigstreamtest-hw-loss.sh`** — the same radio on a deliberately lossy
+link (macOS with dummynet, or Linux with nftables or iptables; needs `sudo` for
+the packet filter, while the tools run as you). It drops a fraction of the UDP
+packets arriving from the radio and runs:
+- a receive sweep over loss rates and reorder windows (`net_rx_latency`), which
+  shows how many losses each window recovers and how many retransmits it
+  requests;
+- a *silence* case (total loss mid-stream: the stream must end with `-RIG_EIO`
+  and `fail_reason` `LINK_TIMEOUT`);
+- a *chain* case (the same behind rigctld, reaching a netrigctl client through
+  the ERROR frame).
+
+The loss rule lives in its own pf anchor and is removed on exit. Results go to
+`summary.txt`; the script header says how to read it.
+
+```sh
+sudo ./tests/rigstreamtest-hw-loss.sh -m 3095 -r IP_ADDRESS \
+    -C net_username=USER,net_password=PASS
+```
 
 ### 12.2 Icom network models
 

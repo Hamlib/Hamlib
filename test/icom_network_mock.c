@@ -31,6 +31,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <time.h>
 
 #include "hamlib/rig.h"
 #include "network_proto.h"
@@ -75,6 +76,86 @@ static void mock_send_control(int fd, struct sockaddr_in *to, uint16_t ctl,
     sendto(fd, p, sizeof(p), 0, (struct sockaddr *)to, sizeof(*to));
 }
 
+/* Send a control-socket packet the way the radio sends its tracked ones: with
+ * the next sequence number, kept for retransmission. drop simulates losing it
+ * on the way (it is still numbered and kept). Without ctrl_tracked, packets go
+ * out untracked with sequence 0, as before. */
+static void mock_ctrl_send(struct mock_server *m, struct sockaddr_in *to,
+                           socklen_t to_length, uint8_t *buf, size_t length,
+                           int drop)
+{
+    if (m->ctrl_tracked)
+    {
+        uint16_t sequence = m->ctrl_sequence++;
+        int slot = m->ctrl_sent_head;
+
+        icom_network_put_le16(buf + ICOM_NETWORK_OFF_SEQUENCE, sequence);
+
+        if (length <= sizeof(m->ctrl_sent[0].data))
+        {
+            m->ctrl_sent[slot].sequence = sequence;
+            m->ctrl_sent[slot].length = (uint16_t)length;
+            memcpy(m->ctrl_sent[slot].data, buf, length);
+            m->ctrl_sent_head = (slot + 1) % 16;
+        }
+    }
+
+    if (!drop)
+    {
+        sendto(m->ctrl_fd, buf, length, 0, (struct sockaddr *)to, to_length);
+    }
+}
+
+/* Resend the kept control packets a retransmit request names. */
+static void mock_ctrl_retransmit(struct mock_server *m, const uint8_t *buf,
+                                 int n)
+{
+    int count = (n - ICOM_NETWORK_HEADER_LEN) / 4;
+    int i, j;
+
+    m->ctrl_retransmit_requests++;
+
+    for (i = 0; i < (count > 0 ? count : 1); i++)
+    {
+        uint16_t want = count > 0
+                        ? icom_network_get_le16(buf + ICOM_NETWORK_HEADER_LEN + i * 4)
+                        : icom_network_get_le16(buf + ICOM_NETWORK_OFF_SEQUENCE);
+
+        for (j = 0; j < 16; j++)
+        {
+            if (m->ctrl_sent[j].length > 0 && m->ctrl_sent[j].sequence == want)
+            {
+                sendto(m->ctrl_fd, m->ctrl_sent[j].data, m->ctrl_sent[j].length,
+                       0, (struct sockaddr *)&m->ctrl_peer, m->ctrl_peer_length);
+            }
+        }
+    }
+}
+
+/* 1 when a tracked request with this sequence was already received. */
+static int mock_ctrl_resend_seen(struct mock_server *m, const uint8_t *buf)
+{
+    uint16_t sequence = icom_network_get_le16(buf + ICOM_NETWORK_OFF_SEQUENCE);
+    int i;
+
+    for (i = 0; i < m->ctrl_seen_count; i++)
+    {
+        if (m->ctrl_seen[i] == sequence) { return 1; }
+    }
+
+    if (m->ctrl_seen_count < 32) { m->ctrl_seen[m->ctrl_seen_count++] = sequence; }
+
+    return 0;
+}
+
+static int64_t mock_now_ms(void)
+{
+    struct timespec ts;
+
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (int64_t)ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
+}
+
 /* --- unsolicited server -> client traffic, driven by the test --- */
 
 /* Sent before the select so it fires whether or not the client is talking. */
@@ -82,6 +163,19 @@ static void mock_send_unsolicited(struct mock_server *m)
 {
     uint8_t packet[64];
     int pl;
+
+    /* The radio's tracked idles, which reveal a lost reply by the gap. */
+    if (m->ctrl_tracked && m->ctrl_peer_length > 0
+            && mock_now_ms() - m->ctrl_last_idle_ms >= 100)
+    {
+        uint8_t idle[ICOM_NETWORK_HEADER_LEN];
+
+        icom_network_packet_build_control(idle, sizeof(idle), ICOM_NETWORK_CTL_IDLE,
+                                          0, MOCK_SERVER_ID, m->ctrl_client_id);
+        mock_ctrl_send(m, &m->ctrl_peer, m->ctrl_peer_length, idle, sizeof(idle),
+                       0);
+        m->ctrl_last_idle_ms = mock_now_ms();
+    }
 
     if (m->civ_peer_length > 0 && m->ask_retransmit)
     {
@@ -188,7 +282,7 @@ static void mock_reply_login(struct mock_server *m, struct sockaddr_in *from,
     icom_network_put_be32(lr + 0x1c, 0x9999); /* token */
     icom_network_put_le32(lr + 0x30, 0);      /* error=ok */
     memcpy(lr + 0x40, "FTTH", 4);
-    sendto(m->ctrl_fd, lr, sizeof(lr), 0, (struct sockaddr *)from, from_length);
+    mock_ctrl_send(m, from, from_length, lr, sizeof(lr), 0);
 }
 
 /* A token create is answered with the advertised radio list. */
@@ -223,7 +317,10 @@ static void mock_reply_capabilities(struct mock_server *m,
         icom_network_put_be32(r + 0x5a, 19200);
     }
 
-    sendto(m->ctrl_fd, cp, cp_length, 0, (struct sockaddr *)from, from_length);
+    mock_ctrl_send(m, from, from_length, cp, cp_length,
+                   m->drop_capabilities_replies > 0);
+
+    if (m->drop_capabilities_replies > 0) { m->drop_capabilities_replies--; }
 }
 
 static void mock_reply_conninfo(struct mock_server *m, const uint8_t *buf, int n,
@@ -241,10 +338,10 @@ static void mock_reply_conninfo(struct mock_server *m, const uint8_t *buf, int n
     memset(stp, 0, sizeof(stp));
     icom_network_packet_build_header(stp, sizeof(stp), 0x50, 0, 0,
                                      MOCK_SERVER_ID, cli);
-    icom_network_put_le32(stp + 0x30, 0); /* error=ok */
+    icom_network_put_le32(stp + 0x30, m->status_error); /* 0 = ok */
     icom_network_put_be16(stp + 0x42, m->civ_port);
     icom_network_put_be16(stp + 0x46, m->no_audio_port ? 0 : m->audio_port);
-    sendto(m->ctrl_fd, stp, sizeof(stp), 0, (struct sockaddr *)from, from_length);
+    mock_ctrl_send(m, from, from_length, stp, sizeof(stp), 0);
 }
 
 /* The CI-V stream opening. The radio flushes frames left undelivered by the
@@ -329,6 +426,80 @@ static void mock_send_audio(struct mock_server *m, struct sockaddr_in *from,
     }
 }
 
+/* One scripted audio packet: `bytes` of 16-bit samples equal to its
+ * sequence number. */
+static void mock_send_audio_seq(struct mock_server *m, uint16_t sequence,
+                                uint16_t bytes)
+{
+    uint8_t payload[1400];
+    uint8_t packet[1500];
+    int i, pl;
+
+    if (bytes == 0) { bytes = 16; }
+
+    if (bytes > sizeof(payload)) { bytes = sizeof(payload); }
+
+    for (i = 0; i + 1 < bytes; i += 2)
+    {
+        payload[i] = (uint8_t)sequence;
+        payload[i + 1] = (uint8_t)(sequence >> 8);
+    }
+
+    pl = icom_network_packet_build_audio(packet, sizeof(packet), payload, bytes,
+                                         0x0080, sequence, sequence,
+                                         MOCK_SERVER_ID, m->audio_client_id);
+
+    if (pl > 0)
+    {
+        sendto(m->audio_fd, packet, pl, 0, (struct sockaddr *)&m->audio_peer,
+               m->audio_peer_length);
+    }
+}
+
+static void mock_send_audio_script(struct mock_server *m)
+{
+    int i;
+
+    if (!m->audio_script_go || m->audio_peer_length == 0) { return; }
+
+    for (i = 0; i < m->audio_script_count; i++)
+    {
+        mock_send_audio_seq(m, m->audio_script[i], m->audio_script_bytes[i]);
+    }
+
+    m->audio_script_go = 0;
+}
+
+/* A retransmit request on the audio socket: count it, and answer it when it
+ * names the withheld packet. Single requests carry the sequence in the header;
+ * multiple ones list little-endian pairs after it. */
+static void mock_audio_retransmit(struct mock_server *m, const uint8_t *buf,
+                                  int n)
+{
+    int i, count = (n - ICOM_NETWORK_HEADER_LEN) / 4;
+
+    m->audio_retransmit_requests++;
+
+    for (i = 0; i < (count > 0 ? count : 1); i++)
+    {
+        uint16_t want = count > 0
+                        ? icom_network_get_le16(buf + ICOM_NETWORK_HEADER_LEN + i * 4)
+                        : icom_network_get_le16(buf + ICOM_NETWORK_OFF_SEQUENCE);
+
+        if (m->audio_withheld >= 0 && want == (uint16_t)m->audio_withheld)
+        {
+            if (m->audio_withheld_ignore > 0)
+            {
+                m->audio_withheld_ignore--;
+                continue;
+            }
+
+            mock_send_audio_seq(m, want, m->audio_withheld_bytes);
+            m->audio_withheld = -1;
+        }
+    }
+}
+
 /* --- per-socket service --- */
 
 static void mock_service_control(struct mock_server *m, uint8_t *buf, int n,
@@ -343,7 +514,36 @@ static void mock_service_control(struct mock_server *m, uint8_t *buf, int n,
     m->ctrl_peer_length = from_length;
     m->ctrl_client_id = cli;
 
+    if (k == ICOM_NETWORK_PACKET_KIND_CONTROL
+            && type == ICOM_NETWORK_CTL_DISCONNECT)
+    {
+        m->saw_ctrl_disconnect++;
+        return;
+    }
+
+    if (k == ICOM_NETWORK_PACKET_KIND_RETRANSMIT)
+    {
+        mock_ctrl_retransmit(m, buf, n);
+        return;
+    }
+
+    if (m->ctrl_ignore_resends
+            && (k == ICOM_NETWORK_PACKET_KIND_LOGIN
+                || k == ICOM_NETWORK_PACKET_KIND_TOKEN
+                || k == ICOM_NETWORK_PACKET_KIND_CONNINFO)
+            && mock_ctrl_resend_seen(m, buf))
+    {
+        return;
+    }
+
     if (mock_reply_common_control(m->ctrl_fd, from, k, type, cli)) { return; }
+
+    if (k == ICOM_NETWORK_PACKET_KIND_TOKEN
+            && buf[ICOM_NETWORK_REQ_OFF_REQUEST_TYPE] == ICOM_NETWORK_TOKEN_REMOVE)
+    {
+        m->saw_token_remove++;
+        return;
+    }
 
     switch (k)
     {
@@ -424,6 +624,16 @@ static void mock_service_audio(struct mock_server *m, uint8_t *buf, int n,
     enum icom_network_packet_kind k = icom_network_packet_classify(buf, n);
     uint16_t type = icom_network_get_le16(buf + ICOM_NETWORK_OFF_TYPE);
 
+    m->audio_peer = *from;
+    m->audio_peer_length = from_length;
+    m->audio_client_id = cli;
+
+    if (k == ICOM_NETWORK_PACKET_KIND_RETRANSMIT)
+    {
+        mock_audio_retransmit(m, buf, n);
+        return;
+    }
+
     if (!mock_reply_common_control(m->audio_fd, from, k, type, cli))
     {
         return;
@@ -467,6 +677,7 @@ static void *mock_run(void *arg)
         if (m->audio_fd > maxfd) { maxfd = m->audio_fd; }
 
         mock_send_unsolicited(m);
+        mock_send_audio_script(m);
 
         FD_ZERO(&r);
         FD_SET(m->ctrl_fd, &r);
@@ -532,6 +743,8 @@ void mock_start(struct mock_server *m)
     m->radios[0].rx_rate = MOCK_ALL_RATES;
     m->radios[0].tx_rate = MOCK_ALL_RATES;
     m->retransmit_sequence = -1;   /* no replay expected unless a test asks */
+    m->audio_withheld = -1;
+    m->ctrl_sequence = 1;
     m->ctrl_port  = bind_ephemeral(&m->ctrl_fd);
     m->civ_port   = bind_ephemeral(&m->civ_fd);
     m->audio_port = bind_ephemeral(&m->audio_fd);

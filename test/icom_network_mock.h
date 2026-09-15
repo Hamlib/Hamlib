@@ -93,9 +93,58 @@ struct mock_server
     /* Copy of the connection-info request the client sent, so a test can check
      * which radio it selected and whether it asked for a TX audio path. */
     volatile int saw_connection_info;
+    /* Answer the connection-info request with this status error (0 = OK), as
+     * a radio still holding another session's slot does. */
+    volatile uint32_t status_error;
+    /* Behave like the radio on the control socket: number the handshake
+     * replies and idles as tracked packets, keep them for retransmission, and
+     * answer retransmit requests. Off by default. */
+    volatile int ctrl_tracked;
+    uint16_t ctrl_sequence;
+    int64_t ctrl_last_idle_ms;
+    struct
+    {
+        uint16_t sequence;
+        uint16_t length;
+        uint8_t data[0x42 + 4 * 0x66];
+    } ctrl_sent[16];
+    int ctrl_sent_head;
+    volatile int ctrl_retransmit_requests;
+    /* Lose this many capabilities replies on the way (they still consume a
+     * sequence number, so the client sees a gap). */
+    volatile int drop_capabilities_replies;
+    /* Ignore a login/token/connection-info request whose sequence was already
+     * received, as the radio does with a resent packet. */
+    volatile int ctrl_ignore_resends;
+    uint16_t ctrl_seen[32];
+    int ctrl_seen_count;
+    /* Session clean-up seen on the control socket. */
+    volatile int saw_token_remove;
+    volatile int saw_ctrl_disconnect;
     uint8_t connection_info[0x90];
     uint16_t civ_sequence;
     uint16_t audio_sequence;
+
+    /* Scripted audio. Setting audio_script_go sends audio_script_count data
+     * packets, in the order listed, with the sequence numbers in audio_script;
+     * each payload is audio_script_bytes[i] bytes (0 = 16) of 16-bit samples
+     * whose value is that packet's sequence number, so a test can see order,
+     * duplicates and gaps in what comes out. The flag clears once sent. */
+    uint16_t audio_script[256];
+    uint16_t audio_script_bytes[256];
+    volatile int audio_script_count;
+    volatile int audio_script_go;
+    /* One sequence number held back: sent only in answer to a retransmit
+     * request for it (-1 = none). audio_withheld_bytes as in the script. */
+    volatile int audio_withheld;
+    uint16_t audio_withheld_bytes;
+    /* Requests for the withheld packet to ignore before answering one, as if
+     * the first resends were lost on the way. */
+    volatile int audio_withheld_ignore;
+    volatile int audio_retransmit_requests;  /* requests seen on audio socket */
+    struct sockaddr_in audio_peer;
+    socklen_t audio_peer_length;
+    uint32_t audio_client_id;
 };
 
 /* Canned CI-V and audio payloads the mock replies with. Sizes are spelled out

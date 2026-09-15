@@ -243,8 +243,10 @@ size_t stream_ringbuf_peek_locked(struct rig_stream_ringbuf *rb,
 
 /* Wait for readable data. Caller holds rb->lock.
  * timeout_ms < 0 blocks until data or shutdown; 0 polls; > 0 bounds the wait.
- * Returns 0 when data is available, -1 on timeout (bumps underrun_count) or
- * when the ring is closing. */
+ * Returns 0 when data is available, -1 on timeout (bumps underrun_count),
+ * when the ring is closing, or when it has failed and holds nothing more.
+ * A failed ring still hands out what it already holds: that data was produced
+ * before the source died and is as valid as any other. */
 int stream_ringbuf_wait_data_locked(struct rig_stream_ringbuf *rb,
                                     int timeout_ms)
 {
@@ -258,6 +260,11 @@ int stream_ringbuf_wait_data_locked(struct rig_stream_ringbuf *rb,
         return 0;
     }
 
+    if (rb->failed)
+    {
+        return -1;
+    }
+
     /* Block indefinitely: wait until data arrives or the ring is closed. */
     if (timeout_ms < 0)
     {
@@ -266,7 +273,7 @@ int stream_ringbuf_wait_data_locked(struct rig_stream_ringbuf *rb,
             pthread_cond_wait(&rb->data_available, &rb->lock);
         }
 
-        return (rb->closing || rb->failed) ? -1 : 0;
+        return (rb->closing || rb->count == 0) ? -1 : 0;
     }
 
     struct timespec ts;
@@ -284,7 +291,10 @@ int stream_ringbuf_wait_data_locked(struct rig_stream_ringbuf *rb,
 
     while (rb->count == 0)
     {
-        if (rb->closing)
+        /* A closing or failed ring is not a starved one: return at once, and
+         * do not book an underrun against a stream that is shutting down or
+         * whose source is gone. */
+        if (rb->closing || rb->failed)
         {
             return -1;
         }
@@ -294,6 +304,16 @@ int stream_ringbuf_wait_data_locked(struct rig_stream_ringbuf *rb,
 
         if (ret == ETIMEDOUT)
         {
+            if (rb->count > 0)
+            {
+                return 0;
+            }
+
+            if (rb->closing || rb->failed)
+            {
+                return -1;
+            }
+
             /* An underrun is the producer falling behind, which it cannot do
              * before it has produced anything. A consumer that starts first
              * and reads while the stream is still coming up is early, not

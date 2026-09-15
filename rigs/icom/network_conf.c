@@ -158,10 +158,13 @@ const struct confparams icom_network_config_params[] =
         }
     },
     {
-        TOK_NET_RX_LATENCY, "net_rx_latency", "RX audio latency (ms)",
-        "Receive audio jitter-buffer length in milliseconds",
-        ICOM_NETWORK_STR(ICOM_NETWORK_DEFAULT_LATENCY_MS),
-        RIG_CONF_NUMERIC, {.n = {10, 1000, 10}}
+        TOK_NET_RX_LATENCY, "net_rx_latency", "RX reorder window (ms)",
+        "How long a missing received audio/I/Q packet is waited for before it "
+        "is given up. 0 delivers in order without waiting and requests no "
+        "retransmits; a larger window recovers reordered and retransmitted "
+        "packets at the cost of that much added latency",
+        "0",
+        RIG_CONF_NUMERIC, {.n = {0, 1000, 10}}
     },
     {
         TOK_NET_TX_LATENCY, "net_tx_latency", "TX audio latency (ms)",
@@ -340,7 +343,7 @@ int icom_network_set_conf(RIG *rig, hamlib_token_t token, const char *val)
     case TOK_NET_RX_LATENCY:
     {
         int ms = atoi(val);
-        int ret = check_range("net_rx_latency", ms, 10, 1000);
+        int ret = check_range("net_rx_latency", ms, 0, 1000);
 
         if (ret != RIG_OK) { return ret; }
 

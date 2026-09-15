@@ -50,10 +50,6 @@
  * same duration by default (net_tx_frame_ms overrides). */
 #define ICOM_NETWORK_TX_FRAME_MS 20
 
-/* Largest audio payload per packet (the radio splits larger frames, e.g. a
- * 1920-byte LPCM16 frame travels as 1364 + 556). */
-#define ICOM_NETWORK_AUDIO_MAX_PAYLOAD 1364
-
 /* One I/Q sample on the wire: a signed 16-bit I and Q pair. */
 #define ICOM_NETWORK_IQ_FRAME_BYTES 4
 
@@ -178,6 +174,8 @@ static int icom_network_open(RIG *rig)
                          : 48000;
     config.tx_buffer_ms = priv->net_tx_latency ? (uint32_t)priv->net_tx_latency :
                           ICOM_NETWORK_DEFAULT_LATENCY_MS;
+    /* 0, the default, is in-order delivery with no audio retransmits. */
+    config.rx_reorder_ms = (uint32_t)priv->net_rx_latency;
     /* RX-only models (e.g. IC-R8600) never reserve a TX audio path; on TX
      * capable models the radio must reserve it at connect for a TX stream to
      * work later, so it defaults on (no audio transmits without PTT + a TX
@@ -282,6 +280,14 @@ struct icom_network_stream_state
     size_t encode_buffer_length;
     size_t frame_bytes;      /* TX: bytes read per frame, in the stream's
                                 own format */
+    size_t native_frame_bytes; /* RX: bytes per sample frame of what is
+                                written to the ring (the backend format) */
+    uint64_t native_pos;     /* RX: samples produced so far in the backend's
+                                own domain, including concealed and marked
+                                losses; the time-anchor index */
+    uint64_t decoded_samples;  /* RX, codec streams: samples decoded ... */
+    uint64_t decoded_wire_bytes; /* ... from this many wire bytes, which sizes
+                                losses in samples */
 };
 
 /* Map a negotiated Icom network codec id to a Hamlib device codec. */
@@ -298,21 +304,6 @@ static rig_audio_codec_t icom_network_codec_map(uint8_t net_codec)
 
     default:                       /* LPCM family: 16-bit PCM passthrough */
         return RIG_AUDIO_CODEC_NONE;
-    }
-}
-
-/* Channel count carried on the wire by a negotiated Icom network codec. */
-static int icom_network_codec_channels(uint8_t net_codec)
-{
-    switch (net_codec)
-    {
-    case ICOM_NETWORK_CODEC_LPCM8S:
-    case ICOM_NETWORK_CODEC_LPCM16S:
-    case ICOM_NETWORK_CODEC_PCMUS:
-        return 2;
-
-    default:
-        return 1;
     }
 }
 
@@ -365,22 +356,6 @@ static rig_stream_format_t icom_network_session_formats(uint8_t net_codec)
            : RIG_STREAM_FORMAT_PCM_S16;
 }
 
-/* Bytes per sample carried on the wire by a negotiated Icom network codec. */
-static int icom_network_codec_sample_bytes(uint8_t net_codec)
-{
-    switch (net_codec)
-    {
-    case ICOM_NETWORK_CODEC_PCMU:
-    case ICOM_NETWORK_CODEC_PCMUS:
-    case ICOM_NETWORK_CODEC_LPCM8:
-    case ICOM_NETWORK_CODEC_LPCM8S:
-        return 1;
-
-    default:                       /* LPCM16 family */
-        return 2;
-    }
-}
-
 /* ------------------------------------------------------------------ */
 /* audio stream threads                                                */
 /* ------------------------------------------------------------------ */
@@ -425,23 +400,113 @@ static size_t icom_network_rx_decode(struct icom_network_stream_state *st,
 }
 
 /* A host-clock anchor about once a second, so a consumer can put the samples
- * on a wall clock. */
-static void icom_network_rx_push_anchor(struct rig_stream *stream)
+ * on a wall clock, and one right after every loss, flagged as a discontinuity.
+ * The index is the backend's own sample position: the frontend rescales it
+ * under rate conversion, which rig_stream_get_samples_written() would already
+ * have done once. */
+static void icom_network_rx_push_anchor(struct icom_network_stream_state *st,
+                                        uint8_t flags)
 {
     struct rig_stream_time_anchor a;
 
     memset(&a, 0, sizeof(a));
-    a.sample_index = rig_stream_get_samples_written(stream);
+    a.sample_index = st->native_pos;
     stream_time_now(&a.seconds, &a.picoseconds);
     a.source = RIG_STREAM_TIME_SRC_HOST;
     a.accuracy = RIG_STREAM_TIME_ACC_MS;
-    rig_stream_push_time_anchor(stream, &a);
+    a.flags = flags;
+    rig_stream_push_time_anchor(st->stream, &a);
+}
+
+/* Wire bytes of this stream's codec, in samples of what reaches the ring. */
+static uint64_t icom_network_rx_wire_samples(
+    const struct icom_network_stream_state *st, uint64_t wire_bytes)
+{
+    if (stream_type_is_iq(st->stream->type))
+    {
+        return wire_bytes / ICOM_NETWORK_IQ_FRAME_BYTES;
+    }
+
+    if (st->passthrough)
+    {
+        return wire_bytes / st->wire_frame_bytes;
+    }
+
+    /* Companded and block codecs: use the ratio actually decoded so far. */
+    if (st->decoded_wire_bytes > 0)
+    {
+        return wire_bytes * st->decoded_samples / st->decoded_wire_bytes;
+    }
+
+    return wire_bytes / (uint64_t)st->wire_channels;
+}
+
+/* Report what the session lost before this payload, in the terms the stream
+ * needs, before the payload itself is written. Audio is concealed with
+ * silence so playback stays continuous; I/Q is marked as an index hole,
+ * because invented samples would corrupt the phase a demodulator tracks. */
+static void icom_network_rx_account_loss(struct icom_network_stream_state *st,
+        const struct icom_network_audio_loss *loss)
+{
+    struct rig_stream *stream = st->stream;
+    int iq = stream_type_is_iq(stream->type);
+    uint64_t lost, overrun;
+
+    if (loss->lost_packets == 0 && !loss->lost_unsized
+            && loss->overrun_bytes == 0)
+    {
+        return;
+    }
+
+    lost = icom_network_rx_wire_samples(st, loss->lost_bytes);
+    overrun = icom_network_rx_wire_samples(st, loss->overrun_bytes);
+
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "%s: lost %u packet(s) (~%llu samples)%s, queue overrun %llu "
+              "samples\n", __func__, loss->lost_packets,
+              (unsigned long long)lost, loss->lost_unsized ? " + unsized" : "",
+              (unsigned long long)overrun);
+
+    /* A stateful codec must not predict across the hole. */
+    rig_audio_codec_reset(st->codec);
+
+    if (overrun > 0)
+    {
+        if (iq)
+        {
+            stream_skip_samples(stream, overrun, STREAM_DROP_LOCAL_OVERRUN);
+        }
+        else
+        {
+            (void)stream_fill_gap(stream, overrun, RIG_STREAM_DROP_OVERRUN);
+        }
+
+        st->native_pos += overrun;
+    }
+
+    /* Lost packets whose size is not known yet count as an unsized loss. */
+    if (loss->lost_unsized || (loss->lost_packets > 0 && lost == 0))
+    {
+        if (iq) { (void)rig_stream_mark_gap(stream, 0); }
+        else { (void)stream_fill_gap(stream, 0, RIG_STREAM_DROP_GAP); }
+    }
+
+    if (lost > 0)
+    {
+        if (iq) { (void)rig_stream_mark_gap(stream, lost); }
+        else { (void)stream_fill_gap(stream, lost, RIG_STREAM_DROP_GAP); }
+
+        st->native_pos += lost;
+    }
+
+    icom_network_rx_push_anchor(st, RIG_STREAM_TIME_FLAG_DISCONTINUITY);
 }
 
 static void *icom_network_rx_thread(void *arg)
 {
     struct icom_network_stream_state *st = arg;
     struct rig_stream *stream = st->stream;
+    struct icom_network_audio_loss loss;
     int64_t last_anchor = 0;
 
     while (st->running)
@@ -455,25 +520,32 @@ static void *icom_network_rx_thread(void *arg)
         {
             /* Wake any blocked reader with -RIG_EIO: the samples are not
              * merely late, the radio is gone. */
-            pthread_mutex_lock(&stream->ringbuf.lock);
-            stream->ringbuf.failed = 1;
-            pthread_cond_broadcast(&stream->ringbuf.data_available);
-            pthread_mutex_unlock(&stream->ringbuf.lock);
+            stream_mark_failed(stream, icom_network_session_loss_reason(st->sess));
             break;
         }
 
         n = icom_network_audio_recv(st->sess, st->encode_buffer,
-                                    st->encode_buffer_length, 100);
+                                    st->encode_buffer_length, 100, &loss);
 
         /* A timeout is ordinary: the anchor below still has to be pushed, so
          * this only skips the decode. */
         if (n > 0)
         {
+            icom_network_rx_account_loss(st, &loss);
             length = icom_network_rx_decode(st, (size_t)n, &out);
 
             if (length > 0)
             {
+                uint64_t samples = length / st->native_frame_bytes;
+
                 (void)stream_backend_write(stream, out, length);
+                st->native_pos += samples;
+
+                if (!st->passthrough && !stream_type_is_iq(stream->type))
+                {
+                    st->decoded_samples += samples;
+                    st->decoded_wire_bytes += (uint64_t)n;
+                }
             }
         }
 
@@ -481,7 +553,7 @@ static void *icom_network_rx_thread(void *arg)
 
         if (now - last_anchor >= 1000)
         {
-            icom_network_rx_push_anchor(stream);
+            icom_network_rx_push_anchor(st, 0);
             last_anchor = now;
         }
     }
@@ -599,7 +671,11 @@ static void *icom_network_tx_thread(void *arg)
 
         if (!icom_network_session_is_valid(st->sess))
         {
-            break;   /* nothing to transmit to */
+            /* Nothing to transmit to: tell the writer instead of letting it
+             * fill the ring for a radio that is gone. */
+            stream_mark_failed(st->stream,
+                               icom_network_session_loss_reason(st->sess));
+            break;
         }
 
         got = icom_network_tx_fill_frame(st, frame_bytes);
@@ -719,6 +795,12 @@ static int icom_network_stream_setup(RIG *rig, struct rig_stream *stream,
      * payload needs nothing done to it in either direction. */
     st->passthrough = icom_network_codec_is_lpcm(net_codec);
     st->wire_frame_bytes = (size_t)wire_sb * (size_t)st->wire_channels;
+    /* What an RX stream writes to the ring: the wire bytes as they are for
+     * I/Q and linear PCM, the decoded 16-bit pivot otherwise. */
+    st->native_frame_bytes = stream_type_is_iq(stream->type)
+                             ? ICOM_NETWORK_IQ_FRAME_BYTES
+                             : st->passthrough ? st->wire_frame_bytes
+                             : 2u * (size_t)st->wire_channels;
     st->silence_fill =
         stream->backend_config.format == RIG_STREAM_FORMAT_PCM_U8 ? 0x80 : 0x00;
 

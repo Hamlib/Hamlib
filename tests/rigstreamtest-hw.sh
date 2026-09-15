@@ -302,12 +302,13 @@ run_test()
     # serve natively in some configuration, but a session serves only what its
     # own negotiated codec and rate give it. A refusal here says this session
     # would have had to convert -- which is the question the test asked, so it
-    # is an answer, not a defect. The mask says what would have converted:
-    # 0x1 format, 0x2 rate, 0x4 channels.
-    *"require_native is set"*)
-        mask=`echo "$out" | sed -n 's/.*requires conversions \(0x[0-9a-f]*\).*/\1/p' | tail -1`
-        echo "SKIP  not native to this session (would convert ${mask:-?})"
-        record "SKIP  $name (not native to this session, conv ${mask:-?})"
+    # is an answer, not a defect. rigstreamtest names the stages that would
+    # have converted (FORMAT, RATE, CHANNELS) on a line of its own, so this
+    # does not depend on the library's log wording.
+    *"refused: native stream required"*)
+        stages=`echo "$out" | sed -n 's/^refused: native stream required, needs=\(.*\)$/\1/p' | tail -1`
+        echo "SKIP  not native to this session (would convert ${stages:-?})"
+        record "SKIP  $name (not native to this session, needs ${stages:-?})"
         SKIP=`expr $SKIP + 1`
         return 0
         ;;

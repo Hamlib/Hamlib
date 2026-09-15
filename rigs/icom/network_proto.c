@@ -417,6 +417,35 @@ int icom_network_packet_parse_civ(const uint8_t *buf, size_t length,
 /* audio data packets                                                  */
 /* ------------------------------------------------------------------ */
 
+int icom_network_codec_channels(uint8_t net_codec)
+{
+    switch (net_codec)
+    {
+    case ICOM_NETWORK_CODEC_LPCM8S:
+    case ICOM_NETWORK_CODEC_LPCM16S:
+    case ICOM_NETWORK_CODEC_PCMUS:
+        return 2;
+
+    default:
+        return 1;
+    }
+}
+
+int icom_network_codec_sample_bytes(uint8_t net_codec)
+{
+    switch (net_codec)
+    {
+    case ICOM_NETWORK_CODEC_PCMU:
+    case ICOM_NETWORK_CODEC_PCMUS:
+    case ICOM_NETWORK_CODEC_LPCM8:
+    case ICOM_NETWORK_CODEC_LPCM8S:
+        return 1;
+
+    default:                       /* LPCM16 family */
+        return 2;
+    }
+}
+
 int icom_network_packet_build_audio(uint8_t *buf, size_t bufsize,
                                     const uint8_t *audio, size_t audio_length,
                                     uint16_t identifier, uint16_t send_sequence,

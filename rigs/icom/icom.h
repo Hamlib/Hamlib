@@ -328,7 +328,7 @@ struct icom_priv_data
     int  net_rx_codec;       /*!< RX audio codec wire byte (0 = model default) */
     int  net_tx_codec;       /*!< TX audio codec wire byte (0 = model default) */
     int  net_sample_rate;    /*!< Network audio sample rate in Hz (0 = default) */
-    int  net_rx_latency;     /*!< RX audio jitter-buffer length in ms (0 = default) */
+    int  net_rx_latency;     /*!< RX reorder window in ms (0 = in-order, no retransmits) */
     int  net_tx_latency;     /*!< TX audio jitter-buffer length in ms (0 = default) */
     int  net_tx_enable;      /*!< Open a TX audio session (0 = RX only) */
     int  net_tx_frame_ms;    /*!< TX audio wire-frame duration in ms */

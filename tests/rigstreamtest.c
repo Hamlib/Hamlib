@@ -38,6 +38,7 @@
 
 #include <hamlib/rig.h>
 #include <hamlib/riglist.h>
+#include "stream_proto.h"
 #include "token.h"
 #include "misc.h"
 #include "rigstreamtest_util.h"
@@ -206,6 +207,39 @@ static const char *type_name(rig_stream_type_t type)
 }
 
 
+/* Open a stream. When --require-native refuses it (-RIG_ENAVAIL), print one
+ * stable line naming the conversion stages the request would have needed,
+ * found by opening it once more without the requirement. Scripts match this
+ * line rather than the library's debug text, which is free to change. */
+static int open_stream_or_report(RIG *rig, struct rig_stream_config *config,
+                                 rig_stream_t **stream)
+{
+    int retval = rig_stream_open(rig, config, stream);
+
+    if (retval == -RIG_ENAVAIL && config->require_native)
+    {
+        long long saved = (long long)config->require_native;
+        rig_stream_t *probe = NULL;
+        char stages[64] = "unknown";
+
+        config->require_native = 0;
+
+        if (rig_stream_open(rig, config, &probe) == RIG_OK)
+        {
+            stream_conversions_str(rig_stream_get_conversions(probe), stages,
+                                   sizeof(stages));
+            rig_stream_close(rig, probe);
+        }
+
+        config->require_native = saved;
+        printf("refused: native stream required, needs=%s\n", stages);
+        fflush(stdout);
+    }
+
+    return retval;
+}
+
+
 /* Print per-second statistics for a running RX stream. */
 static void print_rx_stats(RIG *rig, rig_stream_t *stream,
                            uint64_t total_bytes, int elapsed_sec)
@@ -215,13 +249,18 @@ static void print_rx_stats(RIG *rig, rig_stream_t *stream,
     rig_stream_get_stats(rig, stream, &st);
 
     printf("[%4ds] bytes=%llu  gaps=%u(%u unsized)  overruns=%u  "
-           "underruns=%u  link=%u  dropped(gap/ovr/link)=%llu/%llu/%llu\n",
+           "underruns=%u  link=%u  dropped(gap/ovr/link)=%llu/%llu/%llu  "
+           "concealed(gap/ovr)=%llu/%llu%s%s\n",
            elapsed_sec,
            (unsigned long long)total_bytes,
            st.gaps, st.gaps_unknown, st.overruns, st.underruns, st.link_loss,
            (unsigned long long)st.dropped_samples_gap,
            (unsigned long long)st.dropped_samples_overrun,
-           (unsigned long long)st.dropped_samples_link);
+           (unsigned long long)st.dropped_samples_link,
+           (unsigned long long)st.concealed_samples_gap,
+           (unsigned long long)st.concealed_samples_overrun,
+           st.fail_reason ? "  failed=" : "",
+           st.fail_reason ? rig_strcommreason(st.fail_reason) : "");
     fflush(stdout);
 }
 
@@ -285,7 +324,7 @@ static int run_rx_single(RIG *rig, rig_stream_type_t type,
     printf("Opening %s stream: %d Hz, %d ch\n",
            type_name(type), sample_rate, channels);
 
-    retval = rig_stream_open(rig, config, &stream);
+    retval = open_stream_or_report(rig, config, &stream);
     rig_stream_config_free(config);  /* stream kept its own copy */
 
     if (retval != RIG_OK)
@@ -462,7 +501,7 @@ static int stream_and_leave_open(RIG *rig, rig_stream_type_t type,
     config->channels = channels;
     config->require_native = g_require_native;
 
-    retval = rig_stream_open(rig, config, &stream);
+    retval = open_stream_or_report(rig, config, &stream);
     rig_stream_config_free(config);
 
     if (retval != RIG_OK)
@@ -619,7 +658,7 @@ static int run_tx_single(RIG *rig, int use_iq, int sample_rate, int channels,
            type_name(type), sample_rate, chans,
            use_iq ? " (interleaved I/Q)" : "");
 
-    retval = rig_stream_open(rig, config, &stream);
+    retval = open_stream_or_report(rig, config, &stream);
     rig_stream_config_free(config);  /* stream kept its own copy */
 
     if (retval != RIG_OK)
@@ -771,7 +810,7 @@ static int run_loopback(RIG *rig, int sample_rate, int channels,
     printf("Opening loopback: AUDIO_RX -> AUDIO_TX, %d Hz, %d ch\n",
            sample_rate, channels);
 
-    retval = rig_stream_open(rig, rx_config, &rx_stream);
+    retval = open_stream_or_report(rig, rx_config, &rx_stream);
 
     if (retval != RIG_OK)
     {
@@ -781,7 +820,7 @@ static int run_loopback(RIG *rig, int sample_rate, int channels,
         return retval;
     }
 
-    retval = rig_stream_open(rig, tx_config, &tx_stream);
+    retval = open_stream_or_report(rig, tx_config, &tx_stream);
     /* Both streams kept their own copies; the configs are done. */
     rig_stream_config_free(rx_config);
     rig_stream_config_free(tx_config);
@@ -936,6 +975,8 @@ static void accumulate_stats(struct dir_stats *acc,
     acc->dropped_gap          += st->dropped_samples_gap;
     acc->dropped_overrun      += st->dropped_samples_overrun;
     acc->dropped_link         += st->dropped_samples_link;
+    acc->concealed_gap        += st->concealed_samples_gap;
+    acc->concealed_overrun    += st->concealed_samples_overrun;
 }
 
 /* Open a stream, retrying once after a short pause to absorb a first-connect
@@ -1287,13 +1328,16 @@ static int run_alternating(RIG *rig, const struct alt_opts *o)
 
     printf("\n===== soak summary: %d cycles =====\n", cycle);
     printf("RX: phases=%llu fail=%llu bytes=%llu gaps=%llu(%llu uns) "
-           "ovr=%llu und=%llu link=%llu dropped(g/o/l)=%llu/%llu/%llu\n",
+           "ovr=%llu und=%llu link=%llu dropped(g/o/l)=%llu/%llu/%llu "
+           "concealed(g/o)=%llu/%llu\n",
            (unsigned long long)rx.phases, (unsigned long long)rx.phase_failures,
            (unsigned long long)rx.bytes, (unsigned long long)rx.gaps,
            (unsigned long long)rx.gaps_unknown, (unsigned long long)rx.overruns,
            (unsigned long long)rx.underruns, (unsigned long long)rx.link_loss,
            (unsigned long long)rx.dropped_gap, (unsigned long long)rx.dropped_overrun,
-           (unsigned long long)rx.dropped_link);
+           (unsigned long long)rx.dropped_link,
+           (unsigned long long)rx.concealed_gap,
+           (unsigned long long)rx.concealed_overrun);
     printf("TX: phases=%llu fail=%llu bytes=%llu gaps=%llu ovr=%llu "
            "und=%llu link=%llu tx_late=%llu "
            "rem(ovr/und)=%llu/%llu write_events_dropped=%llu\n",
@@ -1729,14 +1773,16 @@ static int run_full_duplex(RIG *rig, const struct duplex_opts *o)
 
     printf("\n===== full-duplex summary =====\n");
     printf("RX: bytes=%llu gaps=%llu(%llu uns) ovr=%llu und=%llu link=%llu "
-           "dropped(g/o/l)=%llu/%llu/%llu\n",
+           "dropped(g/o/l)=%llu/%llu/%llu concealed(g/o)=%llu/%llu\n",
            (unsigned long long)rxa.bytes,
            (unsigned long long)rs.gaps, (unsigned long long)rs.gaps_unknown,
            (unsigned long long)rs.overruns, (unsigned long long)rs.underruns,
            (unsigned long long)rs.link_loss,
            (unsigned long long)rs.dropped_samples_gap,
            (unsigned long long)rs.dropped_samples_overrun,
-           (unsigned long long)rs.dropped_samples_link);
+           (unsigned long long)rs.dropped_samples_link,
+           (unsigned long long)rs.concealed_samples_gap,
+           (unsigned long long)rs.concealed_samples_overrun);
     printf("TX: bytes=%llu gaps=%llu tx_late=%llu und=%llu ovr=%llu "
            "link=%llu rem(ovr/und)=%llu/%llu write_events_dropped=%llu\n",
            (unsigned long long)txa.bytes, (unsigned long long)ts.gaps,
