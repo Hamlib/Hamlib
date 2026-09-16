@@ -263,7 +263,7 @@ struct icom_network_stream_state
     struct icom_network_session *sess;
     struct rig_audio_codec_state *codec;
     pthread_t thread;
-    volatile int running;   /* thread stop flag; read by the stream thread */
+    HAMLIB_ATOMIC int running;  /* thread stop flag; read by the stream thread */
     unsigned tx_send_errors;  /* failed wire sends; first one is logged */
     int thread_started;
     int wire_channels;       /* negotiated wire codec channel count */

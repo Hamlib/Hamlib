@@ -110,6 +110,30 @@ void icom_network_rxtrack_reset(struct icom_network_rxtrack *rt)
 {
     rt->started  = 0;
     rt->nmissing = 0;
+    rt->behind_run = 0;
+    memset(rt->received_valid, 0, sizeof(rt->received_valid));
+}
+
+void icom_network_rxtrack_expect(struct icom_network_rxtrack *rt,
+                                 uint16_t first)
+{
+    icom_network_rxtrack_reset(rt);
+    rt->started = 1;
+    rt->last_sequence = (uint16_t)(first - 1);
+}
+
+static void rxtrack_mark_received(struct icom_network_rxtrack *rt,
+                                  uint16_t sequence)
+{
+    rt->received[sequence & 0xff] = sequence;
+    rt->received_valid[sequence & 0xff] = 1;
+}
+
+static int rxtrack_was_received(const struct icom_network_rxtrack *rt,
+                                uint16_t sequence)
+{
+    return rt->received_valid[sequence & 0xff]
+           && rt->received[sequence & 0xff] == sequence;
 }
 
 static int rxtrack_find(const struct icom_network_rxtrack *rt,
@@ -162,9 +186,8 @@ static void rxtrack_add_missing(struct icom_network_rxtrack *rt,
     m->last_ms = now_ms - 1000000;
 }
 
-int icom_network_rxtrack_observe(struct icom_network_rxtrack *rt,
-                                 uint16_t sequence,
-                                 int64_t now_ms)
+enum icom_network_rx_result icom_network_rxtrack_observe(
+    struct icom_network_rxtrack *rt, uint16_t sequence, int64_t now_ms)
 {
     uint16_t s;
     uint16_t gap;
@@ -173,15 +196,49 @@ int icom_network_rxtrack_observe(struct icom_network_rxtrack *rt,
     {
         rt->started  = 1;
         rt->last_sequence = sequence;
-        return 0;
+        rt->behind_run = 0;
+        rxtrack_mark_received(rt, sequence);
+        return ICOM_NETWORK_RX_NEW;
     }
 
-    /* A retransmit or duplicate of something at/behind our high-water mark. */
+    /* At or behind the high-water mark: a retransmit we asked for, a copy of
+     * something already here, or a sender that started counting again. */
     if (!sequence_after(sequence, rt->last_sequence))
     {
-        icom_network_rxtrack_received(rt, sequence);
-        return 0;
+        int index = rxtrack_find(rt, sequence);
+
+        if (index >= 0)
+        {
+            rxtrack_remove_at(rt, (size_t)index);
+            rxtrack_mark_received(rt, sequence);
+            rt->behind_run = 0;
+            return ICOM_NETWORK_RX_RECOVERED;
+        }
+
+        if (rxtrack_was_received(rt, sequence))
+        {
+            return ICOM_NETWORK_RX_DUPLICATE;
+        }
+
+        /* Never received: deliver it. A lone one is a packet given up on
+         * that turned up after all; far behind, or several in a row, it is
+         * a restart, and gap tracking has to start again from here. */
+        if ((uint16_t)(rt->last_sequence - sequence) > ICOM_NETWORK_RESTART_DISTANCE
+                || ++rt->behind_run >= ICOM_NETWORK_RESTART_RUN)
+        {
+            icom_network_rxtrack_reset(rt);
+            rt->started = 1;
+            rt->last_sequence = sequence;
+            rxtrack_mark_received(rt, sequence);
+            return ICOM_NETWORK_RX_RESYNC;
+        }
+
+        rxtrack_mark_received(rt, sequence);
+        return ICOM_NETWORK_RX_NEW;
     }
+
+    rt->behind_run = 0;
+    rxtrack_mark_received(rt, sequence);
 
     /* Forward jump: everything between last_sequence and sequence is missing. */
     gap = (uint16_t)(sequence - rt->last_sequence);
@@ -191,7 +248,7 @@ int icom_network_rxtrack_observe(struct icom_network_rxtrack *rt,
         /* Too large to recover packet-by-packet; resync. */
         rt->nmissing = 0;
         rt->last_sequence = sequence;
-        return 1;
+        return ICOM_NETWORK_RX_RESYNC;
     }
 
     for (s = (uint16_t)(rt->last_sequence + 1); s != sequence;
@@ -202,7 +259,8 @@ int icom_network_rxtrack_observe(struct icom_network_rxtrack *rt,
 
     rt->last_sequence = sequence;
 
-    return rt->nmissing > ICOM_NETWORK_MISSING_FLUSH;
+    return rt->nmissing > ICOM_NETWORK_MISSING_FLUSH
+           ? ICOM_NETWORK_RX_RESYNC : ICOM_NETWORK_RX_NEW;
 }
 
 size_t icom_network_rxtrack_due(struct icom_network_rxtrack *rt, int64_t now_ms,

@@ -107,45 +107,52 @@ static void make_fixed(uint8_t *buf, uint32_t length, uint16_t type)
     icom_network_put_le16(buf + 4, type);
 }
 
+#define CONTROL_ROLE ICOM_NETWORK_ROLE_CONTROL
+
 void test_classify(void)
 {
     uint8_t buf[256];
 
     make_fixed(buf, 0x10, ICOM_NETWORK_CTL_PROBE);
-    TEST_CHECK(icom_network_packet_classify(buf, 0x10)
+    TEST_CHECK(icom_network_packet_classify(buf, 0x10, CONTROL_ROLE)
                == ICOM_NETWORK_PACKET_KIND_CONTROL);
 
     make_fixed(buf, 0x15, ICOM_NETWORK_PACKET_TYPE_PING);
-    TEST_CHECK(icom_network_packet_classify(buf, 0x15)
+    TEST_CHECK(icom_network_packet_classify(buf, 0x15, CONTROL_ROLE)
                == ICOM_NETWORK_PACKET_KIND_PING);
 
     make_fixed(buf, 0x10, ICOM_NETWORK_PACKET_TYPE_RETRANSMIT);
-    TEST_CHECK(icom_network_packet_classify(buf, 0x10)
+    TEST_CHECK(icom_network_packet_classify(buf, 0x10, CONTROL_ROLE)
                == ICOM_NETWORK_PACKET_KIND_RETRANSMIT);
 
     make_fixed(buf, 0x40, 0);
-    TEST_CHECK(icom_network_packet_classify(buf, 0x40)
+    TEST_CHECK(icom_network_packet_classify(buf, 0x40, CONTROL_ROLE)
                == ICOM_NETWORK_PACKET_KIND_TOKEN);
     make_fixed(buf, 0x50, 0);
-    TEST_CHECK(icom_network_packet_classify(buf, 0x50)
+    TEST_CHECK(icom_network_packet_classify(buf, 0x50, CONTROL_ROLE)
                == ICOM_NETWORK_PACKET_KIND_STATUS);
     make_fixed(buf, 0x60, 0);
-    TEST_CHECK(icom_network_packet_classify(buf, 0x60)
+    TEST_CHECK(icom_network_packet_classify(buf, 0x60, CONTROL_ROLE)
                == ICOM_NETWORK_PACKET_KIND_LOGIN_RESPONSE);
     make_fixed(buf, 0x80, 0);
-    TEST_CHECK(icom_network_packet_classify(buf, 0x80)
+    TEST_CHECK(icom_network_packet_classify(buf, 0x80, CONTROL_ROLE)
                == ICOM_NETWORK_PACKET_KIND_LOGIN);
     make_fixed(buf, 0x90, 0);
-    TEST_CHECK(icom_network_packet_classify(buf, 0x90)
+    TEST_CHECK(icom_network_packet_classify(buf, 0x90, CONTROL_ROLE)
                == ICOM_NETWORK_PACKET_KIND_CONNINFO);
 
     /* capabilities: 0x42 + 1*0x66 = 0xa8 */
     make_fixed(buf, 0xa8, 0);
-    TEST_CHECK(icom_network_packet_classify(buf, 0xa8)
+    TEST_CHECK(icom_network_packet_classify(buf, 0xa8, CONTROL_ROLE)
                == ICOM_NETWORK_PACKET_KIND_CAPABILITIES);
 
     /* too short */
-    TEST_CHECK(icom_network_packet_classify(buf, 4)
+    TEST_CHECK(icom_network_packet_classify(buf, 4, CONTROL_ROLE)
+               == ICOM_NETWORK_PACKET_KIND_UNKNOWN);
+
+    /* claims more than was received */
+    make_fixed(buf, 0x50, 0);
+    TEST_CHECK(icom_network_packet_classify(buf, 0x40, CONTROL_ROLE)
                == ICOM_NETWORK_PACKET_KIND_UNKNOWN);
 }
 
@@ -157,18 +164,90 @@ void test_classify_data_packets(void)
 
     TEST_CHECK(icom_network_packet_build_civ(buf, sizeof(buf), civ, 3, 0xc0, 7,
                1, 0, 0) > 0);
-    TEST_CHECK(icom_network_packet_classify(buf, 0x18)
+    TEST_CHECK(icom_network_packet_classify(buf, 0x18, ICOM_NETWORK_ROLE_CIV)
                == ICOM_NETWORK_PACKET_KIND_CIV);
 
     TEST_CHECK(icom_network_packet_build_audio(buf, sizeof(buf), pcm, 4, 0x0244,
                5, 1, 0, 0) > 0);
-    TEST_CHECK(icom_network_packet_classify(buf, 0x1c)
+    TEST_CHECK(icom_network_packet_classify(buf, 0x1c, ICOM_NETWORK_ROLE_AUDIO)
                == ICOM_NETWORK_PACKET_KIND_AUDIO);
 
     TEST_CHECK(icom_network_packet_build_openclose(buf, sizeof(buf), 0x04, 1, 1,
                0, 0) == 0x16);
-    TEST_CHECK(icom_network_packet_classify(buf, 0x16)
+    TEST_CHECK(icom_network_packet_classify(buf, 0x16, ICOM_NETWORK_ROLE_CIV)
                == ICOM_NETWORK_PACKET_KIND_OPENCLOSE);
+
+    /* Pings, retransmit requests and bare control opcodes are the same on
+     * every socket. */
+    make_fixed(buf, 0x10, ICOM_NETWORK_CTL_IDLE);
+    TEST_CHECK(icom_network_packet_classify(buf, 0x10, ICOM_NETWORK_ROLE_CIV)
+               == ICOM_NETWORK_PACKET_KIND_CONTROL);
+    TEST_CHECK(icom_network_packet_classify(buf, 0x10, ICOM_NETWORK_ROLE_AUDIO)
+               == ICOM_NETWORK_PACKET_KIND_CONTROL);
+    make_fixed(buf, 0x15, ICOM_NETWORK_PACKET_TYPE_PING);
+    TEST_CHECK(icom_network_packet_classify(buf, 0x15, ICOM_NETWORK_ROLE_AUDIO)
+               == ICOM_NETWORK_PACKET_KIND_PING);
+}
+
+/* A data packet whose total length happens to be a management packet's is
+ * still a data packet on its own socket: every length that collides. */
+void test_classify_by_socket_role(void)
+{
+    static const uint32_t lengths[] = { 0x40, 0x50, 0x60, 0x80, 0x90, 0xa8,
+                                        0x10e
+                                      };
+    uint8_t frame[512], buf[600];
+    size_t i;
+
+    memset(frame, 0x11, sizeof(frame));
+
+    for (i = 0; i < sizeof(lengths) / sizeof(lengths[0]); i++)
+    {
+        uint32_t total = lengths[i];
+        int n;
+
+        /* CI-V: 0x15 + frame */
+        n = icom_network_packet_build_civ(buf, sizeof(buf), frame,
+                                          total - ICOM_NETWORK_CIV_LEN, 0xc1, 3,
+                                          9, 0, 0);
+        TEST_ASSERT(n == (int)total);
+        TEST_CHECK_(icom_network_packet_classify(buf, n, ICOM_NETWORK_ROLE_CIV)
+                    == ICOM_NETWORK_PACKET_KIND_CIV,
+                    "CI-V packet of 0x%x bytes", (unsigned)total);
+        /* The same bytes on the control socket are not CI-V. */
+        TEST_CHECK(icom_network_packet_classify(buf, n, CONTROL_ROLE)
+                   != ICOM_NETWORK_PACKET_KIND_CIV);
+
+        /* audio: 0x18 + payload */
+        n = icom_network_packet_build_audio(buf, sizeof(buf), frame,
+                                            total - ICOM_NETWORK_AUDIO_LEN,
+                                            0x0080, 4, 9, 0, 0);
+        TEST_ASSERT(n == (int)total);
+        TEST_CHECK_(icom_network_packet_classify(buf, n, ICOM_NETWORK_ROLE_AUDIO)
+                    == ICOM_NETWORK_PACKET_KIND_AUDIO,
+                    "audio packet of 0x%x bytes", (unsigned)total);
+    }
+
+    /* A management packet reaching the CI-V socket has no CI-V marker, so it
+     * is not taken for a CI-V frame. */
+    make_fixed(buf, 0x50, 0);
+    TEST_CHECK(icom_network_packet_classify(buf, 0x50, ICOM_NETWORK_ROLE_CIV)
+               == ICOM_NETWORK_PACKET_KIND_UNKNOWN);
+
+    /* A CI-V packet whose payload length runs past the packet is malformed. */
+    {
+        int n = icom_network_packet_build_civ(buf, sizeof(buf), frame, 8, 0xc1, 1,
+                                              1, 0, 0);
+        icom_network_put_le16(buf + ICOM_NETWORK_CIV_OFF_PAYLOAD_LEN, 9);
+        TEST_CHECK(icom_network_packet_classify(buf, n, ICOM_NETWORK_ROLE_CIV)
+                   == ICOM_NETWORK_PACKET_KIND_UNKNOWN);
+
+        n = icom_network_packet_build_audio(buf, sizeof(buf), frame, 8, 0x0080, 1,
+                                            1, 0, 0);
+        icom_network_put_be16(buf + ICOM_NETWORK_AUDIO_OFF_PAYLOAD_LEN, 9);
+        TEST_CHECK(icom_network_packet_classify(buf, n, ICOM_NETWORK_ROLE_AUDIO)
+                   == ICOM_NETWORK_PACKET_KIND_UNKNOWN);
+    }
 }
 
 
@@ -640,6 +719,7 @@ TEST_LIST =
     { "header_short_buffer",     test_header_short_buffer },
     { "classify",                test_classify },
     { "classify_data_packets",   test_classify_data_packets },
+    { "classify_by_socket_role", test_classify_by_socket_role },
     { "build_control",           test_build_control },
     { "ping_roundtrip",          test_ping_roundtrip },
     { "openclose_layout",        test_openclose_layout },

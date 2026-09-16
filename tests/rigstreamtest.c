@@ -422,7 +422,7 @@ static int run_rx_single(RIG *rig, rig_stream_type_t type,
         }
         else if (retval != RIG_OK && retval != -RIG_ETIMEOUT)
         {
-            fprintf(stderr, "rig_stream_read error: %s\n", rigerror(retval));
+            fprintf(stderr, "rig_stream_read error: %s\n", rigerror2(retval));
             break;
         }
 
@@ -515,11 +515,17 @@ static int stream_and_leave_open(RIG *rig, rig_stream_type_t type,
     while (time(NULL) < end)
     {
         size_t got = 0;
+        int ret = rig_stream_read(rig, stream, buf, sizeof(buf), &got, 200, NULL);
 
-        if (rig_stream_read(rig, stream, buf, sizeof(buf), &got, 200, NULL)
-                == RIG_OK)
+        if (ret == RIG_OK)
         {
             total += got;
+        }
+        else if (ret != -RIG_ETIMEOUT)
+        {
+            /* A failed or closed stream returns at once, every time. */
+            fprintf(stderr, "rig_stream_read error: %s\n", rigerror2(ret));
+            break;
         }
     }
 
@@ -882,6 +888,14 @@ static int run_loopback(RIG *rig, int sample_rate, int channels,
         retval = rig_stream_read(rig, rx_stream, buf, buf_bytes,
                                  &bytes_read, 200, NULL);
 
+        if (retval != RIG_OK && retval != -RIG_ETIMEOUT)
+        {
+            /* A failed or closed stream returns at once, every time: stop
+             * rather than spin until the duration runs out. */
+            fprintf(stderr, "rig_stream_read error: %s\n", rigerror2(retval));
+            break;
+        }
+
         if (retval == RIG_OK && bytes_read > 0)
         {
             total_rx += bytes_read;
@@ -1077,7 +1091,7 @@ static void run_rx_phase(RIG *rig, rig_stream_type_t type,
         }
         else if (ret != RIG_OK && ret != -RIG_ETIMEOUT)
         {
-            fprintf(stderr, "  rig_stream_read error: %s\n", rigerror(ret));
+            fprintf(stderr, "  rig_stream_read error: %s\n", rigerror2(ret));
             err->read_err++;
             break;
         }

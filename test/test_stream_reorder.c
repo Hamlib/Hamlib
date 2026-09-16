@@ -372,9 +372,10 @@ static void test_resync_on_jump(void)
 
 static void test_resync_on_counter_restart(void)
 {
-    /* A sender that restarts its counter far behind looks late at first; a
-     * run longer than max_gap means it is not coming back. */
-    struct stream_reorder *r = stream_reorder_new(0, 16, 64, 3, 16);
+    /* A sender that restarts its counter looks late at first. From further
+     * back than max_gap, a second such packet in a row settles it; a stray
+     * old copy alone does not. */
+    struct stream_reorder *r = stream_reorder_new(0, 16, 64, 8, 16);
     uint32_t s;
     TEST_ASSERT(r != NULL);
 
@@ -382,13 +383,31 @@ static void test_resync_on_counter_restart(void)
     CHECK_DRAIN(r, 0, "P40000");
 
     /* 39000.. is behind 40001 in the 16-bit space (0 would be ahead). */
-    for (s = 39000; s < 39003; s++)
+    TEST_CHECK(push_seq(r, 39000, 1) == STREAM_REORDER_LATE);
+    TEST_CHECK(push_seq(r, 40001, 1) == STREAM_REORDER_ACCEPTED);
+    CHECK_DRAIN(r, 1, "P40001");
+    TEST_CHECK(push_seq(r, 39001, 1) == STREAM_REORDER_LATE);
+    TEST_CHECK(push_seq(r, 39002, 1) == STREAM_REORDER_RESYNC);
+    CHECK_DRAIN(r, 1, "U39002 P39002");
+
+    /* Close behind, only a run longer than max_gap is a restart. */
+    stream_reorder_free(r);
+    r = stream_reorder_new(0, 16, 64, 8, 16);
+    TEST_ASSERT(r != NULL);
+
+    for (s = 10; s <= 20; s++)
+    {
+        push_seq(r, s, 0);
+    }
+
+    CHECK_DRAIN(r, 0, "P10 P11 P12 P13 P14 P15 P16 P17 P18 P19 P20");
+
+    for (s = 13; s <= 20; s++)
     {
         TEST_CHECK(push_seq(r, s, 1) == STREAM_REORDER_LATE);
     }
 
-    TEST_CHECK(push_seq(r, 39003, 1) == STREAM_REORDER_RESYNC);
-    CHECK_DRAIN(r, 1, "U39003 P39003");
+    TEST_CHECK(push_seq(r, 20, 1) == STREAM_REORDER_RESYNC);
 
     stream_reorder_free(r);
 }

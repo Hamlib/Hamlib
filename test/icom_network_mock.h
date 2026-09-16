@@ -48,13 +48,14 @@ struct mock_server
     uint16_t civ_port;
     uint16_t audio_port;
     pthread_t thread;
-    volatile int stop;
-    volatile int saw_civ_cmd;
-    volatile int send_spectrum;  /* emit a spectrum frame before each response */
-    volatile int stale_nak;      /* flush a stale NAK at CI-V stream-open */
+    HAMLIB_ATOMIC int stop;
+    HAMLIB_ATOMIC int saw_civ_cmd;
+    /* emit a spectrum frame before each response */
+    HAMLIB_ATOMIC int send_spectrum;
+    HAMLIB_ATOMIC int stale_nak;      /* flush a stale NAK at CI-V stream-open */
     /* Advance the CI-V sequence by this much before the next response, to
      * simulate a burst of loss larger than the replay window. */
-    volatile int civ_sequence_jump;
+    HAMLIB_ATOMIC int civ_sequence_jump;
 
     /* Unsolicited traffic the radio can send that the client must answer.
      * The client address is captured from the CI-V stream-open packet. */
@@ -66,21 +67,21 @@ struct mock_server
     struct sockaddr_in ctrl_peer;
     socklen_t ctrl_peer_length;
     uint32_t ctrl_client_id;
-    volatile int ask_retransmit;     /* send a retransmit request for below */
-    volatile int retransmit_sequence;
-    volatile int saw_retransmit_reply;
+    HAMLIB_ATOMIC int ask_retransmit;     /* send a retransmit request for below */
+    HAMLIB_ATOMIC int retransmit_sequence;
+    HAMLIB_ATOMIC int saw_retransmit_reply;
     /* Report audio_port 0 in the status reply, as a radio with no audio
      * path would. Makes the backend's audio_start fail after stream_open
      * has already allocated its buffers. */
-    volatile int no_audio_port;
+    HAMLIB_ATOMIC int no_audio_port;
     /* Go silent: keep the sockets bound but stop replying, as a radio that
      * lost power or fell off the network does. */
-    volatile int go_silent;
+    HAMLIB_ATOMIC int go_silent;
     /* Send an unsolicited status with the disconnect flag, as a radio does
      * when another client takes the session. */
-    volatile int announce_disconnect;
-    volatile int ask_ping;           /* send a ping *request* (reply flag 0) */
-    volatile int saw_ping_reply;
+    HAMLIB_ATOMIC int announce_disconnect;
+    HAMLIB_ATOMIC int ask_ping;           /* send a ping *request* (reply flag 0) */
+    HAMLIB_ATOMIC int saw_ping_reply;
     /* Advertised radio list. Defaults to one IC-7610 offering every rate the
      * protocol can express, matching what real hardware reports. */
     int radio_count;
@@ -92,15 +93,16 @@ struct mock_server
     } radios[4];
     /* Copy of the connection-info request the client sent, so a test can check
      * which radio it selected and whether it asked for a TX audio path. */
-    volatile int saw_connection_info;
+    HAMLIB_ATOMIC int saw_connection_info;
     /* Answer the connection-info request with this status error (0 = OK), as
      * a radio still holding another session's slot does. */
-    volatile uint32_t status_error;
+    HAMLIB_ATOMIC uint32_t status_error;
     /* Behave like the radio on the control socket: number the handshake
      * replies and idles as tracked packets, keep them for retransmission, and
      * answer retransmit requests. Off by default. */
-    volatile int ctrl_tracked;
+    HAMLIB_ATOMIC int ctrl_tracked;
     uint16_t ctrl_sequence;
+    int ctrl_logged_in;         /* login reply sent: tracked idles may start */
     int64_t ctrl_last_idle_ms;
     struct
     {
@@ -109,21 +111,44 @@ struct mock_server
         uint8_t data[0x42 + 4 * 0x66];
     } ctrl_sent[16];
     int ctrl_sent_head;
-    volatile int ctrl_retransmit_requests;
+    HAMLIB_ATOMIC int ctrl_retransmit_requests;
     /* Lose this many capabilities replies on the way (they still consume a
      * sequence number, so the client sees a gap). */
-    volatile int drop_capabilities_replies;
+    HAMLIB_ATOMIC int drop_capabilities_replies;
+    /* The same for login replies: the first tracked packet, sequence 0. */
+    HAMLIB_ATOMIC int drop_login_replies;
     /* Ignore a login/token/connection-info request whose sequence was already
      * received, as the radio does with a resent packet. */
-    volatile int ctrl_ignore_resends;
+    HAMLIB_ATOMIC int ctrl_ignore_resends;
     uint16_t ctrl_seen[32];
     int ctrl_seen_count;
     /* Session clean-up seen on the control socket. */
-    volatile int saw_token_remove;
-    volatile int saw_ctrl_disconnect;
+    HAMLIB_ATOMIC int saw_token_remove;
+    HAMLIB_ATOMIC int saw_ctrl_disconnect;
     uint8_t connection_info[0x90];
     uint16_t civ_sequence;
     uint16_t audio_sequence;
+
+    /* CI-V socket behaviour. Like the radio, the mock sends idles on the CI-V
+     * socket every civ_idle_ms (default 50; 0 = none), numbered in the same
+     * sequence as its CI-V frames, so a client that tracks only the frames
+     * sees false gaps. */
+    HAMLIB_ATOMIC int civ_idle_ms;
+    int64_t civ_last_idle_ms;
+    HAMLIB_ATOMIC int civ_retransmit_requests;  /* requests on the CI-V socket */
+    /* Reply with a frame of this many bytes instead of the canned one
+     * (0 = canned), to give the packet any total length. */
+    HAMLIB_ATOMIC int civ_reply_length;
+    /* Send each CI-V reply twice with the same sequence number. */
+    HAMLIB_ATOMIC int civ_duplicate_reply;
+    /* Stop sending anything on the CI-V socket (idles, replies, ping replies)
+     * while the control socket carries on, as a radio that stopped serving
+     * the CI-V stream does. */
+    HAMLIB_ATOMIC int civ_silent;
+    /* Close the CI-V socket, so the client's packets to it are refused. */
+    HAMLIB_ATOMIC int close_civ;
+    /* Datagrams received on any socket, silent or not. */
+    HAMLIB_ATOMIC int rx_packets;
 
     /* Scripted audio. Setting audio_script_go sends audio_script_count data
      * packets, in the order listed, with the sequence numbers in audio_script;
@@ -132,16 +157,16 @@ struct mock_server
      * duplicates and gaps in what comes out. The flag clears once sent. */
     uint16_t audio_script[256];
     uint16_t audio_script_bytes[256];
-    volatile int audio_script_count;
-    volatile int audio_script_go;
+    HAMLIB_ATOMIC int audio_script_count;
+    HAMLIB_ATOMIC int audio_script_go;
     /* One sequence number held back: sent only in answer to a retransmit
      * request for it (-1 = none). audio_withheld_bytes as in the script. */
-    volatile int audio_withheld;
+    HAMLIB_ATOMIC int audio_withheld;
     uint16_t audio_withheld_bytes;
     /* Requests for the withheld packet to ignore before answering one, as if
      * the first resends were lost on the way. */
-    volatile int audio_withheld_ignore;
-    volatile int audio_retransmit_requests;  /* requests seen on audio socket */
+    HAMLIB_ATOMIC int audio_withheld_ignore;
+    HAMLIB_ATOMIC int audio_retransmit_requests;  /* requests on audio socket */
     struct sockaddr_in audio_peer;
     socklen_t audio_peer_length;
     uint32_t audio_client_id;

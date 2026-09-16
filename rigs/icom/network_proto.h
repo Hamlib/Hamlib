@@ -57,7 +57,7 @@
 
 /* CI-V data packet (0x15 header + payload). */
 #define ICOM_NETWORK_CIV_LEN            0x15
-#define ICOM_NETWORK_CIV_OFF_REPLY      0x10  /* u8, 0xc0 from radio, 0xc1 to it */
+#define ICOM_NETWORK_CIV_OFF_REPLY      0x10  /* u8, 0xc0 or 0xc1 (radios use both) */
 #define ICOM_NETWORK_CIV_OFF_PAYLOAD_LEN 0x11 /* le16 */
 #define ICOM_NETWORK_CIV_OFF_SEND_SEQ   0x13  /* be16, unlike the header's */
 
@@ -151,6 +151,17 @@ int icom_network_codec_sample_bytes(uint8_t net_codec);
 
 /* The radio frames its own audio in 20 ms chunks for every codec. */
 #define ICOM_NETWORK_AUDIO_FRAME_MS 20
+
+/* Which of the three sockets a packet arrived on. The packet lengths alone
+ * do not tell a management packet from a data packet (a CI-V or audio packet
+ * of the right size has the same length as a token or status packet), but
+ * each socket carries only its own kinds, so classification goes by role. */
+enum icom_network_socket_role
+{
+    ICOM_NETWORK_ROLE_CONTROL = 0,  /* login, token, capabilities, status */
+    ICOM_NETWORK_ROLE_CIV,          /* CI-V data stream */
+    ICOM_NETWORK_ROLE_AUDIO,        /* audio data stream */
+};
 
 /* Classification of a received packet, derived from (length, type, payload). */
 enum icom_network_packet_kind
@@ -380,8 +391,13 @@ int icom_network_packet_build_header(uint8_t *buf, size_t bufsize,
                                      uint32_t local_id, uint32_t remote_id);
 int icom_network_packet_parse_header(const uint8_t *buf, size_t length,
                                      struct icom_network_packet_header *hdr);
+/* Classify a packet received on a socket of the given role. Pings, retransmit
+ * requests and bare control opcodes are recognised on every socket; the
+ * management kinds only on the control socket, CI-V (and open/close) only on
+ * the CI-V socket and audio only on the audio socket, each checked against its
+ * own structure. Anything else is ICOM_NETWORK_PACKET_KIND_UNKNOWN. */
 enum icom_network_packet_kind icom_network_packet_classify(const uint8_t *buf,
-        size_t length);
+        size_t length, enum icom_network_socket_role role);
 
 /* ---- small control packets ---- */
 int icom_network_packet_build_control(uint8_t *buf, size_t bufsize,

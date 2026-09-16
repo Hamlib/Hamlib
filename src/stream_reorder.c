@@ -60,6 +60,7 @@ struct stream_reorder
                                is always a held packet) */
     size_t held;            /* present slots */
     uint32_t late_run;      /* consecutive late arrivals */
+    uint32_t far_run;       /* consecutive arrivals more than max_gap behind */
 
     int unsized_pending;    /* release an unsized gap first */
     uint32_t sized_pending; /* release a sized gap of this many first */
@@ -156,6 +157,7 @@ static void resync(struct stream_reorder *r, uint32_t seq)
     r->base = 0;
     r->next = seq & r->mask;
     r->late_run = 0;
+    r->far_run = 0;
     r->force_pending = 0;
     r->sized_pending = 0;
     r->unsized_pending = 1;
@@ -250,6 +252,7 @@ void stream_reorder_reset(struct stream_reorder *r)
     r->span = 0;
     r->base = 0;
     r->late_run = 0;
+    r->far_run = 0;
     r->force_pending = 0;
     r->unsized_pending = 0;
     r->sized_pending = 0;
@@ -283,10 +286,17 @@ int stream_reorder_push(struct stream_reorder *r, uint32_t seq,
     if (offset >= r->half)
     {
         /* Behind the release point. A long run of these is not lateness but
-         * a sender that restarted its counter. */
-        r->late_run++;
+         * a sender that restarted its counter; so are two in a row from
+         * further back than max_gap, which no late packet can be. (One alone
+         * may be a stray old copy.) A sender that reopens a stream does
+         * this: its new flow counts from zero behind packets left over from
+         * the old one. */
+        uint32_t behind = (r->next - seq) & r->mask;
 
-        if (r->max_gap > 0 && r->late_run > r->max_gap)
+        r->late_run++;
+        r->far_run = behind > r->max_gap ? r->far_run + 1 : 0;
+
+        if (r->max_gap > 0 && (r->late_run > r->max_gap || r->far_run >= 2))
         {
             resync(r, seq);
             store(r, 0, data, length, now_ms);
@@ -298,6 +308,7 @@ int stream_reorder_push(struct stream_reorder *r, uint32_t seq,
     }
 
     r->late_run = 0;
+    r->far_run = 0;
 
     if (offset < r->span)
     {

@@ -287,16 +287,29 @@ probe/present -> ready -> login -> token create -> capabilities
     -> reconnect data sockets -> CI-V stream open -> keepalive threads
 ```
 
-Every packet carries a sequence number. On the CI-V socket lost packets are
-re-requested and replayed from a small transmit buffer; a loss burst wider than
-that buffer can recover causes a resynchronisation instead, logged and counted.
-Audio and I/Q follow their own rules, below.
+Every packet carries a sequence number. On the CI-V and control sockets lost
+packets are re-requested and replayed from a small transmit buffer; a loss
+burst wider than that buffer can recover causes a resynchronisation instead,
+logged and counted. All of the radio's numbered packets are tracked, idles
+included: it numbers its idles in the same sequence as its CI-V frames, so
+tracking only the frames saw a false gap for every idle. A CI-V frame that
+arrives twice is delivered once, since a repeated ACK or reply would be taken as
+the answer to the next command. A sender that starts counting again (a reopened
+stream) is recognised and tracking restarts from it. Audio and I/Q follow their
+own rules, below.
+
+Packets are classified by the socket they arrive on. Lengths alone are
+ambiguous: a CI-V or audio packet can be exactly as long as a token or status
+packet, so on the CI-V and audio sockets packets are recognised by their own
+structure, and the fixed-size management packets only on the control socket.
 
 The handshake is protected the same way. A reply from the radio that is lost
 on the way (login, capabilities, connection info) is noticed from the gap in
 the radio's sequence numbers and requested again; resending the request would
 not help, because the radio has already received it and does not answer it
-twice. A connect that fails part-way hands its token back and disconnects
+twice. The radio numbers a stream's tracked packets from 0 (the login response
+is 0, the capabilities reply 1), and tracking expects that, so even the very
+first reply is recovered when it is lost. A connect that fails part-way hands its token back and disconnects
 before returning. Otherwise the radio would keep the half-open session's slot
 and refuse the next attempts for tens of seconds.
 
@@ -451,14 +464,30 @@ A network session can end without warning: another client takes the radio (only
 one may hold it), it loses power, or the network path drops. Only the first of
 those makes the radio tell us; the other two are silence.
 
-The backend watches for both. Any packet from the radio counts as proof of life,
-and if nothing arrives for `net_liveness_timeout` the session is declared lost.
-An unsolicited disconnect from the radio ends it immediately. Either way:
+The backend watches for both, on each socket separately: control, CI-V, and
+audio while a stream runs. The radio sends steady traffic on every one of them
+(idles, pings and their replies: about 23 packets a second on control, 46 on
+CI-V and 115 on audio while streaming, measured on an IC-7610 and an IC-9700),
+so if nothing arrives on any one of them for `net_liveness_timeout`, the session
+is declared lost. Checking them separately matters: the control socket can go on
+exchanging keepalives while the radio has stopped serving CI-V.
+
+Socket errors (the radio's port refusing packets, the network unreachable) do
+not end the session by themselves: a path that fails for a moment is ridden out
+for as long as `net_liveness_timeout` allows, and `0` still means never. They
+name the cause instead: a socket that went silent after reporting an error is
+lost as `SOCKET_ERROR` rather than `LINK_TIMEOUT`. While a socket reports
+errors, a CI-V command or TX audio packet sent on it fails at once with
+`-RIG_EIO`; the next packet received clears that, which on a working CI-V
+socket is a few tens of milliseconds away.
+
+An unsolicited disconnect from the radio ends the session immediately. Either
+way:
 
 - the loss is logged with its cause;
 - `comm_status` becomes `DISCONNECTED` and `comm_reason` says why —
   `PEER_DISCONNECT` (someone else took the radio), `LINK_TIMEOUT` (it went
-  quiet) or `SOCKET_ERROR`;
+  quiet) or `SOCKET_ERROR` (a socket kept failing);
 - both are published in the multicast snapshot as `status` and `statusReason`
   (multicast is off by default; enable it with `-C multicast_data_addr=224.0.0.1`);
 - open streams end: `rig_stream_read()` hands over what was already buffered
@@ -493,9 +522,10 @@ rigctld sends its client an ERROR frame with the reason, so a netrigctl stream
 behind rigctld returns `-RIG_EIO` just like a local one, with the same
 `fail_reason`; `\stream_status` shows it as `fail_reason`.
 
-Control calls keep returning `-RIG_ETIMEOUT` rather than failing fast. That is
-deliberate: a false positive must not be able to break control of a working
-radio.
+Once the session is lost, control calls keep returning `-RIG_ETIMEOUT` rather
+than failing fast. That is deliberate: a false positive must not be able to
+break control of a working radio. (The one exception above is a socket that is
+reporting errors at that moment, and it clears as soon as anything arrives.)
 
 The threshold must be either 0 (never give up) or at least 1000 ms. The radio's
 regular traffic is its answer to a 500 ms keepalive, so a threshold near that
@@ -507,6 +537,10 @@ interval would trip on ordinary jitter.
 with a growing delay — 1, 2, 4, 8, 16 seconds, then every 30 — indefinitely. The
 early attempts are expected to fail: the radio holds a lost session's slot for
 its own timeout before it will accept a new one.
+
+While a reconnect replaces the sockets, CI-V commands and stream calls fail with
+`-RIG_EIO` instead of reaching a socket that is being closed. Closing the rig
+during a reconnect stops it promptly, even in the middle of a handshake.
 
 Control recovers by itself. **Open streams do not**: the new session has fresh
 sequence numbers and possibly different ports, so streams are ended and the

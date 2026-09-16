@@ -77,7 +77,9 @@
 #   - above 0 ms: retx_requests > 0, and gaps falling as the window grows,
 #     until the window covers the radio's retransmit latency;
 #   - silence and chain: PASS;
-#   - handshake: every attempt opened, in a few seconds each.
+#   - handshake: every attempt opened, in a few seconds each. For a failed
+#     attempt, handshake.log names the step that failed, and
+#     handshake-N.log (trace level) has the rest; send those too.
 #
 # Examples:
 #
@@ -452,6 +454,28 @@ lossy_run()
     done
 }
 
+# Stop the chain test's rigctld and wait until it has gone. It holds the radio's
+# session until it exits, and a later test would be refused by the radio.
+stop_chain_rigctld()
+{
+    kill "$1" 2>/dev/null
+    wait "$1" 2>/dev/null
+    tries=0
+
+    while pgrep -f "rigctld -m $MODEL -r $RADIO .* -t $CHAIN_PORT" >/dev/null 2>&1; do
+        if [ $tries -ge 50 ]; then
+            say "  (rigctld did not exit within 10 s of SIGTERM; killed)"
+            pkill -9 -f "rigctld -m $MODEL -r $RADIO .* -t $CHAIN_PORT" >/dev/null 2>&1
+            break
+        fi
+
+        [ $tries -eq 0 ] && pkill -f "rigctld -m $MODEL -r $RADIO .* -t $CHAIN_PORT" \
+            >/dev/null 2>&1
+        sleep 0.2
+        tries=`expr $tries + 1`
+    done
+}
+
 # The value of KEY=N in a stats line.
 stat_of()
 {
@@ -538,7 +562,12 @@ if wanted chain; then
     # A session lost to silence keeps its slot on the radio for a while, so
     # wait until rigctld has really got the rig before starting the client.
     sleep 20
-    as_user "$RIGCTLD" -m "$MODEL" -r "$RADIO" -C "$SET_CONF" -t "$CHAIN_PORT" \
+    # Started with sudo directly, not through as_user: a backgrounded shell
+    # function runs in a subshell, and $! would be that subshell, which a kill
+    # ends without reaching rigctld. Its log is written by this (root) shell,
+    # like the others.
+    # shellcheck disable=SC2024
+    sudo -u "$SUDO_USER" "$RIGCTLD" -m "$MODEL" -r "$RADIO" -C "$SET_CONF" -t "$CHAIN_PORT" \
         > "$dlog" 2>&1 &
     dpid=$!
     ready=0
@@ -576,8 +605,7 @@ if wanted chain; then
         fi
     fi
 
-    kill $dpid 2>/dev/null
-    wait $dpid 2>/dev/null
+    stop_chain_rigctld $dpid
 fi
 
 # --- handshake: open the rig on a lossy link --------------------------------
@@ -598,15 +626,22 @@ if wanted handshake; then
         start=`now_ms`
 
         echo "--- attempt $try" >> "$log"
+        # rigctl says nothing about a failed open unless verbose, so each
+        # attempt keeps its own trace; a failure's cause is copied below.
+        tlog="$OUTDIR/handshake-$try.log"
 
-        if as_user "$RIGCTL" -m "$MODEL" -r "$RADIO" -C "$SET_CONF" f \
-                >> "$log" 2>&1; then
+        if as_user "$RIGCTL" -m "$MODEL" -r "$RADIO" -C "$SET_CONF" -vvvvv f \
+                > "$tlog" 2>&1; then
             end=`now_ms`
             opened=`expr $opened + 1`
             total_ms=`expr $total_ms + $end - $start`
             echo "--- attempt $try opened in `expr $end - $start` ms" >> "$log"
         else
-            echo "--- attempt $try FAILED" >> "$log"
+            end=`now_ms`
+            echo "--- attempt $try FAILED after `expr $end - $start` ms" \
+                "(`basename "$tlog"`):" >> "$log"
+            grep -E 'no (login|capabilities|status) response|status error|login rejected|cannot open|echo status result|returning2?\(-' \
+                "$tlog" | head -8 >> "$log"
         fi
 
         try=`expr $try + 1`

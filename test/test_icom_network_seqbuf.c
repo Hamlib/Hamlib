@@ -107,9 +107,9 @@ void test_rxtrack_sequential(void)
 {
     struct icom_network_rxtrack rt;
     icom_network_rxtrack_init(&rt);
-    TEST_CHECK(icom_network_rxtrack_observe(&rt, 10, 0) == 0);
-    TEST_CHECK(icom_network_rxtrack_observe(&rt, 11, 0) == 0);
-    TEST_CHECK(icom_network_rxtrack_observe(&rt, 12, 0) == 0);
+    TEST_CHECK(icom_network_rxtrack_observe(&rt, 10, 0) == ICOM_NETWORK_RX_NEW);
+    TEST_CHECK(icom_network_rxtrack_observe(&rt, 11, 0) == ICOM_NETWORK_RX_NEW);
+    TEST_CHECK(icom_network_rxtrack_observe(&rt, 12, 0) == ICOM_NETWORK_RX_NEW);
     TEST_CHECK(rt.nmissing == 0);
 }
 
@@ -123,7 +123,8 @@ void test_rxtrack_gap_and_recover(void)
     TEST_CHECK(rt.nmissing == 2);
 
     /* a retransmit of 11 arrives (behind last_sequence=13) */
-    icom_network_rxtrack_observe(&rt, 11, 0);
+    TEST_CHECK(icom_network_rxtrack_observe(&rt, 11, 0)
+               == ICOM_NETWORK_RX_RECOVERED);
     TEST_CHECK(rt.nmissing == 1);
 
     icom_network_rxtrack_received(&rt, 12);
@@ -163,7 +164,8 @@ void test_rxtrack_flush_on_large_jump(void)
     icom_network_rxtrack_observe(&rt, 10, 0);
     /* jump beyond the flush threshold triggers a resync */
     TEST_CHECK(icom_network_rxtrack_observe(&rt,
-               (uint16_t)(10 + ICOM_NETWORK_MISSING_FLUSH + 5), 0) == 1);
+               (uint16_t)(10 + ICOM_NETWORK_MISSING_FLUSH + 5), 0)
+               == ICOM_NETWORK_RX_RESYNC);
     TEST_CHECK(rt.nmissing == 0);
 }
 
@@ -179,6 +181,102 @@ void test_rxtrack_sequence_wrap(void)
     TEST_CHECK(rt.nmissing == 0);
 }
 
+/* A packet already received is recognised as a duplicate, whether it is the
+ * newest one again or an older one; a missing one is not. */
+void test_rxtrack_duplicates(void)
+{
+    struct icom_network_rxtrack rt;
+    icom_network_rxtrack_init(&rt);
+
+    icom_network_rxtrack_observe(&rt, 10, 0);
+    icom_network_rxtrack_observe(&rt, 11, 0);
+    icom_network_rxtrack_observe(&rt, 14, 0);   /* 12, 13 missing */
+
+    TEST_CHECK(icom_network_rxtrack_observe(&rt, 14, 0)
+               == ICOM_NETWORK_RX_DUPLICATE);
+    TEST_CHECK(icom_network_rxtrack_observe(&rt, 11, 0)
+               == ICOM_NETWORK_RX_DUPLICATE);
+    TEST_CHECK(icom_network_rxtrack_observe(&rt, 12, 0)
+               == ICOM_NETWORK_RX_RECOVERED);
+    /* recovered once; a second copy is a duplicate */
+    TEST_CHECK(icom_network_rxtrack_observe(&rt, 12, 0)
+               == ICOM_NETWORK_RX_DUPLICATE);
+    TEST_CHECK(rt.nmissing == 1);
+    TEST_CHECK(icom_network_rxtrack_observe(&rt, 15, 0) == ICOM_NETWORK_RX_NEW);
+
+    /* across the wrap */
+    icom_network_rxtrack_init(&rt);
+    icom_network_rxtrack_observe(&rt, 0xffff, 0);
+    icom_network_rxtrack_observe(&rt, 0x0000, 0);
+    TEST_CHECK(icom_network_rxtrack_observe(&rt, 0xffff, 0)
+               == ICOM_NETWORK_RX_DUPLICATE);
+}
+
+/* A reopened stream: the new session first gets the previous client's leftover
+ * packets with their old, high numbers, then the new stream counting from
+ * zero. None of the new packets may be taken for duplicates -- even those
+ * within reach of the old numbers -- and tracking starts again from them. */
+void test_rxtrack_restart_is_resync(void)
+{
+    struct icom_network_rxtrack rt;
+    uint16_t out[8];
+    uint16_t seq;
+
+    /* short old stream: the leftovers are numbered 190..200 */
+    icom_network_rxtrack_init(&rt);
+
+    for (seq = 190; seq <= 200; seq++)
+    {
+        icom_network_rxtrack_observe(&rt, seq, 0);
+    }
+
+    TEST_CHECK(icom_network_rxtrack_observe(&rt, 1, 0) == ICOM_NETWORK_RX_NEW);
+    TEST_CHECK(icom_network_rxtrack_observe(&rt, 2, 0) == ICOM_NETWORK_RX_NEW);
+    TEST_CHECK(icom_network_rxtrack_observe(&rt, 3, 0) == ICOM_NETWORK_RX_NEW);
+    TEST_CHECK(icom_network_rxtrack_observe(&rt, 4, 0) == ICOM_NETWORK_RX_RESYNC);
+    /* tracking follows the new stream: a gap there is noticed */
+    TEST_CHECK(icom_network_rxtrack_observe(&rt, 5, 0) == ICOM_NETWORK_RX_NEW);
+    TEST_CHECK(icom_network_rxtrack_observe(&rt, 7, 0) == ICOM_NETWORK_RX_NEW);
+    TEST_CHECK(icom_network_rxtrack_due(&rt, 0, 100, out, 8) == 1 && out[0] == 6);
+
+    /* long old stream: far behind is a restart at once */
+    icom_network_rxtrack_init(&rt);
+    icom_network_rxtrack_observe(&rt, 5000, 0);
+    TEST_CHECK(icom_network_rxtrack_observe(&rt, 1, 0) == ICOM_NETWORK_RX_RESYNC);
+    TEST_CHECK(icom_network_rxtrack_observe(&rt, 2, 0) == ICOM_NETWORK_RX_NEW);
+
+    /* one packet given up on and arriving afterwards is delivered, not
+     * dropped, and is no restart */
+    icom_network_rxtrack_init(&rt);
+    icom_network_rxtrack_observe(&rt, 10, 0);
+    icom_network_rxtrack_observe(&rt, 13, 0);   /* 11, 12 missing */
+    rt.nmissing = 0;                            /* as if given up */
+    TEST_CHECK(icom_network_rxtrack_observe(&rt, 11, 0) == ICOM_NETWORK_RX_NEW);
+    TEST_CHECK(icom_network_rxtrack_observe(&rt, 11, 0)
+               == ICOM_NETWORK_RX_DUPLICATE);
+    TEST_CHECK(icom_network_rxtrack_observe(&rt, 14, 0) == ICOM_NETWORK_RX_NEW);
+}
+
+/* Expecting the first sequence makes a lost first packet a gap like any
+ * other. */
+void test_rxtrack_expect_first(void)
+{
+    struct icom_network_rxtrack rt;
+    uint16_t out[8];
+
+    icom_network_rxtrack_init(&rt);
+    icom_network_rxtrack_expect(&rt, 0);
+    TEST_CHECK(icom_network_rxtrack_observe(&rt, 1, 0) == ICOM_NETWORK_RX_NEW);
+    TEST_CHECK(icom_network_rxtrack_due(&rt, 0, 100, out, 8) == 1 && out[0] == 0);
+    TEST_CHECK(icom_network_rxtrack_observe(&rt, 0, 0)
+               == ICOM_NETWORK_RX_RECOVERED);
+
+    /* and a stream that does start at the expected number has no gap */
+    icom_network_rxtrack_expect(&rt, 0);
+    TEST_CHECK(icom_network_rxtrack_observe(&rt, 0, 0) == ICOM_NETWORK_RX_NEW);
+    TEST_CHECK(rt.nmissing == 0);
+}
+
 
 TEST_LIST =
 {
@@ -191,5 +289,8 @@ TEST_LIST =
     { "rxtrack_due_and_retry_cap", test_rxtrack_due_and_retry_cap },
     { "rxtrack_flush_large_jump", test_rxtrack_flush_on_large_jump },
     { "rxtrack_sequence_wrap",         test_rxtrack_sequence_wrap },
+    { "rxtrack_duplicates",       test_rxtrack_duplicates },
+    { "rxtrack_restart_is_resync", test_rxtrack_restart_is_resync },
+    { "rxtrack_expect_first",     test_rxtrack_expect_first },
     { NULL, NULL }
 };

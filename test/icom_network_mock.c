@@ -164,8 +164,12 @@ static void mock_send_unsolicited(struct mock_server *m)
     uint8_t packet[64];
     int pl;
 
-    /* The radio's tracked idles, which reveal a lost reply by the gap. */
-    if (m->ctrl_tracked && m->ctrl_peer_length > 0
+    if (m->go_silent) { return; }
+
+    /* The radio's tracked idles, which reveal a lost reply by the gap. Like
+     * the radio, it sends none before the login reply, which is therefore its
+     * first tracked packet. */
+    if (m->ctrl_tracked && m->ctrl_peer_length > 0 && m->ctrl_logged_in
             && mock_now_ms() - m->ctrl_last_idle_ms >= 100)
     {
         uint8_t idle[ICOM_NETWORK_HEADER_LEN];
@@ -175,6 +179,20 @@ static void mock_send_unsolicited(struct mock_server *m)
         mock_ctrl_send(m, &m->ctrl_peer, m->ctrl_peer_length, idle, sizeof(idle),
                        0);
         m->ctrl_last_idle_ms = mock_now_ms();
+    }
+
+    if (m->civ_peer_length > 0 && m->civ_idle_ms > 0 && !m->civ_silent
+            && m->civ_fd >= 0
+            && mock_now_ms() - m->civ_last_idle_ms >= m->civ_idle_ms)
+    {
+        uint8_t idle[ICOM_NETWORK_HEADER_LEN];
+
+        icom_network_packet_build_control(idle, sizeof(idle), ICOM_NETWORK_CTL_IDLE,
+                                          m->civ_sequence++, MOCK_SERVER_ID,
+                                          m->civ_client_id);
+        sendto(m->civ_fd, idle, sizeof(idle), 0, (struct sockaddr *)&m->civ_peer,
+               m->civ_peer_length);
+        m->civ_last_idle_ms = mock_now_ms();
     }
 
     if (m->civ_peer_length > 0 && m->ask_retransmit)
@@ -228,9 +246,10 @@ static void mock_drain(struct mock_server *m, fd_set *r, uint8_t *buf,
 
     for (i = 0; i < 3; i++)
     {
-        if (FD_ISSET(fds[i], r))
+        if (fds[i] >= 0 && FD_ISSET(fds[i], r))
         {
             recvfrom(fds[i], buf, buf_size, 0, NULL, NULL);
+            m->rx_packets++;
         }
     }
 }
@@ -282,7 +301,11 @@ static void mock_reply_login(struct mock_server *m, struct sockaddr_in *from,
     icom_network_put_be32(lr + 0x1c, 0x9999); /* token */
     icom_network_put_le32(lr + 0x30, 0);      /* error=ok */
     memcpy(lr + 0x40, "FTTH", 4);
-    mock_ctrl_send(m, from, from_length, lr, sizeof(lr), 0);
+    mock_ctrl_send(m, from, from_length, lr, sizeof(lr),
+                   m->drop_login_replies > 0);
+    m->ctrl_logged_in = 1;
+
+    if (m->drop_login_replies > 0) { m->drop_login_replies--; }
 }
 
 /* A token create is answered with the advertised radio list. */
@@ -375,8 +398,21 @@ static void mock_civ_stream_open(struct mock_server *m, struct sockaddr_in *from
 static void mock_reply_civ(struct mock_server *m, struct sockaddr_in *from,
                            socklen_t from_length, uint32_t cli)
 {
-    uint8_t packet[64];
+    uint8_t packet[600];
+    uint8_t frame[512];
+    const uint8_t *reply = mock_freq_resp;
+    size_t reply_length = sizeof(mock_freq_resp);
     int pl;
+
+    if (m->civ_reply_length >= 6 && m->civ_reply_length <= (int)sizeof(frame))
+    {
+        /* FE FE E0 98 1A 00 <filler> FD */
+        memset(frame, 0x41, sizeof(frame));
+        memcpy(frame, "\xfe\xfe\xe0\x98\x1a\x00", 6);
+        frame[m->civ_reply_length - 1] = 0xfd;
+        reply = frame;
+        reply_length = (size_t)m->civ_reply_length;
+    }
 
     if (m->send_spectrum)
     {
@@ -396,13 +432,18 @@ static void mock_reply_civ(struct mock_server *m, struct sockaddr_in *from,
         m->civ_sequence_jump = 0;
     }
 
-    pl = icom_network_packet_build_civ(packet, sizeof(packet), mock_freq_resp,
-                                       sizeof(mock_freq_resp), 0xc0, 0,
+    pl = icom_network_packet_build_civ(packet, sizeof(packet), reply,
+                                       reply_length, 0xc1, 0,
                                        m->civ_sequence++, MOCK_SERVER_ID, cli);
 
     if (pl > 0)
     {
         sendto(m->civ_fd, packet, pl, 0, (struct sockaddr *)from, from_length);
+
+        if (m->civ_duplicate_reply)
+        {
+            sendto(m->civ_fd, packet, pl, 0, (struct sockaddr *)from, from_length);
+        }
     }
 
     m->saw_civ_cmd = 1;
@@ -507,7 +548,8 @@ static void mock_service_control(struct mock_server *m, uint8_t *buf, int n,
                                  socklen_t from_length)
 {
     uint32_t cli = icom_network_get_be32(buf + ICOM_NETWORK_OFF_LOCAL_ID);
-    enum icom_network_packet_kind k = icom_network_packet_classify(buf, n);
+    enum icom_network_packet_kind k = icom_network_packet_classify(buf, n,
+                                      ICOM_NETWORK_ROLE_CONTROL);
     uint16_t type = icom_network_get_le16(buf + ICOM_NETWORK_OFF_TYPE);
 
     m->ctrl_peer = *from;
@@ -572,13 +614,18 @@ static void mock_service_civ(struct mock_server *m, uint8_t *buf, int n,
                              struct sockaddr_in *from, socklen_t from_length)
 {
     uint32_t cli = icom_network_get_be32(buf + ICOM_NETWORK_OFF_LOCAL_ID);
-    enum icom_network_packet_kind k = icom_network_packet_classify(buf, n);
+    enum icom_network_packet_kind k = icom_network_packet_classify(buf, n,
+                                      ICOM_NETWORK_ROLE_CIV);
     uint16_t type = icom_network_get_le16(buf + ICOM_NETWORK_OFF_TYPE);
 
     if (!mock_reply_common_control(m->civ_fd, from, k, type, cli))
     {
         switch (k)
         {
+        case ICOM_NETWORK_PACKET_KIND_RETRANSMIT:
+            m->civ_retransmit_requests++;
+            break;
+
         case ICOM_NETWORK_PACKET_KIND_OPENCLOSE:
             mock_civ_stream_open(m, from, from_length, cli);
             break;
@@ -621,7 +668,8 @@ static void mock_service_audio(struct mock_server *m, uint8_t *buf, int n,
                                struct sockaddr_in *from, socklen_t from_length)
 {
     uint32_t cli = icom_network_get_be32(buf + ICOM_NETWORK_OFF_LOCAL_ID);
-    enum icom_network_packet_kind k = icom_network_packet_classify(buf, n);
+    enum icom_network_packet_kind k = icom_network_packet_classify(buf, n,
+                                      ICOM_NETWORK_ROLE_AUDIO);
     uint16_t type = icom_network_get_le16(buf + ICOM_NETWORK_OFF_TYPE);
 
     m->audio_peer = *from;
@@ -631,6 +679,13 @@ static void mock_service_audio(struct mock_server *m, uint8_t *buf, int n,
     if (k == ICOM_NETWORK_PACKET_KIND_RETRANSMIT)
     {
         mock_audio_retransmit(m, buf, n);
+        return;
+    }
+
+    /* The radio answers the audio stream's pings like any other. */
+    if (k == ICOM_NETWORK_PACKET_KIND_PING && buf[0x10] == 0x00)
+    {
+        mock_reply_ping(m->audio_fd, buf, n, from, from_length, cli);
         return;
     }
 
@@ -647,13 +702,16 @@ static void mock_service_audio(struct mock_server *m, uint8_t *buf, int n,
 }
 
 /* Receive one datagram, or return 0 when there is nothing usable. */
-static int mock_recv(int fd, uint8_t *buf, size_t buf_size,
-                     struct sockaddr_in *from, socklen_t *from_length)
+static int mock_recv(struct mock_server *m, int fd, uint8_t *buf,
+                     size_t buf_size, struct sockaddr_in *from,
+                     socklen_t *from_length)
 {
     int n;
 
     *from_length = sizeof(*from);
     n = recvfrom(fd, buf, buf_size, 0, (struct sockaddr *)from, from_length);
+
+    if (n > 0) { m->rx_packets++; }
 
     return n >= ICOM_NETWORK_HEADER_LEN ? n : 0;
 }
@@ -672,6 +730,12 @@ static void *mock_run(void *arg)
         int maxfd = m->ctrl_fd;
         int n;
 
+        if (m->close_civ && m->civ_fd >= 0)
+        {
+            socket_close(m->civ_fd);
+            m->civ_fd = -1;
+        }
+
         if (m->civ_fd > maxfd) { maxfd = m->civ_fd; }
 
         if (m->audio_fd > maxfd) { maxfd = m->audio_fd; }
@@ -681,7 +745,9 @@ static void *mock_run(void *arg)
 
         FD_ZERO(&r);
         FD_SET(m->ctrl_fd, &r);
-        FD_SET(m->civ_fd, &r);
+
+        if (m->civ_fd >= 0) { FD_SET(m->civ_fd, &r); }
+
         FD_SET(m->audio_fd, &r);
         tv.tv_sec = 0;
         tv.tv_usec = 20000;
@@ -696,21 +762,25 @@ static void *mock_run(void *arg)
 
         if (FD_ISSET(m->ctrl_fd, &r))
         {
-            n = mock_recv(m->ctrl_fd, buf, sizeof(buf), &from, &from_length);
+            n = mock_recv(m, m->ctrl_fd, buf, sizeof(buf), &from, &from_length);
 
             if (n > 0) { mock_service_control(m, buf, n, &from, from_length); }
         }
 
-        if (FD_ISSET(m->civ_fd, &r))
+        if (m->civ_fd >= 0 && FD_ISSET(m->civ_fd, &r))
         {
-            n = mock_recv(m->civ_fd, buf, sizeof(buf), &from, &from_length);
+            n = mock_recv(m, m->civ_fd, buf, sizeof(buf), &from, &from_length);
 
-            if (n > 0) { mock_service_civ(m, buf, n, &from, from_length); }
+            /* a silent CI-V stream still reads what arrives, and answers none */
+            if (n > 0 && !m->civ_silent)
+            {
+                mock_service_civ(m, buf, n, &from, from_length);
+            }
         }
 
         if (FD_ISSET(m->audio_fd, &r))
         {
-            n = mock_recv(m->audio_fd, buf, sizeof(buf), &from, &from_length);
+            n = mock_recv(m, m->audio_fd, buf, sizeof(buf), &from, &from_length);
 
             if (n > 0) { mock_service_audio(m, buf, n, &from, from_length); }
         }
@@ -744,7 +814,8 @@ void mock_start(struct mock_server *m)
     m->radios[0].tx_rate = MOCK_ALL_RATES;
     m->retransmit_sequence = -1;   /* no replay expected unless a test asks */
     m->audio_withheld = -1;
-    m->ctrl_sequence = 1;
+    m->ctrl_sequence = 0;   /* the radio numbers its first reply 0 */
+    m->civ_idle_ms = 50;
     m->ctrl_port  = bind_ephemeral(&m->ctrl_fd);
     m->civ_port   = bind_ephemeral(&m->civ_fd);
     m->audio_port = bind_ephemeral(&m->audio_fd);
@@ -756,6 +827,8 @@ void mock_stop(struct mock_server *m)
     m->stop = 1;
     pthread_join(m->thread, NULL);
     socket_close(m->ctrl_fd);
-    socket_close(m->civ_fd);
+
+    if (m->civ_fd >= 0) { socket_close(m->civ_fd); }
+
     socket_close(m->audio_fd);
 }

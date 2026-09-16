@@ -153,8 +153,89 @@ int icom_network_packet_parse_header(const uint8_t *buf, size_t length,
     return RIG_OK;
 }
 
+/* Management packets have fixed sizes, and appear only on the control socket. */
+static enum icom_network_packet_kind classify_control_socket(
+    const uint8_t *buf, uint32_t packet_length)
+{
+    (void)buf;
+
+    switch (packet_length)
+    {
+    case 0x14: return ICOM_NETWORK_PACKET_KIND_WATCHDOG;
+
+    case 0x40: return ICOM_NETWORK_PACKET_KIND_TOKEN;
+
+    case 0x50: return ICOM_NETWORK_PACKET_KIND_STATUS;
+
+    case 0x60: return ICOM_NETWORK_PACKET_KIND_LOGIN_RESPONSE;
+
+    case 0x80: return ICOM_NETWORK_PACKET_KIND_LOGIN;
+
+    case 0x90: return ICOM_NETWORK_PACKET_KIND_CONNINFO;
+
+    default: break;
+    }
+
+    /* Capabilities: 0x42 + N*0x66. */
+    if (packet_length >= 0x42 + 0x66 && (packet_length - 0x42) % 0x66 == 0)
+    {
+        return ICOM_NETWORK_PACKET_KIND_CAPABILITIES;
+    }
+
+    return ICOM_NETWORK_PACKET_KIND_UNKNOWN;
+}
+
+/* Open/close (0x16) carries the constant 0x01c0 marker at offset 0x10. */
+static int is_openclose(const uint8_t *buf, uint32_t packet_length)
+{
+    return packet_length == 0x16 && buf[0x10] == 0x01 && buf[0x11] == 0xc0;
+}
+
+/* A CI-V packet is known by its reply marker and a payload length that fits
+ * the packet, whatever its total length. */
+static enum icom_network_packet_kind classify_civ_socket(const uint8_t *buf,
+        uint32_t packet_length)
+{
+    if (is_openclose(buf, packet_length))
+    {
+        return ICOM_NETWORK_PACKET_KIND_OPENCLOSE;
+    }
+
+    if (packet_length >= ICOM_NETWORK_CIV_LEN
+            && (buf[ICOM_NETWORK_CIV_OFF_REPLY] == 0xc0
+                || buf[ICOM_NETWORK_CIV_OFF_REPLY] == 0xc1)
+            && ICOM_NETWORK_CIV_LEN
+            + (uint32_t)icom_network_get_le16(buf + ICOM_NETWORK_CIV_OFF_PAYLOAD_LEN)
+            <= packet_length)
+    {
+        return ICOM_NETWORK_PACKET_KIND_CIV;
+    }
+
+    return ICOM_NETWORK_PACKET_KIND_UNKNOWN;
+}
+
+/* An audio packet is known by a payload length that fits the packet. */
+static enum icom_network_packet_kind classify_audio_socket(
+    const uint8_t *buf, uint32_t packet_length)
+{
+    if (is_openclose(buf, packet_length))
+    {
+        return ICOM_NETWORK_PACKET_KIND_OPENCLOSE;
+    }
+
+    if (packet_length >= ICOM_NETWORK_AUDIO_LEN
+            && ICOM_NETWORK_AUDIO_LEN
+            + (uint32_t)icom_network_get_be16(buf + ICOM_NETWORK_AUDIO_OFF_PAYLOAD_LEN)
+            <= packet_length)
+    {
+        return ICOM_NETWORK_PACKET_KIND_AUDIO;
+    }
+
+    return ICOM_NETWORK_PACKET_KIND_UNKNOWN;
+}
+
 enum icom_network_packet_kind icom_network_packet_classify(const uint8_t *buf,
-        size_t length)
+        size_t length, enum icom_network_socket_role role)
 {
     uint32_t packet_length;
     uint16_t type;
@@ -177,63 +258,34 @@ enum icom_network_packet_kind icom_network_packet_classify(const uint8_t *buf,
         return ICOM_NETWORK_PACKET_KIND_RETRANSMIT;
     }
 
-    /* packet_length is the total packet length; a well-formed datagram has packet_length == length.
-     * The size heuristics below inspect payload bytes at offsets derived from
-     * packet_length, so a datagram claiming more than was received (packet_length > length) would
-     * read past the buffer. Reject it before any packet_length-gated payload access. */
-    if (packet_length > length)
+    /* packet_length is the total packet length; a well-formed datagram has
+     * packet_length == length. The checks below inspect payload bytes at
+     * offsets derived from packet_length, so a datagram claiming more than was
+     * received would read past the buffer. Reject it first. */
+    if (packet_length > length || packet_length < ICOM_NETWORK_HEADER_LEN)
     {
         return ICOM_NETWORK_PACKET_KIND_UNKNOWN;
     }
 
-    /* Fixed-size management/control packets (type 0x00). */
-    switch (packet_length)
+    /* A bare header is a control opcode (idle, probe, ready, ...) on every
+     * socket. */
+    if (packet_length == ICOM_NETWORK_HEADER_LEN)
     {
-    case 0x10: return ICOM_NETWORK_PACKET_KIND_CONTROL;
-
-    case 0x14: return ICOM_NETWORK_PACKET_KIND_WATCHDOG;
-
-    case 0x40: return ICOM_NETWORK_PACKET_KIND_TOKEN;
-
-    case 0x50: return ICOM_NETWORK_PACKET_KIND_STATUS;
-
-    case 0x60: return ICOM_NETWORK_PACKET_KIND_LOGIN_RESPONSE;
-
-    case 0x80: return ICOM_NETWORK_PACKET_KIND_LOGIN;
-
-    case 0x90: return ICOM_NETWORK_PACKET_KIND_CONNINFO;
-
-    default: break;
+        return ICOM_NETWORK_PACKET_KIND_CONTROL;
     }
 
-    /* Open/close (0x16) carries the constant 0x01c0 marker at offset 0x10. */
-    if (packet_length == 0x16 && buf[0x10] == 0x01 && buf[0x11] == 0xc0)
+    switch (role)
     {
-        return ICOM_NETWORK_PACKET_KIND_OPENCLOSE;
+    case ICOM_NETWORK_ROLE_CIV:
+        return classify_civ_socket(buf, packet_length);
+
+    case ICOM_NETWORK_ROLE_AUDIO:
+        return classify_audio_socket(buf, packet_length);
+
+    case ICOM_NETWORK_ROLE_CONTROL:
+    default:
+        return classify_control_socket(buf, packet_length);
     }
-
-    /* Capabilities: 0x42 + N*0x66. */
-    if (packet_length >= 0x42 + 0x66 && (packet_length - 0x42) % 0x66 == 0)
-    {
-        return ICOM_NETWORK_PACKET_KIND_CAPABILITIES;
-    }
-
-    /* Data packets: distinguished authoritatively by socket at Layer 2.
-     * Heuristic here: a CI-V reply byte (0xc0/0xc1) marks CI-V; else audio. */
-    if (packet_length >= 0x15)
-    {
-        if (buf[0x10] == 0xc0 || buf[0x10] == 0xc1)
-        {
-            return ICOM_NETWORK_PACKET_KIND_CIV;
-        }
-
-        if (packet_length >= 0x18)
-        {
-            return ICOM_NETWORK_PACKET_KIND_AUDIO;
-        }
-    }
-
-    return ICOM_NETWORK_PACKET_KIND_UNKNOWN;
 }
 
 /* ------------------------------------------------------------------ */

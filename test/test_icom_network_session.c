@@ -516,6 +516,416 @@ void test_session_sequence_resync(void)
     mock_stop(&mock);
 }
 
+/* Minimal connected session against the mock, for the CI-V tests below. */
+static struct icom_network_session *civ_session(struct mock_server *mock)
+{
+    struct icom_network_session_config config;
+    struct icom_network_session *s;
+
+    capability_config(&config, mock, "IC-7610");
+    s = icom_network_session_alloc(&config);
+    TEST_ASSERT(s != NULL);
+    TEST_ASSERT(icom_network_session_connect(s) == RIG_OK);
+
+    return s;
+}
+
+/* A CI-V reply whose packet happens to be as long as a management packet is
+ * still delivered: the CI-V socket classifies by structure, not length. */
+void test_session_civ_reply_with_management_length(void)
+{
+    static const int totals[] = { 0x40, 0x50, 0x60, 0x80, 0x90, 0xa8 };
+    struct mock_server mock;
+    struct icom_network_session *s;
+    uint8_t cmd[] = { 0xfe, 0xfe, 0x98, 0xe0, 0x1a, 0x00, 0xfd };
+    uint8_t rx[512];
+    size_t i;
+
+    mock_start(&mock);
+    s = civ_session(&mock);
+
+    for (i = 0; i < sizeof(totals) / sizeof(totals[0]); i++)
+    {
+        int want = totals[i] - ICOM_NETWORK_CIV_LEN;
+        int n;
+
+        mock.civ_reply_length = want;
+        TEST_ASSERT(icom_network_civ_send(s, cmd, sizeof(cmd)) == (int)sizeof(cmd));
+        n = icom_network_civ_recv(s, rx, sizeof(rx), 1000);
+        TEST_CHECK_(n == want, "packet of 0x%x bytes: got %d-byte frame, expected %d",
+                    (unsigned)totals[i], n, want);
+    }
+
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
+/* The radio numbers its CI-V-socket idles in the same sequence as its frames.
+ * Tracking only the frames saw a gap for every idle and kept asking the radio
+ * to resend idles (and resynced whenever idles outnumbered the window). */
+void test_session_civ_idles_not_requested(void)
+{
+    struct mock_server mock;
+    struct icom_network_session *s;
+    uint8_t cmd[] = { 0xfe, 0xfe, 0x98, 0xe0, 0x03, 0xfd };
+    uint8_t rx[256];
+    unsigned civ_resyncs = 99;
+    int i;
+
+    mock_start(&mock);
+    s = civ_session(&mock);
+
+    /* several commands spread over idles, with more idles in between than the
+     * resync threshold would allow */
+    for (i = 0; i < 4; i++)
+    {
+        TEST_ASSERT(icom_network_civ_send(s, cmd, sizeof(cmd)) == (int)sizeof(cmd));
+        TEST_CHECK(icom_network_civ_recv(s, rx, sizeof(rx), 1000) > 0);
+        hl_usleep(i == 2 ? (ICOM_NETWORK_MISSING_FLUSH + 20) * 50 * 1000 : 300 * 1000);
+    }
+
+    icom_network_session_resync_counts(s, &civ_resyncs, NULL);
+    TEST_CHECK_(mock.civ_retransmit_requests == 0,
+                "%d retransmit requests on a clean link",
+                mock.civ_retransmit_requests);
+    TEST_CHECK_(civ_resyncs == 0, "%u resyncs on a clean link", civ_resyncs);
+
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
+/* A reply that arrives twice is delivered once; a repeated ACK or reply would
+ * otherwise be taken as the answer to the next command. */
+void test_session_civ_duplicate_dropped(void)
+{
+    struct mock_server mock;
+    struct icom_network_session *s;
+    uint8_t cmd[] = { 0xfe, 0xfe, 0x98, 0xe0, 0x03, 0xfd };
+    uint8_t rx[256];
+    int n;
+
+    mock_start(&mock);
+    s = civ_session(&mock);
+
+    mock.civ_duplicate_reply = 1;
+    TEST_ASSERT(icom_network_civ_send(s, cmd, sizeof(cmd)) == (int)sizeof(cmd));
+    TEST_CHECK(icom_network_civ_recv(s, rx, sizeof(rx), 1000)
+               == (int)sizeof(mock_freq_resp));
+    n = icom_network_civ_recv(s, rx, sizeof(rx), 300);
+    TEST_CHECK_(n == -RIG_ETIMEOUT, "second copy delivered (%d)", n);
+
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
+/* Wait up to ms for the session to be declared lost; returns the time taken,
+ * or -1 if it stayed valid. */
+static int wait_lost(struct icom_network_session *s, int ms)
+{
+    int waited;
+
+    for (waited = 0; waited < ms; waited += 10)
+    {
+        if (!icom_network_session_is_valid(s)) { return waited; }
+
+        hl_usleep(10 * 1000);
+    }
+
+    return -1;
+}
+
+/* The radio stops serving the CI-V stream while the control socket carries
+ * on exchanging keepalives. Before, any packet on any socket kept the one
+ * liveness clock fresh, so the session looked healthy with CI-V dead. */
+void test_session_civ_silence_is_link_timeout(void)
+{
+    struct mock_server mock;
+    struct icom_network_session_config config;
+    struct icom_network_session *s;
+    int waited;
+
+    mock_start(&mock);
+    capability_config(&config, &mock, "IC-7610");
+    config.liveness_timeout_ms = 1000;
+    s = icom_network_session_alloc(&config);
+    TEST_ASSERT(s != NULL);
+    TEST_ASSERT(icom_network_session_connect(s) == RIG_OK);
+
+    /* healthy for longer than the timeout first */
+    TEST_CHECK(wait_lost(s, 1500) < 0);
+
+    mock.civ_silent = 1;
+    waited = wait_lost(s, 3000);
+    TEST_CHECK_(waited >= 0, "still valid 3 s after CI-V went silent");
+    TEST_CHECK_(icom_network_session_loss_reason(s) == RIG_COMM_REASON_LINK_TIMEOUT,
+                "reason %u", icom_network_session_loss_reason(s));
+
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
+/* The radio's CI-V port refuses packets. That shows up as socket errors (on
+ * the send or the receive, whichever comes first); a CI-V command fails at
+ * once instead of timing out, and when the liveness timeout runs out the
+ * session is lost with SOCKET_ERROR, naming the cause, not LINK_TIMEOUT. */
+void test_session_civ_port_refusing_is_socket_error(void)
+{
+    struct mock_server mock;
+    struct icom_network_session_config config;
+    struct icom_network_session *s;
+    uint8_t cmd[] = { 0xfe, 0xfe, 0x98, 0xe0, 0x03, 0xfd };
+    int i, eio = 0, waited = -1;
+
+    mock_start(&mock);
+    capability_config(&config, &mock, "IC-7610");
+    config.liveness_timeout_ms = 1000;
+    s = icom_network_session_alloc(&config);
+    TEST_ASSERT(s != NULL);
+    TEST_ASSERT(icom_network_session_connect(s) == RIG_OK);
+
+    mock.close_civ = 1;
+
+    for (i = 0; i < 40; i++)
+    {
+        if (icom_network_civ_send(s, cmd, sizeof(cmd)) == -RIG_EIO) { eio++; }
+
+        if (!icom_network_session_is_valid(s))
+        {
+            waited = i * 100;
+            break;
+        }
+
+        hl_usleep(100 * 1000);
+    }
+
+    TEST_CHECK_(eio > 0, "no CI-V send reported the refused port");
+    TEST_CHECK_(waited >= 900 && waited < 3000, "lost after %d ms", waited);
+    TEST_CHECK_(icom_network_session_loss_reason(s) == RIG_COMM_REASON_SOCKET_ERROR,
+                "reason %u", icom_network_session_loss_reason(s));
+
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
+/* With the liveness timeout at 0 (never give up), socket errors do not end
+ * the session either; commands still fail at once while the port refuses. */
+void test_session_socket_errors_respect_liveness_disabled(void)
+{
+    struct mock_server mock;
+    struct icom_network_session_config config;
+    struct icom_network_session *s;
+    uint8_t cmd[] = { 0xfe, 0xfe, 0x98, 0xe0, 0x03, 0xfd };
+    int i, eio = 0;
+
+    mock_start(&mock);
+    capability_config(&config, &mock, "IC-7610");
+    config.liveness_timeout_ms = 0;
+    s = icom_network_session_alloc(&config);
+    TEST_ASSERT(s != NULL);
+    TEST_ASSERT(icom_network_session_connect(s) == RIG_OK);
+
+    mock.close_civ = 1;
+
+    for (i = 0; i < 25; i++)
+    {
+        if (icom_network_civ_send(s, cmd, sizeof(cmd)) == -RIG_EIO) { eio++; }
+
+        hl_usleep(100 * 1000);
+    }
+
+    TEST_CHECK_(eio > 0, "no CI-V send reported the refused port");
+    TEST_CHECK_(icom_network_session_is_valid(s),
+                "session lost (reason %u) with the liveness timeout disabled",
+                icom_network_session_loss_reason(s));
+
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
+/* Freeing a session whose reconnect thread is running, without a disconnect
+ * first: the thread has cleared connected, so free() used to skip the join and
+ * free the session under it. Both the handshake phase (the radio still
+ * silent) and the backoff phase (every attempt refused at once) are covered;
+ * free() must return promptly and nothing may be sent afterwards. */
+static void free_during_reconnect(int refuse)
+{
+    struct mock_server mock;
+    struct icom_network_session_config config;
+    struct icom_network_session *s;
+    struct timespec t0, t1;
+    long elapsed_ms;
+    int before;
+
+    mock_start(&mock);
+    capability_config(&config, &mock, "IC-7610");
+    config.liveness_timeout_ms = 500;
+    config.auto_reconnect = 1;
+    s = icom_network_session_alloc(&config);
+    TEST_ASSERT(s != NULL);
+    TEST_ASSERT(icom_network_session_connect(s) == RIG_OK);
+
+    mock.go_silent = 1;
+    TEST_ASSERT(wait_lost(s, 3000) >= 0);
+
+    if (refuse)
+    {
+        /* answer again, but refuse the connection: attempts fail quickly and
+         * the thread spends its time in backoff */
+        mock.status_error = 1;
+        mock.go_silent = 0;
+        hl_usleep(2500 * 1000);
+    }
+    else
+    {
+        /* first attempt after 1 s of backoff, then a long handshake */
+        hl_usleep(1600 * 1000);
+    }
+
+    clock_gettime(CLOCK_MONOTONIC, &t0);
+    icom_network_session_free(s);
+    clock_gettime(CLOCK_MONOTONIC, &t1);
+    elapsed_ms = (t1.tv_sec - t0.tv_sec) * 1000
+                 + (t1.tv_nsec - t0.tv_nsec) / 1000000;
+
+    TEST_CHECK_(elapsed_ms < 1500, "free() took %ld ms", elapsed_ms);
+
+    /* Let anything already on its way arrive before counting: what this looks
+     * for is a thread that outlived free() and keeps sending, which shows up
+     * as traffic for as long as it runs. */
+    hl_usleep(300 * 1000);
+    before = mock.rx_packets;
+    hl_usleep(2500 * 1000);
+    TEST_CHECK_(mock.rx_packets == before,
+                "%d packets sent after free()", mock.rx_packets - before);
+
+    mock_stop(&mock);
+}
+
+void test_session_free_during_reconnect_handshake(void)
+{
+    free_during_reconnect(0);
+}
+
+void test_session_free_during_reconnect_backoff(void)
+{
+    free_during_reconnect(1);
+}
+
+#ifdef __MINGW32__
+/* An application that links libhamlib and opens an Icom LAN rig has not
+ * started Winsock, and the session opens its sockets itself rather than
+ * through network_open(). The session must hold its own Winsock reference.
+ * Checked without the mock, which starts Winsock for itself. */
+void test_session_starts_winsock(void)
+{
+    struct icom_network_session_config config;
+    struct icom_network_session *s;
+    SOCKET probe = socket(AF_INET, SOCK_DGRAM, 0);
+
+    if (probe != INVALID_SOCKET)
+    {
+        /* acutest runs each test in its own process; started here means it
+         * did not (a single test selected), so there is nothing to check */
+        closesocket(probe);
+        TEST_MSG("Winsock was already started in this process");
+        return;
+    }
+
+    TEST_CHECK(WSAGetLastError() == WSANOTINITIALISED);
+
+    memset(&config, 0, sizeof(config));
+    strcpy(config.host, "127.0.0.1");
+    s = icom_network_session_alloc(&config);
+    TEST_ASSERT(s != NULL);
+
+    probe = socket(AF_INET, SOCK_DGRAM, 0);
+    TEST_CHECK_(probe != INVALID_SOCKET,
+                "socket() fails with a session allocated (error %d)",
+                WSAGetLastError());
+
+    if (probe != INVALID_SOCKET) { closesocket(probe); }
+
+    /* and the reference is given back */
+    icom_network_session_free(s);
+    probe = socket(AF_INET, SOCK_DGRAM, 0);
+    TEST_CHECK(probe == INVALID_SOCKET);
+
+    if (probe != INVALID_SOCKET) { closesocket(probe); }
+}
+#endif
+
+/* Application calls racing a reconnect that replaces the sockets: they must
+ * fail cleanly (not send on a closed or reused descriptor), and work again
+ * once the session is back. Meant to be run under ThreadSanitizer too. */
+struct hammer
+{
+    struct icom_network_session *s;
+    HAMLIB_ATOMIC int stop;
+    HAMLIB_ATOMIC int sent, failed;
+};
+
+static void *hammer_civ(void *arg)
+{
+    struct hammer *h = arg;
+    uint8_t cmd[] = { 0xfe, 0xfe, 0x98, 0xe0, 0x03, 0xfd };
+
+    while (!h->stop)
+    {
+        if (icom_network_civ_send(h->s, cmd, sizeof(cmd)) > 0) { h->sent++; }
+        else { h->failed++; }
+
+        hl_usleep(2 * 1000);
+    }
+
+    return NULL;
+}
+
+void test_session_civ_send_during_reconnect(void)
+{
+    struct mock_server mock;
+    struct icom_network_session_config config;
+    struct hammer h;
+    pthread_t thread;
+    int cycle;
+
+    mock_start(&mock);
+    capability_config(&config, &mock, "IC-7610");
+    config.liveness_timeout_ms = 300;
+    config.auto_reconnect = 1;
+    memset(&h, 0, sizeof(h));
+    h.s = icom_network_session_alloc(&config);
+    TEST_ASSERT(h.s != NULL);
+    TEST_ASSERT(icom_network_session_connect(h.s) == RIG_OK);
+    TEST_ASSERT(pthread_create(&thread, NULL, hammer_civ, &h) == 0);
+
+    for (cycle = 0; cycle < 2; cycle++)
+    {
+        int waited;
+
+        mock.go_silent = 1;
+        TEST_CHECK(wait_lost(h.s, 3000) >= 0);
+        mock.go_silent = 0;
+
+        for (waited = 0; waited < 8000 && !icom_network_session_is_valid(h.s);
+                waited += 10)
+        {
+            hl_usleep(10 * 1000);
+        }
+
+        TEST_CHECK_(icom_network_session_is_valid(h.s),
+                    "cycle %d: not re-established", cycle);
+    }
+
+    h.sent = 0;
+    hl_usleep(300 * 1000);
+    TEST_CHECK_(h.sent > 0, "no CI-V send succeeded after the reconnects");
+
+    h.stop = 1;
+    pthread_join(thread, NULL);
+    icom_network_session_free(h.s);
+    mock_stop(&mock);
+}
+
 /* A lost handshake reply is recovered the way the protocol intends: the gap
  * the radio's next tracked packet leaves is noticed and the reply requested
  * again. Resending the request does not help, because the radio has already
@@ -548,6 +958,32 @@ void test_session_handshake_recovers_lost_reply(void)
     TEST_CHECK_(elapsed_ms < 3000, "connect took %ld ms", elapsed_ms);
 
     icom_network_session_disconnect(s);
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
+/* The radio numbers its tracked replies from 0, so the login response is the
+ * very first one. Lost, it leaves no gap to notice unless tracking expects 0;
+ * found on an IC-7610 with 5% loss, where a lost capabilities reply (1) right
+ * after the login response (0) failed the connect. */
+void test_session_handshake_recovers_lost_first_reply(void)
+{
+    struct mock_server mock;
+    struct icom_network_session_config config;
+    struct icom_network_session *s;
+
+    mock_start(&mock);
+    capability_config(&config, &mock, "IC-7610");
+    mock.ctrl_tracked = 1;
+    mock.ctrl_ignore_resends = 1;
+    mock.drop_login_replies = 1;
+
+    s = icom_network_session_alloc(&config);
+    TEST_ASSERT(s != NULL);
+    TEST_CHECK(icom_network_session_connect(s) == RIG_OK);
+    TEST_CHECK_(mock.ctrl_retransmit_requests >= 1,
+                "the lost login reply must be requested again");
+
     icom_network_session_free(s);
     mock_stop(&mock);
 }
@@ -1277,6 +1713,7 @@ TEST_LIST =
     { "audio_rx",                    test_session_audio_rx },
     { "failed_connect_releases_slot", test_session_failed_connect_releases_slot },
     { "handshake_recovers_lost_reply", test_session_handshake_recovers_lost_reply },
+    { "handshake_recovers_lost_first_reply", test_session_handshake_recovers_lost_first_reply },
     { "audio_window0_gap",           test_session_audio_window0_gap },
     { "audio_window0_late_dropped",  test_session_audio_window0_late_dropped },
     { "audio_window_reorders",       test_session_audio_window_reorders },
@@ -1293,6 +1730,18 @@ TEST_LIST =
     { "capability_rate_rejected",    test_session_capability_rate_rejected },
     { "capability_tx_suppressed",    test_session_capability_tx_suppressed },
     { "sequence_resync",             test_session_sequence_resync },
+    { "civ_reply_with_management_length", test_session_civ_reply_with_management_length },
+    { "civ_idles_not_requested",     test_session_civ_idles_not_requested },
+    { "civ_duplicate_dropped",       test_session_civ_duplicate_dropped },
+    { "civ_silence_is_link_timeout", test_session_civ_silence_is_link_timeout },
+    { "civ_port_refusing_is_socket_error", test_session_civ_port_refusing_is_socket_error },
+    { "socket_errors_respect_liveness_disabled", test_session_socket_errors_respect_liveness_disabled },
+    { "free_during_reconnect_handshake", test_session_free_during_reconnect_handshake },
+    { "free_during_reconnect_backoff", test_session_free_during_reconnect_backoff },
+    { "civ_send_during_reconnect",   test_session_civ_send_during_reconnect },
+#ifdef __MINGW32__
+    { "starts_winsock",              test_session_starts_winsock },
+#endif
     { "retransmit_request",          test_session_retransmit_request },
     { "ping_request",                test_session_ping_request },
     { "reconnect_cycles",            test_session_reconnect_cycles },

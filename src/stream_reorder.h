@@ -95,7 +95,8 @@ struct stream_reorder_stats
  * held ahead of the release point; a packet further ahead forces the oldest
  * out early (never silently). max_gap: a forward jump larger than this is
  * treated as a restart (STREAM_REORDER_RESYNC); also the length of a run of
- * consecutive late packets that means the sender restarted its counter.
+ * consecutive late packets that means the sender restarted its counter, and
+ * two late packets in a row from more than max_gap behind mean the same.
  * max_payload: largest datagram accepted. Returns NULL on bad arguments or
  * allocation failure. */
 struct stream_reorder *stream_reorder_new(unsigned int window_ms,
