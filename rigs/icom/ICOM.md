@@ -189,6 +189,24 @@ work; `rigstreamtest` prints which conversion stages are active (for example
 FORMAT and CHANNELS for float stereo from a mono 16-bit session), and
 `--require-native` refuses a stream that would need any of them.
 
+**Demanding only the stages that matter.** `--require-native` takes a list —
+`FORMAT`, `RATE`, `CHANNELS`, or `ALL` for every stage, which is what a bare
+flag means. Stages left out are still converted. For an Icom session the
+useful setting is usually
+
+```sh
+rigstreamtest -m 3095 -r ADDR -C net_username=...,net_password=... \
+    -t audio_rx --require-native=RATE -s 48000 -d 5
+```
+
+A format change is arithmetic on the samples the radio sent, so it costs
+nothing in fidelity; resampling is different, because the radio serves exactly
+one rate per connection (`net_sample_rate`) and anything else means the
+frontend inventing samples between the ones that arrived — and needs
+libsamplerate. `--require-native=RATE` therefore says "give me the radio's own
+timebase, convert the rest as you like": it opens at the negotiated rate in any
+format, and fails rather than quietly resampling if the rate is wrong.
+
 Rate conversion needs libsamplerate at build time. Without it the negotiated
 rate is the only rate a stream can open at, so choose it with
 `net_sample_rate` rather than expecting the frontend to bridge.

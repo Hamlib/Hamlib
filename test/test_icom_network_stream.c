@@ -90,9 +90,10 @@ static RIG *open_against_mock(struct mock_server *m, const char *extra_conf)
 
 /* rig_stream_open takes a library-allocated config whose struct_size gates
  * compatibility, and the stream type travels inside it. */
-static int stream_open(RIG *rig, rig_stream_type_t type,
-                       rig_stream_format_t format, int rate, int channels,
-                       rig_stream_t **stream)
+static int stream_open_native(RIG *rig, rig_stream_type_t type,
+                              rig_stream_format_t format, int rate,
+                              int channels, uint32_t require_native,
+                              rig_stream_t **stream)
 {
     struct rig_stream_config *config = rig_stream_config_alloc();
     int ret;
@@ -103,11 +104,20 @@ static int stream_open(RIG *rig, rig_stream_type_t type,
     config->format = format;
     config->sample_rate = rate;
     config->channels = channels;
+    config->require_native = require_native;
 
     ret = rig_stream_open(rig, config, stream);
     rig_stream_config_free(config);   /* the stream keeps its own copy */
 
     return ret;
+}
+
+static int stream_open(RIG *rig, rig_stream_type_t type,
+                       rig_stream_format_t format, int rate, int channels,
+                       rig_stream_t **stream)
+{
+    return stream_open_native(rig, type, format, rate, channels,
+                              RIG_STREAM_CONV_NONE, stream);
 }
 
 /* The whole point of the backend: open the rig over the network and get a
@@ -348,8 +358,9 @@ static const struct rig_stream_caps *session_entry(RIG *rig,
 
 /* Every wire codec decodes to the same S16 pivot, and the I/Q payload is
  * already CS16, so those are the only formats this hardware has. Declaring
- * the float variants too would label a frontend conversion as native and
- * break require_native for anyone asking for it. */
+ * the float variants too would label a frontend conversion as native, and an
+ * application asking for `require_native` with FORMAT (or ALL) would then be
+ * handed converted samples as if they were the radio's own bytes. */
 void test_caps_declare_native_only(void)
 {
     struct mock_server mock;
@@ -376,6 +387,121 @@ void test_caps_declare_native_only(void)
     {
         TEST_CHECK(iq->formats == RIG_STREAM_FORMAT_IQ_CS16);
         TEST_MSG("I/Q native formats = 0x%x", (unsigned)iq->formats);
+    }
+
+    rig_close(rig);
+    rig_cleanup(rig);
+    mock_stop(&mock);
+}
+
+
+/* The mask lets an application demand exactly the stages that matter to it.
+ * For an Icom session that is the sample rate: the radio serves one rate per
+ * connection, so resampling means the stream is not what the radio sends,
+ * while a format change is just arithmetic on the same samples. */
+void test_require_native_rate_allows_format_conversion(void)
+{
+    struct mock_server mock;
+    RIG *rig;
+    rig_stream_t *stream = NULL;
+    int ret, conv;
+
+    mock_start(&mock);
+    rig = open_against_mock(&mock, NULL);
+    TEST_ASSERT(rig != NULL);
+
+    /* float at the negotiated rate: FORMAT converts, nothing resamples */
+    ret = stream_open_native(rig, RIG_STREAM_TYPE_AUDIO_RX,
+                             RIG_STREAM_FORMAT_PCM_F32, 48000, 1,
+                             RIG_STREAM_CONV_RATE, &stream);
+    TEST_CHECK_(ret == RIG_OK, "open with require_native=RATE: %s",
+                rigerror2(ret));
+
+    if (ret == RIG_OK)
+    {
+        conv = rig_stream_get_conversions(stream);
+        TEST_CHECK_((conv & RIG_STREAM_CONV_FORMAT) != 0,
+                    "conversions=0x%x, expected a format stage", (unsigned)conv);
+        TEST_CHECK_((conv & RIG_STREAM_CONV_RATE) == 0,
+                    "conversions=0x%x, expected no rate stage", (unsigned)conv);
+        rig_stream_close(rig, stream);
+    }
+
+    rig_close(rig);
+    rig_cleanup(rig);
+    mock_stop(&mock);
+}
+
+/* The same demand at a rate this session did not negotiate has to be refused:
+ * serving it would mean resampling, which is the one stage that was ruled out. */
+void test_require_native_rate_refuses_resampling(void)
+{
+    struct mock_server mock;
+    RIG *rig;
+    rig_stream_t *stream = NULL;
+    int ret;
+
+    mock_start(&mock);
+    rig = open_against_mock(&mock, NULL);
+    TEST_ASSERT(rig != NULL);
+
+    /* the same request without the demand is served, by resampling: that is
+     * what makes the refusal below the demand's doing and not a missing rate */
+    ret = stream_open(rig, RIG_STREAM_TYPE_AUDIO_RX,
+                      RIG_STREAM_FORMAT_PCM_S16, 24000, 1, &stream);
+
+    if (ret == RIG_OK)
+    {
+        int conv = rig_stream_get_conversions(stream);
+        TEST_CHECK_((conv & RIG_STREAM_CONV_RATE) != 0,
+                    "conversions=0x%x, expected a rate stage", (unsigned)conv);
+        rig_stream_close(rig, stream);
+    }
+    else
+    {
+        /* no libsamplerate: the frontend cannot resample at all */
+        TEST_MSG("open at a foreign rate returned %s", rigerror2(ret));
+    }
+
+    stream = NULL;
+    ret = stream_open_native(rig, RIG_STREAM_TYPE_AUDIO_RX,
+                             RIG_STREAM_FORMAT_PCM_S16, 24000, 1,
+                             RIG_STREAM_CONV_RATE, &stream);
+    TEST_CHECK_(ret == -RIG_ENAVAIL, "got %s, expected -RIG_ENAVAIL",
+                rigerror2(ret));
+
+    if (ret == RIG_OK) { rig_stream_close(rig, stream); }
+
+    rig_close(rig);
+    rig_cleanup(rig);
+    mock_stop(&mock);
+}
+
+/* Demanding every stage is the strict case: the wire pivot at the negotiated
+ * rate and the codec's own channel count is served with nothing in between. */
+void test_require_native_all_opens_untouched(void)
+{
+    struct mock_server mock;
+    RIG *rig;
+    rig_stream_t *stream = NULL;
+    int ret, conv;
+
+    mock_start(&mock);
+    rig = open_against_mock(&mock, NULL);
+    TEST_ASSERT(rig != NULL);
+
+    ret = stream_open_native(rig, RIG_STREAM_TYPE_AUDIO_RX,
+                             RIG_STREAM_FORMAT_PCM_S16, 48000, 1,
+                             RIG_STREAM_CONV_ALL, &stream);
+    TEST_CHECK_(ret == RIG_OK, "open with require_native=ALL: %s",
+                rigerror2(ret));
+
+    if (ret == RIG_OK)
+    {
+        conv = rig_stream_get_conversions(stream);
+        TEST_CHECK_(conv == RIG_STREAM_CONV_NONE,
+                    "conversions=0x%x, expected a native stream", (unsigned)conv);
+        rig_stream_close(rig, stream);
     }
 
     rig_close(rig);
@@ -1108,5 +1234,8 @@ TEST_LIST =
     { "session_loss_fails_streams", test_session_loss_fails_streams },
     { "rx_audio_restart_unsized",  test_rx_audio_restart_unsized },
     { "rx_anchor_index_under_rate_conversion", test_rx_anchor_index_under_rate_conversion },
+    { "require_native_rate_allows_format_conversion", test_require_native_rate_allows_format_conversion },
+    { "require_native_rate_refuses_resampling", test_require_native_rate_refuses_resampling },
+    { "require_native_all_opens_untouched", test_require_native_all_opens_untouched },
     { NULL, NULL }
 };

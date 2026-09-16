@@ -42,6 +42,7 @@
 #include "token.h"
 #include "misc.h"
 #include "rigstreamtest_util.h"
+#include "stream_proto.h"
 
 
 static volatile sig_atomic_t running = 1;
@@ -73,17 +74,20 @@ static rig_stream_format_t format_from_name(const char *name)
     return 0;
 }
 
-static int g_require_native = 0;  /* --require-native: fail instead of
-                                   * accepting a converted stream */
+/* --require-native[=LIST]: conversion stages the open must not install */
+static uint32_t g_require_native = RIG_STREAM_CONV_NONE;
 
 /* Report the frontend conversion stages of a freshly opened stream:
  * CONV_NONE marks a native stream (bytes untouched). */
 static void report_conversions(rig_stream_t *st, const char *tag)
 {
     int c = rig_stream_get_conversions(st);
+    char stages[64];
+
+    stream_conversions_str(c, stages, sizeof(stages));
 
     printf("Stream %s: conversions=0x%x (%s)\n", tag, c,
-           c == RIG_STREAM_CONV_NONE ? "native stream" : "converted stream");
+           c == RIG_STREAM_CONV_NONE ? "native stream" : stages);
 }
 
 static void sighandler(int sig)
@@ -162,7 +166,14 @@ static void usage(const char *prog)
             "  --iq                   Use I/Q streams for the phases (default: audio)\n"
             "  --stats-secs <sec>     Interim stats interval (default 5)\n"
             "  --buffer-ms <ms>       Ring buffer size as ms of stream data\n"
-            "  --require-native       Fail instead of accepting a converted stream\n"
+            "  --require-native[=LIST] Conversion stages the stream must NOT\n"
+            "                         use: comma-separated FORMAT, RATE,\n"
+            "                         CHANNELS, or ALL (the default when the\n"
+            "                         flag is given bare). An open needing a\n"
+            "                         listed stage fails instead of converting;\n"
+            "                         stages left out are still converted, so\n"
+            "                         --require-native=RATE demands a native\n"
+            "                         sample rate but accepts a format change\n"
             "  --format <fmt>         Sample format to request, instead of float:\n"
             "                         u8, s8, s16, f32 (audio) or cs8, cu8, cs16,\n"
             "                         cf32 (I/Q). Receive only. Pair with\n"
@@ -2147,7 +2158,7 @@ int main(int argc, char *argv[])
         { "iq",          no_argument,       NULL, OPT_IQ },
         { "stats-secs",  required_argument, NULL, OPT_STATS_SECS },
         { "buffer-ms",   required_argument, NULL, OPT_BUFFER_MS },
-        { "require-native", no_argument,    NULL, OPT_REQUIRE_NATIVE },
+        { "require-native", optional_argument, NULL, OPT_REQUIRE_NATIVE },
         { "format",       required_argument, NULL, OPT_FORMAT },
         { "reconnect-cycles", required_argument, NULL, OPT_RECONNECT_CYCLES },
         { "reconnect-gap", required_argument, NULL, OPT_RECONNECT_GAP },
@@ -2348,7 +2359,21 @@ int main(int argc, char *argv[])
             break;
 
         case OPT_REQUIRE_NATIVE:
-            g_require_native = 1;
+
+            /* Bare flag = every stage, i.e. a fully native stream. */
+            if (!optarg)
+            {
+                g_require_native = RIG_STREAM_CONV_ALL;
+            }
+            else if (stream_native_req_parse(optarg, &g_require_native) < 0)
+            {
+                fprintf(stderr,
+                        "Error: --require-native: unknown stage in '%s' "
+                        "(expected FORMAT, RATE, CHANNELS, ALL or NONE)\n",
+                        optarg);
+                return 1;
+            }
+
             break;
 
         case OPT_FORMAT:
