@@ -90,7 +90,6 @@
 #include <winsock2.h>
 #include <windows.h>
 #include <iphlpapi.h>
-static int wsstarted;
 static int is_networked(char *address, int address_length);
 #endif
 
@@ -184,38 +183,47 @@ static void handle_error(enum rig_debug_level_e lvl, const char *msg)
 
 #define TRACE rig_debug(RIG_DEBUG_ERR, "TRACE %s(%d)\n", __func__,__LINE__);
 
+/* Take a Winsock reference for one socket of our own.
+ *
+ * Winsock counts references: every successful WSAStartup() needs its own
+ * WSACleanup(), and releasing the last one stops every socket in the process,
+ * cancelling whatever they were doing. So one reference is taken per socket
+ * this file opens -- a port, the multicast publisher, the multicast receiver --
+ * and given back by network_deinit() when that socket closes. Closing one can
+ * then never pull Winsock out from under another, or from under the
+ * application. Elsewhere is not our business: anything else in the process
+ * holds its own references. */
 static int network_init()
 {
     int retval = -RIG_EINTERNAL;
 #ifdef __MINGW32__
     WSADATA wsadata;
 
-    if (wsstarted == 0)
-    {
-        retval = WSAStartup(MAKEWORD(1, 1), &wsadata);
+    retval = WSAStartup(MAKEWORD(1, 1), &wsadata);
 
-        if (retval == 0)
-        {
-            wsstarted = 1;
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: WSAStartup OK\n", __func__);
-        }
-        else
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: error creating socket, WSAStartup ret=%d\n",
-                      __func__, retval);
-            return (-RIG_EIO);
-        }
-    }
-    else // already started
+    if (retval != 0)
     {
-        retval = RIG_OK;
+        rig_debug(RIG_DEBUG_ERR, "%s: error creating socket, WSAStartup ret=%d\n",
+                  __func__, retval);
+        return (-RIG_EIO);
     }
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: WSAStartup OK\n", __func__);
+    retval = RIG_OK;
 #else
     retval = RIG_OK;
 
 #endif
     return retval;
+}
+
+/* Give back the reference network_init() took for one socket. */
+static void network_deinit()
+{
+#ifdef __MINGW32__
+    int ret = WSACleanup();
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: WSACleanup ret=%d\n", __func__, ret);
+#endif
 }
 
 /**
@@ -246,6 +254,7 @@ int network_open(hamlib_port_t *rp, int default_port)
 
     if (!rp)
     {
+        network_deinit();
         return (-RIG_EINVAL);
     }
 
@@ -274,7 +283,11 @@ int network_open(hamlib_port_t *rp, int default_port)
         {
             status = parse_hoststr(rp->pathname, sizeof(rp->pathname), hoststr, portstr);
 
-            if (status != RIG_OK) { return (status); }
+            if (status != RIG_OK)
+            {
+                network_deinit();
+                return (status);
+            }
 
             rig_debug(RIG_DEBUG_TRACE, "%s: hoststr=%s, portstr=%s\n", __func__, hoststr,
                       portstr);
@@ -320,6 +333,7 @@ int network_open(hamlib_port_t *rp, int default_port)
                   __func__,
                   rp->pathname,
                   gai_strerror(status));
+        network_deinit();
         return (-RIG_ECONF);
     }
 
@@ -339,6 +353,7 @@ int network_open(hamlib_port_t *rp, int default_port)
         {
             handle_error(RIG_DEBUG_ERR, "socket");
             freeaddrinfo(saved_res);
+            network_deinit();
             return (-RIG_EIO);
         }
 
@@ -367,6 +382,7 @@ int network_open(hamlib_port_t *rp, int default_port)
                   "%s: failed to connect to %s\n",
                   __func__,
                   rp->pathname);
+        network_deinit();
         return (-RIG_EIO);
     }
 
@@ -493,18 +509,11 @@ int network_close(hamlib_port_t *rp)
 #endif
         rig_debug(RIG_DEBUG_VERBOSE, "%s: close socket ret=%d\n", __func__, ret);
         rp->fd = 0;
+        /* the reference network_open() took for this socket; a port that was
+         * never opened, or is closed twice, holds none */
+        network_deinit();
     }
 
-#ifdef __MINGW32__
-
-    if (wsstarted)
-    {
-        ret = WSACleanup();
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: WSACleanup ret=%d\n", __func__, ret);
-        wsstarted = 0;
-    }
-
-#endif
     return (ret);
 }
 //! @endcond
@@ -1633,6 +1642,7 @@ int network_multicast_publisher_start(RIG *rig, const char *multicast_addr,
     {
         rig_debug(RIG_DEBUG_ERR, "%s: error opening new UDP socket: %s", __func__,
                   strerror(errno));
+        network_deinit();
         RETURNFUNC(-RIG_EIO);
     }
 
@@ -1645,6 +1655,8 @@ int network_multicast_publisher_start(RIG *rig, const char *multicast_addr,
         rig_debug(RIG_DEBUG_ERR, "%s: error enabling non-blocking mode for socket: %s",
                   __func__,
                   strerror(errno));
+        close(socket_fd);
+        network_deinit();
         RETURNFUNC(-RIG_EIO);
     }
 
@@ -1655,6 +1667,8 @@ int network_multicast_publisher_start(RIG *rig, const char *multicast_addr,
         rig_debug(RIG_DEBUG_ERR, "%s: error enabling non-blocking mode for socket: %s",
                   __func__,
                   strerror(errno));
+        close(socket_fd);
+        network_deinit();
         RETURNFUNC(-RIG_EIO);
     }
 
@@ -1680,6 +1694,7 @@ int network_multicast_publisher_start(RIG *rig, const char *multicast_addr,
     if (rs->multicast_publisher_priv_data == NULL)
     {
         close(socket_fd);
+        network_deinit();
         RETURNFUNC(-RIG_ENOMEM);
     }
 
@@ -1699,6 +1714,7 @@ int network_multicast_publisher_start(RIG *rig, const char *multicast_addr,
         free(rs->multicast_publisher_priv_data);
         rs->multicast_publisher_priv_data = NULL;
         close(socket_fd);
+        network_deinit();
         rig_debug(RIG_DEBUG_ERR,
                   "%s: multicast publisher data pipe creation failed, result=%d\n", __func__,
                   status);
@@ -1717,6 +1733,7 @@ int network_multicast_publisher_start(RIG *rig, const char *multicast_addr,
         free(mcast_publisher_priv);
         rs->multicast_publisher_priv_data = NULL;
         close(socket_fd);
+        network_deinit();
         RETURNFUNC(-RIG_EINTERNAL);
     }
 
@@ -1773,6 +1790,8 @@ int network_multicast_publisher_stop(RIG *rig)
 
     free(rs->multicast_publisher_priv_data);
     rs->multicast_publisher_priv_data = NULL;
+    /* the reference network_multicast_publisher_start() took */
+    network_deinit();
 
     RETURNFUNC(RIG_OK);
 }
@@ -1830,6 +1849,7 @@ int network_multicast_receiver_start(RIG *rig, const char *multicast_addr,
     {
         rig_debug(RIG_DEBUG_ERR, "%s: error opening new UDP socket: %s", __func__,
                   strerror(errno));
+        network_deinit();
         RETURNFUNC(-RIG_EIO);
     }
 
@@ -1842,6 +1862,8 @@ int network_multicast_receiver_start(RIG *rig, const char *multicast_addr,
         rig_debug(RIG_DEBUG_ERR, "%s: error enabling non-blocking mode for socket: %s",
                   __func__,
                   strerror(errno));
+        close(socket_fd);
+        network_deinit();
         RETURNFUNC(-RIG_EIO);
     }
 
@@ -1852,6 +1874,8 @@ int network_multicast_receiver_start(RIG *rig, const char *multicast_addr,
         rig_debug(RIG_DEBUG_ERR, "%s: error enabling non-blocking mode for socket: %s",
                   __func__,
                   strerror(errno));
+        close(socket_fd);
+        network_deinit();
         RETURNFUNC(-RIG_EIO);
     }
 
@@ -1864,6 +1888,7 @@ int network_multicast_receiver_start(RIG *rig, const char *multicast_addr,
     if (rs->multicast_receiver_priv_data == NULL)
     {
         close(socket_fd);
+        network_deinit();
         RETURNFUNC(-RIG_ENOMEM);
     }
 
@@ -1885,6 +1910,7 @@ int network_multicast_receiver_start(RIG *rig, const char *multicast_addr,
         free(mcast_receiver_priv);
         rs->multicast_receiver_priv_data = NULL;
         close(socket_fd);
+        network_deinit();
         RETURNFUNC(-RIG_EINTERNAL);
     }
 
@@ -1947,6 +1973,8 @@ int network_multicast_receiver_stop(RIG *rig)
 
     free(rs->multicast_receiver_priv_data);
     rs->multicast_receiver_priv_data = NULL;
+    /* the reference network_multicast_receiver_start() took */
+    network_deinit();
 
     RETURNFUNC(RIG_OK);
 }
