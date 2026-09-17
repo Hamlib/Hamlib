@@ -244,33 +244,7 @@ int rigctld_stream_registry_init(struct rigctld_stream_registry *reg)
 
 void rigctld_stream_registry_destroy(struct rigctld_stream_registry *reg)
 {
-    int t, i;
-
-    /* Collect all streams, then stop feeders outside lock to avoid deadlock */
-    struct rigctld_stream *all[RIG_STREAM_TYPE_COUNT * RIGCTLD_MAX_STREAMS];
-    int count = 0;
-
-    pthread_mutex_lock(&reg->lock);
-
-    for (t = 0; t < RIG_STREAM_TYPE_COUNT; t++)
-    {
-        for (i = 0; i < RIGCTLD_MAX_STREAMS; i++)
-        {
-            if (reg->streams[t][i] != NULL)
-            {
-                all[count++] = reg->streams[t][i];
-                reg->streams[t][i] = NULL;
-            }
-        }
-    }
-
-    pthread_mutex_unlock(&reg->lock);
-
-    for (i = 0; i < count; i++)
-    {
-        rigctld_stream_feeder_stop(all[i]);
-        rigctld_stream_cleanup_resources(all[i]);
-    }
+    rigctld_stream_registry_close_all(reg);
 
     pthread_mutex_destroy(&reg->lock);
     reg->initialized = 0;
@@ -475,8 +449,8 @@ void rigctld_stream_cleanup_resources(struct rigctld_stream *stream)
 }
 
 
-int rigctld_stream_registry_close_by_client(struct rigctld_stream_registry *reg,
-        int client_id)
+static int rigctld_stream_registry_close_matching(
+    struct rigctld_stream_registry *reg, int client_id, int close_all)
 {
     struct rigctld_stream *to_close[RIGCTLD_MAX_STREAMS * RIG_STREAM_TYPE_COUNT];
     int close_count = 0;
@@ -490,7 +464,8 @@ int rigctld_stream_registry_close_by_client(struct rigctld_stream_registry *reg,
         for (i = 0; i < RIGCTLD_MAX_STREAMS; i++)
         {
             if (reg->streams[t][i] != NULL
-                    && reg->streams[t][i]->client_id == client_id)
+                    && (close_all
+                        || reg->streams[t][i]->client_id == client_id))
             {
                 to_close[close_count++] = reg->streams[t][i];
                 reg->streams[t][i] = NULL;
@@ -500,7 +475,15 @@ int rigctld_stream_registry_close_by_client(struct rigctld_stream_registry *reg,
 
     pthread_mutex_unlock(&reg->lock);
 
-    /* Full cleanup outside lock (feeder_stop may block on pthread_join) */
+    /* Wake every feeder before joining any of them so teardown latency is
+     * bounded by the slowest feeder rather than the sum of their waits. */
+    for (i = 0; i < close_count; i++)
+    {
+        to_close[i]->running = 0;
+    }
+
+    /* Full cleanup outside lock: a feeder may need the registry lock while
+     * auto-closing before pthread_join can complete. */
     for (i = 0; i < close_count; i++)
     {
         rigctld_stream_feeder_stop(to_close[i]);
@@ -508,6 +491,19 @@ int rigctld_stream_registry_close_by_client(struct rigctld_stream_registry *reg,
     }
 
     return close_count;
+}
+
+
+int rigctld_stream_registry_close_by_client(struct rigctld_stream_registry *reg,
+        int client_id)
+{
+    return rigctld_stream_registry_close_matching(reg, client_id, 0);
+}
+
+
+int rigctld_stream_registry_close_all(struct rigctld_stream_registry *reg)
+{
+    return rigctld_stream_registry_close_matching(reg, 0, 1);
 }
 
 
