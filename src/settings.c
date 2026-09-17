@@ -1178,7 +1178,8 @@ HAMLIB_EXPORT(int) rig_settings_save(const char *setting, void *value,
     while (fgets(buf, sizeof(buf), fp))
     {
         char *tmp = strdup(buf);
-        char *s = strtok(tmp, "=");
+        char *saveptr = NULL;
+        char *s = strtok_r(tmp, "=", &saveptr);
 
         if (buf[0] == '#')
         {
@@ -1188,8 +1189,9 @@ HAMLIB_EXPORT(int) rig_settings_save(const char *setting, void *value,
 
         if (s == NULL)
         {
+            char *saveptr2 = NULL;
             rig_debug(RIG_DEBUG_ERR, "%s: unable to parse setting from '%s'\n", __func__,
-                      strtok(buf, "\r\n"));
+                      strtok_r(buf, "\r\n", &saveptr2));
             fclose(fp);
             fclose(fptmp);
             return -RIG_EINTERNAL;
@@ -1197,12 +1199,13 @@ HAMLIB_EXPORT(int) rig_settings_save(const char *setting, void *value,
 
         ++n;
 
-        char *v = strtok(NULL, "\r\n");
+        char *v = strtok_r(NULL, "\r\n", &saveptr);
 
         if (v == NULL)
         {
+            char *saveptr3 = NULL;
             rig_debug(RIG_DEBUG_ERR, "%s: unable to parse value from '%s'\n", __func__,
-                      strtok(buf, "\r\n"));
+                      strtok_r(buf, "\r\n", &saveptr3));
             fclose(fp);
             fclose(fptmp);
             return -RIG_EINTERNAL;
@@ -1255,8 +1258,9 @@ HAMLIB_EXPORT(int) rig_settings_load_all(char *settings_file)
 
     while (fgets(buf, sizeof(buf), fp))
     {
-        const char *s = strtok(buf, "=");
-        const char *v = strtok(NULL, "\r\n");
+        char *saveptr4 = NULL;
+        const char *s = strtok_r(buf, "=", &saveptr4);
+        const char *v = strtok_r(NULL, "\r\n", &saveptr4);
 
         if (strcmp(s, "sharedkey") == 0)
         {
