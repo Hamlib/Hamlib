@@ -118,7 +118,7 @@ extern int is_rigctld;
 #define EXPECTED_AUDIO_RX_LINE \
     "type=AUDIO_RX formats=PCM_S8,PCM_U8,PCM_S16,PCM_F32,OPUS " \
     "rates=" EXPECTED_AUDIO_RATES " channels=1,2 max_streams=4 " \
-    "flags= tx_horizon_ms=0 " \
+    "flags=NONE tx_horizon_ms=0 " \
     "native_formats=PCM_F32,OPUS " \
     "native_rates=" EXPECTED_AUDIO_NATIVE_RATES " native_channels=1,2"
 #define EXPECTED_AUDIO_TX_LINE \
@@ -130,7 +130,7 @@ extern int is_rigctld;
 #define EXPECTED_IQ_RX_LINE \
     "type=IQ_RX formats=IQ_CS8,IQ_CU8,IQ_CS16,IQ_CF32 " \
     "rates=" EXPECTED_IQ_RATES " channels=1,2,3,4 max_streams=4 " \
-    "flags= tx_horizon_ms=0 " \
+    "flags=NONE tx_horizon_ms=0 " \
     "native_formats=IQ_CF32 " \
     "native_rates=" EXPECTED_IQ_NATIVE_RATES " native_channels=1,2,3,4"
 #define EXPECTED_IQ_TX_LINE \
@@ -669,7 +669,7 @@ void test_cmd_dump_caps_streaming(void)
     TEST_CHECK(strstr(buf,
                       "\ttype=AUDIO_RX formats=PCM_F32,OPUS "
                       "rates=8000,16000,24000,48000,96000 channels=1,2 "
-                      "max_streams=4 flags= tx_horizon_ms=0\n") != NULL);
+                      "max_streams=4 flags=NONE tx_horizon_ms=0\n") != NULL);
     TEST_CHECK(strstr(buf,
                       "\ttype=AUDIO_TX formats=PCM_F32,OPUS "
                       "rates=8000,16000,24000,48000,96000 channels=1,2 "
@@ -678,7 +678,7 @@ void test_cmd_dump_caps_streaming(void)
     TEST_CHECK(strstr(buf,
                       "\ttype=IQ_RX formats=IQ_CF32 "
                       "rates=24000,48000,96000,192000 channels=1,2,3,4 "
-                      "max_streams=4 flags= tx_horizon_ms=0\n") != NULL);
+                      "max_streams=4 flags=NONE tx_horizon_ms=0\n") != NULL);
     TEST_CHECK(strstr(buf, "native_formats=") == NULL);
     TEST_MSG("declaration form must not carry native_* keys");
 
@@ -1040,8 +1040,8 @@ void test_cmd_stream_open_iq_multichannel(void)
     /* Native format, rate and channel count: a native stream. */
     char conv[64] = "x";
     TEST_CHECK(parse_ext_str(buf, "conversions", conv, sizeof(conv)) == 0);
-    TEST_CHECK(conv[0] == '\0');
-    TEST_MSG("conversions: got '%s', expected empty", conv);
+    TEST_CHECK(strcmp(conv, "NONE") == 0);
+    TEST_MSG("conversions: got '%s', expected NONE", conv);
 
     struct rigctld_stream *s = rigctld_stream_registry_find_by_id(
                                    &g_stream_registry, stream_id);
@@ -1099,14 +1099,14 @@ void test_cmd_stream_open_reports_conversions(void)
 
     conv[0] = 'x'; conv[1] = '\0';
     TEST_CHECK(parse_ext_str(buf, "conversions", conv, sizeof(conv)) == 0);
-    TEST_CHECK(conv[0] == '\0');
-    TEST_MSG("native open conversions: got '%s', expected empty", conv);
+    TEST_CHECK(strcmp(conv, "NONE") == 0);
+    TEST_MSG("native open conversions: got '%s', expected NONE", conv);
 
     stream_test_end(rig);
 }
 
 
-/* require_native=1 refuses a convertible-but-not-native request
+/* require_native=ALL refuses a convertible-but-not-native request
  * with -RIG_ENAVAIL (distinct from -RIG_EINVAL for the impossible), and
  * accepts the native form of the same request. */
 void test_cmd_stream_open_require_native(void)
@@ -1115,7 +1115,7 @@ void test_cmd_stream_open_require_native(void)
     TEST_CHECK(rig != NULL);
     char buf[1024];
 
-    run_cmd(rig, "\\stream_open AUDIO_RX PCM_S16 48000 require_native=1",
+    run_cmd(rig, "\\stream_open AUDIO_RX PCM_S16 48000 require_native=ALL",
             buf, sizeof(buf));
 
     int rprt_code = 0;
@@ -1126,14 +1126,104 @@ void test_cmd_stream_open_require_native(void)
     TEST_CHECK(rigctld_stream_registry_count(&g_stream_registry) == 0);
 
     int ret = run_cmd(rig,
-                      "\\stream_open AUDIO_RX PCM_F32 48000 require_native=1",
+                      "\\stream_open AUDIO_RX PCM_F32 48000 require_native=ALL",
                       buf, sizeof(buf));
     TEST_CHECK(ret == 0);
     TEST_MSG("native require_native open failed: '%s'", buf);
 
     char conv[64] = "x";
     TEST_CHECK(parse_ext_str(buf, "conversions", conv, sizeof(conv)) == 0);
-    TEST_CHECK(conv[0] == '\0');
+    TEST_CHECK(strcmp(conv, "NONE") == 0);
+    TEST_MSG("native require_native open conversions: got '%s'", conv);
+
+    stream_test_end(rig);
+}
+
+
+/* The wire carries the require_native mask as stage names, from the same
+ * vocabulary the conversions: line answers in: a demand that names only
+ * stages the request does not need serves the converted stream, one that
+ * names a needed stage refuses it. */
+void test_cmd_stream_open_require_native_stages(void)
+{
+    RIG *rig = stream_test_begin();
+    TEST_CHECK(rig != NULL);
+    char buf[1024];
+    char cmd[64];
+
+    /* S16 against the F32-native dummy resolves to a format conversion at
+     * a native rate — exactly what a relay wants to allow. */
+    int ret = run_cmd(rig,
+                      "\\stream_open AUDIO_RX PCM_S16 48000 "
+                      "require_native=RATE,CHANNELS",
+                      buf, sizeof(buf));
+    TEST_CHECK(ret == 0);
+    TEST_MSG("rate+channels demand on a format-converted open failed: '%s'",
+             buf);
+
+    char conv[64] = "";
+    TEST_CHECK(parse_ext_str(buf, "conversions", conv, sizeof(conv)) == 0);
+    TEST_CHECK(strcmp(conv, "FORMAT") == 0);
+    TEST_MSG("conversions: got '%s', expected FORMAT", conv);
+
+    int stream_id = -1, udp_port = -1;
+    parse_open_response(buf, &stream_id, &udp_port);
+    snprintf(cmd, sizeof(cmd), "\\stream_close %d", stream_id);
+    run_cmd(rig, cmd, buf, sizeof(buf));
+    TEST_CHECK(rigctld_stream_registry_count(&g_stream_registry) == 0);
+
+    /* Naming the stage the request does need refuses it. */
+    run_cmd(rig, "\\stream_open AUDIO_RX PCM_S16 48000 require_native=FORMAT",
+            buf, sizeof(buf));
+
+    int rprt_code = 0;
+    TEST_CHECK(parse_rprt_code(buf, &rprt_code) == 0);
+    TEST_CHECK(rprt_code == -RIG_ENAVAIL);
+    TEST_MSG("FORMAT demand: got RPRT %d, expected %d",
+             rprt_code, -RIG_ENAVAIL);
+    TEST_CHECK(rigctld_stream_registry_count(&g_stream_registry) == 0);
+
+    /* NONE is the empty demand, i.e. the default. */
+    ret = run_cmd(rig, "\\stream_open AUDIO_RX PCM_S16 48000 "
+                       "require_native=NONE", buf, sizeof(buf));
+    TEST_CHECK(ret == 0);
+    TEST_MSG("require_native=NONE open failed: '%s'", buf);
+    parse_open_response(buf, &stream_id, &udp_port);
+    snprintf(cmd, sizeof(cmd), "\\stream_close %d", stream_id);
+    run_cmd(rig, cmd, buf, sizeof(buf));
+
+    stream_test_end(rig);
+}
+
+
+/* A stage name the server does not know fails the open with -RIG_EINVAL.
+ * Skipping it (as the conversions: parser does for forward compatibility)
+ * would hand the client a stream with none of the guarantee it asked for. */
+void test_cmd_stream_open_require_native_unknown(void)
+{
+    RIG *rig = stream_test_begin();
+    TEST_CHECK(rig != NULL);
+    char buf[1024];
+
+    run_cmd(rig, "\\stream_open AUDIO_RX PCM_F32 48000 require_native=CODEC",
+            buf, sizeof(buf));
+
+    int rprt_code = 0;
+    TEST_CHECK(parse_rprt_code(buf, &rprt_code) == 0);
+    TEST_MSG("could not parse RPRT from: '%s'", buf);
+    TEST_CHECK(rprt_code == -RIG_EINVAL);
+    TEST_MSG("unknown stage: got RPRT %d, expected %d",
+             rprt_code, -RIG_EINVAL);
+    TEST_CHECK(rigctld_stream_registry_count(&g_stream_registry) == 0);
+
+    /* An unknown name among known ones is just as fatal — the demand is
+     * refused whole, never partially honoured. */
+    run_cmd(rig, "\\stream_open AUDIO_RX PCM_F32 48000 "
+                 "require_native=RATE,CODEC", buf, sizeof(buf));
+    rprt_code = 0;
+    TEST_CHECK(parse_rprt_code(buf, &rprt_code) == 0);
+    TEST_CHECK(rprt_code == -RIG_EINVAL);
+    TEST_CHECK(rigctld_stream_registry_count(&g_stream_registry) == 0);
 
     stream_test_end(rig);
 }
@@ -2121,8 +2211,8 @@ void test_rx_codec_passthrough_audio(void)
     /* A codec stream is native by definition. */
     char conv[64] = "x";
     TEST_CHECK(parse_ext_str(buf, "conversions", conv, sizeof(conv)) == 0);
-    TEST_CHECK(conv[0] == '\0');
-    TEST_MSG("codec conversions: got '%s', expected empty", conv);
+    TEST_CHECK(strcmp(conv, "NONE") == 0);
+    TEST_MSG("codec conversions: got '%s', expected NONE", conv);
 
     int client_sock = create_client_udp_socket();
     TEST_CHECK(client_sock >= 0);
@@ -5987,6 +6077,8 @@ TEST_LIST =
     { "cmd_stream_open_iq_multichannel",    test_cmd_stream_open_iq_multichannel },
     { "cmd_stream_open_reports_conversions", test_cmd_stream_open_reports_conversions },
     { "cmd_stream_open_require_native",     test_cmd_stream_open_require_native },
+    { "cmd_stream_open_require_native_stages", test_cmd_stream_open_require_native_stages },
+    { "cmd_stream_open_require_native_unknown", test_cmd_stream_open_require_native_unknown },
 
     /* stream_open — happy paths with backend verification */
     { "cmd_stream_open_kv_config_params",   test_cmd_stream_open_kv_config_params },
