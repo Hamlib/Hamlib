@@ -66,10 +66,10 @@
  *
  * \sa amp_model_t
  */
-#define AMP_MAKE_MODEL(a,b) ((a)*100+(b))
+#define AMP_MAKE_MODEL(a,b) (((a))*100+((b)))
 
 /** Convenience macro to derive the backend family number from the model number. */
-#define AMP_BACKEND_NUM(a) ((a)/100)
+#define AMP_BACKEND_NUM(a) (((a))/100)
 
 
 /**
