@@ -135,8 +135,21 @@ void icom_network_session_audio_stats(const struct icom_network_session *s,
  * than LINK_TIMEOUT. Needed because not every system produces a real one --
  * Windows does not report a refused local port -- so this is the only way to
  * exercise those paths everywhere. Nothing in the library calls it. */
+/* How long the audio receive loop may block given the state of its reorder
+ * window: the earlier of the next release deadline and the next retransmit
+ * request, capped at the idle poll interval. Exposed for the tests, which
+ * check it against a clock they control. */
+int icom_network_session_audio_wait_ms(const struct stream_reorder *r,
+                                       int64_t now_ms, int64_t period_ms);
+
 void icom_network_session_test_fail_socket(struct icom_network_session *s,
         enum icom_network_socket_role role, int err);
+
+/* Move a socket's last-heard time into the past, so a test can say exactly
+ * how close each socket is to its liveness timeout instead of waiting for
+ * traffic to settle. */
+void icom_network_session_test_age_socket(struct icom_network_session *s,
+        enum icom_network_socket_role role, int age_ms);
 
 /* Whether the selected radio advertises TX audio at the negotiated rate.
  * Valid only after a successful connect; a TX stream must not be opened when

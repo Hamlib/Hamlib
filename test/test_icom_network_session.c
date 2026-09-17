@@ -748,6 +748,12 @@ void test_session_injected_socket_error_is_socket_error(void)
     mock_start(&mock);
     capability_config(&config, &mock, "IC-7610");
     config.liveness_timeout_ms = 1000;
+    /* No CI-V idles at all: connect() drains the socket, so after this the
+     * stream is genuinely quiet and no packet can arrive later to clear the
+     * error the test is about to inject (any packet does -- see
+     * icom_network_session_rx_common). Silencing the mock alone leaves an
+     * idle already on its way. */
+    mock.civ_idle_ms = 0;
     s = icom_network_session_alloc(&config);
     TEST_ASSERT(s != NULL);
     TEST_ASSERT(icom_network_session_connect(s) == RIG_OK);
@@ -770,6 +776,43 @@ void test_session_injected_socket_error_is_socket_error(void)
     mock_stop(&mock);
 }
 
+/* Sockets usually go quiet together, and then the reason should be the more
+ * telling one: only the CI-V socket here reports an error, and the control
+ * socket -- silent, healthy, and the first one checked -- must not turn that
+ * into plain silence. Both are put well past the timeout, CI-V the fresher of
+ * the two so it is reached last, which is the case that used to be masked. */
+void test_session_socket_error_wins_over_a_silent_link(void)
+{
+    struct mock_server mock;
+    struct icom_network_session_config config;
+    struct icom_network_session *s;
+    int waited;
+
+    mock_start(&mock);
+    capability_config(&config, &mock, "IC-7610");
+    config.liveness_timeout_ms = 1000;
+    s = icom_network_session_alloc(&config);
+    TEST_ASSERT(s != NULL);
+    TEST_ASSERT(icom_network_session_connect(s) == RIG_OK);
+
+    /* Nothing answers from here on, so the ages set below stand. */
+    mock.go_silent = 1;
+    icom_network_session_test_fail_socket(s, ICOM_NETWORK_ROLE_CIV,
+                                          TEST_HARD_SOCKET_ERROR);
+    icom_network_session_test_age_socket(s, ICOM_NETWORK_ROLE_CONTROL, 5000);
+    icom_network_session_test_age_socket(s, ICOM_NETWORK_ROLE_CIV, 4900);
+
+    waited = wait_lost(s, 3000);
+    TEST_CHECK_(waited >= 0, "still valid 3 s after the link went quiet");
+    TEST_CHECK_(icom_network_session_loss_reason(s) == RIG_COMM_REASON_SOCKET_ERROR,
+                "reason %u, expected SOCKET_ERROR",
+                icom_network_session_loss_reason(s));
+
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
+
 /* A momentary error is not a failing socket: the send still goes out, and if
  * the radio then goes quiet the session is lost as plain silence. This is what
  * keeps a busy send buffer or an interrupted call from being read as a dead
@@ -786,6 +829,12 @@ void test_session_transient_socket_error_is_not_a_failure(void)
     mock_start(&mock);
     capability_config(&config, &mock, "IC-7610");
     config.liveness_timeout_ms = 1000;
+    /* No CI-V idles at all: connect() drains the socket, so after this the
+     * stream is genuinely quiet and no packet can arrive later to clear the
+     * error the test is about to inject (any packet does -- see
+     * icom_network_session_rx_common). Silencing the mock alone leaves an
+     * idle already on its way. */
+    mock.civ_idle_ms = 0;
     s = icom_network_session_alloc(&config);
     TEST_ASSERT(s != NULL);
     TEST_ASSERT(icom_network_session_connect(s) == RIG_OK);
@@ -821,6 +870,12 @@ void test_session_socket_errors_respect_liveness_disabled(void)
     mock_start(&mock);
     capability_config(&config, &mock, "IC-7610");
     config.liveness_timeout_ms = 0;
+    /* No CI-V idles at all: connect() drains the socket, so after this the
+     * stream is genuinely quiet and no packet can arrive later to clear the
+     * error the test is about to inject (any packet does -- see
+     * icom_network_session_rx_common). Silencing the mock alone leaves an
+     * idle already on its way. */
+    mock.civ_idle_ms = 0;
     s = icom_network_session_alloc(&config);
     TEST_ASSERT(s != NULL);
     TEST_ASSERT(icom_network_session_connect(s) == RIG_OK);
@@ -1346,18 +1401,40 @@ void test_session_audio_window_retransmit_recovers(void)
     mock_stop(&mock);
 }
 
-/* One run of a retransmit-retry scenario: seq 3 is withheld and the first
- * request for it ignored, so only a second request gets it back. With
- * trailing traffic the arriving packets wake the receive loop; without it the
- * loop has to wake for the retry on its own.
- *
- * Returns 1 when the packet came back after a second request. The timing is
- * tight by nature -- a 50 ms window puts the retry at 25 ms, inside the loop's
- * own 50 ms wake-up cap -- so a loaded machine can miss it for reasons that
- * say nothing about the code, and the caller tries again.
- */
-static int audio_retry_attempt(unsigned window_ms, int trailing,
-                               int *requests, int *payloads)
+/* The hold window used by the retransmission tests. The session repeats a
+ * request every window/2, capped at 100 ms, so the second request falls due
+ * 100 ms after the hole and the window does not close for another 300 ms.
+ * Nothing here turns on the machine being able to hold a deadline: the test
+ * waits for the session to repeat the request, not for time to pass. The
+ * window/2 spacing itself is checked, against a fake clock, by
+ * test_stream_reorder's next_request test. */
+#define AUDIO_RETRY_WINDOW_MS 400
+
+/* Wait until the mock has seen `want` retransmit requests on the audio
+ * socket. Returns the count it reached, so a caller that timed out can say
+ * how far it got. */
+static int audio_wait_requests(struct mock_server *mock, int want,
+                               int timeout_ms)
+{
+    int waited;
+
+    for (waited = 0; waited < timeout_ms; waited += 5)
+    {
+        int seen = mock->audio_retransmit_requests;
+
+        if (seen >= want) { return seen; }
+
+        hl_usleep(5 * 1000);
+    }
+
+    return mock->audio_retransmit_requests;
+}
+
+/* Packet 3 is withheld and the first resend is dropped, so the packet only
+ * arrives if the session asks a second time. `trailing` says whether traffic
+ * keeps flowing after the hole: without it the receiver has nothing to wake
+ * it but the retry deadline itself. */
+static void audio_retry_check(int trailing)
 {
     static const uint16_t with_trailing[] = { 1, 2, 4, 5 };
     static const uint16_t without_trailing[] = { 1, 2, 4 };
@@ -1367,69 +1444,105 @@ static int audio_retry_attempt(unsigned window_ms, int trailing,
     struct mock_server mock;
     struct icom_network_session *s;
     struct audio_rx_item got[8];
-    int n, i, ok = 1;
+    int n, i, requests;
 
     mock_start(&mock);
-    s = audio_session(&mock, window_ms);
+    s = audio_session(&mock, AUDIO_RETRY_WINDOW_MS);
 
     mock.audio_withheld = 3;
     mock.audio_withheld_bytes = 16;
     mock.audio_withheld_ignore = 1;   /* the first resend is lost */
     audio_script(&mock, script, count);
-    n = audio_collect(s, got, 8, 600);
 
-    if (n != expected) { ok = 0; }
+    requests = audio_wait_requests(&mock, 2, 3000);
+    TEST_CHECK_(requests >= 2, "the lost resend was requested %d time(s)",
+                requests);
+
+    n = audio_collect(s, got, 8, 600);
+    TEST_CHECK_(n == expected, "got %d packets, expected %d", n, expected);
 
     for (i = 0; i < n; i++)
     {
-        if (got[i].seq != i + 1 || got[i].loss.lost_packets != 0) { ok = 0; }
+        TEST_CHECK_(got[i].seq == i + 1, "packet %d has sequence %u", i,
+                    got[i].seq);
+        TEST_CHECK_(got[i].loss.lost_packets == 0,
+                    "packet %d reported %u lost", i, got[i].loss.lost_packets);
     }
-
-    if (mock.audio_retransmit_requests < 2) { ok = 0; }
-
-    *requests = mock.audio_retransmit_requests;
-    *payloads = n;
 
     icom_network_audio_stop(s);
     icom_network_session_free(s);
     mock_stop(&mock);
-
-    return ok;
 }
 
-static void audio_retry_check(unsigned window_ms, int trailing)
+/* How long the receive loop is allowed to sleep, against a clock the test
+ * supplies -- the one part of the retransmit path whose timing can be pinned
+ * down exactly, since it is a pure function of the reorder state.
+ *
+ * The 400 ms window the tests above use leaves the retry inside the loop's
+ * 50 ms idle poll, so the poll alone would carry it. A short window does not:
+ * there the wait has to shorten to the retry, or the loop sleeps past it and
+ * the packet is given up when the window closes. That is the case hardware
+ * loss run 3 found, and the case checked here. */
+void test_session_audio_wait_follows_the_retry(void)
 {
-    int attempt, ok = 0, requests = 0, payloads = 0;
+    struct stream_reorder *r = stream_reorder_new(60, 16, 64, 50, 16);
+    const uint8_t payload[1] = { 0 };
+    struct stream_reorder_item item;
+    uint32_t missing[4];
+    static const int64_t period = 30;   /* half of the 60 ms window */
 
-    for (attempt = 1; attempt <= 3 && !ok; attempt++)
-    {
-        ok = audio_retry_attempt(window_ms, trailing, &requests, &payloads);
+    TEST_ASSERT(r != NULL);
 
-        if (!ok)
-        {
-            TEST_MSG("attempt %d: %d payloads, %d requests", attempt, payloads,
-                     requests);
-        }
-    }
+    /* Nothing held: the loop sleeps its full poll interval. */
+    TEST_CHECK_(icom_network_session_audio_wait_ms(r, 0, period) == 50,
+                "idle wait was %d ms",
+                icom_network_session_audio_wait_ms(r, 0, period));
 
-    TEST_CHECK_(ok, "no attempt recovered it: %d payloads, %d requests",
-                payloads, requests);
+    stream_reorder_push(r, 1, payload, sizeof(payload), 0);
+    stream_reorder_push(r, 3, payload, sizeof(payload), 0);
+
+    /* Release what is ready, the way the receive loop does, leaving only the
+     * hole at 2 and the packet held behind it. */
+    while (stream_reorder_pop(r, 0, &item) == STREAM_REORDER_PACKET) { }
+
+    /* Sequence 2 is missing and has never been asked for: no sleeping. */
+    TEST_CHECK_(icom_network_session_audio_wait_ms(r, 0, period) == 0,
+                "wait before the first request was %d ms",
+                icom_network_session_audio_wait_ms(r, 0, period));
+
+    TEST_CHECK(stream_reorder_missing(r, 0, period, missing, 4) == 1);
+
+    /* Asked for at 0, so the repeat falls due at 30 -- inside the poll
+     * interval, and only sent on time if the wait follows it. */
+    TEST_CHECK_(icom_network_session_audio_wait_ms(r, 0, period) == 30,
+                "wait to the repeat was %d ms",
+                icom_network_session_audio_wait_ms(r, 0, period));
+    TEST_CHECK_(icom_network_session_audio_wait_ms(r, 20, period) == 10,
+                "wait to the repeat at t=20 was %d ms",
+                icom_network_session_audio_wait_ms(r, 20, period));
+
+    /* Past the window nothing can be asked for again, and the packet is
+     * released now, so the loop must not sleep on it. */
+    TEST_CHECK_(icom_network_session_audio_wait_ms(r, 60, period) == 0,
+                "wait at the deadline was %d ms",
+                icom_network_session_audio_wait_ms(r, 60, period));
+
+    stream_reorder_free(r);
 }
 
-/* A lost resend is asked for again within a short window: requests are spaced
- * by half the window, so a 60 ms window gets a second attempt that a fixed
- * 100 ms spacing would never make. */
-void test_session_audio_short_window_retries(void)
+
+/* A resend that is itself lost is asked for again, and the packet comes back
+ * in order. Traffic keeps flowing after the hole here. */
+void test_session_audio_retry_after_lost_resend(void)
 {
-    audio_retry_check(60, 1);
+    audio_retry_check(1);
 }
 
-/* The second request is sent when it falls due even if nothing else arrives to
- * wake the receiver: with a 50 ms window it goes out at 25 ms, and the
- * receiver would otherwise sleep until the deadline and give up. */
+/* The same with nothing arriving after the hole, so the repeat has to be
+ * issued by the receive loop on its own rather than off an incoming packet. */
 void test_session_audio_retry_without_traffic(void)
 {
-    audio_retry_check(50, 0);
+    audio_retry_check(0);
 }
 
 
@@ -1848,7 +1961,8 @@ TEST_LIST =
     { "audio_window_reorders",       test_session_audio_window_reorders },
     { "audio_window_retransmit_recovers", test_session_audio_window_retransmit_recovers },
     { "audio_window_gives_up",       test_session_audio_window_gives_up },
-    { "audio_short_window_retries",  test_session_audio_short_window_retries },
+    { "audio_wait_follows_the_retry", test_session_audio_wait_follows_the_retry },
+    { "audio_retry_after_lost_resend", test_session_audio_retry_after_lost_resend },
     { "audio_retry_without_traffic", test_session_audio_retry_without_traffic },
     { "audio_queue_overflow_reported", test_session_audio_queue_overflow_reported },
     { "capability_name_is_echoed",   test_session_capability_name_is_echoed },
@@ -1865,6 +1979,7 @@ TEST_LIST =
     { "civ_silence_is_link_timeout", test_session_civ_silence_is_link_timeout },
     { "civ_port_refusing_is_socket_error", test_session_civ_port_refusing_is_socket_error },
     { "injected_socket_error_is_socket_error", test_session_injected_socket_error_is_socket_error },
+    { "socket_error_wins_over_a_silent_link", test_session_socket_error_wins_over_a_silent_link },
     { "transient_socket_error_is_not_a_failure", test_session_transient_socket_error_is_not_a_failure },
     { "socket_errors_respect_liveness_disabled", test_session_socket_errors_respect_liveness_disabled },
     { "free_during_reconnect_handshake", test_session_free_during_reconnect_handshake },

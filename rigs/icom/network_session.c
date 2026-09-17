@@ -99,6 +99,10 @@ static void icom_network_session_close_fd(int fd)
  * arrive within 20 ms, so asking again sooner than that only duplicates. */
 #define ICOM_NETWORK_SESSION_AUDIO_RETRANSMIT_MIN_MS 20
 
+/* The audio receive loop never blocks longer than this, so it notices a stop
+ * request and sends its pings without anything arriving. */
+#define ICOM_NETWORK_SESSION_AUDIO_POLL_MS 50
+
 #define ICOM_NETWORK_SESSION_IDLE_MS        100
 #define ICOM_NETWORK_SESSION_PING_MS        500
 /* audio stream pings fast, inside the TX freshness window */
@@ -939,6 +943,7 @@ static void icom_network_session_check_health(struct icom_network_session *s,
         int64_t now)
 {
     struct icom_network_session_socket *sockets[3];
+    struct icom_network_session_socket *lost = NULL;
     int i, count = 0;
 
     if (s->lost) { return; }
@@ -950,24 +955,39 @@ static void icom_network_session_check_health(struct icom_network_session *s,
 
     if (s->config.liveness_timeout_ms <= 0) { return; }
 
+    /* Several sockets can pass the timeout in the same sweep -- they usually
+     * go quiet together. Report the one that also reports errors, since a
+     * socket error says more about why than plain silence does, and the
+     * answer should not depend on the order they are checked in. */
     for (i = 0; i < count; i++)
     {
         struct icom_network_session_socket *sock = sockets[i];
-        int64_t last_heard = sock->last_heard_ms;
         int failing;
 
-        if (now - last_heard <= s->config.liveness_timeout_ms) { continue; }
+        if (now - sock->last_heard_ms <= s->config.liveness_timeout_ms)
+        {
+            continue;
+        }
 
         failing = icom_network_session_socket_failing(sock);
+
+        if (lost == NULL || failing) { lost = sock; }
+
+        if (failing) { break; }
+    }
+
+    if (lost != NULL)
+    {
+        int failing = icom_network_session_socket_failing(lost);
+
         rig_debug(RIG_DEBUG_ERR,
                   "%s: nothing received on the %s socket for %lld ms%s\n",
-                  __func__, icom_network_session_role_name(sock->role),
-                  (long long)(now - last_heard),
+                  __func__, icom_network_session_role_name(lost->role),
+                  (long long)(now - lost->last_heard_ms),
                   failing ? ", and it reports errors" : "");
         icom_network_session_mark_lost(s, failing
                                        ? RIG_COMM_REASON_SOCKET_ERROR
                                        : RIG_COMM_REASON_LINK_TIMEOUT);
-        return;
     }
 }
 
@@ -1364,6 +1384,32 @@ static int64_t icom_network_session_audio_retransmit_period(
     return period;
 }
 
+/* How long the audio receive loop may block: until a held packet's deadline
+ * or a retransmit request falls due, whichever comes first, and never longer
+ * than the idle poll interval. A retry falling due sooner than that interval
+ * -- any window below about twice it -- is only sent on time because of this;
+ * without it the loop would sleep past the request and give up on the packet
+ * when the window closed. */
+int icom_network_session_audio_wait_ms(const struct stream_reorder *r,
+                                       int64_t now_ms, int64_t period_ms)
+{
+    int64_t due = stream_reorder_next_deadline(r, now_ms);
+    int64_t retry = stream_reorder_next_request(r, now_ms, period_ms);
+
+    if (retry >= 0 && (due < 0 || retry < due))
+    {
+        due = retry;
+    }
+
+    if (due >= 0 && due < ICOM_NETWORK_SESSION_AUDIO_POLL_MS)
+    {
+        return (int)due;
+    }
+
+    return ICOM_NETWORK_SESSION_AUDIO_POLL_MS;
+}
+
+
 /* Ask for the audio packets still missing inside the reorder window, again
  * every half window while it lasts. With a zero window nothing is ever asked
  * for: a resend could only arrive behind audio already delivered. */
@@ -1409,17 +1455,8 @@ static void *icom_network_session_audio_thread(void *arg)
         int64_t now = icom_network_now_ms();
         /* Wake for a held packet's deadline, and for a retransmit request
          * falling due, even when nothing arrives. */
-        int64_t due = stream_reorder_next_deadline(s->audio_reorder, now);
-        int64_t retry = stream_reorder_next_request(s->audio_reorder, now,
-                        icom_network_session_audio_retransmit_period(s));
-        int wait;
-
-        if (retry >= 0 && (due < 0 || retry < due))
-        {
-            due = retry;
-        }
-
-        wait = (due >= 0 && due < 50) ? (int)due : 50;
+        int wait = icom_network_session_audio_wait_ms(s->audio_reorder, now,
+                   icom_network_session_audio_retransmit_period(s));
         int n = icom_network_session_recv_timeout(&s->audio, buf, sizeof(buf),
                 wait);
 
@@ -1619,16 +1656,35 @@ void icom_network_session_audio_stats(const struct icom_network_session *s,
     pthread_mutex_unlock((pthread_mutex_t *)&s->audio_rx_lock);
 }
 
+static struct icom_network_session_socket *icom_network_session_socket_for(
+    struct icom_network_session *s, enum icom_network_socket_role role)
+{
+    if (role == ICOM_NETWORK_ROLE_CIV) { return &s->civ; }
+
+    if (role == ICOM_NETWORK_ROLE_AUDIO) { return &s->audio; }
+
+    return &s->control;
+}
+
+
 void icom_network_session_test_fail_socket(struct icom_network_session *s,
         enum icom_network_socket_role role, int err)
 {
-    struct icom_network_session_socket *sock = &s->control;
-
-    if (role == ICOM_NETWORK_ROLE_CIV) { sock = &s->civ; }
-    else if (role == ICOM_NETWORK_ROLE_AUDIO) { sock = &s->audio; }
+    struct icom_network_session_socket *sock =
+        icom_network_session_socket_for(s, role);
 
     /* the same path a real failure takes, so the test sees the same filter */
     icom_network_session_note_error(sock, "test injection", err);
+}
+
+
+void icom_network_session_test_age_socket(struct icom_network_session *s,
+        enum icom_network_socket_role role, int age_ms)
+{
+    struct icom_network_session_socket *sock =
+        icom_network_session_socket_for(s, role);
+
+    sock->last_heard_ms = icom_network_now_ms() - age_ms;
 }
 
 int icom_network_session_tx_audio_available(const struct icom_network_session
