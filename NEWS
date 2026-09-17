@@ -60,6 +60,8 @@ Version 4.7.3
           SW and PC CAT commands.  The power meter full scale (6W stock,
           12W with the PA0RDT PA modification) is read from the radio at
           open time. (TNX Jan Szumiec)
+        * G90: fix ATT ACK, get_info, AGC map, default CI-V address, and split
+          get.  GitHub PR #2121.  (TNX Chris Lawson)
 
 
 Version 4.7.2
