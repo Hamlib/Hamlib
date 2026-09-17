@@ -350,11 +350,13 @@ int HAMLIB_API serial_open(hamlib_port_t *rp)
 
     rp->fd = fd;
 
+#ifdef HAVE_TIOCEXCL
     /* Set Exclusive Mode on the TTY device */
     if (IOCTL(fd, TIOCEXCL, NULL) < 0)
     {
         perror("Failed to set TIOCEXCL");
     }
+#endif
 
     err = serial_setup(rp);
 
@@ -985,11 +987,13 @@ int ser_open(hamlib_port_t *p)
 
     p->fd = ret;
 
+#ifdef HAVE_TIOCEXCL
     /* Set Exclusive Mode on the TTY device */
     if (ret >= 0 && IOCTL(ret, TIOCEXCL, NULL) < 0)
     {
         perror("Failed to set TIOCEXCL");
     }
+#endif
     return (ret);
 }
 
