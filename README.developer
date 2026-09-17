@@ -397,7 +397,9 @@ capability model and format conversion) and HAMLIB_STREAMING_BACKEND_GUIDE.md
 its hardware-native formats, sample rates and channel counts in stream_caps;
 the frontend derives the wider effective set it advertises to applications
 and installs any needed conversion at stream open
-(rig_stream_get_conversions() reports what runs on a stream).
+(rig_stream_get_conversions() reports what runs on a stream, and an
+application that needs a stage served natively lists it in
+rig_stream_config.require_native to have the open refused instead).
 
 Likewise, a complete test of the build system is accomplished with 'make
 distcheck' which exercises a complete build sequence from creating a
