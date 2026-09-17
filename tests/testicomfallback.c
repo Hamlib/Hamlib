@@ -23,6 +23,7 @@
 #include "hamlib/port.h"
 #include "hamlib/rig_state.h"
 #include "icom.h"
+#include "misc.h"
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 
@@ -358,7 +359,7 @@ static RIG *prepare_rig(rig_model_t model, int fd)
     }
 
     STATE(rig)->comm_state = 1;
-    STATE(rig)->current_vfo = RIG_VFO_A;
+    rig_set_current_vfo_state(rig, RIG_VFO_A);
     RIGPORT(rig)->fd = fd;
     RIGPORT(rig)->type.rig = RIG_PORT_NETWORK;
     RIGPORT(rig)->retry = 0;

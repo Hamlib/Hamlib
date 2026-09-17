@@ -34,6 +34,7 @@
 
 #include "hamlib/rig.h"
 #include "hamlib/rig_state.h"
+#include "cache.h"
 #include "iofunc.h"
 #include "misc.h"
 #include "yaesu.h"
@@ -723,11 +724,14 @@ static int vx1700_open(RIG *rig)
 {
     struct vx1700_priv_data *priv = (struct vx1700_priv_data *)STATE(rig)->priv;
     struct rig_state        *state = STATE(rig);
+    vfo_t current_vfo;
     int             ret;
 
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
 
-    if ((ret = vx1700_get_vfo(rig, &state->current_vfo)) != RIG_OK) { return ret; }
+    if ((ret = vx1700_get_vfo(rig, &current_vfo)) != RIG_OK) { return ret; }
+
+    rig_set_current_vfo_state(rig, current_vfo);
 
     if ((ret = vx1700_get_mode(rig, RIG_VFO_CURR, &state->current_mode,
                                &state->current_width)) != RIG_OK) { return ret; }
@@ -1127,11 +1131,10 @@ static int vx1700_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 static int vx1700_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
     struct vx1700_priv_data *priv = (struct vx1700_priv_data *)STATE(rig)->priv;
-    const struct rig_state *state = STATE(rig);
 
     if (! vx1700_channel_is_ok(ch)) { return -RIG_EINVAL; }
 
-    if (vfo == RIG_VFO_CURR) { vfo = state->current_vfo; }
+    if (vfo == RIG_VFO_CURR) { vfo = rig_get_current_vfo_state(rig); }
 
     if (vfo == RIG_VFO_MEM)
     {
@@ -1150,10 +1153,9 @@ static int vx1700_set_mem(RIG *rig, vfo_t vfo, int ch)
 static int vx1700_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
     struct vx1700_priv_data *priv = (struct vx1700_priv_data *)STATE(rig)->priv;
-    const struct rig_state        *state = STATE(rig);
     unsigned char       channel = 0;
 
-    if (vfo == RIG_VFO_CURR) { vfo = state->current_vfo; }
+    if (vfo == RIG_VFO_CURR) { vfo = rig_get_current_vfo_state(rig); }
 
     if (vfo == RIG_VFO_MEM)
     {

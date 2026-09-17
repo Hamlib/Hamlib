@@ -64,6 +64,7 @@
 #include "hamlib/rig.h"
 #include "hamlib/port.h"
 #include "hamlib/rig_state.h"
+#include "cache.h"
 #include "iofunc.h"
 #include "misc.h"
 #include "tci2.h"
@@ -1766,7 +1767,7 @@ int tci2_open(RIG *rig)
         tci2_transaction(rig, cmd, NULL, NULL, 0);
     }
 
-    STATE(rig)->current_vfo = RIG_VFO_A;
+    rig_set_current_vfo_state(rig, RIG_VFO_A);
 
     RETURNFUNC(RIG_OK);
 }
@@ -2075,7 +2076,7 @@ int tci2_set_vfo(RIG *rig, vfo_t vfo)
         priv->current_vfo = vfo;
     }
 
-    STATE(rig)->current_vfo = priv->current_vfo;
+    rig_set_current_vfo_state(rig, priv->current_vfo);
     RETURNFUNC(RIG_OK);
 }
 

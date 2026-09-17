@@ -22,6 +22,8 @@
 #include "hamlib/rig.h"
 #include "hamlib/port.h"
 #include "hamlib/rig_state.h"
+#include "cache.h"
+#include "misc.h"
 
 extern struct rig_caps k4_caps;
 
@@ -232,12 +234,17 @@ static int run_case(const char *name, const char *fr, const char *ft,
     RIGPORT(rig)->type.rig = RIG_PORT_NETWORK;
     RIGPORT(rig)->timeout = 500;
     RIGPORT(rig)->retry = 0;
-    STATE(rig)->rx_vfo = initial_rx_vfo;
-    STATE(rig)->tx_vfo = initial_tx_vfo;
+    rig_set_rx_vfo_state(rig, initial_rx_vfo);
+    rig_set_tx_vfo_state(rig, initial_tx_vfo);
 
     retval = rig->caps->get_vfo(rig, &vfo);
-    actual_rx_vfo = STATE(rig)->rx_vfo;
-    actual_tx_vfo = STATE(rig)->tx_vfo;
+    {
+        struct rig_cache_routing_snapshot routing;
+
+        rig_get_cache_routing_snapshot(rig, &routing);
+        actual_rx_vfo = routing.rx_vfo;
+        actual_tx_vfo = routing.tx_vfo;
+    }
 
     RIGPORT(rig)->fd = -1;
     rig_cleanup(rig);

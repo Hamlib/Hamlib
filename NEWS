@@ -51,6 +51,10 @@ Version 5.x -- future
           David Christle)
         * Fix(rigctl): Enforce locale-neutral decimal protocol.  GitHub
           PR #2131.  (TNX David Christle)
+        * Fix(cache): Synchronize cache and routing state.  GitHub PR
+          #2146.  (TNX David Christle)
+        * Core: Add exclusive mode support to serial port opening.  GitHub
+          PR #2200.  (TNX Ben Woodard)
 
 Version 4.7.2
         * 2026-06-21
