@@ -633,10 +633,25 @@ void rig_invalidate_cache_current_freq(RIG *rig)
 int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
                   rmode_t *mode, int *cache_ms_mode, pbwidth_t *width, int *cache_ms_width)
 {
-    struct rig_cache *cachep;
-
     if (CHECK_RIG_ARG(rig) || !freq || !cache_ms_freq ||
             !mode || !cache_ms_mode || !width || !cache_ms_width)
+    {
+        return -RIG_EINVAL;
+    }
+
+    return rig_get_cache_internal(rig, vfo, freq, cache_ms_freq, mode,
+                                  cache_ms_mode, width, cache_ms_width);
+}
+
+int rig_get_cache_internal(RIG *rig, vfo_t vfo, freq_t *freq,
+                           int *cache_ms_freq, rmode_t *mode,
+                           int *cache_ms_mode, pbwidth_t *width,
+                           int *cache_ms_width)
+{
+    struct rig_cache *cachep;
+
+    if (!rig || !CACHE(rig) || !freq || !cache_ms_freq || !mode
+            || !cache_ms_mode || !width || !cache_ms_width)
     {
         return -RIG_EINVAL;
     }

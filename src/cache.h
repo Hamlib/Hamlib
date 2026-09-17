@@ -110,6 +110,10 @@ int rig_set_cache_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int rig_set_cache_mode_only(RIG *rig, vfo_t vfo, rmode_t mode);
 int rig_invalidate_cache_mode(RIG *rig, vfo_t vfo);
 int rig_set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq);
+int rig_get_cache_internal(RIG *rig, vfo_t vfo, freq_t *freq,
+                           int *cache_ms_freq, rmode_t *mode,
+                           int *cache_ms_mode, pbwidth_t *width,
+                           int *cache_ms_width);
 void rig_invalidate_cache_current_freq(RIG *rig);
 void rig_invalidate_cache_vfo(RIG *rig);
 void rig_get_cached_vfo(RIG *rig, vfo_t *vfo, int *cache_ms,

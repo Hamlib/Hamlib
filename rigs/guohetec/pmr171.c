@@ -511,12 +511,17 @@ static int pmr171_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
      unsigned char reply[16];
      hamlib_port_t *rp = RIGPORT(rig);
      freq_t other_freq;
+     int ret;
 
      rig_debug(RIG_DEBUG_VERBOSE, "pmr171: requested freq = %"PRIfreq" Hz\n", freq);
 
-    rig_get_cache_freq(rig,
-                       vfo == RIG_VFO_B ? RIG_VFO_A : RIG_VFO_B,
-                       &other_freq, NULL);
+    ret = guohetec_get_cached_freq(
+              rig, vfo == RIG_VFO_B ? RIG_VFO_A : RIG_VFO_B, &other_freq);
+
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
 
     /* Update frequency */
     if (vfo == RIG_VFO_B)
@@ -537,7 +542,7 @@ static int pmr171_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
      write_block(rp, cmd, 16);
      
      // Read response and validate length
-     int ret = read_block(rp, reply, sizeof(reply));
+     ret = read_block(rp, reply, sizeof(reply));
      if (ret < 0) {
          rig_debug(RIG_DEBUG_ERR, "%s: Failed to read response, using cached values\n", __func__);
          // Update cache with requested frequency even if response failed
@@ -576,9 +581,16 @@ static int pmr171_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
      unsigned char reply[10];
      unsigned char i = rmode2guohe(mode, pmr171_modes);
      rmode_t other_mode;
+     int cache_status;
 
-     guohetec_get_cached_mode(
-         rig, vfo == RIG_VFO_B ? RIG_VFO_A : RIG_VFO_B, &other_mode);
+     cache_status = guohetec_get_cached_mode(
+                        rig, vfo == RIG_VFO_B ? RIG_VFO_A : RIG_VFO_B,
+                        &other_mode);
+
+     if (cache_status != RIG_OK)
+     {
+         return cache_status;
+     }
 
      if (vfo == RIG_VFO_B)
      {

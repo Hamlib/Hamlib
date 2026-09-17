@@ -31,12 +31,19 @@
 
 #define GUOHE_MODE_TABLE_MAX 8
 
-static inline void guohetec_get_cached_freq(RIG *rig, vfo_t vfo, freq_t *freq)
+static inline int guohetec_get_cached_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    rig_get_cache_freq(rig, vfo, freq, NULL);
+    rmode_t mode;
+    pbwidth_t width;
+    int cache_ms_freq;
+    int cache_ms_mode;
+    int cache_ms_width;
+
+    return rig_get_cache_internal(rig, vfo, freq, &cache_ms_freq, &mode,
+                                  &cache_ms_mode, &width, &cache_ms_width);
 }
 
-static inline void guohetec_get_cached_mode(RIG *rig, vfo_t vfo,
+static inline int guohetec_get_cached_mode(RIG *rig, vfo_t vfo,
         rmode_t *mode)
 {
     freq_t freq;
@@ -45,8 +52,8 @@ static inline void guohetec_get_cached_mode(RIG *rig, vfo_t vfo,
     int cache_ms_mode;
     int cache_ms_width;
 
-    rig_get_cache(rig, vfo, &freq, &cache_ms_freq, mode, &cache_ms_mode,
-                  &width, &cache_ms_width);
+    return rig_get_cache_internal(rig, vfo, &freq, &cache_ms_freq, mode,
+                                  &cache_ms_mode, &width, &cache_ms_width);
 }
 
 static inline void guohetec_get_cached_vfo(RIG *rig, vfo_t *vfo)
@@ -67,14 +74,13 @@ static inline void guohetec_get_cached_ptt(RIG *rig, ptt_t *ptt)
 
 // Common error handling macros for cached values
 #define RETURN_CACHED_FREQ(rig, vfo, freq) do { \
-    guohetec_get_cached_freq((rig), (vfo), (freq)); \
-    return RIG_OK; \
+    return guohetec_get_cached_freq((rig), (vfo), (freq)); \
 } while (0)
 
 #define RETURN_CACHED_MODE(rig, vfo, mode, width, p) do { \
-    guohetec_get_cached_mode((rig), (vfo), (mode)); \
-    *(width) = (p)->filterBW; \
-    return RIG_OK; \
+    int cache_status_ = guohetec_get_cached_mode((rig), (vfo), (mode)); \
+    if (cache_status_ == RIG_OK) { *(width) = (p)->filterBW; } \
+    return cache_status_; \
 } while (0)
 
 #define RETURN_CACHED_VFO(rig, vfo) do { \
