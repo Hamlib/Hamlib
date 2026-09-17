@@ -439,18 +439,22 @@ void test_require_native_rate_refuses_resampling(void)
     struct mock_server mock;
     RIG *rig;
     rig_stream_t *stream = NULL;
-    int ret;
+    int ret, resampling;
 
     mock_start(&mock);
     rig = open_against_mock(&mock, NULL);
     TEST_ASSERT(rig != NULL);
 
-    /* the same request without the demand is served, by resampling: that is
-     * what makes the refusal below the demand's doing and not a missing rate */
+    /* The same request without the demand: served by resampling, which is what
+     * makes the refusal below the demand's doing and not a missing rate. Built
+     * without libsamplerate the frontend cannot resample at all, and the open
+     * fails before require_native is ever consulted -- then all this can say is
+     * that the demanded open fails too. */
     ret = stream_open(rig, RIG_STREAM_TYPE_AUDIO_RX,
                       RIG_STREAM_FORMAT_PCM_S16, 24000, 1, &stream);
+    resampling = (ret == RIG_OK);
 
-    if (ret == RIG_OK)
+    if (resampling)
     {
         int conv = rig_stream_get_conversions(stream);
         TEST_CHECK_((conv & RIG_STREAM_CONV_RATE) != 0,
@@ -459,15 +463,76 @@ void test_require_native_rate_refuses_resampling(void)
     }
     else
     {
-        /* no libsamplerate: the frontend cannot resample at all */
-        TEST_MSG("open at a foreign rate returned %s", rigerror2(ret));
+        TEST_MSG("no resampling in this build: a foreign rate returns %s",
+                 rigerror2(ret));
     }
 
     stream = NULL;
     ret = stream_open_native(rig, RIG_STREAM_TYPE_AUDIO_RX,
                              RIG_STREAM_FORMAT_PCM_S16, 24000, 1,
                              RIG_STREAM_CONV_RATE, &stream);
+
+    if (resampling)
+    {
+        TEST_CHECK_(ret == -RIG_ENAVAIL, "got %s, expected -RIG_ENAVAIL",
+                    rigerror2(ret));
+    }
+    else
+    {
+        TEST_CHECK_(ret != RIG_OK, "opened at a rate this build cannot serve");
+    }
+
+    if (ret == RIG_OK) { rig_stream_close(rig, stream); }
+
+    rig_close(rig);
+    rig_cleanup(rig);
+    mock_stop(&mock);
+}
+
+/* The same demand on the channel count, which needs no resampling support and
+ * so tests the mask's refusal everywhere: this session's codec carries one
+ * channel, and stereo can only be had by mapping it. */
+void test_require_native_channels_refuses_mapping(void)
+{
+    struct mock_server mock;
+    RIG *rig;
+    rig_stream_t *stream = NULL;
+    int ret, conv;
+
+    mock_start(&mock);
+    rig = open_against_mock(&mock, NULL);
+    TEST_ASSERT(rig != NULL);
+
+    /* without the demand: served, with a channel stage */
+    ret = stream_open(rig, RIG_STREAM_TYPE_AUDIO_RX,
+                      RIG_STREAM_FORMAT_PCM_S16, 48000, 2, &stream);
+    TEST_CHECK_(ret == RIG_OK, "stereo from a mono session: %s", rigerror2(ret));
+
+    if (ret == RIG_OK)
+    {
+        conv = rig_stream_get_conversions(stream);
+        TEST_CHECK_((conv & RIG_STREAM_CONV_CHANNELS) != 0,
+                    "conversions=0x%x, expected a channel stage", (unsigned)conv);
+        rig_stream_close(rig, stream);
+    }
+
+    /* with it: refused, and the format is left free */
+    stream = NULL;
+    ret = stream_open_native(rig, RIG_STREAM_TYPE_AUDIO_RX,
+                             RIG_STREAM_FORMAT_PCM_S16, 48000, 2,
+                             RIG_STREAM_CONV_CHANNELS, &stream);
     TEST_CHECK_(ret == -RIG_ENAVAIL, "got %s, expected -RIG_ENAVAIL",
+                rigerror2(ret));
+
+    if (ret == RIG_OK) { rig_stream_close(rig, stream); }
+
+    /* and the demand does not stand in the way of a format change at the
+     * session's own channel count */
+    stream = NULL;
+    ret = stream_open_native(rig, RIG_STREAM_TYPE_AUDIO_RX,
+                             RIG_STREAM_FORMAT_PCM_F32, 48000, 1,
+                             RIG_STREAM_CONV_CHANNELS, &stream);
+    TEST_CHECK_(ret == RIG_OK, "mono float with require_native=CHANNELS: %s",
                 rigerror2(ret));
 
     if (ret == RIG_OK) { rig_stream_close(rig, stream); }
@@ -1236,6 +1301,7 @@ TEST_LIST =
     { "rx_anchor_index_under_rate_conversion", test_rx_anchor_index_under_rate_conversion },
     { "require_native_rate_allows_format_conversion", test_require_native_rate_allows_format_conversion },
     { "require_native_rate_refuses_resampling", test_require_native_rate_refuses_resampling },
+    { "require_native_channels_refuses_mapping", test_require_native_channels_refuses_mapping },
     { "require_native_all_opens_untouched", test_require_native_all_opens_untouched },
     { NULL, NULL }
 };

@@ -490,7 +490,10 @@ so if nothing arrives on any one of them for `net_liveness_timeout`, the session
 is declared lost. Checking them separately matters: the control socket can go on
 exchanging keepalives while the radio has stopped serving CI-V.
 
-Socket errors (the radio's port refusing packets, the network unreachable) do
+Socket errors (the radio's port refusing packets, the network unreachable) are
+only seen where the system reports them — a refused port reaches a connected
+UDP socket as an error on Linux and macOS, while Windows does not report it for
+a local peer, so there the same refusal simply looks like silence. They do
 not end the session by themselves: a path that fails for a moment is ridden out
 for as long as `net_liveness_timeout` allows, and `0` still means never. They
 name the cause instead: a socket that went silent after reporting an error is

@@ -1619,6 +1619,18 @@ void icom_network_session_audio_stats(const struct icom_network_session *s,
     pthread_mutex_unlock((pthread_mutex_t *)&s->audio_rx_lock);
 }
 
+void icom_network_session_test_fail_socket(struct icom_network_session *s,
+        enum icom_network_socket_role role, int err)
+{
+    struct icom_network_session_socket *sock = &s->control;
+
+    if (role == ICOM_NETWORK_ROLE_CIV) { sock = &s->civ; }
+    else if (role == ICOM_NETWORK_ROLE_AUDIO) { sock = &s->audio; }
+
+    /* the same path a real failure takes, so the test sees the same filter */
+    icom_network_session_note_error(sock, "test injection", err);
+}
+
 int icom_network_session_tx_audio_available(const struct icom_network_session
         *s)
 {

@@ -29,6 +29,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "network_proto.h"
 #include "stream_reorder.h"
 
 /* Opaque session handle. */
@@ -126,6 +127,16 @@ void icom_network_session_resync_counts(const struct icom_network_session *s,
  * duplicates, gaps, lost packets, resyncs) since the session was allocated. */
 void icom_network_session_audio_stats(const struct icom_network_session *s,
                                       struct stream_reorder_stats *stats);
+
+/* Test seam: report err (an errno, or a WSA error on Windows) against one of
+ * the session's sockets, exactly as a failing send or receive would, filter
+ * included. A momentary error changes nothing; a hard one makes sends on that
+ * socket fail at once, and silence after it is reported as SOCKET_ERROR rather
+ * than LINK_TIMEOUT. Needed because not every system produces a real one --
+ * Windows does not report a refused local port -- so this is the only way to
+ * exercise those paths everywhere. Nothing in the library calls it. */
+void icom_network_session_test_fail_socket(struct icom_network_session *s,
+        enum icom_network_socket_role role, int err);
 
 /* Whether the selected radio advertises TX audio at the negotiated rate.
  * Valid only after a successful connect; a TX stream must not be opened when

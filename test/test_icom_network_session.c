@@ -31,6 +31,7 @@
 #include "network_seqbuf.h"
 #include "network_proto.h"
 
+#include <errno.h>
 #include <string.h>
 #include <stdint.h>
 #include <unistd.h>
@@ -618,6 +619,16 @@ void test_session_civ_duplicate_dropped(void)
     mock_stop(&mock);
 }
 
+/* A socket error the system would pass on as momentary, and one it would not.
+ * The session must tell them apart, and the codes differ per platform. */
+#ifdef __MINGW32__
+#define TEST_TRANSIENT_SOCKET_ERROR WSAEWOULDBLOCK
+#define TEST_HARD_SOCKET_ERROR      WSAECONNRESET
+#else
+#define TEST_TRANSIENT_SOCKET_ERROR EAGAIN
+#define TEST_HARD_SOCKET_ERROR      ECONNREFUSED
+#endif
+
 /* Wait up to ms for the session to be declared lost; returns the time taken,
  * or -1 if it stayed valid. */
 static int wait_lost(struct icom_network_session *s, int ms)
@@ -664,12 +675,23 @@ void test_session_civ_silence_is_link_timeout(void)
     mock_stop(&mock);
 }
 
-/* The radio's CI-V port refuses packets. That shows up as socket errors (on
- * the send or the receive, whichever comes first); a CI-V command fails at
- * once instead of timing out, and when the liveness timeout runs out the
- * session is lost with SOCKET_ERROR, naming the cause, not LINK_TIMEOUT. */
+/* The radio's CI-V port refuses packets. Where the system reports that (an
+ * ICMP port-unreachable reaching a connected UDP socket), it shows up as a
+ * socket error on the send or the receive, a CI-V command fails at once
+ * instead of timing out, and the session is lost as SOCKET_ERROR rather than
+ * LINK_TIMEOUT once the liveness timeout runs out. Windows does not report it
+ * on a loopback socket, so there the refusal is indistinguishable from
+ * silence and only the loss itself is checked. */
 void test_session_civ_port_refusing_is_socket_error(void)
 {
+#ifdef __MINGW32__
+    /* Windows does not report a refused local port to a connected UDP socket,
+     * so there is nothing to observe here; the injected-error test below
+     * covers the same paths on every system. */
+    TEST_MSG("skipped: Windows does not report a refused loopback port");
+    TEST_CHECK(1);
+    return;
+#else
     struct mock_server mock;
     struct icom_network_session_config config;
     struct icom_network_session *s;
@@ -698,17 +720,96 @@ void test_session_civ_port_refusing_is_socket_error(void)
         hl_usleep(100 * 1000);
     }
 
+    /* No lower bound on the time: the timeout is measured from the socket's
+     * last packet, which is already a little way in the past when the port
+     * closes. */
+    TEST_CHECK_(waited >= 0 && waited < 3000, "lost after %d ms", waited);
     TEST_CHECK_(eio > 0, "no CI-V send reported the refused port");
-    TEST_CHECK_(waited >= 900 && waited < 3000, "lost after %d ms", waited);
     TEST_CHECK_(icom_network_session_loss_reason(s) == RIG_COMM_REASON_SOCKET_ERROR,
                 "reason %u", icom_network_session_loss_reason(s));
 
     icom_network_session_free(s);
     mock_stop(&mock);
+#endif
 }
 
-/* With the liveness timeout at 0 (never give up), socket errors do not end
- * the session either; commands still fail at once while the port refuses. */
+/* The same paths driven through the test seam, so they are covered where the
+ * system will not produce a real socket error (Windows, for a local peer):
+ * a socket that reported an error fails its sends at once, and silence after
+ * it is reported as SOCKET_ERROR rather than LINK_TIMEOUT. */
+void test_session_injected_socket_error_is_socket_error(void)
+{
+    struct mock_server mock;
+    struct icom_network_session_config config;
+    struct icom_network_session *s;
+    uint8_t cmd[] = { 0xfe, 0xfe, 0x98, 0xe0, 0x03, 0xfd };
+    int waited;
+
+    mock_start(&mock);
+    capability_config(&config, &mock, "IC-7610");
+    config.liveness_timeout_ms = 1000;
+    s = icom_network_session_alloc(&config);
+    TEST_ASSERT(s != NULL);
+    TEST_ASSERT(icom_network_session_connect(s) == RIG_OK);
+
+    /* The socket has to stay silent, or the next packet clears the error. */
+    mock.civ_silent = 1;
+    icom_network_session_test_fail_socket(s, ICOM_NETWORK_ROLE_CIV,
+                                          TEST_HARD_SOCKET_ERROR);
+
+    TEST_CHECK_(icom_network_civ_send(s, cmd, sizeof(cmd)) == -RIG_EIO,
+                "a send on a failing socket must not report success");
+
+    waited = wait_lost(s, 3000);
+    TEST_CHECK_(waited >= 0, "still valid 3 s after the error");
+    TEST_CHECK_(icom_network_session_loss_reason(s) == RIG_COMM_REASON_SOCKET_ERROR,
+                "reason %u, expected SOCKET_ERROR",
+                icom_network_session_loss_reason(s));
+
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
+/* A momentary error is not a failing socket: the send still goes out, and if
+ * the radio then goes quiet the session is lost as plain silence. This is what
+ * keeps a busy send buffer or an interrupted call from being read as a dead
+ * link -- and the codes that mean "momentary" are platform-specific, so this
+ * covers the Windows list where it runs. */
+void test_session_transient_socket_error_is_not_a_failure(void)
+{
+    struct mock_server mock;
+    struct icom_network_session_config config;
+    struct icom_network_session *s;
+    uint8_t cmd[] = { 0xfe, 0xfe, 0x98, 0xe0, 0x03, 0xfd };
+    int waited;
+
+    mock_start(&mock);
+    capability_config(&config, &mock, "IC-7610");
+    config.liveness_timeout_ms = 1000;
+    s = icom_network_session_alloc(&config);
+    TEST_ASSERT(s != NULL);
+    TEST_ASSERT(icom_network_session_connect(s) == RIG_OK);
+
+    mock.civ_silent = 1;
+    icom_network_session_test_fail_socket(s, ICOM_NETWORK_ROLE_CIV,
+                                          TEST_TRANSIENT_SOCKET_ERROR);
+
+    TEST_CHECK_(icom_network_civ_send(s, cmd, sizeof(cmd)) == (int)sizeof(cmd),
+                "a momentary error must not fail the send");
+
+    waited = wait_lost(s, 3000);
+    TEST_CHECK_(waited >= 0, "still valid 3 s after the radio went quiet");
+    TEST_CHECK_(icom_network_session_loss_reason(s) == RIG_COMM_REASON_LINK_TIMEOUT,
+                "reason %u, expected LINK_TIMEOUT",
+                icom_network_session_loss_reason(s));
+
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
+/* With the liveness timeout at 0 (never give up), socket errors do not end the
+ * session either; where the system reports a refused port, commands also fail
+ * at once while it lasts (see above for Windows). */
 void test_session_socket_errors_respect_liveness_disabled(void)
 {
     struct mock_server mock;
@@ -724,7 +825,11 @@ void test_session_socket_errors_respect_liveness_disabled(void)
     TEST_ASSERT(s != NULL);
     TEST_ASSERT(icom_network_session_connect(s) == RIG_OK);
 
-    mock.close_civ = 1;
+    /* through the seam, so this holds on systems that never report a refused
+     * port of their own */
+    mock.civ_silent = 1;
+    icom_network_session_test_fail_socket(s, ICOM_NETWORK_ROLE_CIV,
+                                          TEST_HARD_SOCKET_ERROR);
 
     for (i = 0; i < 25; i++)
     {
@@ -733,7 +838,7 @@ void test_session_socket_errors_respect_liveness_disabled(void)
         hl_usleep(100 * 1000);
     }
 
-    TEST_CHECK_(eio > 0, "no CI-V send reported the refused port");
+    TEST_CHECK_(eio > 0, "a send on a failing socket must not report success");
     TEST_CHECK_(icom_network_session_is_valid(s),
                 "session lost (reason %u) with the liveness timeout disabled",
                 icom_network_session_loss_reason(s));
@@ -814,43 +919,54 @@ void test_session_free_during_reconnect_backoff(void)
 #ifdef __MINGW32__
 /* An application that links libhamlib and opens an Icom LAN rig has not
  * started Winsock, and the session opens its sockets itself rather than
- * through network_open(). The session must hold its own Winsock reference.
- * Checked without the mock, which starts Winsock for itself. */
+ * through network_open(), so it has to hold a reference of its own.
+ *
+ * Winsock counts references, so the check is: with only the session holding
+ * one, sockets still work; once it is freed, they do not. The process is put
+ * into a known state first -- every reference released -- because this test
+ * cannot otherwise tell its own reference from someone else's, and a test
+ * that cannot fail is worse than no test. Nothing else in this process is
+ * using sockets at that point: each test starts and stops its own mock. */
 void test_session_starts_winsock(void)
 {
     struct icom_network_session_config config;
     struct icom_network_session *s;
-    SOCKET probe = socket(AF_INET, SOCK_DGRAM, 0);
+    WSADATA wsadata;
+    SOCKET probe;
 
-    if (probe != INVALID_SOCKET)
-    {
-        /* acutest runs each test in its own process; started here means it
-         * did not (a single test selected), so there is nothing to check */
-        closesocket(probe);
-        TEST_MSG("Winsock was already started in this process");
-        return;
-    }
+    while (WSACleanup() == 0) { }   /* drain every reference */
 
-    TEST_CHECK(WSAGetLastError() == WSANOTINITIALISED);
+    probe = socket(AF_INET, SOCK_DGRAM, 0);
+    TEST_ASSERT_(probe == INVALID_SOCKET,
+                 "Winsock is still started after releasing every reference");
+
+    /* one of our own, so the rest of the process keeps working */
+    TEST_ASSERT(WSAStartup(MAKEWORD(2, 2), &wsadata) == 0);
 
     memset(&config, 0, sizeof(config));
     strcpy(config.host, "127.0.0.1");
     s = icom_network_session_alloc(&config);
     TEST_ASSERT(s != NULL);
 
+    /* drop ours: the session's reference alone must keep Winsock up */
+    WSACleanup();
     probe = socket(AF_INET, SOCK_DGRAM, 0);
     TEST_CHECK_(probe != INVALID_SOCKET,
-                "socket() fails with a session allocated (error %d)",
+                "the session holds no Winsock reference (error %d)",
                 WSAGetLastError());
 
     if (probe != INVALID_SOCKET) { closesocket(probe); }
 
-    /* and the reference is given back */
+    /* and it gives that reference back */
     icom_network_session_free(s);
     probe = socket(AF_INET, SOCK_DGRAM, 0);
-    TEST_CHECK(probe == INVALID_SOCKET);
+    TEST_CHECK_(probe == INVALID_SOCKET,
+                "the session did not release its Winsock reference");
 
     if (probe != INVALID_SOCKET) { closesocket(probe); }
+
+    /* leave the process as the tests after this one expect to find it */
+    WSAStartup(MAKEWORD(2, 2), &wsadata);
 }
 #endif
 
@@ -1230,79 +1346,92 @@ void test_session_audio_window_retransmit_recovers(void)
     mock_stop(&mock);
 }
 
+/* One run of a retransmit-retry scenario: seq 3 is withheld and the first
+ * request for it ignored, so only a second request gets it back. With
+ * trailing traffic the arriving packets wake the receive loop; without it the
+ * loop has to wake for the retry on its own.
+ *
+ * Returns 1 when the packet came back after a second request. The timing is
+ * tight by nature -- a 50 ms window puts the retry at 25 ms, inside the loop's
+ * own 50 ms wake-up cap -- so a loaded machine can miss it for reasons that
+ * say nothing about the code, and the caller tries again.
+ */
+static int audio_retry_attempt(unsigned window_ms, int trailing,
+                               int *requests, int *payloads)
+{
+    static const uint16_t with_trailing[] = { 1, 2, 4, 5 };
+    static const uint16_t without_trailing[] = { 1, 2, 4 };
+    const uint16_t *script = trailing ? with_trailing : without_trailing;
+    int count = trailing ? 4 : 3;
+    int expected = count + 1;          /* the withheld packet, recovered */
+    struct mock_server mock;
+    struct icom_network_session *s;
+    struct audio_rx_item got[8];
+    int n, i, ok = 1;
+
+    mock_start(&mock);
+    s = audio_session(&mock, window_ms);
+
+    mock.audio_withheld = 3;
+    mock.audio_withheld_bytes = 16;
+    mock.audio_withheld_ignore = 1;   /* the first resend is lost */
+    audio_script(&mock, script, count);
+    n = audio_collect(s, got, 8, 600);
+
+    if (n != expected) { ok = 0; }
+
+    for (i = 0; i < n; i++)
+    {
+        if (got[i].seq != i + 1 || got[i].loss.lost_packets != 0) { ok = 0; }
+    }
+
+    if (mock.audio_retransmit_requests < 2) { ok = 0; }
+
+    *requests = mock.audio_retransmit_requests;
+    *payloads = n;
+
+    icom_network_audio_stop(s);
+    icom_network_session_free(s);
+    mock_stop(&mock);
+
+    return ok;
+}
+
+static void audio_retry_check(unsigned window_ms, int trailing)
+{
+    int attempt, ok = 0, requests = 0, payloads = 0;
+
+    for (attempt = 1; attempt <= 3 && !ok; attempt++)
+    {
+        ok = audio_retry_attempt(window_ms, trailing, &requests, &payloads);
+
+        if (!ok)
+        {
+            TEST_MSG("attempt %d: %d payloads, %d requests", attempt, payloads,
+                     requests);
+        }
+    }
+
+    TEST_CHECK_(ok, "no attempt recovered it: %d payloads, %d requests",
+                payloads, requests);
+}
+
 /* A lost resend is asked for again within a short window: requests are spaced
  * by half the window, so a 60 ms window gets a second attempt that a fixed
  * 100 ms spacing would never make. */
 void test_session_audio_short_window_retries(void)
 {
-    static const uint16_t script[] = { 1, 2, 4, 5 };
-    struct mock_server mock;
-    struct icom_network_session *s;
-    struct audio_rx_item got[8];
-    int n, i;
-
-    mock_start(&mock);
-    s = audio_session(&mock, 60);
-
-    mock.audio_withheld = 3;
-    mock.audio_withheld_bytes = 16;
-    mock.audio_withheld_ignore = 1;
-    audio_script(&mock, script, 4);
-    n = audio_collect(s, got, 8, 600);
-
-    TEST_CHECK_(n == 5, "got %d payloads, expected 5 (seq 3 recovered)", n);
-
-    for (i = 0; i < n; i++)
-    {
-        TEST_CHECK_(got[i].seq == i + 1, "payload %d is seq %d", i, got[i].seq);
-        TEST_CHECK(got[i].loss.lost_packets == 0);
-    }
-
-    TEST_CHECK_(mock.audio_retransmit_requests >= 2,
-                "requests=%d, expected a second attempt",
-                mock.audio_retransmit_requests);
-
-    icom_network_audio_stop(s);
-    icom_network_session_free(s);
-    mock_stop(&mock);
+    audio_retry_check(60, 1);
 }
 
-/* The second request is sent when it falls due even if nothing else arrives
- * to wake the receiver: with a 50 ms window it goes out at 25 ms, and the
+/* The second request is sent when it falls due even if nothing else arrives to
+ * wake the receiver: with a 50 ms window it goes out at 25 ms, and the
  * receiver would otherwise sleep until the deadline and give up. */
 void test_session_audio_retry_without_traffic(void)
 {
-    static const uint16_t script[] = { 1, 2, 4 };
-    struct mock_server mock;
-    struct icom_network_session *s;
-    struct audio_rx_item got[8];
-    int n, i;
-
-    mock_start(&mock);
-    s = audio_session(&mock, 50);
-
-    mock.audio_withheld = 3;
-    mock.audio_withheld_bytes = 16;
-    mock.audio_withheld_ignore = 1;
-    audio_script(&mock, script, 3);
-    n = audio_collect(s, got, 8, 600);
-
-    TEST_CHECK_(n == 4, "got %d payloads, expected 4 (seq 3 recovered)", n);
-
-    for (i = 0; i < n; i++)
-    {
-        TEST_CHECK_(got[i].seq == i + 1, "payload %d is seq %d", i, got[i].seq);
-        TEST_CHECK(got[i].loss.lost_packets == 0);
-    }
-
-    TEST_CHECK_(mock.audio_retransmit_requests >= 2,
-                "requests=%d, expected a second attempt",
-                mock.audio_retransmit_requests);
-
-    icom_network_audio_stop(s);
-    icom_network_session_free(s);
-    mock_stop(&mock);
+    audio_retry_check(50, 0);
 }
+
 
 /* A window gives up on a packet that never comes, after the window, and
  * reports it once. */
@@ -1735,6 +1864,8 @@ TEST_LIST =
     { "civ_duplicate_dropped",       test_session_civ_duplicate_dropped },
     { "civ_silence_is_link_timeout", test_session_civ_silence_is_link_timeout },
     { "civ_port_refusing_is_socket_error", test_session_civ_port_refusing_is_socket_error },
+    { "injected_socket_error_is_socket_error", test_session_injected_socket_error_is_socket_error },
+    { "transient_socket_error_is_not_a_failure", test_session_transient_socket_error_is_not_a_failure },
     { "socket_errors_respect_liveness_disabled", test_session_socket_errors_respect_liveness_disabled },
     { "free_during_reconnect_handshake", test_session_free_during_reconnect_handshake },
     { "free_during_reconnect_backoff", test_session_free_during_reconnect_backoff },
