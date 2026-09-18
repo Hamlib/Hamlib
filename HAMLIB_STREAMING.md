@@ -1915,10 +1915,10 @@ in `src/stream_convert.c` — channel map → float pivot → stateful
 libsamplerate resampler → destination format) on the producer side of the
 ring whenever the request is not native. The pipeline's resampler quality
 is selected by the rig-level conf token `stream_resample_quality` —
-`best`, `medium` (default) or `fast`, mapping to libsamplerate's
+`BEST`, `MEDIUM` (default) or `FAST`, mapping to libsamplerate's
 corresponding sinc converters — read when a pipeline is created, so set
 it before opening the stream (server-side for network clients, e.g.
-`rigctld --set-conf=stream_resample_quality=best`). Backends produce and consume their native format only
+`rigctld --set-conf=stream_resample_quality=BEST`). Backends produce and consume their native format only
 (§5). The helpers below are a standalone library — the codec layer (§9.1)
 chains them, and a backend with a genuinely special path may still call
 them directly:

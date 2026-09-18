@@ -108,8 +108,10 @@ static const struct
     { RIG_MODE_SAM,    "SAM",  1 },
     { RIG_MODE_RTTY,   "RTTY", 1 },
     { RIG_MODE_FMN,    "NFM",  0 },
-    /* Hamlib has no RIG_MODE_DFM, so the radio's DFM reads as FM. */
-    { RIG_MODE_FM,     "DFM",  0 },
+    /* DFM is the radio's FM for data: it carries its own pre/de-emphasis
+     * setting (dfm_pre_de_emphasis) rather than the voice network, which is
+     * what Hamlib means by PKTFM -- Yaesu spells it DATA-FM, Icom FM-D. */
+    { RIG_MODE_PKTFM,  "DFM",  1 },
 };
 
 #define SMARTSDR_MODE_NAME_COUNT \

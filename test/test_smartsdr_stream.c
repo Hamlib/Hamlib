@@ -1072,7 +1072,7 @@ void test_mode_names_round_trip(void)
     {
         RIG_MODE_CW, RIG_MODE_USB, RIG_MODE_LSB, RIG_MODE_PKTUSB,
         RIG_MODE_PKTLSB, RIG_MODE_AM, RIG_MODE_FM, RIG_MODE_FMN,
-        RIG_MODE_SAM, RIG_MODE_RTTY
+        RIG_MODE_PKTFM, RIG_MODE_SAM, RIG_MODE_RTTY
     };
     size_t i;
 
@@ -1106,10 +1106,11 @@ void test_mode_aliases_parse_but_are_not_emitted(void)
     TEST_CHECK(smartsdr_parse_mode_status_value("NFM", &m) == 0 && m == RIG_MODE_FMN);
     TEST_MSG("NFM should read as FMN, got %s", rig_strrmode(m));
 
-    /* Hamlib has no DFM, so the radio's DFM is FM. */
+    /* DFM is the radio's data FM, which is what Hamlib calls PKTFM. */
     m = RIG_MODE_NONE;
-    TEST_CHECK(smartsdr_parse_mode_status_value("DFM", &m) == 0 && m == RIG_MODE_FM);
-    TEST_MSG("DFM should read as FM, got %s", rig_strrmode(m));
+    TEST_CHECK(smartsdr_parse_mode_status_value("DFM", &m) == 0
+               && m == RIG_MODE_PKTFM);
+    TEST_MSG("DFM should read as PKTFM, got %s", rig_strrmode(m));
 
     TEST_CHECK(strcmp(smartsdr_mode_name(RIG_MODE_FMN), "FMN") == 0);
     TEST_MSG("FMN must be sent as FMN, not as its alias");

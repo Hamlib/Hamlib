@@ -54,12 +54,12 @@ const struct confparams smartsdr_config_params[] =
     },
     {
         TOK_TX_AUDIO_SOURCE, "tx_audio_source", "Transmit audio source",
-        "What the radio modulates from: mic, acc, pc or dax. The radio holds "
+        "What the radio modulates from: MIC, ACC, PC or DAX. The radio holds "
         "the input selection and the DAX flag separately, and they can "
         "contradict each other, so both are written together. Opening a "
-        "transmit stream selects dax for as long as it is open, since "
+        "transmit stream selects DAX for as long as it is open, since "
         "streamed audio is discarded otherwise.",
-        "mic", RIG_CONF_COMBO, { .c = { .combostr = { "mic", "acc", "pc", "dax", NULL } } }
+        "MIC", RIG_CONF_COMBO, { .c = { .combostr = { "MIC", "ACC", "PC", "DAX", NULL } } }
     },
     {
         TOK_SLICE_MISSING, "slice_missing", "When the slice does not exist",
@@ -67,7 +67,7 @@ const struct confparams smartsdr_config_params[] =
         "one and remove it again on close, or fail rig_open. The radio "
         "chooses the index of a new slice, so creating one can only satisfy "
         "a rig that did not name a particular slice.",
-        "create", RIG_CONF_COMBO, { .c = { .combostr = { "create", "fail", NULL } } }
+        "CREATE", RIG_CONF_COMBO, { .c = { .combostr = { "CREATE", "FAIL", NULL } } }
     },
     {
         TOK_SPECTRUM, "spectrum", "Spectrum scope",
@@ -206,11 +206,11 @@ int smartsdr_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 
     case TOK_TX_AUDIO_SOURCE:
         if (val == NULL
-                || (strcmp(val, "mic") != 0 && strcmp(val, "acc") != 0
-                    && strcmp(val, "pc") != 0 && strcmp(val, "dax") != 0))
+                || (strcmp(val, "MIC") != 0 && strcmp(val, "ACC") != 0
+                    && strcmp(val, "PC") != 0 && strcmp(val, "DAX") != 0))
         {
             rig_debug(RIG_DEBUG_ERR,
-                      "%s: tx_audio_source must be mic, acc, pc or dax, "
+                      "%s: tx_audio_source must be MIC, ACC, PC or DAX, "
                       "got \"%s\"\n", __func__, val ? val : "");
             return -RIG_EINVAL;
         }
@@ -220,13 +220,13 @@ int smartsdr_set_conf(RIG *rig, hamlib_token_t token, const char *val)
         return RIG_OK;
 
     case TOK_SLICE_MISSING:
-        if (val != NULL && strcmp(val, "fail") == 0)
+        if (val != NULL && strcmp(val, "FAIL") == 0)
         {
             priv->slice_missing_fails = 1;
             return RIG_OK;
         }
 
-        if (val != NULL && strcmp(val, "create") == 0)
+        if (val != NULL && strcmp(val, "CREATE") == 0)
         {
             priv->slice_missing_fails = 0;
             return RIG_OK;
@@ -321,11 +321,13 @@ int smartsdr_get_conf2(RIG *rig, hamlib_token_t token, char *val,
         return RIG_OK;
 
     case TOK_TX_AUDIO_SOURCE:
-        SNPRINTF(val, val_len, "%s", priv->tx_audio_source[0] ? priv->tx_audio_source : "mic");
+        SNPRINTF(val, val_len, "%s",
+                 priv->tx_audio_source[0] ? priv->tx_audio_source : "MIC");
         return RIG_OK;
 
     case TOK_SLICE_MISSING:
-        SNPRINTF(val, val_len, "%s", priv->slice_missing_fails ? "fail" : "create");
+        SNPRINTF(val, val_len, "%s",
+                 priv->slice_missing_fails ? "FAIL" : "CREATE");
         return RIG_OK;
 
     case TOK_SLICE:

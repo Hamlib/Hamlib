@@ -231,12 +231,16 @@ int smartsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 
 /* Meters the radio streams, as opposed to the settings it reports in status.
- * Returns 1 when it handled the level. */
+ * *handled says whether this level is one of them; the return value is the
+ * read's outcome and means nothing when it is not. Keeping the two apart
+ * matters because a meter read that fails must still stop the caller from
+ * falling through to the property path, where the level does not belong. */
 static int smartsdr_get_meter_level(RIG *rig, setting_t level, value_t *val,
-                                    int *retval)
+                                    int *handled)
 {
     double raw;
     int slot;
+    int retval;
 
     switch (level)
     {
@@ -256,14 +260,16 @@ static int smartsdr_get_meter_level(RIG *rig, setting_t level, value_t *val,
     case RIG_LEVEL_ID_METER:            slot = SMARTSDR_MTR_AMPS;   break;
 
     default:
-        return 0;
+        *handled = 0;
+        return RIG_OK;
     }
 
-    *retval = smartsdr_meter_read(rig, slot, &raw);
+    *handled = 1;
+    retval = smartsdr_meter_read(rig, slot, &raw);
 
-    if (*retval != RIG_OK)
+    if (retval != RIG_OK)
     {
-        return 1;
+        return retval;
     }
 
     switch (level)
@@ -316,7 +322,7 @@ static int smartsdr_get_meter_level(RIG *rig, setting_t level, value_t *val,
         break;
     }
 
-    return 1;
+    return RIG_OK;
 }
 
 
@@ -329,9 +335,10 @@ int smartsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     ENTERFUNC;
 
     {
-        int meter_rc = RIG_OK;
+        int handled = 0;
+        int meter_rc = smartsdr_get_meter_level(rig, level, val, &handled);
 
-        if (smartsdr_get_meter_level(rig, level, val, &meter_rc))
+        if (handled)
         {
             RETURNFUNC(meter_rc);
         }

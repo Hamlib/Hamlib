@@ -668,7 +668,7 @@ void test_slice_create_empty_body_is_not_slice_zero(void)
     /* Slice B, which the mock's radio does not have, so opening the rig has
      * to create one. */
     rig_set_conf(rig, rig_token_lookup(rig, "slice"), "B");
-    rig_set_conf(rig, rig_token_lookup(rig, "slice_missing"), "create");
+    rig_set_conf(rig, rig_token_lookup(rig, "slice_missing"), "CREATE");
 
     rc = rig_open(rig);
 
@@ -703,7 +703,7 @@ void test_slice_create_body_names_the_created_slice(void)
 
     rig = rig_on_mock(&m, RIG_MODEL_SMARTSDR);
     rig_set_conf(rig, rig_token_lookup(rig, "slice"), "D");
-    rig_set_conf(rig, rig_token_lookup(rig, "slice_missing"), "create");
+    rig_set_conf(rig, rig_token_lookup(rig, "slice_missing"), "CREATE");
 
     rc = rig_open(rig);
     TEST_CHECK(rc == RIG_OK);
@@ -748,12 +748,12 @@ void test_slice_missing_fail_does_not_create(void)
 
     rig = rig_on_mock(&m, RIG_MODEL_SMARTSDR);
     rig_set_conf(rig, rig_token_lookup(rig, "slice"), "B");
-    rig_set_conf(rig, rig_token_lookup(rig, "slice_missing"), "fail");
+    rig_set_conf(rig, rig_token_lookup(rig, "slice_missing"), "FAIL");
 
     rc = rig_open(rig);
 
     TEST_CHECK(rc != RIG_OK);
-    TEST_MSG("opening the rig succeeded with slice_missing=fail");
+    TEST_MSG("opening the rig succeeded with slice_missing=FAIL");
 
     TEST_CHECK(!smartsdr_mock_saw(&m, "slice create"));
     TEST_MSG("a slice was created despite slice_missing=fail");

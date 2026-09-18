@@ -594,8 +594,8 @@ void test_slice_missing_roundtrip(void)
 {
     RIG *rig = conf_rig();
 
-    check_roundtrip(rig, "slice_missing", "fail");
-    check_roundtrip(rig, "slice_missing", "create");
+    check_roundtrip(rig, "slice_missing", "FAIL");
+    check_roundtrip(rig, "slice_missing", "CREATE");
 
     rig_cleanup(rig);
 }
@@ -606,14 +606,16 @@ void test_slice_missing_rejects_bogus(void)
     RIG *rig = conf_rig();
     char got[256];
 
-    TEST_CHECK(set_by_name(rig, "slice_missing", "fail") == RIG_OK);
+    TEST_CHECK(set_by_name(rig, "slice_missing", "FAIL") == RIG_OK);
 
     check_rejected(rig, "slice_missing", "bogus");
     check_rejected(rig, "slice_missing", "");
+    /* Matching is exact, as it is for the frontend's own combo settings. */
+    check_rejected(rig, "slice_missing", "create");
     check_rejected(rig, "slice_missing", "Create");
 
     TEST_CHECK(get_by_name(rig, "slice_missing", got, sizeof(got)) == RIG_OK);
-    TEST_CHECK(strcmp(got, "fail") == 0);
+    TEST_CHECK(strcmp(got, "FAIL") == 0);
     TEST_MSG("a rejected slice_missing changed the setting to \"%s\"", got);
 
     rig_cleanup(rig);
@@ -628,10 +630,10 @@ void test_tx_audio_source_roundtrip(void)
 {
     RIG *rig = conf_rig();
 
-    check_roundtrip(rig, "tx_audio_source", "mic");
-    check_roundtrip(rig, "tx_audio_source", "acc");
-    check_roundtrip(rig, "tx_audio_source", "pc");
-    check_roundtrip(rig, "tx_audio_source", "dax");
+    check_roundtrip(rig, "tx_audio_source", "MIC");
+    check_roundtrip(rig, "tx_audio_source", "ACC");
+    check_roundtrip(rig, "tx_audio_source", "PC");
+    check_roundtrip(rig, "tx_audio_source", "DAX");
 
     rig_cleanup(rig);
 }
@@ -642,15 +644,16 @@ void test_tx_audio_source_rejects_bogus(void)
     RIG *rig = conf_rig();
     char got[256];
 
-    TEST_CHECK(set_by_name(rig, "tx_audio_source", "dax") == RIG_OK);
+    TEST_CHECK(set_by_name(rig, "tx_audio_source", "DAX") == RIG_OK);
 
     check_rejected(rig, "tx_audio_source", "bogus");
     check_rejected(rig, "tx_audio_source", "");
-    check_rejected(rig, "tx_audio_source", "MIC");
-    check_rejected(rig, "tx_audio_source", "line");
+    check_rejected(rig, "tx_audio_source", "mic");
+    check_rejected(rig, "tx_audio_source", "Dax");
+    check_rejected(rig, "tx_audio_source", "LINE");
 
     TEST_CHECK(get_by_name(rig, "tx_audio_source", got, sizeof(got)) == RIG_OK);
-    TEST_CHECK(strcmp(got, "dax") == 0);
+    TEST_CHECK(strcmp(got, "DAX") == 0);
     TEST_MSG("a rejected tx_audio_source changed the setting to \"%s\"", got);
 
     rig_cleanup(rig);
@@ -730,8 +733,8 @@ void test_settings_do_not_disturb_each_other(void)
         "1500",     /* status_timeout  */
         "C",        /* slice           */
         "1",        /* spectrum        */
-        "fail",     /* slice_missing   */
-        "acc",      /* tx_audio_source */
+        "FAIL",     /* slice_missing   */
+        "ACC",      /* tx_audio_source */
         "45000",    /* liveness_timeout */
         "4993",     /* vita_port       */
     };

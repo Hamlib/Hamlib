@@ -119,7 +119,7 @@ test_smartsdr_slice_LDADD = $(LDADD) $(PTHREAD_LIBS) $(NET_LIBS)
 
 TESTS = $(check_PROGRAMS)
 
-EXTRA_DIST = acutest.h test_debug.h smartsdr_mock.h
+EXTRA_DIST = acutest.h test_debug.h smartsdr_mock.h README.md
 
 # Convenience target for CI cross builds: compile every suite without
 # running it (the .exe files are executed under Wine in a separate step).

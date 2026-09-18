@@ -81,8 +81,8 @@ static int smartsdr_cleanup(RIG *rig);
 
 #define SMARTSDR_MODES (RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_PKTUSB|\
                         RIG_MODE_PKTLSB|RIG_MODE_CW|RIG_MODE_AM|\
-                        RIG_MODE_FM|RIG_MODE_FMN|RIG_MODE_SAM|\
-                        RIG_MODE_RTTY)
+                        RIG_MODE_FM|RIG_MODE_FMN|RIG_MODE_PKTFM|\
+                        RIG_MODE_SAM|RIG_MODE_RTTY)
 
 /* Slices are independent receivers, so Main/Sub rather than A/B, which
  * would also collide with the radio's own A-H slice lettering.

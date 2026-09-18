@@ -1,15 +1,21 @@
 # FlexRadio backends
 
-This directory holds three unrelated FlexRadio backends. Only the first is
-current hardware.
+**FlexRadio Systems** is the manufacturer. **SmartSDR** is the software that
+runs on its current radios and the TCP/IP API they are controlled through, so
+the backend that speaks it is named for the API rather than for a model: one
+backend serves the whole FLEX-6000 and FLEX-8000 line. This file is named for
+the directory, and the directory holds three unrelated FlexRadio backends of
+different vintages:
 
-| Backend | Files | Radios |
+| Backend | Files | What it talks to |
 |---|---|---|
-| **SmartSDR** | `smartsdr*.c/h` | FLEX-6000 and FLEX-8000 series |
-| DttSP | `dttsp.c` | DttSP-based SDR software |
-| SDR-1000 | `sdr1k.c` | FlexRadio SDR-1000 (parallel port) |
+| **SmartSDR** | `smartsdr*.c/h` | FLEX-6000 and FLEX-8000 radios, over the SmartSDR TCP/IP API and VITA-49 UDP |
+| DttSP | `dttsp.c` | DttSP SDR software on the host, not a radio |
+| SDR-1000 | `sdr1k.c` | The FlexRadio SDR-1000, over a parallel port |
 
-The rest of this document covers **SmartSDR**.
+Only SmartSDR is current hardware, and the rest of this document covers
+**SmartSDR** alone. The other two are legacy and unrelated to it: they share
+the manufacturer and this directory, nothing else.
 
 ---
 
@@ -32,13 +38,13 @@ per-slice model behaves exactly as 23013 with the matching `slice` setting.
 Slices are created and destroyed at runtime on the radio. If the slice is not
 there when you open, `slice_missing` decides what happens:
 
-- **`create`** (default) — make one, and remove it again on close. The radio
+- **`CREATE`** (default) — make one, and remove it again on close. The radio
   chooses the index of a new slice; it cannot be asked for a particular one.
   So this can satisfy a rig that did not name a slice, and it can satisfy a
   named one only when that slice happens to be the next free. If you asked for
   D and the radio offers B, the backend removes B again and reports
   unavailable rather than quietly controlling the wrong receiver.
-- **`fail`** — `rig_open` returns unavailable and nothing is created.
+- **`FAIL`** — `rig_open` returns unavailable and nothing is created.
 
 A slice the backend created starts at 14.100 MHz USB on ANT1 and is expected
 to be tuned immediately; a frequency has to be supplied at creation, and
@@ -70,7 +76,7 @@ connects.
 | Token | Type | Default | Meaning |
 |---|---|---|---|
 | `slice` | A–H | A | Which slice this rig controls, for model 23013. |
-| `slice_missing` | create/fail | create | What to do when that slice is not on the radio. See §1. |
+| `slice_missing` | CREATE/FAIL | CREATE | What to do when that slice is not on the radio. See §1. |
 | `spectrum` | 0/1 | 0 | Deliver panadapter FFT as Hamlib spectrum lines. See §8. |
 | `nat_traversal` | 0/1 | 0 | Ask the radio to learn the client's NAT-translated UDP address (`client udp_register`) instead of being told a local port (`client udpport`). Needed **only** when reaching the radio through manual port forwarding. Leave 0 on a LAN. |
 | `auto_reconnect` | 0/1 | 0 | Rebuild the control session after the radio stops answering. See §10. |
@@ -78,7 +84,7 @@ connects.
 | `status_timeout` | ms | 0 | Treat a value the radio reported as stale after this long, so reads report it unavailable. 0 keeps values indefinitely, which suits a radio that pushes status changes. |
 | `liveness_timeout` | ms, 500–3600000 | 20000 | Silence from the radio for this long declares the session lost. See §10. |
 | `vita_port` | 1–65535 | 4991 | UDP port the radio receives transmit data on, and the port the client prefers for its own socket. Every radio uses 4991; change it only where something else on the host holds that port. |
-| `tx_audio_source` | mic/acc/pc/dax | mic | What the radio modulates from. The radio holds the input selection and the DAX flag separately and they can contradict each other, so both are written together. Opening a transmit stream selects `dax` for as long as it is open, because streamed audio is discarded otherwise. |
+| `tx_audio_source` | MIC/ACC/PC/DAX | MIC | What the radio modulates from, spelled as the radio names its own inputs. The radio holds the input selection and the DAX flag separately and they can contradict each other, so both are written together. Opening a transmit stream selects `DAX` for as long as it is open, because streamed audio is discarded otherwise. |
 
 ```sh
 rigctl -m 23005 -r 192.168.0.252:4992 -C nat_traversal=1
@@ -96,6 +102,12 @@ mapping — plus a `client udp_register` every 5 minutes as a backstop.
 `stop_morse`), antenna selection, and a broad set of levels and functions.
 Every level carries a range and step, so an application can size a control or
 bound a value without guessing — `rigctl -m 23013 -u` lists them.
+
+**Modes** map to the radio's own names: `USB`/`LSB`/`CW`/`AM`/`SAM`/`RTTY`
+directly, `PKTUSB`/`PKTLSB` to `DIGU`/`DIGL`, `FMN` to `FMN` (`NFM` is also
+accepted on the way in), and `PKTFM` — which Hamlib prints as `FM-D` — to the
+radio's `DFM`, its FM for data, which carries its own pre/de-emphasis setting
+rather than the voice network.
 
 **No parms.** A parm is a rig-wide setting with no VFO, and the ones Hamlib
 defines — `BEEP`, `BACKLIGHT`, `KEYLIGHT`, `SCREENSAVER`, `TIME`, `ANN` —
@@ -442,8 +454,11 @@ non-existent slice still opens.
 on a LAN. With it wrongly enabled the radio is never told the client's UDP
 port and sends nothing, while the stream still opens successfully.
 
-**I/Q stream fails to open.** Pass `-c 1`; the caps declare one channel. If it
-opens but no data arrives, add `-p` so a panadapter exists to bind to.
+**I/Q stream fails to open.** The caps declare one channel, so ask for one:
+`rigstreamtest -m 23013 -r HOST:4992 -t iq_rx -c 1`. If it opens but no data
+arrives, the panadapter binding is what to look at: the backend uses the
+slice's own panadapter and creates one when the slice has none, so the log
+shows either the pan it found or a `display pan create`. See §6.
 
 **The radio drops the connection after ~15 s.** SmartSDR disconnects clients
 that stop pinging. The backend runs a keepalive thread; if it cannot start,

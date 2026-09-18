@@ -1326,15 +1326,13 @@ void smartsdr_apply_tx_audio_source(RIG *rig)
         return;
     }
 
-    want_dax = (strcmp(src, "dax") == 0);
+    want_dax = (strcmp(src, "DAX") == 0);
 
     if (!want_dax)
     {
-        /* The radio names its inputs in upper case. */
-        const char *wire = strcmp(src, "acc") == 0 ? "ACC"
-                           : strcmp(src, "pc") == 0 ? "PC" : "MIC";
-
-        snprintf(cmd, sizeof(cmd), "mic input %s", wire);
+        /* The setting is spelled as the radio names its inputs, so it goes
+         * out as it came in. */
+        snprintf(cmd, sizeof(cmd), "mic input %s", src);
         smartsdr_command_or_warn(rig, cmd);
     }
 

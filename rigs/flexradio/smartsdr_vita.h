@@ -92,8 +92,6 @@ struct vita49_header
 extern int vita49_parse_header(const uint8_t *buf, int len,
                                struct vita49_header *hdr);
 
-/* Byte-swap big-endian float32 samples to host order.
- * src and dst may not overlap. */
 /* DAX I/Q arrives as little-endian float32 holding left-justified fixed point,
  * so full scale is 32768 rather than the 1.0 the streaming API promises. */
 #define VITA49_DAXIQ_FULL_SCALE_INV (1.0f / 32768.0f)
@@ -102,6 +100,8 @@ extern int vita49_parse_header(const uint8_t *buf, int len,
 extern void vita49_convert_daxiq_float32(const uint8_t *src, float *dst,
                                          int num_samples);
 
+/* Byte-swap big-endian float32 samples to host order.
+ * src and dst may not overlap. */
 extern void vita49_swap_float32(const uint8_t *src, float *dst,
                                 int num_samples);
 
