@@ -2849,7 +2849,10 @@ void test_tx_audio_data_accepted(void)
              (unsigned long long)
              rig_stream_get_samples_written(s->backend_stream));
 
-    /* Verify feeder processed all 3 packets */
+    /* Verify feeder processed all 3 packets. The count is bumped after the
+     * ring write and the write-status poll that follows it, so waiting on
+     * samples_written above does not imply it has caught up yet. */
+    WAIT_UNTIL(s->packet_count >= 3);
     TEST_CHECK(s->packet_count >= 3);
     TEST_MSG("packet_count: got %d, expected >= 3", s->packet_count);
 
@@ -2984,7 +2987,10 @@ void test_tx_iq_data_accepted(void)
              (unsigned long long)
              rig_stream_get_samples_written(s->backend_stream));
 
-    /* Verify feeder processed all 3 packets */
+    /* Verify feeder processed all 3 packets. The count is bumped after the
+     * ring write and the write-status poll that follows it, so waiting on
+     * samples_written above does not imply it has caught up yet. */
+    WAIT_UNTIL(s->packet_count >= 3);
     TEST_CHECK(s->packet_count >= 3);
     TEST_MSG("packet_count: got %d, expected >= 3", s->packet_count);
 

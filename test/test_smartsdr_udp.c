@@ -120,6 +120,28 @@ static rig_stream_t *open_stream(RIG *rig, rig_stream_type_t type, int rate,
 
 
 /* Drain whatever has arrived, returning the byte count. */
+static size_t drain(RIG *rig, rig_stream_t *st, int rounds);
+
+/* Read until `want` bytes have arrived, or the deadline passes. Each round
+ * blocks up to 20 ms, so this is a bounded wait rather than a fixed number of
+ * chances: a datagram the dispatch thread has not got to yet still counts,
+ * and a test that never sees it fails on the byte count rather than on how
+ * many times it happened to look. */
+static size_t drain_until(RIG *rig, rig_stream_t *st, size_t want,
+                          int timeout_ms)
+{
+    size_t total = 0;
+    int waited;
+
+    for (waited = 0; waited < timeout_ms && total < want; waited += 20)
+    {
+        total += drain(rig, st, 1);
+    }
+
+    return total;
+}
+
+
 static size_t drain(RIG *rig, rig_stream_t *st, int rounds)
 {
     static char buf[65536];
@@ -180,7 +202,7 @@ void test_audio_samples_reach_the_reader(void)
         usleep(2000);
     }
 
-    total = drain(rig, st, 20);
+    total = drain_until(rig, st, 20 * PKT_BYTES, 2000);
 
     TEST_CHECK(total >= 20 * PKT_BYTES);
     TEST_MSG("read %lu bytes, expected at least %d",
@@ -203,6 +225,7 @@ void test_a_skipped_counter_is_a_sized_gap(void)
     uint64_t before;
     uint64_t after;
     int i;
+    int waited;
 
     smartsdr_mock_start(&m);
     TEST_ASSERT(m.started);
@@ -227,8 +250,14 @@ void test_a_skipped_counter_is_a_sized_gap(void)
     /* Counter 4 is due next; 7 means three never arrived. */
     smartsdr_mock_send_samples(&m, AUDIO_STREAM_ID, PCC_AUDIO_F32, 7,
                                PKT_FLOATS);
-    usleep(30 * 1000);
-    drain(rig, st, 6);
+
+    /* Wait for the gap the dispatch thread reports, rather than for a
+     * stretch of time it is assumed to fit in. */
+    for (waited = 0; waited < 2000 && gaps_of(rig, st) == before; waited += 20)
+    {
+        drain(rig, st, 1);
+    }
+
     after = gaps_of(rig, st);
 
     TEST_CHECK(after > before);
@@ -278,8 +307,13 @@ void test_losing_exactly_sixteen_cannot_be_seen(void)
     /* Sixteen packets after counter 3 is counter 4 again. */
     smartsdr_mock_send_samples(&m, AUDIO_STREAM_ID, PCC_AUDIO_F32, 4,
                                PKT_FLOATS);
-    usleep(30 * 1000);
-    drain(rig, st, 6);
+
+    /* No new gap only means something once that packet has been through the
+     * dispatch thread, so wait for its payload rather than for a stretch of
+     * time: otherwise a packet that never arrived at all reads the same as
+     * one the counter could not see. */
+    TEST_CHECK_(drain_until(rig, st, PKT_BYTES, 2000) >= PKT_BYTES,
+                "the wrapped packet never arrived");
     after = gaps_of(rig, st);
 
     TEST_CHECK(after == before);
@@ -515,6 +549,13 @@ void test_transmit_loses_nothing_at_real_time(void)
     TEST_MSG("%llu overruns: audio was written and then discarded unsent",
              (unsigned long long)stats.overruns);
 
+    /* rig_stream_write only fills the ring; the datagrams leave on the
+     * backend's TX thread and are counted on the mock's, so wait for them. */
+    for (i = 0; i < 100 && smartsdr_mock_tx_count(&m) <= 100; i++)
+    {
+        usleep(20 * 1000);
+    }
+
     TEST_CHECK(smartsdr_mock_tx_count(&m) > 100);
     TEST_MSG("only %d datagrams reached the radio in two seconds",
              smartsdr_mock_tx_count(&m));
@@ -592,24 +633,31 @@ void test_meters_resolve_and_scale(void)
 }
 
 
-static int spectrum_lines;
+/* The line count is what a test waits on, so it is published last and is
+ * atomic: everything the test reads afterwards is written before it, and the
+ * atomic store gives the waiting thread an edge to see those writes through.
+ * Counting first -- as this did -- let a test see one line against zero bins,
+ * which is the shape of a real failure and not of a real line. */
+static HAMLIB_ATOMIC int spectrum_lines;
 static int spectrum_bins;
 static unsigned char spectrum_peak;
 
 static int on_spectrum(RIG *rig, struct rig_spectrum_line *line, rig_ptr_t arg)
 {
     size_t i;
-
-    spectrum_lines++;
-    spectrum_bins = (int)line->spectrum_data_length;
+    unsigned char peak = spectrum_peak;   /* the peak is across lines */
 
     for (i = 0; i < line->spectrum_data_length; i++)
     {
-        if (line->spectrum_data[i] > spectrum_peak)
+        if (line->spectrum_data[i] > peak)
         {
-            spectrum_peak = line->spectrum_data[i];
+            peak = line->spectrum_data[i];
         }
     }
+
+    spectrum_bins = (int)line->spectrum_data_length;
+    spectrum_peak = peak;
+    spectrum_lines++;
 
     return 0;
 }
@@ -676,7 +724,7 @@ void test_a_split_fft_frame_reassembles(void)
     usleep(5000);
     smartsdr_mock_send_fft(&m, 0x40000000u, 1, 32, 32, 64, 1, 0);
 
-    for (waited = 0; waited < 1000 && spectrum_lines == 0; waited += 20)
+    for (waited = 0; waited < 2000 && spectrum_lines == 0; waited += 20)
     {
         usleep(20 * 1000);
     }
@@ -814,7 +862,7 @@ void test_a_converted_request_still_delivers_samples(void)
         usleep(2000);
     }
 
-    total = drain(rig, st, 20);
+    total = drain_until(rig, st, 20 * PKT_BYTES / 2, 2000);
 
     /* S16 is half the width of the float32 on the wire, so the reader sees
      * half the bytes for the same samples. The upper bound is what makes this

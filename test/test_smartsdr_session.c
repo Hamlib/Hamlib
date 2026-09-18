@@ -260,6 +260,26 @@ void test_status_for_another_slice_does_not_leak(void)
     TEST_CHECK(priv->slices[1].in_use);
     TEST_MSG("the other slice never arrived over the connection");
 
+    /* in_use is set while the line is being absorbed, and the properties a
+     * leak would touch are applied after it -- so seeing the flag does not
+     * mean the line is finished with. A second line for this rig's own slice,
+     * waited for, does: the status is processed in order, so once its value
+     * has landed the slice 1 line above is complete. */
+    smartsdr_mock_push_status(&m, "slice 0 audio_level=42");
+
+    for (waited = 0;
+            waited < 2000
+            && priv->props[SMARTSDR_P_AUDIO_LEVEL].ival != 42;
+            waited += 50)
+    {
+        pump(rig);
+    }
+
+    TEST_CHECK(priv->props[SMARTSDR_P_AUDIO_LEVEL].ival == 42);
+    TEST_MSG("the anchoring status never arrived: audio_level=%d",
+             priv->props[SMARTSDR_P_AUDIO_LEVEL].ival);
+    audio_before = 42;
+
     TEST_CHECK(smartsdr_slice_freq(priv) == freq_before);
     TEST_MSG("frequency leaked: %.0f, expected %.0f",
              (double)smartsdr_slice_freq(priv), (double)freq_before);

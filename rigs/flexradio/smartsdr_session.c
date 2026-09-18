@@ -952,8 +952,11 @@ void smartsdr_session_lost(RIG *rig, unsigned reason)
     priv->session_lost_reason = reason;
     priv->session_lost = 1;
 
-    STATE(rig)->comm_status = RIG_COMM_STATUS_DISCONNECTED;
+    /* Reason before status: an application polls the status and then reads
+     * the reason, so writing them the other way round lets it pair a fresh
+     * status with the previous reason. */
     STATE(rig)->comm_reason = (rig_comm_reason_t)reason;
+    STATE(rig)->comm_status = RIG_COMM_STATUS_DISCONNECTED;
 
     rig_debug(RIG_DEBUG_ERR, "%s: lost the radio: %s\n", __func__,
               rig_strcommreason((rig_comm_reason_t)reason));
@@ -1248,14 +1251,16 @@ static void smartsdr_absorb_meter_status(struct smartsdr_priv_data *priv,
                 continue;
             }
 
-            priv->meter_wire_id[wanted[i].slot] = (int16_t)idx;
-
             /* The radio sends a meter on a timer at this rate, or only as it
              * changes when the rate is zero. */
             snprintf(fps_key, sizeof(fps_key), "%ld.fps=", idx);
             fps = strstr(line, fps_key);
             priv->meter_fps[wanted[i].slot] =
                 fps ? (int16_t)strtol(fps + strlen(fps_key), NULL, 10) : 0;
+
+            /* The wire id is what marks the meter resolved, so it is written
+             * last: whoever sees it has the rate that belongs with it. */
+            priv->meter_wire_id[wanted[i].slot] = (int16_t)idx;
             break;
         }
     }
@@ -1511,8 +1516,8 @@ static void *smartsdr_reconnect_loop(void *arg)
             delay_ms = SMARTSDR_RECONNECT_MIN_MS;
             priv->session_lost_reason = RIG_COMM_REASON_NONE;
             priv->session_lost = 0;
-            STATE(rig)->comm_status = RIG_COMM_STATUS_OK;
             STATE(rig)->comm_reason = RIG_COMM_REASON_NONE;
+            STATE(rig)->comm_status = RIG_COMM_STATUS_OK;
         }
         else
         {
