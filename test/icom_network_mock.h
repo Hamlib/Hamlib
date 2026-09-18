@@ -145,6 +145,12 @@ struct mock_server
      * while the control socket carries on, as a radio that stopped serving
      * the CI-V stream does. */
     HAMLIB_ATOMIC int civ_silent;
+    /* Never answer a ping on the CI-V socket. The client pings as soon as its
+     * CI-V thread starts, so a reply is typically in flight while connect()
+     * is still returning; a test that goes on to silence the stream cannot
+     * recall it, and the packet would count as the socket being alive. Set
+     * this before connecting when the CI-V stream must be provably quiet. */
+    HAMLIB_ATOMIC int civ_no_ping_reply;
     /* Close the CI-V socket, so the client's packets to it are refused. */
     HAMLIB_ATOMIC int close_civ;
     /* Datagrams received on any socket, silent or not. */

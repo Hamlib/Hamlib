@@ -640,7 +640,7 @@ static void mock_service_civ(struct mock_server *m, uint8_t *buf, int n,
                 /* the client answering the ping request we sent */
                 m->saw_ping_reply = 1;
             }
-            else
+            else if (!m->civ_no_ping_reply)
             {
                 mock_reply_ping(m->civ_fd, buf, n, from, from_length, cli);
             }

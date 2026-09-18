@@ -748,12 +748,14 @@ void test_session_injected_socket_error_is_socket_error(void)
     mock_start(&mock);
     capability_config(&config, &mock, "IC-7610");
     config.liveness_timeout_ms = 1000;
-    /* No CI-V idles at all: connect() drains the socket, so after this the
-     * stream is genuinely quiet and no packet can arrive later to clear the
-     * error the test is about to inject (any packet does -- see
-     * icom_network_session_rx_common). Silencing the mock alone leaves an
-     * idle already on its way. */
+    /* Nothing may arrive on the CI-V stream once the error is injected: any
+     * packet clears it (see icom_network_session_rx_common), and silencing
+     * the mock cannot recall one already on its way. Idles off, and no answer
+     * to the ping the client sends the moment its CI-V thread starts --
+     * connect() drains what the handshake produced, so the stream is then
+     * provably quiet. */
     mock.civ_idle_ms = 0;
+    mock.civ_no_ping_reply = 1;
     s = icom_network_session_alloc(&config);
     TEST_ASSERT(s != NULL);
     TEST_ASSERT(icom_network_session_connect(s) == RIG_OK);
@@ -791,6 +793,12 @@ void test_session_socket_error_wins_over_a_silent_link(void)
     mock_start(&mock);
     capability_config(&config, &mock, "IC-7610");
     config.liveness_timeout_ms = 1000;
+    /* The CI-V stream must be provably quiet before the error goes in: an
+     * idle, or an answer to the ping the client sends when its CI-V thread
+     * starts, would clear it again and refresh that socket past the control
+     * one. */
+    mock.civ_idle_ms = 0;
+    mock.civ_no_ping_reply = 1;
     s = icom_network_session_alloc(&config);
     TEST_ASSERT(s != NULL);
     TEST_ASSERT(icom_network_session_connect(s) == RIG_OK);
@@ -829,12 +837,14 @@ void test_session_transient_socket_error_is_not_a_failure(void)
     mock_start(&mock);
     capability_config(&config, &mock, "IC-7610");
     config.liveness_timeout_ms = 1000;
-    /* No CI-V idles at all: connect() drains the socket, so after this the
-     * stream is genuinely quiet and no packet can arrive later to clear the
-     * error the test is about to inject (any packet does -- see
-     * icom_network_session_rx_common). Silencing the mock alone leaves an
-     * idle already on its way. */
+    /* Nothing may arrive on the CI-V stream once the error is injected: any
+     * packet clears it (see icom_network_session_rx_common), and silencing
+     * the mock cannot recall one already on its way. Idles off, and no answer
+     * to the ping the client sends the moment its CI-V thread starts --
+     * connect() drains what the handshake produced, so the stream is then
+     * provably quiet. */
     mock.civ_idle_ms = 0;
+    mock.civ_no_ping_reply = 1;
     s = icom_network_session_alloc(&config);
     TEST_ASSERT(s != NULL);
     TEST_ASSERT(icom_network_session_connect(s) == RIG_OK);
@@ -870,12 +880,14 @@ void test_session_socket_errors_respect_liveness_disabled(void)
     mock_start(&mock);
     capability_config(&config, &mock, "IC-7610");
     config.liveness_timeout_ms = 0;
-    /* No CI-V idles at all: connect() drains the socket, so after this the
-     * stream is genuinely quiet and no packet can arrive later to clear the
-     * error the test is about to inject (any packet does -- see
-     * icom_network_session_rx_common). Silencing the mock alone leaves an
-     * idle already on its way. */
+    /* Nothing may arrive on the CI-V stream once the error is injected: any
+     * packet clears it (see icom_network_session_rx_common), and silencing
+     * the mock cannot recall one already on its way. Idles off, and no answer
+     * to the ping the client sends the moment its CI-V thread starts --
+     * connect() drains what the handshake produced, so the stream is then
+     * provably quiet. */
     mock.civ_idle_ms = 0;
+    mock.civ_no_ping_reply = 1;
     s = icom_network_session_alloc(&config);
     TEST_ASSERT(s != NULL);
     TEST_ASSERT(icom_network_session_connect(s) == RIG_OK);
