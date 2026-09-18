@@ -231,12 +231,14 @@ static int start_rigctld_opt(struct rigctld_proc *proc,
 
         dump_rigctld_log(proc->log_path);
 
-        if (pinned)
+        if (!pinned)
         {
-            return -1;   /* the caller needs this exact port */
+            proc->port = 0;  /* pick a fresh port next round */
         }
 
-        proc->port = 0;  /* pick a fresh port next round */
+        /* A pinned port keeps its number and is retried as it is: the usual
+         * reason a restart on the same port fails is the previous daemon
+         * still letting go of it, which the next attempt resolves. */
     }
 
     return -1;
@@ -1255,6 +1257,14 @@ void test_rx_codec_passthrough_e2e(void)
     RIG *rig = open_netrigctl(proc.port);
     TEST_ASSERT(rig != NULL);
 
+    /* This test admits no loss at all -- every sample index must follow the
+     * last -- so give the receive socket room for the whole run rather than
+     * relying on the host's default. The reader below only comes back every
+     * 200 ms while the server sends in real time, and a datagram dropped for
+     * want of buffer space would read here as a broken counter. */
+    rig_set_conf(rig, rig_token_lookup(rig, "stream_transport_buffer_bytes"),
+                 "4194304");
+
     struct rig_stream_config cfg;
     memset(&cfg, 0, sizeof(cfg));
     cfg.struct_size = sizeof(cfg);  /* same-build config */
@@ -1618,8 +1628,25 @@ void test_rx_continuous_data(void)
     TEST_CHECK(ret == RIG_OK);
     TEST_ASSERT(stream != NULL);
 
-    /* Wait for data to start flowing */
-    usleep(500000);  /* 500ms */
+    /* Wait for data to start flowing -- for the data itself, not for a
+     * stretch of wall clock, as the RX tests below do. */
+    {
+        int16_t warm[480];
+        size_t warm_read = 0;
+        int warmed = 0;
+        int i;
+
+        for (i = 0; i < 15 && !warmed; i++)
+        {
+            if (rig_stream_read(rig, stream, warm, sizeof(warm), &warm_read,
+                                200, NULL) == RIG_OK && warm_read > 0)
+            {
+                warmed = 1;
+            }
+        }
+
+        TEST_CHECK_(warmed, "no data within 3 s of opening the stream");
+    }
 
     /* Read 5 consecutive frames */
     int successful_reads = 0;
@@ -2445,7 +2472,7 @@ struct sub_server
     int port;
     int drop_first;         /* answer nothing to the first SUBSCRIBE */
     int pong_before_ack;    /* emit a PONG ahead of the ACK */
-    int subscribes_seen;
+    HAMLIB_ATOMIC int subscribes_seen;   /* the server thread writes it */
     HAMLIB_ATOMIC int stop;
     pthread_t thread;
 };

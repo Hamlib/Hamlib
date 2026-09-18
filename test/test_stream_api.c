@@ -2071,7 +2071,35 @@ struct close_race_ctx
     rig_stream_t *stream;
     int read_ret;
     size_t got;
+    /* When the reader entered rig_stream_read(), and a flag published after
+     * it so a waiting test that sees the flag has the timestamp too. Without
+     * this the test can only guess that the reader got there, and a reader
+     * that never started looks exactly like one the close released. */
+    int64_t entered_ms;
+    HAMLIB_ATOMIC int entered;
+    int64_t returned_ms;
 };
+
+static int64_t api_now_ms(void)
+{
+    struct timespec ts;
+
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (int64_t)ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
+}
+
+/* Wait for the reader to reach its read call, or give up. */
+static int wait_entered(struct close_race_ctx *c, int timeout_ms)
+{
+    int waited;
+
+    for (waited = 0; waited < timeout_ms && !c->entered; waited += 5)
+    {
+        usleep(5 * 1000);
+    }
+
+    return c->entered;
+}
 
 static void *blocked_reader(void *arg)
 {
@@ -2079,8 +2107,11 @@ static void *blocked_reader(void *arg)
     unsigned char buf[256];
     size_t got = 0;
 
+    c->entered_ms = api_now_ms();
+    c->entered = 1;
     c->read_ret = rig_stream_read(c->rig, c->stream, buf, sizeof(buf),
                                   &got, 5000, NULL);
+    c->returned_ms = api_now_ms();
     c->got = got;
     return NULL;
 }
@@ -2095,6 +2126,8 @@ static void *block_forever_reader(void *arg)
     unsigned char buf[256];
     size_t got = 0;
 
+    c->entered_ms = api_now_ms();
+    c->entered = 1;
     c->read_ret = rig_stream_read(c->rig, c->stream, buf, sizeof(buf),
                                   &got, -1, NULL);
     c->got = got;
@@ -2125,7 +2158,10 @@ void test_read_block_forever_until_close(void)
     pthread_t th;
     TEST_ASSERT(pthread_create(&th, NULL, block_forever_reader, &ctx) == 0);
 
-    /* With no producer, an infinite wait must still be blocking after a delay. */
+    /* "Still blocking" only says something once the reader is actually in the
+     * read; otherwise a thread that never ran reads as one that blocked. */
+    TEST_CHECK_(wait_entered(&ctx, 2000), "the reader never reached its read");
+
     usleep(200 * 1000);
     TEST_CHECK_(block_forever_done == 0,
                 "read(timeout<0) returned before any data or close");
@@ -2161,13 +2197,25 @@ void test_close_wakes_blocked_reader(void)
     pthread_t th;
     TEST_ASSERT(pthread_create(&th, NULL, blocked_reader, &ctx) == 0);
 
-    /* Let the reader reach the blocking wait, then close it out from under. */
-    usleep(150 * 1000);
+    /* The reader has to be in the read for the close to race it at all: a
+     * reader that never started would be refused by the registry and return
+     * the same -RIG_ENAVAIL, so the test would pass having exercised
+     * nothing. */
+    TEST_CHECK_(wait_entered(&ctx, 2000), "the reader never reached its read");
+
+    int64_t closed_ms = api_now_ms();
     TEST_CHECK(rig_stream_close(rig, stream) == RIG_OK);
 
     pthread_join(th, NULL);
 
+    TEST_CHECK_(ctx.entered_ms <= closed_ms,
+                "the read began %lld ms after the close",
+                (long long)(ctx.entered_ms - closed_ms));
+
     /* Woken by close, not by its own 5 s timeout. */
+    TEST_CHECK_(ctx.returned_ms - ctx.entered_ms < 4000,
+                "the read took %lld ms, so it timed out rather than being "
+                "woken", (long long)(ctx.returned_ms - ctx.entered_ms));
     TEST_CHECK(ctx.read_ret == -RIG_ENAVAIL);
     TEST_CHECK(ctx.got == 0);
 

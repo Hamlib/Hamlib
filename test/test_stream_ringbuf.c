@@ -423,18 +423,21 @@ void test_ringbuf_concurrent(void)
     /* Consumer: read all chunks and verify no corruption */
     unsigned char out[64];
     int chunks_read = 0;
+    /* Carried across chunks: a read that comes back short leaves the rest of
+     * that chunk in the ring, and discarding what arrived would put every
+     * later chunk out of step with the 64-byte framing -- turning one slow
+     * moment into fifty bogus mismatches. */
+    size_t total = 0;
 
     for (int i = 0; i < 50; i++)
     {
-        size_t total = 0;
-
         while (total < 64)
         {
             size_t n = stream_ringbuf_read(&rb, out + total, 64 - total, 500);
 
             if (n == 0)
             {
-                break;  /* Timeout — producer may be done */
+                break;  /* nothing within 500 ms: the producer has stopped */
             }
 
             total += n;
@@ -442,6 +445,7 @@ void test_ringbuf_concurrent(void)
 
         if (total == 64)
         {
+            total = 0;
             chunks_read++;
 
             /* Each byte in the chunk should be the same value */

@@ -42,6 +42,10 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+#ifndef _WIN32
+#include <arpa/inet.h>
+#include <sys/ioctl.h>
+#endif
 #include <stdint.h>
 #include <pthread.h>
 #include <time.h>
@@ -432,16 +436,30 @@ static int parse_ext_int(const char *buf, const char *label, int *value)
  * deterministically, instead of relying on a fixed sleep that loses the race
  * under CI/parallel load.  Always falls through after the timeout so the
  * following assertion still reports the actual (possibly failed) state. */
-#define WAIT_UNTIL(cond)                                  \
+#define WAIT_UNTIL_MS(cond, ms)                           \
     do {                                                  \
         int _w = 0;                                       \
-        while (!(cond) && _w < 400)                       \
+        while (!(cond) && _w < (ms) / 5)                  \
         {                                                 \
             struct timespec _ts = { 0, 5000000L };        \
             nanosleep(&_ts, NULL);                        \
             _w++;                                         \
         }                                                 \
     } while (0)
+
+/* Budgets, named for what they wait out rather than shared as one default:
+ * these two wait for quite different things, and a site that needs neither
+ * should say so with its own number.
+ *
+ * Take-up: a datagram the test has just sent over loopback, picked up by the
+ * feeder thread. Delivery and one feeder iteration are sub-millisecond work;
+ * the budget covers a feeder that a loaded runner has descheduled, not the
+ * work itself.
+ *
+ * Auto-close: the server's own 2-3 s subscribe/keepalive timeout has to
+ * elapse first, so the budget has to clear it with room to spare. */
+#define FEEDER_TAKEUP_MS  2000
+#define AUTO_CLOSE_MS    10000
 
 /*
  * Build a 32-byte subscribe packet for the given stream type.
@@ -482,10 +500,20 @@ static int send_control_pkt(int client_sock, int server_port,
     dest.sin_port = htons(server_port);
     dest.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
-    ssize_t sent = sendto(client_sock, (const char *)pkt, 32, 0,
+    ssize_t sent;
+
+    errno = 0;
+    sent = sendto(client_sock, (const char *)pkt, 32, 0,
                           (struct sockaddr *)&dest, sizeof(dest));
 
-    return (sent == 32) ? 0 : -1;
+    if (sent != 32)
+    {
+        TEST_MSG("sendto(127.0.0.1:%d) sent %zd of 32 bytes: %s",
+                 server_port, sent, strerror(errno));
+        return -1;
+    }
+
+    return 0;
 }
 
 
@@ -670,6 +698,35 @@ static ssize_t subscribe_and_await_ack(int client_sock, int server_port,
      * acutest attaches this message. */
     TEST_CHECK_(0, "no SUBSCRIBE_ACK for stream %u after 3 attempts",
                 stream_id);
+
+    /* Which end lost them matters and is not otherwise recoverable from a CI
+     * log: the server diag says whether anything arrived, and this says where
+     * the datagrams were sent from and to. A CI failure of this shape once
+     * cost a day for want of these two numbers. */
+    {
+        struct sockaddr_in me;
+        socklen_t me_len = sizeof(me);
+        int queued = 0;
+
+        memset(&me, 0, sizeof(me));
+
+        if (getsockname(client_sock, (struct sockaddr *)&me, &me_len) == 0)
+        {
+            TEST_MSG("client was %s:%d, sending to 127.0.0.1:%d",
+                     inet_ntoa(me.sin_addr), (int)ntohs(me.sin_port),
+                     server_port);
+        }
+
+#ifdef FIONREAD
+
+        if (ioctl(client_sock, FIONREAD, &queued) == 0)
+        {
+            TEST_MSG("client socket still holds %d unread bytes", queued);
+        }
+
+#endif
+    }
+
     stream_diag(stream_type, stream_id);
     return -1;
 }
@@ -2192,8 +2249,11 @@ void test_rx_counter_payload_audio(void)
 
         if (n < RIG_STREAM_HEADER_SIZE)
         {
+            /* Keep looking: one quiet 2 s stretch on a loaded runner is not
+             * the same as a feeder that has stopped sending, and breaking
+             * here spent the whole loop's budget on the first stall. */
             TEST_MSG("packet %d: timeout", i);
-            break;
+            continue;
         }
 
         struct rig_stream_packet_header hdr;
@@ -2314,8 +2374,11 @@ void test_rx_codec_passthrough_audio(void)
 
         if (n < RIG_STREAM_HEADER_SIZE)
         {
+            /* Keep looking: one quiet 2 s stretch on a loaded runner is not
+             * the same as a feeder that has stopped sending, and breaking
+             * here spent the whole loop's budget on the first stall. */
             TEST_MSG("packet %d: timeout", i);
-            break;
+            continue;
         }
 
         struct rig_stream_packet_header hdr;
@@ -2475,8 +2538,11 @@ void test_rx_counter_payload_iq(void)
 
         if (n < RIG_STREAM_HEADER_SIZE)
         {
+            /* Keep looking: one quiet 2 s stretch on a loaded runner is not
+             * the same as a feeder that has stopped sending, and breaking
+             * here spent the whole loop's budget on the first stall. */
             TEST_MSG("packet %d: timeout", i);
-            break;
+            continue;
         }
 
         struct rig_stream_packet_header hdr;
@@ -2897,13 +2963,17 @@ void test_tx_audio_data_accepted(void)
     /* Verify data arrived in backend ring buffer */
     /* The dummy TX scheduler consumes the ring concurrently, so verify
      * arrival via the producer position: 3 packets x 480 frames. */
-    WAIT_UNTIL(rig_stream_get_samples_written(s->backend_stream) >= 3 * 480);
+    WAIT_UNTIL_MS(rig_stream_get_samples_written(s->backend_stream) >= 3 * 480,
+                  FEEDER_TAKEUP_MS);
     TEST_CHECK(rig_stream_get_samples_written(s->backend_stream) >= 3 * 480);
     TEST_MSG("TX feeder wrote %llu frames to backend ringbuf",
              (unsigned long long)
              rig_stream_get_samples_written(s->backend_stream));
 
-    /* Verify feeder processed all 3 packets */
+    /* Verify feeder processed all 3 packets. The count is bumped after the
+     * ring write and the write-status poll that follows it, so waiting on
+     * samples_written above does not imply it has caught up yet. */
+    WAIT_UNTIL_MS(s->packet_count >= 3, FEEDER_TAKEUP_MS);
     TEST_CHECK(s->packet_count >= 3);
     TEST_MSG("packet_count: got %d, expected >= 3", s->packet_count);
 
@@ -2970,7 +3040,7 @@ void test_tx_stereo_timestamp_frames(void)
     }
 
     /* Wait for the feeder to consume all packets. */
-    WAIT_UNTIL(s->packet_count >= num_packets);
+    WAIT_UNTIL_MS(s->packet_count >= num_packets, FEEDER_TAKEUP_MS);
 
     uint64_t expected_ts = (uint64_t)total_bytes / 4;  /* frame size = 4 */
     TEST_CHECK(s->timestamp == expected_ts);
@@ -3032,13 +3102,17 @@ void test_tx_iq_data_accepted(void)
 
     /* The dummy TX scheduler consumes the ring concurrently, so verify
      * arrival via the producer position: 3 packets x 240 IQ pairs. */
-    WAIT_UNTIL(rig_stream_get_samples_written(s->backend_stream) >= 3 * 240);
+    WAIT_UNTIL_MS(rig_stream_get_samples_written(s->backend_stream) >= 3 * 240,
+                  FEEDER_TAKEUP_MS);
     TEST_CHECK(rig_stream_get_samples_written(s->backend_stream) >= 3 * 240);
     TEST_MSG("TX feeder wrote %llu frames to backend ringbuf",
              (unsigned long long)
              rig_stream_get_samples_written(s->backend_stream));
 
-    /* Verify feeder processed all 3 packets */
+    /* Verify feeder processed all 3 packets. The count is bumped after the
+     * ring write and the write-status poll that follows it, so waiting on
+     * samples_written above does not imply it has caught up yet. */
+    WAIT_UNTIL_MS(s->packet_count >= 3, FEEDER_TAKEUP_MS);
     TEST_CHECK(s->packet_count >= 3);
     TEST_MSG("packet_count: got %d, expected >= 3", s->packet_count);
 
@@ -3369,7 +3443,7 @@ void test_tx_sequence_gap(void)
         TEST_CHECK(send_data_pkt(client_sock, udp_port, pkt, pkt_len) == 0);
     }
 
-    WAIT_UNTIL(s->packet_count >= 3);
+    WAIT_UNTIL_MS(s->packet_count >= 3, FEEDER_TAKEUP_MS);
 
     TEST_CHECK(s->packet_count == 3);
     TEST_MSG("packet_count: got %d, expected 3", s->packet_count);
@@ -3597,7 +3671,7 @@ void test_tx_sequence_gap_implausible(void)
         TEST_CHECK(send_data_pkt(client_sock, udp_port, pkt, pkt_len) == 0);
     }
 
-    WAIT_UNTIL(s->packet_count >= 2);
+    WAIT_UNTIL_MS(s->packet_count >= 2, FEEDER_TAKEUP_MS);
 
     TEST_CHECK(s->packet_count == 2);
     TEST_MSG("packet_count: got %d, expected 2", s->packet_count);
@@ -3664,7 +3738,7 @@ void test_tx_metadata_applied(void)
     struct rigctld_stream *s = rigctld_stream_registry_lookup(
                                    &g_stream_registry, RIG_STREAM_TYPE_AUDIO_TX, stream_id);
     TEST_CHECK(s != NULL);
-    WAIT_UNTIL(s->packet_count >= 1);
+    WAIT_UNTIL_MS(s->packet_count >= 1, FEEDER_TAKEUP_MS);
 
     /* Verify rig frequency changed */
     freq_t freq = 0;
@@ -3726,7 +3800,28 @@ void test_tx_metadata_truncated_rejected(void)
     TEST_CHECK(send_data_pkt(client_sock, udp_port, pkt,
                              RIG_STREAM_HEADER_SIZE) == 0);
 
-    usleep(100000);
+    /* A valid frame behind it, as a positive control: the feeder counts this
+     * one, so waiting for the count proves it has been past the malformed
+     * frame -- otherwise "the counter did not move" would also be true of a
+     * feeder that had not looked yet. */
+    {
+        unsigned char good[2048];
+        unsigned char payload[960];
+        size_t good_len;
+
+        memset(payload, 0, sizeof(payload));
+        good_len = build_data_packet(good, RIG_STREAM_TYPE_AUDIO_TX,
+                                     (uint16_t)stream_id, 0, 0, 48000,
+                                     RIG_STREAM_FMT_ID_PCM_S16, 1,
+                                     payload, sizeof(payload));
+        TEST_CHECK(send_data_pkt(client_sock, udp_port, good, good_len) == 0);
+    }
+
+    struct rigctld_stream *sf = rigctld_stream_registry_lookup(
+                                    &g_stream_registry,
+                                    RIG_STREAM_TYPE_AUDIO_TX, stream_id);
+    TEST_CHECK(sf != NULL);
+    WAIT_UNTIL_MS(sf != NULL && sf->packet_count >= 1, FEEDER_TAKEUP_MS);
 
     /* Frequency must be unchanged by the malformed frame. */
     freq_t freq = 0;
@@ -3736,12 +3831,14 @@ void test_tx_metadata_truncated_rejected(void)
     TEST_MSG("freq: got %.0f, expected 14000000 (malformed frame ignored)",
              (double)freq);
 
-    /* The frame must be dropped before the packet counter is bumped. */
+    /* Exactly one: the valid frame above. The malformed one must be dropped
+     * before the counter is bumped. */
     struct rigctld_stream *s = rigctld_stream_registry_lookup(
                                    &g_stream_registry, RIG_STREAM_TYPE_AUDIO_TX, stream_id);
     TEST_CHECK(s != NULL);
-    TEST_CHECK(s->packet_count == 0);
-    TEST_MSG("packet_count: got %d, expected 0", s->packet_count);
+    TEST_CHECK(s->packet_count == 1);
+    TEST_MSG("packet_count: got %d, expected 1 (the valid frame only)",
+             s->packet_count);
 
     close(client_sock);
 
@@ -4098,14 +4195,22 @@ void test_rx_mute_zeros(void)
     TEST_CHECK(ret == 0);
 
     int stream_id = -1, udp_port = -1;
-    parse_open_response(buf, &stream_id, &udp_port);
+    /* Checked, unlike the original: everything below is addressed to this
+     * port, so an unparsed response would send the subscribe into the void
+     * and report it as a silent server. */
+    TEST_CHECK(parse_open_response(buf, &stream_id, &udp_port) == 0);
+    TEST_CHECK_(udp_port > 0, "stream_open gave no usable port: %d", udp_port);
 
     int client_sock = create_client_udp_socket();
     TEST_CHECK(client_sock >= 0);
     unsigned char pkt[2048];
-    TEST_CHECK(subscribe_and_await_ack(client_sock, udp_port,
-                                       RIG_STREAM_TYPE_AUDIO_RX, stream_id,
-                                       pkt, sizeof(pkt)) >= 0);
+
+    /* Stop here if the handshake fails: the mute assertions that follow all
+     * depend on it, and four failures about muted audio say nothing about a
+     * subscribe that never landed. */
+    TEST_ASSERT(subscribe_and_await_ack(client_sock, udp_port,
+                                        RIG_STREAM_TYPE_AUDIO_RX, stream_id,
+                                        pkt, sizeof(pkt)) >= 0);
 
     /* Skip any remaining control frames to reach a data packet */
     struct rig_stream_packet_header hdr;
@@ -5465,7 +5570,7 @@ void test_rx_subscribe_timeout_auto_close(void)
     s->subscribe_timeout_s = 2;
 
     /* Don't subscribe — wait for timeout + margin */
-    sleep(3);
+    WAIT_UNTIL_MS(s != NULL && s->auto_closed, AUTO_CLOSE_MS);
 
     /* Stream should have been auto-closed (stays in registry as zombie) */
     s = rigctld_stream_registry_find_by_id(&g_stream_registry, stream_id);
@@ -5511,7 +5616,7 @@ void test_rx_keepalive_timeout_auto_close(void)
     }
 
     /* Don't send any PINGs — wait for timeout */
-    sleep(4);
+    WAIT_UNTIL_MS(s != NULL && s->auto_closed, AUTO_CLOSE_MS);
 
     s = rigctld_stream_registry_find_by_id(&g_stream_registry, stream_id);
     TEST_CHECK(s != NULL);
@@ -5568,7 +5673,7 @@ void test_rx_ping_resets_timeout(void)
 
     /* Stream should still be alive — last PING was 1s ago, timeout is 3s */
     s = rigctld_stream_registry_find_by_id(&g_stream_registry, stream_id);
-    TEST_CHECK(s != NULL);
+    TEST_CHECK(s != NULL && s->auto_closed == 0);
     TEST_MSG("stream should still be alive — PINGs reset timeout");
 
     close(client_sock);
@@ -5625,7 +5730,7 @@ void test_rx_resubscribe_resets_timeout(void)
     sleep(2);
 
     s = rigctld_stream_registry_find_by_id(&g_stream_registry, stream_id);
-    TEST_CHECK(s != NULL);
+    TEST_CHECK(s != NULL && s->auto_closed == 0);
     TEST_MSG("stream should still be alive — re-subscribe reset timeout");
 
     close(client_sock);
@@ -5669,7 +5774,7 @@ void test_rx_multicast_no_timeout(void)
     sleep(3);
 
     s = rigctld_stream_registry_find_by_id(&g_stream_registry, stream_id);
-    TEST_CHECK(s != NULL);
+    TEST_CHECK(s != NULL && s->auto_closed == 0);
     TEST_MSG("multicast stream should be exempt from keepalive timeout");
 
     char close_cmd[64];
@@ -5752,7 +5857,7 @@ void test_tx_timeout_auto_close(void)
     }
 
     /* Don't send any data — wait for timeout */
-    sleep(4);
+    WAIT_UNTIL_MS(s != NULL && s->auto_closed, AUTO_CLOSE_MS);
 
     s = rigctld_stream_registry_find_by_id(&g_stream_registry, stream_id);
     TEST_CHECK(s != NULL);
@@ -5821,7 +5926,7 @@ void test_tx_data_resets_timeout(void)
 
     /* Total elapsed ~3s, but only 1s since last data → should be alive */
     s = rigctld_stream_registry_find_by_id(&g_stream_registry, stream_id);
-    TEST_CHECK(s != NULL);
+    TEST_CHECK(s != NULL && s->auto_closed == 0);
     TEST_MSG("TX stream should still be alive — data resets timeout");
 
     close(client_sock);
@@ -5862,7 +5967,7 @@ void test_auto_close_then_stream_close(void)
     }
 
     /* Don't subscribe — wait for auto_close */
-    sleep(3);
+    WAIT_UNTIL_MS(s != NULL && s->auto_closed, AUTO_CLOSE_MS);
 
     /* Confirm stream was auto-closed (stays in registry as zombie) */
     s = rigctld_stream_registry_find_by_id(&g_stream_registry, stream_id);
@@ -5972,7 +6077,7 @@ void test_tx_ping_resets_timeout(void)
 
     /* Total ~3s elapsed, but only 1s since last PING → should be alive */
     s = rigctld_stream_registry_find_by_id(&g_stream_registry, stream_id);
-    TEST_CHECK(s != NULL);
+    TEST_CHECK(s != NULL && s->auto_closed == 0);
     TEST_MSG("TX stream should still be alive — PINGs reset timeout");
 
     close(client_sock);
@@ -6235,7 +6340,7 @@ void test_rx_ping_wrong_stream_id_ignored(void)
     send_ping_pkt(client_sock, udp_port, RIG_STREAM_TYPE_AUDIO_RX, wrong_id);
 
     /* Wait for timeout to fire (3s from subscribe, we're at ~2s + margin) */
-    sleep(2);
+    WAIT_UNTIL_MS(s != NULL && s->auto_closed, AUTO_CLOSE_MS);
 
     /* Stream should have auto-closed — wrong-id PINGs didn't save it */
     s = rigctld_stream_registry_find_by_id(&g_stream_registry, stream_id);
