@@ -113,37 +113,67 @@ static int64_t mock_now_us(void)
 
 /* The radio owns the VITA port, so the mock takes it while starting. Doing it
  * later would lose the race against the backend, which binds the same port for
- * its own receive socket and only falls back when something else holds it. */
+ * its own receive socket and only falls back when something else holds it.
+ *
+ * 4991 is what a real radio uses, and the first choice here, but a host can
+ * already have it -- simflex serving a neighbouring suite, a leftover process
+ * -- so the mock walks a small range and tells the client which one it landed
+ * on through the vita_port token (smartsdr_mock_vita_port()). Transmit tests
+ * need this: the client sends its VITA data to the radio's port, so a mock
+ * listening anywhere else would never see it. */
 static void mock_udp_open(struct smartsdr_mock *m)
 {
-    struct sockaddr_in addr;
-    int fd = socket(AF_INET, SOCK_DGRAM, 0);
-
-    if (fd < 0)
-    {
-        return;
-    }
+    uint16_t port;
 
     /* Deliberately no address reuse. The point of holding this port is that
      * the backend cannot have it and falls back to another, as it does against
      * a real radio; any reuse option hands it the port instead and it then
      * registers the radio's own endpoint as its own. */
-
-    /* The wildcard address, not loopback: the backend binds the wildcard, and
-     * a specific address does not collide with it. Binding narrowly would let
-     * both hold the port, with datagrams going to the more specific socket. */
-    memset(&addr, 0, sizeof(addr));
-    addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    addr.sin_port = htons(4991);
-
-    if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+    for (port = SMARTSDR_MOCK_VITA_PORT_FIRST;
+            port <= SMARTSDR_MOCK_VITA_PORT_LAST; port++)
     {
+        struct sockaddr_in addr;
+        int fd = socket(AF_INET, SOCK_DGRAM, 0);
+
+        if (fd < 0)
+        {
+            return;
+        }
+
+        /* The wildcard address, not loopback: the backend binds the wildcard,
+         * and a specific address does not collide with it. Binding narrowly
+         * would let both hold the port, with datagrams going to the more
+         * specific socket. */
+        memset(&addr, 0, sizeof(addr));
+        addr.sin_family = AF_INET;
+        addr.sin_addr.s_addr = htonl(INADDR_ANY);
+        addr.sin_port = htons(port);
+
+        if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) == 0)
+        {
+            m->udp_fd = fd;
+            m->vita_port = port;
+            return;
+        }
+
         socket_close(fd);
-        return;
     }
 
-    m->udp_fd = fd;
+    /* Every port in the range is taken, so the mock can neither send samples
+     * nor hear what the client transmits. Say so: the tests that follow would
+     * otherwise fail for a reason that looks nothing like the cause. */
+    fprintf(stderr,
+            "smartsdr_mock: no free UDP port in %d-%d (%s) -- samples cannot "
+            "be sent or captured\n",
+            SMARTSDR_MOCK_VITA_PORT_FIRST, SMARTSDR_MOCK_VITA_PORT_LAST,
+            strerror(errno));
+}
+
+
+/* The port the mock actually took, for the client's vita_port token. */
+uint16_t smartsdr_mock_vita_port(const struct smartsdr_mock *m)
+{
+    return m->vita_port;
 }
 
 
@@ -250,7 +280,9 @@ int smartsdr_mock_wait_udp(struct smartsdr_mock *m, int timeout_ms)
         int ready;
 
         pthread_mutex_lock(&m->lock);
-        ready = m->udp_port != 0;
+        /* Both halves matter: a client port to send to, and a socket to send
+         * it from. */
+        ready = m->udp_port != 0 && m->udp_fd >= 0;
         pthread_mutex_unlock(&m->lock);
 
         if (ready)

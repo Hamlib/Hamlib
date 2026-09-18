@@ -71,6 +71,18 @@ static RIG *open_on_mock(struct smartsdr_mock *m)
     rig_set_conf(rig, rig_token_lookup(rig, "liveness_timeout"),
                  MOCK_LIVENESS_MS);
 
+    /* Whichever port the mock got: 4991 unless the host already had it. The
+     * client sends transmit data to this port and prefers it for its own
+     * socket, so mock and client have to agree on it. */
+    {
+        char vita[8];
+
+        TEST_ASSERT(smartsdr_mock_vita_port(m) != 0);
+        SNPRINTF(vita, sizeof(vita), "%u",
+                 (unsigned)smartsdr_mock_vita_port(m));
+        rig_set_conf(rig, rig_token_lookup(rig, "vita_port"), vita);
+    }
+
     if (rig_open(rig) != RIG_OK)
     {
         rig_cleanup(rig);

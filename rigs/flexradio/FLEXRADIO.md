@@ -77,6 +77,7 @@ connects.
 | `split_slice` | A–H | *(empty)* | Treat this slice as the transmit slice for split instead of whichever slice the radio has marked with `tx=1`. Empty follows the radio. |
 | `status_timeout` | ms | 0 | Treat a value the radio reported as stale after this long, so reads report it unavailable. 0 keeps values indefinitely, which suits a radio that pushes status changes. |
 | `liveness_timeout` | ms, 500–3600000 | 20000 | Silence from the radio for this long declares the session lost. See §10. |
+| `vita_port` | 1–65535 | 4991 | UDP port the radio receives transmit data on, and the port the client prefers for its own socket. Every radio uses 4991; change it only where something else on the host holds that port. |
 | `tx_audio_source` | mic/acc/pc/dax | mic | What the radio modulates from. The radio holds the input selection and the DAX flag separately and they can contradict each other, so both are written together. Opening a transmit stream selects `dax` for as long as it is open, because streamed audio is discarded otherwise. |
 
 ```sh

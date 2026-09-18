@@ -246,6 +246,7 @@ struct smartsdr_priv_data
      * than a failed command is what ends the session. */
     int64_t last_heard_ms;
     int liveness_timeout_ms;            /* silence that means the radio is gone */
+    int vita_port;                      /* radio's VITA-49 UDP port (4991) */
 
     /* The radio as this backend models it -- props, slices and the meter
      * table. The control thread writes it one status line at a time and a
@@ -321,6 +322,11 @@ struct smartsdr_priv_data
 #define TOK_SLICE_MISSING   TOKEN_BACKEND(7)
 #define TOK_TX_AUDIO_SOURCE TOKEN_BACKEND(8)
 #define TOK_LIVENESS_TIMEOUT TOKEN_BACKEND(9)
+#define TOK_VITA_PORT        TOKEN_BACKEND(10)
+
+/* Radio UDP port carrying VITA-49 IQ/audio (same as Flex GUI clients), and
+ * the default for the vita_port token. */
+#define SMARTSDR_VITA_UDP_PORT 4991
 
 
 /* NAT keepalive cadence. The UDP nudge is what actually holds a NAT mapping

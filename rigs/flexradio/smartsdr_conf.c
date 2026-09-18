@@ -104,6 +104,15 @@ const struct confparams smartsdr_config_params[] =
         "Raise it on a link that stalls for seconds at a time.",
         "20000", RIG_CONF_NUMERIC, {.n = {500, 3600000, 1}}
     },
+    {
+        TOK_VITA_PORT, "vita_port", "Radio's VITA-49 UDP port",
+        "UDP port the radio receives transmit data on, and the port the "
+        "client prefers for its own socket. Every SmartSDR radio uses 4991, "
+        "so this is only worth changing where something else on the host "
+        "already holds that port -- a second client, or a test harness "
+        "standing in for the radio.",
+        "4991", RIG_CONF_NUMERIC, {.n = {1, 65535, 1}}
+    },
     { RIG_CONF_END, NULL, }
 };
 
@@ -168,6 +177,22 @@ int smartsdr_set_conf(RIG *rig, hamlib_token_t token, const char *val)
         }
 
         priv->liveness_timeout_ms = (int)ms;
+        return RIG_OK;
+    }
+
+    case TOK_VITA_PORT:
+    {
+        long port = val != NULL ? strtol(val, NULL, 10) : -1;
+
+        if (port < 1 || port > 65535)
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: vita_port must be 1..65535, got \"%s\"\n",
+                      __func__, val ? val : "");
+            return -RIG_EINVAL;
+        }
+
+        priv->vita_port = (int)port;
         return RIG_OK;
     }
 
@@ -281,6 +306,10 @@ int smartsdr_get_conf2(RIG *rig, hamlib_token_t token, char *val,
 
     case TOK_LIVENESS_TIMEOUT:
         SNPRINTF(val, val_len, "%d", priv->liveness_timeout_ms);
+        return RIG_OK;
+
+    case TOK_VITA_PORT:
+        SNPRINTF(val, val_len, "%d", priv->vita_port);
         return RIG_OK;
 
     case TOK_AUTO_RECONNECT:

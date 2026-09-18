@@ -83,6 +83,7 @@ struct smartsdr_mock
      * registers with "client udpport", so the mock learns it from there. */
     int udp_fd;                 /* -1 until a client registers a port */
     uint16_t udp_port;          /* 0 until then */
+    uint16_t vita_port;         /* port the mock took; 0 if it got none */
 
     /* Faults a test can inject: a command whose reply never comes, and one
      * whose reply is late. Both are things a radio does under load and
@@ -147,6 +148,15 @@ void smartsdr_mock_forget(struct smartsdr_mock *m);
 
 /* Wait until the client has registered a UDP port, so datagrams sent after
  * this reach it. Returns 0 if none arrives within timeout_ms. */
+/* First and last UDP port the mock will take for VITA data. 4991 is what a
+ * real radio uses; the rest are for hosts where something already holds it. */
+#define SMARTSDR_MOCK_VITA_PORT_FIRST 4991
+#define SMARTSDR_MOCK_VITA_PORT_LAST  4998
+
+/* The port it took, to be passed to the client as the vita_port token. 0 when
+ * the mock got none, in which case no samples can flow either way. */
+uint16_t smartsdr_mock_vita_port(const struct smartsdr_mock *m);
+
 int smartsdr_mock_wait_udp(struct smartsdr_mock *m, int timeout_ms);
 
 /* Leave commands starting with prefix unanswered, as a radio that has stopped

@@ -50,6 +50,7 @@ static const char *const smartsdr_tokens[] =
     "slice_missing",
     "tx_audio_source",
     "liveness_timeout",
+    "vita_port",
 };
 
 #define SMARTSDR_TOKEN_COUNT \
@@ -393,6 +394,62 @@ void test_liveness_timeout_roundtrip(void)
 }
 
 
+/* ================================================================== */
+/* vita_port                                                           */
+/* ================================================================== */
+
+/* Every radio uses 4991, and that is what the setting defaults to; it exists
+ * for a host where something else already holds the port -- a second client,
+ * or the test harness standing in for the radio, which has to be reachable at
+ * the port the client transmits to. */
+void test_vita_port_defaults_to_4991(void)
+{
+    RIG *rig = conf_rig();
+    char val[16] = "";
+
+    TEST_CHECK(rig_get_conf2(rig, rig_token_lookup(rig, "vita_port"), val,
+                             sizeof(val)) == RIG_OK);
+    TEST_CHECK_(!strcmp(val, "4991"), "vita_port defaults to \"%s\"", val);
+
+    rig_cleanup(rig);
+}
+
+
+void test_vita_port_roundtrip(void)
+{
+    RIG *rig = conf_rig();
+    const struct confparams *cfp;
+
+    check_roundtrip(rig, "vita_port", "4992");
+    check_roundtrip(rig, "vita_port", "4998");
+    check_roundtrip(rig, "vita_port", "65535");
+
+    cfp = rig_confparam_lookup(rig, "vita_port");
+    TEST_CHECK(cfp != NULL && cfp->type == RIG_CONF_NUMERIC);
+    TEST_MSG("vita_port is not declared as numeric");
+
+    rig_cleanup(rig);
+}
+
+
+/* A port outside the range addresses nothing, so it is refused rather than
+ * silently truncated into one that does. */
+void test_vita_port_rejects_out_of_range(void)
+{
+    RIG *rig = conf_rig();
+    token_t tok = rig_token_lookup(rig, "vita_port");
+
+    TEST_CHECK(rig_set_conf(rig, tok, "0") != RIG_OK);
+    TEST_MSG("port 0 was accepted");
+    TEST_CHECK(rig_set_conf(rig, tok, "65536") != RIG_OK);
+    TEST_MSG("port 65536 was accepted");
+    TEST_CHECK(rig_set_conf(rig, tok, "-1") != RIG_OK);
+    TEST_MSG("a negative port was accepted");
+
+    rig_cleanup(rig);
+}
+
+
 /* A timeout of zero, or one shorter than a round trip, would end every
  * session the moment it started, so the range the setting advertises is
  * enforced rather than merely documented. */
@@ -676,6 +733,7 @@ void test_settings_do_not_disturb_each_other(void)
         "fail",     /* slice_missing   */
         "acc",      /* tx_audio_source */
         "45000",    /* liveness_timeout */
+        "4993",     /* vita_port       */
     };
     RIG *rig = conf_rig();
     int i;
@@ -723,6 +781,9 @@ TEST_LIST =
     { "status_timeout_roundtrip",           test_status_timeout_roundtrip },
     { "liveness_timeout_roundtrip",         test_liveness_timeout_roundtrip },
     { "liveness_timeout_rejects_out_of_range", test_liveness_timeout_rejects_out_of_range },
+    { "vita_port_defaults_to_4991",         test_vita_port_defaults_to_4991 },
+    { "vita_port_roundtrip",                test_vita_port_roundtrip },
+    { "vita_port_rejects_out_of_range",     test_vita_port_rejects_out_of_range },
     { "slice_accepts_a_to_h",               test_slice_accepts_a_to_h },
     { "slice_accepts_lower_case",           test_slice_accepts_lower_case },
     { "slice_rejects_out_of_range",         test_slice_rejects_out_of_range },

@@ -238,6 +238,7 @@ int smartsdr_init(RIG *rig)
     priv->opened_slice = -1;
     /* Silence is what ends a session, so zero would end every one at once. */
     priv->liveness_timeout_ms = SMARTSDR_LIVENESS_TIMEOUT_MS;
+    priv->vita_port = SMARTSDR_VITA_UDP_PORT;
 
     /* 0 is a meter index the radio uses, so an unnamed meter must not hold
      * one: a value for meter 0 would be attributed to whichever slot still

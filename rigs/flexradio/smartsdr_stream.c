@@ -62,9 +62,6 @@
 /* TX: a timed burst further past due than this counts as late */
 #define SMARTSDR_TX_LATE_TOLERANCE_MS 50
 
-/* Radio UDP port carrying VITA-49 IQ/audio (same as Flex GUI clients). */
-#define SMARTSDR_VITA_UDP_PORT 4991
-
 /* Radio UDP port for the source-IP discovery nudge and client udpport. */
 #define SMARTSDR_DISCOVERY_PORT 4992
 
@@ -300,7 +297,9 @@ static int smartsdr_resolve_radio_udp_addr(RIG *rig)
 
     memset(&priv->radio_udp_addr, 0, sizeof(priv->radio_udp_addr));
     priv->radio_udp_addr.sin_family = AF_INET;
-    priv->radio_udp_addr.sin_port = htons(SMARTSDR_VITA_UDP_PORT);
+    priv->radio_udp_addr.sin_port =
+        htons((uint16_t)(priv->vita_port > 0 ? priv->vita_port
+                         : SMARTSDR_VITA_UDP_PORT));
 
     if (inet_pton(AF_INET, ip_buf, &priv->radio_udp_addr.sin_addr) != 1)
     {
@@ -1071,9 +1070,12 @@ static int smartsdr_udp_open(RIG *rig)
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = INADDR_ANY;
-    /* LAN: bind VITA port 4991 when free (same as Flex client libs) so the
-     * radio sends IQ/audio to the same port GUI clients use. */
-    addr.sin_port = htons(SMARTSDR_VITA_UDP_PORT);
+    /* LAN: bind the radio's VITA port when free (same as Flex client libs)
+     * so the radio sends IQ/audio to the same port GUI clients use. The radio
+     * holds it itself, so this normally fails and the ephemeral bind below is
+     * what runs; see the vita_port token for why it is not simply 4991. */
+    addr.sin_port = htons((uint16_t)(priv->vita_port > 0 ? priv->vita_port
+                                     : SMARTSDR_VITA_UDP_PORT));
 
     if (bind(priv->udp_sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
