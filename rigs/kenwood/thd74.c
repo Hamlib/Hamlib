@@ -28,6 +28,7 @@
 
 #include "hamlib/rig.h"
 #include "hamlib/rig_state.h"
+#include "cache.h"
 #include "kenwood.h"
 #include "th.h"
 #include "thd7x.h"
@@ -281,7 +282,7 @@ static int thd74_get_vfo(RIG *rig, vfo_t *vfo)
 
 static int thd74_vfoc(RIG *rig, vfo_t vfo, char *vfoc)
 {
-    vfo = (vfo == RIG_VFO_CURR) ? STATE(rig)->current_vfo : vfo;
+    vfo = (vfo == RIG_VFO_CURR) ? rig_get_current_vfo_state(rig) : vfo;
 
     switch (vfo)
     {

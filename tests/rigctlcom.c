@@ -79,7 +79,6 @@
 #include "hamlib/rig.h"
 #include "hamlib/port.h"
 #include "misc.h"
-#include "cache.h"
 #include "iofunc.h"
 #include "rigctl_parse.h"
 #include "riglist.h"
@@ -229,6 +228,7 @@ int main(int argc, char *argv[])
     printf("rigctlcom Version 1.6\n");
 
     rig_set_debug(verbose);
+
     while (1)
     {
         int c;
@@ -401,7 +401,7 @@ int main(int argc, char *argv[])
             break;
 
         default:
-            usage(stderr);        
+            usage(stderr);
             exit(1);
         }
     }
@@ -604,7 +604,7 @@ static rmode_t ts2000_get_mode()
 {
     rmode_t mode;
     pbwidth_t width;
-    rig_get_mode(my_rig, vfo_fixup(my_rig, RIG_VFO_A, CACHE(my_rig)->split),
+    rig_get_mode(my_rig, vfo_fixup_current(my_rig, RIG_VFO_A),
                  &mode, &width);
     kwidth = width;
 #if 0
@@ -743,8 +743,7 @@ static int handle_ts2000(void *arg)
         int p13 = 0;            // P13(1) Tone dummy value for now
         int p14 = 0;            // P14(2) Tone Freq dummy value for now
         int p15 = 0;            // P15(1) Shift status dummy value for now
-        int retval = rig_get_freq(my_rig, vfo_fixup(my_rig, RIG_VFO_A,
-                                  CACHE(my_rig)->split),
+        int retval = rig_get_freq(my_rig, vfo_fixup_current(my_rig, RIG_VFO_A),
                                   &freq);
         char response[64];
         char *fmt =
@@ -757,7 +756,7 @@ static int handle_ts2000(void *arg)
         }
 
         mode = ts2000_get_mode();
-        retval = rig_get_ptt(my_rig, vfo_fixup(my_rig, RIG_VFO_A, CACHE(my_rig)->split),
+        retval = rig_get_ptt(my_rig, vfo_fixup_current(my_rig, RIG_VFO_A),
                              &ptt);
 
         if (retval != RIG_OK)
@@ -842,8 +841,7 @@ static int handle_ts2000(void *arg)
         freq_t freq = 0;
         char response[32];
 
-        int retval = rig_get_freq(my_rig, vfo_fixup(my_rig, RIG_VFO_A,
-                                  CACHE(my_rig)->split),
+        int retval = rig_get_freq(my_rig, vfo_fixup_current(my_rig, RIG_VFO_A),
                                   &freq);
 
         if (retval != RIG_OK)
@@ -860,8 +858,7 @@ static int handle_ts2000(void *arg)
     {
         char response[32];
         freq_t freq = 0;
-        int retval = rig_get_freq(my_rig, vfo_fixup(my_rig, RIG_VFO_B,
-                                  CACHE(my_rig)->split),
+        int retval = rig_get_freq(my_rig, vfo_fixup_current(my_rig, RIG_VFO_B),
                                   &freq);
 
         if (retval != RIG_OK)
@@ -885,7 +882,7 @@ static int handle_ts2000(void *arg)
     {
         char response[32];
 
-        rig_set_ptt(my_rig, vfo_fixup(my_rig, RIG_VFO_A, CACHE(my_rig)->split), 0);
+        rig_set_ptt(my_rig, vfo_fixup_current(my_rig, RIG_VFO_A), 0);
         SNPRINTF(response, sizeof(response), "RX0;");
         return write_block2((void *)__func__, &my_com, response, strlen(response));
     }
@@ -916,7 +913,7 @@ static int handle_ts2000(void *arg)
     }
     else if (strcmp(arg, "TX;") == 0)
     {
-        return rig_set_ptt(my_rig, vfo_fixup(my_rig, RIG_VFO_A, CACHE(my_rig)->split),
+        return rig_set_ptt(my_rig, vfo_fixup_current(my_rig, RIG_VFO_A),
                            1);
     }
     else if (strcmp(arg, "AI0;") == 0)
@@ -931,11 +928,11 @@ static int handle_ts2000(void *arg)
     }
     else if (strcmp(arg, "FR0;") == 0)
     {
-        return rig_set_vfo(my_rig, vfo_fixup(my_rig, RIG_VFO_A, CACHE(my_rig)->split));
+        return rig_set_vfo(my_rig, vfo_fixup_current(my_rig, RIG_VFO_A));
     }
     else if (strcmp(arg, "FR1;") == 0)
     {
-        return rig_set_vfo(my_rig, vfo_fixup(my_rig, RIG_VFO_B, CACHE(my_rig)->split));
+        return rig_set_vfo(my_rig, vfo_fixup_current(my_rig, RIG_VFO_B));
     }
     else if (strcmp(arg, "FR;") == 0)
     {
@@ -955,8 +952,8 @@ static int handle_ts2000(void *arg)
         }
 
 
-        if (vfo == vfo_fixup(my_rig, RIG_VFO_A, CACHE(my_rig)->split)) { nvfo = 0; }
-        else if (vfo == vfo_fixup(my_rig, RIG_VFO_B, CACHE(my_rig)->split)) { nvfo = 1; }
+        if (vfo == vfo_fixup_current(my_rig, RIG_VFO_A)) { nvfo = 0; }
+        else if (vfo == vfo_fixup_current(my_rig, RIG_VFO_B)) { nvfo = 1; }
         else
         {
             retval = -RIG_EPROTO;
@@ -971,7 +968,7 @@ static int handle_ts2000(void *arg)
     else if (strcmp(arg, "FT;") == 0)
     {
         char response[32];
-        vfo_t vfo, vfo_curr = vfo_fixup(my_rig, RIG_VFO_A, CACHE(my_rig)->split);
+        vfo_t vfo, vfo_curr = vfo_fixup_current(my_rig, RIG_VFO_A);
         split_t split;
         int nvfo = 0;
         int retval = rig_get_split_vfo(my_rig, vfo_curr, &split, &vfo);
@@ -984,8 +981,8 @@ static int handle_ts2000(void *arg)
         }
 
 
-        if (vfo == vfo_fixup(my_rig, RIG_VFO_A, CACHE(my_rig)->split)) { nvfo = 0; }
-        else if (vfo == vfo_fixup(my_rig, RIG_VFO_B, CACHE(my_rig)->split)) { nvfo = 1; }
+        if (vfo == vfo_fixup_current(my_rig, RIG_VFO_A)) { nvfo = 0; }
+        else if (vfo == vfo_fixup_current(my_rig, RIG_VFO_B)) { nvfo = 1; }
         else
         {
             retval = -RIG_EPROTO;
@@ -1034,8 +1031,7 @@ static int handle_ts2000(void *arg)
     {
         char response[32];
         int valA;
-        int retval = rig_get_func(my_rig, vfo_fixup(my_rig, RIG_VFO_A,
-                                  CACHE(my_rig)->split),
+        int retval = rig_get_func(my_rig, vfo_fixup_current(my_rig, RIG_VFO_A),
                                   RIG_FUNC_AIP, &valA);
         int valB;
 
@@ -1054,8 +1050,7 @@ static int handle_ts2000(void *arg)
             return retval;
         }
 
-        retval = rig_get_func(my_rig, vfo_fixup(my_rig, RIG_VFO_B,
-                                                CACHE(my_rig)->split),
+        retval = rig_get_func(my_rig, vfo_fixup_current(my_rig, RIG_VFO_B),
                               RIG_FUNC_AIP, &valB);
 
         if (retval != RIG_OK)
@@ -1081,8 +1076,7 @@ static int handle_ts2000(void *arg)
                       (char *)arg);
         }
 
-        retval = rig_set_func(my_rig, vfo_fixup(my_rig, RIG_VFO_A,
-                                                CACHE(my_rig)->split),
+        retval = rig_set_func(my_rig, vfo_fixup_current(my_rig, RIG_VFO_A),
                               RIG_FUNC_AIP, valA);
 
         if (retval != RIG_OK)
@@ -1092,8 +1086,7 @@ static int handle_ts2000(void *arg)
             return retval;
         }
 
-        retval = rig_set_func(my_rig, vfo_fixup(my_rig, RIG_VFO_B,
-                                                CACHE(my_rig)->split),
+        retval = rig_set_func(my_rig, vfo_fixup_current(my_rig, RIG_VFO_B),
                               RIG_FUNC_AIP, valB);
 
         if (retval != RIG_OK)
@@ -1459,7 +1452,7 @@ static int handle_ts2000(void *arg)
     }
     else if (strcmp(arg, "DC;") == 0)
     {
-        vfo_t vfo, vfo_curr = vfo_fixup(my_rig, RIG_VFO_A, CACHE(my_rig)->split);
+        vfo_t vfo, vfo_curr = vfo_fixup_current(my_rig, RIG_VFO_A);
         split_t split;
         char response[32];
         int retval = rig_get_split_vfo(my_rig, vfo_curr, &split, &vfo);
@@ -1478,7 +1471,7 @@ static int handle_ts2000(void *arg)
     }
     else if (strncmp(arg, "DC", 2) == 0)
     {
-        vfo_t vfo_curr = vfo_fixup(my_rig, RIG_VFO_A, CACHE(my_rig)->split);
+        vfo_t vfo_curr = vfo_fixup_current(my_rig, RIG_VFO_A);
         split_t split;
         int isplit;
         int retval;
@@ -1509,15 +1502,15 @@ static int handle_ts2000(void *arg)
     }
     else if (strcmp(arg, "FT0;") == 0)
     {
-        return rig_set_split_vfo(my_rig, vfo_fixup(my_rig, RIG_VFO_A,
-                                 CACHE(my_rig)->split),
-                                 vfo_fixup(my_rig, RIG_VFO_A, CACHE(my_rig)->split), 0);
+        return rig_set_split_vfo(my_rig,
+                                 vfo_fixup_current(my_rig, RIG_VFO_A),
+                                 vfo_fixup_current(my_rig, RIG_VFO_A), 0);
     }
     else if (strcmp(arg, "FT1;") == 0)
     {
-        return rig_set_split_vfo(my_rig, vfo_fixup(my_rig, RIG_VFO_B,
-                                 CACHE(my_rig)->split),
-                                 vfo_fixup(my_rig, RIG_VFO_B, CACHE(my_rig)->split), 0);
+        return rig_set_split_vfo(my_rig,
+                                 vfo_fixup_current(my_rig, RIG_VFO_B),
+                                 vfo_fixup_current(my_rig, RIG_VFO_B), 0);
     }
     else if (strncmp(arg, "FA0", 3) == 0)
     {
@@ -1527,14 +1520,14 @@ static int handle_ts2000(void *arg)
         if (mapa2b) { vfo = RIG_VFO_B; }
 
         sscanf((char *)arg + 2, "%"SCNfreq, &freq);
-        return rig_set_freq(my_rig, vfo_fixup(my_rig, vfo, CACHE(my_rig)->split), freq);
+        return rig_set_freq(my_rig, vfo_fixup_current(my_rig, vfo), freq);
     }
     else if (strncmp(arg, "FB0", 3) == 0)
     {
         freq_t freq;
 
         sscanf((char *)arg + 2, "%"SCNfreq, &freq);
-        return rig_set_freq(my_rig, vfo_fixup(my_rig, RIG_VFO_B, CACHE(my_rig)->split),
+        return rig_set_freq(my_rig, vfo_fixup_current(my_rig, RIG_VFO_B),
                             freq);
     }
     else if (strncmp(arg, "MD", 2) == 0)
@@ -1566,7 +1559,8 @@ static int handle_ts2000(void *arg)
 
         case 9: mode = RIG_MODE_RTTYR; break;
         }
-	rig_set_mode(my_rig, RIG_VFO_A, mode, -1);
+
+        rig_set_mode(my_rig, RIG_VFO_A, mode, -1);
     }
     else if (strcmp(arg, "PS1;") == 0)
     {
@@ -1695,37 +1689,40 @@ static void usage(FILE *fout)
 {
     char *name = "rigctlcom";
 
-    fprintf(fout, "Usage: %s -m rignumber -r comport -s baud -R comport [OPTIONS]...\n\n"
-           "A TS-2000 emulator for rig sharing with programs that don't support Hamlib or FLRig to be able\n"
-           "to use a connected radio transceiver or receiver with FLRig or rigctld via Hamlib.\n\n",
-           name);
+    fprintf(fout,
+            "Usage: %s -m rignumber -r comport -s baud -R comport [OPTIONS]...\n\n"
+            "A TS-2000 emulator for rig sharing with programs that don't support Hamlib or FLRig to be able\n"
+            "to use a connected radio transceiver or receiver with FLRig or rigctld via Hamlib.\n\n",
+            name);
 
-    fprintf(fout, "Example: Using FLRig with virtual COM5/COM6 and other program:\n");
+    fprintf(fout,
+            "Example: Using FLRig with virtual COM5/COM6 and other program:\n");
     fprintf(fout, "\t%s -m 4 -R COM5 -S 115200\n\n", name);
-    fprintf(fout, "Other program would connect to COM6 and use TS-2000 115200 8N1\n\n");
+    fprintf(fout,
+            "Other program would connect to COM6 and use TS-2000 115200 8N1\n\n");
     fprintf(fout, "See the %s.1 manual page for complete details.\n\n", name);
 
     fprintf(fout,
-        "  -m, --model=ID                select radio model number. See model list (-l)\n"
-        "  -r, --rig-file=DEVICE         set device of the radio to operate on\n"
-        "  -R, --rig-file2=DEVICE        set device of the virtual com port to operate on\n"
-        "  -p, --ptt-file=DEVICE         set device of the PTT device to operate on\n"
-        "  -d, --dcd-file=DEVICE         set device of the DCD device to operate on\n"
-        "  -P, --ptt-type=TYPE           set type of the PTT device to operate on\n"
-        "  -D, --dcd-type=TYPE           set type of the DCD device to operate on\n"
-        "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
-        "  -S, --serial-speed2=BAUD      set serial speed of the virtual com port [default=115200]\n"
-        "  -c, --civaddr=ID              set CI-V address, decimal (for Icom rigs only)\n"
-        "  -C, --set-conf=PARM=VAL[,...] set config parameters\n"
-        "  -B, --mapa2b                  map set_freq on VFOA to VFOB -- useful for CW Skimmer\n"
-        "  -L, --show-conf               list all config parameters\n"
-        "  -l, --list                    list all model numbers and exit\n"
-        "  -u, --dump-caps               dump capabilities and exit\n"
-        "  -v, --verbose                 set verbose mode, cumulative (-v to -vvvvv)\n"
-        "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
-        "  -h, --help                    display this help and exit\n"
-        "  -V, --version                 output version information and exit\n\n"
-    );
+            "  -m, --model=ID                select radio model number. See model list (-l)\n"
+            "  -r, --rig-file=DEVICE         set device of the radio to operate on\n"
+            "  -R, --rig-file2=DEVICE        set device of the virtual com port to operate on\n"
+            "  -p, --ptt-file=DEVICE         set device of the PTT device to operate on\n"
+            "  -d, --dcd-file=DEVICE         set device of the DCD device to operate on\n"
+            "  -P, --ptt-type=TYPE           set type of the PTT device to operate on\n"
+            "  -D, --dcd-type=TYPE           set type of the DCD device to operate on\n"
+            "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
+            "  -S, --serial-speed2=BAUD      set serial speed of the virtual com port [default=115200]\n"
+            "  -c, --civaddr=ID              set CI-V address, decimal (for Icom rigs only)\n"
+            "  -C, --set-conf=PARM=VAL[,...] set config parameters\n"
+            "  -B, --mapa2b                  map set_freq on VFOA to VFOB -- useful for CW Skimmer\n"
+            "  -L, --show-conf               list all config parameters\n"
+            "  -l, --list                    list all model numbers and exit\n"
+            "  -u, --dump-caps               dump capabilities and exit\n"
+            "  -v, --verbose                 set verbose mode, cumulative (-v to -vvvvv)\n"
+            "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
+            "  -h, --help                    display this help and exit\n"
+            "  -V, --version                 output version information and exit\n\n"
+           );
 
     fprintf(fout, "\nReport bugs to <hamlib-developer@lists.sourceforge.net>.\n");
 }

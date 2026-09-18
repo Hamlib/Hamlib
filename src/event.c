@@ -37,7 +37,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <errno.h>
+#include <time.h>
+
+#ifdef HAVE_SYS_TIME_H
+#  include <sys/time.h>
+#endif
+
+#if defined(__APPLE__)
+#  include <mach/mach_time.h>
+#endif
 
 #include <pthread.h>
 
@@ -58,15 +66,101 @@ typedef struct rig_poll_routine_args_s
 typedef struct rig_poll_routine_priv_data_s
 {
     pthread_t thread_id;
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+    int ready;
+    int start_waiting;
+    int stopped;
     rig_poll_routine_args args;
 } rig_poll_routine_priv_data;
+
+static int rig_poll_routine_is_running(const struct rig_state *rs);
+
+static int64_t rig_poll_monotonic_ms(void)
+{
+#if defined(__APPLE__)
+    mach_timebase_info_data_t timebase;
+    uint64_t ticks = mach_absolute_time();
+
+    mach_timebase_info(&timebase);
+    return (int64_t)((long double) ticks * timebase.numer / timebase.denom
+                     / 1000000.0L);
+#elif defined(_WIN32)
+    return (int64_t) GetTickCount64();
+#else
+    struct timespec now;
+
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    return (int64_t) now.tv_sec * 1000 + now.tv_nsec / 1000000;
+#endif
+}
+
+static void rig_poll_wait_until(rig_poll_routine_priv_data *poll_routine_priv,
+                                struct rig_state *rs,
+                                int64_t deadline_ms)
+{
+    int64_t delay_ms = deadline_ms - rig_poll_monotonic_ms();
+    struct timespec timeout;
+    struct timeval now;
+
+    if (delay_ms <= 0)
+    {
+        return;
+    }
+
+    gettimeofday(&now, NULL);
+    timeout.tv_sec = now.tv_sec + delay_ms / 1000;
+    timeout.tv_nsec = now.tv_usec * 1000
+                      + (delay_ms % 1000) * 1000000;
+
+    if (timeout.tv_nsec >= 1000000000)
+    {
+        timeout.tv_sec++;
+        timeout.tv_nsec -= 1000000000;
+    }
+
+    pthread_mutex_lock(&poll_routine_priv->mutex);
+
+    if (rig_poll_routine_is_running(rs))
+    {
+        pthread_cond_timedwait(&poll_routine_priv->cond,
+                               &poll_routine_priv->mutex, &timeout);
+    }
+
+    pthread_mutex_unlock(&poll_routine_priv->mutex);
+}
+
+static int rig_poll_routine_is_running(const struct rig_state *rs)
+{
+    return __atomic_load_n(&rs->poll_routine_thread_run, __ATOMIC_ACQUIRE);
+}
+
+static void rig_poll_routine_set_running(struct rig_state *rs, int running)
+{
+    __atomic_store_n(&rs->poll_routine_thread_run, running, __ATOMIC_RELEASE);
+}
+
+int rig_get_poll_interval(RIG *rig)
+{
+    return __atomic_load_n(&STATE(rig)->poll_interval, __ATOMIC_ACQUIRE);
+}
+
+void rig_set_poll_interval(RIG *rig, int interval_ms)
+{
+    __atomic_store_n(&STATE(rig)->poll_interval, interval_ms,
+                     __ATOMIC_RELEASE);
+}
 
 static void *rig_poll_routine(void *arg)
 {
     rig_poll_routine_args *args = (rig_poll_routine_args *)arg;
     RIG *rig = args->rig;
     struct rig_state *rs = STATE(rig);
-    struct rig_cache *cachep = CACHE(rig);
+    rig_poll_routine_priv_data *poll_routine_priv =
+        (rig_poll_routine_priv_data *) rs->poll_routine_priv_data;
+    struct rig_cache_snapshot snapshot;
+    struct rig_poll_schedule schedule;
+    struct rig_poll_schedule_result schedule_result;
     int update_occurred;
 
     vfo_t vfo = RIG_VFO_NONE, tx_vfo = RIG_VFO_NONE;
@@ -82,167 +176,171 @@ static void *rig_poll_routine(void *arg)
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Starting rig poll routine thread\n",
               __FILE__, __LINE__);
 
-    // Rig cache time should be equal to rig poll interval (should be set automatically by rigctld at least)
-    rig_set_cache_timeout_ms(rig, HAMLIB_CACHE_ALL, rs->poll_interval);
-
-    // Attempt to detect changes with the interval below (in milliseconds)
-    int change_detection_interval = 50;
-    int interval_count = 0;
-
     update_occurred = 0;
+    rig_poll_schedule_init(&schedule, rig_poll_monotonic_ms(),
+                           rig_get_poll_interval(rig));
 
-    network_publish_rig_poll_data(rig);
-
-    while (rs->poll_routine_thread_run)
+    while (rig_poll_routine_is_running(rs))
     {
-        if (rs->current_vfo != vfo)
+        schedule_result = rig_poll_schedule_advance(
+                              &schedule, rig_poll_monotonic_ms(),
+                              rig_get_poll_interval(rig));
+
+        if (schedule_result.scan_cache)
         {
-            vfo = rs->current_vfo;
-            update_occurred = 1;
+            rig_get_cache_snapshot(rig, &snapshot);
+
+            if (snapshot.current_vfo != vfo)
+            {
+                vfo = snapshot.current_vfo;
+                update_occurred = 1;
+            }
+
+            if (snapshot.tx_vfo != tx_vfo)
+            {
+                tx_vfo = snapshot.tx_vfo;
+                update_occurred = 1;
+            }
+
+            if (snapshot.freqMainA != freq_main_a)
+            {
+                freq_main_a = snapshot.freqMainA;
+                update_occurred = 1;
+            }
+
+            if (snapshot.freqMainB != freq_main_b)
+            {
+                freq_main_b = snapshot.freqMainB;
+                update_occurred = 1;
+            }
+
+            if (snapshot.freqMainC != freq_main_c)
+            {
+                freq_main_c = snapshot.freqMainC;
+                update_occurred = 1;
+            }
+
+            if (snapshot.freqSubA != freq_sub_a)
+            {
+                freq_sub_a = snapshot.freqSubA;
+                update_occurred = 1;
+            }
+
+            if (snapshot.freqSubB != freq_sub_b)
+            {
+                freq_sub_b = snapshot.freqSubB;
+                update_occurred = 1;
+            }
+
+            if (snapshot.freqSubC != freq_sub_c)
+            {
+                freq_sub_c = snapshot.freqSubC;
+                update_occurred = 1;
+            }
+
+            if (snapshot.ptt != ptt)
+            {
+                ptt = snapshot.ptt;
+                update_occurred = 1;
+            }
+
+            if (snapshot.split != split)
+            {
+                split = snapshot.split;
+                update_occurred = 1;
+            }
+
+            if (snapshot.modeMainA != mode_main_a)
+            {
+                mode_main_a = snapshot.modeMainA;
+                update_occurred = 1;
+            }
+
+            if (snapshot.modeMainB != mode_main_b)
+            {
+                mode_main_b = snapshot.modeMainB;
+                update_occurred = 1;
+            }
+
+            if (snapshot.modeMainC != mode_main_c)
+            {
+                mode_main_c = snapshot.modeMainC;
+                update_occurred = 1;
+            }
+
+            if (snapshot.modeSubA != mode_sub_a)
+            {
+                mode_sub_a = snapshot.modeSubA;
+                update_occurred = 1;
+            }
+
+            if (snapshot.modeSubB != mode_sub_b)
+            {
+                mode_sub_b = snapshot.modeSubB;
+                update_occurred = 1;
+            }
+
+            if (snapshot.modeSubC != mode_sub_c)
+            {
+                mode_sub_c = snapshot.modeSubC;
+                update_occurred = 1;
+            }
+
+            if (snapshot.widthMainA != width_main_a)
+            {
+                width_main_a = snapshot.widthMainA;
+                update_occurred = 1;
+            }
+
+            if (snapshot.widthMainB != width_main_b)
+            {
+                width_main_b = snapshot.widthMainB;
+                update_occurred = 1;
+            }
+
+            if (snapshot.widthMainC != width_main_c)
+            {
+                width_main_c = snapshot.widthMainC;
+                update_occurred = 1;
+            }
+
+            if (snapshot.widthSubA != width_sub_a)
+            {
+                width_sub_a = snapshot.widthSubA;
+                update_occurred = 1;
+            }
+
+            if (snapshot.widthSubB != width_sub_b)
+            {
+                width_sub_b = snapshot.widthSubB;
+                update_occurred = 1;
+            }
+
+            if (snapshot.widthSubC != width_sub_c)
+            {
+                width_sub_c = snapshot.widthSubC;
+                update_occurred = 1;
+            }
         }
 
-        if (rs->tx_vfo != tx_vfo)
-        {
-            tx_vfo = rs->tx_vfo;
-            update_occurred = 1;
-        }
-
-        if (cachep->freqMainA != freq_main_a)
-        {
-            freq_main_a = cachep->freqMainA;
-            update_occurred = 1;
-        }
-
-        if (cachep->freqMainB != freq_main_b)
-        {
-            freq_main_b = cachep->freqMainB;
-            update_occurred = 1;
-        }
-
-        if (cachep->freqMainC != freq_main_c)
-        {
-            freq_main_b = cachep->freqMainC;
-            update_occurred = 1;
-        }
-
-        if (cachep->freqSubA != freq_sub_a)
-        {
-            freq_sub_a = cachep->freqSubA;
-            update_occurred = 1;
-        }
-
-        if (cachep->freqSubB != freq_sub_b)
-        {
-            freq_sub_b = cachep->freqSubB;
-            update_occurred = 1;
-        }
-
-        if (cachep->freqSubC != freq_sub_c)
-        {
-            freq_sub_c = cachep->freqSubC;
-            update_occurred = 1;
-        }
-
-        if (cachep->ptt != ptt)
-        {
-            ptt = cachep->ptt;
-            update_occurred = 1;
-        }
-
-        if (cachep->split != split)
-        {
-            split = cachep->split;
-            update_occurred = 1;
-        }
-
-        if (cachep->modeMainA != mode_main_a)
-        {
-            mode_main_a = cachep->modeMainA;
-            update_occurred = 1;
-        }
-
-        if (cachep->modeMainB != mode_main_b)
-        {
-            mode_main_b = cachep->modeMainB;
-            update_occurred = 1;
-        }
-
-        if (cachep->modeMainC != mode_main_c)
-        {
-            mode_main_c = cachep->modeMainC;
-            update_occurred = 1;
-        }
-
-        if (cachep->modeSubA != mode_sub_a)
-        {
-            mode_sub_a = cachep->modeSubA;
-            update_occurred = 1;
-        }
-
-        if (cachep->modeSubB != mode_sub_b)
-        {
-            mode_sub_b = cachep->modeSubB;
-            update_occurred = 1;
-        }
-
-        if (cachep->modeSubC != mode_sub_c)
-        {
-            mode_sub_c = cachep->modeSubC;
-            update_occurred = 1;
-        }
-
-        if (cachep->widthMainA != width_main_a)
-        {
-            width_main_a = cachep->widthMainA;
-            update_occurred = 1;
-        }
-
-        if (cachep->widthMainB != width_main_b)
-        {
-            width_main_b = cachep->widthMainB;
-            update_occurred = 1;
-        }
-
-        if (cachep->widthMainC != width_main_c)
-        {
-            width_main_c = cachep->widthMainC;
-            update_occurred = 1;
-        }
-
-        if (cachep->widthSubA != width_sub_a)
-        {
-            width_sub_a = cachep->widthSubA;
-            update_occurred = 1;
-        }
-
-        if (cachep->widthSubB != width_sub_b)
-        {
-            width_sub_b = cachep->widthSubB;
-            update_occurred = 1;
-        }
-
-        if (cachep->widthSubC != width_sub_c)
-        {
-            width_sub_c = cachep->widthSubC;
-            update_occurred = 1;
-        }
-
-        if (update_occurred)
+        if (update_occurred || schedule_result.publish)
         {
             network_publish_rig_poll_data(rig);
+            rig_poll_schedule_published(&schedule, rig_poll_monotonic_ms());
             update_occurred = 0;
-            interval_count = 0;
         }
 
-        hl_usleep(change_detection_interval * 1000);
-        interval_count++;
+        pthread_mutex_lock(&poll_routine_priv->mutex);
 
-        // Publish updates every poll_interval if no changes have been detected
-        if (interval_count >= (rs->poll_interval / change_detection_interval))
+        if (!poll_routine_priv->ready)
         {
-            interval_count = 0;
-            network_publish_rig_poll_data(rig);
+            poll_routine_priv->ready = 1;
+            pthread_cond_signal(&poll_routine_priv->cond);
         }
+
+        pthread_mutex_unlock(&poll_routine_priv->mutex);
+        rig_poll_wait_until(poll_routine_priv, rs,
+                            schedule_result.next_deadline_ms);
     }
 
     network_publish_rig_poll_data(rig);
@@ -265,10 +363,12 @@ int rig_poll_routine_start(RIG *rig)
 {
     struct rig_state *rs = STATE(rig);
     rig_poll_routine_priv_data *poll_routine_priv;
+    int err;
+    int stopped;
 
     ENTERFUNC;
 
-    if (rs->poll_interval < 1)
+    if (rig_get_poll_interval(rig) < 1)
     {
         rig_debug(RIG_DEBUG_ERR,
                   "%s(%d): rig poll routine disabled, poll interval set to zero\n", __FILE__,
@@ -283,7 +383,6 @@ int rig_poll_routine_start(RIG *rig)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    rs->poll_routine_thread_run = 1;
     rs->poll_routine_priv_data = calloc(1, sizeof(rig_poll_routine_priv_data));
 
     if (rs->poll_routine_priv_data == NULL)
@@ -293,18 +392,65 @@ int rig_poll_routine_start(RIG *rig)
 
     poll_routine_priv = (rig_poll_routine_priv_data *) rs->poll_routine_priv_data;
     poll_routine_priv->args.rig = rig;
-    int err = pthread_create(&poll_routine_priv->thread_id, NULL,
-                             rig_poll_routine, &poll_routine_priv->args);
+    poll_routine_priv->start_waiting = 1;
+
+    err = pthread_mutex_init(&poll_routine_priv->mutex, NULL);
+
+    if (err)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s(%d) pthread_mutex_init error: %s\n",
+                  __FILE__, __LINE__, strerror(err));
+        free(rs->poll_routine_priv_data);
+        rs->poll_routine_priv_data = NULL;
+        RETURNFUNC(-RIG_EINTERNAL);
+    }
+
+    err = pthread_cond_init(&poll_routine_priv->cond, NULL);
+
+    if (err)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s(%d) pthread_cond_init error: %s\n",
+                  __FILE__, __LINE__, strerror(err));
+        pthread_mutex_destroy(&poll_routine_priv->mutex);
+        free(rs->poll_routine_priv_data);
+        rs->poll_routine_priv_data = NULL;
+        RETURNFUNC(-RIG_EINTERNAL);
+    }
+
+    rig_poll_routine_set_running(rs, 1);
+    err = pthread_create(&poll_routine_priv->thread_id, NULL,
+                         rig_poll_routine, &poll_routine_priv->args);
 
     if (err)
     {
         rig_debug(RIG_DEBUG_ERR, "%s(%d) pthread_create error: %s\n", __FILE__,
                   __LINE__,
-                  strerror(errno));
+                  strerror(err));
+        rig_poll_routine_set_running(rs, 0);
+        pthread_cond_destroy(&poll_routine_priv->cond);
+        pthread_mutex_destroy(&poll_routine_priv->mutex);
+        free(rs->poll_routine_priv_data);
+        rs->poll_routine_priv_data = NULL;
         RETURNFUNC(-RIG_EINTERNAL);
     }
 
-    network_publish_rig_poll_data(rig);
+    pthread_mutex_lock(&poll_routine_priv->mutex);
+
+    while (!poll_routine_priv->ready && !poll_routine_priv->stopped)
+    {
+        pthread_cond_wait(&poll_routine_priv->cond,
+                          &poll_routine_priv->mutex);
+    }
+
+    stopped = poll_routine_priv->stopped;
+    poll_routine_priv->start_waiting = 0;
+    pthread_cond_broadcast(&poll_routine_priv->cond);
+    pthread_mutex_unlock(&poll_routine_priv->mutex);
+
+    if (stopped)
+    {
+        RETURNFUNC(-RIG_EINTERNAL);
+    }
 
     RETURNFUNC(RIG_OK);
 }
@@ -323,19 +469,17 @@ int rig_poll_routine_stop(RIG *rig)
 
     ENTERFUNC;
 
-    if (rs->poll_interval < 1)
+    if (rs->poll_routine_priv_data == NULL)
     {
         RETURNFUNC(RIG_OK);
     }
 
-    if (rs->poll_routine_priv_data == NULL)
-    {
-        RETURNFUNC(-RIG_EINVAL);
-    }
-
-    rs->poll_routine_thread_run = 0;
-
     poll_routine_priv = (rig_poll_routine_priv_data *) rs->poll_routine_priv_data;
+    rig_poll_routine_set_running(rs, 0);
+    pthread_mutex_lock(&poll_routine_priv->mutex);
+    poll_routine_priv->stopped = 1;
+    pthread_cond_broadcast(&poll_routine_priv->cond);
+    pthread_mutex_unlock(&poll_routine_priv->mutex);
 
     if (poll_routine_priv->thread_id != 0)
     {
@@ -344,15 +488,24 @@ int rig_poll_routine_stop(RIG *rig)
         if (err)
         {
             rig_debug(RIG_DEBUG_ERR, "%s(%d): pthread_join error %s\n", __FILE__, __LINE__,
-                      strerror(errno));
-            // just ignore it
+                      strerror(err));
+            RETURNFUNC(-RIG_EINTERNAL);
         }
 
         poll_routine_priv->thread_id = 0;
     }
 
-    network_publish_rig_poll_data(rig);
+    pthread_mutex_lock(&poll_routine_priv->mutex);
 
+    while (poll_routine_priv->start_waiting)
+    {
+        pthread_cond_wait(&poll_routine_priv->cond,
+                          &poll_routine_priv->mutex);
+    }
+
+    pthread_mutex_unlock(&poll_routine_priv->mutex);
+    pthread_cond_destroy(&poll_routine_priv->cond);
+    pthread_mutex_destroy(&poll_routine_priv->mutex);
     free(rs->poll_routine_priv_data);
     rs->poll_routine_priv_data = NULL;
 
@@ -672,13 +825,11 @@ int rig_fire_mode_event(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 int rig_fire_vfo_event(RIG *rig, vfo_t vfo)
 {
-    struct rig_cache *cachep = CACHE(rig);
     ENTERFUNC;
 
     rig_debug(RIG_DEBUG_TRACE, "Event: vfo changed to %s\n", rig_strvfo(vfo));
 
-    cachep->vfo = vfo;
-    elapsed_ms(&cachep->time_vfo, HAMLIB_ELAPSED_SET);
+    rig_observe_current_vfo(rig, vfo);
 
     network_publish_rig_transceive_data(rig);
 
@@ -693,14 +844,12 @@ int rig_fire_vfo_event(RIG *rig, vfo_t vfo)
 
 int rig_fire_ptt_event(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
-    struct rig_cache *cachep = CACHE(rig);
     ENTERFUNC;
 
     rig_debug(RIG_DEBUG_TRACE, "Event: PTT changed to %i on %s\n", ptt,
               rig_strvfo(vfo));
 
-    cachep->ptt = ptt;
-    elapsed_ms(&cachep->time_ptt, HAMLIB_ELAPSED_SET);
+    rig_set_cache_ptt(rig, ptt);
 
     network_publish_rig_transceive_data(rig);
 

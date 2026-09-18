@@ -1142,6 +1142,147 @@ void test_mode_parsing_is_case_insensitive_and_rejects_junk(void)
     TEST_CHECK(smartsdr_parse_mode_status_value("wombat", &m) != 0);
 }
 
+/* Open an AUDIO_RX stream with a conversion demand, so the tests below differ
+ * only in what they ask for. The stream keeps its own copy of the config. */
+static int stream_open_native(RIG *rig, rig_stream_format_t format, int rate,
+                              int channels, uint32_t require_native,
+                              rig_stream_t **stream)
+{
+    struct rig_stream_config cfg;
+
+    memset(&cfg, 0, sizeof(cfg));
+    cfg.struct_size = sizeof(cfg);
+    cfg.type = RIG_STREAM_TYPE_AUDIO_RX;
+    cfg.format = format;
+    cfg.sample_rate = rate;
+    cfg.channels = channels;
+    cfg.require_native = require_native;
+
+    return rig_stream_open(rig, &cfg, stream);
+}
+
+
+/* require_native is a mask, not a switch: demanding a native rate still lets
+ * the frontend convert the format. The radio sends float32 at 24 kHz, so
+ * asking for s16 at that rate costs a format stage and no resampling. */
+void test_require_native_rate_allows_format_conversion(void)
+{
+    struct simflex_proc sim = { 0 };
+    RIG *rig = open_rig_on_simflex(&sim);
+    rig_stream_t *stream = NULL;
+    int ret;
+
+    ret = stream_open_native(rig, RIG_STREAM_FORMAT_PCM_S16, 24000, 2,
+                             RIG_STREAM_CONV_RATE, &stream);
+    TEST_CHECK_(ret == RIG_OK, "open with require_native=RATE: %s",
+                rigerror(ret));
+
+    if (ret == RIG_OK)
+    {
+        int conv = rig_stream_get_conversions(stream);
+
+        TEST_CHECK_((conv & RIG_STREAM_CONV_FORMAT) != 0,
+                    "conversions=0x%x, expected a format stage", (unsigned)conv);
+        TEST_CHECK_((conv & RIG_STREAM_CONV_RATE) == 0,
+                    "conversions=0x%x, expected no rate stage", (unsigned)conv);
+        rig_stream_close(rig, stream);
+    }
+
+    rig_close(rig);
+    rig_cleanup(rig);
+    stop_simflex(&sim);
+}
+
+
+/* The demand refuses the stage it names. The radio sends float32, so s16 is
+ * served by a format stage -- the same open that succeeds above -- and naming
+ * FORMAT turns it into a refusal, distinct (-RIG_ENAVAIL) from the outright
+ * impossible (-RIG_EINVAL).
+ *
+ * Rate is not the stage to test here: this radio serves 24 kHz and nothing
+ * else, so a foreign rate is refused by the backend before require_native is
+ * consulted, whether or not the build can resample. */
+void test_require_native_format_refuses_conversion(void)
+{
+    struct simflex_proc sim = { 0 };
+    RIG *rig = open_rig_on_simflex(&sim);
+    rig_stream_t *stream = NULL;
+    int ret;
+
+    ret = stream_open_native(rig, RIG_STREAM_FORMAT_PCM_S16, 24000, 2,
+                             RIG_STREAM_CONV_FORMAT, &stream);
+    TEST_CHECK_(ret == -RIG_ENAVAIL, "got %s, expected -RIG_ENAVAIL",
+                rigerror(ret));
+
+    if (ret == RIG_OK) { rig_stream_close(rig, stream); }
+
+    rig_close(rig);
+    rig_cleanup(rig);
+    stop_simflex(&sim);
+}
+
+
+/* A stage left out of the mask is still converted: the radio sends two
+ * channels, and asking for one costs a channel stage that a FORMAT-only
+ * demand has no quarrel with. */
+void test_require_native_format_allows_channel_mapping(void)
+{
+    struct simflex_proc sim = { 0 };
+    RIG *rig = open_rig_on_simflex(&sim);
+    rig_stream_t *stream = NULL;
+    int ret;
+
+    ret = stream_open_native(rig, RIG_STREAM_FORMAT_PCM_F32, 24000, 1,
+                             RIG_STREAM_CONV_FORMAT, &stream);
+    TEST_CHECK_(ret == RIG_OK, "open with require_native=FORMAT: %s",
+                rigerror(ret));
+
+    if (ret == RIG_OK)
+    {
+        int conv = rig_stream_get_conversions(stream);
+
+        TEST_CHECK_((conv & RIG_STREAM_CONV_CHANNELS) != 0,
+                    "conversions=0x%x, expected a channel stage", (unsigned)conv);
+        TEST_CHECK_((conv & RIG_STREAM_CONV_FORMAT) == 0,
+                    "conversions=0x%x, expected no format stage", (unsigned)conv);
+        rig_stream_close(rig, stream);
+    }
+
+    rig_close(rig);
+    rig_cleanup(rig);
+    stop_simflex(&sim);
+}
+
+
+/* Asked for exactly what the radio sends, the bare demand -- every stage --
+ * opens and no stage is installed. */
+void test_require_native_all_opens_untouched(void)
+{
+    struct simflex_proc sim = { 0 };
+    RIG *rig = open_rig_on_simflex(&sim);
+    rig_stream_t *stream = NULL;
+    int ret;
+
+    ret = stream_open_native(rig, RIG_STREAM_FORMAT_PCM_F32, 24000, 2,
+                             RIG_STREAM_CONV_ALL, &stream);
+    TEST_CHECK_(ret == RIG_OK, "open with require_native=ALL: %s",
+                rigerror(ret));
+
+    if (ret == RIG_OK)
+    {
+        int conv = rig_stream_get_conversions(stream);
+
+        TEST_CHECK_(conv == RIG_STREAM_CONV_NONE,
+                    "conversions=0x%x, expected none", (unsigned)conv);
+        rig_stream_close(rig, stream);
+    }
+
+    rig_close(rig);
+    rig_cleanup(rig);
+    stop_simflex(&sim);
+}
+
+
 TEST_LIST =
 {
     { "mode_names_round_trip", test_mode_names_round_trip },
@@ -1163,6 +1304,10 @@ TEST_LIST =
     { "session_loss_fails_the_stream", test_session_loss_fails_the_stream },
     { "pan_center_tracked_separately_from_slice", test_pan_center_tracked_separately_from_slice },
     { "set_mode_width_is_sent", test_set_mode_width_is_sent },
+    { "require_native_rate_allows_format_conversion", test_require_native_rate_allows_format_conversion },
+    { "require_native_format_refuses_conversion", test_require_native_format_refuses_conversion },
+    { "require_native_format_allows_channel_mapping", test_require_native_format_allows_channel_mapping },
+    { "require_native_all_opens_untouched", test_require_native_all_opens_untouched },
     { NULL, NULL }
 };
 

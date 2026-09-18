@@ -170,12 +170,7 @@ int ftx1_set_band(RIG *rig, vfo_t vfo, int band_code)
         return -RIG_EINVAL;
     }
 
-    /* Resolve currVFO to actual VFO */
-    if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_NONE) {
-        vfo = STATE(rig)->current_vfo;
-    }
-
-    p1 = (vfo == RIG_VFO_SUB || vfo == RIG_VFO_B) ? 1 : 0;
+    p1 = ftx1_vfo_to_p1(rig, vfo);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d band_code=%d\n", __func__,
               rig_strvfo(vfo), p1, band_code);

@@ -532,7 +532,10 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (vfo == RIG_VFO_CURR) { vfo = priv->curr_vfo; }
 
-    if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_TX) { vfo = vfo_fixup(rig, vfo, CACHE(rig)->split); }
+    if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_TX)
+    {
+        vfo = vfo_fixup_current(rig, vfo);
+    }
 
 // if needed for testing enable this to emulate a rig with 100hz resolution
 #if 0
@@ -563,7 +566,8 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (rig->callbacks.freq_event)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s callbacks.freq_event(%p, %p)\n", __func__, rig->callbacks.freq_event, rig->callbacks.freq_arg);
+        rig_debug(RIG_DEBUG_TRACE, "%s callbacks.freq_event(%p, %p)\n", __func__,
+                  rig->callbacks.freq_event, rig->callbacks.freq_arg);
         rig->callbacks.freq_event(rig, vfo, freq, rig->callbacks.freq_arg);
     }
 
@@ -627,7 +631,6 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     channel_t *curr = priv->curr;
-    struct rig_cache *cachep = CACHE(rig);
     char buf[16];
 
     ENTERFUNC;
@@ -636,7 +639,7 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s %s\n", __func__,
               rig_strvfo(vfo), rig_strrmode(mode), buf);
 
-    vfo = vfo_fixup(rig, vfo, cachep->split);
+    vfo = vfo_fixup_current(rig, vfo);
 
     if (vfo == RIG_VFO_CURR) { vfo = priv->curr_vfo; }
 
@@ -685,7 +688,7 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    vfo = vfo_fixup(rig, vfo, cachep->split);
+    vfo = vfo_fixup_current(rig, vfo);
 
     if (RIG_PASSBAND_NOCHANGE == width) { RETURNFUNC(RIG_OK); }
 
@@ -713,7 +716,8 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (rig->callbacks.mode_event)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s callbacks.mode_event(%p, %p)\n", __func__, rig->callbacks.mode_event, rig->callbacks.mode_arg);
+        rig_debug(RIG_DEBUG_TRACE, "%s callbacks.mode_event(%p, %p)\n", __func__,
+                  rig->callbacks.mode_event, rig->callbacks.mode_arg);
         rig->callbacks.mode_event(rig, vfo, mode, width, rig->callbacks.mode_arg);
     }
 
@@ -798,8 +802,9 @@ static int dummy_set_vfo(RIG *rig, vfo_t vfo)
             priv->curr = &priv->mem[curr->channel_num];
             break;
         }
+
         rig_debug(RIG_DEBUG_ERR, "%s: invalid memory channel %d\n", __func__,
-		  curr->channel_num);
+                  curr->channel_num);
         RETURNFUNC(-RIG_EINVAL);
 
     case RIG_VFO_TX:
@@ -818,13 +823,14 @@ static int dummy_set_vfo(RIG *rig, vfo_t vfo)
 
     if (rig->callbacks.vfo_event)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s callbacks.vfo_event(%p, %p)\n", __func__, rig->callbacks.vfo_event, rig->callbacks.vfo_arg);
+        rig_debug(RIG_DEBUG_TRACE, "%s callbacks.vfo_event(%p, %p)\n", __func__,
+                  rig->callbacks.vfo_event, rig->callbacks.vfo_arg);
         rig->callbacks.vfo_event(rig, vfo, rig->callbacks.vfo_arg);
     }
 
     priv->last_vfo = priv->curr_vfo;
     priv->curr_vfo = vfo;
-    STATE(rig)->current_vfo = vfo;
+    rig_set_current_vfo_state(rig, vfo);
 
     RETURNFUNC(RIG_OK);
 }
@@ -847,9 +853,11 @@ static int dummy_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
 
     ENTERFUNC;
+
     if (rig->callbacks.ptt_event)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s callbacks.ptt_event(%p, %p)\n", __func__, rig->callbacks.ptt_event, rig->callbacks.ptt_arg);
+        rig_debug(RIG_DEBUG_TRACE, "%s callbacks.ptt_event(%p, %p)\n", __func__,
+                  rig->callbacks.ptt_event, rig->callbacks.ptt_arg);
         rig->callbacks.ptt_event(rig, vfo, ptt, rig->callbacks.ptt_arg);
     }
 
@@ -1213,22 +1221,25 @@ static int dummy_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
     switch (split)
     {
-        case RIG_SPLIT_OFF:
-            priv->split = RIG_SPLIT_OFF;
-            break;
+    case RIG_SPLIT_OFF:
+        priv->split = RIG_SPLIT_OFF;
+        break;
 
-        case RIG_SPLIT_ON:
-            priv->split = RIG_SPLIT_ON;
-            break;
+    case RIG_SPLIT_ON:
+        priv->split = RIG_SPLIT_ON;
+        break;
 
-        default:
-            rig_debug(RIG_DEBUG_ERR, "%s: unsupported split %d", __func__, split);
-            RETURNFUNC(-RIG_EINVAL);
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported split %d", __func__, split);
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     if (tx_vfo == RIG_VFO_NONE || tx_vfo == RIG_VFO_CURR) { tx_vfo = priv->curr_vfo; }
 
-    if (tx_vfo == RIG_VFO_CURR || tx_vfo == RIG_VFO_TX) { tx_vfo = vfo_fixup(rig, vfo, CACHE(rig)->split); }
+    if (tx_vfo == RIG_VFO_CURR || tx_vfo == RIG_VFO_TX)
+    {
+        tx_vfo = vfo_fixup(rig, tx_vfo, split);
+    }
 
     priv->tx_vfo = tx_vfo;
 
@@ -2451,8 +2462,9 @@ static int dummy_mW2power(RIG *rig, float *power, unsigned int mwpower,
 static int m_year, m_month, m_day, m_hour, m_min, m_sec, m_utc_offset;
 static double m_msec;
 
-static int dummy_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
-                    int sec, double msec, int utc_offset)
+static int dummy_set_clock(RIG *rig, int year, int month, int day, int hour,
+                           int min,
+                           int sec, double msec, int utc_offset)
 {
     int retval = RIG_OK;
 
@@ -2477,7 +2489,7 @@ static int dummy_set_clock(RIG *rig, int year, int month, int day, int hour, int
 }
 
 static int dummy_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
-                    int *min, int *sec, double *msec, int *utc_offset)
+                           int *min, int *sec, double *msec, int *utc_offset)
 {
     int retval = RIG_OK;
 

@@ -1197,13 +1197,25 @@ int HAMLIB_API rig_stream_open(RIG *rig,
 
     /* The request is servable, but only through conversion: a client that
      * demanded a native stream gets a distinct refusal (-RIG_ENAVAIL, vs
-     * -RIG_EINVAL for the outright impossible). */
-    if (conversions != RIG_STREAM_CONV_NONE && config->require_native)
+     * -RIG_EINVAL for the outright impossible). Only the stages listed in
+     * require_native are refused; the rest are converted as usual, so a
+     * client can demand a native sample rate and still take a format
+     * conversion. */
     {
-        rig_debug(RIG_DEBUG_ERR,
-                  "%s: config requires conversions 0x%x but require_native "
-                  "is set\n", __func__, conversions);
-        return -RIG_ENAVAIL;
+        uint32_t refused = (uint32_t)conversions & config->require_native;
+
+        if (refused != RIG_STREAM_CONV_NONE)
+        {
+            char convbuf[64];
+
+            stream_conversions_str((int)refused, convbuf, sizeof(convbuf));
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: request needs conversion stage(s) %s (0x%x), which "
+                      "require_native (0x%x) demands natively\n",
+                      __func__, convbuf, (unsigned)refused,
+                      (unsigned)config->require_native);
+            return -RIG_ENAVAIL;
+        }
     }
 
     struct rig_stream_state *ss = get_stream_state(rig);
@@ -2863,10 +2875,12 @@ static uint8_t stream_vfo_to_id(vfo_t vfo)
 static int cache_to_metadata(RIG *rig, rig_stream_t *stream,
                              struct rig_stream_metadata *meta)
 {
-    struct rig_cache *cache = CACHE(rig);
     vfo_t vfo = (stream->vfo != RIG_VFO_NONE) ? stream->vfo : RIG_VFO_CURR;
     freq_t freq = 0;
     int cache_ms = 0;
+    ptt_t ptt;
+    int ptt_ms = 0;
+    int timeout_ms = 0;
 
     memset(meta, 0, sizeof(*meta));
 
@@ -2892,10 +2906,8 @@ static int cache_to_metadata(RIG *rig, rig_stream_t *stream,
         meta->field_mask |= RIG_STREAM_META_CENTER_FREQ;
     }
 
-    /* PTT snapshot.  Hold the rig lock to avoid a torn read. */
-    rig_lock(rig, 1);
-    meta->ptt = (cache->ptt != RIG_PTT_OFF) ? 1 : 0;
-    rig_lock(rig, 0);
+    rig_get_cache_ptt(rig, &ptt, &ptt_ms, &timeout_ms);
+    meta->ptt = (ptt != RIG_PTT_OFF) ? 1 : 0;
     meta->field_mask |= RIG_STREAM_META_PTT;
 
     meta->vfo_id = stream_vfo_to_id(vfo);

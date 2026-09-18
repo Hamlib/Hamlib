@@ -24,6 +24,7 @@
 
 #include "hamlib/rig.h"
 #include "misc.h"
+#include "cache.h"
 #include "icom.h"
 #include "icom_defs.h"
 #include "frame.h"
@@ -42,7 +43,7 @@ static int icf8101_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     int freq_len = 5;
     int ack_len;
     unsigned char freqbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
-    vfo_t vfo_save = STATE(rig)->current_vfo;
+    vfo_t vfo_save = rig_get_current_vfo_state(rig);
 
     if (vfo != vfo_save)
     {
