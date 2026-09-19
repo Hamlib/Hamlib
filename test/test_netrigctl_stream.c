@@ -231,12 +231,14 @@ static int start_rigctld_opt(struct rigctld_proc *proc,
 
         dump_rigctld_log(proc->log_path);
 
-        if (pinned)
+        if (!pinned)
         {
-            return -1;   /* the caller needs this exact port */
+            proc->port = 0;  /* pick a fresh port next round */
         }
 
-        proc->port = 0;  /* pick a fresh port next round */
+        /* A pinned port keeps its number and is retried as it is: the usual
+         * reason a restart on the same port fails is the previous daemon
+         * still letting go of it, which the next attempt resolves. */
     }
 
     return -1;
@@ -1255,6 +1257,14 @@ void test_rx_codec_passthrough_e2e(void)
     RIG *rig = open_netrigctl(proc.port);
     TEST_ASSERT(rig != NULL);
 
+    /* This test admits no loss at all -- every sample index must follow the
+     * last -- so give the receive socket room for the whole run rather than
+     * relying on the host's default. The reader below only comes back every
+     * 200 ms while the server sends in real time, and a datagram dropped for
+     * want of buffer space would read here as a broken counter. */
+    rig_set_conf(rig, rig_token_lookup(rig, "stream_transport_buffer_bytes"),
+                 "4194304");
+
     struct rig_stream_config cfg;
     memset(&cfg, 0, sizeof(cfg));
     cfg.struct_size = sizeof(cfg);  /* same-build config */
@@ -1618,8 +1628,25 @@ void test_rx_continuous_data(void)
     TEST_CHECK(ret == RIG_OK);
     TEST_ASSERT(stream != NULL);
 
-    /* Wait for data to start flowing */
-    usleep(500000);  /* 500ms */
+    /* Wait for data to start flowing -- for the data itself, not for a
+     * stretch of wall clock, as the RX tests below do. */
+    {
+        int16_t warm[480];
+        size_t warm_read = 0;
+        int warmed = 0;
+        int i;
+
+        for (i = 0; i < 15 && !warmed; i++)
+        {
+            if (rig_stream_read(rig, stream, warm, sizeof(warm), &warm_read,
+                                200, NULL) == RIG_OK && warm_read > 0)
+            {
+                warmed = 1;
+            }
+        }
+
+        TEST_CHECK_(warmed, "no data within 3 s of opening the stream");
+    }
 
     /* Read 5 consecutive frames */
     int successful_reads = 0;
@@ -2327,6 +2354,67 @@ void test_rx_error_frame_dropped(void)
     stream_ringbuf_destroy(&s.ringbuf);
 }
 
+static size_t wb_error(unsigned char *buf, int32_t rig_error, uint32_t reason,
+                       uint16_t version,
+                       const struct rig_stream_net_session *sess)
+{
+    struct rig_stream_packet_header hdr;
+    stream_control_header_init(&hdr, RIG_STREAM_TYPE_AUDIO_RX,
+                               (uint16_t)sess->remote_stream_id,
+                               sess->subscribe_token, RIG_STREAM_CTRL_ERROR);
+    hdr.payload_len = RIG_STREAM_ERROR_WIRE_SIZE;
+    stream_packet_header_pack(&hdr, buf);
+    stream_error_block_pack(rig_error, reason, buf + RIG_STREAM_HEADER_SIZE);
+    /* overwrite the version to exercise an unknown one */
+    buf[RIG_STREAM_HEADER_SIZE] = (uint8_t)(version >> 8);
+    buf[RIG_STREAM_HEADER_SIZE + 1] = (uint8_t)version;
+    return RIG_STREAM_HEADER_SIZE + RIG_STREAM_ERROR_WIRE_SIZE;
+}
+
+/* An ERROR frame from the server fails the local stream with the server's
+ * reason: data already received stays readable, nothing is written by the
+ * frame itself, repeats change nothing, and an unknown version is ignored. */
+void test_rx_error_frame_fails_stream(void)
+{
+    struct rig_stream s;
+    struct rig_stream_net_session sess;
+    unsigned char buf[256];
+    unsigned char out[64];
+    wb_setup(&s, &sess);
+
+    rig_stream_net_process_packet(&sess, &s, buf, wb_data(buf, 0, 0, 10, &sess));
+
+    /* Unknown block version: not understood, so not acted on. */
+    TEST_CHECK(rig_stream_net_process_packet(&sess, &s, buf,
+               wb_error(buf, -RIG_EIO, RIG_COMM_REASON_SOCKET_ERROR, 99,
+                        &sess)) == 0);
+    TEST_CHECK(!stream_is_failed(&s));
+
+    TEST_CHECK(rig_stream_net_process_packet(&sess, &s, buf,
+               wb_error(buf, -RIG_EIO, RIG_COMM_REASON_LINK_TIMEOUT,
+                        RIG_STREAM_ERROR_BLOCK_VERSION, &sess)) == 0);
+    TEST_CHECK(stream_is_failed(&s));
+    TEST_CHECK_(s.fail_reason == RIG_COMM_REASON_LINK_TIMEOUT,
+                "fail_reason=%u", s.fail_reason);
+
+    /* A repeat (the server re-sends on every PING) keeps the first reason. */
+    rig_stream_net_process_packet(&sess, &s, buf,
+                                  wb_error(buf, -RIG_EIO,
+                                           RIG_COMM_REASON_PEER_DISCONNECT,
+                                           RIG_STREAM_ERROR_BLOCK_VERSION, &sess));
+    TEST_CHECK(s.fail_reason == RIG_COMM_REASON_LINK_TIMEOUT);
+
+    /* The 20 bytes received before the failure are still there, and only
+     * those: the ERROR payload never reached the ring. */
+    TEST_CHECK(stream_ringbuf_available(&s.ringbuf) == 20);
+    TEST_CHECK(stream_ringbuf_read(&s.ringbuf, out, sizeof(out), 50) == 20);
+    TEST_CHECK(stream_ringbuf_read(&s.ringbuf, out, sizeof(out), 50) == 0);
+    TEST_CHECK(s.link_loss == 0);
+
+    stream_write_event_destroy(&s);
+    stream_ringbuf_destroy(&s.ringbuf);
+}
+
 /* A received WRITE_STATUS frame must surface through
  * rig_stream_wait_write_status() (marked REMOTE), bump the matching remote_*
  * stat, and not disturb seq accounting or write sample data. */
@@ -2384,7 +2472,7 @@ struct sub_server
     int port;
     int drop_first;         /* answer nothing to the first SUBSCRIBE */
     int pong_before_ack;    /* emit a PONG ahead of the ACK */
-    int subscribes_seen;
+    HAMLIB_ATOMIC int subscribes_seen;   /* the server thread writes it */
     HAMLIB_ATOMIC int stop;
     pthread_t thread;
 };
@@ -2728,6 +2816,7 @@ TEST_LIST =
     { "rx_ack_no_false_link_loss",      test_rx_ack_no_false_link_loss },
     { "rx_real_gap_counts_link_loss",   test_rx_real_gap_counts_link_loss },
     { "rx_error_frame_dropped",         test_rx_error_frame_dropped },
+    { "rx_error_frame_fails_stream",    test_rx_error_frame_fails_stream },
     { "rx_write_status_frame",          test_rx_write_status_frame },
     { "caps_discovery_all_types",  test_caps_discovery_all_types },
     { "rx_capture_time_propagates", test_rx_capture_time_propagates },

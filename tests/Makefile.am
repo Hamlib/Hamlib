@@ -234,7 +234,9 @@ EXTRA_DIST = \
 	hamlib_tuner_control \
 	rig_split_lst.awk \
 	rigmatrix_head.html \
-	rigstreamtest.sh \
+	rigstreamtest-dummy.sh \
+	rigstreamtest-hw.sh \
+	rigstreamtest-hw-loss.sh \
 	testcaps.sh \
 	testctlbounds.sh \
 	testctld.pl \
@@ -245,7 +247,7 @@ EXTRA_DIST = \
 # Omitting cachetest.sh because it needs 2 instances of rigctld running
 check_SCRIPTS = \
 	amptest.sh \
-	rigstreamtest.sh \
+	rigstreamtest-dummy.sh \
 	testcaps.sh \
 	testctlbounds.sh \
 	testroutingaccess.sh \

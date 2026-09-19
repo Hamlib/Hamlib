@@ -7258,6 +7258,13 @@ declare_proto_rig(stream_status)
                 (unsigned long long)stats.dropped_samples_overrun, resp_sep);
         fprintf(fout, "dropped_samples_link: %llu%c",
                 (unsigned long long)stats.dropped_samples_link, resp_sep);
+        fprintf(fout, "concealed_samples_gap: %llu%c",
+                (unsigned long long)stats.concealed_samples_gap, resp_sep);
+        fprintf(fout, "concealed_samples_overrun: %llu%c",
+                (unsigned long long)stats.concealed_samples_overrun, resp_sep);
+        /* NONE while the source is healthy, else why it died. */
+        fprintf(fout, "fail_reason: %s%c",
+                rig_strcommreason(stats.fail_reason), resp_sep);
 
         if (have_anchor)
         {
@@ -7284,7 +7291,7 @@ declare_proto_rig(stream_status)
     else
     {
         fprintf(fout,
-                "%s%c%d%c%u%c%s%c%d%c%d%c%d%c%d%c%d%c%u%c%u%c%u%c%u%c%u%c%u%c%u%c%llu%c%llu%c%llu%c%s%c%llu%c",
+                "%s%c%d%c%u%c%s%c%d%c%d%c%d%c%d%c%d%c%u%c%u%c%u%c%u%c%u%c%u%c%u%c%llu%c%llu%c%llu%c%s%c%llu%c%llu%c%llu%c%s%c",
                 stream_type_name(s_type), resp_sep,
                 s_stream_id, resp_sep,
                 s_sample_rate, resp_sep,
@@ -7305,7 +7312,10 @@ declare_proto_rig(stream_status)
                 (unsigned long long)stats.dropped_samples_overrun, resp_sep,
                 (unsigned long long)stats.dropped_samples_link, resp_sep,
                 s_convbuf, resp_sep,
-                (unsigned long long)s_codec_frames, resp_sep);
+                (unsigned long long)s_codec_frames, resp_sep,
+                (unsigned long long)stats.concealed_samples_gap, resp_sep,
+                (unsigned long long)stats.concealed_samples_overrun, resp_sep,
+                rig_strcommreason(stats.fail_reason), resp_sep);
     }
 
     RETURNFUNC2(RIG_OK);

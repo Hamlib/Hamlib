@@ -2071,7 +2071,35 @@ struct close_race_ctx
     rig_stream_t *stream;
     int read_ret;
     size_t got;
+    /* When the reader entered rig_stream_read(), and a flag published after
+     * it so a waiting test that sees the flag has the timestamp too. Without
+     * this the test can only guess that the reader got there, and a reader
+     * that never started looks exactly like one the close released. */
+    int64_t entered_ms;
+    HAMLIB_ATOMIC int entered;
+    int64_t returned_ms;
 };
+
+static int64_t api_now_ms(void)
+{
+    struct timespec ts;
+
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (int64_t)ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
+}
+
+/* Wait for the reader to reach its read call, or give up. */
+static int wait_entered(struct close_race_ctx *c, int timeout_ms)
+{
+    int waited;
+
+    for (waited = 0; waited < timeout_ms && !c->entered; waited += 5)
+    {
+        usleep(5 * 1000);
+    }
+
+    return c->entered;
+}
 
 static void *blocked_reader(void *arg)
 {
@@ -2079,8 +2107,11 @@ static void *blocked_reader(void *arg)
     unsigned char buf[256];
     size_t got = 0;
 
+    c->entered_ms = api_now_ms();
+    c->entered = 1;
     c->read_ret = rig_stream_read(c->rig, c->stream, buf, sizeof(buf),
                                   &got, 5000, NULL);
+    c->returned_ms = api_now_ms();
     c->got = got;
     return NULL;
 }
@@ -2095,6 +2126,8 @@ static void *block_forever_reader(void *arg)
     unsigned char buf[256];
     size_t got = 0;
 
+    c->entered_ms = api_now_ms();
+    c->entered = 1;
     c->read_ret = rig_stream_read(c->rig, c->stream, buf, sizeof(buf),
                                   &got, -1, NULL);
     c->got = got;
@@ -2125,7 +2158,10 @@ void test_read_block_forever_until_close(void)
     pthread_t th;
     TEST_ASSERT(pthread_create(&th, NULL, block_forever_reader, &ctx) == 0);
 
-    /* With no producer, an infinite wait must still be blocking after a delay. */
+    /* "Still blocking" only says something once the reader is actually in the
+     * read; otherwise a thread that never ran reads as one that blocked. */
+    TEST_CHECK_(wait_entered(&ctx, 2000), "the reader never reached its read");
+
     usleep(200 * 1000);
     TEST_CHECK_(block_forever_done == 0,
                 "read(timeout<0) returned before any data or close");
@@ -2161,16 +2197,351 @@ void test_close_wakes_blocked_reader(void)
     pthread_t th;
     TEST_ASSERT(pthread_create(&th, NULL, blocked_reader, &ctx) == 0);
 
-    /* Let the reader reach the blocking wait, then close it out from under. */
-    usleep(150 * 1000);
+    /* The reader has to be in the read for the close to race it at all: a
+     * reader that never started would be refused by the registry and return
+     * the same -RIG_ENAVAIL, so the test would pass having exercised
+     * nothing. */
+    TEST_CHECK_(wait_entered(&ctx, 2000), "the reader never reached its read");
+
+    int64_t closed_ms = api_now_ms();
     TEST_CHECK(rig_stream_close(rig, stream) == RIG_OK);
 
     pthread_join(th, NULL);
 
+    TEST_CHECK_(ctx.entered_ms <= closed_ms,
+                "the read began %lld ms after the close",
+                (long long)(ctx.entered_ms - closed_ms));
+
     /* Woken by close, not by its own 5 s timeout. */
+    TEST_CHECK_(ctx.returned_ms - ctx.entered_ms < 4000,
+                "the read took %lld ms, so it timed out rather than being "
+                "woken", (long long)(ctx.returned_ms - ctx.entered_ms));
     TEST_CHECK(ctx.read_ret == -RIG_ENAVAIL);
     TEST_CHECK(ctx.got == 0);
 
+    teardown_rig(rig);
+}
+
+
+static rig_stream_t *open_audio_rx_stub(RIG *rig)
+{
+    struct rig_stream_config *cfg = rig_stream_config_alloc();
+    rig_stream_t *stream = NULL;
+
+    TEST_ASSERT(cfg != NULL);
+    cfg->type = RIG_STREAM_TYPE_AUDIO_RX;
+    cfg->format = RIG_STREAM_FORMAT_PCM_S16;
+    cfg->sample_rate = 48000;
+    cfg->channels = 1;
+    TEST_ASSERT(rig_stream_open(rig, cfg, &stream) == RIG_OK);
+    rig_stream_config_free(cfg);
+
+    return stream;
+}
+
+static long ms_since(const struct timespec *t0)
+{
+    struct timespec t1;
+
+    clock_gettime(CLOCK_MONOTONIC, &t1);
+    return (t1.tv_sec - t0->tv_sec) * 1000
+           + (t1.tv_nsec - t0->tv_nsec) / 1000000;
+}
+
+/* A reader in a timed wait wakes as soon as the source is marked failed: it
+ * gets -RIG_EIO well before its deadline, no underrun is booked against the
+ * dead stream, and the reason shows in the stats. */
+void test_failed_wakes_timed_reader(void)
+{
+    RIG *rig = setup_rig(&stub_caps_with_stream);
+    TEST_ASSERT(rig != NULL);
+
+    rig_stream_t *stream = open_audio_rx_stub(rig);
+    unsigned char buf[64];
+    size_t got = 0;
+
+    /* Produce and drain, so a starved wait would otherwise count. */
+    memset(buf, 1, sizeof(buf));
+    stream_backend_write(stream, buf, 32);
+    TEST_CHECK(rig_stream_read(rig, stream, buf, sizeof(buf), &got, 100,
+                               NULL) == RIG_OK);
+
+    struct close_race_ctx ctx = { rig, stream, 999, 0 };
+    struct timespec t0;
+    pthread_t th;
+
+    clock_gettime(CLOCK_MONOTONIC, &t0);
+    TEST_ASSERT(pthread_create(&th, NULL, blocked_reader, &ctx) == 0);
+    usleep(150 * 1000);
+    stream_mark_failed(stream, RIG_COMM_REASON_LINK_TIMEOUT);
+    pthread_join(th, NULL);
+
+    TEST_CHECK_(ctx.read_ret == -RIG_EIO, "read returned %d", ctx.read_ret);
+    TEST_CHECK_(ms_since(&t0) < 2000, "woke after %ld ms (deadline 5000)",
+                ms_since(&t0));
+
+    struct rig_stream_stats st;
+    TEST_CHECK(rig_stream_get_stats(rig, stream, &st) == RIG_OK);
+    TEST_CHECK_(st.underruns == 0, "underruns=%u", st.underruns);
+    TEST_CHECK_(st.fail_reason == RIG_COMM_REASON_LINK_TIMEOUT,
+                "fail_reason=%u", st.fail_reason);
+
+    rig_stream_close(rig, stream);
+    teardown_rig(rig);
+}
+
+/* Data produced before the failure is still delivered; -RIG_EIO follows once
+ * the ring is empty, and keeps coming. The first reason recorded wins. */
+void test_failed_read_drains_then_eio(void)
+{
+    RIG *rig = setup_rig(&stub_caps_with_stream);
+    TEST_ASSERT(rig != NULL);
+
+    rig_stream_t *stream = open_audio_rx_stub(rig);
+    unsigned char buf[64];
+    size_t got = 0;
+
+    memset(buf, 7, sizeof(buf));
+    stream_backend_write(stream, buf, 40);
+    stream_mark_failed(stream, RIG_COMM_REASON_PEER_DISCONNECT);
+    stream_mark_failed(stream, RIG_COMM_REASON_SOCKET_ERROR);
+
+    TEST_CHECK(rig_stream_read(rig, stream, buf, sizeof(buf), &got, 100,
+                               NULL) == RIG_OK);
+    TEST_CHECK_(got == 40, "got=%zu", got);
+
+    TEST_CHECK(rig_stream_read(rig, stream, buf, sizeof(buf), &got, 100,
+                               NULL) == -RIG_EIO);
+    TEST_CHECK(got == 0);
+    TEST_CHECK(rig_stream_read(rig, stream, buf, sizeof(buf), &got, -1,
+                               NULL) == -RIG_EIO);
+
+    struct rig_stream_stats st;
+    TEST_CHECK(rig_stream_get_stats(rig, stream, &st) == RIG_OK);
+    TEST_CHECK(st.fail_reason == RIG_COMM_REASON_PEER_DISCONNECT);
+    TEST_CHECK(st.underruns == 0);
+
+    rig_stream_close(rig, stream);
+    teardown_rig(rig);
+}
+
+/* With both closing and failed set, both result paths agree on -RIG_ENAVAIL:
+ * a deliberate close is the application's own action, not an I/O error. */
+void test_closing_wins_over_failed(void)
+{
+    RIG *rig = setup_rig(&stub_caps_with_stream);
+    TEST_ASSERT(rig != NULL);
+
+    rig_stream_t *stream = open_audio_rx_stub(rig);
+    unsigned char buf[64];
+    size_t got = 0;
+
+    /* Pre-wait path: both flags already set. */
+    pthread_mutex_lock(&stream->ringbuf.lock);
+    stream->ringbuf.closing = 1;
+    stream->ringbuf.failed = 1;
+    pthread_mutex_unlock(&stream->ringbuf.lock);
+
+    TEST_CHECK(rig_stream_read(rig, stream, buf, sizeof(buf), &got, 100,
+                               NULL) == -RIG_ENAVAIL);
+
+    /* Post-wait path: a blocked reader woken with both flags set. */
+    pthread_mutex_lock(&stream->ringbuf.lock);
+    stream->ringbuf.closing = 0;
+    stream->ringbuf.failed = 0;
+    pthread_mutex_unlock(&stream->ringbuf.lock);
+
+    struct close_race_ctx ctx = { rig, stream, 999, 0 };
+    pthread_t th;
+    TEST_ASSERT(pthread_create(&th, NULL, blocked_reader, &ctx) == 0);
+    usleep(150 * 1000);
+
+    pthread_mutex_lock(&stream->ringbuf.lock);
+    stream->ringbuf.failed = 1;
+    stream->ringbuf.closing = 1;
+    pthread_cond_broadcast(&stream->ringbuf.data_available);
+    pthread_mutex_unlock(&stream->ringbuf.lock);
+    pthread_join(th, NULL);
+
+    TEST_CHECK_(ctx.read_ret == -RIG_ENAVAIL, "read returned %d",
+                ctx.read_ret);
+
+    pthread_mutex_lock(&stream->ringbuf.lock);
+    stream->ringbuf.closing = 0;
+    pthread_mutex_unlock(&stream->ringbuf.lock);
+
+    rig_stream_close(rig, stream);
+    teardown_rig(rig);
+}
+
+
+/* The drain-then-EIO rule holds for codec streams too: a whole frame received
+ * before the failure is still read, and nothing produced after it enters. */
+void test_failed_codec_read_drains_then_eio(void)
+{
+    RIG *rig = setup_rig(&stub_caps_codec_stream);
+    TEST_ASSERT(rig != NULL);
+
+    struct rig_stream_config *cfg = rig_stream_config_alloc();
+    rig_stream_t *st = NULL;
+
+    TEST_ASSERT(cfg != NULL);
+    cfg->type = RIG_STREAM_TYPE_AUDIO_RX;
+    cfg->format = RIG_STREAM_FORMAT_OPUS;
+    cfg->sample_rate = 48000;
+    cfg->channels = 1;
+    TEST_ASSERT(rig_stream_open(rig, cfg, &st) == RIG_OK && st != NULL);
+    rig_stream_config_free(cfg);
+
+    uint8_t frame[120], buf[2048];
+    size_t got = 0;
+
+    memset(frame, 0x33, sizeof(frame));
+    TEST_CHECK(stream_backend_write_frame(st, frame, sizeof(frame), 960)
+               == (ssize_t)sizeof(frame));
+
+    stream_mark_failed(st, RIG_COMM_REASON_SOCKET_ERROR);
+
+    /* Produced after the failure: refused. */
+    TEST_CHECK(stream_backend_write_frame(st, frame, sizeof(frame), 960) == 0);
+
+    TEST_CHECK(rig_stream_read(rig, st, buf, sizeof(buf), &got, 100, NULL)
+               == RIG_OK);
+    TEST_CHECK_(got == sizeof(frame), "got %zu", got);
+    TEST_CHECK(rig_stream_read(rig, st, buf, sizeof(buf), &got, 100, NULL)
+               == -RIG_EIO);
+
+    rig_stream_close(rig, st);
+    teardown_rig(rig);
+}
+
+
+/* A concealed loss is reported in the application's sample domain: a backend
+ * running at 48 kHz that conceals 4800 native samples on a stream the
+ * application opened at 16 kHz has concealed 1600 of its samples. */
+void test_fill_gap_scaled_under_rate_conversion(void)
+{
+    RIG *rig = setup_rig(&stub_caps_with_stream);
+    TEST_ASSERT(rig != NULL);
+
+    struct rig_stream_config *cfg = rig_stream_config_alloc();
+    rig_stream_t *stream = NULL;
+
+    TEST_ASSERT(cfg != NULL);
+    cfg->type = RIG_STREAM_TYPE_AUDIO_RX;
+    cfg->format = RIG_STREAM_FORMAT_PCM_S16;
+    cfg->sample_rate = 16000;
+    cfg->channels = 1;
+
+    if (rig_stream_open(rig, cfg, &stream) != RIG_OK)
+    {
+        /* Rate conversion not available in this build. */
+        rig_stream_config_free(cfg);
+        teardown_rig(rig);
+        return;
+    }
+
+    rig_stream_config_free(cfg);
+    TEST_CHECK(rig_stream_get_conversions(stream) & RIG_STREAM_CONV_RATE);
+    TEST_CHECK(stream->backend_config.sample_rate == 48000);
+
+    TEST_CHECK(stream_fill_gap(stream, 4800, RIG_STREAM_DROP_GAP) == RIG_OK);
+
+    struct rig_stream_stats st;
+    TEST_CHECK(rig_stream_get_stats(rig, stream, &st) == RIG_OK);
+    TEST_CHECK_(st.concealed_samples_gap == 1600, "concealed=%llu",
+                (unsigned long long)st.concealed_samples_gap);
+    TEST_CHECK(st.gaps == 1);
+
+    rig_stream_close(rig, stream);
+    teardown_rig(rig);
+}
+
+
+struct failed_writer_ctx
+{
+    RIG *rig;
+    rig_stream_t *stream;
+    int ret;
+};
+
+static void *blocked_codec_writer(void *arg)
+{
+    struct failed_writer_ctx *c = arg;
+    struct rig_stream_write_info winfo;
+    uint8_t frame[400];
+    size_t written = 0;
+
+    memset(&winfo, 0, sizeof(winfo));
+    winfo.codec_frame_samples = 480;
+    memset(frame, 0x11, sizeof(frame));
+    c->ret = rig_stream_write(c->rig, c->stream, frame, sizeof(frame),
+                              &written, 5000, &winfo);
+    return NULL;
+}
+
+/* The TX side of the same contract: a writer waiting for ring space wakes with
+ * -RIG_EIO, later writes are refused outright, and the write-status waiter
+ * delivers the events recorded before the failure and then -RIG_EIO. */
+void test_failed_tx_write_and_status(void)
+{
+    RIG *rig = setup_rig(&stub_caps_codec_stream);
+    TEST_ASSERT(rig != NULL);
+
+    struct rig_stream_config *cfg = rig_stream_config_alloc();
+    TEST_ASSERT(cfg != NULL);
+    cfg->type = RIG_STREAM_TYPE_AUDIO_TX;
+    cfg->format = RIG_STREAM_FORMAT_OPUS;
+    cfg->sample_rate = 48000;
+    cfg->channels = 1;
+    cfg->buffer_bytes = 1024;
+
+    rig_stream_t *st = NULL;
+    TEST_ASSERT(rig_stream_open(rig, cfg, &st) == RIG_OK && st != NULL);
+    rig_stream_config_free(cfg);
+
+    /* Fill the ring so the next codec write has to wait for space. */
+    struct rig_stream_write_info winfo;
+    uint8_t frame[400];
+    size_t written = 0;
+    memset(&winfo, 0, sizeof(winfo));
+    winfo.codec_frame_samples = 480;
+    memset(frame, 0x22, sizeof(frame));
+    TEST_CHECK(rig_stream_write(rig, st, frame, sizeof(frame), &written, 100,
+                                &winfo) == RIG_OK);
+    TEST_CHECK(rig_stream_write(rig, st, frame, sizeof(frame), &written, 100,
+                                &winfo) == RIG_OK);
+
+    struct rig_stream_write_status ev;
+    memset(&ev, 0, sizeof(ev));
+    ev.event = RIG_STREAM_WRITE_EVENT_UNDERRUN;
+    stream_record_write_status(st, &ev, 0);
+
+    struct failed_writer_ctx ctx = { rig, st, 999 };
+    struct timespec t0;
+    pthread_t th;
+
+    clock_gettime(CLOCK_MONOTONIC, &t0);
+    TEST_ASSERT(pthread_create(&th, NULL, blocked_codec_writer, &ctx) == 0);
+    usleep(150 * 1000);
+    stream_mark_failed(st, RIG_COMM_REASON_LINK_TIMEOUT);
+    pthread_join(th, NULL);
+
+    TEST_CHECK_(ctx.ret == -RIG_EIO, "blocked write returned %d", ctx.ret);
+    TEST_CHECK_(ms_since(&t0) < 2000, "writer woke after %ld ms",
+                ms_since(&t0));
+
+    TEST_CHECK(rig_stream_write(rig, st, frame, sizeof(frame), &written, 0,
+                                &winfo) == -RIG_EIO);
+    TEST_CHECK(written == 0);
+
+    struct rig_stream_write_status got;
+    TEST_CHECK(rig_stream_wait_write_status(rig, st, &got, 100) == RIG_OK);
+    TEST_CHECK(got.event == RIG_STREAM_WRITE_EVENT_UNDERRUN);
+    TEST_CHECK(rig_stream_wait_write_status(rig, st, &got, 1000)
+               == -RIG_EIO);
+
+    rig_stream_close(rig, st);
     teardown_rig(rig);
 }
 
@@ -2461,6 +2832,12 @@ TEST_LIST =
     { "default_buffer_size",      test_default_buffer_size },
     { "close_unknown_stream",     test_close_unknown_stream },
     { "close_wakes_blocked_reader", test_close_wakes_blocked_reader },
+    { "failed_wakes_timed_reader", test_failed_wakes_timed_reader },
+    { "failed_read_drains_then_eio", test_failed_read_drains_then_eio },
+    { "closing_wins_over_failed", test_closing_wins_over_failed },
+    { "failed_tx_write_and_status", test_failed_tx_write_and_status },
+    { "fill_gap_scaled_under_rate_conversion", test_fill_gap_scaled_under_rate_conversion },
+    { "failed_codec_read_drains_then_eio", test_failed_codec_read_drains_then_eio },
     { "close_waits_for_inflight_call", test_close_waits_for_inflight_call },
     { "read_block_forever_until_close", test_read_block_forever_until_close },
     { "caps_struct_layout",       test_caps_struct_layout },
