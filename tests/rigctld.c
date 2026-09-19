@@ -1253,6 +1253,13 @@ int main(int argc, char *argv[])
             if (retcode != 0)
             {
                 rig_debug(RIG_DEBUG_ERR, "pthread_create: %s\n", strerror(retcode));
+                /* No handler thread will ever own these. */
+#ifdef __MINGW32__
+                closesocket(arg->sock);
+#else
+                close(arg->sock);
+#endif
+                free(arg);
                 break;
             }
 
@@ -1288,13 +1295,41 @@ int main(int argc, char *argv[])
     return 0;
 }
 
+#ifndef __MINGW32__
+/* A stdio stream on a descriptor of its own. Two streams on the one accepted
+ * descriptor mean two fclose() calls closing it, and the second lands on
+ * whatever number accept() has handed another client in the meantime --
+ * taking that client's socket away from it mid-session. With a dup behind
+ * each stream, every fclose() closes a descriptor it owns, and the accepted
+ * one is closed exactly once, at the end of the handler. */
+static FILE *fdopen_dup(int sock, const char *mode)
+{
+    int fd = dup(sock);
+    FILE *fp;
+
+    if (fd < 0)
+    {
+        return NULL;
+    }
+
+    fp = fdopen(fd, mode);
+
+    if (fp == NULL)
+    {
+        close(fd);
+    }
+
+    return fp;
+}
+#endif
+
 static FILE *get_fsockout(struct handle_data *handle_data_arg)
 {
 #ifdef __MINGW32__
     int sock_osfhandle = _open_osfhandle(handle_data_arg->sock, _O_RDONLY);
     return _fdopen(sock_osfhandle, "wb");
 #else
-    return fdopen(handle_data_arg->sock, "wb");
+    return fdopen_dup(handle_data_arg->sock, "wb");
 #endif
 }
 
@@ -1311,7 +1346,7 @@ static FILE *get_fsockin(struct handle_data *handle_data_arg)
 
     return _fdopen(sock_osfhandle,  "rb");
 #else
-    return fdopen(handle_data_arg->sock, "rb");
+    return fdopen_dup(handle_data_arg->sock, "rb");
 #endif
 }
 
@@ -1548,9 +1583,11 @@ handle_exit:
 
 // for everybody else we close the handle after fclose
 #ifndef __MINGW32__
+    /* Each stream closed its own dup; the accepted descriptor is closed here,
+     * exactly once. */
     retcode = close(handle_data_arg->sock);
 
-    if (retcode != 0 && errno != EBADF) { rig_debug(RIG_DEBUG_ERR, "%s: close(handle_data_arg->sock) %s\n", __func__, strerror(errno)); }
+    if (retcode != 0) { rig_debug(RIG_DEBUG_ERR, "%s: close(handle_data_arg->sock) %s\n", __func__, strerror(errno)); }
 
 #endif
 
@@ -1558,7 +1595,13 @@ handle_exit:
                         NULL);      // Tell pthreads we're done with the data
     free(arg);
 
-    pthread_exit(NULL);
+    /* Returning ends the thread just as pthread_exit() would, without
+     * glibc's unwinder: pthread_exit() has to dlopen libgcc_s.so.1, and when
+     * it cannot -- under file-descriptor or memory pressure, or in a build
+     * where that library is unavailable -- glibc calls abort(), taking the
+     * whole daemon down because one client's thread finished. Seen in CI:
+     * "libgcc_s.so.1 must be installed for pthread_exit to work", then
+     * SIGABRT. */
     return NULL;
 }
 

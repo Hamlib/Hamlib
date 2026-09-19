@@ -587,6 +587,13 @@ int main(int argc, char *argv[])
         if (retcode != 0)
         {
             rig_debug(RIG_DEBUG_ERR, "pthread_create: %s\n", strerror(retcode));
+            /* No handler thread will ever own these. */
+#ifdef __MINGW32__
+            closesocket(arg->sock);
+#else
+            close(arg->sock);
+#endif
+            free(arg);
             break;
         }
 
@@ -603,6 +610,34 @@ int main(int argc, char *argv[])
     return 0;
 }
 
+
+#ifndef __MINGW32__
+/* A stdio stream on a descriptor of its own. Two streams on the one accepted
+ * descriptor mean two fclose() calls closing it, and the second lands on
+ * whatever number accept() has handed another client in the meantime --
+ * taking that client's socket away from it mid-session. With a dup behind
+ * each stream, every fclose() closes a descriptor it owns, and the accepted
+ * one is closed exactly once, at the end of the handler. */
+static FILE *fdopen_dup(int sock, const char *mode)
+{
+    int fd = dup(sock);
+    FILE *fp;
+
+    if (fd < 0)
+    {
+        return NULL;
+    }
+
+    fp = fdopen(fd, mode);
+
+    if (fp == NULL)
+    {
+        close(fd);
+    }
+
+    return fp;
+}
+#endif
 
 /*
  * This is the function run by the threads
@@ -626,11 +661,8 @@ void *handle_socket(void *arg)
     }
 
     fsockin = _fdopen(sock_osfhandle,  "rb");
-#elif defined(ANDROID) || defined(__ANDROID__)
-    // fdsan does not allow fdopen the same fd twice in Android
-    fsockin = fdopen(dup(handle_data_arg->sock), "rb");
 #else
-    fsockin = fdopen(handle_data_arg->sock, "rb");
+    fsockin = fdopen_dup(handle_data_arg->sock, "rb");
 #endif
 
     if (!fsockin)
@@ -641,11 +673,8 @@ void *handle_socket(void *arg)
 
 #ifdef __MINGW32__
     fsockout = _fdopen(sock_osfhandle, "wb");
-#elif defined(ANDROID) || defined(__ANDROID__)
-    // fdsan does not allow fdopen the same fd twice in Android
-    fsockout = fdopen(dup(handle_data_arg->sock), "wb");
 #else
-    fsockout = fdopen(handle_data_arg->sock, "wb");
+    fsockout = fdopen_dup(handle_data_arg->sock, "wb");
 #endif
 
     if (!fsockout)
@@ -700,7 +729,11 @@ handle_exit:
 #endif
     free(arg);
 
-    pthread_exit(NULL);
+    /* Returning ends the thread just as pthread_exit() would, without
+     * glibc's unwinder: pthread_exit() has to dlopen libgcc_s.so.1, and when
+     * it cannot -- under descriptor or memory pressure, or where the library
+     * is unavailable -- glibc calls abort(), taking the whole daemon and every
+     * other client down because one client's thread finished. */
     return NULL;
 }
 
