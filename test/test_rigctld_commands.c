@@ -706,7 +706,11 @@ static ssize_t subscribe_and_await_ack(int client_sock, int server_port,
     {
         struct sockaddr_in me;
         socklen_t me_len = sizeof(me);
+#ifdef _WIN32
+        u_long queued = 0;
+#else
         int queued = 0;
+#endif
 
         memset(&me, 0, sizeof(me));
 
@@ -719,9 +723,18 @@ static ssize_t subscribe_and_await_ack(int client_sock, int server_port,
 
 #ifdef FIONREAD
 
+        /* Winsock spells it ioctlsocket and wants a u_long, as src/network.c
+         * does for the same query. */
+#ifdef _WIN32
+
+        if (ioctlsocket(client_sock, FIONREAD, &queued) == 0)
+#else
+
         if (ioctl(client_sock, FIONREAD, &queued) == 0)
+#endif
         {
-            TEST_MSG("client socket still holds %d unread bytes", queued);
+            TEST_MSG("client socket still holds %lu unread bytes",
+                     (unsigned long)queued);
         }
 
 #endif
