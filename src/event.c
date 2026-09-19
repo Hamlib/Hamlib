@@ -908,7 +908,27 @@ static int print_spectrum_line(char *str, size_t length,
     int i, c;
     int charlen = strlen("█");
 
+    if (length == 0)
+    {
+        return 0;
+    }
+
     str[0] = '\0';
+
+    /* Both divisors below must stay non-zero. A spectrum narrower than the
+     * 120 columns this renders into leaves nothing to aggregate, and a line
+     * reporting no level range leaves nothing to scale by; either one traps
+     * on hardware that faults on integer division by zero -- SIGFPE, or
+     * 0xC0000094 on Windows. A 64-bin panadapter is enough to do it. */
+    if (aggregate_count < 1)
+    {
+        aggregate_count = 1;
+    }
+
+    if (data_level_max < 1)
+    {
+        data_level_max = 1;
+    }
 
     for (i = 0, c = 0; i < line->spectrum_data_length; i++)
     {
@@ -962,9 +982,15 @@ int rig_fire_spectrum_event(RIG *rig, struct rig_spectrum_line *line)
 {
     ENTERFUNC;
 
-    if (rig_need_debug(RIG_DEBUG_TRACE))
+    if (rig_need_debug(RIG_DEBUG_TRACE) && line != NULL
+            && line->spectrum_data_length > 0)
     {
-        char spectrum_debug[line->spectrum_data_length * 4];
+        /* Fixed and bounded: the renderer stops when the buffer is full, and
+         * never emits more than about 240 cells of at most 3 bytes. Sizing
+         * this from the line put a whole panadapter frame on the stack -- and
+         * a zero-length array, written through, when a backend reported no
+         * bins at all. */
+        char spectrum_debug[1024];
         print_spectrum_line(spectrum_debug, sizeof(spectrum_debug), line);
         rig_debug(RIG_DEBUG_TRACE, "%s: ASCII Spectrum Scope: %s\n", __func__,
                   spectrum_debug);

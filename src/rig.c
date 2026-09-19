@@ -1786,6 +1786,17 @@ int HAMLIB_API rig_close(RIG *rig)
         network_multicast_publisher_stop(rig);
     }
 
+    /* Streams go first, before the backend closes and before the ports do.
+     * Their threads run on backend resources, so a backend that releases
+     * anything in rig_close would be pulling it out from under a thread that
+     * is still reading it; and a stream_close that has to tell the radio to
+     * stop needs the link it is told over to still be open. */
+    if (rs->stream_state)
+    {
+        rig_stream_state_cleanup(rs->stream_state);
+        rs->stream_state = NULL;
+    }
+
     // Let the backend say 73 to the rig.
     // and ignore the return code.
     if (caps->rig_close)
@@ -1893,13 +1904,6 @@ int HAMLIB_API rig_close(RIG *rig)
     dcdp->fd = pttp->fd = -1;
 
     port_close(rp, rp->type.rig);
-
-    /* Clean up streaming subsystem state */
-    if (rs->stream_state)
-    {
-        rig_stream_state_cleanup(rs->stream_state);
-        rs->stream_state = NULL;
-    }
 
     // zero split so it will allow it to be set again on open for rigctld
     rig_set_cache_split(rig, RIG_SPLIT_OFF, RIG_VFO_NONE);
@@ -8615,6 +8619,11 @@ static int morse_data_handler_stop(RIG *rig)
         rs->morse_data_handler_priv_data = NULL;
     }
 
+    /* Safe only now that the thread is gone: both it and the wait above read
+     * this queue. */
+    free(rs->fifo_morse);
+    rs->fifo_morse = NULL;
+
     RETURNFUNC(RIG_OK);
 }
 
@@ -8847,8 +8856,10 @@ static void *morse_data_handler(void *arg)
         hl_usleep(100 * 1000);
     }
 
-    free(rs->fifo_morse);
-    rs->fifo_morse = NULL;
+    /* fifo_morse is not freed here. morse_data_handler_stop polls it while it
+     * waits for the queue to drain, so freeing it from this thread leaves that
+     * wait reading memory that has gone. It frees the queue once this thread
+     * has been joined. */
     free(c);
 
     pthread_exit(NULL);

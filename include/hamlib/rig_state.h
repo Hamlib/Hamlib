@@ -262,6 +262,7 @@ struct rig_state {
     int stream_resample_quality;               /*!< Stream resampler quality:
                                                     RIG_RESAMPLE_* + 1, so 0 =
                                                     built-in default (medium) */
+    rig_comm_reason_t comm_reason;          /*!< Why comm_status last changed */
 // New rig_state items go before this line ============================================
 };
 
