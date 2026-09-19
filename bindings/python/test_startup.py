@@ -48,7 +48,7 @@ class TestClass:
         assert my_rig.set_mode(Hamlib.RIG_MODE_CW) is None
         (mode, width) = my_rig.get_mode()
         assert Hamlib.rig_strrmode(mode) == 'CW'
-        assert width == 0
+        assert width == 500
 
         assert isinstance(my_rig.caps.copyright, str)
         assert isinstance(my_rig.caps.model_name, str)

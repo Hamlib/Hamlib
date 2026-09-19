@@ -936,9 +936,11 @@ class TestClass:
 'RIG_MODEL_SMARTSDR_G',
 'RIG_MODEL_SMARTSDR_H',
 'RIG_MODEL_SR2200',
+'RIG_MODEL_SUNSDR2_PRO_TCI',
 'RIG_MODEL_TCI1X',
 'RIG_MODEL_THD72A',
 'RIG_MODEL_THD74',
+'RIG_MODEL_THD75',
 'RIG_MODEL_THD7A',
 'RIG_MODEL_THD7AG',
 'RIG_MODEL_THETIS',
@@ -1364,6 +1366,8 @@ class TestClass:
 'cvar',
 'hamlib_copyright',
 'hamlib_version']
+        if 'typing' in self.actual_properties:
+            self.actual_properties.remove('typing')  # remove symbol added by SWIG 4.5
         assert expected_properties == self.actual_properties
 
     @classmethod

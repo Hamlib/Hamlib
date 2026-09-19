@@ -37,6 +37,7 @@ testcookie.sh
 testctlparser
 testdebug
 testdummyparm
+testelecraftvfo
 testfreq
 testfreq.sh
 testftx1parsers

@@ -9,6 +9,10 @@ Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 
 Version 5.x -- future
+        * QMX: Add SWR and RF power meter readback using the QRP Labs
+          SW and PC CAT commands.  The power meter full scale (6W stock,
+          12W with the PA0RDT PA modification) is read from the radio at
+          open time.
         * New data streaming subsystem (experimental): audio and I/Q streams
           between a backend and an application through the rig_stream_* API,
           or over the network from rigctld via a UDP wire protocol.  Includes
@@ -34,6 +38,18 @@ Version 5.x -- future
           (TNX David Christle)
         * Feature: Add data streaming subsystem for audio and I/Q.
           GitHub PR #2116.  (TNX Mikael Nousiainen)
+        * New: TCI 2.0 (Expert Electronics) backend, CAT only.  GitHub
+          PR #2083.  (TNX Jeff Francis)
+        * TH-D75: New dedicated backend.  GitHub PR #2120.  (TNX David
+          Christle)
+        * ID-5100: Correct ID-5100 VFO switching.  GitHub PR #2129 (TNX
+          David Christle)
+        * Fix(rigctl): Enforce locale-neutral decimal protocol.  GitHub
+          PR #2131.  (TNX David Christle)
+        * Fix(cache): Synchronize cache and routing state.  GitHub PR
+          #2146.  (TNX David Christle)
+        * Core: Add exclusive mode support to serial port opening.  GitHub
+          PR #2200.  (TNX Ben Woodard)
 
 Version 4.7.2
         * 2026-06-21

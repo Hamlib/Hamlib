@@ -2,9 +2,7 @@ name: Windows mingw-w64 cross C/C++ (features)
 
 on:
   push:
-    branches: [ master, feature/* ]
   pull_request:
-    branches: [ master ]
 
 env:
   # Same libusb Windows binary release the official build scripts use
@@ -17,7 +15,7 @@ jobs:
     timeout-minutes: 40
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Install cross toolchain and Wine
       run: |
         sudo apt update

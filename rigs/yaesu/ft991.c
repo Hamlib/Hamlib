@@ -170,20 +170,27 @@ int ft991_ext_tokens[] =
 };
 
 // Shared with FT-891
-const struct newcat_width_info ft991_cw_widths = {
+const struct newcat_width_info ft991_cw_widths =
+{
     .narrow_max = 500,
     .count = 18,
-    .widths = { 0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 800, 1200, 1400, 1700,
-                2000, 2400, 3000 }
+    .widths = {
+        0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 800, 1200, 1400, 1700,
+        2000, 2400, 3000
+    }
 };
-const struct newcat_width_info ft991_ssb_widths = {
+const struct newcat_width_info ft991_ssb_widths =
+{
     .narrow_max = 1800,
     .count = 22,
-    .widths = { 0, 200, 400, 600, 850, 1100, 1350, 1500, 1650, 1800, 1950, 2100, 2200, 2300,
-                2400, 2500, 2600, 2700, 2800, 2900, 3000, 3200 }
+    .widths = {
+        0, 200, 400, 600, 850, 1100, 1350, 1500, 1650, 1800, 1950, 2100, 2200, 2300,
+        2400, 2500, 2600, 2700, 2800, 2900, 3000, 3200
+    }
 };
 
-static const struct newcat_priv_caps ft991_priv_caps = {
+static const struct newcat_priv_caps ft991_priv_caps =
+{
     .cw_widths = &ft991_cw_widths,
     .ssb_widths = &ft991_ssb_widths
 };
@@ -224,15 +231,18 @@ struct rig_caps ft991_caps =
 #define NO_LVL_SQL
 #define NO_LVL_MONITOR_GAIN
 #define NO_LVL_RFPOWER
+#define NO_LVL_ID_METER
 #include "level_gran_yaesu.h"
 #undef NO_LVL_MICGAIN
 #undef NO_LVL_SQL
 #undef NO_LVL_MONITOR_GAIN
 #undef NO_LVL_RFPOWER
+#undef NO_LVL_ID_METER
         [LVL_MICGAIN] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f / 100.0f } },
         [LVL_SQL] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f / 100.0f } },
         [LVL_MONITOR_GAIN] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f / 100.0f } },
         [LVL_RFPOWER] = { .min = { .f = .05 }, .max = { .f = 1.0 }, .step = { .f = 1.0f / 100.0f } },
+        [LVL_ID_METER] = { .min = { .f = 0.0f }, .max = { .f = 25.5f }, .step = { .f = 0.1f } },
     },
     .parm_gran =  {
         [PARM_BANDSELECT] = {.step = {.s = "BAND160M,BAND80M,BANDUNUSED,BAND40M,BAND30M,BAND20M,BAND17M,BAND15M,BAND12M,BAND10M,BAND6M,BANDGEN,BANDMW,BANDUNUSED,BANDAIR,BAND70CM,BAND33CM"}}
@@ -476,6 +486,7 @@ ft991_get_tx_split(RIG *rig, split_t *in_split)
 int
 ft991_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
+    freq_t cached_tx_freq;
     int rval;
     split_t is_split;
 
@@ -488,7 +499,8 @@ ft991_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
         return (rval);
     }
 
-    if (CACHE(rig)->freqMainB == tx_freq)
+    if (rig_get_cache_freq(rig, RIG_VFO_B, &cached_tx_freq, NULL) == RIG_OK
+            && cached_tx_freq == tx_freq)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: freq %.0f already set on VFOB\n", __func__,
                   tx_freq);
@@ -652,6 +664,7 @@ static void debug_ft991info_data(const ft991info *rdata)
 static int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
                                 pbwidth_t tx_width)
 {
+    struct rig_cache_snapshot cache;
     struct newcat_priv_data *priv;
     struct rig_state *state;
     int err;
@@ -665,7 +678,9 @@ static int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
         return -RIG_EINVAL;
     }
 
-    if (CACHE(rig)->modeMainB == tx_mode)
+    rig_get_cache_snapshot(rig, &cache);
+
+    if (cache.modeMainB == tx_mode)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: mode %s already set on VFOB\n", __func__,
                   rig_strrmode(tx_mode));
@@ -725,7 +740,7 @@ static int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
 
     size_t len = strlen(restore_commands);
     SNPRINTF(restore_commands + len, sizeof(restore_commands) - len, "%.*s",
-         (int)(sizeof(restore_commands) - len - 1), priv->ret_data);
+             (int)(sizeof(restore_commands) - len - 1), priv->ret_data);
 
     /* Change mode on VFOA */
     if (RIG_OK != (err = newcat_set_mode(rig, RIG_VFO_A, tx_mode,
@@ -750,7 +765,7 @@ static int ft991_init(RIG *rig)
 
     if (ret != RIG_OK) { return ret; }
 
-    STATE(rig)->current_vfo = RIG_VFO_A;
+    rig_set_current_vfo_state(rig, RIG_VFO_A);
     return RIG_OK;
 }
 
@@ -1223,12 +1238,12 @@ static int ft991_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
 // VFO functions so rigctld can be used without --vfo argument
 static int ft991_set_vfo(RIG *rig, vfo_t vfo)
 {
-    STATE(rig)->current_vfo = vfo;
+    rig_set_current_vfo_state(rig, vfo);
     RETURNFUNC2(RIG_OK);
 }
 
 static int ft991_get_vfo(RIG *rig, vfo_t *vfo)
 {
-    *vfo = STATE(rig)->current_vfo;
+    *vfo = rig_get_current_vfo_state(rig);
     RETURNFUNC2(RIG_OK);
 }

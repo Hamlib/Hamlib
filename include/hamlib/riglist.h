@@ -249,6 +249,7 @@
 #define RIG_MODEL_SDRCONSOLE RIG_MAKE_MODEL(RIG_KENWOOD, 56)
 #define RIG_MODEL_QRPLABS_QMX RIG_MAKE_MODEL(RIG_KENWOOD, 57)
 #define RIG_MODEL_HAMGEEK_USDX RIG_MAKE_MODEL(RIG_KENWOOD, 58)
+#define RIG_MODEL_THD75 RIG_MAKE_MODEL(RIG_KENWOOD, 59)
 ///@}
 
 /*
@@ -1156,6 +1157,29 @@
 ///@{
 /// Model of the `RIG_HARRIS` backend family.
 #define RIG_MODEL_PRC138 RIG_MAKE_MODEL(RIG_HARRIS, 1)
+///@}
+
+/*
+ * TCI
+ */
+/**
+ * TCI (Transceiver Control Interface) — Expert Electronics ExpertSDR3
+ * and other TCI 2.0-speaking radios.  Each model is one physical rig
+ * that talks TCI 2.0 over WebSocket; the generic protocol library lives
+ * in rigs/tci/tci2.c and is shared by every rig in this family.
+ */
+/** The `TCI` family. */
+#define RIG_TCI 43
+/** Used in register.c for the `be_name`. */
+#define RIG_BACKEND_TCI "tci"
+
+/**
+ * \name TCI
+ * TCI 2.0 models.
+ */
+///@{
+/// Model of the `RIG_TCI` backend family.
+#define RIG_MODEL_SUNSDR2_PRO_TCI RIG_MAKE_MODEL(RIG_TCI, 1)
 ///@}
 
 /*

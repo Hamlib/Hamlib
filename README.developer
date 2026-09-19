@@ -342,7 +342,10 @@ The '--prefix' option to 'configure' is optional and not shown as it defaults to
 /usr/local away from distribution installed packages.  The 'CFLAGS="-g -O0"'
 environment variable generates less optimized binaries with the '-O0'  while the
 '-g' option adds debugging info which can be changed to -ggdb to generate
-debugging info for gdb.
+debugging info for gdb, then you need to run gdb using libtool passing as
+arguments the wrapper script and any needed option and command:
+    libtool --mode=execute gdb --args tests/rigctl --model ...
+
 
 Additionally, you may want to add the '--with-perl-binding' or
 '--with-python-binding' or '--with-tcl-binding' or '--with-lua-binding' if you
@@ -394,7 +397,9 @@ capability model and format conversion) and HAMLIB_STREAMING_BACKEND_GUIDE.md
 its hardware-native formats, sample rates and channel counts in stream_caps;
 the frontend derives the wider effective set it advertises to applications
 and installs any needed conversion at stream open
-(rig_stream_get_conversions() reports what runs on a stream).
+(rig_stream_get_conversions() reports what runs on a stream, and an
+application that needs a stage served natively lists it in
+rig_stream_config.require_native to have the open refused instead).
 
 Likewise, a complete test of the build system is accomplished with 'make
 distcheck' which exercises a complete build sequence from creating a

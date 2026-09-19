@@ -8,7 +8,7 @@ IC10SRC = ts440.c ts940.c ts711.c ts811.c r5000.c
 
 THSRC = thd7.c thf7.c thg71.c tmd700.c tmv7.c thf6a.c thd72.c tmd710.c thd74.c
 
-KENWOODSRC = kenwood.c kenwood.h th.c th.h ic10.c ic10.h elecraft.c elecraft.h \
+KENWOODSRC = kenwood.c kenwood.h th.c th.h thd7x.c thd7x.h ic10.c ic10.h elecraft.c elecraft.h \
 	transfox.c flex.c flex.h level_gran_kenwood.h level_gran_elecraft.h \
 	hamgeek.c hamgeek.h
 

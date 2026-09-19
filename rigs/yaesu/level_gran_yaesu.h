@@ -48,7 +48,9 @@
 #endif
         [LVL_RFPOWER_METER] = { .min = { .f = 0 },    .max = { .f = 1 },    .step = { .f = 1.0f/255.0f } },
         [LVL_COMP_METER]    = { .min = { .f = 0 },    .max = { .f = 1 },    .step = { .f = 1.0f/255.0f } },
+#if !defined(NO_LVL_ID_METER)
         [LVL_ID_METER]      = { .min = { .f = 0 },    .max = { .f = 1 },    .step = { .f = 1.0f/255.0f } },
+#endif
         [LVL_VD_METER]      = { .min = { .f = 0 },    .max = { .f = 1 },    .step = { .f = 1.0f/255.0f } },
 #if !defined(NO_LVL_SQL)
         [LVL_SQL]           = { .min = { .f = 0 },    .max = { .f = 1 },    .step = { .f = 1.0f/255.0f } },

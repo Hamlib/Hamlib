@@ -2,9 +2,7 @@ name: Android NDK cross-compile
 
 on:
   push:
-    branches: [ master, feature/* ]
   pull_request:
-    branches: [ master ]
 
 jobs:
   build:
@@ -24,7 +22,7 @@ jobs:
       fail-fast: false
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Set up NDK toolchain
       run: |

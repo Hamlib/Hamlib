@@ -218,7 +218,7 @@ static const yaesu_cmd_set_t ncmd[] =
     { 1, { 0x00, 0x00, 0x00, 0x00, 0x0f } }, /* pwr on */
     { 1, { 0x00, 0x00, 0x00, 0x00, 0x8f } }, /* pwr off */
     { 0, { 0x00, 0x00, 0x00, 0x00, 0xbb } }, /* eeprom read */
-    { 0, { 0x00, 0x00, 0x00, 0x00, 0xbc } }, /* eeprom write -- see ft857_set_level() ATT/PREAMP */
+    { 0, { 0x00, 0x00, 0x00, 0x00, 0xbc } }, /* eeprom write -- see ft857_set_level() ATT/PREAMP; set_mode() PKTLSB/PKTUSB */
 };
 
 enum ft857_digi
@@ -246,12 +246,14 @@ enum ft857_digi
             } }
 
 #define FT857_ALL_RX_MODES      (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|\
-                                 RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_PKTUSB)
+                                 RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_PKTUSB|\
+                                 RIG_MODE_PKTLSB|RIG_MODE_PKTFM)
 #define FT857_SSB_CW_RX_MODES   (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|RIG_MODE_LSB)
 #define FT857_AM_FM_RX_MODES    (RIG_MODE_AM|RIG_MODE_FM)
 
 #define FT857_OTHER_TX_MODES    (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_USB|\
-                                 RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_PKTUSB)
+                                 RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_PKTUSB|\
+                                 RIG_MODE_PKTLSB|RIG_MODE_PKTFM)
 #define FT857_AM_TX_MODES       (RIG_MODE_AM)
 
 #define FT857_VFO_ALL           (RIG_VFO_A|RIG_VFO_B)
@@ -687,6 +689,8 @@ int ft857_get_vfo(RIG *rig, vfo_t *vfo)
 {
     unsigned char c;
     static int ignore = 0;
+    int cache_ms;
+    int timeout_ms;
     *vfo = RIG_VFO_B;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
@@ -694,14 +698,14 @@ int ft857_get_vfo(RIG *rig, vfo_t *vfo)
     // Some 857's cannot read so we'll just return the cached value if we've seen an error
     if (ignore)
     {
-        *vfo = CACHE(rig)->vfo;
+        rig_get_cached_vfo(rig, vfo, &cache_ms, &timeout_ms);
         return RIG_OK;
     }
 
     if (ft857_read_eeprom(rig, 0x0068, &c) < 0)   /* get vfo status */
     {
         ignore = 1;
-        *vfo = CACHE(rig)->vfo;
+        rig_get_cached_vfo(rig, vfo, &cache_ms, &timeout_ms);
         return RIG_OK;
     }
 
@@ -1194,10 +1198,77 @@ int ft857_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         break;
 
     case RIG_MODE_RTTY:
-    case RIG_MODE_PKTUSB:
         /* user has to have correct DIG mode setup on rig */
         index = FT857_NATIVE_CAT_SET_MODE_DIG;
         break;
+
+    case RIG_MODE_PKTUSB:
+    case RIG_MODE_PKTLSB:
+    {
+        /*
+         * The FT-857 CAT protocol has a single generic "DIG" mode command
+         * (no way to select LSB vs USB directly); the sideband actually
+         * used is a value stored in rig EEPROM at 0x0078 (bits 5-7 of the
+         * first byte -- the same location ft857_get_status() already
+         * reads to report PKTLSB/PKTUSB back via get_mode()). Force that
+         * byte to the generic "USER" DIG submode (as opposed to "RTTY" or
+         * "PSK") with the requested sideband, so a subsequent get_mode()
+         * agrees with what was just requested here, and so switching
+         * between PKTUSB and PKTLSB is actually deterministic instead of
+         * silently keeping whatever submode was last configured on the
+         * rig's own front panel.
+         *
+         * Mirrors the equivalent, already-upstream fix for the sibling
+         * FT-817 (Hamlib/Hamlib#1308, commit acc42665e), which uses the
+         * same mechanism at a different EEPROM address (0x65).
+         */
+        unsigned char data[YAESU_CMD_LENGTH];
+        unsigned char digmode_lo, digmode_hi;
+        int ret;
+
+        ret = ft857_read_eeprom(rig, 0x0078, &digmode_lo);
+
+        if (ret != RIG_OK)
+        {
+            return ret;
+        }
+
+        /* byte at 0x0079 shares the same EEPROM word; preserve it untouched */
+        ret = ft857_read_eeprom(rig, 0x0079, &digmode_hi);
+
+        if (ret != RIG_OK)
+        {
+            return ret;
+        }
+
+        memcpy(data, ncmd[FT857_NATIVE_CAT_EEPROM_WRITE].nseq, YAESU_CMD_LENGTH);
+        data[0] = 0x00;
+        data[1] = 0x78;
+        data[2] = (mode == RIG_MODE_PKTLSB ? FT857_DIGI_USER_L : FT857_DIGI_USER_U) << 5;
+        data[3] = digmode_hi;
+
+        ret = ft857_send_cmd(rig, FT857_NATIVE_CAT_SET_MODE_DIG);
+
+        if (ret != RIG_OK)
+        {
+            return ret;
+        }
+
+        if (data[2] != digmode_lo)
+        {
+            ret = ft857_send_icmd(rig, FT857_NATIVE_CAT_EEPROM_WRITE, data);
+
+            if (ret != RIG_OK)
+            {
+                return ret;
+            }
+        }
+
+        rig_force_cache_timeout(&((struct ft857_priv_data *)
+                                  STATE(rig)->priv)->fm_status_tv);
+
+        return RIG_OK;
+    }
 
     case RIG_MODE_FM:
         index = FT857_NATIVE_CAT_SET_MODE_FM;
@@ -1594,4 +1665,3 @@ int ft857_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 }
 
 /* ---------------------------------------------------------------------- */
-
