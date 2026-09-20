@@ -606,6 +606,12 @@
  * Icom spectrum scope definitions
  */
 
+/* First byte of 27 00 and the scope commands: which scope.  The parser
+   hands it through as rig_spectrum_line.id, so a rig's spectrum_scopes
+   caps must use the same values. */
+#define SCOPE_MAIN 0x00
+#define SCOPE_SUB 0x01
+
 #define SCOPE_MODE_CENTER 0x00
 #define SCOPE_MODE_FIXED 0x01
 #define SCOPE_MODE_SCROLL_C 0x02

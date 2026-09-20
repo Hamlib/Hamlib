@@ -9102,7 +9102,7 @@ static int icom_parse_spectrum_frame(RIG *rig, size_t length,
     division = (int) from_bcd(frame_data + 1, 1 * 2);
     max_division = (int) from_bcd(frame_data + 2, 1 * 2);
 
-    // The first byte indicates spectrum scope ID/VFO: 0 = Main, 1 = Sub
+    // The first byte is the scope, SCOPE_MAIN or SCOPE_SUB
     int spectrum_id = frame_data[0];
 
     if (spectrum_id >= priv->spectrum_scope_count)
@@ -9760,10 +9760,13 @@ static int icom_get_spectrum_vfo(RIG *rig, vfo_t vfo)
 {
     if (STATE(rig)->targetable_vfo & RIG_TARGETABLE_SPECTRUM)
     {
-        RETURNFUNC2(ICOM_GET_VFO_NUMBER(vfo));
+        const vfo_t sub_scope = RIG_VFO_B | RIG_VFO_SUB | RIG_VFO_SUB_B
+                                | RIG_VFO_MAIN_B;
+
+        RETURNFUNC2((vfo & sub_scope) ? SCOPE_SUB : SCOPE_MAIN);
     }
 
-    RETURNFUNC2(0);
+    RETURNFUNC2(SCOPE_MAIN);
 }
 
 static int icom_get_spectrum_edge_frequency_range(RIG *rig, vfo_t vfo,
