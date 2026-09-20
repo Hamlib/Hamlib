@@ -9081,6 +9081,26 @@ int icom_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq,
     RETURNFUNC(RIG_OK);
 }
 
+/*
+ * 27 00 sends the edges of a Fixed or SCROLL scope as five BCD bytes
+ * each, with an F in the 1 GHz digit (the high nibble of the last byte)
+ * marking a negative frequency.  The guide only ever sets it on the
+ * lower edge, for a scope scrolled below 0 Hz.
+ */
+static freq_t icom_scope_edge_freq(const unsigned char *bcd)
+{
+    unsigned char digits[5];
+
+    if ((bcd[4] & 0xf0) != 0xf0)
+    {
+        return (freq_t) from_bcd(bcd, 5 * 2);
+    }
+
+    memcpy(digits, bcd, sizeof(digits));
+    digits[4] &= 0x0f;
+    return -(freq_t) from_bcd(digits, 5 * 2);
+}
+
 static int icom_parse_spectrum_frame(RIG *rig, size_t length,
                                      const unsigned char *frame_data)
 {
@@ -9158,8 +9178,8 @@ static int icom_parse_spectrum_frame(RIG *rig, size_t length,
                 cache->spectrum_mode = RIG_SPECTRUM_MODE_FIXED_SCROLL;
             }
 
-            cache->spectrum_low_edge_freq = (freq_t) from_bcd(frame_data + 4, 5 * 2);
-            cache->spectrum_high_edge_freq = (freq_t) from_bcd(frame_data + 9, 5 * 2);
+            cache->spectrum_low_edge_freq = icom_scope_edge_freq(frame_data + 4);
+            cache->spectrum_high_edge_freq = icom_scope_edge_freq(frame_data + 9);
             cache->spectrum_span_freq = (cache->spectrum_high_edge_freq -
                                          cache->spectrum_low_edge_freq);
             cache->spectrum_center_freq = cache->spectrum_high_edge_freq -
