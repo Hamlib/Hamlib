@@ -12,6 +12,14 @@ testg90rit_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testg90rit_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) \
 	$(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 
+check_PROGRAMS += testic9700civ
+TESTS += testic9700civ
+testic9700civ_SOURCES = testic9700civ.c testicomsock.c testicomsock.h
+testic9700civ_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+testic9700civ_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testic9700civ_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+
 check_PROGRAMS += testicomant
 TESTS += testicomant
 testicomant_SOURCES = testicomant.c testicomsock.c testicomsock.h
