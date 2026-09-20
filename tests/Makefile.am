@@ -38,7 +38,9 @@ DIRECT_TESTS = \
 	testrigctlprotocol \
 	testthd7x \
 	testthd75emu \
-	testid5100
+	testid5100 \
+	test_thd75_dual_band \
+	test_thd75_dual_band_interactive
 
 GENERATED_TEST_WRAPPERS = \
 	test2038.sh \
@@ -181,6 +183,15 @@ testctlparser_LDADD = $(PTHREAD_LIBS) $(READLINE_LIBS) $(top_builddir)/rigs/dumm
 testrigctlprotocol_LDADD = $(LDADD)
 testicomts_LDADD = $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testid5100_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+
+# TH-D75 dual band test definitions
+test_thd75_dual_band_SOURCES = test_thd75_dual_band.c
+test_thd75_dual_band_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+test_thd75_dual_band_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/kenwood/libhamlib-kenwood.la $(LDADD)
+
+test_thd75_dual_band_interactive_SOURCES = test_thd75_dual_band_interactive.c
+test_thd75_dual_band_interactive_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+test_thd75_dual_band_interactive_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/kenwood/libhamlib-kenwood.la $(LDADD)
 testicomfallback_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testgeministatus_LDADD = $(PTHREAD_LIBS) $(top_builddir)/amplifiers/gemini/libhamlib-gemini.la $(LDADD)
 testgs100_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/gomspace/libhamlib-gomspace.la $(LDADD)
