@@ -9760,8 +9760,23 @@ static int icom_get_spectrum_vfo(RIG *rig, vfo_t vfo)
 {
     if (STATE(rig)->targetable_vfo & RIG_TARGETABLE_SPECTRUM)
     {
-        const vfo_t sub_scope = RIG_VFO_B | RIG_VFO_SUB | RIG_VFO_SUB_B
-                                | RIG_VFO_MAIN_B;
+        /* the scope byte names the receiver, 00 Main or 01 Sub, so it
+           follows the receiver of the VFO and never the VFO letter: on
+           an IC-9700 MAIN_B is still the Main scope, and so is a bare
+           A or B, which icom_set_vfo() only ever records for a Main
+           band VFO (Sub band VFOs are always SUB, SUB_A or SUB_B).  Only
+           a rig without VFO A/B knows B as another name for Sub. */
+        vfo_t sub_scope = RIG_VFO_SUB | RIG_VFO_SUB_A | RIG_VFO_SUB_B;
+
+        if (VFO_HAS_MAIN_SUB_ONLY)
+        {
+            sub_scope |= RIG_VFO_B;
+        }
+
+        if (vfo == RIG_VFO_CURR)
+        {
+            vfo = STATE(rig)->current_vfo;
+        }
 
         RETURNFUNC2((vfo & sub_scope) ? SCOPE_SUB : SCOPE_MAIN);
     }
