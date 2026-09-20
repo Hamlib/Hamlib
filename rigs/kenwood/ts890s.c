@@ -501,7 +501,8 @@ static int ts890s_get_split_vfo(RIG *rig, vfo_t rxvfo, split_t *split,
             return -RIG_EPROTO;
         }
 
-        *txvfo = priv->tx_vfo = rs->tx_vfo = tvfo;
+        *txvfo = priv->tx_vfo = tvfo;
+        rig_set_tx_vfo_state(rig, tvfo);
 	// Now get split status
 	retval = kenwood_safe_transaction(rig, "TB", buf, sizeof buf, 3);
 	if (RIG_OK != retval) {return retval;}

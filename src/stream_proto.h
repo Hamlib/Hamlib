@@ -293,7 +293,8 @@ static inline int stream_ctrl_time_valid(uint16_t control)
                         | RIG_STREAM_CTRL_PONG));
 }
 
-/* Write comma-separated format names for all bits set in the bitmask.
+/* Write comma-separated format names for all bits set in the bitmask;
+ * STREAM_LIST_NONE for an empty bitmask.
  * Returns number of characters written (excluding NUL), or -1 if buf too small. */
 int stream_format_bitmask_str(rig_stream_format_t formats,
                               char *buf, size_t buflen);
@@ -315,7 +316,7 @@ const char *stream_format_name(rig_stream_format_t format);
 rig_stream_format_t stream_format_parse(const char *name);
 
 /* Write comma-separated RIG_STREAM_CAP_* flag names (prefix stripped);
- * empty string when no flag is set. Returns characters written or -1. */
+ * STREAM_LIST_NONE when no flag is set. Returns characters written or -1. */
 int stream_caps_flags_str(uint64_t caps_flags, char *buf, size_t buflen);
 
 /* Parse one flag name to its RIG_STREAM_CAP_* bit; 0 for unknown names. */
@@ -330,13 +331,35 @@ uint64_t stream_caps_flag_parse(const char *name);
 int stream_caps_format_line(const struct rig_stream_caps *e,
                             int include_native, char *buf, size_t buflen);
 
+/* The token every list-valued key of the streaming protocol uses for an
+ * empty list — caps name lists and integer lists, the conversions: stage
+ * list and require_native alike. A missing key, or an empty value from an
+ * older peer, means the same thing; nothing this library writes is empty. */
+extern const char *const STREAM_LIST_NONE;
+
+/* 1 if the first len bytes of value are exactly that token. */
+int stream_list_none(const char *value, size_t len);
+
 /* Write comma-separated RIG_STREAM_CONV_* stage names (prefix stripped);
- * empty string when no conversion is active. Returns chars written or -1. */
+ * "NONE" for RIG_STREAM_CONV_NONE. Returns chars written or -1. */
 int stream_conversions_str(int conv, char *buf, size_t buflen);
 
-/* Parse a comma-separated stage-name list back to the bitmask; unknown
- * names are skipped (forward compatibility), empty text is CONV_NONE. */
+/* Parse a comma-separated stage-name list back to the bitmask; "NONE" and
+ * empty text are both RIG_STREAM_CONV_NONE, and unknown names are skipped
+ * (forward compatibility). */
 int stream_conversions_parse(const char *text);
+
+/* Render a rig_stream_config.require_native mask as the stage-name list the
+ * \stream_open require_native= key carries: "ALL" for RIG_STREAM_CONV_ALL,
+ * else the names stream_conversions_str() writes ("NONE" for
+ * RIG_STREAM_CONV_NONE). Returns chars written or -1. */
+int stream_native_req_str(uint32_t mask, char *buf, size_t buflen);
+
+/* Parse that list back to a mask. STRICT, unlike stream_conversions_parse():
+ * an unknown stage name fails (-1) rather than being skipped, so a demand the
+ * peer cannot honour is refused instead of silently dropped. Returns 0 and
+ * sets *mask on success. */
+int stream_native_req_parse(const char *text, uint32_t *mask);
 
 
 /* Stream type classification helpers */

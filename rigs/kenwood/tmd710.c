@@ -40,10 +40,12 @@
 #include <math.h>
 
 #include "hamlib/rig.h"
+#include "cache.h"
 #include "kenwood.h"
 #include "th.h"
 #include "tones.h"
 #include "num_stdio.h"
+#include "misc.h"
 
 static int tmd710_open(RIG *rig);
 static int tmd710_do_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
@@ -654,19 +656,21 @@ typedef struct
 
 static int tmd710_open(RIG *rig)
 {
+    struct rig_cache_routing_snapshot routing;
     split_t split;
     vfo_t vfo;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    STATE(rig)->tx_vfo = RIG_VFO_A;
+    rig_set_tx_vfo_state(rig, RIG_VFO_A);
 
     // Get current RX and TX VFO state, do not care if we succeed or not
     tmd710_get_vfo(rig, &vfo);
     tmd710_get_split_vfo(rig, RIG_VFO_CURR, &split, &vfo);
+    rig_get_cache_routing_snapshot(rig, &routing);
 
-    rig_debug(RIG_DEBUG_TRACE, "STATE(rig)->tx_vfo: %s\n",
-              rig_strvfo(STATE(rig)->tx_vfo));
+    rig_debug(RIG_DEBUG_TRACE, "tx_vfo: %s\n",
+              rig_strvfo(routing.tx_vfo));
 
     return 0;
 }
@@ -1284,11 +1288,13 @@ int tmd710_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  */
 int tmd710_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
+    struct rig_cache_routing_snapshot routing;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+    rig_get_cache_routing_snapshot(rig, &routing);
 
     // Use the TX VFO for split
-    return tmd710_do_set_freq(rig, STATE(rig)->tx_vfo, freq);
+    return tmd710_do_set_freq(rig, routing.tx_vfo, freq);
 }
 
 /*
@@ -1297,11 +1303,13 @@ int tmd710_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq)
  */
 int tmd710_get_split_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
+    struct rig_cache_routing_snapshot routing;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+    rig_get_cache_routing_snapshot(rig, &routing);
 
     // Use the TX VFO for split
-    return tmd710_do_get_freq(rig, STATE(rig)->tx_vfo, freq);
+    return tmd710_do_get_freq(rig, routing.tx_vfo, freq);
 }
 
 static int tmd710_find_ctcss_index(RIG *rig, tone_t tone, int *ctcss_index)
@@ -1722,7 +1730,8 @@ static int tmd710_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
     return retval;
 }
 
-static int tmd710_get_rptr_shift_tmd710_value(rptr_shift_t shift, int *tmd710_shift)
+static int tmd710_get_rptr_shift_tmd710_value(rptr_shift_t shift,
+        int *tmd710_shift)
 {
     switch (shift)
     {
@@ -1774,7 +1783,8 @@ int tmd710_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift)
     return tmd710_push_fo(rig, vfo, &fo_struct);
 }
 
-static int tmd710_get_rptr_shift_hamlib_value(int tmd710_shift, rptr_shift_t *shift)
+static int tmd710_get_rptr_shift_hamlib_value(int tmd710_shift,
+        rptr_shift_t *shift)
 {
     switch (tmd710_shift)
     {
@@ -2008,6 +2018,8 @@ int tmd710_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     char vfobuf[16], ackbuf[16];
     int retval;
     int ctrl_vfo_index;
+    split_t actual_split;
+    vfo_t rxvfo;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called vfo: %s, txvfo: %s\n", __func__,
               rig_strvfo(vfo), rig_strvfo(txvfo));
@@ -2030,7 +2042,9 @@ int tmd710_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
         return retval;
     }
 
-    STATE(rig)->tx_vfo = txvfo;
+    rxvfo = ctrl_vfo_index == TMD710_BAND_A ? RIG_VFO_A : RIG_VFO_B;
+    actual_split = rxvfo == txvfo ? RIG_SPLIT_OFF : RIG_SPLIT_ON;
+    rig_set_split_routing_state(rig, actual_split, rxvfo, txvfo);
 
     return RIG_OK;
 }
@@ -2039,6 +2053,7 @@ int tmd710_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *txvfo)
 {
     char buf[10];
     int retval;
+    vfo_t rxvfo;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
@@ -2049,6 +2064,17 @@ int tmd710_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *txvfo)
     if (retval != RIG_OK)
     {
         return retval;
+    }
+
+    switch (buf[3])
+    {
+    case '0': rxvfo = RIG_VFO_A; break;
+
+    case '1': rxvfo = RIG_VFO_B; break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: Unexpected rxVFO value '%c'\n", __func__, buf[3]);
+        return -RIG_EPROTO;
     }
 
     switch (buf[5])
@@ -2062,11 +2088,9 @@ int tmd710_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *txvfo)
         return -RIG_EPROTO;
     }
 
-    STATE(rig)->tx_vfo = *txvfo;
-
-    // Rig is always in "split mode" and VFOs are targetable, so simply check current and TX VFOs
-    *split = STATE(rig)->current_vfo == STATE(rig)->tx_vfo ? RIG_SPLIT_OFF :
-             RIG_SPLIT_ON;
+    // Rig is always in "split mode" and VFOs are targetable.
+    *split = rxvfo == *txvfo ? RIG_SPLIT_OFF : RIG_SPLIT_ON;
+    rig_set_split_routing_state(rig, *split, rxvfo, *txvfo);
 
     return RIG_OK;
 }
@@ -2097,7 +2121,7 @@ int tmd710_get_mem(RIG *rig, vfo_t vfo, int *ch)
     }
     else
     {
-        vfonum = STATE(rig)->current_vfo == RIG_VFO_A ? 0 : 1;
+        vfonum = rig_get_current_vfo_state(rig) == RIG_VFO_A ? 0 : 1;
     }
 
     snprintf(cmd, sizeof(cmd), "MR %d", vfonum);
@@ -2143,7 +2167,7 @@ int tmd710_set_mem(RIG *rig, vfo_t vfo, int ch)
     }
     else
     {
-        vfonum = STATE(rig)->current_vfo == RIG_VFO_A ? 0 : 1;
+        vfonum = rig_get_current_vfo_state(rig) == RIG_VFO_A ? 0 : 1;
     }
 
     snprintf(cmd, sizeof(cmd), "MR %d,%03d", vfonum, ch);
@@ -2476,7 +2500,7 @@ int tmd710_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         /* range [0.0 ... 1.0] */
         val->f = (float)(l - TMD710_RF_POWER_MIN) / (float)(TMD710_RF_POWER_MAX -
-                 TMD710_RF_POWER_MIN);
+            TMD710_RF_POWER_MIN);
 
         // RF power needs to be inverted
         val->f = 1.0f - val->f;

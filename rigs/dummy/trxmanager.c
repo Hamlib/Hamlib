@@ -29,6 +29,7 @@
 #include "hamlib/port.h"
 #include "hamlib/rig_state.h"
 #include "iofunc.h"
+#include "misc.h"
 
 #include "trxmanager.h"
 
@@ -915,7 +916,7 @@ static int trxmanager_set_vfo(RIG *rig, vfo_t vfo)
     }
 
     priv->vfo_curr = vfo;
-    rs->tx_vfo = RIG_VFO_B; // always VFOB
+    rig_set_tx_vfo_state(rig, RIG_VFO_B); // always VFOB
     retval = read_transaction(rig, response, sizeof(response));
 
     if (retval != RIG_OK)
@@ -1209,4 +1210,3 @@ static const char *trxmanager_get_info(RIG *rig)
 
     return priv->info;
 }
-
