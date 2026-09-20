@@ -31,6 +31,7 @@
 #include "hamlib/rig.h"
 #include "kenwood.h"
 #include "bandplan.h"
+#include "cache.h"
 #include "misc.h"
 #include "flex.h"
 
@@ -179,7 +180,7 @@ static int flex6k_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     if ((vfo == RIG_VFO_VFO) || (vfo == RIG_VFO_CURR))
     {
-        vfo = STATE(rig)->current_vfo;
+        vfo = rig_get_current_vfo_state(rig);
         rig_debug(RIG_DEBUG_VERBOSE, "%s: setting VFO to current\n", __func__);
     }
 
@@ -276,7 +277,7 @@ static int powersdr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
 
     if ((vfo == RIG_VFO_VFO) || (vfo == RIG_VFO_CURR))
     {
-        vfo = STATE(rig)->current_vfo;
+        vfo = rig_get_current_vfo_state(rig);
         rig_debug(RIG_DEBUG_VERBOSE, "%s: setting VFO to current\n", __func__);
     }
 
@@ -452,7 +453,7 @@ static int flex6k_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if ((vfo == RIG_VFO_VFO) || (vfo == RIG_VFO_CURR))
     {
-        vfo = STATE(rig)->current_vfo;
+        vfo = rig_get_current_vfo_state(rig);
         rig_debug(RIG_DEBUG_VERBOSE, "%s: setting VFO to current\n", __func__);
     }
 
@@ -524,7 +525,7 @@ static int powersdr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if ((vfo == RIG_VFO_VFO) || (vfo == RIG_VFO_CURR))
     {
-        vfo = STATE(rig)->current_vfo;
+        vfo = rig_get_current_vfo_state(rig);
         rig_debug(RIG_DEBUG_VERBOSE, "%s: setting VFO to current\n", __func__);
     }
 
@@ -841,7 +842,8 @@ static int flex6k_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 /*
  * powersdr_get_level
  */
-static int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+static int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level,
+                              value_t *val)
 {
     char lvlbuf[KENWOOD_MAX_BUF_LEN];
     const char *cmd;
@@ -1779,4 +1781,3 @@ struct rig_caps thetis_caps =
     .wait_morse =  rig_wait_morse,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
-

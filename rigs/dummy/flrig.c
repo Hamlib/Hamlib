@@ -262,14 +262,16 @@ static struct s_modeMap modeMap[] =
 };
 
 // Fallback mappings between modes
-struct s_fmodeMap {
+struct s_fmodeMap
+{
     rmode_t mode_flrig;
     char *old_mode_hamlib;
     char *new_mode_hamlib;
 };
 
 // Some radios (icom) provide PKT data on LSB/USB-D1 by default. Add these modes.
-static struct s_fmodeMap fmodeMap[] = {
+static struct s_fmodeMap fmodeMap[] =
+{
     { RIG_MODE_PKTLSB, "PKTLSB", "LSB-D1" },
     { RIG_MODE_PKTUSB, "PKTUSB", "USB-D1" },
     {0, NULL, NULL}
@@ -298,6 +300,20 @@ static int check_vfo(vfo_t vfo)
     }
 
     return (TRUE);
+}
+
+static pbwidth_t flrig_get_cached_width(RIG *rig, vfo_t vfo)
+{
+    freq_t freq;
+    rmode_t mode;
+    pbwidth_t width = 0;
+    int cache_ms_freq;
+    int cache_ms_mode;
+    int cache_ms_width;
+
+    rig_get_cache(rig, vfo, &freq, &cache_ms_freq, &mode,
+                  &cache_ms_mode, &width, &cache_ms_width);
+    return width;
 }
 
 /*Rather than use some huge XML library we only need a few things
@@ -653,7 +669,7 @@ static int flrig_init(RIG *rig)
     rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __func__, rig->caps->version);
 
     STATE(rig)->priv  = (struct flrig_priv_data *)calloc(1, sizeof(
-                            struct flrig_priv_data));
+            struct flrig_priv_data));
 
     if (!STATE(rig)->priv)
     {
@@ -668,7 +684,7 @@ static int flrig_init(RIG *rig)
     /*
      * set arbitrary initial status
      */
-    STATE(rig)->current_vfo = RIG_VFO_A;
+    rig_set_current_vfo_state(rig, RIG_VFO_A);
     priv->split = 0;
     priv->ptt = 0;
     priv->curr_modeA = -1;
@@ -758,7 +774,8 @@ static rmode_t modeMapGetHamlib(const char *modeFLRig)
 * modeMapAdd
 * Assumes modes!=NULL
 */
-static void modeMapAdd(rmode_t *modes, rmode_t mode_hamlib, char *mode_flrig, int force)
+static void modeMapAdd(rmode_t *modes, rmode_t mode_hamlib, char *mode_flrig,
+                       int force)
 {
     int len1;
 
@@ -823,6 +840,7 @@ static int flrig_open(RIG *rig)
     char *pr;
     split_t split;
     vfo_t tx_vfo;
+    vfo_t current_vfo;
 
     struct rig_state *rs = STATE(rig);
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rs->priv;
@@ -994,17 +1012,11 @@ static int flrig_open(RIG *rig)
 
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
-    if (streq(value, "A"))
-    {
-        rs->current_vfo = RIG_VFO_A;
-    }
-    else
-    {
-        rs->current_vfo = RIG_VFO_B;
-    }
+    current_vfo = streq(value, "A") ? RIG_VFO_A : RIG_VFO_B;
+    rig_set_current_vfo_state(rig, current_vfo);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: currvfo=%s value=%s\n", __func__,
-              rig_strvfo(rs->current_vfo), value);
+              rig_strvfo(current_vfo), value);
     //vfo_t vfo=RIG_VFO_A;
     //vfo_t vfo_tx=RIG_VFO_B; // split is always VFOB
     //flrig_get_split_vfo(rig, vfo, &priv->split, &vfo_tx);
@@ -1130,11 +1142,13 @@ static int flrig_open(RIG *rig)
     }
 
     // fallback between modes
-    for (struct s_fmodeMap *mode = fmodeMap; mode->old_mode_hamlib != NULL; mode++) {
-	if (modeMapGetHamlib(mode->old_mode_hamlib) == RIG_MODE_NONE &&
-		modeMapGetHamlib(mode->new_mode_hamlib) != RIG_MODE_NONE) {
-	    modeMapAdd(&modes, mode->mode_flrig, mode->new_mode_hamlib, 1);
-	}
+    for (struct s_fmodeMap *mode = fmodeMap; mode->old_mode_hamlib != NULL; mode++)
+    {
+        if (modeMapGetHamlib(mode->old_mode_hamlib) == RIG_MODE_NONE &&
+                modeMapGetHamlib(mode->new_mode_hamlib) != RIG_MODE_NONE)
+        {
+            modeMapAdd(&modes, mode->mode_flrig, mode->new_mode_hamlib, 1);
+        }
     }
 
     rs->mode_list = modes;
@@ -1201,6 +1215,7 @@ static int flrig_cleanup(RIG *rig)
     // model_flrig was not getting refilled
     // if we can figure out that one we can re-enable this
 #if 0
+
     for (int i = 0; modeMap[i].mode_hamlib != 0; ++i)
     {
         if (modeMap[i].mode_flrig)
@@ -1240,7 +1255,7 @@ static int flrig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = STATE(rig)->current_vfo;
+        vfo = rig_get_current_vfo_state(rig);
         rig_debug(RIG_DEBUG_TRACE, "%s: get_freq2 vfo=%s\n",
                   __func__, rig_strvfo(vfo));
     }
@@ -1310,7 +1325,7 @@ static int flrig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = STATE(rig)->current_vfo;
+        vfo = rig_get_current_vfo_state(rig);
     }
     else if (vfo == RIG_VFO_TX && priv->split)
     {
@@ -1453,7 +1468,7 @@ static int flrig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t mode,
     switch (vfo)
     {
     case RIG_VFO_CURR:
-        vfo = STATE(rig)->current_vfo;
+        vfo = rig_get_current_vfo_state(rig);
         break;
 
     case RIG_VFO_TX:
@@ -1488,6 +1503,7 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     int retval;
     int needBW;
     int vfoSwitched;
+    vfo_t current_vfo;
     char cmd_arg[MAXCMDLEN];
     char *p;
     char *pttmode;
@@ -1508,9 +1524,11 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         RETURNFUNC(RIG_OK);
     }
 
+    current_vfo = rig_get_current_vfo_state(rig);
+
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = rs->current_vfo;
+        vfo = current_vfo;
     }
 
     if (check_vfo(vfo) == FALSE)
@@ -1530,11 +1548,11 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     // MDB
     vfoSwitched = 0;
     rig_debug(RIG_DEBUG_TRACE, "%s: curr_vfo = %s\n", __func__,
-              rig_strvfo(rs->current_vfo));
+              rig_strvfo(current_vfo));
 
     // If we don't have the get_bwA call we have to switch VFOs ourself
     if (!priv->has_get_bwA && vfo == RIG_VFO_B
-            && rs->current_vfo != RIG_VFO_B)
+            && current_vfo != RIG_VFO_B)
     {
         vfoSwitched = 1;
         rig_debug(RIG_DEBUG_TRACE, "%s: switch to VFOB = %d\n", __func__,
@@ -1725,11 +1743,11 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    curr_vfo = rs->current_vfo;
+    curr_vfo = rig_get_current_vfo_state(rig);
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = rs->current_vfo;
+        vfo = curr_vfo;
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: using vfo=%s\n", __func__,
@@ -1818,7 +1836,7 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         {
             rig_debug(RIG_DEBUG_WARN, "%s: empty value, returning cached bandwidth\n",
                       __func__);
-            *width = CACHE(rig)->widthMainA;
+            *width = flrig_get_cached_width(rig, RIG_VFO_A);
             RETURNFUNC(RIG_OK);
         }
 
@@ -1845,7 +1863,7 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
             {
                 rig_debug(RIG_DEBUG_WARN, "%s: empty value, returning cached bandwidth\n",
                           __func__);
-                *width = CACHE(rig)->widthMainA;
+                *width = flrig_get_cached_width(rig, RIG_VFO_A);
                 RETURNFUNC(RIG_OK);
             }
 
@@ -1947,7 +1965,7 @@ static int flrig_set_vfo(RIG *rig, vfo_t vfo)
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = rs->current_vfo;
+        vfo = rig_get_current_vfo_state(rig);
     }
 
     SNPRINTF(cmd_arg, sizeof(cmd_arg),
@@ -1962,8 +1980,7 @@ static int flrig_set_vfo(RIG *rig, vfo_t vfo)
         RETURNFUNC(retval);
     }
 
-    rs->current_vfo = vfo;
-    rs->tx_vfo = RIG_VFO_B; // always VFOB
+    rig_set_vfo_state(rig, vfo, RIG_VFO_B); // always VFOB
 
     /* for some rigs FLRig turns off split when VFOA is selected */
     /* so if we are in split and asked for A we have to turn split back on */
@@ -2026,7 +2043,7 @@ static int flrig_get_vfo(RIG *rig, vfo_t *vfo)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    STATE(rig)->current_vfo = *vfo;
+    rig_set_current_vfo_state(rig, *vfo);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
               rig_strvfo(*vfo));
@@ -2321,7 +2338,7 @@ float interpolateSWR(float mtr)
         {
             // Perform linear interpolation
             float slope = (swrtbl[i + 1].swr - swrtbl[i].swr) / (swrtbl[i + 1].mtr -
-                          swrtbl[i].mtr);
+                swrtbl[i].mtr);
             float swr = round((swrtbl[i].swr + slope * (mtr - swrtbl[i].mtr)) * 10) / 10.0;
             rig_debug(RIG_DEBUG_VERBOSE, "%s: swr=%f\n", __func__, swr);
             return swr;
@@ -2657,11 +2674,13 @@ int flrig_set_func(RIG *rig, vfo_t vfo, setting_t func,
 // Allow FlRig to be "powered down" that is send it a shutdown command.
 // Note - RIG_POWER_ON is deliberately not supported as launching FlRig
 // is outside the scope of Hamlib.
-static int flrig_set_powerstat(RIG *rig, powerstat_t status) {
+static int flrig_set_powerstat(RIG *rig, powerstat_t status)
+{
     int retval;
 
     ENTERFUNC;
-    switch(status)
+
+    switch (status)
     {
     case RIG_POWER_OFF:
         retval = flrig_transaction(rig, "rig.shutdown", NULL, NULL, 0);
@@ -2673,6 +2692,7 @@ static int flrig_set_powerstat(RIG *rig, powerstat_t status) {
         break;
 
     }
+
     RETURNFUNC(retval);
 }
 

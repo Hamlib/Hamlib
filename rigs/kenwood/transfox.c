@@ -25,6 +25,7 @@
 
 #include "hamlib/rig.h"
 #include "kenwood.h"
+#include "misc.h"
 
 
 #define TRANSFOX_MODES (RIG_MODE_USB)   /* SDR */
@@ -170,7 +171,7 @@ int transfox_open(RIG *rig)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-    STATE(rig)->current_vfo = RIG_VFO_A;
+    rig_set_current_vfo_state(rig, RIG_VFO_A);
 
     /* do not call kenwood_open(rig), rig has no "ID" command */
 
@@ -397,4 +398,3 @@ int transfox_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     return RIG_OK;
 }
-
