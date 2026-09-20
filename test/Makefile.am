@@ -27,6 +27,9 @@ AM_CPPFLAGS = -DIN_HAMLIB -D__USE_MINGW_ANSI_STDIO=1 -DWIN32_LEAN_AND_MEAN -I$(t
 
 LDADD = $(top_builddir)/src/libhamlib.la $(top_builddir)/lib/libmisc.la $(DL_LIBS) -lm
 
+# test_netrigctl_stream names its rigctld logs after the port it picked
+CLEANFILES = rigctld-*.log
+
 check_PROGRAMS = test_stream_ringbuf test_stream_convert test_stream_codec test_stream_time test_stream_account test_stream_api test_dummy_stream test_rigctld_stream test_rigstreamtest test_rigctld_commands test_netrigctl_stream
 
 test_stream_codec_SOURCES = test_stream_codec.c
