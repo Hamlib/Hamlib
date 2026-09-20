@@ -187,7 +187,9 @@ int main(void)
     size_t main_freq_mark, sub_freq_mark, main_mode_mark, sub_mode_mark;
     size_t band_sel_mark, ovf_mark, ip_plus_mark;
     vfo_t selected_main = RIG_VFO_NONE, selected_sub = RIG_VFO_NONE;
+    vfo_t selected_after_refusal = RIG_VFO_NONE;
     int main_sel_retval, sub_sel_retval;
+    int get_vfo_survived;
     int ovf_retval, ip_plus_retval;
     int ovf_status = 0;
     rmode_t mode;
@@ -199,6 +201,8 @@ int main(void)
     RIG *rig;
     int parm_retval;
     int failed = 0;
+    /* rig_caps is documented read-only; hold a copy to prove it stayed so */
+    static struct rig_caps caps_snapshot;
 
 #ifdef _WIN32
     WSADATA wsa_data;
@@ -210,6 +214,8 @@ int main(void)
     }
 
 #endif
+
+    memcpy(&caps_snapshot, &ic7760_caps, sizeof(caps_snapshot));
 
     rig_register(&ic7760_caps);
     rig = rig_init(RIG_MODEL_IC7760);
@@ -316,9 +322,25 @@ int main(void)
     ip_plus_retval = rig_set_ext_func(rig, RIG_VFO_CURR,
                                       rig_ext_token_lookup(rig, "IPP"), 1);
 
+    /*
+     * A rig that refuses 07 D2 must cost this handle its get_vfo and no
+     * one else's.  rig_caps is one static per model, shared by every rig
+     * opened from it, so anything written there outlives this handle.
+     */
+    test.band_sel_answer = -1;
+    rig_get_vfo(rig, &selected_after_refusal);
+    get_vfo_survived = ic7760_caps.get_vfo != NULL;
+
     close_test_socket(sockets[0]);
     close_test_socket(sockets[1]);
     pthread_join(thread, NULL);
+
+    if (!get_vfo_survived)
+    {
+        fprintf(stderr, "one refused 07 D2 cleared get_vfo in ic7760_caps,"
+                " which every IC-7760 in the process shares\n");
+        failed = 1;
+    }
 
     if (!oversized_answered)
     {
@@ -493,6 +515,17 @@ int main(void)
     STATE(rig)->comm_state = 0;
     RIGPORT(rig)->fd = -1;
     rig_cleanup(rig);
+
+    /*
+     * Wider than the get_vfo case above: no field of the shared caps may
+     * change, whatever this test made the library do.
+     */
+    if (memcmp(&caps_snapshot, &ic7760_caps, sizeof(caps_snapshot)) != 0)
+    {
+        fprintf(stderr, "ic7760_caps changed while the test ran, but the"
+                " model's caps are shared by every handle in the process\n");
+        failed = 1;
+    }
 
 #ifdef _WIN32
     WSACleanup();
