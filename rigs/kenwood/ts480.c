@@ -507,6 +507,9 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     size_t ack_len, ack_len_expected;
     int levelint;
     int retval;
+    int cache_ms;
+    int timeout_ms;
+    ptt_t ptt;
 
     ENTERFUNC;
 
@@ -599,7 +602,9 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         RETURNFUNC(RIG_OK);
 
     case RIG_LEVEL_STRENGTH:
-        if (CACHE(rig)->ptt != RIG_PTT_OFF)
+        rig_get_cache_ptt(rig, &ptt, &cache_ms, &timeout_ms);
+
+        if (ptt != RIG_PTT_OFF)
         {
             val->i = -9 * 6;
             break;
@@ -726,7 +731,9 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     {
         int raw_value;
 
-        if (CACHE(rig)->ptt == RIG_PTT_OFF)
+        rig_get_cache_ptt(rig, &ptt, &cache_ms, &timeout_ms);
+
+        if (ptt == RIG_PTT_OFF)
         {
             val->f = 0;
             break;
@@ -2571,16 +2578,20 @@ static int malachite_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 static int malachite_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     int retval;
-    struct rig_cache *cachep = CACHE(rig);
+    freq_t freq_main_a;
 
     ENTERFUNC;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: freqMainA=%g, freq=%g\n", __func__,
-              cachep->freqMainA, freq);
+    retval = rig_get_cache_freq(rig, RIG_VFO_A, &freq_main_a, NULL);
 
-    if ((cachep->freqMainA < 400000000 && freq >= 400000000)
-            || (cachep->freqMainA >= 400000000 && freq < 400000000)
-            || cachep->freqMainA == 0)
+    if (retval != RIG_OK) { RETURNFUNC(retval); }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: freqMainA=%g, freq=%g\n", __func__,
+              freq_main_a, freq);
+
+    if ((freq_main_a < 400000000 && freq >= 400000000)
+            || (freq_main_a >= 400000000 && freq < 400000000)
+            || freq_main_a == 0)
     {
         // Malachite has a bug where it takes two freq set to make it work
         // under band changes -- so we just do this all the time

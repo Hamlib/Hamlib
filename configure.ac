@@ -227,6 +227,13 @@ AC_TYPE_SIZE_T
 AC_CHECK_TYPES([siginfo_t],[],[],[[#include <signal.h>]])
 AC_CHECK_TYPES([sig_atomic_t],[],[],[[#include <signal.h>]])
 
+dnl Check for TIOCEXCL ioctl constant for exclusive port access
+AC_MSG_CHECKING([for TIOCEXCL ioctl constant])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [[#include <sys/ioctl.h>]],
+    [[int x = TIOCEXCL;]])],
+    [AC_MSG_RESULT([yes])
+     AC_DEFINE([HAVE_TIOCEXCL], [1], [Define if TIOCEXCL is available])])
 
 dnl Checks for libraries.
 

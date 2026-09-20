@@ -24,6 +24,7 @@
 #include "hamlib/rig.h"
 #include "hamlib/port.h"
 #include "hamlib/rig_state.h"
+#include "cache.h"
 
 /*
  * FTX-1 rig ID constants
@@ -86,9 +87,11 @@
 static inline int ftx1_vfo_to_p1(RIG *rig, vfo_t vfo)
 {
     /* Resolve currVFO to actual VFO */
-    if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_NONE) {
-        vfo = STATE(rig)->current_vfo;
+    if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_NONE)
+    {
+        vfo = rig_get_current_vfo_state(rig);
     }
+
     return (vfo == RIG_VFO_SUB || vfo == RIG_VFO_B) ? 1 : 0;
 }
 

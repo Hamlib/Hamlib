@@ -35,6 +35,7 @@
 #include "hamlib/rig_state.h"
 #include "serial.h"
 #include "misc.h"
+#include "cache.h"
 #include "register.h"
 #include "cal.h"
 
@@ -467,7 +468,7 @@ int elad_safe_transaction(RIG *rig, const char *cmd, char *buf,
                                    occasionally send short results */
         {
             rig_debug(RIG_DEBUG_ERR, "%s: wrong answer; len for cmd %s: "
-                      "expected = %d, got %d\n",
+                                     "expected = %d, got %d\n",
                       __func__, cmd, (int)expected, (int)length);
             err =  -RIG_EPROTO;
             hl_usleep(rig->caps->timeout * 1000);
@@ -1192,7 +1193,7 @@ int elad_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     tvfo = (vfo == RIG_VFO_CURR
-            || vfo == RIG_VFO_VFO) ? STATE(rig)->current_vfo : vfo;
+            || vfo == RIG_VFO_VFO) ? rig_get_current_vfo_state(rig) : vfo;
 
     if (RIG_VFO_CURR == tvfo)
     {
@@ -1316,7 +1317,7 @@ int elad_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
     tvfo = (vfo == RIG_VFO_CURR
-            || vfo == RIG_VFO_VFO) ? STATE(rig)->current_vfo : vfo;
+            || vfo == RIG_VFO_VFO) ? rig_get_current_vfo_state(rig) : vfo;
 
     if (RIG_VFO_CURR == tvfo)
     {
@@ -2138,7 +2139,7 @@ int elad_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                 if (STATE(rig)->attenuator[i] == 0)
                 {
                     rig_debug(RIG_DEBUG_ERR, "%s: "
-                              "unexpected att level %d\n",
+                                             "unexpected att level %d\n",
                               __func__, lvl);
                     return -RIG_EPROTO;
                 }
@@ -2175,7 +2176,7 @@ int elad_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                 if (STATE(rig)->preamp[i] == 0)
                 {
                     rig_debug(RIG_DEBUG_ERR, "%s: "
-                              "unexpected preamp level %d\n",
+                                             "unexpected preamp level %d\n",
                               __func__, lvl);
                     return -RIG_EPROTO;
                 }
@@ -2191,7 +2192,7 @@ int elad_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         else
         {
             rig_debug(RIG_DEBUG_ERR, "%s: "
-                      "unexpected preamp char '%c'\n",
+                                     "unexpected preamp char '%c'\n",
                       __func__, lvlbuf[2]);
             return -RIG_EPROTO;
         }
@@ -3753,7 +3754,7 @@ DECLARE_PROBERIG_BACKEND(elad)
     {
         idbuf[7] = '\0';
         rig_debug(RIG_DEBUG_VERBOSE, "probe_elad: protocol error, "
-                  " expected %d, received %d: %s\n",
+                                     " expected %d, received %d: %s\n",
                   6, id_len, idbuf);
         return RIG_MODEL_NONE;
     }
@@ -3765,7 +3766,7 @@ DECLARE_PROBERIG_BACKEND(elad)
         if (!strncmp(elad_id_string_list[i].id, idbuf + 2, 16))
         {
             rig_debug(RIG_DEBUG_VERBOSE, "probe_elad: "
-                      "found %s\n", idbuf + 2);
+                                         "found %s\n", idbuf + 2);
 
             if (cfunc)
             {
@@ -3822,7 +3823,7 @@ DECLARE_PROBERIG_BACKEND(elad)
         if (elad_id_list[i].id == k_id)
         {
             rig_debug(RIG_DEBUG_VERBOSE, "probe_elad: "
-                      "found %03d\n", k_id);
+                                         "found %03d\n", k_id);
 
             if (cfunc)
             {
@@ -3838,8 +3839,8 @@ DECLARE_PROBERIG_BACKEND(elad)
      * update elad_id_list[]!
      */
     rig_debug(RIG_DEBUG_WARN, "probe_elad: found unknown device "
-              "with ID %03d, please report to Hamlib "
-              "developers.\n", k_id);
+                              "with ID %03d, please report to Hamlib "
+                              "developers.\n", k_id);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: post_write_delay=%d\n", __func__,
               port->post_write_delay);

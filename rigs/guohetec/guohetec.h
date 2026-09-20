@@ -24,33 +24,74 @@
 #define _guohetec_H_
 
 #include "hamlib/rig.h"
+#include "cache.h"
 
 #define GUOHE_STATUS_CMD_LENGTH 8
 #define GUOHE_MAX_FRAME_LENGTH 260
 
-#define GUOHE_MODE_TABLE_MAX 8  
+#define GUOHE_MODE_TABLE_MAX 8
+
+static inline int guohetec_get_cached_freq(RIG *rig, vfo_t vfo, freq_t *freq)
+{
+    rmode_t mode;
+    pbwidth_t width;
+    int cache_ms_freq;
+    int cache_ms_mode;
+    int cache_ms_width;
+
+    return rig_get_cache_internal(rig, vfo, freq, &cache_ms_freq, &mode,
+                                  &cache_ms_mode, &width, &cache_ms_width);
+}
+
+static inline int guohetec_get_cached_mode(RIG *rig, vfo_t vfo,
+        rmode_t *mode)
+{
+    freq_t freq;
+    pbwidth_t width;
+    int cache_ms_freq;
+    int cache_ms_mode;
+    int cache_ms_width;
+
+    return rig_get_cache_internal(rig, vfo, &freq, &cache_ms_freq, mode,
+                                  &cache_ms_mode, &width, &cache_ms_width);
+}
+
+static inline void guohetec_get_cached_vfo(RIG *rig, vfo_t *vfo)
+{
+    int cache_ms;
+    int timeout_ms;
+
+    rig_get_cached_vfo(rig, vfo, &cache_ms, &timeout_ms);
+}
+
+static inline void guohetec_get_cached_ptt(RIG *rig, ptt_t *ptt)
+{
+    int cache_ms;
+    int timeout_ms;
+
+    rig_get_cache_ptt(rig, ptt, &cache_ms, &timeout_ms);
+}
 
 // Common error handling macros for cached values
 #define RETURN_CACHED_FREQ(rig, vfo, freq) do { \
-    *(freq) = (vfo == RIG_VFO_A) ? CACHE(rig)->freqMainA : CACHE(rig)->freqMainB; \
-    return RIG_OK; \
-} while(0)
+    return guohetec_get_cached_freq((rig), (vfo), (freq)); \
+} while (0)
 
-#define RETURN_CACHED_MODE(rig, vfo, mode, width, cachep, p) do { \
-    *(mode) = (vfo == RIG_VFO_A) ? (cachep)->modeMainA : (cachep)->modeMainB; \
-    *(width) = (p)->filterBW; \
-    return RIG_OK; \
-} while(0)
+#define RETURN_CACHED_MODE(rig, vfo, mode, width, p) do { \
+    int cache_status_ = guohetec_get_cached_mode((rig), (vfo), (mode)); \
+    if (cache_status_ == RIG_OK) { *(width) = (p)->filterBW; } \
+    return cache_status_; \
+} while (0)
 
 #define RETURN_CACHED_VFO(rig, vfo) do { \
-    *(vfo) = CACHE(rig)->vfo; \
+    guohetec_get_cached_vfo((rig), (vfo)); \
     return RIG_OK; \
-} while(0)
+} while (0)
 
-#define RETURN_CACHED_PTT(rig, ptt, cachep) do { \
-    *(ptt) = (cachep)->ptt; \
+#define RETURN_CACHED_PTT(rig, ptt) do { \
+    guohetec_get_cached_ptt((rig), (ptt)); \
     return RIG_OK; \
-} while(0)
+} while (0)
 
 extern struct rig_caps pmr171_caps;
 extern struct rig_caps q900_caps;

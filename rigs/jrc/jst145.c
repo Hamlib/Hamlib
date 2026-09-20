@@ -341,13 +341,13 @@ static int jst145_get_vfo(RIG *rig, vfo_t *vfo)
 
     jst145_get_ptt(rig, RIG_VFO_A,
                    &ptt); // set priv->ptt to current transmit status
-    CACHE(rig)->ptt = ptt;
+    rig_set_cache_ptt(rig, ptt);
 
 ptt_retry:
 
     if (ptt)  // can't get vfo while transmitting
     {
-        *vfo = STATE(rig)->current_vfo;
+        *vfo = rig_get_current_vfo_state(rig);
         return RIG_OK;
     }
 
@@ -374,7 +374,7 @@ static int jst145_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     char freqbuf[MAX_LEN];
     int retval;
     struct jst145_priv_data *priv = STATE(rig)->priv;
-    vfo_t save_vfo = STATE(rig)->current_vfo;
+    vfo_t save_vfo = rig_get_current_vfo_state(rig);
 
     if (vfo == RIG_VFO_CURR) { vfo = save_vfo; }
 
@@ -416,7 +416,7 @@ static int jst145_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     int freqbuf_size = sizeof(freqbuf);
     int retval;
     int n;
-    vfo_t save_vfo = STATE(rig)->current_vfo;
+    vfo_t save_vfo = rig_get_current_vfo_state(rig);
 
     //struct jst145_priv_data *priv = STATE(rig)->priv;
 
@@ -543,7 +543,7 @@ static int jst145_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     case RIG_LEVEL_AGC:
     {
         char *cmd = val.i == RIG_AGC_SLOW ? "G0\r" : (val.i == RIG_AGC_FAST ? "G1\r" :
-                    "G2\r");
+            "G2\r");
         return write_block(RIGPORT(rig), (unsigned char *) cmd, 3);
     }
 
@@ -611,7 +611,8 @@ static int jst145_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     if (pttstatus[1] == '1') { *ptt = RIG_PTT_ON; }
     else { *ptt = RIG_PTT_OFF; }
 
-    priv->ptt = CACHE(rig)->ptt = *ptt;
+    priv->ptt = *ptt;
+    rig_set_cache_ptt(rig, *ptt);
 
     return RIG_OK;
 }
