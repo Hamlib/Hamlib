@@ -183,9 +183,19 @@ int main(void)
     static const unsigned char read_band_sel[] = { 0x07, 0xd2 };
     static const unsigned char read_ovf[] = { 0x15, 0x07 };
     static const unsigned char ip_plus_on[] = { 0x16, 0x65, 0x01 };
+    /* 27 15 <scope> <span/2 in BCD>: 50 kHz goes on the wire as 25 kHz */
+    static const unsigned char span_main_set[] =
+    { 0x27, 0x15, 0x00, 0x00, 0x50, 0x02, 0x00, 0x00 };
+    static const unsigned char span_sub_set[] =
+    { 0x27, 0x15, 0x01, 0x00, 0x50, 0x02, 0x00, 0x00 };
+    static const unsigned char span_main_read[] = { 0x27, 0x15, 0x00 };
+    static const unsigned char span_sub_read[] = { 0x27, 0x15, 0x01 };
     powerstat_t status = RIG_POWER_OFF;
     size_t main_freq_mark, sub_freq_mark, main_mode_mark, sub_mode_mark;
     size_t band_sel_mark, ovf_mark, ip_plus_mark;
+    size_t span_main_set_mark, span_sub_set_mark;
+    size_t span_main_read_mark, span_sub_read_mark;
+    value_t span;
     vfo_t selected_main = RIG_VFO_NONE, selected_sub = RIG_VFO_NONE;
     vfo_t selected_after_refusal = RIG_VFO_NONE;
     int main_sel_retval, sub_sel_retval;
@@ -323,6 +333,24 @@ int main(void)
                                       rig_ext_token_lookup(rig, "IPP"), 1);
 
     /*
+     * The scope commands name their scope outright, 00 for Main and 01
+     * for Sub, so RIG_VFO_CURR has to follow the selected band rather
+     * than always landing on Main.
+     */
+    span.i = 50000;
+    STATE(rig)->current_vfo = RIG_VFO_MAIN;
+    span_main_set_mark = test.frame_count;
+    rig_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_SPECTRUM_SPAN, span);
+    span_main_read_mark = test.frame_count;
+    rig_get_level(rig, RIG_VFO_CURR, RIG_LEVEL_SPECTRUM_SPAN, &span);
+    STATE(rig)->current_vfo = RIG_VFO_SUB;
+    span_sub_set_mark = test.frame_count;
+    span.i = 50000;
+    rig_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_SPECTRUM_SPAN, span);
+    span_sub_read_mark = test.frame_count;
+    rig_get_level(rig, RIG_VFO_CURR, RIG_LEVEL_SPECTRUM_SPAN, &span);
+
+    /*
      * A rig that refuses 07 D2 must cost this handle its get_vfo and no
      * one else's.  rig_caps is one static per model, shared by every rig
      * opened from it, so anything written there outlives this handle.
@@ -454,6 +482,35 @@ int main(void)
     if (!frame_is(&test, sub_mode_mark, read_sub_mode, sizeof(read_sub_mode)))
     {
         fprintf(stderr, "get_mode SUB did not send 26 01 with Sub selected\n");
+        failed = 1;
+    }
+
+    /* 27 15 carries the scope as its first data byte: 00 Main, 01 Sub. */
+    if (!frame_is(&test, span_main_set_mark, span_main_set, sizeof(span_main_set)))
+    {
+        fprintf(stderr, "set_level SPECTRUM_SPAN CURR did not send 27 15 00"
+                " with Main selected\n");
+        failed = 1;
+    }
+
+    if (!frame_is(&test, span_main_read_mark, span_main_read, sizeof(span_main_read)))
+    {
+        fprintf(stderr, "get_level SPECTRUM_SPAN CURR did not send 27 15 00"
+                " with Main selected\n");
+        failed = 1;
+    }
+
+    if (!frame_is(&test, span_sub_set_mark, span_sub_set, sizeof(span_sub_set)))
+    {
+        fprintf(stderr, "set_level SPECTRUM_SPAN CURR did not send 27 15 01"
+                " with Sub selected\n");
+        failed = 1;
+    }
+
+    if (!frame_is(&test, span_sub_read_mark, span_sub_read, sizeof(span_sub_read)))
+    {
+        fprintf(stderr, "get_level SPECTRUM_SPAN CURR did not send 27 15 01"
+                " with Sub selected\n");
         failed = 1;
     }
 
