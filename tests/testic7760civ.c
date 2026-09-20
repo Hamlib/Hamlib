@@ -30,7 +30,7 @@
 #include "misc.h"
 #include "testicomsock.h"
 
-#define MAX_RECORDED_FRAMES 32
+#define MAX_RECORDED_FRAMES 64
 #define MAX_FRAME_LEN 32
 
 struct peer_case
@@ -42,9 +42,12 @@ struct peer_case
     atomic_size_t frame_count;
     /* which band 07 D2 answers with, or -1 to reject it like the rest */
     atomic_int band_sel_answer;
+    /* nonzero: accept 07 D0 and 07 D1, the Main and Sub selection */
+    atomic_int ack_band_select;
 };
 
 static const unsigned char nak[] = { 0xfe, 0xfe, 0xe0, 0xb2, 0xfa, 0xfd };
+static const unsigned char ack[] = { 0xfe, 0xfe, 0xe0, 0xb2, 0xfb, 0xfd };
 
 /*
  * Records the command byte of every frame and rejects it, so the backend
@@ -79,6 +82,14 @@ static void *run_peer(void *arg)
             band[6] = (unsigned char) test->band_sel_answer;
 
             if (write_all(test->fd, band, sizeof(band)) != 0) { break; }
+
+            continue;
+        }
+
+        if (length == 7 && frame[4] == 0x07
+                && (frame[5] == 0xd0 || frame[5] == 0xd1) && test->ack_band_select)
+        {
+            if (write_all(test->fd, ack, sizeof(ack)) != 0) { break; }
 
             continue;
         }
@@ -165,7 +176,7 @@ int main(void)
     pthread_t thread;
     struct peer_case test =
     {
-        .fd = -1, .frame_count = 0, .band_sel_answer = -1
+        .fd = -1, .frame_count = 0, .band_sel_answer = -1, .ack_band_select = 0
     };
     unsigned char oversized_reply[MAXFRAMELEN];
     size_t oversized_reply_len = 0;
@@ -184,9 +195,22 @@ int main(void)
     static const unsigned char read_band_sel[] = { 0x07, 0xd2 };
     static const unsigned char read_ovf[] = { 0x15, 0x07 };
     static const unsigned char ip_plus_on[] = { 0x16, 0x65, 0x01 };
+    /* 27 15 <scope> <span/2 in BCD>: 50 kHz goes on the wire as 25 kHz */
+    static const unsigned char span_main_set[] =
+    { 0x27, 0x15, 0x00, 0x00, 0x50, 0x02, 0x00, 0x00 };
+    static const unsigned char span_sub_set[] =
+    { 0x27, 0x15, 0x01, 0x00, 0x50, 0x02, 0x00, 0x00 };
+    static const unsigned char span_main_read[] = { 0x27, 0x15, 0x00 };
+    static const unsigned char span_sub_read[] = { 0x27, 0x15, 0x01 };
     powerstat_t status = RIG_POWER_OFF;
     size_t main_freq_mark, sub_freq_mark, main_mode_mark, sub_mode_mark;
     size_t band_sel_mark, ovf_mark, ip_plus_mark;
+    size_t span_main_set_mark, span_sub_set_mark;
+    size_t span_main_read_mark, span_sub_read_mark;
+    size_t span_tx_mark;
+    static const unsigned char select_main[] = { 0x07, 0xd0 };
+    static const unsigned char select_sub[] = { 0x07, 0xd1 };
+    value_t span;
     vfo_t selected_main = RIG_VFO_NONE, selected_sub = RIG_VFO_NONE;
     vfo_t selected_after_refusal = RIG_VFO_NONE;
     int main_sel_retval, sub_sel_retval;
@@ -324,6 +348,36 @@ int main(void)
                                       rig_ext_token_lookup(rig, "IPP"), 1);
 
     /*
+     * The scope commands name their scope outright, 00 for Main and 01
+     * for Sub, so RIG_VFO_CURR has to follow the selected band rather
+     * than always landing on Main.
+     */
+    span.i = 50000;
+    rig_set_current_vfo_state(rig, RIG_VFO_MAIN);
+    span_main_set_mark = test.frame_count;
+    rig_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_SPECTRUM_SPAN, span);
+    span_main_read_mark = test.frame_count;
+    rig_get_level(rig, RIG_VFO_CURR, RIG_LEVEL_SPECTRUM_SPAN, &span);
+    rig_set_current_vfo_state(rig, RIG_VFO_SUB);
+    span_sub_set_mark = test.frame_count;
+    span.i = 50000;
+    rig_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_SPECTRUM_SPAN, span);
+    span_sub_read_mark = test.frame_count;
+    rig_get_level(rig, RIG_VFO_CURR, RIG_LEVEL_SPECTRUM_SPAN, &span);
+
+    /*
+     * For RIG_VFO_TX rig_set_level() selects the receiver icom_set_vfo()
+     * picks for TX, Sub on this rig, and passes RIG_VFO_TX on: the scope
+     * byte has to name that same receiver.
+     */
+    test.ack_band_select = 1;
+    rig_set_current_vfo_state(rig, RIG_VFO_MAIN);
+    span.i = 50000;
+    span_tx_mark = test.frame_count;
+    rig_set_level(rig, RIG_VFO_TX, RIG_LEVEL_SPECTRUM_SPAN, span);
+    test.ack_band_select = 0;
+
+    /*
      * A rig that refuses 07 D2 must cost this handle its get_vfo and no
      * one else's.  rig_caps is one static per model, shared by every rig
      * opened from it, so anything written there outlives this handle.
@@ -453,6 +507,44 @@ int main(void)
     if (!frame_is(&test, sub_mode_mark, read_sub_mode, sizeof(read_sub_mode)))
     {
         fprintf(stderr, "get_mode SUB did not send 26 01 with Sub selected\n");
+        failed = 1;
+    }
+
+    /* 27 15 carries the scope as its first data byte: 00 Main, 01 Sub. */
+    if (!frame_is(&test, span_main_set_mark, span_main_set, sizeof(span_main_set)))
+    {
+        fprintf(stderr, "set_level SPECTRUM_SPAN CURR did not send 27 15 00"
+                " with Main selected\n");
+        failed = 1;
+    }
+
+    if (!frame_is(&test, span_main_read_mark, span_main_read, sizeof(span_main_read)))
+    {
+        fprintf(stderr, "get_level SPECTRUM_SPAN CURR did not send 27 15 00"
+                " with Main selected\n");
+        failed = 1;
+    }
+
+    if (!frame_is(&test, span_sub_set_mark, span_sub_set, sizeof(span_sub_set)))
+    {
+        fprintf(stderr, "set_level SPECTRUM_SPAN CURR did not send 27 15 01"
+                " with Sub selected\n");
+        failed = 1;
+    }
+
+    if (!frame_is(&test, span_sub_read_mark, span_sub_read, sizeof(span_sub_read)))
+    {
+        fprintf(stderr, "get_level SPECTRUM_SPAN CURR did not send 27 15 01"
+                " with Sub selected\n");
+        failed = 1;
+    }
+
+    if (!frame_is(&test, span_tx_mark, select_sub, sizeof(select_sub))
+            || !frame_is(&test, span_tx_mark + 1, span_sub_set, sizeof(span_sub_set))
+            || !frame_is(&test, span_tx_mark + 2, select_main, sizeof(select_main)))
+    {
+        fprintf(stderr, "set_level SPECTRUM_SPAN TX with Main selected did not"
+                " send 07 D1, 27 15 01, 07 D0\n");
         failed = 1;
     }
 
