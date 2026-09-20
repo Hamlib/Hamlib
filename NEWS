@@ -64,6 +64,8 @@ Version 4.7.3
           get.  GitHub PR #2121.  (TNX Chris Lawson)
         * G90: Correct advertised modes/levels/funcs/ranges, clamp RFPOWER.
           GitHub PR #2153.  (TNX jbdubbs)
+        * Fix(FTX-1): Correct DCS parser format type.  GitHub PR #2156.
+          (TNX David Christle)
 
 Version 4.7.2
         * 2026-06-21
