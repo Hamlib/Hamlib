@@ -1,3 +1,10 @@
+check_PROGRAMS += testaclog
+TESTS += testaclog
+testaclog_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testaclog_SOURCES = testaclog.c
+testaclog_LDADD = $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
+
 check_PROGRAMS += testdummyparm
 TESTS += testdummyparm
 
