@@ -1,0 +1,31 @@
+check_PROGRAMS += testctlparser
+TESTS += testctlparser
+testctlparser_SOURCES = testctlparser.c $(RIGCOMMONSRC)
+testctlparser_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testctlparser_LDADD = $(PTHREAD_LIBS) $(READLINE_LIBS) \
+	$(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
+
+check_PROGRAMS += testnetrigctl
+GENERATED_TEST_WRAPPERS += \
+	testnetrigctl.sh \
+	testnetrigctllocale.sh
+testnetrigctl_SOURCES = testnetrigctl.c \
+	$(top_srcdir)/rigs/dummy/dummy_common.c
+testnetrigctl_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testnetrigctl_LDADD = $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
+
+check_PROGRAMS += testrigctlprotocol
+TESTS += testrigctlprotocol
+testrigctlprotocol_LDADD = $(LDADD)
+
+$(top_builddir)/rigs/dummy/libhamlib-dummy.la:
+	$(MAKE) -C $(top_builddir)/rigs/dummy/ libhamlib-dummy.la
+
+testnetrigctl.sh:
+	echo './testnetrigctl' > testnetrigctl.sh
+	chmod +x ./testnetrigctl.sh
+
+testnetrigctllocale.sh:
+	echo './testnetrigctl --locale' > testnetrigctllocale.sh
+	chmod +x ./testnetrigctllocale.sh

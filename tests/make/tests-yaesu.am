@@ -1,0 +1,21 @@
+check_PROGRAMS += testft991idmeter
+TESTS += testft991idmeter
+testft991idmeter_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/yaesu
+testft991idmeter_LDADD = \
+	$(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
+
+check_PROGRAMS += testftx1parsers
+TESTS += testftx1parsers
+testftx1parsers_CPPFLAGS = $(AM_CPPFLAGS) \
+	-I$(top_srcdir)/rigs/yaesu/ftx1
+testftx1parsers_LDADD = \
+	$(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
+
+check_PROGRAMS += testnewcatset
+TESTS += testnewcatset
+testnewcatset_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testnewcatset_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
+
+$(top_builddir)/rigs/yaesu/libhamlib-yaesu.la:
+	$(MAKE) -C $(top_builddir)/rigs/yaesu/ libhamlib-yaesu.la
