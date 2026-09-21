@@ -27,6 +27,7 @@ DIRECT_TESTS = \
 	testdaemonclients \
 	testdebug \
 	testdummyparm \
+	testdxsr8 \
 	testft991idmeter \
 	testelecraftvfo \
 	testftx1parsers \
@@ -130,6 +131,7 @@ rigctlcom_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_srcdir)/src -I$(top_bu
 rigctltcp_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_srcdir)/src -I$(top_builddir)/security
 rigctlsync_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_srcdir)/src -I$(top_builddir)/security
 testdebug_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testdxsr8_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testnetrigctl_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testsendraw_CFLAGS = $(AM_CFLAGS)
 testcachemode_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
@@ -201,6 +203,7 @@ testctlparser_SOURCES = testctlparser.c $(RIGCOMMONSRC)
 testctlparser_LDADD = $(PTHREAD_LIBS) $(READLINE_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
 testrigctlprotocol_LDADD = $(LDADD)
 testmodecompat_LDADD = $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
+testdxsr8_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/alinco/libhamlib-alinco.la $(LDADD)
 testicomts_LDADD = $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testid5100_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testicomfallback_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
