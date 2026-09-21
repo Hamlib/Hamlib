@@ -20,6 +20,8 @@
 */
 
 #include <ctype.h>
+#include <errno.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -259,6 +261,12 @@ static int aclog_transaction(RIG *rig, char *cmd, char *value,
 
     ENTERFUNC;
     ELAPSED1;
+
+    if (value != NULL && value_len < 1)
+    {
+        RETURNFUNC(-RIG_EINVAL);
+    }
+
     strcpy(xml, "UNKNOWN");
 
     set_transaction_active(rig);
@@ -298,7 +306,11 @@ static int aclog_transaction(RIG *rig, char *cmd, char *value,
         // we get an unknown response if function does not exist
         if (strstr(xml, "UNKNOWN")) { set_transaction_inactive(rig); RETURNFUNC(-RIG_ENAVAIL); }
 
-        if (value) { strncpy(value, xml, value_len); }
+        if (value)
+        {
+            strncpy(value, xml, value_len - 1);
+            value[value_len - 1] = '\0';
+        }
 
     }
     while (((value && strlen(value) == 0))
@@ -467,33 +479,52 @@ static int aclog_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (p)
     {
-        int j = 0;
-        char f_string[32];
+        char *end;
+        char *write;
+        char *parse_end;
+        long double frequency;
 
         // Move the pointer to the first digit.
         p += strlen("<FREQ>");
+        write = p;
+        end = strchr(p, '<');
 
-        // Parse "1,296.171100" ignoring the comma.
-        for (int i = 0; p[i] != '<'; i++)
+        if (end == NULL)
         {
-            if (isdigit(p[i]))
+            RETURNFUNC(-RIG_EPROTO);
+        }
+
+        // Remove thousands separators while keeping the response bounded.
+        for (char *cursor = p; cursor < end; ++cursor)
+        {
+            if (isdigit((unsigned char)*cursor) || *cursor == '.')
             {
-                f_string[j++] = p[i];
+                *write++ = *cursor;
             }
-            else if (ispunct(p[i]) && p[i] == '.')
+            else if (*cursor != ',')
             {
-                f_string[j++] = p[i];
+                RETURNFUNC(-RIG_EPROTO);
             }
         }
 
-        f_string[j] = '\0';
-        rig_debug(RIG_DEBUG_TRACE, "%s: f_string=%s\n", __func__, f_string);
+        *write = '\0';
+        errno = 0;
+        frequency = strtold(p, &parse_end);
 
-        *freq = strtold(f_string, NULL);
+        if (p == parse_end || parse_end != write || errno == ERANGE
+                || !isfinite(frequency))
+        {
+            RETURNFUNC(-RIG_EPROTO);
+        }
+
+        *freq = frequency * 1e6;
         rig_debug(RIG_DEBUG_TRACE, "%s: freq=%.0f\n", __func__, *freq);
     }
 
-    *freq *= 1e6; // convert from MHz to Hz
+    if (!isfinite(*freq))
+    {
+        RETURNFUNC(-RIG_EPROTO);
+    }
 
     if (*freq == 0)
     {
