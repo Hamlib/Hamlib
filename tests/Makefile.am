@@ -41,9 +41,7 @@ DIRECT_TESTS = \
 	testthd75emu \
 	testts990s \
 	testid5100 \
-	test_thd75_dual_band \
-	test_thd75_dual_band_interactive
-
+	test_thd75_dual_band
 
 GENERATED_TEST_WRAPPERS = \
 	test2038.sh \
@@ -84,7 +82,7 @@ check_PROGRAMS = \
 # rigstreamtest is a streaming diagnostic tool rather than a unit test, so it is
 # built with everything else instead of only under "make check". It is not
 # installed: it drives a radio's audio/IQ streams from the build tree.
-noinst_PROGRAMS = rigstreamtest
+noinst_PROGRAMS = rigstreamtest test_thd75_dual_band_interactive
 
 RIGCOMMONSRC = rigctl_parse.c rigctl_parse.h rigctld_stream.c rigctld_stream.h rigctld_client.h dumpcaps.c dumpstate.c uthash.h rig_tests.c rig_tests.h dumpcaps.h
 ROTCOMMONSRC = rotctl_parse.c rotctl_parse.h dumpcaps_rot.c uthash.h dumpcaps_rot.h
