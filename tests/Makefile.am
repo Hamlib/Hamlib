@@ -34,6 +34,7 @@ DIRECT_TESTS = \
 	testgs100 \
 	testicomts \
 	testnewcatset \
+	testnewcatwidth \
 	testsendraw \
 	testmodecompat \
 	testmorse \
@@ -131,6 +132,7 @@ testctlparser_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testgeministatus_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testgs100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testnewcatset_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testnewcatwidth_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testelecraft_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testts990s_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testicomts_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
@@ -180,6 +182,8 @@ testts990s_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/kenwood/libh
 testftx1parsers_LDADD = $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
 testft991idmeter_LDADD = $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
 testnewcatset_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
+testnewcatwidth_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
 testnetrigctl_SOURCES = testnetrigctl.c $(top_srcdir)/rigs/dummy/dummy_common.c
 testnetrigctl_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
 testsmartsdrstatus_LDADD = $(top_builddir)/rigs/flexradio/libhamlib-flexradio.la $(LDADD)
