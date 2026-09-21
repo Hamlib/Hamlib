@@ -38,6 +38,7 @@ DIRECT_TESTS = \
 	testnewcatset \
 	testnewcatwidth \
 	testrigctlprotocol \
+	testsendraw \
 	testmodecompat \
 	testthd7x \
 	testthd75emu \
@@ -73,6 +74,7 @@ check_PROGRAMS = \
 	testloc \
 	testmW2power \
 	testnetrigctl \
+	testsendraw \
 	testrig \
 	testrigcaps \
 	testrigopen \
@@ -125,6 +127,7 @@ rigctltcp_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_srcdir)/src -I$(top_bu
 rigctlsync_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_srcdir)/src -I$(top_builddir)/security
 testdebug_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testnetrigctl_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testsendraw_CFLAGS = $(AM_CFLAGS)
 testcachemode_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testcacherouting_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testcachethread_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
@@ -173,6 +176,8 @@ rigstreamtest_CPPFLAGS = -I$(top_srcdir)/src -I$(top_builddir)/src \
     $(AM_CPPFLAGS)
 testnetrigctl_SOURCES = testnetrigctl.c $(top_srcdir)/rigs/dummy/dummy_common.c
 testnetrigctl_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
+testsendraw_SOURCES = testsendraw.c
+testsendraw_LDADD = $(NET_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
 testcachemode_LDADD = $(PTHREAD_LIBS) \
                        $(top_builddir)/rigs/dummy/libhamlib-dummy.la \
                        $(LDADD)
