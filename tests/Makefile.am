@@ -29,6 +29,7 @@ DIRECT_TESTS = \
 	testgs100 \
 	testicomts \
 	testnewcatset \
+	testsendraw \
 	testmodecompat \
 	testsmartsdrstatus \
 	testthd7x \
@@ -108,6 +109,7 @@ rigctlcom_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/security
 rigctltcp_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/security
 rigctlsync_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/security
 testdebug_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testsendraw_CFLAGS = $(AM_CFLAGS)
 testid5100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testid5100_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testicomfallback_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
@@ -142,6 +144,8 @@ rigctlsync_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 testdebug_LDADD = $(PTHREAD_LIBS) $(LDADD)
 testid5100_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testicomfallback_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+testsendraw_SOURCES = testsendraw.c
+testsendraw_LDADD = $(NET_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
 testctlparser_SOURCES = testctlparser.c $(RIGCOMMONSRC)
 testctlparser_LDADD = $(PTHREAD_LIBS) $(READLINE_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
 testmodecompat_LDADD = $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
