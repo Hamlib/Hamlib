@@ -31,6 +31,8 @@
 #include <new>
 #include <usrp/usrp_standard.h>
 
+#include "hamlib/rig.h"
+#include "hamlib/rig_state.h"
 #include "usrp_impl.h"
 #include "token.h"
 
