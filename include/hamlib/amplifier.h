@@ -281,7 +281,8 @@ typedef enum {
 
 //! @cond Doxygen_Suppress
 /* So far only used in tests/sprintflst.c. */
-#define AMP_STATUS_N(n)        ((1u)<<((n)))
+static inline amp_status_t amp_status_n(int n) { return (amp_status_t)(1u << (n)); }
+#define AMP_STATUS_N(n) amp_status_n(n)
 //! @endcond
 
 

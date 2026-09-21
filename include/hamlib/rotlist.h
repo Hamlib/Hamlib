@@ -49,6 +49,9 @@
  * wishes to use which is passed to the rot_init() API call.
  */
 
+/** Convenience type definition for a rotator model. */
+typedef int rot_model_t;
+
 /**
  * \brief The rotator model number is held in a signed integer.
  *
@@ -65,10 +68,11 @@
  *
  * \sa rot_model_t
  */
-#define ROT_MAKE_MODEL(a,b) (100*((a))+((b)))
+#define ROT_MAKE_MODEL(a,b) ((rot_model_t)(100 * (a) + (b)))
 
 /** Convenience macro to derive the backend family number from the model number. */
-#define ROT_BACKEND_NUM(a) ((a)/100)
+static inline rot_model_t rot_backend_num(rot_model_t a) { return (rot_model_t)((a) / 100); }
+#define ROT_BACKEND_NUM(a) rot_backend_num(a)
 
 /**
  * \brief A macro that returns the model number for an unknown model.

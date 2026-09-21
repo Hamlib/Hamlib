@@ -522,22 +522,22 @@ typedef double freq_t;
 typedef signed long shortfreq_t;
 
 /** \brief \c Macro to return Hz when f=Hz  */
-#define Hz(f)   ((freq_t)((f)))
+#define Hz(f) ((freq_t)(f))
 /** \brief \c Macro to return Hz when f=kHz  */
-#define kHz(f)  ((freq_t)(((f))*(freq_t)1000))
+#define kHz(f) ((freq_t)((f) * (freq_t)1000))
 /** \brief \c Macro to return Hz when f=MHz  */
-#define MHz(f)  ((freq_t)(((f))*(freq_t)1000000))
+#define MHz(f) ((freq_t)((f) * (freq_t)1000000))
 /** \brief \c Macro to return Hz when f=GHz  */
-#define GHz(f)  ((freq_t)(((f))*(freq_t)1000000000))
+#define GHz(f) ((freq_t)((f) * (freq_t)1000000000))
 
 /** \brief \c Macro to return short Hz when f=Hz  */
-#define s_Hz(f)     ((shortfreq_t)((f)))
+#define s_Hz(f) ((shortfreq_t)(f))
 /** \brief \c Macro to return short Hz when f=kHz  */
-#define s_kHz(f)    ((shortfreq_t)(((f))*(shortfreq_t)1000))
+#define s_kHz(f) ((shortfreq_t)((f) * (shortfreq_t)1000))
 /** \brief \c Macro to return short Hz when f=MHz  */
-#define s_MHz(f)    ((shortfreq_t)(((f))*(shortfreq_t)1000000))
+#define s_MHz(f) ((shortfreq_t)((f) * (shortfreq_t)1000000))
 /** \brief \c Macro to return short Hz when f=GHz  */
-#define s_GHz(f)    ((shortfreq_t)(((f))*(shortfreq_t)1000000000))
+#define s_GHz(f) ((shortfreq_t)((f) * (shortfreq_t)1000000000))
 
 /** \brief \c Frequency none -- used as default value for checking  */
 #define RIG_FREQ_NONE Hz(0)
@@ -561,7 +561,7 @@ typedef unsigned int vfo_t;
 
 /** \brief '' -- used in caps */
 
-#define RIG_VFO_N(n)        ((1u)<<((n)))
+#define RIG_VFO_N(n) ((vfo_t)(1u << (n)))
 
 /** \brief \c VFONone -- vfo unknown */
 #define RIG_VFO_NONE        0
@@ -1031,7 +1031,7 @@ typedef enum {
 typedef unsigned int ant_t;
 
 #define RIG_ANT_NONE    0
-#define RIG_ANT_N(n)    ((ant_t)1u<<((n)))
+#define RIG_ANT_N(n) ((ant_t)(1u << (n)))
 #define RIG_ANT_1       RIG_ANT_N(0)
 #define RIG_ANT_2       RIG_ANT_N(1)
 #define RIG_ANT_3       RIG_ANT_N(2)

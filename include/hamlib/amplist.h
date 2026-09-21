@@ -66,10 +66,14 @@
  *
  * \sa amp_model_t
  */
-#define AMP_MAKE_MODEL(a,b) (((a))*100+((b)))
+/** Convenience type definition for an amplifier model. */
+typedef int amp_model_t;
+
+#define AMP_MAKE_MODEL(a,b) ((amp_model_t)((a) * 100 + (b)))
 
 /** Convenience macro to derive the backend family number from the model number. */
-#define AMP_BACKEND_NUM(a) (((a))/100)
+static inline amp_model_t amp_backend_num(amp_model_t a) { return (amp_model_t)((a) / 100); }
+#define AMP_BACKEND_NUM(a) amp_backend_num(a)
 
 
 /**
@@ -156,9 +160,6 @@
  * The Expert 2K-FA amplifier is supported by this backend.
  */
 #define AMP_MODEL_EXPERT_2K_FA AMP_MAKE_MODEL(AMP_EXPERT, 3)
-
-/** Convenience type definition for an amplifier model. */
-typedef int amp_model_t;
 
 
 #endif /* _AMPLIST_H */
