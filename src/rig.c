@@ -1761,7 +1761,6 @@ int HAMLIB_API rig_close(RIG *rig)
 
     ENTERFUNC;
 
-
     caps = rig->caps;
     rs = STATE(rig);
     rp = RIGPORT(rig);
@@ -8950,6 +8949,11 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
 
     ELAPSED1;
 
+    if (reply != NULL && reply_len < 1)
+    {
+        RETURNFUNC(-RIG_EINVAL);
+    }
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s: writing %d bytes\n", __func__, send_len);
 
     set_transaction_active(rig);
@@ -8974,7 +8978,24 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
 
     if (reply)
     {
-        unsigned char buf[200];
+        unsigned char stack_buf[200];
+        unsigned char *buf = stack_buf;
+        int buffer_allocated = 0;
+
+        if (reply_len > (int)sizeof(stack_buf))
+        {
+            buf = malloc((size_t)reply_len);
+
+            if (buf == NULL)
+            {
+                rig_flush_force(rp, 1);
+                set_transaction_inactive(rig);
+                ELAPSED2;
+                RETURNFUNC(-RIG_ENOMEM);
+            }
+
+            buffer_allocated = 1;
+        }
 
         if (simulate)
         {
@@ -9002,13 +9023,13 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
             else if (*term == 0xfd) // then we want an Icom frame
             {
                 rig_debug(RIG_DEBUG_VERBOSE, "%s: reading icom frame\n", __func__);
-                retval = read_icom_frame(rp, buf, sizeof(buf));
+                retval = read_icom_frame(rp, buf, reply_len);
             }
             else // we'll assume the provided terminator works
             {
                 rig_debug(RIG_DEBUG_VERBOSE, "%s: reading frame terminated by 0x%x\n", __func__,
                           *term);
-                retval = read_string(rp, buf, sizeof(buf), (const char *)term,
+                retval = read_string(rp, buf, reply_len, (const char *)term,
                                      1, 0, 1);
             }
 
@@ -9017,6 +9038,7 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
                 rig_debug(RIG_DEBUG_ERR, "%s: read_string, result=%d\n", __func__, retval);
                 rig_flush_force(rp, 1);
                 set_transaction_inactive(rig);
+                if (buffer_allocated) { free(buf); }
                 ELAPSED2;
                 RETURNFUNC(retval);
             }
@@ -9029,12 +9051,14 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
                           __func__, reply_len, nbytes);
                 rig_flush_force(rp, 1);
                 set_transaction_inactive(rig);
+                if (buffer_allocated) { free(buf); }
                 ELAPSED2;
                 RETURNFUNC(-RIG_EINVAL);
             }
         }
 
         memcpy(reply, buf, nbytes);
+        if (buffer_allocated) { free(buf); }
     }
     else
     {
