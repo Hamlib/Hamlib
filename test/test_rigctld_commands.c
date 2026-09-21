@@ -2843,13 +2843,16 @@ void test_tx_iq_data_accepted(void)
     int client_sock = create_client_udp_socket();
     TEST_CHECK(client_sock >= 0);
 
-    /* Build and send 3 IQ data packets (payload must be 4-byte aligned) */
+    const int expected_packets = 3;
+    const uint64_t expected_frames = (uint64_t)expected_packets * 240;
+
+    /* Build and send IQ data packets (payload must be 4-byte aligned). */
     unsigned char payload[960];
     memset(payload, 0xCD, sizeof(payload));
 
     int i;
 
-    for (i = 0; i < 3; i++)
+    for (i = 0; i < expected_packets; i++)
     {
         unsigned char pkt[2048];
         size_t pkt_len = build_data_packet(pkt, RIG_STREAM_TYPE_IQ_TX,
@@ -2861,17 +2864,22 @@ void test_tx_iq_data_accepted(void)
         TEST_MSG("failed to send TX IQ packet %d", i);
     }
 
-    /* The dummy TX scheduler consumes the ring concurrently, so verify
-     * arrival via the producer position: 3 packets x 240 IQ pairs. */
-    WAIT_UNTIL(rig_stream_get_samples_written(s->backend_stream) >= 3 * 240);
-    TEST_CHECK(rig_stream_get_samples_written(s->backend_stream) >= 3 * 240);
+    /* The dummy TX scheduler consumes the ring concurrently. Wait for both
+     * the accepted packet count and producer position so the checks describe
+     * one completed feeder state. */
+    WAIT_UNTIL(s->packet_count >= expected_packets
+               && rig_stream_get_samples_written(s->backend_stream)
+               >= expected_frames);
+    TEST_CHECK(rig_stream_get_samples_written(s->backend_stream)
+               >= expected_frames);
     TEST_MSG("TX feeder wrote %llu frames to backend ringbuf",
              (unsigned long long)
              rig_stream_get_samples_written(s->backend_stream));
 
-    /* Verify feeder processed all 3 packets */
-    TEST_CHECK(s->packet_count >= 3);
-    TEST_MSG("packet_count: got %d, expected >= 3", s->packet_count);
+    /* Verify feeder processed the expected packets. */
+    TEST_CHECK(s->packet_count >= expected_packets);
+    TEST_MSG("packet_count: got %d, expected >= %d",
+             s->packet_count, expected_packets);
 
     close(client_sock);
 
