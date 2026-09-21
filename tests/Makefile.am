@@ -245,6 +245,8 @@ endif
 
 EXTRA_DIST = \
 	amptest.sh \
+	test_thd75_dual_band.c \
+	test_thd75_dual_band_interactive.c \
 	cachetest.sh \
 	hamlib_tuner_control \
 	rig_split_lst.awk \
