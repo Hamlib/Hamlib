@@ -28,6 +28,9 @@
 #include "../rigs/dummy/dummy.h"
 
 #ifdef HAVE_ACLOG_SOCKET_TEST
+#define ACLOG_READ_FREQUENCY "<CMD><READBMF></CMD>\r\n"
+#define UNCHANGED_FREQUENCY 123456789.0
+
 struct peer_data
 {
     int fd;
@@ -35,12 +38,19 @@ struct peer_data
     int status;
 };
 
-static int read_command(int fd)
+struct frequency_case
 {
-    char command[128];
+    const char *name;
+    const char *response;
+    int expected_status;
+    freq_t expected_frequency;
+};
+
+static int read_command(int fd, char *command, size_t capacity)
+{
     size_t used = 0;
 
-    while (used + 1 < sizeof(command))
+    while (used + 1 < capacity)
     {
         if (read(fd, command + used, 1) != 1)
         {
@@ -49,6 +59,7 @@ static int read_command(int fd)
 
         if (command[used++] == '\n')
         {
+            command[used] = '\0';
             return 0;
         }
     }
@@ -78,8 +89,14 @@ static int write_all(int fd, const char *buffer, size_t length)
 static void *run_peer(void *arg)
 {
     struct peer_data *peer = arg;
+    char command[128];
 
-    peer->status = read_command(peer->fd);
+    peer->status = read_command(peer->fd, command, sizeof(command));
+
+    if (peer->status == 0 && strcmp(command, ACLOG_READ_FREQUENCY) != 0)
+    {
+        peer->status = -1;
+    }
 
     if (peer->status == 0
             && write_all(peer->fd, peer->response, strlen(peer->response)) != 0)
@@ -90,14 +107,18 @@ static void *run_peer(void *arg)
     return NULL;
 }
 
-static int run_case(const char *name, const char *response, int expected_status,
-                    freq_t expected_frequency)
+static int run_case(const struct frequency_case *test_case)
 {
     int sockets[2];
     pthread_t thread;
-    struct peer_data peer = { .fd = -1, .response = response, .status = -1 };
+    struct peer_data peer =
+    {
+        .fd = -1,
+        .response = test_case->response,
+        .status = -1
+    };
     RIG *rig;
-    freq_t frequency = 0;
+    freq_t frequency = UNCHANGED_FREQUENCY;
     int status;
 
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) != 0)
@@ -136,17 +157,18 @@ static int run_case(const char *name, const char *response, int expected_status,
     pthread_join(thread, NULL);
     close(sockets[1]);
 
-    if (peer.status != 0 || status != expected_status)
+    if (peer.status != 0 || status != test_case->expected_status)
     {
-        fprintf(stderr, "%s: expected peer/status 0/%d, got %d/%d\n", name,
-                expected_status, peer.status, status);
+        fprintf(stderr, "%s: expected peer/status 0/%d, got %d/%d\n",
+                test_case->name, test_case->expected_status, peer.status,
+                status);
         return 1;
     }
 
-    if (status == RIG_OK && frequency != expected_frequency)
+    if (frequency != test_case->expected_frequency)
     {
-        fprintf(stderr, "%s: expected frequency %.0f, got %.0f\n", name,
-                expected_frequency, frequency);
+        fprintf(stderr, "%s: expected frequency %.0f, got %.0f\n",
+                test_case->name, test_case->expected_frequency, frequency);
         return 1;
     }
 
@@ -157,27 +179,62 @@ static int run_case(const char *name, const char *response, int expected_status,
 int main(void)
 {
 #ifdef HAVE_ACLOG_SOCKET_TEST
-    static const char valid_response[] =
-        "<CMD><READBMFRESPONSE><FREQ>1,296.171100</FREQ></CMD>\r\n";
-    static const char long_response[] =
-        "<CMD><READBMFRESPONSE><FREQ>"
-        "123456789012345678901234567890"
-        "123456789012345678901234567890"
-        "123456789012345678901234567890"
-        "123456789012345678901234567890"
-        "</FREQ></CMD>\r\n";
-    static const char malformed_response[] =
-        "<CMD><READBMFRESPONSE><FREQ>1.2.3</FREQ></CMD>\r\n";
+    static const struct frequency_case cases[] =
+    {
+        {
+            "ungrouped frequency",
+            "<CMD><READBMFRESPONSE><FREQ>14.074000</FREQ></CMD>\r\n",
+            RIG_OK, 14074000.0
+        },
+        {
+            "grouped frequency",
+            "<CMD><READBMFRESPONSE><FREQ>1,296.171100</FREQ></CMD>\r\n",
+            RIG_OK, 1296171100.0
+        },
+        {
+            "missing frequency",
+            "<CMD><READBMFRESPONSE></READBMFRESPONSE></CMD>\r\n",
+            -RIG_EPROTO, UNCHANGED_FREQUENCY
+        },
+        {
+            "empty frequency",
+            "<CMD><READBMFRESPONSE><FREQ></FREQ></CMD>\r\n",
+            -RIG_EPROTO, UNCHANGED_FREQUENCY
+        },
+        {
+            "malformed frequency",
+            "<CMD><READBMFRESPONSE><FREQ>1.2.3</FREQ></CMD>\r\n",
+            -RIG_EPROTO, UNCHANGED_FREQUENCY
+        },
+        {
+            "missing frequency terminator",
+            "<CMD><READBMFRESPONSE><FREQ>14.074000</CMD>\r\n",
+            -RIG_EPROTO, UNCHANGED_FREQUENCY
+        },
+        {
+            "wrong frequency terminator",
+            "<CMD><READBMFRESPONSE><FREQ>14.074000<BAD></CMD>\r\n",
+            -RIG_EPROTO, UNCHANGED_FREQUENCY
+        },
+        {
+            "truncated response with valid prefix",
+            "<CMD><READBMFRESPONSE><FREQ>14.074000</FREQ>"
+            "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            "</CMD>\r\n",
+            -RIG_EPROTO, UNCHANGED_FREQUENCY
+        }
+    };
+    size_t i;
 
     rig_register(&aclog_caps);
 
-    if (run_case("valid frequency", valid_response, RIG_OK, 1296171100.0)
-            || run_case("reject oversized frequency", long_response,
-                        -RIG_EPROTO, 0.0)
-            || run_case("reject malformed frequency", malformed_response,
-                        -RIG_EPROTO, 0.0))
+    for (i = 0; i < sizeof(cases) / sizeof(cases[0]); ++i)
     {
-        return 1;
+        if (run_case(&cases[i]) != 0)
+        {
+            return 1;
+        }
     }
 
     return 0;

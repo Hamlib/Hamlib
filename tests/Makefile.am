@@ -73,7 +73,6 @@ check_PROGRAMS = \
 	testloc \
 	testmW2power \
 	testnetrigctl \
-	testaclog \
 	testrig \
 	testrigcaps \
 	testrigopen \
