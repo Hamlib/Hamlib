@@ -308,8 +308,15 @@ static int aclog_transaction(RIG *rig, char *cmd, char *value,
 
         if (value)
         {
-            strncpy(value, xml, value_len - 1);
-            value[value_len - 1] = '\0';
+            if (strlen(xml) >= (size_t)value_len)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: response exceeds destination buffer\n",
+                          __func__);
+                set_transaction_inactive(rig);
+                RETURNFUNC(-RIG_EPROTO);
+            }
+
+            strcpy(value, xml);
         }
 
     }
@@ -441,6 +448,7 @@ static int aclog_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 
     char value[MAXARGLEN];
+    freq_t parsed_freq;
     struct aclog_priv_data *priv = (struct aclog_priv_data *) STATE(rig)->priv;
 
     ENTERFUNC;
@@ -475,9 +483,12 @@ static int aclog_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
     char *p = strstr(value, "<FREQ>");
-    *freq = 0;
 
-    if (p)
+    if (p == NULL)
+    {
+        RETURNFUNC(-RIG_EPROTO);
+    }
+    else
     {
         char *end;
         char *write;
@@ -487,7 +498,7 @@ static int aclog_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         // Move the pointer to the first digit.
         p += strlen("<FREQ>");
         write = p;
-        end = strchr(p, '<');
+        end = strstr(p, "</FREQ>");
 
         if (end == NULL)
         {
@@ -497,7 +508,7 @@ static int aclog_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         // Remove thousands separators while keeping the response bounded.
         for (char *cursor = p; cursor < end; ++cursor)
         {
-            if (isdigit((unsigned char)*cursor) || *cursor == '.')
+            if (isdigit((unsigned char) * cursor) || *cursor == '.')
             {
                 *write++ = *cursor;
             }
@@ -517,16 +528,16 @@ static int aclog_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
             RETURNFUNC(-RIG_EPROTO);
         }
 
-        *freq = frequency * 1e6;
-        rig_debug(RIG_DEBUG_TRACE, "%s: freq=%.0f\n", __func__, *freq);
+        parsed_freq = frequency * 1e6;
+        rig_debug(RIG_DEBUG_TRACE, "%s: freq=%.0f\n", __func__, parsed_freq);
     }
 
-    if (!isfinite(*freq))
+    if (!isfinite(parsed_freq))
     {
         RETURNFUNC(-RIG_EPROTO);
     }
 
-    if (*freq == 0)
+    if (parsed_freq == 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: freq==0??\nvalue=%s\n", __func__,
                   value);
@@ -534,8 +545,10 @@ static int aclog_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
     else
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: freq=%.0f\n", __func__, *freq);
+        rig_debug(RIG_DEBUG_TRACE, "%s: freq=%.0f\n", __func__, parsed_freq);
     }
+
+    *freq = parsed_freq;
 
     if (vfo == RIG_VFO_A)
     {
