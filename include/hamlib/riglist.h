@@ -23,6 +23,7 @@
 
 #ifndef _RIGLIST_H
 #define _RIGLIST_H 1
+#include <stdint.h>
 
 /**
  * \addtogroup riglist
@@ -47,6 +48,9 @@
  *  wishes to use. It is done with the rig_init() API call.
  */
 
+/** Convenience type definition for a rig model. */
+typedef uint32_t rig_model_t;
+
 /** Number of models per backend family. */
 #define MAX_MODELS_PER_BACKEND 1000
 
@@ -59,10 +63,11 @@
  *
  * \sa rig_model_t
  */
-#define RIG_MAKE_MODEL(a,b) (MAX_MODELS_PER_BACKEND*(a)+(b))
+#define RIG_MAKE_MODEL(a,b) (MAX_MODELS_PER_BACKEND * (a) + (b))
 
 /** Convenience macro to derive the backend family number from the model number. */
-#define RIG_BACKEND_NUM(a) ((a)/MAX_MODELS_PER_BACKEND)
+static inline rig_model_t rig_backend_num(rig_model_t a) { return (rig_model_t)((a) / MAX_MODELS_PER_BACKEND); }
+#define RIG_BACKEND_NUM(a) rig_backend_num(a)
 
 /**
  * \brief A macro that returns the model number for an unknown model.
