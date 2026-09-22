@@ -42,8 +42,16 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+#ifndef _WIN32
+#include <arpa/inet.h>
+#include <sys/ioctl.h>
+#endif
 #include <stdint.h>
 #include <pthread.h>
+#include <time.h>
+#ifndef _WIN32
+#include <sys/resource.h>
+#endif
 
 
 /* True while fd refers to an open socket. SO_TYPE succeeds only on an
@@ -252,6 +260,31 @@ static int run_cmd(RIG *rig, const char *cmd_str, char *outbuf,
  * Run a command with ext_resp mode enabled.
  * Produces labeled output like "stream_id: 0\n".
  */
+/* The multicast group is asserted on, so it stays fixed; the port must not.
+ * Two copies of this suite running at once -- two developers, or parallel CI
+ * jobs sharing a host -- would bind the same group:port and the second open
+ * fails with "already in use", which reads as a broken test rather than a
+ * clash. Deriving the port from the pid keeps concurrent runs apart. Slots
+ * separate the ports used within one run; the duplicate-rejection test reuses
+ * a slot deliberately. */
+#define MCAST_GROUP "239.1.2.3"
+
+static int mcast_port(int slot)
+{
+    return 20000 + ((int)(getpid() % 2000) * 8) + slot;
+}
+
+/* Run a \stream_open whose multicast address belongs to this process. */
+static int run_mcast_open(RIG *rig, const char *prefix, int slot,
+                          const char *suffix, char *outbuf, size_t outbuf_size)
+{
+    char cmd[256];
+    SNPRINTF(cmd, sizeof(cmd), "%s multicast=" MCAST_GROUP ":%d%s",
+             prefix, mcast_port(slot), suffix);
+    return run_cmd(rig, cmd, outbuf, outbuf_size);
+}
+
+
 static int run_cmd_ext(RIG *rig, const char *cmd_str, char *outbuf,
                        size_t outbuf_size)
 {
@@ -403,16 +436,30 @@ static int parse_ext_int(const char *buf, const char *label, int *value)
  * deterministically, instead of relying on a fixed sleep that loses the race
  * under CI/parallel load.  Always falls through after the timeout so the
  * following assertion still reports the actual (possibly failed) state. */
-#define WAIT_UNTIL(cond)                                  \
+#define WAIT_UNTIL_MS(cond, ms)                           \
     do {                                                  \
         int _w = 0;                                       \
-        while (!(cond) && _w < 400)                       \
+        while (!(cond) && _w < (ms) / 5)                  \
         {                                                 \
             struct timespec _ts = { 0, 5000000L };        \
             nanosleep(&_ts, NULL);                        \
             _w++;                                         \
         }                                                 \
     } while (0)
+
+/* Budgets, named for what they wait out rather than shared as one default:
+ * these two wait for quite different things, and a site that needs neither
+ * should say so with its own number.
+ *
+ * Take-up: a datagram the test has just sent over loopback, picked up by the
+ * feeder thread. Delivery and one feeder iteration are sub-millisecond work;
+ * the budget covers a feeder that a loaded runner has descheduled, not the
+ * work itself.
+ *
+ * Auto-close: the server's own 2-3 s subscribe/keepalive timeout has to
+ * elapse first, so the budget has to clear it with room to spare. */
+#define FEEDER_TAKEUP_MS  2000
+#define AUTO_CLOSE_MS    10000
 
 /*
  * Build a 32-byte subscribe packet for the given stream type.
@@ -453,10 +500,20 @@ static int send_control_pkt(int client_sock, int server_port,
     dest.sin_port = htons(server_port);
     dest.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
-    ssize_t sent = sendto(client_sock, (const char *)pkt, 32, 0,
+    ssize_t sent;
+
+    errno = 0;
+    sent = sendto(client_sock, (const char *)pkt, 32, 0,
                           (struct sockaddr *)&dest, sizeof(dest));
 
-    return (sent == 32) ? 0 : -1;
+    if (sent != 32)
+    {
+        TEST_MSG("sendto(127.0.0.1:%d) sent %zd of 32 bytes: %s",
+                 server_port, sent, strerror(errno));
+        return -1;
+    }
+
+    return 0;
 }
 
 
@@ -555,6 +612,48 @@ static int send_subscribe_pkt(int client_sock, int server_port,
                             RIG_STREAM_CTRL_SUBSCRIBE);
 }
 
+/* On a failed receive, report what the server side of the stream was doing.
+ * Under parallel load these receive tests occasionally see nothing at all for
+ * seconds; this tells a starved or exited feeder apart from datagrams that
+ * went elsewhere. Only printed when the preceding check failed. */
+static void stream_diag(uint8_t stream_type, int stream_id)
+{
+    struct rigctld_stream *s = rigctld_stream_registry_lookup(
+                                   &g_stream_registry, (rig_stream_type_t)stream_type, stream_id);
+    struct timespec mono;
+
+    clock_gettime(CLOCK_MONOTONIC, &mono);
+
+    if (s == NULL)
+    {
+        TEST_MSG("diag: stream %d is not in the registry (pid %d)", stream_id,
+                 (int)getpid());
+        return;
+    }
+
+    struct rig_stream_stats st;
+
+    size_t ring = 0;
+
+    memset(&st, 0, sizeof(st));
+
+    if (s->backend_stream && !s->auto_closed)
+    {
+        rig_stream_get_stats(s->rig, s->backend_stream, &st);
+        ring = stream_ringbuf_available(&s->backend_stream->ringbuf);
+    }
+
+    TEST_MSG("diag: pid %d stream %d udp_port %d running=%d feeder_started=%d "
+             "auto_closed=%d client_addr_known=%d packets=%d send_drops=%d "
+             "last_subscribe=%lld (mono now %lld, wall now %lld) "
+             "ring_bytes=%zu overruns=%u underruns=%u",
+             (int)getpid(), stream_id, s->udp_port, (int)s->running,
+             s->feeder_started, (int)s->auto_closed, s->client_addr_known,
+             (int)s->packet_count, (int)s->send_drops,
+             (long long)s->last_subscribe, (long long)mono.tv_sec,
+             (long long)time(NULL), ring, st.overruns, st.underruns);
+}
+
 /* Subscribe and consume the SUBSCRIBE_ACK. Either the request or its reply is
  * a single datagram that the host may drop under load, so the subscribe is
  * repeated until one is answered; anything else arriving first is discarded.
@@ -595,6 +694,53 @@ static ssize_t subscribe_and_await_ack(int client_sock, int server_port,
         }
     }
 
+    /* A failure here always fails the caller's next check, which is where
+     * acutest attaches this message. */
+    TEST_CHECK_(0, "no SUBSCRIBE_ACK for stream %u after 3 attempts",
+                stream_id);
+
+    /* Which end lost them matters and is not otherwise recoverable from a CI
+     * log: the server diag says whether anything arrived, and this says where
+     * the datagrams were sent from and to. A CI failure of this shape once
+     * cost a day for want of these two numbers. */
+    {
+        struct sockaddr_in me;
+        socklen_t me_len = sizeof(me);
+#ifdef _WIN32
+        u_long queued = 0;
+#else
+        int queued = 0;
+#endif
+
+        memset(&me, 0, sizeof(me));
+
+        if (getsockname(client_sock, (struct sockaddr *)&me, &me_len) == 0)
+        {
+            TEST_MSG("client was %s:%d, sending to 127.0.0.1:%d",
+                     inet_ntoa(me.sin_addr), (int)ntohs(me.sin_port),
+                     server_port);
+        }
+
+#ifdef FIONREAD
+
+        /* Winsock spells it ioctlsocket and wants a u_long, as src/network.c
+         * does for the same query. */
+#ifdef _WIN32
+
+        if (ioctlsocket(client_sock, FIONREAD, &queued) == 0)
+#else
+
+        if (ioctl(client_sock, FIONREAD, &queued) == 0)
+#endif
+        {
+            TEST_MSG("client socket still holds %lu unread bytes",
+                     (unsigned long)queued);
+        }
+
+#endif
+    }
+
+    stream_diag(stream_type, stream_id);
     return -1;
 }
 
@@ -2116,8 +2262,11 @@ void test_rx_counter_payload_audio(void)
 
         if (n < RIG_STREAM_HEADER_SIZE)
         {
+            /* Keep looking: one quiet 2 s stretch on a loaded runner is not
+             * the same as a feeder that has stopped sending, and breaking
+             * here spent the whole loop's budget on the first stall. */
             TEST_MSG("packet %d: timeout", i);
-            break;
+            continue;
         }
 
         struct rig_stream_packet_header hdr;
@@ -2170,8 +2319,11 @@ void test_rx_counter_payload_audio(void)
         data_count++;
     }
 
-    TEST_CHECK(data_count >= 3);
-    TEST_MSG("only got %d data packets, expected >= 3", data_count);
+    if (!TEST_CHECK(data_count >= 3))
+    {
+        TEST_MSG("only got %d data packets, expected >= 3", data_count);
+        stream_diag(RIG_STREAM_TYPE_AUDIO_RX, stream_id);
+    }
 
     close(client_sock);
 
@@ -2235,8 +2387,11 @@ void test_rx_codec_passthrough_audio(void)
 
         if (n < RIG_STREAM_HEADER_SIZE)
         {
+            /* Keep looking: one quiet 2 s stretch on a loaded runner is not
+             * the same as a feeder that has stopped sending, and breaking
+             * here spent the whole loop's budget on the first stall. */
             TEST_MSG("packet %d: timeout", i);
-            break;
+            continue;
         }
 
         struct rig_stream_packet_header hdr;
@@ -2396,8 +2551,11 @@ void test_rx_counter_payload_iq(void)
 
         if (n < RIG_STREAM_HEADER_SIZE)
         {
+            /* Keep looking: one quiet 2 s stretch on a loaded runner is not
+             * the same as a feeder that has stopped sending, and breaking
+             * here spent the whole loop's budget on the first stall. */
             TEST_MSG("packet %d: timeout", i);
-            break;
+            continue;
         }
 
         struct rig_stream_packet_header hdr;
@@ -2818,13 +2976,17 @@ void test_tx_audio_data_accepted(void)
     /* Verify data arrived in backend ring buffer */
     /* The dummy TX scheduler consumes the ring concurrently, so verify
      * arrival via the producer position: 3 packets x 480 frames. */
-    WAIT_UNTIL(rig_stream_get_samples_written(s->backend_stream) >= 3 * 480);
+    WAIT_UNTIL_MS(rig_stream_get_samples_written(s->backend_stream) >= 3 * 480,
+                  FEEDER_TAKEUP_MS);
     TEST_CHECK(rig_stream_get_samples_written(s->backend_stream) >= 3 * 480);
     TEST_MSG("TX feeder wrote %llu frames to backend ringbuf",
              (unsigned long long)
              rig_stream_get_samples_written(s->backend_stream));
 
-    /* Verify feeder processed all 3 packets */
+    /* Verify feeder processed all 3 packets. The count is bumped after the
+     * ring write and the write-status poll that follows it, so waiting on
+     * samples_written above does not imply it has caught up yet. */
+    WAIT_UNTIL_MS(s->packet_count >= 3, FEEDER_TAKEUP_MS);
     TEST_CHECK(s->packet_count >= 3);
     TEST_MSG("packet_count: got %d, expected >= 3", s->packet_count);
 
@@ -2891,7 +3053,7 @@ void test_tx_stereo_timestamp_frames(void)
     }
 
     /* Wait for the feeder to consume all packets. */
-    WAIT_UNTIL(s->packet_count >= num_packets);
+    WAIT_UNTIL_MS(s->packet_count >= num_packets, FEEDER_TAKEUP_MS);
 
     uint64_t expected_ts = (uint64_t)total_bytes / 4;  /* frame size = 4 */
     TEST_CHECK(s->timestamp == expected_ts);
@@ -2953,13 +3115,17 @@ void test_tx_iq_data_accepted(void)
 
     /* The dummy TX scheduler consumes the ring concurrently, so verify
      * arrival via the producer position: 3 packets x 240 IQ pairs. */
-    WAIT_UNTIL(rig_stream_get_samples_written(s->backend_stream) >= 3 * 240);
+    WAIT_UNTIL_MS(rig_stream_get_samples_written(s->backend_stream) >= 3 * 240,
+                  FEEDER_TAKEUP_MS);
     TEST_CHECK(rig_stream_get_samples_written(s->backend_stream) >= 3 * 240);
     TEST_MSG("TX feeder wrote %llu frames to backend ringbuf",
              (unsigned long long)
              rig_stream_get_samples_written(s->backend_stream));
 
-    /* Verify feeder processed all 3 packets */
+    /* Verify feeder processed all 3 packets. The count is bumped after the
+     * ring write and the write-status poll that follows it, so waiting on
+     * samples_written above does not imply it has caught up yet. */
+    WAIT_UNTIL_MS(s->packet_count >= 3, FEEDER_TAKEUP_MS);
     TEST_CHECK(s->packet_count >= 3);
     TEST_MSG("packet_count: got %d, expected >= 3", s->packet_count);
 
@@ -3290,7 +3456,7 @@ void test_tx_sequence_gap(void)
         TEST_CHECK(send_data_pkt(client_sock, udp_port, pkt, pkt_len) == 0);
     }
 
-    WAIT_UNTIL(s->packet_count >= 3);
+    WAIT_UNTIL_MS(s->packet_count >= 3, FEEDER_TAKEUP_MS);
 
     TEST_CHECK(s->packet_count == 3);
     TEST_MSG("packet_count: got %d, expected 3", s->packet_count);
@@ -3303,6 +3469,172 @@ void test_tx_sequence_gap(void)
     char close_cmd[64];
     snprintf(close_cmd, sizeof(close_cmd), "\\stream_close %d", stream_id);
     run_cmd(rig, close_cmd, buf, sizeof(buf));
+
+    stream_test_end(rig);
+}
+
+
+/* ---- backend failure reported to the client (ERROR frames) ---- */
+
+/* Wait for an ERROR frame on sock; returns 1 and fills rig_error/reason. */
+static int await_error_frame(int sock, int timeout_ms, int32_t *rig_error,
+                             uint32_t *reason)
+{
+    unsigned char pkt[2048];
+    struct timespec t0, t1;
+
+    clock_gettime(CLOCK_MONOTONIC, &t0);
+
+    for (;;)
+    {
+        struct rig_stream_packet_header hdr;
+        long spent;
+        ssize_t n;
+
+        clock_gettime(CLOCK_MONOTONIC, &t1);
+        spent = (t1.tv_sec - t0.tv_sec) * 1000
+                + (t1.tv_nsec - t0.tv_nsec) / 1000000;
+
+        if (spent >= timeout_ms) { return 0; }
+
+        n = udp_recv_timeout(sock, pkt, sizeof(pkt), (int)(timeout_ms - spent));
+
+        if (n < RIG_STREAM_HEADER_SIZE
+                || stream_packet_header_unpack(pkt, (size_t)n, &hdr) != 0)
+        {
+            continue;
+        }
+
+        if ((hdr.control & RIG_STREAM_CTRL_ERROR)
+                && stream_error_block_unpack(pkt + RIG_STREAM_HEADER_SIZE,
+                                             hdr.payload_len, rig_error,
+                                             reason) == 0)
+        {
+            TEST_CHECK_(hdr.seq == 0, "ERROR frame seq=%u, expected 0", hdr.seq);
+            return 1;
+        }
+    }
+}
+
+/* Process CPU time in ms, or -1 where getrusage() is unavailable. */
+static double process_cpu_ms(void)
+{
+#ifdef _WIN32
+    return -1.0;
+#else
+    struct rusage ru;
+
+    getrusage(RUSAGE_SELF, &ru);
+    return ru.ru_utime.tv_sec * 1000.0 + ru.ru_utime.tv_usec / 1000.0
+           + ru.ru_stime.tv_sec * 1000.0 + ru.ru_stime.tv_usec / 1000.0;
+#endif
+}
+
+/* When the backend source of an RX stream dies, rigctld tells the client with
+ * an ERROR frame carrying the reason, does not spin on the dead stream, answers
+ * every later PING with a reminder, and still closes cleanly. */
+void test_rx_backend_failure_sends_error(void)
+{
+    RIG *rig = stream_test_begin();
+    TEST_CHECK(rig != NULL);
+    char buf[1024];
+
+    int ret = run_cmd(rig, "\\stream_open AUDIO_RX PCM_S16 48000",
+                      buf, sizeof(buf));
+    TEST_CHECK(ret == 0);
+
+    int stream_id = -1, udp_port = -1;
+    TEST_CHECK(parse_open_response(buf, &stream_id, &udp_port) == 0);
+
+    struct rigctld_stream *s = rigctld_stream_registry_lookup(
+                                   &g_stream_registry, RIG_STREAM_TYPE_AUDIO_RX, stream_id);
+    TEST_ASSERT(s != NULL);
+
+    int client_sock = create_client_udp_socket();
+    TEST_CHECK(client_sock >= 0);
+
+    unsigned char pkt[2048];
+    TEST_CHECK(subscribe_and_await_ack(client_sock, udp_port,
+                                       RIG_STREAM_TYPE_AUDIO_RX, stream_id,
+                                       pkt, sizeof(pkt)) >= RIG_STREAM_HEADER_SIZE);
+
+    stream_mark_failed(s->backend_stream, RIG_COMM_REASON_LINK_TIMEOUT);
+
+    int32_t rig_error = 0;
+    uint32_t reason = 0;
+    TEST_CHECK(await_error_frame(client_sock, 3000, &rig_error, &reason));
+    TEST_CHECK_(rig_error == -RIG_EIO, "rig_error=%d", rig_error);
+    TEST_CHECK_(reason == RIG_COMM_REASON_LINK_TIMEOUT, "reason=%u", reason);
+    TEST_CHECK(s->backend_failed);
+
+    /* A dead stream returns at once from every read: the feeder must sleep,
+     * not spin. A spinning thread would burn close to the whole second. */
+    double cpu0 = process_cpu_ms();
+    usleep(1000 * 1000);
+
+    if (cpu0 >= 0.0)
+    {
+        double cpu = process_cpu_ms() - cpu0;
+        TEST_CHECK_(cpu < 500.0, "process used %.0f ms CPU in 1 s idle", cpu);
+    }
+
+    /* Every PING is answered with a reminder, so a lost ERROR is not final. */
+    TEST_CHECK(send_ping_pkt(client_sock, udp_port, RIG_STREAM_TYPE_AUDIO_RX,
+                             (uint16_t)stream_id) == 0);
+    TEST_CHECK(await_error_frame(client_sock, 2000, &rig_error, &reason));
+
+    close(client_sock);
+
+    char close_cmd[64];
+    snprintf(close_cmd, sizeof(close_cmd), "\\stream_close %d", stream_id);
+    TEST_CHECK(run_cmd(rig, close_cmd, buf, sizeof(buf)) == 0);
+
+    stream_test_end(rig);
+}
+
+/* A TX stream whose backend has failed answers the sender's data with an ERROR
+ * frame instead of silently swallowing it. */
+void test_tx_backend_failure_sends_error(void)
+{
+    RIG *rig = stream_test_begin();
+    TEST_CHECK(rig != NULL);
+    char buf[1024];
+
+    int ret = run_cmd(rig, "\\stream_open AUDIO_TX PCM_S16 48000",
+                      buf, sizeof(buf));
+    TEST_CHECK(ret == 0);
+
+    int stream_id = -1, udp_port = -1;
+    TEST_CHECK(parse_open_response(buf, &stream_id, &udp_port) == 0);
+
+    struct rigctld_stream *s = rigctld_stream_registry_lookup(
+                                   &g_stream_registry, RIG_STREAM_TYPE_AUDIO_TX, stream_id);
+    TEST_ASSERT(s != NULL);
+
+    int client_sock = create_client_udp_socket();
+    TEST_CHECK(client_sock >= 0);
+
+    stream_mark_failed(s->backend_stream, RIG_COMM_REASON_PEER_DISCONNECT);
+
+    unsigned char payload[480];
+    unsigned char pkt[2048];
+    memset(payload, 0, sizeof(payload));
+    size_t pkt_len = build_data_packet(pkt, RIG_STREAM_TYPE_AUDIO_TX,
+                                       (uint16_t)stream_id, 0, 0, 48000,
+                                       RIG_STREAM_FMT_ID_PCM_S16, 1,
+                                       payload, sizeof(payload));
+    TEST_CHECK(send_data_pkt(client_sock, udp_port, pkt, pkt_len) == 0);
+
+    int32_t rig_error = 0;
+    uint32_t reason = 0;
+    TEST_CHECK(await_error_frame(client_sock, 3000, &rig_error, &reason));
+    TEST_CHECK_(reason == RIG_COMM_REASON_PEER_DISCONNECT, "reason=%u", reason);
+
+    close(client_sock);
+
+    char close_cmd[64];
+    snprintf(close_cmd, sizeof(close_cmd), "\\stream_close %d", stream_id);
+    TEST_CHECK(run_cmd(rig, close_cmd, buf, sizeof(buf)) == 0);
 
     stream_test_end(rig);
 }
@@ -3352,7 +3684,7 @@ void test_tx_sequence_gap_implausible(void)
         TEST_CHECK(send_data_pkt(client_sock, udp_port, pkt, pkt_len) == 0);
     }
 
-    WAIT_UNTIL(s->packet_count >= 2);
+    WAIT_UNTIL_MS(s->packet_count >= 2, FEEDER_TAKEUP_MS);
 
     TEST_CHECK(s->packet_count == 2);
     TEST_MSG("packet_count: got %d, expected 2", s->packet_count);
@@ -3419,7 +3751,7 @@ void test_tx_metadata_applied(void)
     struct rigctld_stream *s = rigctld_stream_registry_lookup(
                                    &g_stream_registry, RIG_STREAM_TYPE_AUDIO_TX, stream_id);
     TEST_CHECK(s != NULL);
-    WAIT_UNTIL(s->packet_count >= 1);
+    WAIT_UNTIL_MS(s->packet_count >= 1, FEEDER_TAKEUP_MS);
 
     /* Verify rig frequency changed */
     freq_t freq = 0;
@@ -3481,7 +3813,28 @@ void test_tx_metadata_truncated_rejected(void)
     TEST_CHECK(send_data_pkt(client_sock, udp_port, pkt,
                              RIG_STREAM_HEADER_SIZE) == 0);
 
-    usleep(100000);
+    /* A valid frame behind it, as a positive control: the feeder counts this
+     * one, so waiting for the count proves it has been past the malformed
+     * frame -- otherwise "the counter did not move" would also be true of a
+     * feeder that had not looked yet. */
+    {
+        unsigned char good[2048];
+        unsigned char payload[960];
+        size_t good_len;
+
+        memset(payload, 0, sizeof(payload));
+        good_len = build_data_packet(good, RIG_STREAM_TYPE_AUDIO_TX,
+                                     (uint16_t)stream_id, 0, 0, 48000,
+                                     RIG_STREAM_FMT_ID_PCM_S16, 1,
+                                     payload, sizeof(payload));
+        TEST_CHECK(send_data_pkt(client_sock, udp_port, good, good_len) == 0);
+    }
+
+    struct rigctld_stream *sf = rigctld_stream_registry_lookup(
+                                    &g_stream_registry,
+                                    RIG_STREAM_TYPE_AUDIO_TX, stream_id);
+    TEST_CHECK(sf != NULL);
+    WAIT_UNTIL_MS(sf != NULL && sf->packet_count >= 1, FEEDER_TAKEUP_MS);
 
     /* Frequency must be unchanged by the malformed frame. */
     freq_t freq = 0;
@@ -3491,12 +3844,14 @@ void test_tx_metadata_truncated_rejected(void)
     TEST_MSG("freq: got %.0f, expected 14000000 (malformed frame ignored)",
              (double)freq);
 
-    /* The frame must be dropped before the packet counter is bumped. */
+    /* Exactly one: the valid frame above. The malformed one must be dropped
+     * before the counter is bumped. */
     struct rigctld_stream *s = rigctld_stream_registry_lookup(
                                    &g_stream_registry, RIG_STREAM_TYPE_AUDIO_TX, stream_id);
     TEST_CHECK(s != NULL);
-    TEST_CHECK(s->packet_count == 0);
-    TEST_MSG("packet_count: got %d, expected 0", s->packet_count);
+    TEST_CHECK(s->packet_count == 1);
+    TEST_MSG("packet_count: got %d, expected 1 (the valid frame only)",
+             s->packet_count);
 
     close(client_sock);
 
@@ -3934,14 +4289,22 @@ void test_rx_mute_zeros(void)
     TEST_CHECK(ret == 0);
 
     int stream_id = -1, udp_port = -1;
-    parse_open_response(buf, &stream_id, &udp_port);
+    /* Checked, unlike the original: everything below is addressed to this
+     * port, so an unparsed response would send the subscribe into the void
+     * and report it as a silent server. */
+    TEST_CHECK(parse_open_response(buf, &stream_id, &udp_port) == 0);
+    TEST_CHECK_(udp_port > 0, "stream_open gave no usable port: %d", udp_port);
 
     int client_sock = create_client_udp_socket();
     TEST_CHECK(client_sock >= 0);
     unsigned char pkt[2048];
-    TEST_CHECK(subscribe_and_await_ack(client_sock, udp_port,
-                                       RIG_STREAM_TYPE_AUDIO_RX, stream_id,
-                                       pkt, sizeof(pkt)) >= 0);
+
+    /* Stop here if the handshake fails: the mute assertions that follow all
+     * depend on it, and four failures about muted audio say nothing about a
+     * subscribe that never landed. */
+    TEST_ASSERT(subscribe_and_await_ack(client_sock, udp_port,
+                                        RIG_STREAM_TYPE_AUDIO_RX, stream_id,
+                                        pkt, sizeof(pkt)) >= 0);
 
     /* Skip any remaining control frames to reach a data packet */
     struct rig_stream_packet_header hdr;
@@ -3972,8 +4335,11 @@ void test_rx_mute_zeros(void)
         if (got_nonzero) { break; }
     }
 
-    TEST_CHECK(got_nonzero == 1);
-    TEST_MSG("Pre-mute: expected non-zero audio data");
+    if (!TEST_CHECK(got_nonzero == 1))
+    {
+        TEST_MSG("Pre-mute: expected non-zero audio data");
+        stream_diag(RIG_STREAM_TYPE_AUDIO_RX, stream_id);
+    }
 
     /* Mute the stream */
     char cmd[64];
@@ -4018,8 +4384,12 @@ void test_rx_mute_zeros(void)
         if (zero_packets >= 3) { break; }
     }
 
-    TEST_CHECK(zero_packets >= 3);
-    TEST_MSG("Muted: got %d zero-payload packets, expected >= 3", zero_packets);
+    if (!TEST_CHECK(zero_packets >= 3))
+    {
+        TEST_MSG("Muted: got %d zero-payload packets, expected >= 3",
+                 zero_packets);
+        stream_diag(RIG_STREAM_TYPE_AUDIO_RX, stream_id);
+    }
 
     /* Unmute and verify non-zero data resumes */
     snprintf(cmd, sizeof(cmd), "\\stream_unmute %d", stream_id);
@@ -4834,9 +5204,8 @@ void test_cmd_stream_open_multicast_ipv4(void)
     RIG *rig = stream_test_begin();
     char buf[1024];
 
-    int ret = run_cmd(rig,
-                      "\\stream_open AUDIO_RX PCM_S16 48000 multicast=239.1.2.3:5000",
-                      buf, sizeof(buf));
+    int ret = run_mcast_open(rig, "\\stream_open AUDIO_RX PCM_S16 48000", 0, "",
+        buf, sizeof(buf));
     TEST_CHECK(ret == 0);
     TEST_MSG("stream_open returned %d", ret);
 
@@ -4845,8 +5214,9 @@ void test_cmd_stream_open_multicast_ipv4(void)
     TEST_CHECK(parse_open_response(buf, &stream_id, &udp_port) == 0);
     TEST_MSG("response: '%s'", buf);
     TEST_CHECK(stream_id > 0);
-    TEST_CHECK(udp_port == 5000);
-    TEST_MSG("udp_port: got %d, expected 5000", udp_port);
+    TEST_CHECK(udp_port == mcast_port(0));
+    TEST_MSG("udp_port: got %d, expected %d", udp_port,
+             mcast_port(0));
 
     /* Verify multicast address in response */
     char mcast_addr[64] = "";
@@ -4877,9 +5247,8 @@ void test_cmd_stream_open_multicast_tx_rejected(void)
     char buf[1024];
 
     /* TX multicast should be rejected */
-    int ret = run_cmd(rig,
-                      "\\stream_open AUDIO_TX PCM_S16 48000 multicast=239.1.2.3:5000",
-                      buf, sizeof(buf));
+    int ret = run_mcast_open(rig, "\\stream_open AUDIO_TX PCM_S16 48000", 0, "",
+        buf, sizeof(buf));
     TEST_CHECK(ret != 0);
     TEST_MSG("TX multicast should be rejected, got ret=%d", ret);
 
@@ -4914,18 +5283,16 @@ void test_cmd_stream_open_multicast_duplicate(void)
     char buf[1024];
 
     /* First open should succeed */
-    int ret = run_cmd(rig,
-                      "\\stream_open AUDIO_RX PCM_S16 48000 multicast=239.1.2.3:5000",
-                      buf, sizeof(buf));
+    int ret = run_mcast_open(rig, "\\stream_open AUDIO_RX PCM_S16 48000", 0, "",
+        buf, sizeof(buf));
     TEST_CHECK(ret == 0);
 
     int stream_id = -1, udp_port = -1;
     parse_open_response(buf, &stream_id, &udp_port);
 
     /* Second open with same group:port should fail */
-    ret = run_cmd(rig,
-                  "\\stream_open AUDIO_RX PCM_S16 48000 multicast=239.1.2.3:5000",
-                  buf, sizeof(buf));
+    ret = run_mcast_open(rig, "\\stream_open AUDIO_RX PCM_S16 48000", 0, "",
+        buf, sizeof(buf));
     TEST_CHECK(ret != 0);
     TEST_MSG("duplicate group:port should be rejected, got ret=%d", ret);
 
@@ -4946,9 +5313,8 @@ void test_cmd_stream_open_multicast_ttl_override(void)
     RIG *rig = stream_test_begin();
     char buf[1024];
 
-    int ret = run_cmd(rig,
-                      "\\stream_open AUDIO_RX PCM_S16 48000 multicast=239.1.2.3:5002 ttl=4",
-                      buf, sizeof(buf));
+    int ret = run_mcast_open(rig, "\\stream_open AUDIO_RX PCM_S16 48000", 1, " ttl=4",
+        buf, sizeof(buf));
     TEST_CHECK(ret == 0);
     TEST_MSG("stream_open returned %d", ret);
 
@@ -5155,9 +5521,8 @@ void test_cmd_stream_status_multicast(void)
     RIG *rig = stream_test_begin();
     char buf[1024];
 
-    int ret = run_cmd(rig,
-                      "\\stream_open AUDIO_RX PCM_S16 48000 multicast=239.1.2.3:5003 ttl=3",
-                      buf, sizeof(buf));
+    int ret = run_mcast_open(rig, "\\stream_open AUDIO_RX PCM_S16 48000", 2, " ttl=3",
+        buf, sizeof(buf));
     TEST_CHECK(ret == 0);
 
     int stream_id = -1, udp_port = -1;
@@ -5299,7 +5664,7 @@ void test_rx_subscribe_timeout_auto_close(void)
     s->subscribe_timeout_s = 2;
 
     /* Don't subscribe — wait for timeout + margin */
-    sleep(3);
+    WAIT_UNTIL_MS(s != NULL && s->auto_closed, AUTO_CLOSE_MS);
 
     /* Stream should have been auto-closed (stays in registry as zombie) */
     s = rigctld_stream_registry_find_by_id(&g_stream_registry, stream_id);
@@ -5345,7 +5710,7 @@ void test_rx_keepalive_timeout_auto_close(void)
     }
 
     /* Don't send any PINGs — wait for timeout */
-    sleep(4);
+    WAIT_UNTIL_MS(s != NULL && s->auto_closed, AUTO_CLOSE_MS);
 
     s = rigctld_stream_registry_find_by_id(&g_stream_registry, stream_id);
     TEST_CHECK(s != NULL);
@@ -5402,7 +5767,7 @@ void test_rx_ping_resets_timeout(void)
 
     /* Stream should still be alive — last PING was 1s ago, timeout is 3s */
     s = rigctld_stream_registry_find_by_id(&g_stream_registry, stream_id);
-    TEST_CHECK(s != NULL);
+    TEST_CHECK(s != NULL && s->auto_closed == 0);
     TEST_MSG("stream should still be alive — PINGs reset timeout");
 
     close(client_sock);
@@ -5459,7 +5824,7 @@ void test_rx_resubscribe_resets_timeout(void)
     sleep(2);
 
     s = rigctld_stream_registry_find_by_id(&g_stream_registry, stream_id);
-    TEST_CHECK(s != NULL);
+    TEST_CHECK(s != NULL && s->auto_closed == 0);
     TEST_MSG("stream should still be alive — re-subscribe reset timeout");
 
     close(client_sock);
@@ -5482,9 +5847,8 @@ void test_rx_multicast_no_timeout(void)
     TEST_CHECK(rig != NULL);
     char buf[1024];
 
-    int ret = run_cmd(rig,
-                      "\\stream_open AUDIO_RX PCM_S16 48000 multicast=239.1.2.3:5010",
-                      buf, sizeof(buf));
+    int ret = run_mcast_open(rig, "\\stream_open AUDIO_RX PCM_S16 48000", 3, "",
+        buf, sizeof(buf));
     TEST_CHECK(ret == 0);
 
     int stream_id = -1, udp_port = -1;
@@ -5504,7 +5868,7 @@ void test_rx_multicast_no_timeout(void)
     sleep(3);
 
     s = rigctld_stream_registry_find_by_id(&g_stream_registry, stream_id);
-    TEST_CHECK(s != NULL);
+    TEST_CHECK(s != NULL && s->auto_closed == 0);
     TEST_MSG("multicast stream should be exempt from keepalive timeout");
 
     char close_cmd[64];
@@ -5587,7 +5951,7 @@ void test_tx_timeout_auto_close(void)
     }
 
     /* Don't send any data — wait for timeout */
-    sleep(4);
+    WAIT_UNTIL_MS(s != NULL && s->auto_closed, AUTO_CLOSE_MS);
 
     s = rigctld_stream_registry_find_by_id(&g_stream_registry, stream_id);
     TEST_CHECK(s != NULL);
@@ -5656,7 +6020,7 @@ void test_tx_data_resets_timeout(void)
 
     /* Total elapsed ~3s, but only 1s since last data → should be alive */
     s = rigctld_stream_registry_find_by_id(&g_stream_registry, stream_id);
-    TEST_CHECK(s != NULL);
+    TEST_CHECK(s != NULL && s->auto_closed == 0);
     TEST_MSG("TX stream should still be alive — data resets timeout");
 
     close(client_sock);
@@ -5697,7 +6061,7 @@ void test_auto_close_then_stream_close(void)
     }
 
     /* Don't subscribe — wait for auto_close */
-    sleep(3);
+    WAIT_UNTIL_MS(s != NULL && s->auto_closed, AUTO_CLOSE_MS);
 
     /* Confirm stream was auto-closed (stays in registry as zombie) */
     s = rigctld_stream_registry_find_by_id(&g_stream_registry, stream_id);
@@ -5807,7 +6171,7 @@ void test_tx_ping_resets_timeout(void)
 
     /* Total ~3s elapsed, but only 1s since last PING → should be alive */
     s = rigctld_stream_registry_find_by_id(&g_stream_registry, stream_id);
-    TEST_CHECK(s != NULL);
+    TEST_CHECK(s != NULL && s->auto_closed == 0);
     TEST_MSG("TX stream should still be alive — PINGs reset timeout");
 
     close(client_sock);
@@ -6070,7 +6434,7 @@ void test_rx_ping_wrong_stream_id_ignored(void)
     send_ping_pkt(client_sock, udp_port, RIG_STREAM_TYPE_AUDIO_RX, wrong_id);
 
     /* Wait for timeout to fire (3s from subscribe, we're at ~2s + margin) */
-    sleep(2);
+    WAIT_UNTIL_MS(s != NULL && s->auto_closed, AUTO_CLOSE_MS);
 
     /* Stream should have auto-closed — wrong-id PINGs didn't save it */
     s = rigctld_stream_registry_find_by_id(&g_stream_registry, stream_id);
@@ -6215,6 +6579,8 @@ TEST_LIST =
     { "tx_loopback_counter_audio",          test_tx_loopback_counter_audio },
     { "tx_loopback_counter_iq",             test_tx_loopback_counter_iq },
     { "tx_sequence_gap",                    test_tx_sequence_gap },
+    { "rx_backend_failure_sends_error",     test_rx_backend_failure_sends_error },
+    { "tx_backend_failure_sends_error",     test_tx_backend_failure_sends_error },
     { "tx_sequence_gap_implausible",        test_tx_sequence_gap_implausible },
     { "tx_metadata_applied",                test_tx_metadata_applied },
     { "tx_metadata_truncated_rejected",     test_tx_metadata_truncated_rejected },

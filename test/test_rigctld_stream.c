@@ -648,6 +648,27 @@ void test_format_name_roundtrip(void)
 }
 
 
+/* The ERROR payload round-trips, and a short or unknown-version block is
+ * refused rather than misread. */
+void test_error_block_roundtrip(void)
+{
+    unsigned char buf[RIG_STREAM_ERROR_WIRE_SIZE];
+    int32_t err = 0;
+    uint32_t reason = 0;
+
+    stream_error_block_pack(-RIG_EIO, RIG_COMM_REASON_LINK_TIMEOUT, buf);
+    TEST_CHECK(buf[0] == 0 && buf[1] == RIG_STREAM_ERROR_BLOCK_VERSION);
+    TEST_CHECK(stream_error_block_unpack(buf, sizeof(buf), &err, &reason) == 0);
+    TEST_CHECK_(err == -RIG_EIO, "rig_error=%d", err);
+    TEST_CHECK(reason == RIG_COMM_REASON_LINK_TIMEOUT);
+
+    TEST_CHECK(stream_error_block_unpack(buf, sizeof(buf) - 1, &err,
+                                         &reason) == -1);
+    buf[1] = 2;
+    TEST_CHECK(stream_error_block_unpack(buf, sizeof(buf), &err, &reason) == -1);
+}
+
+
 void test_format_bitmask_str(void)
 {
     char buf[256];
@@ -2936,6 +2957,7 @@ TEST_LIST =
     { "type_name_roundtrip",   test_type_name_roundtrip },
     { "format_name_roundtrip", test_format_name_roundtrip },
     { "format_bitmask_str",    test_format_bitmask_str },
+    { "error_block_roundtrip", test_error_block_roundtrip },
 
     /* Stream registry */
     { "registry_init_destroy",    test_registry_init_destroy },

@@ -67,7 +67,9 @@
 #define RIG_STREAM_CTRL_PONG          0x0002  /* Server keepalive pong reply */
 #define RIG_STREAM_CTRL_SUBSCRIBE     0x0004  /* Client subscribe request */
 #define RIG_STREAM_CTRL_SUBSCRIBE_ACK 0x0008  /* Server subscribe acknowledgement */
-#define RIG_STREAM_CTRL_ERROR         0x0010  /* Error frame */
+#define RIG_STREAM_CTRL_ERROR         0x0010  /* Server->client: the stream's
+                                                  source failed (payload: error
+                                                  block, see below) */
 #define RIG_STREAM_CTRL_TIME          0x0020  /* Payload begins with a time block */
 #define RIG_STREAM_CTRL_METADATA      0x0040  /* Metadata frame */
 #define RIG_STREAM_CTRL_WRITE_STATUS  0x0080  /* Server->client async write-status frame */
@@ -89,6 +91,15 @@
  * + picoseconds(8) + time_source(1) + time_flags(1) + time_accuracy(1)
  * + reserved(1). sample_index rides the packet header timestamp. */
 #define RIG_STREAM_WRITE_STATUS_WIRE_SIZE 36
+
+/* ERROR frame payload (RIG_STREAM_CTRL_ERROR), big-endian:
+ * version(2) + reserved(2) + rig_error(4, the Hamlib code the server's read or
+ * write returned, e.g. -RIG_EIO) + comm_reason(4, RIG_COMM_REASON_*). Sent
+ * header-only style with seq = 0, so it never enters seq accounting. A
+ * receiver ignores a version it does not know; longer payloads may append
+ * fields. */
+#define RIG_STREAM_ERROR_WIRE_SIZE 12
+#define RIG_STREAM_ERROR_BLOCK_VERSION 1
 
 /* Default MTU and payload calculations */
 #define RIG_STREAM_DEFAULT_MTU        1500
@@ -272,6 +283,13 @@ void stream_write_status_pack(const struct rig_stream_write_status *st,
                               unsigned char *buf);
 int stream_write_status_unpack(const unsigned char *buf, size_t len,
                                struct rig_stream_write_status *st);
+
+/* Pack/unpack the ERROR frame payload (RIG_STREAM_ERROR_WIRE_SIZE bytes).
+ * unpack returns 0 on success, -1 if len is short or the version unknown. */
+void stream_error_block_pack(int32_t rig_error, uint32_t comm_reason,
+                             unsigned char *buf);
+int stream_error_block_unpack(const unsigned char *buf, size_t len,
+                              int32_t *rig_error, uint32_t *comm_reason);
 
 /* Combination rule: the TIME bit is valid only on data and time-only
  * packets — never combined with frames that define their own payloads.

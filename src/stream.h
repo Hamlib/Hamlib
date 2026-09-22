@@ -140,6 +140,13 @@ struct rig_stream
     uint64_t dropped_samples_gap;      /* Per-cause dropped-sample totals */
     uint64_t dropped_samples_overrun;
     uint64_t dropped_samples_link;
+    uint64_t concealed_samples_gap;    /* Losses replaced with silence by */
+    uint64_t concealed_samples_overrun; /* stream_fill_gap(), per cause */
+    uint32_t backend_overruns;      /* Backend receive-queue overflows
+                                     * (local, reported via stream_fill_gap()
+                                     * or STREAM_DROP_LOCAL_OVERRUN) */
+    uint32_t fail_reason;           /* RIG_COMM_REASON_* recorded by
+                                     * stream_mark_failed() (first wins) */
 
     /* Time anchors (protected by ringbuf.lock) */
     struct rig_stream_time_anchor anchors[RIG_STREAM_ANCHOR_DEPTH];
@@ -295,6 +302,43 @@ int stream_metadata_changed(const struct rig_stream_metadata *a,
  * same dropped_samples path as a local ring overrun. */
 void stream_skip_samples(struct rig_stream *stream, uint64_t dropped_samples,
                          uint8_t drop_flag);
+
+/* Internal drop_flag for stream_skip_samples(): a LOCAL overrun upstream of
+ * the ring (a backend receive queue that overflowed). Reported to the reader
+ * as RIG_STREAM_DROP_OVERRUN and counted in the local overrun statistics,
+ * unlike a bare RIG_STREAM_DROP_OVERRUN, which is a remote-replayed overrun.
+ * Never appears in rig_stream_read_info.drop_flags itself. */
+#define STREAM_DROP_LOCAL_OVERRUN 0x80
+
+/* Backend-facing: conceal a loss of native_samples samples (backend-native
+ * sample domain) by writing silence into the stream, so playback stays
+ * continuous and the sample index has no hole. cause is RIG_STREAM_DROP_GAP
+ * (radio/network loss) or RIG_STREAM_DROP_OVERRUN (a local backend queue
+ * overflow). The next read reports cause | RIG_STREAM_DROP_CONCEALED and the
+ * concealed_samples_* statistic counts the fill; dropped_samples does not.
+ *
+ * Silence is written in the backend's native format through the conversion
+ * pipeline, so it is format-correct (0x80 for unsigned 8-bit). At most one
+ * second is filled; any remainder is reported as a sized index hole, exactly
+ * like rig_stream_mark_gap(). native_samples == 0 (size unknown) fills
+ * nothing and reports an unsized loss.
+ *
+ * Call it BEFORE writing the post-loss data, and push a DISCONTINUITY time
+ * anchor afterwards. For I/Q, prefer rig_stream_mark_gap(): invented samples
+ * corrupt phase. Returns RIG_OK, or -RIG_EINVAL (bad cause, codec stream). */
+int stream_fill_gap(struct rig_stream *stream, uint64_t native_samples,
+                    uint8_t cause);
+
+/* Backend- and client-facing: the stream's source is gone for good (the
+ * radio session died, the server reported a failure). Records reason
+ * (RIG_COMM_REASON_*; the first call wins), and wakes every blocked reader,
+ * writer and write-status waiter. Afterwards reads return the data already
+ * buffered and then -RIG_EIO; writes and rig_stream_wait_write_status()
+ * return -RIG_EIO. A deliberate close still reports -RIG_ENAVAIL. */
+void stream_mark_failed(struct rig_stream *stream, unsigned int reason);
+
+/* 1 once stream_mark_failed() has been called (takes ringbuf.lock). */
+int stream_is_failed(struct rig_stream *stream);
 
 /* Producer index of the oldest readable byte; caller holds ringbuf.lock. */
 uint64_t stream_first_readable_index_locked(struct rig_stream *stream);

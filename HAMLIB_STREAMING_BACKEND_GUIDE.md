@@ -500,39 +500,114 @@ See also: `dummy_stream_generator()` in `rigs/dummy/dummy_stream.c`.
 
 The ring buffer is a byte stream — it cannot mark a discontinuity by
 itself. If your radio protocol lets you detect lost packets (a
-sequence-number skip or a timestamp jump), report the loss with
-`rig_stream_mark_gap()` so the application sees an exact hole:
+sequence-number skip or a timestamp jump), report every loss before you
+write the data that follows it, so the application never sees a stream
+that silently thins. Sizes are in your **native** sample domain; the
+frontend rescales them under rate conversion.
+
+**Audio: conceal with `stream_fill_gap()`.** Live playback wants a
+continuous stream, so the frontend writes format-correct silence for the
+missing samples (0x80 for unsigned bytes) and flags the read that carries
+it:
 
 ```c
-/* gap_samples = missing samples computed from the radio protocol;
- * pass 0 when the protocol cannot size the gap. Call BEFORE writing
- * the post-gap data. */
-rig_stream_mark_gap(stream, gap_samples);
+/* lost = missing native samples; 0 when the protocol cannot size it
+ * (nothing is filled, an unsized gap is reported). */
+stream_fill_gap(stream, lost, RIG_STREAM_DROP_GAP);
 ```
 
-This advances the producer sample-index domain without writing bytes, so
-the loss reaches the application through `rig_stream_read()`'s
-`info.dropped_samples` + `RIG_STREAM_DROP_GAP` — exactly like a ring
-overrun — and feeds the per-cause totals in `rig_stream_get_stats()`.
-Follow the mark with a DISCONTINUITY time anchor (Section 5.2).
+The read reports `RIG_STREAM_DROP_GAP | RIG_STREAM_DROP_CONCEALED` with
+`dropped_samples` 0 — the silence is real samples, so the sample index has
+no hole — and `rig_stream_get_stats()` counts the event in `gaps` and the
+samples in `concealed_samples_gap`. At most one second is filled; the rest
+of a longer outage becomes a sized index hole in the same event.
 
-For **audio**, additionally zero-fill the ring buffer so live playback
-stays smooth (the zeros are real samples, so `dropped_samples` stays 0;
-the DISCONTINUITY anchor still tells recorders they are synthetic). Cap
-the fill (e.g. to one second) so a clock jump cannot flood the buffer:
+**I/Q: mark with `rig_stream_mark_gap()`.** Invented samples shift phase
+and corrupt downstream FFT processing, so an I/Q loss is an exact hole in
+the sample index instead:
 
 ```c
-memset(silence, 0, chunk_bytes);
-/* write gap_samples worth of zeros (in chunks) */
-stream_backend_write(stream, silence, gap_samples * frame_bytes);
-stream->gap_count++;
+rig_stream_mark_gap(stream, lost);   /* 0 = unsized, position-only */
 ```
 
-For **I/Q**, do not zero-fill — a mis-sized fill shifts phase and
-corrupts downstream FFT processing; `mark_gap` gives the application the
-exact position and size so it can choose its own policy. When the gap
-size cannot be trusted (e.g. the FlexRadio DAX-IQ fractional counter),
-use `rig_stream_mark_gap(stream, 0)` — an unsized, position-only report.
+The read reports `info.dropped_samples` + `RIG_STREAM_DROP_GAP`, and the
+stats count `dropped_samples_gap`. When the gap size cannot be trusted
+(e.g. the FlexRadio DAX-IQ fractional counter), pass 0.
+
+**A queue of your own that overflows** before the ring (the reader fell
+behind) is a *local overrun*, not a radio gap: conceal audio with
+`stream_fill_gap(stream, lost, RIG_STREAM_DROP_OVERRUN)`, and mark I/Q with
+`stream_skip_samples(stream, lost, STREAM_DROP_LOCAL_OVERRUN)`. Both count
+in the local `overruns` statistic, never in `remote_overruns`.
+
+After any loss, reset a stateful codec (Section 9.1) and push a
+DISCONTINUITY time anchor (Section 5.2). Size losses from what you know
+about the protocol: the Icom network backend, whose packets vary in size
+within a frame, sizes a lost packet from the last packet seen at the same
+position in the frame.
+
+### 5.1.1 Reordered and late packets: `stream_reorder`
+
+Writing packets in arrival order puts a late or retransmitted packet
+*after* newer audio, and a duplicate twice, and a packet that arrives after
+you gave up on it is then both lost and delivered. If your transport
+numbers its datagrams, run them through the shared reorder window
+(`src/stream_reorder.h`) before decoding:
+
+```c
+struct stream_reorder *r =
+    stream_reorder_new(window_ms, 16 /* seq bits */, 256 /* slots */,
+                       256 /* max gap */, max_payload);
+
+stream_reorder_push(r, seq, payload, len, now_ms);
+
+while ((kind = stream_reorder_pop(r, now_ms, &item)) != STREAM_REORDER_NONE)
+{
+    if (kind == STREAM_REORDER_GAP)
+    {
+        /* item.lost packets (or item.unsized): report before the next write */
+    }
+    else
+    {
+        /* item.data/item.length, in sequence order */
+    }
+}
+```
+
+Packets come out in sequence order. A missing one is waited for at most
+`window_ms`, counted from the arrival of the packet after it, then released
+as a gap; anything arriving behind the release point is dropped. With
+`window_ms` 0 nothing is held: gaps are reported as soon as the next packet
+arrives. Pop again when `stream_reorder_next_deadline()` comes due even if
+nothing new arrived. A protocol that can ask for retransmission uses
+`stream_reorder_missing()` — which lists nothing at a window of 0, since a
+resend could never be used. A receiver that sleeps until the next datagram also
+wakes for `stream_reorder_next_request()`; otherwise a retry falls due while it
+sleeps and the window closes first. Let the user choose the window: it trades
+recovered packets for added latency. See the Icom network session
+(`rigs/icom/network_session.c`) for a complete integration.
+
+### 5.1.2 When the source dies: `stream_mark_failed()`
+
+When the radio session is gone for good — the link timed out, the radio
+ended the session, the socket failed — tell the stream, rather than letting
+the application read an idle stream forever:
+
+```c
+stream_mark_failed(stream, RIG_COMM_REASON_LINK_TIMEOUT);
+```
+
+This wakes every blocked reader, writer and write-status waiter. Reads
+return the data already buffered and then `-RIG_EIO`; writes and
+`rig_stream_wait_write_status()` return `-RIG_EIO`; `rig_stream_get_stats()`
+reports the reason in `fail_reason` (the first call wins). Nothing written
+by a producer afterwards is accepted. A deliberate `rig_stream_close()`
+still reports `-RIG_ENAVAIL`. A failed stream stays failed even if your
+backend later reconnects the session: the application closes and reopens
+it. rigctld forwards the failure to remote clients as an ERROR frame
+(`HAMLIB_STREAMING.md` §6.2), so a netrigctl consumer sees the same
+`-RIG_EIO` and reason. Call it from your stream threads (RX and TX), and
+never poke `stream->ringbuf` flags directly.
 
 
 ### 5.2 Providing capture time
@@ -560,7 +635,9 @@ Rules:
    already-rescaled consumer-domain position and would be rescaled a
    second time. Keep your own counter (see `native_pos` in
    `dummy_stream_generator()`). The same rule applies to
-   `rig_stream_mark_gap()` counts — report losses in native samples.
+   `rig_stream_mark_gap()` and `stream_fill_gap()` counts — report losses
+   in native samples — and the counter includes them: a concealed or marked
+   loss advances your position just as delivered samples do.
 2. Push at stream start and **at least every second** (the read-path
    staleness watchdog degrades and then invalidates older time).
 3. Push immediately after any detected gap, with
@@ -810,6 +887,15 @@ cleared. Network `recv()` calls must use timeouts — if the thread blocks
 indefinitely, `pthread_join` will hang. Set `SO_RCVTIMEO` on receive
 sockets.
 
+**`rig_close` comes after the streams.** `rig_close()` tears down every
+open stream — running your `stream_close` for each — *before* it calls
+your backend's `rig_close`, and sets `rig_state.stream_state` to NULL. So
+free all per-stream resources in `stream_close`, and never touch streaming
+state (streams, `stream_state`, per-stream threads) from your `rig_close`;
+by then it no longer exists. The session or transport your stream threads
+used is still open while `stream_close` runs, so a stream can still tell
+the radio to stop.
+
 See also: `dummy_stream_close()` in `rigs/dummy/dummy_stream.c`.
 
 
@@ -992,7 +1078,7 @@ decoding post-gap data, so a stateful codec's predictor does not carry
 across the discontinuity (stateless codecs ignore the reset):
 
 ```c
-rig_stream_mark_gap(stream, dropped_samples);
+stream_fill_gap(stream, dropped_samples, RIG_STREAM_DROP_GAP);  /* audio */
 rig_audio_codec_reset(stream->rx_codec);
 ```
 
@@ -1174,7 +1260,11 @@ void test_rx_audio(void)
 - **Overrun detection:** Open RX, delay reading, verify
   `rig_stream_get_stats()` reports `overruns > 0`
 - **Gap reporting:** If the radio protocol detects losses, verify
-  `info.dropped_samples`/`drop_flags` and the stats totals
+  `info.dropped_samples`/`drop_flags` and the stats totals (for audio,
+  `RIG_STREAM_DROP_CONCEALED` and `concealed_samples_gap`)
+- **Source failure:** Make the transport die (a mock that goes silent) and
+  verify reads drain then return `-RIG_EIO`, writes return `-RIG_EIO`, and
+  `fail_reason` names the cause
 - **Capture time:** Read with `info` and verify `time_valid`, source,
   and accuracy match what your backend anchors claim
 - **Metadata:** Verify `rig_stream_read_metadata()` returns valid
@@ -1254,7 +1344,10 @@ test suite.
 | Function                          | Description                       |
 |-----------------------------------|-----------------------------------|
 | `rig_stream_push_time_anchor()`   | Record a capture-time anchor (Section 5.2) |
-| `rig_stream_mark_gap()`           | Report a radio-side loss (Section 5.1) |
+| `rig_stream_mark_gap()`           | Report a radio-side loss as an index hole (I/Q, Section 5.1) |
+| `stream_fill_gap()`               | Conceal a loss with silence and flag it (audio, Section 5.1) |
+| `stream_reorder_*()`              | Sequence-order datagrams with a bounded hold window (Section 5.1.1) |
+| `stream_mark_failed()`            | The source died: fail reads/writes with `-RIG_EIO` (Section 5.1.2) |
 | `rig_stream_pop_tx_target()`      | Drain pending TX burst targets (Section 6.1) |
 | `stream_record_write_status()`    | Report a TX late burst / under- / overrun (Section 6.2) |
 | `stream_time_now()`               | Host CLOCK_REALTIME as sec+ps     |

@@ -2190,6 +2190,10 @@ enum rig_stream_time_accuracy {
 #define RIG_STREAM_DROP_UNSIZED  (1<<2)  /* an unknown-size gap also precedes;
                                             dropped_samples is a lower bound */
 #define RIG_STREAM_DROP_LINK     (1<<3)  /* network client: app-link UDP loss */
+#define RIG_STREAM_DROP_CONCEALED (1<<4) /* with GAP or OVERRUN: the lost samples
+                                            were replaced with silence, so they
+                                            are NOT in dropped_samples and the
+                                            sample index has no hole */
 
 /* Correlates a producer sample index with UTC wall-clock time */
 struct rig_stream_time_anchor {
@@ -2247,8 +2251,10 @@ struct rig_stream_write_info {
 
 /* Stream health snapshot returned by rig_stream_get_stats() */
 struct rig_stream_stats {
-    /* event counts (local ring) */
-    uint32_t overruns;          /* local ring full on write; oldest overwritten */
+    /* event counts (local) */
+    uint32_t overruns;          /* local overrun: ring full on write (oldest
+                                   overwritten), or a backend receive queue
+                                   that overflowed before the ring */
     uint32_t underruns;         /* local blocking read timed out empty */
     uint32_t gaps;              /* radio/network-side gaps marked by backend */
     uint32_t gaps_unknown;      /* subset of gaps with unknown size */
@@ -2258,6 +2264,10 @@ struct rig_stream_stats {
     uint32_t remote_overruns;   /* TX ring overruns / RX overrun-replay upstream */
     uint32_t remote_underruns;  /* TX ring underruns reported by the server */
     uint32_t write_events_dropped; /* write-status events dropped on FIFO overflow */
+    uint32_t fail_reason;       /* RIG_COMM_REASON_* the stream's source died
+                                   with (reads/writes return -RIG_EIO);
+                                   RIG_COMM_REASON_NONE while healthy.
+                                   (Occupies former padding.) */
     /* lost-sample totals (per cause) */
     uint64_t dropped_samples_gap;     /* lower bound if gaps_unknown > 0 */
     uint64_t dropped_samples_overrun;
@@ -2268,7 +2278,11 @@ struct rig_stream_stats {
                                       per datagram — but counts frames,
                                       surviving any future packing).
                                       0 on raw streams. */
-    uint64_t _reserved[5];         /* ABI headroom; rig_stream_get_stats
+    /* concealed-sample totals: losses replaced with silence
+       (RIG_STREAM_DROP_CONCEALED), not part of dropped_samples_* */
+    uint64_t concealed_samples_gap;
+    uint64_t concealed_samples_overrun;
+    uint64_t _reserved[3];         /* ABI headroom; rig_stream_get_stats
                                       zeroes it (see rig_stream_metadata) */
 };
 
@@ -2923,6 +2937,21 @@ typedef unsigned int rig_comm_status_t;
 #define RIG_COMM_STATUS_TERMINATED    0x03
 #define RIG_COMM_STATUS_WARNING       0x04
 #define RIG_COMM_STATUS_ERROR         0x05
+
+/**
+ * \brief Why the communication status last changed.
+ *
+ * Qualifies #rig_comm_status_t: the status says the link is down, this says
+ * what brought it down. Backends that can distinguish the causes set it when
+ * they set the status; the rest leave it #RIG_COMM_REASON_NONE.
+ */
+typedef unsigned int rig_comm_reason_t;
+
+#define RIG_COMM_REASON_NONE            0x00  /*!< Not known or not applicable */
+#define RIG_COMM_REASON_PEER_DISCONNECT 0x01  /*!< The rig ended the session */
+#define RIG_COMM_REASON_LINK_TIMEOUT    0x02  /*!< The rig stopped responding */
+#define RIG_COMM_REASON_SOCKET_ERROR    0x03  /*!< The transport reported an error */
+#define RIG_COMM_REASON_AUTH_FAILED     0x04  /*!< The rig rejected the credentials */
 
 
 //! @cond Doxygen_Suppress
@@ -4047,6 +4076,7 @@ extern HAMLIB_EXPORT(const char *) rig_strstatus(enum rig_status_e status);
 extern HAMLIB_EXPORT(const char *) rig_strmtype(chan_type_t mtype);
 extern HAMLIB_EXPORT(const char *) rig_strspectrummode(enum rig_spectrum_mode_e mode);
 extern HAMLIB_EXPORT(const char *) rig_strcommstatus(rig_comm_status_t vfo);
+extern HAMLIB_EXPORT(const char *) rig_strcommreason(rig_comm_reason_t reason);
 
 extern HAMLIB_EXPORT(rmode_t) rig_parse_mode(const char *s);
 extern HAMLIB_EXPORT(vfo_t) rig_parse_vfo(const char *s);
