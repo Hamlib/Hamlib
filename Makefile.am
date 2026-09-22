@@ -7,6 +7,8 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = hamlib.pc
 
 EXTRA_DIST = \
+	HAMLIB_STREAMING.md \
+	HAMLIB_STREAMING_BACKEND_GUIDE.md \
 	README.betatester \
 	LICENSE \
 	PLAN \
