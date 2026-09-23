@@ -5,7 +5,7 @@
 .\"
 .\" Note: Please keep this page in sync with the source, rigctltcp.c
 .\"
-.TH RIGCTLTCP "1" "2026-02-14" "Hamlib" "Hamlib Utilities"
+.TH RIGCTLTCP "1" "2026-08-16" "Hamlib" "Hamlib Utilities"
 .
 .
 .SH NAME
@@ -34,7 +34,6 @@ rigctltcp \- TCP multicast control of radio transceivers and receivers
 .OP \-W secs
 .OP \-w secs
 .OP \-x option
-.OP \-A password
 .RB [ \-v [ \-Z ]]
 .YS
 .
@@ -455,21 +454,6 @@ Enable time stamps for the debug messages.
 Use only in combination with the
 .B \-v
 option as it generates no output on its own.
-.
-.
-.TP
-.BR \-A ", " \-\-password = \fIPASSWORD\fP
-Sets a password on
-.B rigctltcp
-which requires Hamlib to use
-.B rig_set_password
-and clients to use
-.I PASSWORD
-to access rigctltcp.
-.
-A 32 character shared secret will be displayed to be used on the client side.
-.IP
-.B (NOT IMPLEMENTED)
 .
 .
 .TP
