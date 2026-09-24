@@ -41,7 +41,8 @@ DIRECT_TESTS = \
 	testthd7x \
 	testthd75emu \
 	testts990s \
-	testid5100
+	testid5100 \
+	test_thd75_dual_band
 
 GENERATED_TEST_WRAPPERS = \
 	test2038.sh \
@@ -82,7 +83,7 @@ check_PROGRAMS = \
 # rigstreamtest is a streaming diagnostic tool rather than a unit test, so it is
 # built with everything else instead of only under "make check". It is not
 # installed: it drives a radio's audio/IQ streams from the build tree.
-noinst_PROGRAMS = rigstreamtest
+noinst_PROGRAMS = rigstreamtest test_thd75_dual_band_interactive
 
 RIGCOMMONSRC = rigctl_parse.c rigctl_parse.h rigctld_stream.c rigctld_stream.h rigctld_client.h dumpcaps.c dumpstate.c uthash.h rig_tests.c rig_tests.h dumpcaps.h
 ROTCOMMONSRC = rotctl_parse.c rotctl_parse.h dumpcaps_rot.c uthash.h dumpcaps_rot.h
@@ -187,6 +188,15 @@ testrigctlprotocol_LDADD = $(LDADD)
 testmodecompat_LDADD = $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
 testicomts_LDADD = $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testid5100_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+
+# TH-D75 dual band test definitions
+test_thd75_dual_band_SOURCES = test_thd75_dual_band.c
+test_thd75_dual_band_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+test_thd75_dual_band_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/kenwood/libhamlib-kenwood.la $(LDADD)
+
+test_thd75_dual_band_interactive_SOURCES = test_thd75_dual_band_interactive.c
+test_thd75_dual_band_interactive_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+test_thd75_dual_band_interactive_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/kenwood/libhamlib-kenwood.la $(LDADD)
 testicomfallback_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testgeministatus_LDADD = $(PTHREAD_LIBS) $(top_builddir)/amplifiers/gemini/libhamlib-gemini.la $(LDADD)
 testgs100_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/gomspace/libhamlib-gomspace.la $(LDADD)
@@ -238,6 +248,8 @@ endif
 
 EXTRA_DIST = \
 	amptest.sh \
+	test_thd75_dual_band.c \
+	test_thd75_dual_band_interactive.c \
 	cachetest.sh \
 	hamlib_tuner_control \
 	rig_split_lst.awk \

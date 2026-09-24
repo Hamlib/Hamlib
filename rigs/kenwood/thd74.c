@@ -44,7 +44,7 @@
 #define THD74_FUNC_ALL (RIG_FUNC_TSQL|   \
                        RIG_FUNC_TONE)
 
-#define THD75_FUNC_ALL (THD74_FUNC_ALL|RIG_FUNC_VOX)
+#define THD75_FUNC_ALL (THD74_FUNC_ALL|RIG_FUNC_VOX|RIG_FUNC_DUAL_BAND)
 
 #define THD74_LEVEL_ALL (RIG_LEVEL_RFPOWER|\
             RIG_LEVEL_SQL|\
@@ -1637,25 +1637,39 @@ static int thd75_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     char command[5], reply[16];
     int retval;
 
-    if (func != RIG_FUNC_VOX)
-    {
-        return thd74_set_func(rig, vfo, func, status);
-    }
-
     if (status != 0 && status != 1)
     {
         return -RIG_EINVAL;
     }
 
-    SNPRINTF(command, sizeof(command), "VX %d", status);
-    retval = kenwood_transaction(rig, command, reply, sizeof(reply));
-
-    if (retval != RIG_OK)
+    if (func == RIG_FUNC_VOX)
     {
-        return retval;
+        SNPRINTF(command, sizeof(command), "VX %d", status);
+        retval = kenwood_transaction(rig, command, reply, sizeof(reply));
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        return strcmp(command, reply) == 0 ? RIG_OK : -RIG_EPROTO;
     }
 
-    return strcmp(command, reply) == 0 ? RIG_OK : -RIG_EPROTO;
+    /* Handle RIG_FUNC_DUAL_BAND (DL command) - Dual Band monitoring */
+    if (func == RIG_FUNC_DUAL_BAND)
+    {
+        SNPRINTF(command, sizeof(command), "DL %d", !status);
+        retval = kenwood_transaction(rig, command, reply, sizeof(reply));
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        return strcmp(command, reply) == 0 ? RIG_OK : -RIG_EPROTO;
+    }
+
+    return thd74_set_func(rig, vfo, func, status);
 }
 
 static int thd75_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
@@ -1663,28 +1677,50 @@ static int thd75_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     char reply[16];
     int retval, value;
 
-    if (func != RIG_FUNC_VOX)
+    if (func == RIG_FUNC_VOX)
     {
-        return thd74_get_func(rig, vfo, func, status);
+        retval = kenwood_transaction(rig, "VX", reply, sizeof(reply));
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        retval = thd75_parse_global_digit(reply, "VX", 1, &value);
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, reply);
+            return retval;
+        }
+
+        *status = value;
+        return RIG_OK;
     }
 
-    retval = kenwood_transaction(rig, "VX", reply, sizeof(reply));
-
-    if (retval != RIG_OK)
+    /* Handle RIG_FUNC_DUAL_BAND (DL command) - Query Dual Band status */
+    if (func == RIG_FUNC_DUAL_BAND)
     {
-        return retval;
+        retval = kenwood_transaction(rig, "DL", reply, sizeof(reply));
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        retval = thd75_parse_global_digit(reply, "DL", 1, &value);
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, reply);
+            return retval;
+        }
+
+        *status = !value;
+        return RIG_OK;
     }
 
-    retval = thd75_parse_global_digit(reply, "VX", 1, &value);
-
-    if (retval != RIG_OK)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, reply);
-        return retval;
-    }
-
-    *status = value;
-    return RIG_OK;
+    return thd74_get_func(rig, vfo, func, status);
 }
 
 static int thd74_set_parm(RIG *rig, setting_t parm, value_t val)
