@@ -202,6 +202,16 @@ struct rig_caps ft2000_caps =
     .max_rit =            Hz(9999),
     .max_xit =            Hz(9999),
     .max_ifshift =        Hz(1000),
+    /* dump_caps prints "AGC levels: 9=NONE" (RIG_AGC_NONE, hamlib's
+     * empty-caps placeholder) without this -- FT-2000's newcat.c AGC
+     * switch only has cases for OFF/FAST/MEDIUM/SLOW/AUTO, confirmed
+     * against the FT-2000 CAT operation manual, same vocabulary
+     * already declared by sibling newcat-family rigs (e.g. ft950.c).
+     * Descriptive only -- newcat.c's RIG_LEVEL_AGC case doesn't
+     * consult this array, so it doesn't add runtime validation, just
+     * makes dump_caps/rig_caps introspection truthful for this rig. */
+    .agc_level_count =    5,
+    .agc_levels =         { RIG_AGC_OFF, RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW, RIG_AGC_AUTO },
     .vfo_ops =            FT2000_VFO_OPS,
     .scan_ops =           RIG_SCAN_VFO,
     .targetable_vfo =     RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE | RIG_TARGETABLE_LEVEL | RIG_TARGETABLE_FUNC | RIG_TARGETABLE_TONE,
