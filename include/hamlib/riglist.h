@@ -1066,11 +1066,15 @@
 
 /**
  * \name ANYTONE
- * AnyTone model.
+ * AnyTone models.
  */
 ///@{
 /// Model of the `RIG_ANYTONE` backend family.
 #define RIG_MODEL_ATD578UVIII RIG_MAKE_MODEL(RIG_ANYTONE, 1)
+/// Model of the `RIG_ANYTONE` backend family.
+#define RIG_MODEL_AT778UV RIG_MAKE_MODEL(RIG_ANYTONE, 2)
+/// Model of the `RIG_ANYTONE` backend family.
+#define RIG_MODEL_RT95 RIG_MAKE_MODEL(RIG_ANYTONE, 3)
 ///@}
 
 /*
