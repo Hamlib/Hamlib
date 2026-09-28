@@ -97,6 +97,7 @@ extern struct confparams kenwood_cfg_params[];
 #define RIG_IS_THD74     (rig->caps->rig_model == RIG_MODEL_THD74)
 #define RIG_IS_THD75     (rig->caps->rig_model == RIG_MODEL_THD75)
 #define RIG_IS_TMD700    (rig->caps->rig_model == RIG_MODEL_TMD700)
+#define RIG_IS_TMD750    (rig->caps->rig_model == RIG_MODEL_TMD750)
 #define RIG_IS_TS2000    (rig->caps->rig_model == RIG_MODEL_TS2000)
 #define RIG_IS_TS50      (rig->caps->rig_model == RIG_MODEL_TS50)
 #define RIG_IS_TS450S    (rig->caps->rig_model == RIG_MODEL_TS450S)
@@ -319,6 +320,7 @@ extern struct rig_caps thg71_caps;
 extern struct rig_caps tmv7_caps;
 extern struct rig_caps tmv71_caps;
 extern struct rig_caps tmd710_caps;
+extern struct rig_caps tmd750_caps;
 
 extern struct rig_caps ts440_caps;
 extern struct rig_caps ts940_caps;
