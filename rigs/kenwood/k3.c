@@ -1656,14 +1656,14 @@ static int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
         // split can get turned off when modes are changing
         // so if the rig did this independently of us we turn it back on
         // even if the rig changes the split status should be the last thing we did
-        if (priv->split) { strcat(cmd_m, "FT1;"); }
-
         /* Set data sub-mode.  K3 needs to be in a DATA mode before setting
          * the sub-mode or switching to VFOB so we do this before the MD$ command.
          */
         if (tx_mode == RIG_MODE_PKTLSB || tx_mode == RIG_MODE_PKTUSB
                 || tx_mode == RIG_MODE_RTTY || tx_mode == RIG_MODE_RTTYR)
         {
+            if (priv->split) { strcat(cmd_m, "FT1;"); }
+
             err = kenwood_transaction(rig, cmd_m, NULL, 0);
 
             if (err != RIG_OK)
