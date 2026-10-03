@@ -341,6 +341,13 @@ extern struct rig_caps pt8000a_caps;
 extern struct rig_caps malachite_caps;
 extern struct rig_caps tx500_caps;
 extern struct rig_caps sdruno_caps;
+/* Shared QRP Labs helpers implemented in qmx.c. */
+int qrplabs_open(RIG *rig);
+int qrplabs_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
+                      int *min, int *sec, double *msec, int *utc_offset);
+int qrplabs_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
+                      int sec, double msec, int utc_offset);
+
 extern struct rig_caps qrplabs_caps;
 extern struct rig_caps qrplabs_qmx_caps;
 extern struct rig_caps fx4_caps;
