@@ -2892,10 +2892,10 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         return -RIG_EINVAL;
     }
 
-    rig_get_cache_routing_snapshot(rig, &routing);
     ENTERFUNC;
     ELAPSED1;
     LOCK(1);
+    rig_get_cache_routing_snapshot(rig, &routing);
 
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s called, vfo=%s, mode=%s, width=%d, curr_vfo=%s\n", __func__,
