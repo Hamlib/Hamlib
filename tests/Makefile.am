@@ -37,7 +37,8 @@ DIRECT_TESTS = \
 	testsmartsdrstatus \
 	testthd7x \
 	testthd75emu \
-	testts990s
+	testts990s \
+	testtrusdx
 
 GENERATED_TEST_WRAPPERS = \
 	test2038.sh \
