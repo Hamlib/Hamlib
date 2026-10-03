@@ -36,7 +36,7 @@
 #define TS480_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR)
 #define SDRUNO_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTUSB)
 #define PS8000A_ALL_MODES (RIG_MODE_AM|RIG_MODE_AMS|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR)
-#define QMX_ALL_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_PKTUSB|RIG_MODE_PKTLSB)
+#define QMX_ALL_MODES (RIG_MODE_SSB|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_PKTUSB|RIG_MODE_PKTLSB)
 #define QMX_LEVEL_GET (RIG_LEVEL_SWR|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS)
 /*
  * Full scale of the QMX power meter, used to scale RFPOWER_METER to 0.0..1.0.
@@ -1314,6 +1314,231 @@ static int qrplabs_get_clock(RIG *rig, int *year, int *month, int *day, int *hou
     return retval;
 }
 
+/* Protocol reference: https://qrp-labs.com/images/qmx/manuals/cat_1_04_004.pdf
+ * MD8 starts SWR tune; never expose it as a normal operating mode.
+ * Preserve the established Hamlib packet-mode aliases for FSK/FSK reverse.
+ * A private table also avoids other emulations changing our mode mapping.
+ */
+static rmode_t qrplabs_qmx_modes[KENWOOD_MODE_TABLE_MAX] =
+{
+    [1] = RIG_MODE_LSB,
+    [2] = RIG_MODE_USB,
+    [3] = RIG_MODE_CW,
+    [5] = RIG_MODE_AM,
+    [6] = RIG_MODE_PKTLSB,
+    [7] = RIG_MODE_CWR,
+    [9] = RIG_MODE_PKTUSB,
+};
+
+static struct kenwood_priv_caps qrplabs_qmx_priv_caps =
+{
+    .cmdtrm = EOM_KEN,
+    .mode_table = qrplabs_qmx_modes,
+};
+
+/* Keep the per-rig normal width in sync with readback. The frontend uses it
+ * to populate its cache after set_mode(..., RIG_PASSBAND_NORMAL).
+ */
+static int qrplabs_qmx_read_width(RIG *rig, rmode_t mode, pbwidth_t *width)
+{
+    char buf[16];
+    int retval = kenwood_safe_transaction(rig, "FW", buf, sizeof(buf), 6);
+
+    if (retval != RIG_OK) { return retval; }
+    if (strspn(buf + 2, "0123456789") != 4 || atoi(buf + 2) == 0)
+    { return -RIG_EPROTO; }
+    *width = atoi(buf + 2);
+
+    for (int i = 0; i < HAMLIB_FLTLSTSIZ && STATE(rig)->filters[i].modes; i++)
+    {
+        if (STATE(rig)->filters[i].modes & mode)
+        {
+            /* Keep all advertised choices when promoting a new normal width. */
+            for (int j = i + 1; j < HAMLIB_FLTLSTSIZ && STATE(rig)->filters[j].modes; j++)
+            {
+                if ((STATE(rig)->filters[j].modes & mode)
+                        && STATE(rig)->filters[j].width == *width)
+                {
+                    STATE(rig)->filters[j].width = STATE(rig)->filters[i].width;
+                    break;
+                }
+            }
+            STATE(rig)->filters[i].width = *width;
+            break;
+        }
+    }
+    return RIG_OK;
+}
+
+static int qrplabs_qmx_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
+                               pbwidth_t width)
+{
+    char cmd[64], buf[16];
+    int kmode, retval;
+    int ssb = mode == RIG_MODE_USB || mode == RIG_MODE_LSB;
+    int set_width = width != RIG_PASSBAND_NORMAL && width != RIG_PASSBAND_NOCHANGE;
+    int write_filter = 0;
+    pbwidth_t actual_width;
+
+    if (mode == RIG_MODE_NONE) { return -RIG_EINVAL; }
+    kmode = rmode2kenwood(mode, qrplabs_qmx_modes);
+    if (kmode < 0) { return -RIG_EINVAL; }
+
+    if (set_width)
+    {
+        if (ssb)
+        {
+            if (width != 2500 && width != 2700 && width != 2900 && width != 3200)
+            { return -RIG_EINVAL; }
+
+            /* MM writes persist. Avoid rewriting an unchanged setting. */
+            retval = kenwood_safe_transaction(rig, "MMSSB|Filter RX", buf, sizeof(buf), 6);
+            if (retval != RIG_OK) { return retval; }
+            if (strspn(buf + 2, "0123456789") != 4) { return -RIG_EPROTO; }
+            write_filter = atoi(buf + 2) != width;
+        }
+        else if (width != rig_passband_normal(rig, mode))
+        { return -RIG_ENAVAIL; }
+    }
+
+    SNPRINTF(cmd, sizeof(cmd), "MD%d", kmode);
+    retval = kenwood_transaction(rig, cmd, NULL, 0);
+    if (retval != RIG_OK) { return retval; }
+
+    /* Mode is shared by both VFOs, including on subsequent command failure. */
+    rig_invalidate_cache_mode(rig, RIG_VFO_ALL);
+
+    if (write_filter)
+    {
+        SNPRINTF(cmd, sizeof(cmd), "MMSSB|Filter RX=%d", (int)width);
+        retval = kenwood_transaction(rig, cmd, NULL, 0);
+        if (retval != RIG_OK) { return retval; }
+    }
+
+    if (ssb && set_width)
+    {
+        /* Apply also when the stored value was already correct but MM Effect
+         * is On demand and the active configuration has not been reloaded.
+         * Filter TX is independent and is deliberately not changed here.
+         */
+        retval = kenwood_transaction(rig, "MU", NULL, 0);
+        if (retval != RIG_OK) { return retval; }
+    }
+
+    retval = qrplabs_qmx_read_width(rig, mode, &actual_width);
+    if (retval != RIG_OK) { return retval; }
+    if (set_width && actual_width != width) { return -RIG_ENAVAIL; }
+    return RIG_OK;
+}
+
+static int qrplabs_qmx_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
+                               pbwidth_t *width)
+{
+    char buf[16];
+    int retval;
+
+    retval = kenwood_safe_transaction(rig, "MD", buf, sizeof(buf), 3);
+    if (retval != RIG_OK) { return retval; }
+    if (buf[2] == '8') { return -RIG_ENAVAIL; } /* SWR tune */
+    if (buf[2] < '0' || buf[2] > '9'
+            || qrplabs_qmx_modes[buf[2] - '0'] == RIG_MODE_NONE)
+    { return -RIG_EPROTO; }
+    *mode = qrplabs_qmx_modes[buf[2] - '0'];
+
+    return qrplabs_qmx_read_width(rig, *mode, width);
+}
+
+static const char *qrplabs_qmx_get_info(RIG *rig)
+{
+    static char firmware[64];
+
+    if (kenwood_transaction(rig, "VN", firmware, sizeof(firmware)) != RIG_OK)
+    { return NULL; }
+    return firmware + 2;
+}
+
+/* QMX CAT 1.04_004: FR/FT setters select A, B, or A-RX/B-TX split.
+ * They are not independent receive/transmit VFO selectors as on Kenwood.
+ */
+static int qrplabs_qmx_get_vfo(RIG *rig, vfo_t *vfo)
+{
+    char buf[8];
+    int retval = kenwood_safe_transaction(rig, "FR", buf, sizeof(buf), 3);
+
+    if (retval != RIG_OK) { return retval; }
+    if (buf[2] != '0' && buf[2] != '1') { return -RIG_EPROTO; }
+
+    *vfo = buf[2] == '0' ? RIG_VFO_A : RIG_VFO_B;
+    return RIG_OK;
+}
+
+static int qrplabs_qmx_set_vfo(RIG *rig, vfo_t vfo)
+{
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
+    int retval;
+
+    if (vfo == RIG_VFO_CURR) { return RIG_OK; }
+    if (vfo != RIG_VFO_A && vfo != RIG_VFO_B) { return -RIG_EINVAL; }
+
+    retval = kenwood_transaction(rig, vfo == RIG_VFO_A ? "FR0" : "FR1",
+                                 NULL, 0);
+    if (retval != RIG_OK) { return retval; }
+
+    priv->split = RIG_SPLIT_OFF;
+    priv->tx_vfo = vfo;
+    rig_set_current_vfo_state(rig, vfo);
+    rig_set_split_routing_state(rig, RIG_SPLIT_OFF, vfo, vfo);
+    return RIG_OK;
+}
+
+static int qrplabs_qmx_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
+                                    vfo_t txvfo)
+{
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
+    int retval;
+
+    if (split != RIG_SPLIT_OFF && split != RIG_SPLIT_ON) { return -RIG_EINVAL; }
+    if (vfo == RIG_VFO_CURR)
+    {
+        retval = qrplabs_qmx_get_vfo(rig, &vfo);
+        if (retval != RIG_OK) { return retval; }
+    }
+
+    if (split == RIG_SPLIT_OFF) { return qrplabs_qmx_set_vfo(rig, vfo); }
+
+    /* Reverse split is not supported. Reject it before changing the radio. */
+    if (vfo != RIG_VFO_A || txvfo != RIG_VFO_B) { return -RIG_EINVAL; }
+
+    retval = kenwood_transaction(rig, "FR2", NULL, 0);
+    if (retval != RIG_OK) { return retval; }
+
+    priv->split = RIG_SPLIT_ON;
+    priv->tx_vfo = RIG_VFO_B;
+    rig_set_current_vfo_state(rig, RIG_VFO_A);
+    rig_set_split_routing_state(rig, RIG_SPLIT_ON, RIG_VFO_A, RIG_VFO_B);
+    return RIG_OK;
+}
+
+static int qrplabs_qmx_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
+                                    vfo_t *txvfo)
+{
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
+    char buf[8];
+    int retval = kenwood_safe_transaction(rig, "SP", buf, sizeof(buf), 3);
+
+    if (retval != RIG_OK) { return retval; }
+    if (buf[2] != '0' && buf[2] != '1') { return -RIG_EPROTO; }
+    *split = buf[2] == '1' ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
+
+    retval = kenwood_safe_transaction(rig, "FT", buf, sizeof(buf), 3);
+    if (retval != RIG_OK) { return retval; }
+    if (buf[2] != '0' && buf[2] != '1') { return -RIG_EPROTO; }
+    *txvfo = buf[2] == '0' ? RIG_VFO_A : RIG_VFO_B;
+    priv->split = *split;
+    priv->tx_vfo = *txvfo;
+    return RIG_OK;
+}
+
 /*
  * The QMX power meter has a configurable full scale reading: 6W for a stock
  * radio, 12W for one carrying the PA0RDT 4+4 BS170 PA modification.  Ask the
@@ -1337,6 +1562,13 @@ static int qrplabs_qmx_open(RIG *rig)
     {
         RETURNFUNC(retval);
     }
+
+    /* QMX identifies as a TS-480, so kenwood_open's matching-model path
+     * does not disable unsolicited IF replies for us.
+     */
+    retval = kenwood_transaction(rig, "AI0", NULL, 0);
+    if (retval != RIG_OK) { RETURNFUNC(retval); }
+    priv->is_emulation = 0;
 
     /* the probe is optional, so take "?;" at face value rather than retrying */
     priv->question_mark_response_means_rejected = 1;
@@ -2110,12 +2342,12 @@ struct rig_caps qrplabs_qmx_caps =
     RIG_MODEL(RIG_MODEL_QRPLABS_QMX),
     .model_name = "QMX",
     .mfg_name = "QRPLabs",
-    .version = BACKEND_VER ".4",
+    .version = BACKEND_VER ".5",
     .copyright = "LGPL",
     .status = RIG_STATUS_BETA,
     .rig_type = RIG_TYPE_TRANSCEIVER,
     .ptt_type = RIG_PTT_RIG,
-    .dcd_type = RIG_DCD_RIG,
+    .dcd_type = RIG_DCD_NONE,
     .port_type = RIG_PORT_SERIAL,
     .serial_rate_min = 9600,
     .serial_rate_max = 230400,
@@ -2127,12 +2359,11 @@ struct rig_caps qrplabs_qmx_caps =
     .post_write_delay = 0,
     .timeout = 500,
     .retry = 3,
-    .preamp = {12, RIG_DBLST_END,},
-    .attenuator = {12, RIG_DBLST_END,},
     .has_get_level = QMX_LEVEL_GET,
     .has_set_level = RIG_LEVEL_NONE,
-    .targetable_vfo = RIG_TARGETABLE_FREQ,
-    .transceive = RIG_TRN_RIG,
+    /* MD is global: addressing either VFO must not switch out of split. */
+    .targetable_vfo = RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
+    .transceive = RIG_TRN_OFF,
 
     .rx_range_list1 = {
         {MHz(4), MHz(14), QMX_ALL_MODES, -1, -1, TS480_VFO},
@@ -2144,7 +2375,12 @@ struct rig_caps qrplabs_qmx_caps =
     },  /*!< Transmit frequency range list for ITU region 1 */
     /* mode/filter list, remember: order matters! */
     .filters =  {
-        {RIG_MODE_SSB | RIG_MODE_PKTUSB | RIG_MODE_PKTLSB, kHz(3.2)},
+        /* Nominal value shown in the manual; refreshed from FW readback. */
+        {RIG_MODE_SSB, kHz(2.7)},
+        {RIG_MODE_SSB, kHz(2.5)},
+        {RIG_MODE_SSB, kHz(2.9)},
+        {RIG_MODE_SSB, kHz(3.2)},
+        {RIG_MODE_AM | RIG_MODE_PKTUSB | RIG_MODE_PKTLSB, kHz(3.2)},
         {RIG_MODE_CW | RIG_MODE_CWR, Hz(300)},
         RIG_FLT_END,
     },
@@ -2161,23 +2397,23 @@ struct rig_caps qrplabs_qmx_caps =
         [LVL_RFPOWER_METER_WATTS] = {.min = {.f = 0}, .max = {.f = QMX_DEFAULT_MAX_POWER}, .step = {.f = 0.1f}},
     },
 
-    .priv = (void *)& ts480_priv_caps,
+    .priv = (void *)&qrplabs_qmx_priv_caps,
 
-    .rig_init = ts480_init,
+    .rig_init = kenwood_init,
     .rig_open = qrplabs_qmx_open,
     .rig_cleanup = kenwood_cleanup,
     .set_freq = kenwood_set_freq,
     .get_freq = kenwood_get_freq,
-    .set_mode = kenwood_set_mode,
-    .get_mode = kenwood_get_mode,
-    .set_vfo = kenwood_set_vfo,
-    .get_vfo = kenwood_get_vfo_if,
-    .set_split_vfo = kenwood_set_split_vfo,
-    .get_split_vfo = kenwood_get_split_vfo_if,
+    .set_mode = qrplabs_qmx_set_mode,
+    .get_mode = qrplabs_qmx_get_mode,
+    .set_vfo = qrplabs_qmx_set_vfo,
+    .get_vfo = qrplabs_qmx_get_vfo,
+    .set_split_vfo = qrplabs_qmx_set_split_vfo,
+    .get_split_vfo = qrplabs_qmx_get_split_vfo,
     .get_ptt = kenwood_get_ptt,
     .set_ptt = kenwood_set_ptt,
     .get_level = qrplabs_qmx_get_level,
-    .get_info = kenwood_ts480_get_info,
+    .get_info = qrplabs_qmx_get_info,
     .get_clock = qrplabs_get_clock,
     .set_clock = qrplabs_set_clock,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS

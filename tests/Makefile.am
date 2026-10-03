@@ -34,6 +34,7 @@ DIRECT_TESTS = \
 	testicomfallback \
 	testicomts \
 	testpoll \
+	testqmx \
 	testnewcatset \
 	testnewcatwidth \
 	testrigctlprotocol \
@@ -347,3 +348,7 @@ CLEANFILES = \
 	rigtestlibusb \
 	tuner_control.log \
 	$(GENERATED_TEST_WRAPPERS)
+
+testqmx_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testqmx_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/kenwood
+testqmx_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/kenwood/libhamlib-kenwood.la $(LDADD)
