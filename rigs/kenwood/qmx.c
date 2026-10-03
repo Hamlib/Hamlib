@@ -107,7 +107,7 @@ int qrplabs_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
 
 /* Protocol reference: https://qrp-labs.com/images/qmx/manuals/cat_1_04_004.pdf
  * MD8 starts SWR tune; never expose it as a normal operating mode.
- * Preserve the established Hamlib packet-mode aliases for FSK/FSK reverse.
+ * QMX FSK uses USB; FSK reverse uses LSB.
  * A private table also avoids other emulations changing our mode mapping.
  */
 static rmode_t qrplabs_qmx_modes[KENWOOD_MODE_TABLE_MAX] =
@@ -116,9 +116,9 @@ static rmode_t qrplabs_qmx_modes[KENWOOD_MODE_TABLE_MAX] =
     [2] = RIG_MODE_USB,
     [3] = RIG_MODE_CW,
     [5] = RIG_MODE_AM,
-    [6] = RIG_MODE_PKTLSB,
+    [6] = RIG_MODE_PKTUSB,
     [7] = RIG_MODE_CWR,
-    [9] = RIG_MODE_PKTUSB,
+    [9] = RIG_MODE_PKTLSB,
 };
 
 static struct kenwood_priv_caps qrplabs_qmx_priv_caps =
