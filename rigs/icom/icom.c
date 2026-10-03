@@ -7720,13 +7720,33 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
         {
             int retval = icom_get_cmd(rig, RIG_VFO_NONE, (struct cmdparams *)&cmd[i], val);
 
+            if (retval != RIG_OK)
+            {
+                RETURNFUNC(retval);
+            }
+
             if (parm == RIG_PARM_BANDSELECT)
             {
                 char *s = (char *)icom_get_band(rig, val->i);
                 val->s = s;
             }
+            else if (parm == RIG_PARM_KEYERTYPE)
+            {
+                static const char *keyer_types[] = { "0", "1", "2" };
 
-            RETURNFUNC(retval);
+                if (val->i < 0
+                        || val->i >= (int)(sizeof(keyer_types) /
+                                           sizeof(keyer_types[0])))
+                {
+                    rig_debug(RIG_DEBUG_ERR, "%s: invalid keyer type %d\n",
+                              __func__, val->i);
+                    RETURNFUNC(-RIG_EPROTO);
+                }
+
+                val->cs = keyer_types[val->i];
+            }
+
+            RETURNFUNC(RIG_OK);
         }
     }
 
