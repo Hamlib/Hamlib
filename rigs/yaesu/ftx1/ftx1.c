@@ -1143,10 +1143,11 @@ struct rig_caps ftx1_caps = {
     /* FTX-1 uses MAIN/SUB VFOs, not A/B. This ensures vfo_fixup() preserves
      * MAIN as MAIN instead of converting to VFOA (which shares cache slot). */
     .rx_range_list1 = {
-        {kHz(30), MHz(56), FTX1_ALL_MODES, -1, -1, RIG_VFO_MAIN | RIG_VFO_SUB, RIG_ANT_1},
+        {kHz(30), MHz(75) - 1, FTX1_ALL_MODES, -1, -1, RIG_VFO_MAIN | RIG_VFO_SUB, RIG_ANT_1},
+        {MHz(75), MHz(76) - 1, FTX1_ALL_MODES, -1, -1, RIG_VFO_MAIN | RIG_VFO_SUB, RIG_ANT_1},
         {MHz(76), MHz(108), (FTX1_ALL_MODES & (~RIG_MODE_FM)) | RIG_MODE_WFM, -1, -1, RIG_VFO_MAIN | RIG_VFO_SUB, RIG_ANT_1},
-        {MHz(118), MHz(164), RIG_MODE_AM | RIG_MODE_FM, -1, -1, RIG_VFO_MAIN | RIG_VFO_SUB, RIG_ANT_1},
-        {MHz(430), MHz(470), FTX1_ALL_MODES, -1, -1, RIG_VFO_MAIN | RIG_VFO_SUB, RIG_ANT_1},
+        {MHz(108) + 1, MHz(174), FTX1_ALL_MODES, -1, -1, RIG_VFO_MAIN | RIG_VFO_SUB, RIG_ANT_1},
+        {MHz(400), MHz(470), FTX1_ALL_MODES, -1, -1, RIG_VFO_MAIN | RIG_VFO_SUB, RIG_ANT_1},
         RIG_FRNG_END,
     },
     .tx_range_list1 = {
@@ -1166,10 +1167,11 @@ struct rig_caps ftx1_caps = {
         RIG_FRNG_END,
     },
     .rx_range_list2 = {
-        {kHz(30), MHz(56), FTX1_ALL_MODES, -1, -1, RIG_VFO_MAIN | RIG_VFO_SUB, RIG_ANT_1},
+        {kHz(30), MHz(75) - 1, FTX1_ALL_MODES, -1, -1, RIG_VFO_MAIN | RIG_VFO_SUB, RIG_ANT_1},
+        {MHz(75), MHz(76) - 1, FTX1_ALL_MODES, -1, -1, RIG_VFO_MAIN | RIG_VFO_SUB, RIG_ANT_1},
         {MHz(76), MHz(108), (FTX1_ALL_MODES & (~RIG_MODE_FM)) | RIG_MODE_WFM, -1, -1, RIG_VFO_MAIN | RIG_VFO_SUB, RIG_ANT_1},
-        {MHz(118), MHz(164), RIG_MODE_AM | RIG_MODE_FM, -1, -1, RIG_VFO_MAIN | RIG_VFO_SUB, RIG_ANT_1},
-        {MHz(430), MHz(470), FTX1_ALL_MODES, -1, -1, RIG_VFO_MAIN | RIG_VFO_SUB, RIG_ANT_1},
+        {MHz(108) + 1, MHz(174), FTX1_ALL_MODES, -1, -1, RIG_VFO_MAIN | RIG_VFO_SUB, RIG_ANT_1},
+        {MHz(400), MHz(470), FTX1_ALL_MODES, -1, -1, RIG_VFO_MAIN | RIG_VFO_SUB, RIG_ANT_1},
         RIG_FRNG_END,
     },
     .tx_range_list2 = {
