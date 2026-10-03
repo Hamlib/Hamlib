@@ -143,8 +143,8 @@ int main(void)
 
     {
         const rmode_t modes[] = {RIG_MODE_LSB, RIG_MODE_USB, RIG_MODE_CW,
-                                RIG_MODE_AM, RIG_MODE_PKTLSB, RIG_MODE_CWR,
-                                RIG_MODE_PKTUSB};
+                                RIG_MODE_AM, RIG_MODE_PKTUSB, RIG_MODE_CWR,
+                                RIG_MODE_PKTLSB};
         const char codes[] = "1235679";
         size_t i;
 
@@ -187,7 +187,7 @@ int main(void)
           && mode == RIG_MODE_CW && width == 300);
     CHECK(rig_set_mode(rig, RIG_VFO_A, RIG_MODE_PKTUSB, RIG_PASSBAND_NORMAL) == RIG_OK);
     CHECK(rig_get_mode(rig, RIG_VFO_B, &mode, &width) == RIG_OK
-          && mode == RIG_MODE_PKTUSB && peer.mode == '9');
+          && mode == RIG_MODE_PKTUSB && peer.mode == '6');
 
     /* All SSB RX widths apply even with MM Effect=On demand. */
     {
