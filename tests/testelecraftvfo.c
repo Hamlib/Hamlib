@@ -1,5 +1,5 @@
 /*
- * Hamlib Elecraft K4 VFO response tests
+ * Hamlib Elecraft K4 VFO and mode response tests
  * Copyright (c) 2026 by Hamlib Team
  *
  * This library is free software; you can redistribute it and/or
@@ -24,13 +24,17 @@
 #include "hamlib/rig_state.h"
 #include "cache.h"
 #include "misc.h"
+#include "../rigs/kenwood/kenwood.h"
 
 extern struct rig_caps k4_caps;
+extern struct rig_caps k3_caps;
 
 struct peer_case
 {
     int fd;
-    const char *responses[3];
+    const char *const *commands;
+    const char *const *responses;
+    size_t count;
     int status;
 };
 
@@ -155,25 +159,23 @@ static int write_all(int fd, const char *buffer, size_t length)
 
 static void *run_peer(void *arg)
 {
-    static const char *commands[] = { "FR;", "FT;", "TQ;" };
     struct peer_case *test = arg;
-    char command[8];
+    char command[32];
     size_t i;
 
     test->status = -1;
 
-    for (i = 0; i < sizeof(commands) / sizeof(commands[0]); i++)
+    for (i = 0; i < test->count; i++)
     {
-        if (test->responses[i] == NULL) { break; }
-
         if (read_command(test->fd, command, sizeof(command)) != 0
-                || strcmp(command, commands[i]) != 0)
+                || strcmp(command, test->commands[i]) != 0)
         {
             return NULL;
         }
 
-        if (write_all(test->fd, test->responses[i],
-                      strlen(test->responses[i])) != 0)
+        if (test->responses[i] != NULL
+                && write_all(test->fd, test->responses[i],
+                             strlen(test->responses[i])) != 0)
         {
             return NULL;
         }
@@ -188,6 +190,8 @@ static int run_case(const char *name, const char *fr, const char *ft,
                     vfo_t expected_vfo, vfo_t expected_rx_vfo,
                     vfo_t expected_tx_vfo)
 {
+    static const char *commands[] = { "FR;", "FT;", "TQ;" };
+    const char *responses[] = { fr, ft, tq };
     const vfo_t initial_vfo = RIG_VFO_MEM;
     const vfo_t initial_rx_vfo = RIG_VFO_MAIN;
     const vfo_t initial_tx_vfo = RIG_VFO_SUB;
@@ -196,7 +200,9 @@ static int run_case(const char *name, const char *fr, const char *ft,
     struct peer_case test =
     {
         .fd = -1,
-        .responses = { fr, ft, tq },
+        .commands = commands,
+        .responses = responses,
+        .count = tq != NULL ? 3 : ft != NULL ? 2 : 1,
         .status = -1
     };
     RIG *rig;
@@ -274,6 +280,194 @@ static int run_case(const char *name, const char *fr, const char *ft,
     return 0;
 }
 
+static int run_mode_get_case(const char *name, int split, int is_k4,
+                             const char *md_response,
+                             const char *dt_response,
+                             rmode_t expected_mode)
+{
+    static const char *k4_commands[] = { "MD$;", "DT$;", "BW$;" };
+    static const char *k3_commands[] = { "MD$;", "DT;", "BW$;" };
+    const char *responses[] = { md_response, dt_response, "BW$0482;" };
+    struct peer_case test =
+    {
+        .fd = -1,
+        .commands = is_k4 ? k4_commands : k3_commands,
+        .responses = responses,
+        .count = 3,
+        .status = -1
+    };
+    int sockets[2];
+    pthread_t thread;
+    RIG *rig;
+    struct kenwood_priv_data *priv;
+    rmode_t mode = RIG_MODE_NONE;
+    pbwidth_t width = 0;
+    int retval;
+
+    if (open_test_connection(sockets) != 0) { return 1; }
+
+    test.fd = sockets[1];
+
+    if (pthread_create(&thread, NULL, run_peer, &test) != 0)
+    {
+        close_test_socket(sockets[0]);
+        close_test_socket(sockets[1]);
+        return 1;
+    }
+
+    rig = rig_init(is_k4 ? RIG_MODEL_K4 : RIG_MODEL_K3);
+
+    if (rig == NULL)
+    {
+        close_test_socket(sockets[0]);
+        close_test_socket(sockets[1]);
+        pthread_join(thread, NULL);
+        return 1;
+    }
+
+    priv = STATE(rig)->priv;
+    priv->is_k4 = is_k4;
+    priv->is_k3 = !is_k4;
+    RIGPORT(rig)->fd = sockets[0];
+    RIGPORT(rig)->type.rig = RIG_PORT_NETWORK;
+    RIGPORT(rig)->timeout = 500;
+    RIGPORT(rig)->retry = 0;
+
+    if (split)
+    {
+        retval = rig->caps->get_split_mode(rig, RIG_VFO_B, &mode, &width);
+    }
+    else
+    {
+        retval = rig->caps->get_mode(rig, RIG_VFO_B, &mode, &width);
+    }
+
+    RIGPORT(rig)->fd = -1;
+    rig_cleanup(rig);
+    close_test_socket(sockets[0]);
+    pthread_join(thread, NULL);
+    close_test_socket(sockets[1]);
+
+    if (test.status != 0 || retval != RIG_OK || mode != expected_mode
+            || width != 4820)
+    {
+        fprintf(stderr,
+                "%s: expected status/retval/mode/width 0/%d/%llu/4820, "
+                "got %d/%d/%llu/%ld\n",
+                name, RIG_OK, (unsigned long long)expected_mode, test.status,
+                retval, (unsigned long long)mode, (long)width);
+        return 1;
+    }
+
+    return 0;
+}
+
+static int run_split_mode_set_case(int is_k4, rmode_t mode)
+{
+    static const char *k4_packet_commands[] =
+    {
+        "DT0;", "DT$0;", "ID;", "MD$6;", "ID;", "FT1;", "ID;"
+    };
+    static const char *k4_rttyr_commands[] =
+    {
+        "DT2;", "DT$2;", "ID;", "MD$9;", "ID;", "FT1;", "ID;"
+    };
+    static const char *k4_responses[] =
+    {
+        NULL, NULL, "ID017;", NULL, "ID017;", NULL, "ID017;"
+    };
+    static const char *k3_packet_commands[] = { "MD$6;", "ID;" };
+    static const char *k3_rttyr_commands[] = { "MD$9;", "ID;" };
+    static const char *k3_responses[] = { NULL, "ID017;" };
+    const char *const *commands;
+    const char *const *responses;
+    size_t count;
+
+    if (is_k4)
+    {
+        commands = mode == RIG_MODE_RTTYR ? k4_rttyr_commands
+                   : k4_packet_commands;
+        responses = k4_responses;
+        count = 7;
+    }
+    else
+    {
+        commands = mode == RIG_MODE_RTTYR ? k3_rttyr_commands
+                   : k3_packet_commands;
+        responses = k3_responses;
+        count = 2;
+    }
+
+    struct peer_case test =
+    {
+        .fd = -1,
+        .commands = commands,
+        .responses = responses,
+        .count = count,
+        .status = -1
+    };
+
+    int sockets[2];
+
+    pthread_t thread;
+
+    RIG *rig;
+
+    struct kenwood_priv_data *priv;
+
+    int retval;
+
+    if (open_test_connection(sockets) != 0) { return 1; }
+
+    test.fd = sockets[1];
+
+    if (pthread_create(&thread, NULL, run_peer, &test) != 0)
+    {
+        close_test_socket(sockets[0]);
+        close_test_socket(sockets[1]);
+        return 1;
+    }
+
+    rig = rig_init(is_k4 ? RIG_MODEL_K4 : RIG_MODEL_K3);
+
+    if (rig == NULL)
+    {
+        close_test_socket(sockets[0]);
+        close_test_socket(sockets[1]);
+        pthread_join(thread, NULL);
+        return 1;
+    }
+
+    priv = STATE(rig)->priv;
+    priv->is_k4 = is_k4;
+    priv->is_k3 = !is_k4;
+    priv->split = 1;
+    RIGPORT(rig)->fd = sockets[0];
+    RIGPORT(rig)->type.rig = RIG_PORT_NETWORK;
+    RIGPORT(rig)->timeout = 500;
+    RIGPORT(rig)->retry = 0;
+
+    retval = rig->caps->set_split_mode(rig, RIG_VFO_B, mode,
+                                       RIG_PASSBAND_NOCHANGE);
+
+    RIGPORT(rig)->fd = -1;
+    rig_cleanup(rig);
+    close_test_socket(sockets[0]);
+    pthread_join(thread, NULL);
+    close_test_socket(sockets[1]);
+
+    if (test.status != 0 || retval != RIG_OK)
+    {
+        fprintf(stderr,
+                "%s-%s-split-mode-set: expected status/retval 0/%d, "
+                "got %d/%d\n", is_k4 ? "k4" : "k3", rig_strrmode(mode),
+                RIG_OK, test.status, retval);
+        return 1;
+    }
+
+    return 0;
+}
+
 int main(void)
 {
     int failed = 0;
@@ -290,6 +484,7 @@ int main(void)
 #endif
 
     rig_register(&k4_caps);
+    rig_register(&k3_caps);
 
     if (run_case("receive-vfo-a", "FR0;", "FT0;", "TQ0;", RIG_OK,
                  RIG_VFO_A, RIG_VFO_MAIN, RIG_VFO_A) != 0)
@@ -354,9 +549,89 @@ int main(void)
         goto cleanup;
     }
 
-    failed = run_case("invalid-tq-value", "FR0;", "FT0;", "TQ7;",
-                      -RIG_EPROTO, RIG_VFO_NONE, RIG_VFO_NONE,
-                      RIG_VFO_NONE);
+    if (run_case("invalid-tq-value", "FR0;", "FT0;", "TQ7;",
+                 -RIG_EPROTO, RIG_VFO_NONE, RIG_VFO_NONE,
+                 RIG_VFO_NONE) != 0)
+    {
+        failed = 1;
+        goto cleanup;
+    }
+
+    if (run_mode_get_case("mode-b-data-offset", 0, 1, "MD$6;", "DT$1;",
+                          RIG_MODE_PKTLSB) != 0)
+    {
+        failed = 1;
+        goto cleanup;
+    }
+
+    if (run_mode_get_case("mode-b-reverse-data", 0, 1, "MD$9;", "DT$0;",
+                          RIG_MODE_PKTLSB) != 0)
+    {
+        failed = 1;
+        goto cleanup;
+    }
+
+    if (run_mode_get_case("mode-b-reverse-afsk", 0, 1, "MD$9;", "DT$1;",
+                          RIG_MODE_PKTUSB) != 0)
+    {
+        failed = 1;
+        goto cleanup;
+    }
+
+    if (run_mode_get_case("split-mode-data-vfo", 1, 1, "MD$6;", "DT$1;",
+                          RIG_MODE_PKTLSB) != 0)
+    {
+        failed = 1;
+        goto cleanup;
+    }
+
+    if (run_mode_get_case("split-mode-rttyr", 1, 1, "MD$9;", "DT$2;",
+                          RIG_MODE_RTTYR) != 0)
+    {
+        failed = 1;
+        goto cleanup;
+    }
+
+    if (run_mode_get_case("k3-mode-b-reverse-data", 0, 0, "MD$9;", "DT0;",
+                          RIG_MODE_PKTUSB) != 0)
+    {
+        failed = 1;
+        goto cleanup;
+    }
+
+    if (run_mode_get_case("k3-mode-b-reverse-afsk", 0, 0, "MD$9;", "DT1;",
+                          RIG_MODE_PKTLSB) != 0)
+    {
+        failed = 1;
+        goto cleanup;
+    }
+
+    if (run_mode_get_case("k3-split-shared-data", 1, 0, "MD$6;", "DT1;",
+                          RIG_MODE_PKTLSB) != 0)
+    {
+        failed = 1;
+        goto cleanup;
+    }
+
+    if (run_split_mode_set_case(0, RIG_MODE_PKTUSB) != 0)
+    {
+        failed = 1;
+        goto cleanup;
+    }
+
+    if (run_split_mode_set_case(0, RIG_MODE_RTTYR) != 0)
+    {
+        failed = 1;
+        goto cleanup;
+    }
+
+    if (run_split_mode_set_case(1, RIG_MODE_PKTUSB) != 0)
+    {
+        failed = 1;
+        goto cleanup;
+    }
+
+    failed = run_split_mode_set_case(1, RIG_MODE_RTTYR);
 
 cleanup:
 #ifdef _WIN32
