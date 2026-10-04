@@ -40,6 +40,7 @@ DIRECT_TESTS = \
 	testmodecompat \
 	testthd7x \
 	testthd75emu \
+	testtmd750emu \
 	testts990s \
 	testid5100
 
