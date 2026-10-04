@@ -31,10 +31,15 @@
 #endif
 
 #include "stream_convert.h"
+#include <limits.h>
 #include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef HAVE_SAMPLERATE
+#include <samplerate.h>
+#endif
 
 /* The sample converters dereference multi-byte samples in host byte order and
  * perform no byte swapping, so the little-endian wire payload is only correct
@@ -734,8 +739,26 @@ int rig_stream_convert_channels(const void *src, int src_channels,
 /* rig_stream_resample — sample rate conversion (requires libsamplerate) */
 /* ------------------------------------------------------------------ */
 
+int stream_conv_rate_supported(int src_rate, int dst_rate)
+{
+    if (src_rate <= 0 || dst_rate <= 0)
+    {
+        return 0;
+    }
+
+    if (src_rate == dst_rate)
+    {
+        return 1;
+    }
+
 #ifdef HAVE_SAMPLERATE
-#include <samplerate.h>
+    return src_is_valid_ratio((double)dst_rate / (double)src_rate);
+#else
+    return 0;
+#endif
+}
+
+#ifdef HAVE_SAMPLERATE
 
 /* Map Hamlib quality constants to libsamplerate converter types. */
 static int resample_converter_type(int quality)
@@ -803,9 +826,9 @@ int rig_stream_resample(const float *src, int src_rate,
 /* Persistent per-stream conversion context (stream_conv)              */
 /* ------------------------------------------------------------------ */
 
-/* Frames processed per pipeline pass; bounds the scratch buffers while
- * arbitrarily large writes stream through in slices. */
+/* Frames processed per pipeline pass; bounds scratch working-set growth. */
 #define STREAM_CONV_CHUNK_FRAMES 1024
+#define STREAM_CONV_MAX_SCRATCH_BYTES (16U * 1024U * 1024U)
 
 struct stream_conv
 {
@@ -875,9 +898,16 @@ int stream_conv_init(struct stream_conv **out,
                      rig_stream_format_t dst_fmt, int dst_rate, int dst_ch,
                      int is_iq, int quality)
 {
-    if (!out || src_rate <= 0 || dst_rate <= 0 || src_ch <= 0 || dst_ch <= 0)
+    if (!out)
     {
-        return -1;
+        return -RIG_EINVAL;
+    }
+
+    *out = NULL;
+
+    if (src_rate <= 0 || dst_rate <= 0 || src_ch <= 0 || dst_ch <= 0)
+    {
+        return -RIG_EINVAL;
     }
 
     int src_ss = rig_stream_format_sample_size(src_fmt);
@@ -885,23 +915,25 @@ int stream_conv_init(struct stream_conv **out,
 
     if (src_ss <= 0 || dst_ss <= 0)
     {
-        return -1;  /* compressed/unknown formats are not convertible */
+        return -RIG_EINVAL;
     }
 
-#ifndef HAVE_SAMPLERATE
-
-    if (src_rate != dst_rate)
+    if (!stream_conv_rate_supported(src_rate, dst_rate))
     {
-        return -1;  /* rate conversion requires libsamplerate */
+        return -RIG_EINVAL;
     }
 
-#endif
+    if (src_ch > INT_MAX / src_ss || dst_ch > INT_MAX / dst_ss
+            || (is_iq && src_rate != dst_rate && dst_ch > INT_MAX / 2))
+    {
+        return -RIG_EINVAL;
+    }
 
     struct stream_conv *c = calloc(1, sizeof(*c));
 
     if (!c)
     {
-        return -1;
+        return -RIG_ENOMEM;
     }
 
     c->src_fmt = src_fmt;
@@ -916,14 +948,10 @@ int stream_conv_init(struct stream_conv **out,
     c->pivot_fmt = is_iq ? RIG_STREAM_FORMAT_IQ_CF32
                    : RIG_STREAM_FORMAT_PCM_F32;
 
-    /* Output frames a full input chunk can produce (+margin for the
-     * resampler's internal state). Source selection keeps dst <= src rate,
-     * but size for either direction to stay safe. */
     double ratio = (double)dst_rate / (double)src_rate;
     c->out_cap_frames = (size_t)((double)STREAM_CONV_CHUNK_FRAMES
                                  * (ratio > 1.0 ? ratio : 1.0)) + 64;
 
-    /* Scratch sized for the widest stage across the whole pipeline. */
     int pivot_ss = rig_stream_format_sample_size(c->pivot_fmt);
     size_t worst_frame = (size_t)src_ch * src_ss;
 
@@ -942,16 +970,23 @@ int stream_conv_init(struct stream_conv **out,
         worst_frame = c->dst_frame_bytes;
     }
 
-    size_t worst_frames = STREAM_CONV_CHUNK_FRAMES > c->out_cap_frames
-                          ? STREAM_CONV_CHUNK_FRAMES : c->out_cap_frames;
-    c->buf_bytes = worst_frames * worst_frame;
+    size_t scratch_frames = STREAM_CONV_CHUNK_FRAMES > c->out_cap_frames
+                            ? STREAM_CONV_CHUNK_FRAMES : c->out_cap_frames;
+
+    if (worst_frame > STREAM_CONV_MAX_SCRATCH_BYTES / scratch_frames)
+    {
+        free(c);
+        return -RIG_EINVAL;
+    }
+
+    c->buf_bytes = scratch_frames * worst_frame;
     c->buf_a = malloc(c->buf_bytes);
     c->buf_b = malloc(c->buf_bytes);
 
     if (!c->buf_a || !c->buf_b)
     {
         stream_conv_free(c);
-        return -1;
+        return -RIG_ENOMEM;
     }
 
 #ifdef HAVE_SAMPLERATE
@@ -970,14 +1005,14 @@ int stream_conv_init(struct stream_conv **out,
         if (!c->src_state)
         {
             stream_conv_free(c);
-            return -1;
+            return -RIG_EINVAL;
         }
     }
 
 #endif
 
     *out = c;
-    return 0;
+    return RIG_OK;
 }
 
 void stream_conv_free(struct stream_conv *c)
@@ -1143,5 +1178,3 @@ ssize_t stream_conv_process(struct stream_conv *c, const void *buf,
 
     return (ssize_t)(consumed_frames * c->src_frame_bytes);
 }
-
-
