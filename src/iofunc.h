@@ -40,6 +40,10 @@ extern HAMLIB_EXPORT(int) write_block(hamlib_port_t *p,
                                       const unsigned char *txbuffer,
                                       size_t count);
 
+extern HAMLIB_EXPORT(int) write_block_sensitive(hamlib_port_t *p,
+                                                const unsigned char *txbuffer,
+                                                size_t count);
+
 extern HAMLIB_EXPORT(int) write_block_sync(hamlib_port_t *p,
                                            const unsigned char *txbuffer,
                                            size_t count);

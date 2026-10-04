@@ -69,6 +69,7 @@ test_netrigctl_stream_LDADD = $(LDADD) $(PTHREAD_LIBS) $(NET_LIBS)
 
 test_rigctld_commands_SOURCES = test_rigctld_commands.c \
     $(top_srcdir)/tests/rigctl_parse.c \
+    $(top_srcdir)/tests/rigctld_client.c \
     $(top_srcdir)/tests/rigctld_stream.c \
     $(top_srcdir)/tests/dumpcaps.c \
     $(top_srcdir)/tests/dumpstate.c \
