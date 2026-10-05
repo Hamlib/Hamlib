@@ -394,6 +394,7 @@ struct icom_addr
 #define TOK_FILTER_USB TOKEN_BACKEND(6)
 #define TOK_FILTER_CW TOKEN_BACKEND(7)
 #define TOK_FILTER_FM TOKEN_BACKEND(8)
+#define TOK_G90_AF_QUIRK TOKEN_BACKEND(9)
 
 const struct confparams icom_cfg_params[] =
 {
@@ -431,6 +432,11 @@ const struct confparams icom_cfg_params[] =
     {
         TOK_FILTER_FM, "filter_fm", "Filter to use FM", "Filter to use for FM/PKTFM when setting mode",
         "1", RIG_CONF_NUMERIC, {.n = {0, 3, 1}}
+    },
+    {
+        TOK_G90_AF_QUIRK, "g90_af_quirk", "G90 AF readback workaround",
+        "Interpret affected G90 AF replies using decimal prefix and binary low nibble; enable only for a verified affected radio",
+        "0", RIG_CONF_CHECKBUTTON
     },
     {RIG_CONF_END, NULL,}
 };
@@ -5272,6 +5278,16 @@ int icom_set_conf(RIG *rig, hamlib_token_t token, const char *val)
         priv->tone_enable = atoi(val) ? 1 : 0;
         break;
 
+    case TOK_G90_AF_QUIRK:
+        if (rig->caps->rig_model != RIG_MODEL_G90
+                || (strcmp(val, "0") != 0 && strcmp(val, "1") != 0))
+        {
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        priv->g90_af_quirk = val[0] == '1';
+        break;
+
     case TOK_FILTER_USBD:
         priv->filter_usbd = atoi(val);
 
@@ -5339,6 +5355,15 @@ static int icom_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len
         break;
 
     case TOK_NOXCHG: SNPRINTF(val, val_len, "%d", priv->no_xchg);
+        break;
+
+    case TOK_G90_AF_QUIRK:
+        if (rig->caps->rig_model != RIG_MODEL_G90)
+        {
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        SNPRINTF(val, val_len, "%d", priv->g90_af_quirk);
         break;
 
     default: RETURNFUNC(-RIG_EINVAL);
