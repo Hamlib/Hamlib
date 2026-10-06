@@ -316,6 +316,7 @@ struct icom_priv_data
     int filter_usb;          /*!< Filter number to use for USB/LSB when setting mode */
     int filter_cw;           /*!< Filter number to use for CW/CWR when setting mode */
     int filter_fm;           /*!< Filter number to use for CW/CWR when setting mode */
+    int g90_af_quirk;        /*!< Opt-in G90 AF reply encoding workaround */
 };
 
 extern const struct ts_sc_list r8500_ts_sc_list[];
