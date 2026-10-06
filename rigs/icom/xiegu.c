@@ -140,9 +140,6 @@
 
 #define G90_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SWR)
 
-/* Radioddity G90 User Manual V5, p.35: RIT adjustment is +/-500 Hz. */
-#define G90_MAX_RIT Hz(500)
-
 #define G90_MEM_CAP {    \
         .freq = 1,  \
         .mode = 1,  \
@@ -165,7 +162,6 @@
 static int x108g_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 static int g90_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 static int g90_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-static int g90_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
 static const char *g90_get_info(RIG *rig);
 static int x108g_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
                                vfo_t tx_vfo);
@@ -948,7 +944,7 @@ struct rig_caps g90_caps =
     .dcs_list =  common_dcs_list,
     .preamp =   { 10, RIG_DBLST_END, }, /* FIXME: TBC it's a guess*/
     .attenuator =   { 12, RIG_DBLST_END, },
-    .max_rit =  G90_MAX_RIT,
+    .max_rit =  Hz(9999),
     .max_xit =  Hz(9999),
     .max_ifshift =  Hz(0), /* TODO */
     .vfo_ops =  X108G_VFO_OPS,
@@ -1041,11 +1037,6 @@ struct rig_caps g90_caps =
     .get_ant =  NULL,
     .get_info =  g90_get_info,
 
-    .set_rit =  g90_set_rit,
-    /* Distinct displayed -101/-111 Hz both returned FF FF 01 in testing.
-     * Negative GET is lossy; do not advertise a getter or cache SET as GET.
-     */
-    .get_rit =  NULL,
     .decode_event =  icom_decode_event,
     .set_level =  g90_set_level,
     .get_level =  g90_get_level,
@@ -1288,44 +1279,6 @@ int x108g_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d, ptt=%d\n", __func__,
                   ackbuf[0], ack_len, ptt);
         return -RIG_ERJCTED;
-    }
-
-    return RIG_OK;
-}
-
-/* Standard BCD magnitude and sign for SET, independent of negative GET. */
-static int g90_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
-{
-    unsigned char payload[3], ackbuf[MAXFRAMELEN];
-    int ack_len = sizeof(ackbuf), retval;
-
-    /* CI-V 21 00 targets the selected VFO; the frontend handles selection.
-     * Check bounds before negating, including for LONG_MIN inputs.
-     */
-    (void) vfo;
-
-    if (rit < -G90_MAX_RIT || rit > G90_MAX_RIT)
-    {
-        return -RIG_EINVAL;
-    }
-
-    to_bcd(payload, rit < 0 ? -rit : rit, 4);
-    payload[2] = rit < 0 ? 1 : 0;
-
-    /* Zero disables RIT; nonzero enables it on the tested G90.
-     * Do not send a separate 21 01 command or query the lossy 21 00 GET.
-     */
-    retval = icom_transaction(rig, C_CTL_RIT, S_RIT_FREQ,
-                              payload, sizeof(payload), ackbuf, &ack_len);
-
-    if (retval != RIG_OK)
-    {
-        return retval;
-    }
-
-    if (ack_len != 1 || ackbuf[0] != ACK)
-    {
-        return -RIG_EPROTO;
     }
 
     return RIG_OK;
