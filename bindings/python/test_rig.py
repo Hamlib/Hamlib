@@ -207,6 +207,9 @@ class TestClass:
         assert rig.send_raw(test_bytes_1, "s") == b"tes"
         assert rig.send_raw(test_bytes_2, b"\x02") == test_bytes_1
 
+        test_bytes_3 = bytes(range(255))
+        assert rig.send_raw(test_bytes_3) == test_bytes_3
+
 
     def test_with_open(self, model, rig_file, serial_speed):
         """Call all the methods that depend on open()"""
