@@ -41,7 +41,8 @@ enum wire_operation
     WIRE_SET_PARM,
     WIRE_GET_PARM,
     WIRE_MW2POWER,
-    WIRE_POWER2MW
+    WIRE_POWER2MW,
+    WIRE_GET_INFO
 };
 
 struct wire_case
@@ -271,6 +272,9 @@ static int invoke_wire_operation(RIG *rig, enum wire_operation operation,
                                      RIG_MODE_USB);
         *result = mwpower;
         return status;
+
+    case WIRE_GET_INFO:
+        return rig->caps->get_info(rig) == NULL ? -RIG_EPROTO : RIG_OK;
     }
 
     return -RIG_EINVAL;
@@ -443,6 +447,8 @@ static int test_client_parsing(void)
           "nan\n", -RIG_EPROTO, 0.0, 0 },
         { "reject milliwatt suffix", WIRE_POWER2MW,
           "\\power2mW 0.500 7177000 USB\n", "25000junk\n",
+          -RIG_EPROTO, 0.0, 0 },
+        { "reject positive RPRT status", WIRE_GET_INFO, "_\n", "RPRT 1\n",
           -RIG_EPROTO, 0.0, 0 }
     };
     const rig_model_t models[] = { RIG_MODEL_NETRIGCTL, RIG_MODEL_QUISK };

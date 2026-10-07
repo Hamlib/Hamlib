@@ -54,6 +54,29 @@ struct netrigctl_priv_data
     vfo_t tx_vfo;
 };
 
+static int parse_rprt_status(const char *response)
+{
+    const char *token = response + strlen(NETRIGCTL_RET);
+    char *end;
+    long status;
+
+    errno = 0;
+    status = strtol(token, &end, 10);
+
+    while (*end == ' ' || *end == '\t' || *end == '\r' || *end == '\n')
+    {
+        ++end;
+    }
+
+    if (errno == ERANGE || end == token || *end != '\0'
+            || status > 0 || status < INT_MIN || status > INT_MAX)
+    {
+        return -RIG_EPROTO;
+    }
+
+    return (int)status;
+}
+
 static int parse_protocol_uint(const char *token, unsigned int *value)
 {
     char *end;
@@ -117,7 +140,7 @@ static int netrigctl_transaction(RIG *rig, char *cmd, int len, char *buf)
 
     if (strncmp(buf, NETRIGCTL_RET, strlen(NETRIGCTL_RET)) == 0)
     {
-        return atoi(buf + strlen(NETRIGCTL_RET));
+        return parse_rprt_status(buf);
     }
 
     return ret;
