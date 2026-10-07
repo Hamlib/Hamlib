@@ -13,6 +13,36 @@
 #include <string.h>
 
 #include "ftx1.h"
+#include "newcat.h"
+
+static int expect_clar_cache_isolated(void)
+{
+    struct newcat_priv_data priv = { 0 };
+
+    ftx1_cache_clar_state(&priv, '0', '1', '0');
+    ftx1_cache_clar_state(&priv, '1', '0', '1');
+
+    if (!priv.ftx1_clar_cache[0].valid
+            || priv.ftx1_clar_cache[0].rx_on != '1'
+            || priv.ftx1_clar_cache[0].tx_on != '0'
+            || !priv.ftx1_clar_cache[1].valid
+            || priv.ftx1_clar_cache[1].rx_on != '0'
+            || priv.ftx1_clar_cache[1].tx_on != '1')
+    {
+        fprintf(stderr, "CF cache state was not isolated by VFO\n");
+        return 1;
+    }
+
+    ftx1_invalidate_clar_state(&priv, '1');
+
+    if (!priv.ftx1_clar_cache[0].valid || priv.ftx1_clar_cache[1].valid)
+    {
+        fprintf(stderr, "CF cache invalidation affected the wrong VFO\n");
+        return 1;
+    }
+
+    return 0;
+}
 
 static int expect_clar_state(const char *response, char vfo, int expected,
                              char expected_rx, char expected_tx)
@@ -146,7 +176,8 @@ int main(void)
         "EX0301042147483648;"
     };
 
-    if (expect_clar_state("CF00000000;", '0', RIG_OK, '0', '0') != 0
+    if (expect_clar_cache_isolated() != 0
+            || expect_clar_state("CF00000000;", '0', RIG_OK, '0', '0') != 0
             || expect_clar_state("CF00010000;", '0', RIG_OK, '1', '0') != 0
             || expect_clar_state("CF10010000;", '1', RIG_OK, '1', '0') != 0
             || expect_clar_offset("CF001+1234;", '0', RIG_OK, 1234) != 0
