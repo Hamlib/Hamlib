@@ -79,13 +79,13 @@ struct rig_caps mc4020_caps =
     .attenuator =     { RIG_DBLST_END, },
     .preamp =      { RIG_DBLST_END, },
     .rx_range_list2 =  { {
-            .start = MHz(55), .end = MHz(860), .modes = MC4020_MODES,
+            .startf = MHz(55), .endf = MHz(860), .modes = MC4020_MODES,
             .low_power = -1, .high_power = -1, MC4020_VFO
         },
         RIG_FRNG_END,
     },
     .tx_range_list2 =  { {
-            .start = MHz(5), .end = MHz(42), .modes = MC4020_MODES,
+            .startf = MHz(5), .endf = MHz(42), .modes = MC4020_MODES,
             .low_power = mW(1), .high_power = W(1), MC4020_VFO
         }, /* FIXME: power */
         RIG_FRNG_END,
