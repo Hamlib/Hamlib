@@ -657,6 +657,8 @@ int dxsr8_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         switch (lvl)
         {
         case 0:
+        case 1:
+        case 2:
             val->i = 0; break; // RF gain  0dB
 
         case 3:
@@ -664,6 +666,7 @@ int dxsr8_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         default:
             rig_debug(RIG_DEBUG_ERR, "Unknown RF Gain %02d\n", lvl);
+            return -RIG_EPROTO;
         }
 
         break;
@@ -679,6 +682,7 @@ int dxsr8_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         switch (lvl)
         {
         case 0:
+        case 3:
             val->i = 0; break; // RF gain  0dB
 
         case 1:
@@ -689,6 +693,7 @@ int dxsr8_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         default:
             rig_debug(RIG_DEBUG_ERR, "Unknown RF Gain %02d\n", lvl);
+            return -RIG_EPROTO;
         }
 
         break;
@@ -718,7 +723,7 @@ int dxsr8_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         default:
             rig_debug(RIG_DEBUG_ERR, "Unknown RF Power %02d\n", lvl);
-            break;
+            return -RIG_EPROTO;
         }
 
         break;
