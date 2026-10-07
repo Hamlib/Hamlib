@@ -29,6 +29,7 @@
 
 extern struct rig_caps ic7100_caps;
 extern struct rig_caps ic7300_caps;
+extern struct rig_caps ic785x_caps;
 
 static int close_test_socket(int fd)
 {
@@ -158,6 +159,10 @@ static const unsigned char request_frequency[] =
 {
     0xfe, 0xfe, 0x88, 0xe0, 0x03, 0xfd
 };
+static const unsigned char request_keyer_type[] =
+{
+    0xfe, 0xfe, 0x8e, 0xe0, 0x1a, 0x05, 0x02, 0x54, 0xfd
+};
 
 static const unsigned char response_nak_ic7100[] =
 {
@@ -166,6 +171,10 @@ static const unsigned char response_nak_ic7100[] =
 static const unsigned char response_nak_ic7300[] =
 {
     0xfe, 0xfe, 0xe0, 0x94, 0xfa, 0xfd
+};
+static const unsigned char response_nak_ic785x[] =
+{
+    0xfe, 0xfe, 0xe0, 0x8e, 0xfa, 0xfd
 };
 static const unsigned char response_x26[] =
 {
@@ -194,6 +203,35 @@ static const unsigned char response_frequency[] =
     0xfd
 };
 static const unsigned char response_malformed[] = { 0x00, 0xfd };
+static const unsigned char response_keyer_straight[] =
+{
+    0xfe, 0xfe, 0xe0, 0x8e, 0x1a, 0x05, 0x02, 0x54, 0x00, 0xfd
+};
+static const unsigned char response_keyer_bug[] =
+{
+    0xfe, 0xfe, 0xe0, 0x8e, 0x1a, 0x05, 0x02, 0x54, 0x01, 0xfd
+};
+static const unsigned char response_keyer_paddle[] =
+{
+    0xfe, 0xfe, 0xe0, 0x8e, 0x1a, 0x05, 0x02, 0x54, 0x02, 0xfd
+};
+static const unsigned char response_keyer_invalid[] =
+{
+    0xfe, 0xfe, 0xe0, 0x8e, 0x1a, 0x05, 0x02, 0x54, 0x03, 0xfd
+};
+
+#define KEYER_EXCHANGES(name, response) \
+    static const struct exchange name[] = \
+    { \
+        { request_keyer_type, sizeof(request_keyer_type), \
+          response, sizeof(response) } \
+    }
+
+KEYER_EXCHANGES(keyer_straight_exchanges, response_keyer_straight);
+KEYER_EXCHANGES(keyer_bug_exchanges, response_keyer_bug);
+KEYER_EXCHANGES(keyer_paddle_exchanges, response_keyer_paddle);
+KEYER_EXCHANGES(keyer_invalid_exchanges, response_keyer_invalid);
+KEYER_EXCHANGES(keyer_rejected_exchanges, response_nak_ic785x);
 
 static const struct exchange old_mode_exchanges[] =
 {
@@ -498,6 +536,66 @@ static int run_frequency_case(const char *name,
     return 0;
 }
 
+static int run_parm_case(const char *name, const struct exchange *exchanges,
+                         int expected_retval, const char *expected_value)
+{
+    int sockets[2];
+    pthread_t thread;
+    struct peer_case test =
+    {
+        .name = name,
+        .exchanges = exchanges,
+        .exchange_count = 1,
+        .fd = -1,
+        .status = -1
+    };
+    RIG *rig;
+    value_t value = { .i = 3 };
+    int retval;
+
+    if (open_test_connection(sockets) != 0)
+    {
+        fprintf(stderr, "%s: test socket setup failed\n", name);
+        return 1;
+    }
+
+    test.fd = sockets[1];
+
+    if (pthread_create(&thread, NULL, run_peer, &test) != 0)
+    {
+        close_test_socket(sockets[0]);
+        close_test_socket(sockets[1]);
+        return 1;
+    }
+
+    rig = prepare_rig(RIG_MODEL_IC785x, sockets[0]);
+
+    if (rig == NULL)
+    {
+        close_test_socket(sockets[0]);
+        close_test_socket(sockets[1]);
+        pthread_join(thread, NULL);
+        return 1;
+    }
+
+    retval = rig_get_parm(rig, RIG_PARM_KEYERTYPE, &value);
+    release_rig(rig, sockets[0]);
+    pthread_join(thread, NULL);
+    close_test_socket(sockets[1]);
+
+    if (test.status != 0 || retval != expected_retval
+            || (retval == RIG_OK && strcmp(value.cs, expected_value) != 0))
+    {
+        fprintf(stderr, "%s: expected %d/%s, got %d/%s\n", name,
+                expected_retval, expected_value != NULL ? expected_value : "<error>",
+                retval,
+                retval == RIG_OK ? value.cs : "<error>");
+        return 1;
+    }
+
+    return 0;
+}
+
 int main(void)
 {
     int status = 0;
@@ -515,6 +613,7 @@ int main(void)
 
     rig_register(&ic7100_caps);
     rig_register(&ic7300_caps);
+    rig_register(&ic785x_caps);
 
     if (run_mode_case("optional 0x26 NAK", RIG_MODEL_IC7100,
                       old_mode_exchanges, ARRAY_SIZE(old_mode_exchanges),
@@ -543,6 +642,19 @@ int main(void)
                                    malformed_frequency_exchanges,
                                    ARRAY_SIZE(malformed_frequency_exchanges),
                                    -RIG_EPROTO) != 0)
+    {
+        status = 1;
+    }
+    else if (run_parm_case("KEYERTYPE straight", keyer_straight_exchanges,
+                           RIG_OK, "0") != 0
+             || run_parm_case("KEYERTYPE bug", keyer_bug_exchanges,
+                              RIG_OK, "1") != 0
+             || run_parm_case("KEYERTYPE paddle", keyer_paddle_exchanges,
+                              RIG_OK, "2") != 0
+             || run_parm_case("invalid KEYERTYPE", keyer_invalid_exchanges,
+                              -RIG_EPROTO, NULL) != 0
+             || run_parm_case("rejected KEYERTYPE", keyer_rejected_exchanges,
+                              -RIG_ERJCTED, NULL) != 0)
     {
         status = 1;
     }

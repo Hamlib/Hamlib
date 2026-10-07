@@ -322,8 +322,7 @@ int ftx1_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 int ftx1_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret, p1p2;
-    unsigned int dcs_num;
+    int ret, p1p2, dcs_num;
 
     (void)vfo;  /* Unused */
 
