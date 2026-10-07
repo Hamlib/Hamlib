@@ -200,7 +200,7 @@ static const struct confparams frontend_cfg_params[] =
         "Stream resampler quality",
         "libsamplerate sinc converter for stream rate conversion, applied "
         "to pipelines created after the change",
-        "medium", RIG_CONF_COMBO, { .c = {{ "medium", "best", "fast", NULL }} }
+        "MEDIUM", RIG_CONF_COMBO, { .c = {{ "MEDIUM", "BEST", "FAST", NULL }} }
     },
     {
         TOK_STREAM_KEEPALIVE_INTERVAL, "stream_keepalive_interval",
@@ -843,15 +843,15 @@ static int frontend_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 
         /* Stored as RIG_RESAMPLE_* + 1 so a zeroed state means "unset"
          * (built-in medium). Applied to pipelines created afterwards. */
-        if (strcmp(val, "best") == 0)
+        if (strcmp(val, "BEST") == 0)
         {
             rs->stream_resample_quality = RIG_RESAMPLE_BEST + 1;
         }
-        else if (strcmp(val, "medium") == 0)
+        else if (strcmp(val, "MEDIUM") == 0)
         {
             rs->stream_resample_quality = RIG_RESAMPLE_MEDIUM + 1;
         }
-        else if (strcmp(val, "fast") == 0)
+        else if (strcmp(val, "FAST") == 0)
         {
             rs->stream_resample_quality = RIG_RESAMPLE_FAST + 1;
         }
@@ -1418,11 +1418,11 @@ static int frontend_get_conf2(RIG *rig, hamlib_token_t token, char *val,
     case TOK_STREAM_RESAMPLE_QUALITY:
         switch (rs->stream_resample_quality)
         {
-        case RIG_RESAMPLE_BEST + 1: SNPRINTF(val, val_len, "best"); break;
+        case RIG_RESAMPLE_BEST + 1: SNPRINTF(val, val_len, "BEST"); break;
 
-        case RIG_RESAMPLE_FAST + 1: SNPRINTF(val, val_len, "fast"); break;
+        case RIG_RESAMPLE_FAST + 1: SNPRINTF(val, val_len, "FAST"); break;
 
-        default:                    SNPRINTF(val, val_len, "medium"); break;
+        default:                    SNPRINTF(val, val_len, "MEDIUM"); break;
         }
 
         break;

@@ -19,6 +19,10 @@
  *
  */
 
+#ifdef HAVE_CONFIG_H
+#  include "config.h"
+#endif
+
 #include <stdio.h>
 #include <string.h>
 
@@ -503,6 +507,10 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     case RIG_PORT_NONE:
         fprintf(fout, "None\n");
+        break;
+
+    case RIG_PORT_CUSTOM:
+        fprintf(fout, "Backend-managed\n");
         break;
 
     default:

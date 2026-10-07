@@ -44,6 +44,9 @@
 #  include <sys/socket.h>
 #  include <sys/select.h>
 #elif defined(HAVE_WS2TCPIP_H)
+/* Windows has no BSD socket headers. hamlib/rig.h, included above, has already
+ * pulled in winsock at the level this builds against; this is here for the
+ * case where it has not. */
 #  include <ws2tcpip.h>
 #endif
 

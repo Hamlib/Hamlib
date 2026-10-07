@@ -118,6 +118,7 @@ typedef struct hamlib_port {
     int fd_sync_error_read;     /*!< file descriptor for reading synchronous data error codes */
 #endif
     short timeout_retry;    /*!< number of retries to make in case of read timeout errors, some serial interfaces may require this, 0 to disable */
+    int default_port;       /*!< TCP/UDP port to use when the pathname carries no port, 0 to use the Hamlib default. A backend whose radio listens elsewhere sets this in rig_init, before the port is opened. */
 // Additions go right above this line
 } hamlib_port_t;
 

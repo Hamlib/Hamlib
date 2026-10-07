@@ -261,12 +261,12 @@ int stream_ringbuf_wait_data_locked(struct rig_stream_ringbuf *rb,
     /* Block indefinitely: wait until data arrives or the ring is closed. */
     if (timeout_ms < 0)
     {
-        while (rb->count == 0 && !rb->closing)
+        while (rb->count == 0 && !rb->closing && !rb->failed)
         {
             pthread_cond_wait(&rb->data_available, &rb->lock);
         }
 
-        return rb->closing ? -1 : 0;
+        return (rb->closing || rb->failed) ? -1 : 0;
     }
 
     struct timespec ts;
@@ -284,7 +284,9 @@ int stream_ringbuf_wait_data_locked(struct rig_stream_ringbuf *rb,
 
     while (rb->count == 0)
     {
-        if (rb->closing)
+        /* A paused stream is empty because the producer was told to stop, so
+         * waiting on it is pointless and the emptiness is not an underrun. */
+        if (rb->closing || rb->paused)
         {
             return -1;
         }
