@@ -3284,7 +3284,9 @@ static int netrigctl_stream_write(RIG *rig, struct rig_stream *stream,
                                   const struct rig_stream_write_info *info)
 {
     struct rig_stream_net_session *sess;
-    int ret;
+    const unsigned char *p = buffer;
+    size_t left = buffer_size, sent = 0, budget;
+    int timed;
 
     (void)timeout_ms;  /* UDP sendto is non-blocking */
 
@@ -3295,18 +3297,87 @@ static int netrigctl_stream_write(RIG *rig, struct rig_stream *stream,
         return -RIG_EINVAL;
     }
 
-    /* Burst targets travel as embedded time blocks; the server's TX
-     * feeder extracts them into the backend's target channel. */
-    ret = rig_stream_net_send_data(sess, stream, buffer, buffer_size, info);
-
-    if (ret < 0)
+    /* A codec frame is one datagram: it cannot be cut. */
+    if (stream->is_codec)
     {
-        return -RIG_EIO;
+        int ret = rig_stream_net_send_data(sess, stream, buffer, buffer_size,
+                                           info);
+
+        if (ret < 0) { return -RIG_EIO; }
+
+        if (bytes_written) { *bytes_written = (size_t)ret; }
+
+        return RIG_OK;
+    }
+
+    /* A write is not limited to one datagram -- locally it never is -- so cut
+     * it into whole sample frames of at most the negotiated payload. A burst
+     * target travels as an embedded time block; room is kept for it in every
+     * datagram, as the first carries the target and SOB and the last EOB.
+     * The server writes each datagram to its backend with that datagram's
+     * flags, which is how a burst written in pieces looks anyway. */
+    timed = info && (info->time_valid || info->flags);
+    budget = stream->max_payload > 0 ? (size_t)stream->max_payload : 0;
+
+    if (timed)
+    {
+        budget = budget > RIG_STREAM_TIME_BLOCK_SIZE
+                 ? budget - RIG_STREAM_TIME_BLOCK_SIZE : 0;
+    }
+
+    if (stream->frame_bytes > 0)
+    {
+        budget -= budget % stream->frame_bytes;
+    }
+
+    if (budget == 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: no room for a sample frame in a %d-byte "
+                  "payload\n", __func__, stream->max_payload);
+        return -RIG_EINVAL;
+    }
+
+    while (left > 0)
+    {
+        size_t n = left < budget ? left : budget;
+        struct rig_stream_write_info part;
+        const struct rig_stream_write_info *part_info = NULL;
+        int ret;
+
+        if (timed && sent == 0)
+        {
+            part = *info;
+
+            if (n < left) { part.flags &= ~RIG_STREAM_TIME_FLAG_EOB; }
+
+            part_info = &part;
+        }
+        else if (timed && n == left && (info->flags & RIG_STREAM_TIME_FLAG_EOB))
+        {
+            memset(&part, 0, sizeof(part));
+            part.flags = RIG_STREAM_TIME_FLAG_EOB;
+            part_info = &part;
+        }
+
+        ret = rig_stream_net_send_data(sess, stream, p, n, part_info);
+
+        if (ret < 0)
+        {
+            /* What already went out stays sent: report it as a short
+             * write, and the failure only when nothing could be sent. */
+            if (sent == 0) { return -RIG_EIO; }
+
+            break;
+        }
+
+        p += n;
+        left -= n;
+        sent += n;
     }
 
     if (bytes_written)
     {
-        *bytes_written = (size_t)ret;
+        *bytes_written = sent;
     }
 
     return RIG_OK;

@@ -660,6 +660,14 @@ static int handle_data_frame(struct rig_stream_net_session *sess,
         return -1;
     }
 
+    /* The server has reported this stream's source dead: a datagram still in
+     * flight is neither data nor loss, and must not let a later read succeed
+     * after the application has seen -RIG_EIO. */
+    if (stream_is_failed(stream))
+    {
+        return 0;
+    }
+
     const unsigned char *data = pkt + RIG_STREAM_HEADER_SIZE;
     size_t data_len = hdr->payload_len;
     struct rig_stream_time_anchor blk;
@@ -703,7 +711,7 @@ static int handle_data_frame(struct rig_stream_net_session *sess,
         }
         else
         {
-            stream_ringbuf_write(&stream->ringbuf, data, data_len);
+            (void)stream_backend_write(stream, data, data_len);
         }
     }
 

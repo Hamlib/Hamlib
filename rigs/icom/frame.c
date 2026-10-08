@@ -37,6 +37,31 @@
 #include "network_session.h"
 
 /*
+ * Put the subcommand bytes on the wire as the rigs expect them.
+ * The DSP rigs (pro models) use multi-byte subcommands for their extra
+ * parameters and levels: 0x501 goes out as 05 01, 0x1a0501 as 1a 05 01.
+ * Returns the number of bytes written to out[] (1 to 3).
+ */
+static int icom_encode_subcmd(int subcmd, unsigned char out[])
+{
+    int n = 0;
+
+    if (subcmd & 0xff0000)
+    {
+        out[n++] = (subcmd >> 16) & 0xff;
+        out[n++] = (subcmd >> 8) & 0xff;
+    }
+    else if (subcmd & 0xff00)
+    {
+        out[n++] = (subcmd >> 8) & 0xff;
+    }
+
+    out[n++] = subcmd & 0xff;
+
+    return n;
+}
+
+/*
  * Build a CI-V frame.
  * The whole frame is placed in frame[],
  * "re_id" is the transceiver's CI-V address,
@@ -68,18 +93,7 @@ int make_cmd_frame(unsigned char frame[], unsigned char re_id,
 
     if (subcmd != -1)
     {
-#ifdef MULTIB_SUBCMD
-        register int j;
-
-        if ((j = subcmd & 0xff0000))    /* allows multi-byte subcmd for dsp rigs */
-        {
-            frame[i++] = j >> 16;
-            frame[i++] = (subcmd & 0xff00) >> 8;
-        }
-        else if ((j = subcmd & 0xff00)) { frame[i++] = j >> 8; }
-
-#endif
-        frame[i++] = subcmd & 0xff;
+        i += icom_encode_subcmd(subcmd, frame + i);
     }
 
     if (data_len != 0)
@@ -91,6 +105,49 @@ int make_cmd_frame(unsigned char frame[], unsigned char re_id,
     frame[i++] = FI;        /* EOM code */
 
     return (i);
+}
+
+/*
+ * Does a received frame answer the command we sent?
+ *
+ * A reply to a get echoes the command byte and the subcommand bytes exactly
+ * as make_cmd_frame() put them on the wire. For the DSP rigs' multi-byte
+ * subcommands that is more than one byte -- 0x501 goes out as 05 01 -- so
+ * comparing the subcommand number with buf[5] alone never matched those and
+ * every such getter (IC-746, IC-756PROII S_MEM_*) read on until it timed out.
+ * The subcommand bytes are compared only as far as the frame carries them.
+ *
+ * "subcmd" is -1 when the command has none; then only "cmd" is checked.
+ *
+ * Returns 1 when the frame matches, 0 when it is some other frame.
+ */
+int icom_frame_matches_cmd(unsigned char cmd, int subcmd,
+                           const unsigned char *frame, int frame_len)
+{
+    unsigned char sub[3];
+    int sub_len, i;
+
+    if (frame_len < 5 || frame[4] != cmd)
+    {
+        return 0;
+    }
+
+    if (subcmd == -1)
+    {
+        return 1;
+    }
+
+    sub_len = icom_encode_subcmd(subcmd, sub);
+
+    for (i = 0; i < sub_len && 5 + i < frame_len; i++)
+    {
+        if (frame[5 + i] != sub[i])
+        {
+            return 0;
+        }
+    }
+
+    return 1;
 }
 
 int icom_frame_fix_preamble(int frame_len, unsigned char *frame)
@@ -256,17 +313,11 @@ again1:
 
         // if we get a reply that is not our cmd/subcmd we should just ignore it and retry the read.
         // this should somewhat allow splitting the COM port between two controllers
-        if (cmd != buf[4])
+        if (!icom_frame_matches_cmd(cmd, subcmd, buf, retval))
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd x%02x != buf x%02x so retry read\n",
-                      __func__, cmd, buf[4]);
-            goto again1;
-        }
-
-        if (subcmd != -1 && subcmd != buf[5])
-        {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: subcmd x%02x != buf x%02x so retry read\n",
-                      __func__, subcmd, buf[5]);
+            rig_debug(RIG_DEBUG_VERBOSE,
+                      "%s: cmd x%02x subcmd x%x != buf x%02x x%02x so retry read\n",
+                      __func__, cmd, subcmd, buf[4], buf[5]);
             goto again1;
         }
 
@@ -390,22 +441,13 @@ again2:
     // ACK/NAK/COL, a get echoes our cmd (and subcmd). Any other cmd byte is an
     // unsolicited or interleaved frame (e.g. on a shared or echoing CI-V bus),
     // so skip it and read the next frame.
-    if (buf[4] != ACK && buf[4] != NAK && buf[4] != COL)
+    if (buf[4] != ACK && buf[4] != NAK && buf[4] != COL
+            && !icom_frame_matches_cmd(cmd, subcmd, buf, frm_len))
     {
-        if (cmd != buf[4])
-        {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd x%02x != buf x%02x so retry read\n",
-                      __func__, cmd, buf[4]);
-            goto again2;
-        }
-
-        if (subcmd != -1 && frm_len > 5 && subcmd != buf[5])
-        {
-            rig_debug(RIG_DEBUG_VERBOSE,
-                      "%s: subcmd x%02x != buf x%02x so retry read\n", __func__,
-                      subcmd, buf[5]);
-            goto again2;
-        }
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: cmd x%02x subcmd x%x != buf x%02x x%02x so retry read\n",
+                  __func__, cmd, subcmd, buf[4], buf[5]);
+        goto again2;
     }
 
     if (sendbuf[3] != buf[2])

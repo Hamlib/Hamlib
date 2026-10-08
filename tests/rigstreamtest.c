@@ -711,6 +711,7 @@ static int run_tx_single(RIG *rig, int use_iq, int sample_rate, int channels,
     uint64_t total_bytes = 0;
     uint64_t frames_written = 0;
     int elapsed = 0;
+    int write_error = RIG_OK;
     time_t last_sec = time(NULL);
     struct timespec pace_start;
 
@@ -760,6 +761,7 @@ static int run_tx_single(RIG *rig, int use_iq, int sample_rate, int channels,
         else if (retval != -RIG_ETIMEOUT)
         {
             fprintf(stderr, "rig_stream_write error: %s\n", rigerror(retval));
+            write_error = retval;
             break;
         }
 
@@ -791,7 +793,10 @@ static int run_tx_single(RIG *rig, int use_iq, int sample_rate, int channels,
 
     free(buf);
     rig_stream_close(rig, stream);
-    return RIG_OK;
+
+    /* A transmit that stopped on an error did not do its job, whatever it
+     * managed before: report it as the run's result. */
+    return write_error;
 }
 
 
@@ -1564,6 +1569,9 @@ static void *duplex_tx_thread(void *arg)
         else if (ret != -RIG_ETIMEOUT)
         {
             a->err.write_err++;
+            /* The frame's time has passed all the same: without this a
+             * failing stream turns the paced loop into a busy one. */
+            frames_written += frame_pairs;
         }
 
         pace_to_frame(&pace_start, frames_written, a->sample_rate);

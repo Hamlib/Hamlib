@@ -285,6 +285,11 @@ I/Q stream is one channel (`-c 1`), never two. `rigstreamtest-hw.sh` skips
 `iq_rx` with "not offered by this session" rather than failing when the codec
 does not allow it.
 
+Because `AUDIO_RX` and `IQ_RX` are two views of the one flow the radio sends,
+only one of them can be open at a time: opening the second fails with
+`-RIG_EINVAL`, the same error as opening one stream too many of a single type.
+To switch between them, close one and then open the other.
+
 ## 4. How the network transport works
 
 Three UDP sockets, all opened towards the radio's control port (50001) and then

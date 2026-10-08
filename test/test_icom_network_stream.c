@@ -1276,6 +1276,179 @@ void test_session_loss_fails_streams(void)
 }
 
 
+/* ---- the session's audio flow and its users ---- */
+
+/* Script `count` 16-byte packets numbered from `first`, wait until the mock
+ * has sent them, then give the session time to take them in. More than the
+ * session's 64-payload queue holds, so anything left queued overflows. */
+static void script_and_settle(struct mock_server *mock, uint16_t first,
+                              int count)
+{
+    uint16_t seqs[256];
+    int i, waited;
+
+    for (i = 0; i < count; i++) { seqs[i] = (uint16_t)(first + i); }
+
+    script_audio(mock, seqs, count);
+
+    for (waited = 0; waited < 100 && mock->audio_script_go; waited++)
+    {
+        usleep(10 * 1000);
+    }
+
+    usleep(200 * 1000);
+}
+
+/* Read one payload's worth from a fresh RX stream and check that it is the
+ * expected audio, arriving clean: no stale payloads, no overrun or loss booked
+ * for audio that queued up before the stream existed. */
+static void check_fresh_read(RIG *rig, rig_stream_t *stream,
+                             const uint8_t *expect)
+{
+    struct rig_stream_stats st;
+    uint8_t buf[64];
+    uint8_t flags;
+    uint32_t dropped;
+    size_t got;
+
+    got = read_all(rig, stream, buf, 16, &flags, &dropped);
+    TEST_CHECK_(got == 16, "read %zu bytes, expected 16", got);
+
+    if (got == 16)
+    {
+        TEST_CHECK_(memcmp(buf, expect, 16) == 0,
+                    "first read was not the fresh payload (first sample %d)",
+                    (int16_t)(buf[0] | (buf[1] << 8)));
+    }
+
+    TEST_CHECK_(flags == 0, "drop_flags=0x%x", flags);
+    TEST_CHECK(rig_stream_get_stats(rig, stream, &st) == RIG_OK);
+    TEST_CHECK_(st.overruns == 0, "overruns=%u", st.overruns);
+    TEST_CHECK_(st.concealed_samples_overrun == 0, "concealed overrun=%llu",
+                (unsigned long long)st.concealed_samples_overrun);
+    TEST_CHECK_(st.gaps == 0, "gaps=%u", st.gaps);
+}
+
+/* Closing the last stream stops the audio flow, so an RX stream opened later
+ * starts from the radio's fresh flow: nothing that arrived while no stream was
+ * open is played, and the overflow it would have caused is not booked. */
+void test_rx_reopen_reads_no_stale_audio(void)
+{
+    struct mock_server mock;
+    rig_stream_t *stream = NULL;
+    uint8_t buf[64];
+    uint8_t flags;
+    uint32_t dropped;
+    RIG *rig;
+
+    mock_start(&mock);
+    rig = open_against_mock(&mock, NULL);
+    TEST_ASSERT(rig != NULL);
+
+    TEST_ASSERT(stream_open(rig, RIG_STREAM_TYPE_AUDIO_RX,
+                            RIG_STREAM_FORMAT_PCM_S16, 48000, 1,
+                            &stream) == RIG_OK);
+    TEST_ASSERT(read_all(rig, stream, buf, sizeof(mock_audio), &flags,
+                         &dropped) == sizeof(mock_audio));
+    TEST_CHECK(rig_stream_close(rig, stream) == RIG_OK);
+
+    /* Audio the radio sends while no stream is open. */
+    script_and_settle(&mock, 1000, 100);
+
+    /* The reopened flow starts with the radio's opening payload. */
+    TEST_ASSERT(stream_open(rig, RIG_STREAM_TYPE_AUDIO_RX,
+                            RIG_STREAM_FORMAT_PCM_S16, 48000, 1,
+                            &stream) == RIG_OK);
+    check_fresh_read(rig, stream, mock_audio);
+
+    rig_stream_close(rig, stream);
+    rig_close(rig);
+    rig_cleanup(rig);
+    mock_stop(&mock);
+}
+
+/* A transmit stream keeps the flow running, and the received half of it queues
+ * with nobody reading. An RX stream that joins later starts from the audio
+ * arriving after it opened, not from that backlog. */
+void test_rx_joining_tx_reads_no_stale_audio(void)
+{
+    static const uint16_t next[] = { 1100 };
+    struct mock_server mock;
+    rig_stream_t *tx = NULL, *rx = NULL;
+    uint8_t expect[16];
+    RIG *rig;
+    int i;
+
+    mock_start(&mock);
+    rig = open_against_mock(&mock, NULL);
+    TEST_ASSERT(rig != NULL);
+
+    TEST_ASSERT(stream_open(rig, RIG_STREAM_TYPE_AUDIO_TX,
+                            RIG_STREAM_FORMAT_PCM_S16, 48000, 1,
+                            &tx) == RIG_OK);
+    script_and_settle(&mock, 1000, 100);
+
+    TEST_ASSERT(stream_open(rig, RIG_STREAM_TYPE_AUDIO_RX,
+                            RIG_STREAM_FORMAT_PCM_S16, 48000, 1,
+                            &rx) == RIG_OK);
+
+    /* The packet following the backlog in sequence: no gap before it. */
+    script_audio(&mock, next, 1);
+
+    for (i = 0; i < 8; i++)
+    {
+        expect[2 * i] = (uint8_t)(next[0] & 0xff);
+        expect[2 * i + 1] = (uint8_t)(next[0] >> 8);
+    }
+
+    check_fresh_read(rig, rx, expect);
+
+    rig_stream_close(rig, rx);
+    rig_stream_close(rig, tx);
+    rig_close(rig);
+    rig_cleanup(rig);
+    mock_stop(&mock);
+}
+
+/* AUDIO_RX and IQ_RX are two views of the one flow the radio sends, read from
+ * one queue. Two readers would split the payloads between them, each booking
+ * the other's share as lost, so the second RX stream of either kind is refused
+ * -- and a handoff, closing one before opening the other, still works. */
+void test_second_rx_stream_refused(void)
+{
+    struct mock_server mock;
+    rig_stream_t *audio = NULL, *iq = NULL;
+    int ret;
+    RIG *rig;
+
+    mock_start(&mock);
+    rig = open_against_mock(&mock, "net_iq_mode=1");
+    TEST_ASSERT(rig != NULL);
+
+    TEST_ASSERT(stream_open(rig, RIG_STREAM_TYPE_AUDIO_RX,
+                            RIG_STREAM_FORMAT_PCM_S16, 48000, 2,
+                            &audio) == RIG_OK);
+    ret = stream_open(rig, RIG_STREAM_TYPE_IQ_RX, RIG_STREAM_FORMAT_IQ_CS16,
+                      48000, 1, &iq);
+    TEST_CHECK_(ret == -RIG_EINVAL, "I/Q open beside audio returned %d", ret);
+
+    TEST_CHECK(rig_stream_close(rig, audio) == RIG_OK);
+    audio = NULL;
+
+    TEST_ASSERT(stream_open(rig, RIG_STREAM_TYPE_IQ_RX,
+                            RIG_STREAM_FORMAT_IQ_CS16, 48000, 1,
+                            &iq) == RIG_OK);
+    ret = stream_open(rig, RIG_STREAM_TYPE_AUDIO_RX, RIG_STREAM_FORMAT_PCM_S16,
+                      48000, 2, &audio);
+    TEST_CHECK_(ret == -RIG_EINVAL, "audio open beside I/Q returned %d", ret);
+
+    TEST_CHECK(rig_stream_close(rig, iq) == RIG_OK);
+    rig_close(rig);
+    rig_cleanup(rig);
+    mock_stop(&mock);
+}
+
+
 TEST_LIST =
 {
     { "rig_open_close",            test_stream_rig_open_close },
@@ -1297,6 +1470,9 @@ TEST_LIST =
     { "rx_iq_gap_marked",          test_rx_iq_gap_marked },
     { "rx_audio_window_recovers_retransmit", test_rx_audio_window_recovers_retransmit },
     { "session_loss_fails_streams", test_session_loss_fails_streams },
+    { "rx_reopen_reads_no_stale_audio", test_rx_reopen_reads_no_stale_audio },
+    { "rx_joining_tx_reads_no_stale_audio", test_rx_joining_tx_reads_no_stale_audio },
+    { "second_rx_stream_refused",  test_second_rx_stream_refused },
     { "rx_audio_restart_unsized",  test_rx_audio_restart_unsized },
     { "rx_anchor_index_under_rate_conversion", test_rx_anchor_index_under_rate_conversion },
     { "require_native_rate_allows_format_conversion", test_require_native_rate_allows_format_conversion },

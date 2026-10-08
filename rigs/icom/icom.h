@@ -53,12 +53,9 @@
  * defines used by comp_cal_str in rig.c
  * STR_CAL_LENGTH is the length of the S Meter calibration table
  * STR_CAL_S0 is the value in dB of the lowest value (not even in table)
- * MULTIB_SUBCMD allows the dsp rigs ie pro models to use multibyte subcommands for all the extra
- * parameters and levels.
  */
 #define STR_CAL_LENGTH 16
 #define STR_CAL_S0 (-54)
-#define MULTIB_SUBCMD
 
 /*
  * minimal channel caps.

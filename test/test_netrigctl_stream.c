@@ -917,6 +917,124 @@ void test_write_tx_multi(void)
 }
 
 
+/* Open an AUDIO_TX stream of 48 kHz float through rigctld. */
+static rig_stream_t *open_tx_f32(RIG *rig, int channels)
+{
+    struct rig_stream_config cfg;
+    rig_stream_t *stream = NULL;
+
+    memset(&cfg, 0, sizeof(cfg));
+    cfg.struct_size = sizeof(cfg);
+    cfg.type = RIG_STREAM_TYPE_AUDIO_TX;
+    cfg.format = RIG_STREAM_FORMAT_PCM_F32;
+    cfg.sample_rate = 48000;
+    cfg.channels = channels;
+
+    return rig_stream_open(rig, &cfg, &stream) == RIG_OK ? stream : NULL;
+}
+
+/* A write is not limited to one datagram: 20 ms of stereo float is 7680 bytes,
+ * several times the payload budget, and is sent whole as consecutive datagrams
+ * of whole sample frames, with the timestamp advancing by every sample. */
+void test_write_tx_larger_than_payload(void)
+{
+    struct rigctld_proc proc = {0};
+
+    if (start_rigctld(&proc) < 0)
+    {
+        TEST_CHECK_(0, "could not start rigctld");
+        return;
+    }
+
+    RIG *rig = open_netrigctl(proc.port);
+    TEST_ASSERT(rig != NULL);
+
+    rig_stream_t *stream = open_tx_f32(rig, 2);
+    TEST_ASSERT(stream != NULL);
+
+    struct rig_stream_net_session *sess =
+        (struct rig_stream_net_session *)stream->backend_priv;
+    TEST_ASSERT(sess != NULL);
+
+    float samples[960 * 2];
+    memset(samples, 0, sizeof(samples));
+
+    size_t frame = 2 * sizeof(float);
+    size_t budget = (size_t)rig_stream_get_max_payload(stream);
+    budget -= budget % frame;
+    TEST_ASSERT_(budget > 0 && budget < sizeof(samples),
+                 "budget %zu must be below the %zu-byte write", budget,
+                 sizeof(samples));
+    unsigned expect_seq = (unsigned)((sizeof(samples) + budget - 1) / budget);
+
+    size_t written = 0;
+    int ret = rig_stream_write(rig, stream, samples, sizeof(samples), &written,
+                               1000, NULL);
+    TEST_CHECK_(ret == RIG_OK, "rig_stream_write returned %d", ret);
+    TEST_CHECK_(written == sizeof(samples), "written=%zu, expected %zu",
+                written, sizeof(samples));
+    TEST_CHECK_(sess->tx_seq == expect_seq, "tx_seq=%u, expected %u datagrams",
+                sess->tx_seq, expect_seq);
+    TEST_CHECK_(sess->tx_timestamp == 960, "tx_timestamp=%llu, expected 960",
+                (unsigned long long)sess->tx_timestamp);
+
+    rig_stream_close(rig, stream);
+    rig_close(rig);
+    rig_cleanup(rig);
+    stop_rigctld(&proc);
+}
+
+/* A timed burst larger than one datagram keeps its target: it travels on the
+ * first datagram (with SOB, and EOB on the last), so the server still sees the
+ * burst start late and reports it. */
+void test_tx_timed_burst_split_keeps_target(void)
+{
+    struct rigctld_proc proc = {0};
+
+    if (start_rigctld(&proc) < 0)
+    {
+        TEST_CHECK_(0, "could not start rigctld");
+        return;
+    }
+
+    RIG *rig = open_netrigctl(proc.port);
+    TEST_ASSERT(rig != NULL);
+
+    rig_stream_t *stream = open_tx_f32(rig, 2);
+    TEST_ASSERT(stream != NULL);
+
+    struct rig_stream_write_info winfo;
+    memset(&winfo, 0, sizeof(winfo));
+    winfo.time_valid = 1;
+    winfo.seconds = (int64_t)time(NULL) - 2;
+    winfo.flags = RIG_STREAM_TIME_FLAG_SOB | RIG_STREAM_TIME_FLAG_EOB;
+
+    float samples[960 * 2];
+    memset(samples, 0, sizeof(samples));
+    size_t written = 0;
+    TEST_CHECK(rig_stream_write(rig, stream, samples, sizeof(samples),
+                                &written, 1000, &winfo) == RIG_OK);
+    TEST_CHECK_(written == sizeof(samples), "written=%zu", written);
+
+    struct rig_stream_write_status ev;
+    memset(&ev, 0, sizeof(ev));
+    int rc = rig_stream_wait_write_status(rig, stream, &ev, 3000);
+
+    TEST_CHECK_(rc == RIG_OK, "wait_write_status rc=%d (target lost?)", rc);
+
+    if (rc == RIG_OK)
+    {
+        TEST_CHECK_(ev.event == RIG_STREAM_WRITE_EVENT_LATE,
+                    "event=%u (expected LATE)", ev.event);
+    }
+
+    rig_stream_close(rig, stream);
+    rig_close(rig);
+    rig_cleanup(rig);
+    stop_rigctld(&proc);
+}
+
+
 /* End-to-end write-status: a past-scheduled TX burst makes the server's dummy
  * backend detect a late burst, which must travel back as a WRITE_STATUS frame
  * and surface at the client's rig_stream_wait_write_status(). */
@@ -2431,6 +2549,41 @@ void test_rx_error_frame_fails_stream(void)
     stream_ringbuf_destroy(&s.ringbuf);
 }
 
+/* Data still in flight when the ERROR frame arrives is taken in no further:
+ * the application drains what came before the failure and then reads -RIG_EIO
+ * for good, instead of a late datagram making a read succeed again. Nor is the
+ * late data accounted -- a seq gap after the failure is not a link loss. */
+void test_rx_data_after_error_frame_ignored(void)
+{
+    struct rig_stream s;
+    struct rig_stream_net_session sess;
+    unsigned char buf[256];
+    unsigned char out[64];
+    wb_setup(&s, &sess);
+
+    rig_stream_net_process_packet(&sess, &s, buf, wb_data(buf, 0, 0, 10, &sess));
+    rig_stream_net_process_packet(&sess, &s, buf,
+                                  wb_error(buf, -RIG_EIO,
+                                           RIG_COMM_REASON_LINK_TIMEOUT,
+                                           RIG_STREAM_ERROR_BLOCK_VERSION, &sess));
+    TEST_ASSERT(stream_is_failed(&s));
+
+    /* seq 3 skips 1 and 2: counted as link loss if it were taken in. */
+    TEST_CHECK(rig_stream_net_process_packet(&sess, &s, buf,
+               wb_data(buf, 3, 30, 10, &sess)) == 0);
+
+    TEST_CHECK_(stream_ringbuf_available(&s.ringbuf) == 20,
+                "avail=%zu (expected the 20 bytes from before the failure)",
+                stream_ringbuf_available(&s.ringbuf));
+    TEST_CHECK_(s.link_loss == 0, "link_loss=%u", s.link_loss);
+
+    TEST_CHECK(stream_ringbuf_read(&s.ringbuf, out, sizeof(out), 50) == 20);
+    TEST_CHECK(stream_ringbuf_read(&s.ringbuf, out, sizeof(out), 50) == 0);
+
+    stream_write_event_destroy(&s);
+    stream_ringbuf_destroy(&s.ringbuf);
+}
+
 /* A received WRITE_STATUS frame must surface through
  * rig_stream_wait_write_status() (marked REMOTE), bump the matching remote_*
  * stat, and not disturb seq accounting or write sample data. */
@@ -3053,12 +3206,15 @@ TEST_LIST =
     { "rx_real_gap_counts_link_loss",   test_rx_real_gap_counts_link_loss },
     { "rx_error_frame_dropped",         test_rx_error_frame_dropped },
     { "rx_error_frame_fails_stream",    test_rx_error_frame_fails_stream },
+    { "rx_data_after_error_frame_ignored", test_rx_data_after_error_frame_ignored },
     { "rx_write_status_frame",          test_rx_write_status_frame },
     { "caps_discovery_all_types",  test_caps_discovery_all_types },
     { "rx_capture_time_propagates", test_rx_capture_time_propagates },
     { "open_close_tx",             test_open_close_tx },
     { "open_close_rx",             test_open_close_rx },
     { "write_tx_multi",            test_write_tx_multi },
+    { "write_tx_larger_than_payload", test_write_tx_larger_than_payload },
+    { "tx_timed_burst_split_keeps_target", test_tx_timed_burst_split_keeps_target },
     { "tx_write_status_e2e",       test_tx_write_status_e2e },
     { "tx_underrun_e2e",           test_tx_underrun_e2e },
     { "rx_data_received",          test_rx_data_received },

@@ -266,6 +266,8 @@ struct icom_network_stream_state
     HAMLIB_ATOMIC int running;  /* thread stop flag; read by the stream thread */
     unsigned tx_send_errors;  /* failed wire sends; first one is logged */
     int thread_started;
+    enum icom_network_audio_user audio_user;
+    unsigned generation;     /* the session connection this stream runs on */
     int wire_channels;       /* negotiated wire codec channel count */
     int passthrough;         /* the wire payload already is this stream's own
                                 bytes, so it crosses the ring untouched */
@@ -502,6 +504,23 @@ static void icom_network_rx_account_loss(struct icom_network_stream_state *st,
     icom_network_rx_push_anchor(st, RIG_STREAM_TIME_FLAG_DISCONTINUITY);
 }
 
+/* Has the connection this stream started on gone away -- lost, or replaced by
+ * a background reconnect? Then the stream is failed with the reason it ended:
+ * a stream is never carried over to a new connection, the application
+ * reopens it. */
+static int icom_network_stream_ended(struct icom_network_stream_state *st)
+{
+    unsigned reason;
+
+    if (icom_network_session_is_current(st->sess, st->generation, &reason))
+    {
+        return 0;
+    }
+
+    stream_mark_failed(st->stream, reason);
+    return 1;
+}
+
 static void *icom_network_rx_thread(void *arg)
 {
     struct icom_network_stream_state *st = arg;
@@ -516,15 +535,14 @@ static void *icom_network_rx_thread(void *arg)
         int64_t now;
         int n;
 
-        if (!icom_network_session_is_valid(st->sess))
+        if (icom_network_stream_ended(st))
         {
-            /* Wake any blocked reader with -RIG_EIO: the samples are not
-             * merely late, the radio is gone. */
-            stream_mark_failed(stream, icom_network_session_loss_reason(st->sess));
+            /* A blocked reader wakes with -RIG_EIO: the samples are not
+             * merely late, the connection they came from is gone. */
             break;
         }
 
-        n = icom_network_audio_recv(st->sess, st->encode_buffer,
+        n = icom_network_audio_recv(st->sess, st->generation, st->encode_buffer,
                                     st->encode_buffer_length, 100, &loss);
 
         /* A timeout is ordinary: the anchor below still has to be pushed, so
@@ -639,7 +657,8 @@ static void icom_network_tx_send_fragments(struct icom_network_stream_state *st,
             chunk = ICOM_NETWORK_AUDIO_MAX_PAYLOAD;
         }
 
-        if (icom_network_audio_send(st->sess, wire + off, chunk) < 0)
+        if (icom_network_audio_send(st->sess, st->generation, wire + off,
+                                    chunk) < 0)
         {
             /* Logged once: this runs per wire frame, so a persistent fault
              * would otherwise flood the log. The total is reported when the
@@ -669,12 +688,10 @@ static void *icom_network_tx_thread(void *arg)
         const uint8_t *wire = NULL;
         size_t got, enc_bytes;
 
-        if (!icom_network_session_is_valid(st->sess))
+        if (icom_network_stream_ended(st))
         {
-            /* Nothing to transmit to: tell the writer instead of letting it
-             * fill the ring for a radio that is gone. */
-            stream_mark_failed(st->stream,
-                               icom_network_session_loss_reason(st->sess));
+            /* Nothing to transmit to: the writer is told instead of being
+             * left to fill the ring for a connection that is gone. */
             break;
         }
 
@@ -908,8 +925,12 @@ static int icom_network_stream_open(RIG *rig, struct rig_stream *stream)
         return ret;
     }
 
-    /* bring the audio flow up (idempotent across RX/TX streams) */
-    ret = icom_network_audio_start(sess);
+    /* Join the session's audio flow, starting it if this is the first stream.
+     * AUDIO_RX and IQ_RX are two views of the same received flow, so the
+     * session takes one reader of either kind and refuses a second. */
+    st->audio_user = stream_type_is_rx(stream->type) ? ICOM_NETWORK_AUDIO_RX
+                     : ICOM_NETWORK_AUDIO_TX;
+    ret = icom_network_audio_start(sess, st->audio_user, &st->generation);
 
     if (ret != RIG_OK)
     {
@@ -924,6 +945,7 @@ static int icom_network_stream_open(RIG *rig, struct rig_stream *stream)
     if (pthread_create(&st->thread, NULL, thread_fn, st) != 0)
     {
         st->running = 0;
+        icom_network_audio_stop(sess, st->audio_user, st->generation);
         icom_network_stream_state_free(st);
         return -RIG_EIO;
     }
@@ -959,11 +981,14 @@ static int icom_network_stream_close(RIG *rig, struct rig_stream *stream)
                   __func__, st->tx_send_errors);
     }
 
+    /* Leave the audio flow. It keeps running for another open stream and stops
+     * with the last one, so a later RX stream never reads audio that queued
+     * up while nothing was open. */
+    icom_network_audio_stop(st->sess, st->audio_user, st->generation);
+
     stream->backend_priv = NULL;
     icom_network_stream_state_free(st);
 
-    /* The session's audio flow is stopped at disconnect, so concurrent RX/TX
-     * streams keep working; closing one stream does not tear down the other. */
     return RIG_OK;
 }
 

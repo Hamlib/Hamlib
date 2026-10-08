@@ -221,9 +221,11 @@ void test_session_audio_rx(void)
     TEST_CHECK(icom_network_session_connect(s) == RIG_OK);
 
     /* start audio: the mock emits one audio payload on stream-open */
-    TEST_CHECK(icom_network_audio_start(s) == RIG_OK);
+    TEST_CHECK(icom_network_audio_start(s, ICOM_NETWORK_AUDIO_RX, NULL)
+               == RIG_OK);
 
-    n = icom_network_audio_recv(s, rx, sizeof(rx), 1000, NULL);
+    n = icom_network_audio_recv(s, icom_network_session_generation(s), rx,
+                                sizeof(rx), 1000, NULL);
     TEST_CHECK(n == (int)sizeof(mock_audio));
 
     if (n == (int)sizeof(mock_audio))
@@ -231,7 +233,8 @@ void test_session_audio_rx(void)
         TEST_CHECK(memcmp(rx, mock_audio, n) == 0);
     }
 
-    icom_network_audio_stop(s);
+    icom_network_audio_stop(s, ICOM_NETWORK_AUDIO_RX,
+                            icom_network_session_generation(s));
     icom_network_session_free(s);
     mock_stop(&mock);
 }
@@ -1234,8 +1237,10 @@ static struct icom_network_session *audio_session(struct mock_server *mock,
     s = icom_network_session_alloc(&config);
     TEST_ASSERT(s != NULL);
     TEST_ASSERT(icom_network_session_connect(s) == RIG_OK);
-    TEST_ASSERT(icom_network_audio_start(s) == RIG_OK);
-    TEST_ASSERT(icom_network_audio_recv(s, rx, sizeof(rx), 1000, NULL) > 0);
+    TEST_ASSERT(icom_network_audio_start(s, ICOM_NETWORK_AUDIO_RX, NULL)
+                == RIG_OK);
+    TEST_ASSERT(icom_network_audio_recv(s, icom_network_session_generation(s),
+                                        rx, sizeof(rx), 1000, NULL) > 0);
 
     return s;
 }
@@ -1265,7 +1270,8 @@ static int audio_collect(struct icom_network_session *s,
     while (count < max)
     {
         struct icom_network_audio_loss loss;
-        int n = icom_network_audio_recv(s, rx, sizeof(rx), idle_ms, &loss);
+        int n = icom_network_audio_recv(s, icom_network_session_generation(s),
+                                        rx, sizeof(rx), idle_ms, &loss);
 
         if (n <= 0) { break; }
 
@@ -1313,7 +1319,8 @@ void test_session_audio_window0_gap(void)
                 "window 0 must not request retransmits, saw %d",
                 mock.audio_retransmit_requests);
 
-    icom_network_audio_stop(s);
+    icom_network_audio_stop(s, ICOM_NETWORK_AUDIO_RX,
+                            icom_network_session_generation(s));
     icom_network_session_free(s);
     mock_stop(&mock);
 }
@@ -1346,7 +1353,8 @@ void test_session_audio_window0_late_dropped(void)
     icom_network_session_audio_stats(s, &st);
     TEST_CHECK_(st.late == 1, "late=%llu", (unsigned long long)st.late);
 
-    icom_network_audio_stop(s);
+    icom_network_audio_stop(s, ICOM_NETWORK_AUDIO_RX,
+                            icom_network_session_generation(s));
     icom_network_session_free(s);
     mock_stop(&mock);
 }
@@ -1374,7 +1382,8 @@ void test_session_audio_window_reorders(void)
         TEST_CHECK(got[i].loss.lost_packets == 0 && !got[i].loss.lost_unsized);
     }
 
-    icom_network_audio_stop(s);
+    icom_network_audio_stop(s, ICOM_NETWORK_AUDIO_RX,
+                            icom_network_session_generation(s));
     icom_network_session_free(s);
     mock_stop(&mock);
 }
@@ -1408,7 +1417,8 @@ void test_session_audio_window_retransmit_recovers(void)
     TEST_CHECK(mock.audio_retransmit_requests >= 1);
     TEST_CHECK(mock.audio_withheld == -1);
 
-    icom_network_audio_stop(s);
+    icom_network_audio_stop(s, ICOM_NETWORK_AUDIO_RX,
+                            icom_network_session_generation(s));
     icom_network_session_free(s);
     mock_stop(&mock);
 }
@@ -1481,7 +1491,8 @@ static void audio_retry_check(int trailing)
                     "packet %d reported %u lost", i, got[i].loss.lost_packets);
     }
 
-    icom_network_audio_stop(s);
+    icom_network_audio_stop(s, ICOM_NETWORK_AUDIO_RX,
+                            icom_network_session_generation(s));
     icom_network_session_free(s);
     mock_stop(&mock);
 }
@@ -1584,7 +1595,8 @@ void test_session_audio_window_gives_up(void)
         TEST_CHECK(got[3].loss.lost_packets == 0);
     }
 
-    icom_network_audio_stop(s);
+    icom_network_audio_stop(s, ICOM_NETWORK_AUDIO_RX,
+                            icom_network_session_generation(s));
     icom_network_session_free(s);
     mock_stop(&mock);
 }
@@ -1621,7 +1633,8 @@ void test_session_audio_queue_overflow_reported(void)
         TEST_CHECK_(got[0].seq == 100 - n + 1, "first kept is seq %d", got[0].seq);
     }
 
-    icom_network_audio_stop(s);
+    icom_network_audio_stop(s, ICOM_NETWORK_AUDIO_RX,
+                            icom_network_session_generation(s));
     icom_network_session_free(s);
     mock_stop(&mock);
 }
@@ -1959,6 +1972,139 @@ void test_session_auto_reconnect(void)
     mock_stop(&mock);
 }
 
+/* The lost callback reports recovery (RIG_COMM_REASON_NONE) once the reconnect
+ * has finished and released the transport, which is when an application may
+ * use the session again. */
+static void note_recovered(void *ctx, unsigned reason)
+{
+    if (reason == RIG_COMM_REASON_NONE) { *(HAMLIB_ATOMIC int *)ctx = 1; }
+}
+
+/* A re-established session is a new connection, and the audio users of the old
+ * one are not carried over: their calls are refused with the reason the old
+ * connection ended, their leaving does not stop the new flow, and they do not
+ * count against the one receiver the new flow allows. */
+void test_session_reconnect_refuses_old_audio_users(void)
+{
+    static const uint16_t script[] = { 7 };
+    struct mock_server mock;
+    struct icom_network_session_config config;
+    struct icom_network_session *s;
+    uint8_t rx[2048];
+    unsigned old_gen = 0, new_gen = 0, reason = RIG_COMM_REASON_NONE;
+    HAMLIB_ATOMIC int recovered = 0;
+    int waited, n;
+
+    mock_start(&mock);
+    capability_config(&config, &mock, "IC-7610");
+    config.liveness_timeout_ms = 1000;
+    config.auto_reconnect = 1;
+
+    s = icom_network_session_alloc(&config);
+    TEST_ASSERT(s != NULL);
+    icom_network_session_set_lost_cb(s, note_recovered, (void *)&recovered);
+    TEST_ASSERT(icom_network_session_connect(s) == RIG_OK);
+    TEST_ASSERT(icom_network_audio_start(s, ICOM_NETWORK_AUDIO_RX, &old_gen)
+                == RIG_OK);
+    TEST_ASSERT(icom_network_audio_recv(s, old_gen, rx, sizeof(rx), 1000, NULL)
+                > 0);
+
+    mock.go_silent = 1;
+
+    for (waited = 0; waited < 300 && icom_network_session_is_valid(s); waited++)
+    {
+        hl_usleep(10000);
+    }
+
+    TEST_ASSERT(!icom_network_session_is_valid(s));
+    mock.go_silent = 0;
+
+    for (waited = 0; waited < 800 && !recovered; waited++)
+    {
+        hl_usleep(10000);
+    }
+
+    TEST_ASSERT_(recovered, "not re-established after %d ms", waited * 10);
+    TEST_CHECK(icom_network_session_generation(s) != old_gen);
+
+    /* The old connection's user is refused, with the reason it ended. */
+    TEST_CHECK(!icom_network_session_is_current(s, old_gen, &reason));
+    TEST_CHECK_(reason == RIG_COMM_REASON_LINK_TIMEOUT, "reason %u", reason);
+    n = icom_network_audio_recv(s, old_gen, rx, sizeof(rx), 100, NULL);
+    TEST_CHECK_(n == -RIG_EIO, "old recv returned %d", n);
+    n = icom_network_audio_send(s, old_gen, rx, 16);
+    TEST_CHECK_(n == -RIG_EIO, "old send returned %d", n);
+
+    /* The old receiver does not block a new one... */
+    n = icom_network_audio_start(s, ICOM_NETWORK_AUDIO_RX, &new_gen);
+    TEST_ASSERT_(n == RIG_OK, "start on the new connection returned %d", n);
+    TEST_CHECK(new_gen == icom_network_session_generation(s));
+    TEST_CHECK(icom_network_audio_recv(s, new_gen, rx, sizeof(rx), 1000, NULL)
+               > 0);
+
+    /* ...and its leaving does not stop the new flow. */
+    icom_network_audio_stop(s, ICOM_NETWORK_AUDIO_RX, old_gen);
+    audio_script(&mock, script, 1);
+    n = icom_network_audio_recv(s, new_gen, rx, sizeof(rx), 1000, NULL);
+    TEST_CHECK_(n == 16, "new flow after the old user left: %d", n);
+
+    icom_network_audio_stop(s, ICOM_NETWORK_AUDIO_RX, new_gen);
+    icom_network_session_disconnect(s);
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
+/* Audio users are counted: the flow runs while any is joined and stops with
+ * the last, there is one receiver at most, and a receiver joining a running
+ * flow starts from the audio arriving after it joined. */
+void test_session_audio_users(void)
+{
+    static const uint16_t backlog[] = { 1, 2, 3 };
+    static const uint16_t fresh[] = { 4 };
+    struct mock_server mock;
+    struct icom_network_session_config config;
+    struct icom_network_session *s;
+    struct icom_network_audio_loss loss;
+    uint8_t rx[2048];
+    unsigned gen = 0;
+    int n;
+
+    mock_start(&mock);
+    capability_config(&config, &mock, "IC-7610");
+    s = icom_network_session_alloc(&config);
+    TEST_ASSERT(s != NULL);
+    TEST_ASSERT(icom_network_session_connect(s) == RIG_OK);
+
+    /* A transmitter starts the flow; what it receives queues unread. */
+    TEST_ASSERT(icom_network_audio_start(s, ICOM_NETWORK_AUDIO_TX, &gen)
+                == RIG_OK);
+    audio_script(&mock, backlog, 3);
+    hl_usleep(300000);
+
+    /* The receiver starts after that backlog, at the next payload. */
+    TEST_ASSERT(icom_network_audio_start(s, ICOM_NETWORK_AUDIO_RX, NULL)
+                == RIG_OK);
+    TEST_CHECK(icom_network_audio_start(s, ICOM_NETWORK_AUDIO_RX, NULL)
+               == -RIG_EINVAL);
+    audio_script(&mock, fresh, 1);
+    n = icom_network_audio_recv(s, gen, rx, sizeof(rx), 1000, &loss);
+    TEST_CHECK_(n == 16 && rx[0] == 4, "got %d bytes, first sample %d", n,
+                n > 0 ? rx[0] : -1);
+    TEST_CHECK(loss.lost_packets == 0 && loss.overrun_bytes == 0);
+
+    /* The flow outlives the receiver while the transmitter remains. */
+    icom_network_audio_stop(s, ICOM_NETWORK_AUDIO_RX, gen);
+    TEST_CHECK(icom_network_audio_send(s, gen, rx, 16) == 16);
+
+    /* The last user stops it. */
+    icom_network_audio_stop(s, ICOM_NETWORK_AUDIO_TX, gen);
+    TEST_CHECK(icom_network_audio_send(s, gen, rx, 16) == -RIG_EINVAL);
+
+    icom_network_session_disconnect(s);
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
 TEST_LIST =
 {
     { "handshake_and_civ_roundtrip", test_session_handshake_and_civ_roundtrip },
@@ -2010,5 +2156,7 @@ TEST_LIST =
     { "liveness_disabled",           test_session_liveness_disabled },
     { "peer_disconnect",             test_session_peer_disconnect },
     { "auto_reconnect",              test_session_auto_reconnect },
+    { "reconnect_refuses_old_audio_users", test_session_reconnect_refuses_old_audio_users },
+    { "audio_users",                 test_session_audio_users },
     { NULL, NULL }
 };

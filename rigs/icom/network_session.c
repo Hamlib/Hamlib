@@ -178,7 +178,15 @@ struct icom_network_session
      * except by a successful reconnect. */
     HAMLIB_ATOMIC int lost;
     HAMLIB_ATOMIC unsigned loss_reason;   /* RIG_COMM_REASON_* */
+    /* Why the previous connection ended, kept when a reconnect clears
+     * loss_reason: it is what a stream from that connection reports. */
+    HAMLIB_ATOMIC unsigned previous_loss_reason;
     pthread_mutex_t loss_lock;  /* orders the lost/loss_reason pair */
+    /* Bumped by every successful connect, under transport_lock for writing.
+     * A stream belongs to the connection it started on; once this moves on,
+     * the audio calls refuse it, so a stream from before a reconnect can never
+     * read or send on the new connection's audio flow. */
+    HAMLIB_ATOMIC unsigned generation;
     icom_network_lost_cb lost_cb;
     void *lost_ctx;
 
@@ -241,6 +249,14 @@ struct icom_network_session
     uint16_t audio_phase_bytes[ICOM_NETWORK_SESSION_AUDIO_PHASES_MAX];
     HAMLIB_ATOMIC int audio_active;
     uint16_t audio_send_sequence;
+    /* Streams using the audio flow. The flow runs while any are open and stops
+     * with the last one; there is one receive queue, so at most one reader.
+     * Starting and stopping the flow happens under transport_lock for reading,
+     * which concurrent stream opens share, so this lock serialises the users
+     * and the start/stop they cause. Taken after transport_lock. */
+    pthread_mutex_t audio_state_lock;
+    int audio_rx_users;
+    int audio_tx_users;
 
     HAMLIB_ATOMIC int connected;
     HAMLIB_ATOMIC int stop;
@@ -1558,6 +1574,7 @@ icom_network_session_alloc(const struct icom_network_session_config *config)
     pthread_mutex_init(&s->audio_rx_lock, NULL);
     pthread_cond_init(&s->audio_rx_cond, NULL);
     pthread_mutex_init(&s->loss_lock, NULL);
+    pthread_mutex_init(&s->audio_state_lock, NULL);
     pthread_rwlock_init(&s->transport_lock, NULL);
 
     if (s->config.control_port == 0)
@@ -1633,6 +1650,30 @@ unsigned icom_network_session_loss_reason(const struct icom_network_session *s)
 int icom_network_session_is_valid(const struct icom_network_session *s)
 {
     return s != NULL && s->connected && !s->lost;
+}
+
+unsigned icom_network_session_generation(const struct icom_network_session *s)
+{
+    return s->generation;
+}
+
+int icom_network_session_is_current(const struct icom_network_session *s,
+                                    unsigned generation, unsigned *reason)
+{
+    if (s->generation == generation && icom_network_session_is_valid(s))
+    {
+        return 1;
+    }
+
+    /* Still that connection: its own reason. Replaced since: the reason the
+     * connection before the current one ended. */
+    if (reason)
+    {
+        *reason = s->generation == generation ? s->loss_reason
+                  : s->previous_loss_reason;
+    }
+
+    return 0;
 }
 
 void icom_network_session_resync_counts(const struct icom_network_session *s,
@@ -2358,8 +2399,16 @@ static int icom_network_session_connect_locked(struct icom_network_session *s)
         return ret;
     }
 
+    /* A new connection: streams from the previous one are refused from here
+     * on, and the flow they used is gone, so none of them counts as a user. */
+    s->generation++;
+    s->audio_rx_users = 0;
+    s->audio_tx_users = 0;
     s->connected = 1;
     pthread_mutex_lock(&s->loss_lock);
+
+    if (s->lost) { s->previous_loss_reason = s->loss_reason; }
+
     s->lost = 0;
     s->loss_reason = RIG_COMM_REASON_NONE;
     pthread_mutex_unlock(&s->loss_lock);
@@ -2494,17 +2543,63 @@ int icom_network_civ_recv(struct icom_network_session *s,
 }
 
 static int icom_network_audio_start_locked(struct icom_network_session *s);
+static void icom_network_audio_stop_locked(struct icom_network_session *s);
 
-int icom_network_audio_start(struct icom_network_session *s)
+/* Forget what the receive queue holds, and the losses recorded with it: a new
+ * reader starts from the audio arriving now, not from what piled up before. */
+static void icom_network_session_audio_flush_queue(struct icom_network_session
+        *s)
 {
-    int ret;
+    pthread_mutex_lock(&s->audio_rx_lock);
+    s->audio_rx_head = 0;
+    s->audio_rx_tail = 0;
+    s->audio_rx_count = 0;
+    pthread_mutex_unlock(&s->audio_rx_lock);
+}
+
+int icom_network_audio_start(struct icom_network_session *s,
+                             enum icom_network_audio_user user,
+                             unsigned *generation)
+{
+    int ret = RIG_OK;
 
     if (pthread_rwlock_tryrdlock(&s->transport_lock) != 0)
     {
         return -RIG_EIO;   /* being re-established */
     }
 
-    ret = icom_network_audio_start_locked(s);
+    pthread_mutex_lock(&s->audio_state_lock);
+
+    if (user == ICOM_NETWORK_AUDIO_RX && s->audio_rx_users > 0)
+    {
+        /* One receive queue: two readers would each get every other
+         * payload, and both would report the other's share as lost. */
+        rig_debug(RIG_DEBUG_ERR, "%s: the audio flow already has a receiver\n",
+                  __func__);
+        ret = -RIG_EINVAL;
+    }
+    else if (s->audio_rx_users + s->audio_tx_users == 0)
+    {
+        ret = icom_network_audio_start_locked(s);
+    }
+
+    if (ret == RIG_OK)
+    {
+        if (user == ICOM_NETWORK_AUDIO_RX)
+        {
+            /* A transmit-only flow fills the queue with nobody reading it. */
+            icom_network_session_audio_flush_queue(s);
+            s->audio_rx_users++;
+        }
+        else
+        {
+            s->audio_tx_users++;
+        }
+
+        if (generation) { *generation = s->generation; }
+    }
+
+    pthread_mutex_unlock(&s->audio_state_lock);
     pthread_rwlock_unlock(&s->transport_lock);
 
     return ret;
@@ -2521,6 +2616,8 @@ static int icom_network_audio_start_locked(struct icom_network_session *s)
     }
 
     if (s->audio_active) { return RIG_OK; }
+
+    icom_network_session_audio_flush_queue(s);
 
     /* A new flow starts its own sequence: forget the previous one, and learn
      * the packet sizes afresh. One 20 ms frame of the negotiated codec is
@@ -2579,21 +2676,43 @@ static int icom_network_audio_start_locked(struct icom_network_session *s)
     return RIG_OK;
 }
 
-void icom_network_audio_stop(struct icom_network_session *s)
+void icom_network_audio_stop(struct icom_network_session *s,
+                             enum icom_network_audio_user user,
+                             unsigned generation)
+{
+    /* Busy means the reconnect thread is replacing the sockets: its teardown
+     * stops the flow, and the new connection starts with no users. */
+    if (pthread_rwlock_tryrdlock(&s->transport_lock) != 0) { return; }
+
+    pthread_mutex_lock(&s->audio_state_lock);
+
+    /* A user from an earlier connection: the flow it used is already gone. */
+    if (generation == s->generation)
+    {
+        int *users = user == ICOM_NETWORK_AUDIO_RX ? &s->audio_rx_users
+                     : &s->audio_tx_users;
+
+        if (*users > 0) { (*users)--; }
+
+        /* The last one out stops the flow, so the radio does not stream to a
+         * session nobody reads. */
+        if (s->audio_rx_users + s->audio_tx_users == 0)
+        {
+            icom_network_audio_stop_locked(s);
+        }
+    }
+
+    pthread_mutex_unlock(&s->audio_state_lock);
+    pthread_rwlock_unlock(&s->transport_lock);
+}
+
+static void icom_network_audio_stop_locked(struct icom_network_session *s)
 {
     uint8_t packet[0x16];
     uint16_t sequence;
     int packet_length;
 
-    /* Busy means the reconnect thread is replacing the sockets, and its
-     * teardown stops the audio thread itself. */
-    if (pthread_rwlock_tryrdlock(&s->transport_lock) != 0) { return; }
-
-    if (!s->audio_active)
-    {
-        pthread_rwlock_unlock(&s->transport_lock);
-        return;
-    }
+    if (!s->audio_active) { return; }
 
     s->audio_active = 0;
 
@@ -2623,11 +2742,10 @@ void icom_network_audio_stop(struct icom_network_session *s)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: audio stream close not sent\n", __func__);
     }
-
-    pthread_rwlock_unlock(&s->transport_lock);
 }
 
-int icom_network_audio_recv(struct icom_network_session *s, unsigned char *buf,
+int icom_network_audio_recv(struct icom_network_session *s,
+                            unsigned generation, unsigned char *buf,
                             size_t buffer_length, int timeout_ms,
                             struct icom_network_audio_loss *loss)
 {
@@ -2640,7 +2758,9 @@ int icom_network_audio_recv(struct icom_network_session *s, unsigned char *buf,
 
     pthread_mutex_lock(&s->audio_rx_lock);
 
-    while (s->audio_rx_count == 0)
+    /* The generation is checked again after every wait: audio queued by a
+     * newer connection's flow belongs to that connection's reader. */
+    while (s->audio_rx_count == 0 && s->generation == generation)
     {
         if (pthread_cond_timedwait(&s->audio_rx_cond, &s->audio_rx_lock, &ts)
                 != 0)
@@ -2649,7 +2769,11 @@ int icom_network_audio_recv(struct icom_network_session *s, unsigned char *buf,
         }
     }
 
-    if (s->audio_rx_count > 0)
+    if (s->generation != generation)
+    {
+        ret = -RIG_EIO;
+    }
+    else if (s->audio_rx_count > 0)
     {
         size_t n = s->audio_rx_q[s->audio_rx_tail].length;
 
@@ -2671,7 +2795,8 @@ int icom_network_audio_recv(struct icom_network_session *s, unsigned char *buf,
 }
 
 int icom_network_audio_send(struct icom_network_session *s,
-                            const unsigned char *buf, size_t length)
+                            unsigned generation, const unsigned char *buf,
+                            size_t length)
 {
     uint8_t packet[ICOM_NETWORK_SESSION_PACKET_MAX];
     uint16_t sequence, send_sequence;
@@ -2684,6 +2809,14 @@ int icom_network_audio_send(struct icom_network_session *s,
 
     if (pthread_rwlock_tryrdlock(&s->transport_lock) != 0)
     {
+        return -RIG_EIO;
+    }
+
+    /* Audio from a stream of an earlier connection must not reach the radio
+     * through the new one. */
+    if (s->generation != generation)
+    {
+        pthread_rwlock_unlock(&s->transport_lock);
         return -RIG_EIO;
     }
 
@@ -2957,6 +3090,7 @@ void icom_network_session_free(struct icom_network_session *s)
     pthread_mutex_destroy(&s->audio_rx_lock);
     pthread_cond_destroy(&s->audio_rx_cond);
     pthread_mutex_destroy(&s->loss_lock);
+    pthread_mutex_destroy(&s->audio_state_lock);
     pthread_rwlock_destroy(&s->transport_lock);
     stream_reorder_free(s->audio_reorder);
 #ifdef __MINGW32__

@@ -266,8 +266,16 @@ run_test()
 
             # A stream that opened, carried nothing and closed tidily exits 0,
             # so the exit status alone would call a dead radio a pass. Matches
-            # bytes=, rx_bytes= and tx_bytes= alike.
+            # bytes=, rx_bytes= and tx_bytes= alike. Every mode prints such a
+            # line within its first second, so none at all means the run
+            # stopped before moving anything.
             case $detail in
+            "")
+                echo "FAIL  no progress or summary line"
+                record "FAIL  $name (no progress or summary line)"
+                FAIL=`expr $FAIL + 1`
+                return 1
+                ;;
             *bytes=0\ *|*bytes=0)
                 echo "FAIL  no data moved: $detail"
                 record "FAIL  $name (no data moved)"

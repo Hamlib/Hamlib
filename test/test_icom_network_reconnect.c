@@ -239,6 +239,99 @@ void test_auto_reconnect_recovers_the_session(void)
 }
 
 
+static int open_rx_stream(RIG *rig, rig_stream_t **stream)
+{
+    struct rig_stream_config *config = rig_stream_config_alloc();
+    int ret;
+
+    if (config == NULL) { return -RIG_ENOMEM; }
+
+    config->type = RIG_STREAM_TYPE_AUDIO_RX;
+    config->format = RIG_STREAM_FORMAT_PCM_S16;
+    config->sample_rate = 48000;
+    config->channels = 1;
+
+    ret = rig_stream_open(rig, config, stream);
+    rig_stream_config_free(config);
+
+    return ret;
+}
+
+
+/* Read until something other than data or a timeout comes back. */
+static int read_until_error(RIG *rig, rig_stream_t *stream)
+{
+    uint8_t buf[256];
+    int ret = RIG_OK, tries;
+
+    for (tries = 0; tries < 100; tries++)
+    {
+        size_t got = 0;
+
+        ret = rig_stream_read(rig, stream, buf, sizeof(buf), &got, 100, NULL);
+
+        if (ret != RIG_OK && ret != -RIG_ETIMEOUT) { break; }
+    }
+
+    return ret;
+}
+
+
+/* Control comes back by itself after a reconnect, streams do not: one opened
+ * before the loss ends with the reason the old connection died and stays
+ * ended, and the application reopens it on the new connection. */
+void test_streams_end_across_reconnect(void)
+{
+    struct mock_server mock;
+    struct rig_stream_stats st;
+    rig_stream_t *stream = NULL;
+    uint8_t buf[64];
+    size_t got = 0;
+    int waited = 0, ret;
+    RIG *rig;
+
+    mock_start(&mock);
+    rig = open_against_mock(&mock,
+                            "net_liveness_timeout=1000,net_auto_reconnect=1");
+    TEST_ASSERT(rig != NULL);
+    TEST_ASSERT(open_rx_stream(rig, &stream) == RIG_OK);
+
+    mock.go_silent = 1;
+    TEST_ASSERT(wait_for_loss(rig, TEST_LOSS_WAIT_MS) >= 0);
+    mock.go_silent = 0;
+
+    while (waited < 20000 && STATE(rig)->comm_status != RIG_COMM_STATUS_OK)
+    {
+        sleep_ms(200);
+        waited += 200;
+    }
+
+    TEST_ASSERT(STATE(rig)->comm_status == RIG_COMM_STATUS_OK);
+
+    ret = read_until_error(rig, stream);
+    TEST_CHECK_(ret == -RIG_EIO, "old stream read %d, expected -RIG_EIO", ret);
+    TEST_CHECK(rig_stream_get_stats(rig, stream, &st) == RIG_OK);
+    TEST_CHECK_(st.fail_reason == RIG_COMM_REASON_LINK_TIMEOUT,
+                "fail_reason=%u", st.fail_reason);
+
+    /* Still ended once the session is healthy again. */
+    ret = rig_stream_read(rig, stream, buf, sizeof(buf), &got, 100, NULL);
+    TEST_CHECK_(ret == -RIG_EIO, "second read %d, expected -RIG_EIO", ret);
+
+    /* The reopened stream receives the new connection's audio. */
+    TEST_CHECK(rig_stream_close(rig, stream) == RIG_OK);
+    TEST_ASSERT(open_rx_stream(rig, &stream) == RIG_OK);
+    ret = rig_stream_read(rig, stream, buf, sizeof(buf), &got, 1000, NULL);
+    TEST_CHECK_(ret == RIG_OK && got > 0, "reopened read %d, got %zu", ret,
+                got);
+
+    rig_stream_close(rig, stream);
+    rig_close(rig);
+    rig_cleanup(rig);
+    mock_stop(&mock);
+}
+
+
 /* Losing and re-establishing repeatedly must not accumulate anything. The
  * failure this guards against is a session freed on one path and not another,
  * which shows up as a wedge or a leak only after several cycles. */
@@ -273,6 +366,7 @@ TEST_LIST =
     { "announced_disconnect_is_reported_as_peer", test_announced_disconnect_is_reported_as_peer },
     { "no_reconnect_unless_asked",      test_no_reconnect_unless_asked },
     { "auto_reconnect_recovers_the_session", test_auto_reconnect_recovers_the_session },
+    { "streams_end_across_reconnect",   test_streams_end_across_reconnect },
     { "repeated_loss_cycles_are_clean", test_repeated_loss_cycles_are_clean },
     { NULL, NULL }
 };

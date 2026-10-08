@@ -117,6 +117,18 @@ unsigned icom_network_session_loss_reason(const struct icom_network_session *s);
  * or gone silent past the liveness timeout. */
 int icom_network_session_is_valid(const struct icom_network_session *s);
 
+/* The current connection's number. Every successful connect, including one by
+ * the background reconnect, starts a new one. */
+unsigned icom_network_session_generation(const struct icom_network_session *s);
+
+/* Whether a stream that started on connection `generation` can still use the
+ * session: false once the session is lost or has been re-established since,
+ * as open streams are not carried over to a new connection. When false and
+ * reason is not NULL, *reason is why that connection ended
+ * (RIG_COMM_REASON_*). */
+int icom_network_session_is_current(const struct icom_network_session *s,
+                                    unsigned generation, unsigned *reason);
+
 /* Number of receive-sequence resyncs on each data socket since connect. A
  * resync means the link lost more than the replay window can recover, so a
  * rising count points at the network rather than at the radio. */
@@ -202,14 +214,35 @@ struct icom_network_audio_loss
                                 because the reader fell behind (exact) */
 };
 
-int icom_network_audio_start(struct icom_network_session *s);
-void icom_network_audio_stop(struct icom_network_session *s);
+/* Who uses the session's audio flow. */
+enum icom_network_audio_user
+{
+    ICOM_NETWORK_AUDIO_RX,   /* reads the receive queue; at most one */
+    ICOM_NETWORK_AUDIO_TX    /* sends */
+};
+
+/* Join the audio flow, starting it for the first user. Returns RIG_OK and the
+ * connection's number in *generation (when not NULL), which the calls below
+ * take; -RIG_EINVAL when an RX user already reads the queue; -RIG_EIO while
+ * the session is being re-established. An RX user starts from the audio
+ * arriving now: whatever was queued before it is dropped. */
+int icom_network_audio_start(struct icom_network_session *s,
+                             enum icom_network_audio_user user,
+                             unsigned *generation);
+/* Leave the flow; the last user stops it. A user of an earlier connection has
+ * nothing to leave, as that connection's flow is already gone. */
+void icom_network_audio_stop(struct icom_network_session *s,
+                             enum icom_network_audio_user user,
+                             unsigned generation);
 /* loss, when not NULL, is filled with what was lost before this payload (all
- * zero on a clean link). */
-int icom_network_audio_recv(struct icom_network_session *s, unsigned char *buf,
+ * zero on a clean link). Both return -RIG_EIO once the session has been
+ * re-established since `generation`. */
+int icom_network_audio_recv(struct icom_network_session *s,
+                            unsigned generation, unsigned char *buf,
                             size_t buffer_length, int timeout_ms,
                             struct icom_network_audio_loss *loss);
 int icom_network_audio_send(struct icom_network_session *s,
-                            const unsigned char *buf, size_t length);
+                            unsigned generation, const unsigned char *buf,
+                            size_t length);
 
 #endif /* _ICOM_NETWORK_SESSION_H */
