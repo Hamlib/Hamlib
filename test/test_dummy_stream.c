@@ -2431,17 +2431,24 @@ void test_overrun_detection(void)
     rig_stream_config_free(config);
     TEST_ASSERT(ret == RIG_OK);
 
-    /* Don't read for 200ms — buffer will overflow multiple times */
-    struct timespec ts = { .tv_sec = 0, .tv_nsec = 200000000L };
-    nanosleep(&ts, NULL);
-
-    /* Check overrun count */
+    /* Nothing reads, so the generator thread fills the 4 KB ring and starts
+     * overwriting. Wait for it to say so rather than for a stretch of wall
+     * clock the thread is assumed to get its share of: a runner that starves
+     * the generator for 200 ms is not a bug in the ring buffer. */
     struct rig_stream_stats stats;
+    int waited;
+
     memset(&stats, 0, sizeof(stats));
-    rig_stream_get_stats(rig, stream, &stats);
+
+    for (waited = 0; waited < 5000 && stats.overruns == 0; waited += 20)
+    {
+        struct timespec ts = { .tv_sec = 0, .tv_nsec = 20000000L };
+        nanosleep(&ts, NULL);
+        rig_stream_get_stats(rig, stream, &stats);
+    }
+
     TEST_CHECK(stats.overruns > 0);
-    TEST_MSG("Expected overruns > 0 after 200ms with 4KB buffer, got %u",
-             stats.overruns);
+    TEST_MSG("no overrun after %d ms with a 4KB buffer and no reader", waited);
 
     /* Now read to drain — data should still be readable */
     float buf[1024];
@@ -2704,11 +2711,14 @@ void test_synthetic_gap_reporting(void)
     uint32_t dropped = 0;
     uint8_t flags = 0;
 
-    for (int i = 0; i < 100 && dropped == 0; i++)
+    /* Wait for the synthetic gap, not for any drop: an overrun reaching the
+     * reader first would satisfy a looser predicate and then fail every
+     * assertion below, which is a report about load rather than about gaps. */
+    for (int i = 0; i < 100 && !(flags & RIG_STREAM_DROP_GAP); i++)
     {
         if (rig_stream_read(rig, stream, buf, sizeof(buf), &got, 200,
                             &info) == RIG_OK && got > 0
-                && info.dropped_samples > 0)
+                && (info.drop_flags & RIG_STREAM_DROP_GAP))
         {
             dropped = info.dropped_samples;
             flags = info.drop_flags;
@@ -2815,8 +2825,12 @@ void test_tx_write_overrun_direct(void)
     /* Pause the consumer so unread data accumulates, then write past the ring
      * capacity — later writes overwrite unread bytes => overrun. */
     rig_stream_pause(rig, stream);
-    struct timespec settle = { 0, 50000000L };  /* 50 ms for the TX thread to park */
-    nanosleep(&settle, NULL);
+
+    /* No settle: the consumer re-reads `paused` only at the top of its loop,
+     * after a blocking ring read and its pacing sleep, so no amount of
+     * waiting here proves it has parked -- it can still take one frame after
+     * the pause. The burst below is four times the ring, which overruns
+     * whether or not that frame is taken, so the test does not need it to. */
 
     int16_t burst[512];   /* 1024 bytes = the whole ring */
     memset(burst, 0, sizeof(burst));

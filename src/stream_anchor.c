@@ -129,7 +129,8 @@ void stream_fill_read_time(struct rig_stream *stream,
     /* A discontinuity describes the data, not the clock — report it even
      * when no usable time is available. */
     if (info->dropped_samples > 0
-            || (info->drop_flags & RIG_STREAM_DROP_UNSIZED))
+            || (info->drop_flags & (RIG_STREAM_DROP_UNSIZED
+                                    | RIG_STREAM_DROP_CONCEALED)))
     {
         info->time_flags |= RIG_STREAM_TIME_FLAG_DISCONTINUITY;
 

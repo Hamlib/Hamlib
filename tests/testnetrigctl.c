@@ -501,6 +501,28 @@ static int test_dump_parsers(void)
             != -RIG_EPROTO
             || dummy_parse_rigctl_range(
                 "1000000.125 2000000.5 0x3 -1 -1 0x1 0x2 junk", &range)
+            != -RIG_EPROTO
+            /* vfo_t and ant_t are unsigned 32-bit masks: the top bit is a
+             * real value (RIG_ANT_CURR, used by e.g. the IC-9700 ranges). */
+            || dummy_parse_rigctl_range(
+                "144000000 146000000 0x3 -1 -1 0x10000000 0x80000000", &range)
+            != RIG_OK
+            || range.vfo != RIG_VFO_MEM || range.ant != RIG_ANT_CURR
+            || dummy_parse_rigctl_range(
+                "144000000 146000000 0x3 -1 -1 0xffffffff 0xffffffff", &range)
+            != RIG_OK
+            || range.vfo != 0xffffffffu || range.ant != 0xffffffffu
+            || dummy_parse_rigctl_range(
+                "144000000 146000000 0x3 -1 -1 0x1 0x100000000", &range)
+            != -RIG_EPROTO
+            || dummy_parse_rigctl_range(
+                "144000000 146000000 0x3 -1 -1 0x100000000 0x1", &range)
+            != -RIG_EPROTO
+            || dummy_parse_rigctl_range(
+                "144000000 146000000 0x3 -1 -1 -1 0x1", &range)
+            != -RIG_EPROTO
+            || dummy_parse_rigctl_range(
+                "144000000 146000000 0x3 -1 -1 0x1 -0x1", &range)
             != -RIG_EPROTO)
     {
         fprintf(stderr, "range parser validation failed\n");

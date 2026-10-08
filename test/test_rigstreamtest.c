@@ -94,6 +94,8 @@ static void test_dir_issues_uncounted_fields(void)
     CHECK_IGNORED(dropped_gap);
     CHECK_IGNORED(dropped_overrun);
     CHECK_IGNORED(dropped_link);
+    CHECK_IGNORED(concealed_gap);
+    CHECK_IGNORED(concealed_overrun);
 #undef CHECK_IGNORED
 }
 

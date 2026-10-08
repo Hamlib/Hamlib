@@ -118,7 +118,6 @@ static inline long scale_round_clamp(float v, float scale, long lo, long hi)
     return r;
 }
 
-
 /* ------------------------------------------------------------------ */
 /* Direct integer converters (fast path)                               */
 /* ------------------------------------------------------------------ */

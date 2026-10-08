@@ -581,6 +581,28 @@
 #define TOK_ICPW2_FUNC TOKEN_BACKEND(152)
 
 /*
+ * Icom network (RS-BA1/LAN) backend config tokens. TOKEN_BACKEND(1000)..(1019)
+ * are reserved for these, well clear of icom's own tokens above (the network
+ * backends share this token space, falling through to icom_set_conf/
+ * icom_get_conf). See network_conf.c.
+ */
+#define TOK_NET_USERNAME     TOKEN_BACKEND(1000)
+#define TOK_NET_PASSWORD     TOKEN_BACKEND(1001)
+#define TOK_NET_CONTROL_PORT TOKEN_BACKEND(1002)
+#define TOK_NET_IQ_MODE      TOKEN_BACKEND(1003)
+#define TOK_NET_RX_CODEC     TOKEN_BACKEND(1004)
+#define TOK_NET_TX_CODEC     TOKEN_BACKEND(1005)
+#define TOK_NET_SAMPLE_RATE  TOKEN_BACKEND(1006)
+#define TOK_NET_RX_LATENCY   TOKEN_BACKEND(1007)
+#define TOK_NET_TX_LATENCY   TOKEN_BACKEND(1008)
+#define TOK_NET_TX_ENABLE    TOKEN_BACKEND(1009)
+#define TOK_NET_TX_FRAME_MS  TOKEN_BACKEND(1010)
+#define TOK_NET_RADIO_INDEX  TOKEN_BACKEND(1011)
+#define TOK_NET_RADIO_NAME   TOKEN_BACKEND(1012)
+#define TOK_NET_LIVENESS_TIMEOUT TOKEN_BACKEND(1013)
+#define TOK_NET_AUTO_RECONNECT   TOKEN_BACKEND(1014)
+
+/*
  * icom_ext_parm table subcommand modifiers
  */
 
