@@ -7,7 +7,7 @@
  * CAT Commands in this file:
  *   TX P1;           - Transmit (P1: 0=RX, 1=TX CAT, 2=TX Data)
  *   PC P1P2P3;       - Power Control (005-100 watts) [also in ftx1_audio.c]
- *   MX P1;           - Monitor TX Audio (0=off, 1=on)
+ *   MX P1;           - MOX transmit control
  *   VX P1;           - VOX on/off (0=off, 1=on)
  *   AC P1P2P3;       - Antenna Tuner Control (P1: 0=off, 1=on, 2=tune)
  *   BI P1;           - Break-In on/off (0=off, 1=on) - type via EX020115
@@ -142,39 +142,39 @@ int ftx1_get_vox(RIG *rig, int *status)
     return RIG_OK;
 }
 
-/* Set TX Monitor (MX P1;) */
+/* Set TX Monitor using ML selector 0 (000=off, 001=on). */
 int ftx1_set_monitor(RIG *rig, int status)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = status ? 1 : 0;
+    int level = status ? 1 : 0;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: status=%d\n", __func__, status);
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MX%d;", p1);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "ML0%03d;", level);
     return newcat_set_cmd(rig);
 }
 
-/* Get TX Monitor status (MX P1;) */
+/* Get TX Monitor using ML selector 0 (000=off, 001=on). */
 int ftx1_get_monitor(RIG *rig, int *status)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int ret, p1;
+    int ret, level;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MX;");
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "ML0;");
 
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    if (sscanf(priv->ret_data + 2, "%1d", &p1) != 1)
+    if (ftx1_parse_monitor_response(priv->ret_data, 0, &level) != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
                   priv->ret_data);
         return -RIG_EPROTO;
     }
 
-    *status = p1;
+    *status = level;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: status=%d\n", __func__, *status);
 
