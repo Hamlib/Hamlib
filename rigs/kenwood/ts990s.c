@@ -31,7 +31,8 @@
 
 #define TS990S_AM_MODES RIG_MODE_AM
 #define TS990S_FM_MODES (RIG_MODE_FM|RIG_MODE_FMN)
-#define TS990S_OTHER_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTUSB|RIG_MODE_PKTLSB|RIG_MODE_USBD1|RIG_MODE_USBD2|RIG_MODE_USBD3|RIG_MODE_LSBD1|RIG_MODE_LSBD2|RIG_MODE_LSBD3)
+#define TS990S_PACKET_MODES (RIG_MODE_PKTUSB|RIG_MODE_PKTLSB|RIG_MODE_USBD1|RIG_MODE_USBD2|RIG_MODE_USBD3|RIG_MODE_LSBD1|RIG_MODE_LSBD2|RIG_MODE_LSBD3)
+#define TS990S_OTHER_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR|TS990S_PACKET_MODES)
 #define TS990S_HP_MODES (TS990S_OTHER_MODES|TS990S_FM_MODES)
 #define TS990S_ALL_MODES (TS990S_OTHER_MODES|TS990S_AM_MODES|TS990S_FM_MODES)
 
@@ -310,25 +311,23 @@ struct rig_caps ts990s_caps =
         {RIG_MODE_AM, kHz(2.5)},        /* default narrow - arbitrary choice */
         {RIG_MODE_AM, kHz(4)},
         {RIG_MODE_AM, kHz(3)},
-        {RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, kHz(2.6)}, /* default normal */
-        {RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, Hz(500)}, /* default narrow -
-                                                                                                        arbitrary choice */
-        {RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, kHz(13)}, /* default wide -
-                                                                                                        arbitrary choice */
-        {RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, kHz(2.8)},
-        {RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, kHz(2.4)},
-        {RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, kHz(2.2)},
-        {RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, kHz(2.0)},
-        {RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, kHz(1.5)},
-        {RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, kHz(1.0)},
-        {RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, Hz(600)},
-        {RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, Hz(400)},
-        {RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, Hz(300)},
-        {RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, Hz(200)},
-        {RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, Hz(150)},
-        {RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, Hz(100)},
-        {RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, Hz(80)},
-        {RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, Hz(50)},
+        {TS990S_PACKET_MODES, kHz(2.6)}, /* default normal */
+        {TS990S_PACKET_MODES, Hz(500)}, /* default narrow - arbitrary choice */
+        {TS990S_PACKET_MODES, kHz(13)}, /* default wide - arbitrary choice */
+        {TS990S_PACKET_MODES, kHz(2.8)},
+        {TS990S_PACKET_MODES, kHz(2.4)},
+        {TS990S_PACKET_MODES, kHz(2.2)},
+        {TS990S_PACKET_MODES, kHz(2.0)},
+        {TS990S_PACKET_MODES, kHz(1.5)},
+        {TS990S_PACKET_MODES, kHz(1.0)},
+        {TS990S_PACKET_MODES, Hz(600)},
+        {TS990S_PACKET_MODES, Hz(400)},
+        {TS990S_PACKET_MODES, Hz(300)},
+        {TS990S_PACKET_MODES, Hz(200)},
+        {TS990S_PACKET_MODES, Hz(150)},
+        {TS990S_PACKET_MODES, Hz(100)},
+        {TS990S_PACKET_MODES, Hz(80)},
+        {TS990S_PACKET_MODES, Hz(50)},
         RIG_FLT_END,
     },
 
