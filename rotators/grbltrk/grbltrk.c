@@ -92,6 +92,9 @@ $132=500.000 (z max travel, mm)
 char *grbl_get_config = "$$\r\n";
 char *grbl_get_pos = "?\r\n";
 
+/* status reports in work coordinates (WPos), grbl 1.1 */
+char *grbl_report_wpos = "$10=0\r\n";
+
 char *grbl_init_list[] =
 {
     "$1=255\r\n",     /* lock motors */
@@ -175,6 +178,14 @@ grbl_init(ROT *rot)
     uint32_t resp_size;
 
     rot_debug(RIG_DEBUG_TRACE, "%s:%d\n", __func__, __LINE__);
+
+    /* positions are read and written in work coordinates, so always make
+     * the status report carry WPos, even on an already configured grbl */
+    if (grbl_request(rot, grbl_report_wpos, strlen(grbl_report_wpos), rsp,
+                     &resp_size) != RIG_OK)
+    {
+        rot_debug(RIG_DEBUG_ERR, "grbl_request [%s] fail\n", grbl_report_wpos);
+    }
 
     /* get total config */
     grbl_request(rot, grbl_get_config, strlen(grbl_get_config), rsp, &resp_size);
@@ -337,9 +348,8 @@ grbltrk_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     static char rsp[RSIZE];
     uint32_t rsp_size;
 
-    float mpos[3];
-    char dummy0[256];
-    char dummy1[256];
+    float pos[2], wco[2];
+    const char *p;
 
     int i;
 
@@ -359,26 +369,38 @@ grbltrk_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
             return retval;
         }
 
-        if (strstr(rsp, "MPos") == NULL)
+        /* grbl 1.3a esp32, $10=0 */
+        /* <Idle|WPos:0.000,0.000,0.000|FS:0,0> */
+        if ((p = strstr(rsp, "WPos:")) != NULL
+                && sscanf(p, "WPos:%f,%f", &pos[0], &pos[1]) == 2)
         {
-            rot_debug(RIG_DEBUG_ERR, "%s no MPos found, continue\n", __func__);
+            /* already in work coordinates */
+        }
+        /* $10=1, WPos = MPos - WCO */
+        /* <Idle|MPos:0.000,0.000,0.000|FS:0,0|Pn:P|WCO:5.000,0.000,0.000> */
+        else if ((p = strstr(rsp, "MPos:")) != NULL
+                 && sscanf(p, "MPos:%f,%f", &pos[0], &pos[1]) == 2)
+        {
+            if ((p = strstr(rsp, "WCO:")) != NULL
+                    && sscanf(p, "WCO:%f,%f", &wco[0], &wco[1]) == 2)
+            {
+                pos[0] -= wco[0];
+                pos[1] -= wco[1];
+            }
+            else
+            {
+                rot_debug(RIG_DEBUG_WARN,
+                          "%s: MPos without WCO, position ignores work offset\n", __func__);
+            }
+        }
+        else
+        {
+            rot_debug(RIG_DEBUG_ERR, "%s no WPos/MPos found, continue\n", __func__);
             continue;
         }
 
-        /* grbl 0.9 mega328p */
-        /* <Idle,MPos:0.000,0.000,0.000,WPos:0.000,0.000,0.000,SC:0> */
-        //sscanf(rsp, "%[^','],MPos:%f,%f,%f,WPos:%f,%f,%f,%s", &dummy[0], &mpos[0], &mpos[1], &mpos[2], &wpos[0], &wpos[1], &wpos[2], &dummy[1]);
-
-        /* grbl 1.3a esp32 */
-        //<Idle|MPos:0.000,0.000,0.000|FS:0,0|Pn:P|WCO:5.000,0.000,0.000>
-        sscanf(rsp, "%[^'|']|MPos:%f,%f,%255s", dummy0, &mpos[0], &mpos[1], dummy1);
-
-        //rot_debug(RIG_DEBUG_TRACE, "%s: (%.3f, %.3f) (%.3f, %.3f)\n", __func__, mpos[0], mpos[1], wpos[0], wpos[1]);
-
-        //*az = (azimuth_t) mpos[0] / 0.111;
-        //*el = (elevation_t) mpos[1] / 0.111;
-        *az = (azimuth_t) mpos[0] * 9;
-        *el = (elevation_t) mpos[1] * 9;
+        *az = (azimuth_t) pos[0] * 9;
+        *el = (elevation_t) pos[1] * 9;
 
         if ((*az) < 0)
         {
@@ -487,7 +509,7 @@ const struct rot_caps grbltrk_serial_rot_caps =
     ROT_MODEL(ROT_MODEL_GRBLTRK_SER),
     .model_name =     "GRBLTRK via Serial",
     .mfg_name =       "BG5DIW",
-    .version =        "20220515.0",
+    .version =        "20261013.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_OTHER,
@@ -521,7 +543,7 @@ const struct rot_caps grbltrk_net_rot_caps =
     ROT_MODEL(ROT_MODEL_GRBLTRK_NET),
     .model_name =     "GRBLTRK via Net",
     .mfg_name =       "BG5DIW",
-    .version =        "20220515.0",
+    .version =        "20261013.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_OTHER,
