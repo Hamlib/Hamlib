@@ -1386,6 +1386,57 @@ static int g90_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 }
 
 /*
+ * Hardware evidence from one G90 is consistent
+ * with decimal hundreds/tens and the binary low nibble of the entire value.
+ * Examples: 01 9f -> 191, 02 08 -> 200, 02 01 -> 209, 02 5f -> 255.
+ * Even syntactically valid BCD can be affected. Do not auto-detect this from
+ * one reply or apply it to other levels/models or enable it by default.
+ */
+static int g90_get_af_quirk(RIG *rig, value_t *val)
+{
+    unsigned char response[MAXFRAMELEN];
+    int length = sizeof(response), retval, prefix, units, level;
+
+    retval = icom_transaction(rig, C_CTL_LVL, S_LVL_AF, NULL, 0,
+                              response, &length);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    if (length == 1 && response[0] == NAK)
+    {
+        return -RIG_ERJCTED;
+    }
+
+    if (length != 4 || response[0] != C_CTL_LVL
+            || response[1] != S_LVL_AF || response[2] > 2
+            || (response[3] >> 4) > 9)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid AF response, len=%d\n",
+                  __func__, length);
+        return -RIG_EPROTO;
+    }
+
+    prefix = 100 * response[2] + 10 * (response[3] >> 4);
+    units = ((response[3] & 0x0f) - (prefix & 0x0f) + 16) % 16;
+    level = prefix + units;
+
+    if (units > 9 || level > 255)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: inconsistent AF encoding %02x %02x\n",
+                  __func__, response[2], response[3]);
+        return -RIG_EPROTO;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: raw %02x %02x -> %d (opt-in quirk)\n",
+              __func__, response[2], response[3], level);
+    val->f = level / 255.0f;
+    return RIG_OK;
+}
+
+/*
  * g90_get_level
  * Assumes rig!=NULL, STATE(rig)->priv!=NULL, val!=NULL
  *
@@ -1397,6 +1448,12 @@ static int g90_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 static int g90_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     int retval, state;
+    struct icom_priv_data *priv = STATE(rig)->priv;
+
+    if (level == RIG_LEVEL_AF && priv->g90_af_quirk)
+    {
+        return g90_get_af_quirk(rig, val);
+    }
 
     if (level == RIG_LEVEL_RFPOWER)
     {
