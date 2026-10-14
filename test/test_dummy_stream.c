@@ -3281,7 +3281,7 @@ void test_resample_quality_open(void)
     token_t tok = rig_token_lookup(rig, "stream_resample_quality");
     TEST_CHECK(tok != 0);
 
-    static const char *levels[] = { "best", "medium", "fast", NULL };
+    static const char *levels[] = { "BEST", "MEDIUM", "FAST", NULL };
 
     for (int i = 0; levels[i] != NULL; i++)
     {

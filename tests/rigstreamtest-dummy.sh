@@ -1,10 +1,54 @@
 #!/bin/sh
-# Smoke tests for rigstreamtest against the dummy backend (model 1).
-# Each streaming mode must open, run and shut down cleanly with a zero issue
-# tally; "Done (result=0)." confirms both the clean exit and the empty tally.
+# System test for the Hamlib streaming subsystem, run against the dummy backend
+# (model 1). No hardware is involved: the dummy rig both produces and consumes
+# sample data, so this exercises the whole streaming path -- capability
+# negotiation, the ring buffer, format conversion, PTT sequencing and stream
+# shutdown -- on any build machine.
+#
+# Every streaming mode must open, run and shut down cleanly with an empty issue
+# tally. "Done (result=0)." confirms both at once, so it is the only marker
+# checked; a missing marker or a non-zero exit fails the whole run.
+#
+# Part of "make check" (and so of "make distcheck"), which is why each case is
+# kept to about a second. To test a real radio, use rigstreamtest-hw.sh.
+#
+# The binary is looked up in this order, so the script works both under
+# "make check" -- where the current directory is the build tree's tests/, which
+# in a VPATH or distcheck build is not this script's directory -- and when run
+# by hand from anywhere:
+#
+#   $RIGSTREAMTEST -> ./rigstreamtest -> <script dir>/rigstreamtest -> $PATH
 
-RIGSTREAMTEST=./rigstreamtest
 RATE=48000
+
+find_rigstreamtest()
+{
+    if [ -n "$RIGSTREAMTEST" ]; then
+        echo "$RIGSTREAMTEST"
+        return
+    fi
+
+    if [ -x ./rigstreamtest ]; then
+        echo ./rigstreamtest
+        return
+    fi
+
+    script_dir=`dirname "$0"`
+
+    if [ -x "$script_dir/rigstreamtest" ]; then
+        echo "$script_dir/rigstreamtest"
+        return
+    fi
+
+    echo rigstreamtest
+}
+
+RIGSTREAMTEST=`find_rigstreamtest`
+
+if [ ! -x "$RIGSTREAMTEST" ] && ! command -v "$RIGSTREAMTEST" >/dev/null 2>&1; then
+    echo "FAIL: rigstreamtest not found; set RIGSTREAMTEST to its path"
+    exit 1
+fi
 
 run()
 {
@@ -63,4 +107,4 @@ run "alternating" $RIGSTREAMTEST -m 1 -s $RATE -c 1 --rx-secs 1 --tx-secs 1 --cy
 # keeps pace, so it exercises the concurrent RX+TX path with a zero issue tally.
 run "full-duplex" $RIGSTREAMTEST -m 1 -s $RATE --full-duplex --iq --rx-secs 1 --tx-secs 1 -d 2 --buffer-ms 2000
 
-echo "All rigstreamtest smoke tests passed."
+echo "All rigstreamtest dummy-backend tests passed."
