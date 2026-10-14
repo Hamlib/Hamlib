@@ -70,6 +70,23 @@ static int parse_hex_uint64_token(const char *token, uint64_t *value)
     return RIG_OK;
 }
 
+/* A 32-bit hexadecimal bitmask such as vfo_t or ant_t. These are unsigned, and
+ * the top bit is a real value (RIG_ANT_CURR is 0x80000000), so the signed int
+ * range must not be applied to them. */
+static int parse_hex_uint32_token(const char *token, uint32_t *value)
+{
+    uint64_t parsed;
+
+    if (parse_hex_uint64_token(token, &parsed) != RIG_OK
+            || parsed > UINT32_MAX)
+    {
+        return -RIG_EPROTO;
+    }
+
+    *value = (uint32_t)parsed;
+    return RIG_OK;
+}
+
 struct ext_list *alloc_init_ext(const struct confparams *cfp)
 {
     struct ext_list *elp;
@@ -203,6 +220,7 @@ int dummy_parse_rigctl_range(const char *value, freq_range_t *range)
     char *token;
     freq_range_t parsed = { 0 };
     uint64_t modes;
+    uint32_t mask;
     long number;
     int count = 0;
     int status = -RIG_EPROTO;
@@ -251,19 +269,19 @@ int dummy_parse_rigctl_range(const char *value, freq_range_t *range)
 
     parsed.high_power = (int)number;
 
-    if (parse_long_token(fields[5], 16, INT_MIN, INT_MAX, &number) != RIG_OK)
+    if (parse_hex_uint32_token(fields[5], &mask) != RIG_OK)
     {
         goto done;
     }
 
-    parsed.vfo = (vfo_t)number;
+    parsed.vfo = (vfo_t)mask;
 
-    if (parse_long_token(fields[6], 16, INT_MIN, INT_MAX, &number) != RIG_OK)
+    if (parse_hex_uint32_token(fields[6], &mask) != RIG_OK)
     {
         goto done;
     }
 
-    parsed.ant = (ant_t)number;
+    parsed.ant = (ant_t)mask;
     *range = parsed;
     status = RIG_OK;
 
