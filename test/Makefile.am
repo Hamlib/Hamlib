@@ -29,6 +29,9 @@ LDADD = $(top_builddir)/src/libhamlib.la $(top_builddir)/lib/libmisc.la $(DL_LIB
 
 check_PROGRAMS = test_stream_ringbuf test_stream_convert test_stream_codec test_stream_time test_stream_account test_stream_api test_dummy_stream test_rigctld_stream test_rigstreamtest test_rigctld_commands test_netrigctl_stream
 
+check_PROGRAMS += test_conf
+test_conf_SOURCES = test_conf.c
+
 test_stream_codec_SOURCES = test_stream_codec.c
 test_stream_codec_LDADD = $(LDADD)
 

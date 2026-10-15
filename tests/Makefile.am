@@ -246,6 +246,7 @@ EXTRA_DIST = \
 	testcaps.sh \
 	testctlbounds.sh \
 	testctld.pl \
+	testctlptt.sh \
 	testroutingaccess.sh \
 	testrotctld.pl
 
@@ -256,6 +257,7 @@ check_SCRIPTS = \
 	rigstreamtest.sh \
 	testcaps.sh \
 	testctlbounds.sh \
+	testctlptt.sh \
 	testroutingaccess.sh \
 	$(GENERATED_TEST_WRAPPERS)
 
