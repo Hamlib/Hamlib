@@ -619,32 +619,26 @@ static int frontend_set_conf(RIG *rig, hamlib_token_t token, const char *val)
         if (!strcmp(val, "RIG"))
         {
             pttp->type.ptt = RIG_PTT_RIG;
-            caps->ptt_type = RIG_PTT_RIG;
         }
         else if (!strcmp(val, "RIGMICDATA"))
         {
             pttp->type.ptt = RIG_PTT_RIG_MICDATA;
-            caps->ptt_type = RIG_PTT_RIG_MICDATA;
         }
         else if (!strcmp(val, "DTR"))
         {
             pttp->type.ptt = RIG_PTT_SERIAL_DTR;
-            caps->ptt_type = RIG_PTT_SERIAL_DTR;
         }
         else if (!strcmp(val, "RTS"))
         {
             pttp->type.ptt = RIG_PTT_SERIAL_RTS;
-            caps->ptt_type = RIG_PTT_SERIAL_RTS;
         }
         else if (!strcmp(val, "Parallel"))
         {
             pttp->type.ptt = RIG_PTT_PARALLEL;
-            caps->ptt_type = RIG_PTT_PARALLEL;
         }
         else if (!strcmp(val, "CM108"))
         {
             pttp->type.ptt = RIG_PTT_CM108;
-            caps->ptt_type = RIG_PTT_CM108;
         }
         else if (!strcmp(val, "GPIO"))
         {
@@ -653,20 +647,15 @@ static int frontend_set_conf(RIG *rig, hamlib_token_t token, const char *val)
         else if (!strcmp(val, "GPION"))
         {
             pttp->type.ptt = RIG_PTT_GPION;
-            caps->ptt_type = RIG_PTT_GPION;
         }
         else if (!strcmp(val, "None"))
         {
             pttp->type.ptt = RIG_PTT_NONE;
-            caps->ptt_type = RIG_PTT_NONE;
         }
         else
         {
             return -RIG_EINVAL;
         }
-
-        // JTDX and WSJTX currently use state.pttport to check for PTT_NONE
-        //rs->pttport_deprecated.type.ptt = pttp->type.ptt;
 
         break;
 
