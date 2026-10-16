@@ -53,6 +53,15 @@ struct handle_data
     int use_password;
     int is_passwordOK;
     int client_id;      /* Identifies the connection owning a stream */
+#ifdef __MINGW32__
+    int sock_osfhandle; /* CRT fd from _open_osfhandle(sock, ...), opened once by
+                          * get_fsockin() in rigctld.c and reused by get_fsockout() --
+                          * opening a second one there used to let handle_exit's two
+                          * fclose() calls each independently close the same
+                          * underlying Windows handle, fatal on the second call
+                          * (CloseHandle() on an already-closed handle, unlike
+                          * POSIX's harmless EBADF on a redundant close()). */
+#endif
 };
 
 extern pthread_key_t thread_data_key;
