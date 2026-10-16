@@ -17,6 +17,7 @@ bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld rigctlcom rig
 # Keep test registries sorted and one entry per line.
 # This keeps independent additions from editing shared lines.
 DIRECT_TESTS = \
+	testaclog \
 	testbandmetadata \
 	testcachemode \
 	testcacherouting \
@@ -124,6 +125,7 @@ rigctltcp_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_srcdir)/src -I$(top_bu
 rigctlsync_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_srcdir)/src -I$(top_builddir)/security
 testdebug_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testnetrigctl_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testaclog_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testcachemode_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testcacherouting_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testcachethread_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
@@ -169,6 +171,8 @@ rigstreamtest_CPPFLAGS = -I$(top_srcdir)/src -I$(top_builddir)/src \
     $(AM_CPPFLAGS)
 testnetrigctl_SOURCES = testnetrigctl.c $(top_srcdir)/rigs/dummy/dummy_common.c
 testnetrigctl_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
+testaclog_SOURCES = testaclog.c
+testaclog_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
 testcachemode_LDADD = $(PTHREAD_LIBS) \
                        $(top_builddir)/rigs/dummy/libhamlib-dummy.la \
                        $(LDADD)
