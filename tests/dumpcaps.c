@@ -505,6 +505,10 @@ int dumpcaps(RIG *rig, FILE *fout)
         fprintf(fout, "None\n");
         break;
 
+    case RIG_PORT_CUSTOM:
+        fprintf(fout, "Backend-managed\n");
+        break;
+
     default:
         fprintf(fout, "Unknown\n");
         strcat(warnbuf, " PORT_TYPE");
