@@ -3051,7 +3051,7 @@ int newcat_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
     case 41: // FT-991 V2-01 seems to randomly give 13 extra bytes
     case 28: offset = 14; break;
 
-    case 30: offset = 14; break;
+    case 30: offset = 16; break; // FTX-1: 5-digit P1, P3 at 16
 
     default: offset = 0;
     }
@@ -3167,7 +3167,7 @@ int newcat_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
     {
     case 27: offset = 13; break;
 
-    case 30: offset = 14; break;
+    case 30: offset = 16; break; // FTX-1: 5-digit P1, P3 at 16
 
     case 41: // FT-991 V2-01 seems to randomly give 13 extra bytes
     case 28: offset = 14; break;
@@ -10246,7 +10246,7 @@ int newcat_get_vfo_mode(RIG *rig, vfo_t vfo, vfo_t *vfo_mode)
     {
     case 27: offset = 21; priv->width_frequency = 8; break;
 
-    case 30: offset = 21; priv->width_frequency = 8; break;
+    case 30: offset = 24; priv->width_frequency = 9; break; // FTX-1: 5-digit P1, 9-digit P2
 
     case 41: // FT-991 V2-01 seems to randomly give 13 extra bytes
     case 28: offset = 22; priv->width_frequency = 9; break;
