@@ -125,16 +125,6 @@ struct newcat_priv_caps
     const struct newcat_width_info *rtty_widths;  // If NULL, use CW widths
 };
 
-#define FTX1_CLARIFIER_VFO_COUNT 2
-
-/* FTX-1 CF P1 selects independent Main (0) and Sub (1) state. */
-struct ftx1_clarifier_cache
-{
-    bool valid;
-    char rx_on;
-    char tx_on;
-};
-
 /*
  * Private state for newcat rigs
  */
@@ -162,13 +152,8 @@ struct newcat_priv_data
     vfo_t ftx1_tx_vfo;           /* TX VFO for virtual split */
     int ftx1_cache_fix_needed;   /* 1 if Main cache needs restoration */
     freq_t ftx1_cache_fix_freq;  /* Saved Main freq for cache restoration */
-    struct ftx1_clarifier_cache ftx1_clar_cache[FTX1_CLARIFIER_VFO_COUNT];
     int ftx1_in_memory_mode;     /* 1 if driver knows the Main-side is in Memory mode (VM011) */
 };
-
-void ftx1_cache_clar_state(struct newcat_priv_data *priv, char vfo_param,
-                           char rx_enabled, char tx_enabled);
-void ftx1_invalidate_clar_state(struct newcat_priv_data *priv, char vfo_param);
 
 /*
  * Functions considered to be Stable:
