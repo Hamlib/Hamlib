@@ -8,7 +8,7 @@
  *   KP P1P2;         - Key Pitch Frequency (00-75: 300-1050 Hz in 10Hz steps)
  *   KR P1;           - Keyer Enable (0=off, 1=on)
  *   KS P1P2P3;       - Keyer Speed (004-060 WPM)
- *   KY P1 P2...;     - CW Message Send (P1=0, P2=message up to 24 chars)
+ *   KY P1 P2;        - CW Keying Memory Play (P1 0=TEXT/1=MESSAGE, P2 0=stop/1-5=slot)
  *   KM P1 P2...;     - Keyer Memory Read/Write (P1=1-5 slot, P2=message up to 50 chars)
  *   SD P1P2;         - CW Break-in Delay (00-33, see CAT manual for mapping)
  *   CS P1;           - CW Spot (0=off, 1=on)
@@ -26,6 +26,7 @@
 #include "misc.h"
 #include "yaesu.h"
 #include "newcat.h"
+#include "fifo.h"
 
 #define FTX1_CW_SPEED_MIN 4
 #define FTX1_CW_SPEED_MAX 60
@@ -34,7 +35,11 @@
 /* SD P1P2; - 2 digits, 00-33 (non-linear: 00=30ms, 01=50ms, 02-05=100-250ms, 06-33=300-3000ms) */
 #define FTX1_CW_DELAY_MIN 0
 #define FTX1_CW_DELAY_MAX 33
-#define FTX1_CW_MSG_MAX 24
+/* TEXT memory that send_morse() overwrites with free text before playing it */
+#define FTX1_CW_SEND_SLOT 5
+
+int ftx1_set_keyer_memory(RIG *rig, int slot, const char *msg);
+extern int ftx1_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 
 /* Set Keyer Speed (KS P1P2P3;) in WPM */
 int ftx1_set_keyer_speed(RIG *rig, int wpm)
@@ -172,12 +177,59 @@ int ftx1_get_keyer(RIG *rig, int *enable)
     return RIG_OK;
 }
 
-/* Send CW Message (KY P1 P2...;) */
+/*
+ * Poll TX; every 100 ms until the transmitter is keyed (want_keyed=1) or
+ * unkeyed (want_keyed=0), for at most timeout_ms.  Gives up early once
+ * stop_morse() has flushed the CW queue.  Returns 1 if the state was reached.
+ */
+static int ftx1_wait_tx(RIG *rig, int want_keyed, int timeout_ms)
+{
+    const FIFO_RIG *fifo = STATE(rig)->fifo_morse;
+    ptt_t ptt;
+
+    for (int waited = 0; waited <= timeout_ms; waited += 100)
+    {
+        if (fifo && fifo->flush)
+        {
+            return 0;
+        }
+
+        if (ftx1_get_ptt(rig, RIG_VFO_CURR, &ptt) != RIG_OK)
+        {
+            return 0;
+        }
+
+        if ((ptt != RIG_PTT_OFF) == (want_keyed != 0))
+        {
+            return 1;
+        }
+
+        hl_usleep(100 * 1000);
+    }
+
+    return 0;
+}
+
+/*
+ * Send CW (KM + KY)
+ *
+ * The FTX-1 has no direct-text CW send: KY only plays a keyer memory
+ * (KY P1 P2; P1 0=TEXT memory, P2 0=stop, 1-5=play that slot).  A single
+ * digit "1"-"5" plays that TEXT memory.  Any other text is written to TEXT
+ * memory FTX1_CW_SEND_SLOT (overwriting it) and played from there.
+ *
+ * A new KM/KY restarts playback, and the core passes a long message as
+ * 50-character chunks back to back, so each chunk waits for the previous
+ * one to finish.  With break-in the transmitter stays keyed while a memory
+ * plays; there is no other "playback done" indication over CAT.
+ */
 int ftx1_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    char safe_msg[FTX1_CW_MSG_MAX + 1];
-    size_t len;
+    const FIFO_RIG *fifo = STATE(rig)->fifo_morse;
+    int slot;
+    int err;
+    int wpm;
 
     (void)vfo;  /* Unused */
 
@@ -186,25 +238,49 @@ int ftx1_send_morse(RIG *rig, vfo_t vfo, const char *msg)
         return -RIG_EINVAL;
     }
 
-    /* Copy and truncate message */
-    strncpy(safe_msg, msg, FTX1_CW_MSG_MAX);
-    safe_msg[FTX1_CW_MSG_MAX] = '\0';
-
-    /* Convert to uppercase (CW convention) */
-    len = strlen(safe_msg);
-    for (size_t i = 0; i < len; i++)
+    /* Up to 22 dot units per character (dot = 1200/wpm ms) plus break-in delay */
+    if (ftx1_get_keyer_speed(rig, &wpm) != RIG_OK || wpm < FTX1_CW_SPEED_MIN)
     {
-        if (safe_msg[i] >= 'a' && safe_msg[i] <= 'z')
+        wpm = FTX1_CW_SPEED_MIN;
+    }
+
+    if (!ftx1_wait_tx(rig, 0, 50 * 22 * 1200 / wpm + 4000) && fifo && fifo->flush)
+    {
+        return RIG_OK;  /* stop_morse() was called while we waited */
+    }
+
+    if (msg[1] == '\0' && msg[0] >= '1' && msg[0] <= '5')
+    {
+        slot = msg[0] - '0';
+    }
+    else
+    {
+        slot = FTX1_CW_SEND_SLOT;
+
+        /* Uppercases and truncates to the 50-character memory size */
+        if (RIG_OK != (err = ftx1_set_keyer_memory(rig, slot, msg)))
         {
-            safe_msg[i] = safe_msg[i] - 'a' + 'A';
+            return err;
         }
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: msg='%s'\n", __func__, safe_msg);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: playing TEXT memory %d\n", __func__, slot);
 
-    /* KY0 msg; - P1=0 indicates direct send */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "KY0%s;", safe_msg);
-    return newcat_set_cmd(rig);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "KY0%d;", slot);
+
+    if (RIG_OK != (err = newcat_set_cmd(rig)))
+    {
+        return err;
+    }
+
+    /*
+     * The radio keys a few hundred ms after KY.  Wait for that so the next
+     * chunk's check above sees this one playing.  Without break-in the
+     * transmitter never keys and this just times out.
+     */
+    (void)ftx1_wait_tx(rig, 1, 1500);
+
+    return RIG_OK;
 }
 
 /* Stop CW Message */
@@ -216,8 +292,8 @@ int ftx1_stop_morse(RIG *rig, vfo_t vfo)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
-    /* KY0; with no message stops sending */
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "KY0;");
+    /* KY P1=0 P2=0: stop keying memory playback */
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "KY00;");
     return newcat_set_cmd(rig);
 }
 
