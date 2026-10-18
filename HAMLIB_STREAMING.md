@@ -1915,10 +1915,10 @@ in `src/stream_convert.c` — channel map → float pivot → stateful
 libsamplerate resampler → destination format) on the producer side of the
 ring whenever the request is not native. The pipeline's resampler quality
 is selected by the rig-level conf token `stream_resample_quality` —
-`best`, `medium` (default) or `fast`, mapping to libsamplerate's
+`BEST`, `MEDIUM` (default) or `FAST`, mapping to libsamplerate's
 corresponding sinc converters — read when a pipeline is created, so set
 it before opening the stream (server-side for network clients, e.g.
-`rigctld --set-conf=stream_resample_quality=best`). Backends produce and consume their native format only
+`rigctld --set-conf=stream_resample_quality=BEST`). Backends produce and consume their native format only
 (§5). The helpers below are a standalone library — the codec layer (§9.1)
 chains them, and a backend with a genuinely special path may still call
 them directly:
@@ -2129,6 +2129,46 @@ runs and should be pointed into a dummy load.
 
 ---
 
+### 12.1 System-test scripts
+
+Two wrapper scripts run every streaming mode in sequence and report a pass/fail
+line per mode. Both find `rigstreamtest` via `$RIGSTREAMTEST`, then the current
+directory, then their own directory, then `$PATH`, so they run from anywhere.
+
+**`tests/rigstreamtest-dummy.sh`** — the dummy backend, no hardware. Part of
+`make check`, so it also guards the subsystem against regressions in CI:
+
+```sh
+./tests/rigstreamtest-dummy.sh
+```
+
+**`tests/rigstreamtest-hw.sh`** — the same sweep against a real radio. It asks
+the model what it advertises (`rigstreamtest --list-streams`), runs only the
+modes that exist, records every received audio stream to a timestamped WAV for
+listening, and prints a summary. It is not part of `make check`.
+
+```sh
+# receive-only sweep; writes WAVs to streamtest-<model>-<timestamp>/
+./tests/rigstreamtest-hw.sh -m 3096 -r 192.168.0.192 \
+    -C net_username=USER,net_password=PASS
+```
+
+Transmit is opt-in and deliberately awkward: `--tx` requires both `--freq` and
+`--power`, because transmitting on whatever the radio happened to be tuned to,
+at whatever power it was left at, is never the intent.
+
+```sh
+# transmit tests into a dummy load at 1% power
+./tests/rigstreamtest-hw.sh -m 3096 -r 192.168.0.192 \
+    -C net_username=USER,net_password=PASS \
+    --tx --vfo MainA --freq 144300000 --mode USB --power 0.01
+```
+
+`--vfo`, `--freq` and `--mode` accept one or two comma-separated values and are
+passed through to `rigstreamtest`, which applies them after opening the rig and
+puts the previous values back on exit (`--no-restore` keeps them). Naming two
+VFOs also turns dual watch on, which is what makes a dual-receiver rig deliver
+two distinct channels.
 ## 13. Building and tests
 
 libsamplerate is the subsystem's only optional dependency, used by

@@ -57,5 +57,6 @@ testrig.sh
 testrigcaps
 testrigcaps.sh
 testrigopen
+testsecurity
 testtrn
 tuner_control.log

@@ -48,6 +48,7 @@ DECLARE_INITRIG_BACKEND(flexradio)
     //rig_register(&sdr1krfe_rig_caps);
     rig_register(&dttsp_rig_caps);
     rig_register(&dttsp_udp_rig_caps);
+    rig_register(&smartsdr_rig_caps);
     rig_register(&smartsdr_a_rig_caps);
     rig_register(&smartsdr_b_rig_caps);
     rig_register(&smartsdr_c_rig_caps);

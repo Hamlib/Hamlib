@@ -2013,22 +2013,22 @@ void test_stream_conf_tokens(void)
      * levels, rejects anything else (value kept on failed set). */
     TEST_CHECK(rig_get_conf2(rig, TOK_STREAM_RESAMPLE_QUALITY, val,
                              sizeof(val)) == RIG_OK);
-    TEST_CHECK(strcmp(val, "medium") == 0);
+    TEST_CHECK(strcmp(val, "MEDIUM") == 0);
     TEST_MSG("default quality: got '%s', expected 'medium'", val);
 
     TEST_CHECK(rig_set_conf(rig, TOK_STREAM_RESAMPLE_QUALITY,
-                            "best") == RIG_OK);
+                            "BEST") == RIG_OK);
     TEST_CHECK(rig_get_conf2(rig, TOK_STREAM_RESAMPLE_QUALITY, val,
                              sizeof(val)) == RIG_OK);
-    TEST_CHECK(strcmp(val, "best") == 0);
+    TEST_CHECK(strcmp(val, "BEST") == 0);
 
     TEST_CHECK(rig_set_conf(rig, TOK_STREAM_RESAMPLE_QUALITY,
-                            "fast") == RIG_OK);
+                            "FAST") == RIG_OK);
     TEST_CHECK(rig_set_conf(rig, TOK_STREAM_RESAMPLE_QUALITY,
                             "bogus") == -RIG_EINVAL);
     TEST_CHECK(rig_get_conf2(rig, TOK_STREAM_RESAMPLE_QUALITY, val,
                              sizeof(val)) == RIG_OK);
-    TEST_CHECK(strcmp(val, "fast") == 0);
+    TEST_CHECK(strcmp(val, "FAST") == 0);
     TEST_MSG("after rejected set: got '%s', expected 'fast'", val);
 
     /* out-of-range rejected */
