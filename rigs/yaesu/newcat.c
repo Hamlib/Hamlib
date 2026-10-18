@@ -9276,7 +9276,13 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SH0%02d;", w);
     }
-    else if (is_ftdx10 || is_ft710 || is_ftx1)
+    else if (is_ftx1)
+    {
+        /* SH P1 P2 P3P3; P1 0=MAIN 1=SUB (the FTX-1 has two receivers), P2 0 */
+        char p1 = (RIG_VFO_SUB == vfo || RIG_VFO_B == vfo) ? '1' : '0';
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SH%c0%02d;", p1, w);
+    }
+    else if (is_ftdx10 || is_ft710)
     {
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SH00%02d;", w);
     }
