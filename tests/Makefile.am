@@ -41,6 +41,7 @@ DIRECT_TESTS = \
 	testthd7x \
 	testthd75emu \
 	testts990s \
+	testtrusdx \
 	testid5100
 
 GENERATED_TEST_WRAPPERS = \
