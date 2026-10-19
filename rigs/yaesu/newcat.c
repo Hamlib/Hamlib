@@ -1211,7 +1211,6 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     char c;
     char target_vfo;
     int err;
-    struct rig_caps *caps;
     struct rig_cache_snapshot cache;
     struct rig_state *rig_s = STATE(rig);
     struct newcat_priv_data *priv;
@@ -1245,7 +1244,6 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
 
     priv = (struct newcat_priv_data *)rig_s->priv;
-    caps = rig->caps;
 
     newcat_get_vfo_mode(rig, RIG_VFO_A, &vfo_mode);
 
@@ -1359,11 +1357,11 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         if (ptt) { RETURNFUNC(-RIG_ENTARGET); }
     }
 
-    if (RIG_MODEL_FT450 == caps->rig_model)
+    if (is_ft450)
     {
-        /* The FT450 only accepts F[A|B]nnnnnnnn; commands for the
-           current VFO so we must use the VS[0|1]; command to check
-           and select the correct VFO before setting the frequency
+        /* The FT-450/FT-450D only accept F[A|B]nnnnnnnn; commands
+           for the current VFO, so use VS[0|1]; to check and select
+           the correct VFO before setting the frequency
         */
         // Plus we can't do the VFO swap if transmitting
         rig_get_cache_snapshot(rig, &cache);
@@ -1651,7 +1649,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         priv->band_index = newcat_band_index(rig, freq);
     }
 
-    else if (RIG_MODEL_FT450 == caps->rig_model)
+    else if (is_ft450)
     {
         if (c == 'B')
         {
@@ -1683,7 +1681,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_debug(RIG_DEBUG_TRACE, "%s: band changing? old=%d, new=%d\n", __func__,
               newcat_band_index(rig, freq), newcat_band_index(rig, rig_s->current_freq));
 
-    if (RIG_MODEL_FT450 == caps->rig_model && priv->ret_data[2] != target_vfo)
+    if (is_ft450 && priv->ret_data[2] != target_vfo)
     {
         /* revert current VFO */
         rig_debug(RIG_DEBUG_TRACE, "%s:%d cmd_str = %s\n", __func__, __LINE__,
