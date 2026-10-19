@@ -486,8 +486,6 @@ int main(int argc, char *argv[])
             break;
 
         case 'P':
-            ptt_type_set = 1;
-
             if (!strcmp(optarg, "RIG"))
             {
                 ptt_type = RIG_PTT_RIG;
@@ -522,10 +520,11 @@ int main(int argc, char *argv[])
             }
             else
             {
-                puts("Unrecognised PTT type, using NONE");
-                ptt_type = RIG_PTT_NONE;
+                fprintf(stderr, "Unrecognised PTT type '%s'\n", optarg);
+                exit(2);
             }
 
+            ptt_type_set = 1;
             break;
 
         case 'D':
