@@ -9,6 +9,11 @@
 
 extern struct rig_caps anytone_d578_caps;
 
+/* AT-778UV family - a different radio and a different protocol, sharing
+   only the manufacturer and this backend directory. See at778uv.c. */
+extern struct rig_caps at778uv_caps;
+extern struct rig_caps rt95_caps;
+
 #ifdef PTHREAD
 #include <pthread.h>
 #define MUTEX(var) static pthread_mutex_t var = PTHREAD_MUTEX_INITIALIZER
