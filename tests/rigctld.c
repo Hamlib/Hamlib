@@ -271,6 +271,7 @@ int main(int argc, char *argv[])
     int dump_caps_opt = 0;
     const char *rig_file = NULL, *ptt_file = NULL, *dcd_file = NULL;
     ptt_type_t ptt_type = RIG_PTT_NONE;
+    int ptt_type_set = 0;
     dcd_type_t dcd_type = RIG_DCD_NONE;
     int serial_rate = 0;
     const char *civaddr = NULL;   /* NULL means no need to set conf */
@@ -519,10 +520,11 @@ int main(int argc, char *argv[])
             }
             else
             {
-                puts("Unrecognised PTT type, using NONE");
-                ptt_type = RIG_PTT_NONE;
+                fprintf(stderr, "Unrecognised PTT type '%s'\n", optarg);
+                exit(2);
             }
 
+            ptt_type_set = 1;
             break;
 
         case 'D':
@@ -707,7 +709,11 @@ int main(int argc, char *argv[])
         exit(2);
     }
 
-    my_rig->caps->ptt_type = ptt_type;
+    if (ptt_type_set)
+    {
+        PTTPORT(my_rig)->type.ptt = ptt_type;
+    }
+
     const char *token = strtok(conf_parms, ",");
     struct rig_state *rs = STATE(my_rig);
 
@@ -735,7 +741,11 @@ int main(int argc, char *argv[])
         }
 
         token = strtok(NULL, ",");
-        ptt_type = my_rig->caps->ptt_type; // in case we set the ptt_type with set_conf
+
+        if (lookup == TOK_PTT_TYPE)
+        {
+            ptt_type_set = 1;
+        }
     }
 
     if (rig_file)
@@ -750,17 +760,6 @@ int main(int argc, char *argv[])
               __func__,
               rs->twiddle_timeout, rs->uplink, rs->twiddle_rit);
 
-    /*
-     * ex: RIG_PTT_PARALLEL and /dev/parport0
-     */
-    if (ptt_type != RIG_PTT_NONE)
-    {
-        PTTPORT(my_rig)->type.ptt = ptt_type;
-        // This causes segfault since backend rig_caps are const
-        // rigctld will use the STATE(rig) version of this for clients
-        //my_rig->caps->ptt_type = ptt_type;
-    }
-
     if (dcd_type != RIG_DCD_NONE)
     {
         DCDPORT(my_rig)->type.dcd = dcd_type;
@@ -771,10 +770,10 @@ int main(int argc, char *argv[])
         strncpy(PTTPORT(my_rig)->pathname, ptt_file, HAMLIB_FILPATHLEN - 1);
 
         // default to RTS when ptt_type is not specified
-        if (ptt_type == RIG_PTT_NONE)
+        if (!ptt_type_set)
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s: defaulting to RTS PTT\n", __func__);
-            my_rig->caps->ptt_type = RIG_PTT_SERIAL_RTS;
+            PTTPORT(my_rig)->type.ptt = RIG_PTT_SERIAL_RTS;
         }
     }
 
