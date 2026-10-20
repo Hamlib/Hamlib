@@ -5899,7 +5899,8 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
     if (rx_vfo == RIG_VFO_CURR || rx_vfo == routing.current_vfo)
     {
         // for non-targetable VFOs we will not set split again
-        if (routing.split == split && routing.split_vfo == tx_vfo)
+        if (!(caps->targetable_vfo & RIG_TARGETABLE_FREQ)
+                && routing.split == split && routing.split_vfo == tx_vfo)
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): split already on, ignoring\n", __func__,
                       __LINE__);

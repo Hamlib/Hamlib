@@ -503,6 +503,90 @@ static int check_current_frequency_invalidation(RIG *rig)
     return 0;
 }
 
+static int split_set_calls;
+
+static int rejected_split_setter(RIG *rig, vfo_t rx_vfo, split_t split,
+                                 vfo_t tx_vfo)
+{
+    split_set_calls++;
+
+    if (rx_vfo != RIG_VFO_A || split != RIG_SPLIT_ON || tx_vfo != RIG_VFO_B)
+    {
+        return -RIG_EINVAL;
+    }
+
+    rig_set_split_routing_state(rig, RIG_SPLIT_OFF, RIG_VFO_A, RIG_VFO_A);
+    return -RIG_ERJCTED;
+}
+
+static int fixture_get_vfo(RIG *rig, vfo_t *vfo)
+{
+    *vfo = rig_get_current_vfo_state(rig);
+    return RIG_OK;
+}
+
+static int check_split_setter_cache(RIG *rig)
+{
+    struct rig_caps *saved_caps = rig->caps;
+    struct rig_caps caps = *saved_caps;
+    struct rig_cache_routing_snapshot snapshot;
+    int status;
+    int failed = 1;
+
+    caps.set_split_vfo = rejected_split_setter;
+    caps.get_vfo = fixture_get_vfo;
+    caps.targetable_vfo = RIG_TARGETABLE_FREQ;
+    rig->caps = &caps;
+    rig_set_cache_ptt(rig, RIG_PTT_OFF);
+    rig_set_cache_satmode(rig, 0);
+    rig_set_current_vfo_state(rig, RIG_VFO_A);
+    rig_set_split_routing_state(rig, RIG_SPLIT_ON, RIG_VFO_A, RIG_VFO_B);
+    rig_invalidate_cache(rig);
+    split_set_calls = 0;
+
+    status = rig_set_split_vfo(rig, RIG_VFO_A, RIG_SPLIT_ON, RIG_VFO_B);
+    rig_get_cache_routing_snapshot(rig, &snapshot);
+
+    if (status != -RIG_ERJCTED || split_set_calls != 1
+            || snapshot.current_vfo != RIG_VFO_A
+            || snapshot.split != RIG_SPLIT_OFF
+            || snapshot.rx_vfo != RIG_VFO_A
+            || snapshot.tx_vfo != RIG_VFO_A
+            || snapshot.split_vfo != RIG_VFO_A)
+    {
+        fprintf(stderr,
+                "targetable split setter did not preserve rejected readback: "
+                "status=%d, calls=%d, split=%d, rx=%s, tx=%s\n",
+                status, split_set_calls, snapshot.split,
+                rig_strvfo(snapshot.rx_vfo), rig_strvfo(snapshot.tx_vfo));
+        goto cleanup;
+    }
+
+    caps.targetable_vfo = 0;
+    rig_set_split_routing_state(rig, RIG_SPLIT_ON, RIG_VFO_A, RIG_VFO_B);
+    split_set_calls = 0;
+    status = rig_set_split_vfo(rig, RIG_VFO_A, RIG_SPLIT_ON, RIG_VFO_B);
+    rig_get_cache_routing_snapshot(rig, &snapshot);
+
+    if (status != RIG_OK || split_set_calls != 0
+            || snapshot.split != RIG_SPLIT_ON
+            || snapshot.rx_vfo != RIG_VFO_A
+            || snapshot.tx_vfo != RIG_VFO_B
+            || snapshot.split_vfo != RIG_VFO_B)
+    {
+        fprintf(stderr,
+                "non-targetable split cache shortcut changed: status=%d, calls=%d\n",
+                status, split_set_calls);
+        goto cleanup;
+    }
+
+    failed = 0;
+
+cleanup:
+    rig->caps = saved_caps;
+    return failed;
+}
+
 int main(void)
 {
     RIG *rig;
@@ -553,7 +637,8 @@ int main(void)
 
     if (run_workers(rig, "cache tuple", write_cache_tuple, read_cache_tuple)
             || check_snapshot_values(rig)
-            || check_current_frequency_invalidation(rig))
+            || check_current_frequency_invalidation(rig)
+            || check_split_setter_cache(rig))
     {
         goto cleanup;
     }
