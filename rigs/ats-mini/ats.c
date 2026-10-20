@@ -253,6 +253,56 @@ static int p_ats_set_mode(RIG *rig, rmode_t mode_id) {
     return RIG_OK;
 }
 
+static int p_ats_set_volume(RIG *rig, int target_vol) {
+    struct ats_mini_mon_data *mon_data = STATE(rig)->priv;
+
+    if (target_vol < MINI_VOLUME_MIN) {
+        target_vol = MINI_VOLUME_MIN;
+    }
+    if (target_vol > MINI_VOLUME_MAX) {
+        target_vol = MINI_VOLUME_MAX;
+    }
+
+    int res = p_ats_update_state(rig);
+    if (res != RIG_OK) {
+        return res;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: start %d, requested %d\n", __func__, mon_data->volume, target_vol);
+
+    // int guard = (MINI_VOLUME_MAX - MINI_VOLUME_MIN) + 2;
+    int steps = abs(mon_data->volume - target_vol);
+    if (mon_data->volume > target_vol) {
+        for (int i = 0; i < steps; i++) {
+            res = p_ats_write(rig, (const unsigned char*)"v");
+            if (res != RIG_OK) {
+                return res;
+            }
+        }
+    } else {
+        for (int i = 0; i < steps; i++) {
+            res = p_ats_write(rig, (const unsigned char*)"V");
+            if (res != RIG_OK) {
+                return res;
+            }
+        }
+    }
+    usleep(steps * 80000); // wait ... cause ATS seems to execute each command but there is a delay
+
+    res = p_ats_update_state(rig);
+    if (res != RIG_OK) {
+        return res;
+    }
+
+    if (mon_data->volume != target_vol) {
+        rig_debug(RIG_DEBUG_ERR, "%s: CANNOT reach requested volume %d (stuck at %d)\n",
+                  __func__, target_vol, mon_data->volume);
+        return -RIG_EINVAL;
+    }
+
+    return RIG_OK;
+}
+
 static int ats_mini_init(RIG *rig) {
     rig_debug(RIG_DEBUG_VERBOSE, "%s version %s\n", __func__, rig->caps->version);
 
@@ -326,6 +376,12 @@ static int ats_mini_open(RIG *rig) {
 
 static int ats_mini_close(RIG *rig) {
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    // // toggle off, seems to make the buttons resp
+    // int res = p_ats_write(rig, (const unsigned char *)"t");
+    // if (res != RIG_OK) {
+    //     return res;
+    // }
 
     return RIG_OK;
 }
@@ -419,6 +475,37 @@ static int ats_mini_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *widt
     return RIG_OK;
 }
 
+static int ats_mini_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val) {
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    if (level != RIG_LEVEL_AF) {
+        return -RIG_EINVAL;
+    }
+
+    int res = p_ats_update_state(rig);
+    if (res != RIG_OK) {
+        return res;
+    }
+
+    struct ats_mini_mon_data *mon_data = STATE(rig)->priv;
+    val->f = (float) (mon_data->volume - MINI_VOLUME_MIN) /
+             (float) (MINI_VOLUME_MAX - MINI_VOLUME_MIN);
+
+    return RIG_OK;
+}
+
+static int ats_mini_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val) {
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    if (level != RIG_LEVEL_AF) {
+        return -RIG_EINVAL;
+    }
+
+    int target_vol = MINI_VOLUME_MIN + (int) (val.f * (MINI_VOLUME_MAX - MINI_VOLUME_MIN) + 0.5f);
+
+    return p_ats_set_volume(rig, target_vol);
+}
+
 struct rig_caps ats_mini_caps = {
     RIG_MODEL(RIG_MODEL_ATS_MINI),
     .model_name = "ATS Mini",
@@ -443,8 +530,8 @@ struct rig_caps ats_mini_caps = {
 
     .has_get_func = RIG_FUNC_NONE,
     .has_set_func = RIG_FUNC_NONE,
-    .has_get_level = RIG_LEVEL_NONE,
-    .has_set_level = RIG_LEVEL_NONE,
+    .has_get_level = RIG_LEVEL_AF,
+    .has_set_level = RIG_LEVEL_AF,
     .has_get_parm = RIG_PARM_NONE,
     .has_set_parm = RIG_PARM_NONE,
     .level_gran = {},
@@ -507,7 +594,6 @@ struct rig_caps ats_mini_caps = {
     {
         RIG_FRNG_END,
     },
-
     .tuning_steps =
     {
         {RIG_MODE_USB, Hz(1000)},
@@ -535,6 +621,8 @@ struct rig_caps ats_mini_caps = {
     .set_freq = ats_mini_set_freq,
     .get_mode = ats_mini_get_mode,
     .set_mode = ats_mini_set_mode,
+    .get_level = ats_mini_get_level,
+    .set_level = ats_mini_set_level,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS,
 };
 
