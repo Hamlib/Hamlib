@@ -40,14 +40,46 @@ static int p_ats_write(RIG *rig, const unsigned char *cmd) {
     return RIG_OK;
 }
 
+static int p_ats_stop_monitor_mode(RIG *rig) {
+    int nb_uart = -1;
+    char c;
+
+    usleep(1000 * 1000); // wait a bit to see if we receive any characters
+    nb_uart = read_block(RIGPORT(rig), (unsigned char *) &c, 1);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s, read %d\n", __func__, nb_uart);
+    if (nb_uart > 0) {
+        rig_debug(RIG_DEBUG_WARN, "%s, already in monitor mode\n", __func__);
+        while (1) {
+            nb_uart = read_block(RIGPORT(rig), (unsigned char *) &c, 1);
+            if (nb_uart <= 0) {
+                continue;
+            }
+            if (c == '\n') {
+                break;
+            }
+        }
+
+        rig_debug(RIG_DEBUG_WARN, "%s\n", __func__);
+        int res = p_ats_write(rig, (const unsigned char *) "t");
+        if (res != RIG_OK) {
+            return res;
+        }
+    }
+    return RIG_OK;
+}
+
+static int p_ats_start_monitor_mode(RIG *rig) {
+    rig_debug(RIG_DEBUG_WARN, "%s\n", __func__);
+    return p_ats_write(rig, (const unsigned char *)"t");
+}
+
 static int p_ats_update_state(RIG *rig) {
     unsigned char buff[MINI_UART_BUFF_SIZE] = {0};
     unsigned int idx = 0, to = 0;
     int res = RIG_OK;
     char c;
 
-    // rig_debug(RIG_DEBUG_VERBOSE, "%s, start monitor mode\n", __func__);
-    res = p_ats_write(rig, (const unsigned char *)"t");
+    res = p_ats_start_monitor_mode(rig);
     if (res != RIG_OK) {
         return res;
     }
@@ -341,31 +373,10 @@ static int ats_mini_open(RIG *rig) {
     // rig_debug(RIG_DEBUG_VERBOSE, "%s, flush UART\n", __func__);
     // rig_flush(RIGPORT(rig));
 
-    int res = RIG_OK, nb_uart = -1;
-    char c;
-
-    usleep(1000 * 1000); // wait a bit to see if we receive any characters
-    nb_uart = read_block(RIGPORT(rig), (unsigned char *) &c, 1);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s, read %d\n", __func__, nb_uart);
-    if (nb_uart > 0) {
-        rig_debug(RIG_DEBUG_WARN, "%s, already in monitor mode\n", __func__);
-        while (1) {
-            nb_uart = read_block(RIGPORT(rig), (unsigned char *) &c, 1);
-            if (nb_uart <= 0) {
-                continue;
-            }
-            if (c == '\n') {
-                break;
-            }
-        }
-
-        rig_debug(RIG_DEBUG_WARN, "%s, stop monitor mode\n", __func__);
-        res = p_ats_write(rig, (const unsigned char *) "t");
-        if (res != RIG_OK) {
-            return res;
-        }
+    int res = p_ats_stop_monitor_mode(rig);
+    if (res != RIG_OK) {
+        return res;
     }
-
     res = p_ats_set_band(rig, MINI_BAND_ALL);
     if (res != RIG_OK) {
         return res;
@@ -377,13 +388,8 @@ static int ats_mini_open(RIG *rig) {
 static int ats_mini_close(RIG *rig) {
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
-    // // toggle off, seems to make the buttons resp
-    // int res = p_ats_write(rig, (const unsigned char *)"t");
-    // if (res != RIG_OK) {
-    //     return res;
-    // }
-
-    return RIG_OK;
+    // toggle off, seems to make the buttons respond faster ?
+    return p_ats_stop_monitor_mode(rig);
 }
 
 static const char *ats_mini_info(RIG *rig) {
@@ -428,9 +434,38 @@ static const char *ats_mini_info(RIG *rig) {
 static int ats_mini_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
+    int res = p_ats_update_state(rig);
+    if (res != RIG_OK) {
+        return res;
+    }
+
+    struct ats_mini_mon_data *mon_data = STATE(rig)->priv;
+
+    int in_fm_range = (freq >= MHz(64) && freq <= MHz(108));
+    int in_hf_range = (freq >= kHz(150) && freq <= MHz(30));
+
+    if (!in_fm_range && !in_hf_range) {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: refusing to set %.0f Hz - outside any supported "
+                  "receiver range (150 kHz-30 MHz or 64-108 MHz)\n",
+                  __func__, (double) freq);
+        return -RIG_EINVAL;
+    }
+
+    int current_is_fm = (mon_data->mode == RIG_MODE_FM);
+
+    if (in_fm_range != current_is_fm) {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: refusing to set %.0f Hz - would require a band change "
+                  "(current band '%s', mode %d) which this backend does not "
+                  "perform automatically; change the band on the radio first\n",
+                  __func__, (double) freq, mon_data->bandname, (int) mon_data->mode);
+        return -RIG_EINVAL;
+    }
+
     char cmd[20] = "";
     sprintf(cmd, "F%d\r\n", (int) freq);
-    int res = p_ats_write(rig, (const unsigned char *)cmd);
+    res = p_ats_write(rig, (const unsigned char *)cmd);
     if (res != RIG_OK) {
         return res;
     }
@@ -510,7 +545,7 @@ struct rig_caps ats_mini_caps = {
     RIG_MODEL(RIG_MODEL_ATS_MINI),
     .model_name = "ATS Mini",
     .mfg_name = "AMNVOLT",
-    .version = "20260901.0",
+    .version = "20261001.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_BETA,
     .rig_type = RIG_TYPE_RECEIVER,
@@ -596,18 +631,55 @@ struct rig_caps ats_mini_caps = {
     },
     .tuning_steps =
     {
-        {RIG_MODE_USB, Hz(1000)},
-        {RIG_MODE_LSB, Hz(1000)},
-        {RIG_MODE_AM, Hz(1000)},
-        {RIG_MODE_FM, Hz(100000)},
+        {RIG_MODE_USB | RIG_MODE_LSB, Hz(10)},
+        {RIG_MODE_USB | RIG_MODE_LSB, Hz(25)},
+        {RIG_MODE_USB | RIG_MODE_LSB, Hz(50)},
+        {RIG_MODE_USB | RIG_MODE_LSB, Hz(100)},
+        {RIG_MODE_USB | RIG_MODE_LSB, Hz(500)},
+        {RIG_MODE_USB | RIG_MODE_LSB, Hz(1000)},
+        {RIG_MODE_USB | RIG_MODE_LSB, Hz(5000)},
+        {RIG_MODE_USB | RIG_MODE_LSB, Hz(9000)},
+        {RIG_MODE_USB | RIG_MODE_LSB, Hz(10000)},
+        {RIG_MODE_LSB | RIG_MODE_LSB, Hz(10)},
+        {RIG_MODE_LSB | RIG_MODE_LSB, Hz(25)},
+        {RIG_MODE_LSB | RIG_MODE_LSB, Hz(50)},
+        {RIG_MODE_LSB | RIG_MODE_LSB, Hz(100)},
+        {RIG_MODE_LSB | RIG_MODE_LSB, Hz(500)},
+        {RIG_MODE_LSB | RIG_MODE_LSB, Hz(1000)},
+        {RIG_MODE_LSB | RIG_MODE_LSB, Hz(5000)},
+        {RIG_MODE_LSB | RIG_MODE_LSB, Hz(9000)},
+        {RIG_MODE_LSB | RIG_MODE_LSB, Hz(10000)},
+        {RIG_MODE_AM | RIG_MODE_FM, Hz(10000)},
+        {RIG_MODE_AM | RIG_MODE_FM, Hz(50000)},
+        {RIG_MODE_AM | RIG_MODE_FM, Hz(100000)},
+        {RIG_MODE_AM | RIG_MODE_FM, Hz(1000000)},
+        {RIG_MODE_FM, Hz(200000)},
         RIG_TS_END,
     },
     .filters =
     {
-        {RIG_MODE_USB, kHz(3)},
-        {RIG_MODE_LSB, kHz(3)},
-        {RIG_MODE_AM, kHz(6)},
-        {RIG_MODE_FM, kHz(250)},
+        {RIG_MODE_USB, Hz(500)},
+        {RIG_MODE_USB, Hz(1000)},
+        {RIG_MODE_USB, Hz(1200)},
+        {RIG_MODE_USB, Hz(2200)},
+        {RIG_MODE_USB, Hz(3000)},
+        {RIG_MODE_USB, Hz(4000)},
+        {RIG_MODE_LSB, Hz(500)},
+        {RIG_MODE_LSB, Hz(1000)},
+        {RIG_MODE_LSB, Hz(1200)},
+        {RIG_MODE_LSB, Hz(2200)},
+        {RIG_MODE_LSB, Hz(3000)},
+        {RIG_MODE_LSB, Hz(4000)},
+        {RIG_MODE_AM, Hz(1000)},
+        {RIG_MODE_AM, Hz(1800)},
+        {RIG_MODE_AM, Hz(2500)},
+        {RIG_MODE_AM, Hz(3000)},
+        {RIG_MODE_AM, Hz(4000)},
+        {RIG_MODE_AM, Hz(6000)},
+        {RIG_MODE_FM, Hz(40000)},
+        {RIG_MODE_FM, Hz(60000)},
+        {RIG_MODE_FM, Hz(84000)},
+        {RIG_MODE_FM, Hz(110000)},
         RIG_FLT_END,
     },
 
