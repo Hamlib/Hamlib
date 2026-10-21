@@ -78,11 +78,16 @@ size_t stream_ringbuf_read(struct rig_stream_ringbuf *rb,
 /* Write hdr+payload as ONE atomic record iff the whole record fits in the
  * free space; never overwrites existing data (codec streams drop the
  * NEWEST frame on overflow — policy in stream.c). Returns hdr_len+len on
- * success, or 0 when the record does not fit (bumps overrun_count;
- * write_total is not advanced for a dropped record). */
+ * success, or 0 when the record does not fit. A rejected record changes
+ * neither write_total nor overrun_count. */
 size_t stream_ringbuf_write_record(struct rig_stream_ringbuf *rb,
                                    const void *hdr, size_t hdr_len,
                                    const void *payload, size_t len);
+
+/* Write one record with the same semantics while the caller holds rb->lock. */
+size_t stream_ringbuf_write_record_locked(struct rig_stream_ringbuf *rb,
+        const void *hdr, size_t hdr_len,
+        const void *payload, size_t len);
 
 /* Copy up to len readable bytes WITHOUT consuming them (read_pos and
  * count unchanged). Caller holds rb->lock. Returns bytes copied. */

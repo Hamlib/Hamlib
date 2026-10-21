@@ -1538,13 +1538,14 @@ static ssize_t codec_produce(struct rig_stream *stream, const void *buf,
         return -RIG_EINVAL;
     }
 
+    pthread_mutex_lock(&stream->ringbuf.lock);
+    uint64_t idx = have_index ? start_index : stream->codec_pos;
+
     /* Muted RX producer: discard, but keep the index advancing so the
      * position stays truthful when unmuted. */
     if (stream->muted)
     {
-        pthread_mutex_lock(&stream->ringbuf.lock);
-        stream->codec_pos = (have_index ? start_index : stream->codec_pos)
-                            + duration_samples;
+        stream->codec_pos = idx + duration_samples;
         pthread_mutex_unlock(&stream->ringbuf.lock);
         return (ssize_t)len;
     }
@@ -1552,16 +1553,11 @@ static ssize_t codec_produce(struct rig_stream *stream, const void *buf,
     uint8_t hdr[STREAM_CODEC_REC_HDR_SIZE];
     size_t stored;
 
-    pthread_mutex_lock(&stream->ringbuf.lock);
-    uint64_t idx = have_index ? start_index : stream->codec_pos;
-    pthread_mutex_unlock(&stream->ringbuf.lock);
-
     codec_rec_pack(hdr, (uint16_t)len, (uint16_t)duration_samples, idx);
 
-    stored = stream_ringbuf_write_record(&stream->ringbuf,
-                                         hdr, sizeof(hdr), buf, len);
-
-    pthread_mutex_lock(&stream->ringbuf.lock);
+    /* Readers must observe the frame and its accounting together. */
+    stored = stream_ringbuf_write_record_locked(&stream->ringbuf,
+        hdr, sizeof(hdr), buf, len);
 
     if (stored == 0 && !account_drop)
     {

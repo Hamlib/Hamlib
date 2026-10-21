@@ -874,6 +874,7 @@ void test_codec_frame_read_api(void)
     TEST_CHECK(stats.codec_frames == (uint64_t)(2 + 40 - drops));
     TEST_MSG("codec_frames %llu, expected %d",
              (unsigned long long)stats.codec_frames, 2 + 40 - drops);
+    TEST_CHECK(rig_stream_get_samples_written(st) == (2 + 40) * 480);
 
     /* Drain, then produce one more frame: its start index sits past the
      * dropped-frame hole and the read reports the loss. */
@@ -887,6 +888,7 @@ void test_codec_frame_read_api(void)
     TEST_CHECK(rig_stream_read(rig, st, buf, sizeof(buf), &got, 100,
                                &info) == RIG_OK);
     TEST_CHECK(info.dropped_samples == (uint32_t)drops * 480);
+    TEST_CHECK(info.sample_index == (2 + 40) * 480);
     TEST_MSG("dropped_samples %u", info.dropped_samples);
     TEST_CHECK((info.drop_flags & RIG_STREAM_DROP_OVERRUN) != 0);
 
@@ -924,6 +926,7 @@ void test_codec_frame_write_api(void)
     }
 
     struct rig_stream_write_info winfo;
+
     memset(&winfo, 0, sizeof(winfo));
     winfo.codec_frame_samples = 480;
 
@@ -977,7 +980,150 @@ void test_codec_frame_write_api(void)
     TEST_CHECK(rig_stream_get_stats(rig, st, &stats) == RIG_OK);
     TEST_CHECK(stats.overruns == 0);
     TEST_CHECK(stats.dropped_samples_overrun == 0);
+    TEST_CHECK(stats.codec_frames == (uint64_t)(2 + accepted));
+    TEST_CHECK(rig_stream_get_samples_written(st)
+               == (uint64_t)(2 + accepted) * 480);
+    TEST_CHECK(written == 0);
 
+    for (int i = 0; i < accepted; i++)
+    {
+        TEST_CHECK(stream_backend_read_frame(st, buf, sizeof(buf), &len,
+                                             &dur, &idx, 100) == RIG_OK);
+        TEST_CHECK(idx == (uint64_t)(2 + i) * 480);
+    }
+
+    TEST_CHECK(rig_stream_write(rig, st, frame, sizeof(frame), &written,
+                                100, &winfo) == RIG_OK);
+    TEST_CHECK(stream_backend_read_frame(st, buf, sizeof(buf), &len, &dur,
+                                         &idx, 100) == RIG_OK);
+    TEST_CHECK(idx == (uint64_t)(2 + accepted) * 480);
+    TEST_CHECK(rig_stream_get_stats(rig, st, &stats) == RIG_OK);
+    TEST_CHECK(stats.codec_frames == (uint64_t)(3 + accepted));
+    TEST_CHECK(rig_stream_get_samples_written(st)
+               == (uint64_t)(3 + accepted) * 480);
+
+    rig_stream_close(rig, st);
+    teardown_rig(rig);
+}
+
+
+enum { CODEC_PUBLICATION_FRAMES = 4096 };
+
+struct codec_publication_ctx
+{
+    rig_stream_t *stream;
+    pthread_mutex_t lock;
+    pthread_cond_t consumed;
+    uint32_t acknowledged;
+    int stop;
+    int failed;
+};
+
+static void *codec_publication_producer(void *arg)
+{
+    struct codec_publication_ctx *ctx = arg;
+
+    for (uint32_t frame = 0; frame < CODEC_PUBLICATION_FRAMES; frame++)
+    {
+        if (stream_backend_write_frame(ctx->stream, &frame, sizeof(frame),
+                                       480) != (ssize_t)sizeof(frame))
+        {
+            ctx->failed = 1;
+            break;
+        }
+
+        pthread_mutex_lock(&ctx->lock);
+
+        while (ctx->acknowledged <= frame && !ctx->stop)
+        {
+            pthread_cond_wait(&ctx->consumed, &ctx->lock);
+        }
+
+        int stop = ctx->stop;
+        pthread_mutex_unlock(&ctx->lock);
+
+        if (stop)
+        {
+            break;
+        }
+    }
+
+    return NULL;
+}
+
+
+/* Receiving a frame must imply that its production is already observable. */
+void test_codec_frame_publication(void)
+{
+    RIG *rig = setup_rig(&stub_caps_codec_stream);
+    TEST_ASSERT(rig != NULL);
+    struct rig_stream_config *cfg = rig_stream_config_alloc();
+    TEST_ASSERT(cfg != NULL);
+    cfg->type = RIG_STREAM_TYPE_AUDIO_RX;
+    cfg->format = RIG_STREAM_FORMAT_OPUS;
+    cfg->sample_rate = 48000;
+    cfg->channels = 1;
+
+    rig_stream_t *st = NULL;
+    TEST_ASSERT(rig_stream_open(rig, cfg, &st) == RIG_OK && st != NULL);
+    rig_stream_config_free(cfg);
+
+    struct codec_publication_ctx ctx = { .stream = st };
+    pthread_mutex_init(&ctx.lock, NULL);
+    pthread_cond_init(&ctx.consumed, NULL);
+    pthread_t producer;
+    TEST_ASSERT(pthread_create(&producer, NULL, codec_publication_producer,
+                               &ctx) == 0);
+
+    for (uint32_t frame = 0; frame < CODEC_PUBLICATION_FRAMES; frame++)
+    {
+        uint32_t payload = UINT32_MAX;
+        size_t got = 0;
+        struct rig_stream_read_info info;
+        int ret = rig_stream_read(rig, st, &payload, sizeof(payload), &got,
+                                  2000, &info);
+
+        if (!TEST_CHECK(ret == RIG_OK))
+        {
+            break;
+        }
+
+        /* Inspect before acknowledging: producer completion must not be
+         * what makes the consumed frame's accounting visible. */
+        struct rig_stream_stats stats;
+        TEST_CHECK(rig_stream_get_stats(rig, st, &stats) == RIG_OK);
+        uint64_t position = rig_stream_get_samples_written(st);
+        TEST_CHECK(stats.codec_frames >= (uint64_t)frame + 1);
+        TEST_MSG("read frame %u, codec_frames %llu", frame,
+                 (unsigned long long)stats.codec_frames);
+        TEST_CHECK(position >= info.sample_index + info.codec_frame_samples);
+        TEST_MSG("read frame %u, producer position %llu", frame,
+                 (unsigned long long)position);
+        TEST_CHECK(got == sizeof(payload) && payload == frame);
+        TEST_CHECK(info.sample_index == (uint64_t)frame * 480);
+        TEST_CHECK(info.codec_frame_samples == 480);
+
+        pthread_mutex_lock(&ctx.lock);
+        ctx.acknowledged = frame + 1;
+        pthread_cond_signal(&ctx.consumed);
+        pthread_mutex_unlock(&ctx.lock);
+    }
+
+    pthread_mutex_lock(&ctx.lock);
+    ctx.stop = 1;
+    pthread_cond_signal(&ctx.consumed);
+    pthread_mutex_unlock(&ctx.lock);
+    pthread_join(producer, NULL);
+    TEST_CHECK(ctx.failed == 0);
+    TEST_CHECK(ctx.acknowledged == CODEC_PUBLICATION_FRAMES);
+    struct rig_stream_stats stats;
+    TEST_CHECK(rig_stream_get_stats(rig, st, &stats) == RIG_OK);
+    TEST_CHECK(stats.codec_frames == CODEC_PUBLICATION_FRAMES);
+    TEST_CHECK(stats.overruns == 0);
+    TEST_CHECK(rig_stream_get_samples_written(st)
+               == (uint64_t)CODEC_PUBLICATION_FRAMES * 480);
+    pthread_cond_destroy(&ctx.consumed);
+    pthread_mutex_destroy(&ctx.lock);
     rig_stream_close(rig, st);
     teardown_rig(rig);
 }
@@ -2554,6 +2700,7 @@ TEST_LIST =
     { "codec_format_native_only", test_codec_format_native_only },
     { "codec_frame_read_api",     test_codec_frame_read_api },
     { "codec_frame_write_api",    test_codec_frame_write_api },
+    { "codec_frame_publication",  test_codec_frame_publication },
     { "caps_codec_only_not_widened", test_caps_codec_only_not_widened },
     { "caps_pre_open_raw",        test_caps_pre_open_raw },
     { "conversions_getter",       test_conversions_getter },
