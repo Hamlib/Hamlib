@@ -3995,9 +3995,24 @@ rig_set_debug_callback(vprintf_cb_t cb,
 extern HAMLIB_EXPORT(FILE *)
 rig_set_debug_file(FILE *stream);
 
+/**
+ * \brief Register caller-owned capabilities under a unique model ID.
+ * \param caps Capabilities whose object and referenced storage must remain valid
+ * while registered and until all RIG handles using them have been cleaned up;
+ * keep the model ID unchanged while registered.
+ * \return RIG_OK on success, -RIG_EINVAL for NULL or an already registered model
+ * ID (including the same capabilities pointer), or -RIG_ENOMEM on allocation
+ * failure. A failed registration leaves existing registrations unchanged.
+ */
 extern HAMLIB_EXPORT(int)
 rig_register(struct rig_caps *caps);
 
+/**
+ * \brief Remove a model registration without freeing its capabilities.
+ * \param rig_model Model ID to unregister.
+ * \return RIG_OK on success, or -RIG_EINVAL if the model is not registered.
+ * \note Existing RIG handles retain their capabilities pointers.
+ */
 extern HAMLIB_EXPORT(int)
 rig_unregister(rig_model_t rig_model);
 

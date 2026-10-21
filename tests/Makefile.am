@@ -37,6 +37,7 @@ DIRECT_TESTS = \
 	testpoll \
 	testnewcatset \
 	testnewcatwidth \
+	testregister \
 	testrigctlprotocol \
 	testsendraw \
 	testmodecompat \
