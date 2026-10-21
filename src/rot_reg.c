@@ -137,7 +137,7 @@ static struct
 #if HAVE_LIBINDI
     { ROT_INDI, ROT_BACKEND_INDI, ROT_FUNCNAMA(indi) },
 #endif
-#if defined(ANDROID) || defined(__ANDROID__)
+#if HAVE_ANDROID_SENSOR
     { ROT_ANDROIDSENSOR, ROT_BACKEND_ANDROIDSENSOR, ROT_FUNCNAMA(androidsensor) },
 #endif
     { ROT_GRBLTRK, ROT_BACKEND_GRBLTRK, ROT_FUNCNAMA(grbltrk) },
