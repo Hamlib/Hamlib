@@ -41,7 +41,7 @@ static int p_ats_write(RIG *rig, const unsigned char *cmd) {
 }
 
 static int p_ats_toggle_monitor_mode(RIG *rig) {
-    rig_debug(RIG_DEBUG_WARN, "%s\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
     return p_ats_write(rig, (const unsigned char *)"t");
 }
 
