@@ -38,6 +38,31 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
+#ifndef _WIN32
+#include <fcntl.h>
+#include <poll.h>
+#endif
+
+#ifdef RIGCTLD_STREAM_TEST_SENDTO
+extern ssize_t rigctld_stream_test_sendto(int fd, const char *buf, size_t len,
+        int flags, const struct sockaddr *addr,
+        socklen_t addrlen);
+#define sendto rigctld_stream_test_sendto
+#ifdef _WIN32
+extern int rigctld_stream_test_select_write(int nfds, fd_set *fds,
+        struct timeval *timeout);
+#define stream_select_write(fds, timeout) \
+    rigctld_stream_test_select_write(0, fds, timeout)
+#else
+extern int rigctld_stream_test_poll_write(struct pollfd *fds, nfds_t count,
+        int timeout_ms);
+#define stream_poll_write rigctld_stream_test_poll_write
+#endif
+#elif defined(_WIN32)
+#define stream_select_write(fds, timeout) select(0, NULL, fds, NULL, timeout)
+#else
+#define stream_poll_write poll
+#endif
 
 /* Portable socket headers and socket_close() come from stream_proto.h
  * (pulled in via rigctld_stream.h). */
@@ -520,6 +545,18 @@ int rigctld_stream_registry_count(struct rigctld_stream_registry *reg)
 }
 
 
+static int stream_socket_set_nonblocking(int fd)
+{
+#ifdef _WIN32
+    u_long mode = 1;
+    return ioctlsocket(fd, FIONBIO, &mode) == 0 ? 0 : -1;
+#else
+    int flags = fcntl(fd, F_GETFL, 0);
+    return flags < 0 ? -1 : fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+#endif
+}
+
+
 int rigctld_stream_udp_socket_create(int *sock_fd, int *port)
 {
     int fd;
@@ -535,6 +572,12 @@ int rigctld_stream_udp_socket_create(int *sock_fd, int *port)
 
     if (fd < 0)
     {
+        return -1;
+    }
+
+    if (stream_socket_set_nonblocking(fd) < 0)
+    {
+        socket_close(fd);
         return -1;
     }
 
@@ -829,6 +872,12 @@ int rigctld_stream_multicast_socket_create(
         return -1;
     }
 
+    if (stream_socket_set_nonblocking(fd) < 0)
+    {
+        socket_close(fd);
+        return -1;
+    }
+
     setsockopt(fd, SOL_SOCKET, SO_REUSEADDR,
                (const char *)&reuse, sizeof(reuse));
 
@@ -1053,6 +1102,132 @@ static int wait_for_subscribe(struct rigctld_stream *stream)
 }
 
 
+enum stream_send_result
+{
+    STREAM_SEND_FAILED = -1,
+    STREAM_SEND_OK = 0,
+    STREAM_SEND_STOPPED,
+    STREAM_SEND_BACKPRESSURE
+};
+
+
+enum stream_send_retry
+{
+    STREAM_SEND_RETRY_UNTIL_STOP,
+    STREAM_SEND_RETRY_ONCE
+};
+
+enum { STREAM_SEND_WAIT_MS = 100 };
+
+
+static int stream_wait_writable(int fd)
+{
+#ifdef _WIN32
+    fd_set fds;
+    struct timeval timeout = { 0, STREAM_SEND_WAIT_MS * 1000 };
+    FD_ZERO(&fds);
+    FD_SET(fd, &fds);
+    int ready = stream_select_write(&fds, &timeout);
+    return ready < 0 && WSAGetLastError() == WSAEINTR ? 0 : ready;
+#else
+    struct pollfd descriptor = { .fd = fd, .events = POLLOUT };
+    int ready = stream_poll_write(&descriptor, 1, STREAM_SEND_WAIT_MS);
+
+    if (ready < 0)
+    {
+        return errno == EINTR ? 0 : -1;
+    }
+
+    if (descriptor.revents & (POLLERR | POLLHUP | POLLNVAL))
+    {
+        return -1;
+    }
+
+    return (descriptor.revents & POLLOUT) != 0;
+#endif
+}
+
+
+/* Retain a datagram under backpressure, but let shutdown abandon the wait. */
+static enum stream_send_result stream_send_packet(struct rigctld_stream *stream,
+        const unsigned char *pkt, size_t len, enum stream_send_retry retry)
+{
+    int retry_after_writable = 0;
+    int retried = 0;
+
+    while (stream->running)
+    {
+        ssize_t sent = sendto(stream->udp_sock, (const char *)pkt, len, 0,
+                              (struct sockaddr *)&stream->client_addr,
+                              stream->client_addr_len);
+
+        if (sent >= 0)
+        {
+            return (size_t)sent == len ? STREAM_SEND_OK : STREAM_SEND_FAILED;
+        }
+
+#ifdef _WIN32
+        int err = WSAGetLastError();
+        int interrupted = err == WSAEINTR;
+        int would_block = err == WSAEWOULDBLOCK;
+#else
+        int err = errno;
+        int interrupted = err == EINTR;
+        int would_block = err == EAGAIN || err == EWOULDBLOCK;
+#endif
+
+        if (!interrupted && !would_block)
+        {
+            return STREAM_SEND_FAILED;
+        }
+
+        if (!stream->running)
+        {
+            break;
+        }
+
+        if (retry == STREAM_SEND_RETRY_ONCE && retried)
+        {
+            return STREAM_SEND_BACKPRESSURE;
+        }
+
+        retried = 1;
+
+        if (interrupted)
+        {
+            continue;
+        }
+
+        /* Readiness need not imply enough room for this whole datagram. */
+        if (retry_after_writable)
+        {
+            usleep(10000);
+
+            if (!stream->running)
+            {
+                break;
+            }
+        }
+
+        int ready = stream_wait_writable(stream->udp_sock);
+
+        if (!stream->running)
+        {
+            break;
+        }
+
+        if (ready < 0)
+        {
+            return STREAM_SEND_FAILED;
+        }
+
+        retry_after_writable = ready > 0;
+    }
+
+    return STREAM_SEND_STOPPED;
+}
+
+
 /* Send a control reply (PONG, SUBSCRIBE_ACK, etc.) to the stream's client.
  * Returns 0 on success, -1 on failure. */
 int rigctld_stream_send_control_reply(struct rigctld_stream *stream,
@@ -1068,12 +1243,18 @@ int rigctld_stream_send_control_reply(struct rigctld_stream *stream,
 
     stream_packet_header_pack(&hdr, pkt);
 
-    ssize_t sent = sendto(stream->udp_sock, (const char *)pkt,
-                          RIG_STREAM_HEADER_SIZE, 0,
-                          (struct sockaddr *)&stream->client_addr,
-                          stream->client_addr_len);
+    return stream_send_packet(stream, pkt, sizeof(pkt),
+                              STREAM_SEND_RETRY_UNTIL_STOP) == STREAM_SEND_OK
+           ? 0 : -1;
+}
 
-    return (sent == RIG_STREAM_HEADER_SIZE) ? 0 : -1;
+
+static int stream_error_reminder_due(const struct rigctld_stream *stream,
+                                     const struct timespec *now)
+{
+    const struct timespec *next = &stream->next_error_reminder;
+    return now->tv_sec > next->tv_sec
+           || (now->tv_sec == next->tv_sec && now->tv_nsec >= next->tv_nsec);
 }
 
 
@@ -1091,13 +1272,33 @@ int rigctld_stream_send_error(struct rigctld_stream *stream)
     stream_packet_header_pack(&hdr, pkt);
     stream_error_block_pack(stream->fail_error, stream->fail_reason,
                             pkt + RIG_STREAM_HEADER_SIZE);
-    clock_gettime(CLOCK_MONOTONIC, &stream->last_error_sent);
+    enum stream_send_result result = stream_send_packet(stream, pkt, sizeof(pkt),
+        STREAM_SEND_RETRY_ONCE);
 
-    ssize_t sent = sendto(stream->udp_sock, (const char *)pkt, sizeof(pkt), 0,
-                          (struct sockaddr *)&stream->client_addr,
-                          stream->client_addr_len);
+    if (result == STREAM_SEND_STOPPED)
+    {
+        return -1;
+    }
 
-    return (sent == (ssize_t)sizeof(pkt)) ? 0 : -1;
+    long delay_ms = stream->multicast ? 1000 : 250;
+
+    if (result == STREAM_SEND_BACKPRESSURE)
+    {
+        delay_ms = STREAM_SEND_WAIT_MS;
+    }
+
+    struct timespec *next = &stream->next_error_reminder;
+
+    clock_gettime(CLOCK_MONOTONIC, next);
+    next->tv_nsec += delay_ms * 1000000L;
+
+    if (next->tv_nsec >= 1000000000L)
+    {
+        next->tv_sec++;
+        next->tv_nsec -= 1000000000L;
+    }
+
+    return result == STREAM_SEND_OK ? 0 : -1;
 }
 
 
@@ -1202,17 +1403,20 @@ static void stream_fill_header(struct rigctld_stream *stream,
 static int send_to_client(struct rigctld_stream *stream,
                           const unsigned char *pkt, size_t len)
 {
-    ssize_t sent = sendto(stream->udp_sock, (const char *)pkt, len, 0,
-                          (struct sockaddr *)&stream->client_addr,
-                          stream->client_addr_len);
+    enum stream_send_result result = stream_send_packet(stream, pkt, len,
+        STREAM_SEND_RETRY_UNTIL_STOP);
 
-    if (sent >= 0)
+    if (result == STREAM_SEND_OK)
     {
         stream->packet_count++;
         return 0;
     }
 
-    stream->send_drops++;
+    if (result == STREAM_SEND_FAILED)
+    {
+        stream->send_drops++;
+    }
+
     return -1;
 }
 
@@ -1606,9 +1810,7 @@ static void *rigctld_stream_feeder_tx(void *arg)
                     rigctld_stream_backend_failed(stream, wret);
                     clock_gettime(CLOCK_MONOTONIC, &now);
 
-                    /* A sender keeps sending: remind it, but at most a few
-                     * times a second rather than once per packet. */
-                    if (elapsed_ms(&stream->last_error_sent, &now) >= 250)
+                    if (stream_error_reminder_due(stream, &now))
                     {
                         rigctld_stream_send_error(stream);
                     }
@@ -1728,8 +1930,8 @@ static int rigctld_stream_hold_failed(struct rigctld_stream *stream)
 
         if (stream->multicast)
         {
-            /* No return channel: announce it to the group once a second. */
-            if (elapsed_ms(&stream->last_error_sent, &now) >= 1000)
+            /* No return channel: announce the failure to the group. */
+            if (stream_error_reminder_due(stream, &now))
             {
                 rigctld_stream_send_error(stream);
             }
