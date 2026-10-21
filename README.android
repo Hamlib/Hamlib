@@ -79,6 +79,10 @@ with "usb:" or "usbfd:" instead of a serial device:
     usb:/dev/bus/usb/BBB/DDD   this usbfs node
     usbfd:N                    an open usbfs file descriptor
 
+Any of them may end in "@N" for interface N of a chip with several ports,
+such as the CP2105's second UART (an FT-710's Standard COM port, for
+RTS/DTR keying): "usb:10c4:ea70@1".
+
 On Android the app asks UsbManager for permission, opens the device with
 UsbManager.openDevice() and passes UsbDeviceConnection.getFileDescriptor()
 as "usbfd:N".  On other Linux systems the "usb:" forms open the node
@@ -87,10 +91,12 @@ rule).  A kernel driver bound to the chip is detached while Hamlib has it.
 
 The serial settings (rate, data bits, parity, stop bits) and RTS/DTR go to
 the chip, so RTS/DTR PTT works as on a tty.  Supported chips: Silicon Labs
-CP210x (10c4:ea60, ea70, ea71: Icom IC-7100/IC-7300 and many cables).
+CP210x (10c4:ea60, ea70, ea71: Icom IC-7100/IC-7300, Yaesu FT-710 and
+many cables).
 Hardware handshake is not implemented yet.
 
     rigctl -m 3070 -s 19200 -r "usb:10c4:ea60:IC-7100 02010347 A" f
+    rigctl -m 1049 -s 38400 -r usb:10c4:ea70@0 f
 
 A radio with two CP210x ports (the IC-7100) needs the serial number to
 pick the CAT one.  Only Linux (Android included) supports this; elsewhere

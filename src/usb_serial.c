@@ -342,7 +342,8 @@ static int find_node(unsigned int vid, unsigned int pid, const char *serial,
 
 /* The first interface with a bulk IN and a bulk OUT endpoint, from the
  * descriptors usbfs returns on read(): the device's, then its configuration's. */
-static int find_endpoints(struct usbser *u, unsigned int *vid, unsigned int *pid)
+static int find_endpoints(struct usbser *u, int want, unsigned int *vid,
+                          unsigned int *pid)
 {
     uint8_t d[4096];
     ssize_t n, i;
@@ -365,7 +366,7 @@ static int find_endpoints(struct usbser *u, unsigned int *vid, unsigned int *pid
     {
         if (d[i + 1] == 4)              /* interface */
         {
-            if (in && out)
+            if (in && out && (want < 0 || ifno == want))
             {
                 break;
             }
@@ -386,10 +387,10 @@ static int find_endpoints(struct usbser *u, unsigned int *vid, unsigned int *pid
         }
     }
 
-    if (ifno < 0 || !in || !out)
+    if (ifno < 0 || !in || !out || (want >= 0 && ifno != want))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: %04x:%04x has no bulk endpoint pair\n",
-                  __func__, *vid, *pid);
+        rig_debug(RIG_DEBUG_ERR, "%s: %04x:%04x has no bulk endpoint pair%s\n",
+                  __func__, *vid, *pid, want >= 0 ? " on that interface" : "");
         return -RIG_EIO;
     }
 
@@ -537,8 +538,10 @@ static void release(struct usbser *u)
 int usb_serial_open(hamlib_port_t *rp)
 {
     struct usbser *u = NULL;
-    const char *a = rp->pathname;
-    char node[64] = "";
+    char spec[HAMLIB_FILPATHLEN];
+    char *a = spec, *at;
+    char node[HAMLIB_FILPATHLEN] = "";
+    int want = -1;
     char tty[64];
     unsigned int vid = 0, pid = 0;
     struct usbdevfs_disconnect_claim dc;
@@ -566,6 +569,16 @@ int usb_serial_open(hamlib_port_t *rp)
     u->used = 1;
     u->usbfd = u->master = u->slave = u->ifno = -1;
     pthread_mutex_unlock(&usbser_lock);
+
+    /* "...@N": interface N of a multi-port chip (the CP2105's second UART) */
+    snprintf(spec, sizeof(spec), "%s", rp->pathname);
+    at = strrchr(spec, '@');
+
+    if (at && at[1] >= '0' && at[1] <= '9')
+    {
+        want = atoi(at + 1);
+        *at = '\0';
+    }
 
     if (!strncmp(a, "usbfd:", 6))
     {
@@ -612,7 +625,7 @@ int usb_serial_open(hamlib_port_t *rp)
         u->own_usbfd = 1;
     }
 
-    if ((err = find_endpoints(u, &vid, &pid)) != RIG_OK)
+    if ((err = find_endpoints(u, want, &vid, &pid)) != RIG_OK)
     {
         goto fail;
     }
