@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="BackendCodeEditorMiscSettings">
+    <option name="/Default/Environment/Hierarchy/GeneratedFilesCacheKey/Timestamp/@EntryValue" value="4" type="long" />
+    <option name="/Default/Housekeeping/FeatureSuggestion/FeatureSuggestionManager/DisabledSuggesters/=SwitchToGoToActionSuggester/@EntryIndexedValue" value="true" type="bool" />
+    <option name="/Default/Housekeeping/GlobalSettingsUpgraded/IsUpgraded/@EntryValue" value="true" type="bool" />
+    <option name="/Default/Housekeeping/OptionsDialog/SelectedPageId/@EntryValue" value="CppIncludesOrderOptions" type="string" />
+  </component>
+  <component name="CMakeProjectFlavorService">
+    <option name="flavorId" value="CMakePlainProjectFlavor" />
+  </component>
+  <component name="CMakeRunConfigurationManager">
+    <generated>
+      <config projectName="Hamlib" targetName="cscope" />
+      <config projectName="Hamlib" targetName="install-html-am" />
+      <config projectName="Hamlib" targetName="check-am" />
+      <config projectName="Hamlib" targetName="uninstall-recursive" />
+      <config projectName="Hamlib" targetName="dvi-recursive" />
+      <config projectName="Hamlib" targetName="html-am" />
+      <config projectName="Hamlib" targetName="clean-libtool" />
+      <config projectName="Hamlib" targetName="dist" />
+      <config projectName="Hamlib" targetName="ChangeLog" />
+      <config projectName="Hamlib" targetName="distclean-recursive" />
+      <config projectName="Hamlib" targetName="clean-recursive" />
+      <config projectName="Hamlib" targetName="distclean-generic" />
+      <config projectName="Hamlib" targetName="install-am" />
+      <config projectName="Hamlib" targetName="installcheck" />
+      <config projectName="Hamlib" targetName="install-exec-am" />
+      <config projectName="Hamlib" targetName="install-html-recursive" />
+      <config projectName="Hamlib" targetName="ps" />
+      <config projectName="Hamlib" targetName="uninstall-pkgconfigDATA" />
+      <config projectName="Hamlib" targetName="install-ps" />
+      <config projectName="Hamlib" targetName="mostlyclean" />
+      <config projectName="Hamlib" targetName="tags" />
+      <config projectName="Hamlib" targetName="mostlyclean-am" />
+      <config projectName="Hamlib" targetName="maintainer-clean-recursive" />
+      <config projectName="Hamlib" targetName="ID" />
+      <config projectName="Hamlib" targetName="install-dvi-recursive" />
+      <config projectName="Hamlib" targetName="dist-xz" />
+      <config projectName="Hamlib" targetName="install-dvi-am" />
+      <config projectName="Hamlib" targetName="TAGS" />
+      <config projectName="Hamlib" targetName="LICENSE" />
+      <config projectName="Hamlib" targetName="mostlyclean-generic" />
+      <config projectName="Hamlib" targetName="install-info" />
+      <config projectName="Hamlib" targetName="distcleancheck" />
+      <config projectName="Hamlib" targetName="install-recursive" />
+      <config projectName="Hamlib" targetName="dist-lzip" />
+      <config projectName="Hamlib" targetName="install-dvi" />
+      <config projectName="Hamlib" targetName="cscopelist" />
+      <config projectName="Hamlib" targetName="all" />
+      <config projectName="Hamlib" targetName="all-recursive" />
+      <config projectName="Hamlib" targetName="CTAGS" />
+      <config projectName="Hamlib" targetName="dvi-am" />
+      <config projectName="Hamlib" targetName="info-am" />
+      <config projectName="Hamlib" targetName="all-am" />
+      <config projectName="Hamlib" targetName="install-exec" />
+      <config projectName="Hamlib" targetName="cscopelist-recursive" />
+      <config projectName="Hamlib" targetName="dist-all" />
+      <config projectName="Hamlib" targetName="INSTALL" />
+      <config projectName="Hamlib" targetName="maintainer-clean-am" />
+      <config projectName="Hamlib" targetName="installdirs-am" />
+      <config projectName="Hamlib" targetName="distclean" />
+      <config projectName="Hamlib" targetName="installcheck-recursive" />
+      <config projectName="Hamlib" targetName="distuninstallcheck" />
+      <config projectName="Hamlib" targetName="am--refresh" />
+      <config projectName="Hamlib" targetName="clean-cscope" />
+      <config projectName="Hamlib" targetName="install-ps-am" />
+      <config projectName="Hamlib" targetName="tags-recursive" />
+      <config projectName="Hamlib" targetName="installcheck-am" />
+      <config projectName="Hamlib" targetName="install-data" />
+      <config projectName="Hamlib" targetName="install-man" />
+      <config projectName="Hamlib" targetName="install-info-recursive" />
+      <config projectName="Hamlib" targetName="maintainer-clean" />
+      <config projectName="Hamlib" targetName="uninstall" />
+      <config projectName="Hamlib" targetName="ps-recursive" />
+      <config projectName="Hamlib" targetName="mostlyclean-libtool" />
+      <config projectName="Hamlib" targetName="pdf" />
+      <config projectName="Hamlib" targetName="PLAN" />
+      <config projectName="Hamlib" targetName="THANKS" />
+      <config projectName="Hamlib" targetName="distclean-hdr" />
+      <config projectName="Hamlib" targetName="distclean-am" />
+      <config projectName="Hamlib" targetName="dist-zstd" />
+      <config projectName="Hamlib" targetName="README" />
+      <config projectName="Hamlib" targetName="clean-am" />
+      <config projectName="Hamlib" targetName="ctags-recursive" />
+      <config projectName="Hamlib" targetName="pdf-am" />
+      <config projectName="Hamlib" targetName="distclean-libtool" />
+      <config projectName="Hamlib" targetName="install-docDATA" />
+      <config projectName="Hamlib" targetName="html-recursive" />
+      <config projectName="Hamlib" targetName="install-data-recursive" />
+      <config projectName="Hamlib" targetName="installdirs" />
+      <config projectName="Hamlib" targetName="distdir-am" />
+      <config projectName="Hamlib" targetName="install-pdf-am" />
+      <config projectName="Hamlib" targetName="info-recursive" />
+      <config projectName="Hamlib" targetName="clean-generic" />
+      <config projectName="Hamlib" targetName="html" />
+      <config projectName="Hamlib" targetName="distcheck" />
+      <config projectName="Hamlib" targetName="uninstall-am" />
+      <config projectName="Hamlib" targetName="distclean-tags" />
+      <config projectName="Hamlib" targetName="dist-bzip2" />
+      <config projectName="Hamlib" targetName="cscopelist-am" />
+      <config projectName="Hamlib" targetName="check-recursive" />
+      <config projectName="Hamlib" targetName="installdirs-recursive" />
+      <config projectName="Hamlib" targetName="install-ps-recursive" />
+      <config projectName="Hamlib" targetName="check" />
+      <config projectName="Hamlib" targetName="install-html" />
+      <config projectName="Hamlib" targetName="ctags-am" />
+      <config projectName="Hamlib" targetName="dist-zip" />
+      <config projectName="Hamlib" targetName="info" />
+      <config projectName="Hamlib" targetName="install-exec-recursive" />
+      <config projectName="Hamlib" targetName="install-strip" />
+      <config projectName="Hamlib" targetName="dist-gzip" />
+      <config projectName="Hamlib" targetName="install-info-am" />
+      <config projectName="Hamlib" targetName="install-pdf" />
+      <config projectName="Hamlib" targetName="tags-am" />
+      <config projectName="Hamlib" targetName="dist-shar" />
+      <config projectName="Hamlib" targetName="install-data-am" />
+      <config projectName="Hamlib" targetName="install" />
+      <config projectName="Hamlib" targetName="mostlyclean-recursive" />
+      <config projectName="Hamlib" targetName="ctags" />
+      <config projectName="Hamlib" targetName="maintainer-clean-generic" />
+      <config projectName="Hamlib" targetName="uninstall-docDATA" />
+      <config projectName="Hamlib" targetName="ps-am" />
+      <config projectName="Hamlib" targetName="GTAGS" />
+      <config projectName="Hamlib" targetName="pdf-recursive" />
+      <config projectName="Hamlib" targetName="AUTHORS" />
+      <config projectName="Hamlib" targetName="distdir" />
+      <config projectName="Hamlib" targetName="install-aclocalDATA" />
+      <config projectName="Hamlib" targetName="install-pdf-recursive" />
+      <config projectName="Hamlib" targetName="dvi" />
+      <config projectName="Hamlib" targetName="install-pkgconfigDATA" />
+      <config projectName="Hamlib" targetName="uninstall-aclocalDATA" />
+      <config projectName="Hamlib" targetName="NEWS" />
+      <config projectName="Hamlib" targetName="dist-tarZ" />
+      <config projectName="Hamlib" targetName="COPYING" />
+    </generated>
+  </component>
+  <component name="CMakeSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" ENABLED="true" CONFIG_NAME="Debug" />
+    </configurations>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="508b7b54-077c-409a-a1e4-6d495e004fab" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/rigs/ats-mini/ats.c" beforeDir="false" afterPath="$PROJECT_DIR$/rigs/ats-mini/ats.c" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="CurrentDebugProfile">
+    <option name="debugProfileId" value="9e18af3b-3132-4320-a724-5068938d72ef" />
+  </component>
+  <component name="ExternalProjectsData">
+    <projectState path="$PROJECT_DIR$">
+      <ProjectState />
+    </projectState>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/rigs/ats-mini/ats.c" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/rigs/ats-mini/ats.h" root0="FORCE_HIGHLIGHTING" />
+  </component>
+  <component name="MacroExpansionManager">
+    <option name="directoryName" value="hhwYuVpn" />
+  </component>
+  <component name="MakefilesProjectLoadingState">
+    <option name="doClean" value="false" />
+  </component>
+  <component name="ProjectApplicationVersion">
+    <option name="ide" value="CLion" />
+    <option name="majorVersion" value="2026" />
+    <option name="minorVersion" value="1.2" />
+    <option name="productBranch" value="Classic" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 8
+}</component>
+  <component name="ProjectId" id="3FCLkg4ldIauMdKEW6VTgoXxvyO" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;CidrDebugProfileConversion&quot;: &quot;true&quot;,
+    &quot;Makefile Target.clean.executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.RadMigrateCodeStyle&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/bogdan/WORK/dev/c/Hamlib/rigs/ats-mini&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.build.tools.auto.reload&quot;: &quot;SELECTIVE&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;settings.sync&quot;
+  }
+}</component>
+  <component name="RunManager">
+    <configuration name="clean" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile">
+      <makefile filename="$PROJECT_DIR$/build/Makefile" target="clean" workingDirectory="$PROJECT_DIR$/build" arguments="">
+        <envs />
+      </makefile>
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="508b7b54-077c-409a-a1e4-6d495e004fab" name="Changes" comment="" />
+      <created>1781574250315</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1781574250315</updated>
+      <workItem from="1781574252044" duration="709000" />
+      <workItem from="1781575084996" duration="195000" />
+      <workItem from="1781575289037" duration="1048000" />
+      <workItem from="1781653575305" duration="10000" />
+      <workItem from="1781998801537" duration="5824000" />
+      <workItem from="1782049651465" duration="18179000" />
+      <workItem from="1782487201534" duration="2000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+</project>

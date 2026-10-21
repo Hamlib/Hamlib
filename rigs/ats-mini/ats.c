@@ -40,6 +40,11 @@ static int p_ats_write(RIG *rig, const unsigned char *cmd) {
     return RIG_OK;
 }
 
+static int p_ats_toggle_monitor_mode(RIG *rig) {
+    rig_debug(RIG_DEBUG_WARN, "%s\n", __func__);
+    return p_ats_write(rig, (const unsigned char *)"t");
+}
+
 static int p_ats_stop_monitor_mode(RIG *rig) {
     int nb_uart = -1;
     char c;
@@ -59,18 +64,12 @@ static int p_ats_stop_monitor_mode(RIG *rig) {
             }
         }
 
-        rig_debug(RIG_DEBUG_WARN, "%s\n", __func__);
-        int res = p_ats_write(rig, (const unsigned char *) "t");
+        int res = p_ats_toggle_monitor_mode(rig);
         if (res != RIG_OK) {
             return res;
         }
     }
     return RIG_OK;
-}
-
-static int p_ats_start_monitor_mode(RIG *rig) {
-    rig_debug(RIG_DEBUG_WARN, "%s\n", __func__);
-    return p_ats_write(rig, (const unsigned char *)"t");
 }
 
 static int p_ats_update_state(RIG *rig) {
@@ -79,7 +78,7 @@ static int p_ats_update_state(RIG *rig) {
     int res = RIG_OK;
     char c;
 
-    res = p_ats_start_monitor_mode(rig);
+    res = p_ats_toggle_monitor_mode(rig);
     if (res != RIG_OK) {
         return res;
     }
@@ -106,8 +105,7 @@ static int p_ats_update_state(RIG *rig) {
     }
     rig_debug(RIG_DEBUG_VERBOSE, "%s, monitor '%s'\n", __func__, (char *)buff);
 
-    // rig_debug(RIG_DEBUG_VERBOSE, "%s, stop monitor mode\n", __func__);
-    res = p_ats_write(rig, (const unsigned char *)"t");
+    res = p_ats_toggle_monitor_mode(rig);
     if (res != RIG_OK) {
         return res;
     }
