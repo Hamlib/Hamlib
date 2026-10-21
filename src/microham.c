@@ -203,6 +203,17 @@ static void close_microham()
 /* { */
 /* } */
 
+#if !defined(WIN32)
+/*
+ * POSIX without glob() (Android before API 28): no device search, so no
+ * microHam device is found, as on WIN32.  start_thread() still calls this.
+ */
+static void finddevices()
+{
+    uh_device_fd = -1;
+}
+#endif
+
 #else
 
 /*
