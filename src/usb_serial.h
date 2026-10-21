@@ -39,6 +39,10 @@ __BEGIN_DECLS
  *   usbfd:N                    an open usbfs descriptor, as Android's
  *                              UsbDeviceConnection.getFileDescriptor() gives
  *
+ * Any of them may end in "@N": interface N of a chip with several ports
+ * (the CP2105's second UART, an FT-710's Standard COM port); otherwise the
+ * first interface with a bulk endpoint pair.
+ *
  * usb_serial_open() returns a pseudo-terminal descriptor that the rest of
  * Hamlib reads, writes and polls as usual; bytes are pumped to and from the
  * chip's bulk endpoints.  Line settings and modem-control lines go to the
