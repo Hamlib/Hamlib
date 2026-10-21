@@ -98,6 +98,125 @@ static int check_result(const char *operation, int actual, int expected)
     return 0;
 }
 
+struct backend_snapshot
+{
+    const struct rig_caps *entries[MAX_MODELS_PER_BACKEND];
+    unsigned int count;
+    int failed;
+};
+
+static int snapshot_dummy(const struct rig_caps *entry, rig_ptr_t data)
+{
+    struct backend_snapshot *snapshot = data;
+    unsigned int index = entry->rig_model % MAX_MODELS_PER_BACKEND;
+
+    if (RIG_BACKEND_NUM(entry->rig_model) != RIG_DUMMY
+            || snapshot->entries[index] != NULL)
+    {
+        fprintf(stderr, "unexpected or duplicate loaded model %u\n",
+                entry->rig_model);
+        snapshot->failed = 1;
+        return 0;
+    }
+
+    snapshot->entries[index] = entry;
+    snapshot->count++;
+    return 1;
+}
+
+static int check_dummy_snapshot(const struct backend_snapshot *expected)
+{
+    struct backend_snapshot actual = { 0 };
+
+    if (rig_list_foreach(snapshot_dummy, &actual) != RIG_OK
+            || actual.failed || actual.count != expected->count)
+    {
+        fprintf(stderr, "loaded Dummy registry entry count changed\n");
+        return 1;
+    }
+
+    for (unsigned int i = 0; i < MAX_MODELS_PER_BACKEND; i++)
+    {
+        if (actual.entries[i] != expected->entries[i]
+                || rig_get_caps(RIG_MAKE_MODEL(RIG_DUMMY, i))
+                != expected->entries[i])
+        {
+            fprintf(stderr, "loaded Dummy model %u changed capabilities\n", i);
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+static int test_repeated_loading(void)
+{
+    struct backend_snapshot initial = { 0 };
+    unsigned int unused;
+    int failed;
+
+    fprintf(stderr, "repeat Dummy loading and initialize an unknown model\n");
+    failed = check_result("load Dummy backend",
+                          rig_load_backend("dummy"), RIG_OK);
+    failed |= check_result("snapshot Dummy backend",
+                           rig_list_foreach(snapshot_dummy, &initial), RIG_OK);
+
+    if (initial.failed || rig_get_caps(RIG_MODEL_DUMMY) == NULL)
+    {
+        fprintf(stderr, "initial Dummy backend registration failed\n");
+        failed = 1;
+        goto cleanup;
+    }
+
+    for (unused = 1; unused < MAX_MODELS_PER_BACKEND; unused++)
+    {
+        if (initial.entries[unused] == NULL)
+        {
+            break;
+        }
+    }
+
+    if (unused == MAX_MODELS_PER_BACKEND)
+    {
+        fprintf(stderr, "no unknown model ID available in Dummy family\n");
+        failed = 1;
+        goto cleanup;
+    }
+
+    failed |= check_result("reload Dummy backend",
+                           rig_load_backend("dummy"), RIG_OK);
+    failed |= check_dummy_snapshot(&initial);
+    failed |= check_result("check registered Dummy model",
+                           rig_check_backend(RIG_MODEL_DUMMY), RIG_OK);
+    failed |= check_dummy_snapshot(&initial);
+
+    RIG *rig = rig_init(RIG_MAKE_MODEL(RIG_DUMMY, unused));
+
+    if (rig != NULL)
+    {
+        fprintf(stderr, "initializing an unknown Dummy model succeeded\n");
+        rig_cleanup(rig);
+        failed = 1;
+    }
+
+    failed |= check_dummy_snapshot(&initial);
+
+cleanup:
+
+    for (unsigned int i = 0; i < MAX_MODELS_PER_BACKEND; i++)
+    {
+        if (initial.entries[i] != NULL)
+        {
+            failed |= check_result("cleanup Dummy registration",
+                                   rig_unregister(initial.entries[i]->rig_model),
+                                   RIG_OK);
+        }
+    }
+
+    failed |= check_registry(0);
+    return failed;
+}
+
 int main(void)
 {
     struct rig_caps duplicate = { .rig_model = 0x70000000U };
@@ -105,6 +224,7 @@ int main(void)
     unsigned int present = 0;
     int failed = 0;
 
+    rig_set_debug(RIG_DEBUG_ERR);
     fprintf(stderr, "register distinct colliding model IDs\n");
 
     for (unsigned int i = 0; i < 3; i++)
@@ -173,5 +293,6 @@ int main(void)
     failed |= check_result("cleanup replacement registration",
                            rig_unregister(duplicate.rig_model), RIG_OK);
     failed |= check_registry(0);
+    failed |= test_repeated_loading();
     return failed != 0;
 }
