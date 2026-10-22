@@ -574,8 +574,8 @@ Semantics:
   write-status waiter, then waits for every `rig_stream_*` call already in
   flight on that stream to return before the handle is torn down. A
   concurrent call therefore either completes normally or fails cleanly —
-  it can never touch a freed stream. The handle is invalid once close
-  returns.
+  it can never touch a freed stream. Backend close errors are returned
+  after cleanup. The handle is invalid even on failure; do not retry close.
 - **Thread safety:** a single consumer per stream. Concurrent reads on the
   same stream split data unpredictably — the ring-buffer lock prevents
   corruption, not logical interleaving.

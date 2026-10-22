@@ -432,11 +432,13 @@ struct rigctld_stream *rigctld_stream_registry_remove(
 
 /* Close backend stream, UDP socket, and free memory.
  * Does NOT stop the feeder thread — caller must handle that. */
-void rigctld_stream_cleanup_resources(struct rigctld_stream *stream)
+int rigctld_stream_cleanup_resources(struct rigctld_stream *stream)
 {
+    int ret = RIG_OK;
+
     if (stream->backend_stream && stream->rig)
     {
-        rig_stream_close(stream->rig, stream->backend_stream);
+        ret = rig_stream_close(stream->rig, stream->backend_stream);
     }
 
     if (stream->udp_sock >= 0)
@@ -446,6 +448,7 @@ void rigctld_stream_cleanup_resources(struct rigctld_stream *stream)
     }
 
     rigctld_stream_free(stream);
+    return ret;
 }
 
 
@@ -487,7 +490,13 @@ static int rigctld_stream_registry_close_matching(
     for (i = 0; i < close_count; i++)
     {
         rigctld_stream_feeder_stop(to_close[i]);
-        rigctld_stream_cleanup_resources(to_close[i]);
+        int ret = rigctld_stream_cleanup_resources(to_close[i]);
+
+        if (ret != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_WARN, "%s: stream close failed: %s\n",
+                      __func__, rigerror(ret));
+        }
     }
 
     return close_count;
@@ -1097,8 +1106,14 @@ int rigctld_stream_auto_close(struct rigctld_stream_registry *reg,
 
     if (stream->backend_stream && stream->rig)
     {
-        rig_stream_close(stream->rig, stream->backend_stream);
+        int ret = rig_stream_close(stream->rig, stream->backend_stream);
         stream->backend_stream = NULL;
+
+        if (ret != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_WARN, "%s: stream close failed: %s\n",
+                      __func__, rigerror(ret));
+        }
     }
 
     if (stream->udp_sock >= 0)

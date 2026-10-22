@@ -244,9 +244,9 @@ struct rigctld_stream *rigctld_stream_alloc(void);
  * For full cleanup, stop the feeder and close resources before calling. */
 void rigctld_stream_free(struct rigctld_stream *stream);
 
-/* Close backend stream, UDP socket, and free memory.
- * Does NOT stop the feeder thread — caller must handle that. */
-void rigctld_stream_cleanup_resources(struct rigctld_stream *stream);
+/* Close backend stream, UDP socket, and free memory, returning any backend
+ * close error. Caller must stop the feeder thread first. */
+int rigctld_stream_cleanup_resources(struct rigctld_stream *stream);
 
 /* Create a UDP socket bound to an ephemeral port on INADDR_ANY.
  * On success, sets *sock_fd and *port and returns 0.

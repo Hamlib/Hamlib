@@ -54,6 +54,7 @@ TEST_LIST =
  * host; do not include them directly. */
 #include "../src/stream.h"
 #include "../src/stream_net.h"
+#include "../src/iofunc.h"
 #include "../src/stream_proto.h"
 #include <string.h>
 #include <stdio.h>
@@ -761,6 +762,87 @@ void test_open_close_tx(void)
     stop_rigctld(&proc);
 }
 
+
+/* Bypass netrigctl_transaction's input flush so a leftover close RPRT
+ * cannot be hidden before the next command's response is checked. */
+static void check_close_response_consumed(RIG *rig)
+{
+    hamlib_port_t *port = RIGPORT(rig);
+    char response[256];
+    const char command[] = "+\\get_freq\n";
+    TEST_ASSERT(write_block(port, (const unsigned char *)command,
+                            strlen(command)) == RIG_OK);
+    TEST_ASSERT(read_string(port, (unsigned char *)response, sizeof(response),
+                            "\n", 1, 0, 1) > 0);
+    TEST_CHECK(strncmp(response, "get_freq:", 9) == 0);
+    TEST_MSG("expected next command header, got %s", response);
+    TEST_ASSERT(read_string(port, (unsigned char *)response, sizeof(response),
+                            "\n", 1, 0, 1) > 0);
+    TEST_CHECK(strncmp(response, "Frequency:", 10) == 0);
+    TEST_ASSERT(read_string(port, (unsigned char *)response, sizeof(response),
+                            "\n", 1, 0, 1) > 0);
+    TEST_CHECK(strcmp(response, "RPRT 0\n") == 0);
+}
+
+void test_close_response_and_cleanup(void)
+{
+    struct rigctld_proc proc = {0};
+    TEST_ASSERT(start_rigctld(&proc) == 0);
+    RIG *rig = open_netrigctl(proc.port);
+    TEST_ASSERT(rig != NULL);
+    struct rig_stream_config *cfg = rig_stream_config_alloc();
+    TEST_ASSERT(cfg != NULL);
+    cfg->type = RIG_STREAM_TYPE_AUDIO_TX;
+    cfg->format = RIG_STREAM_FORMAT_PCM_S16;
+    cfg->sample_rate = 48000;
+    cfg->channels = 1;
+
+    for (int fail = 0; fail < 2; ++fail)
+    {
+        rig_stream_t *stream = NULL;
+        TEST_ASSERT(rig_stream_open(rig, cfg, &stream) == RIG_OK);
+        struct rig_stream_net_session *session = stream->backend_priv;
+        int udp_fd = session->udp_sock;
+        int remote_id = session->remote_stream_id;
+
+        if (fail)
+        {
+            session->remote_stream_id = -1;
+        }
+
+        TEST_CHECK(rig_stream_close(rig, stream)
+                   == (fail ? -RIG_EINVAL : RIG_OK));
+        stream = NULL;
+        int so_type;
+        socklen_t so_len = sizeof(so_type);
+        TEST_CHECK(getsockopt(udp_fd, SOL_SOCKET, SO_TYPE,
+                              (char *)&so_type, &so_len) < 0);
+        check_close_response_consumed(rig);
+
+        if (fail)
+        {
+            hamlib_port_t *port = RIGPORT(rig);
+            char command[64], response[256];
+            snprintf(command, sizeof(command), "+\\stream_close %d\n", remote_id);
+            TEST_ASSERT(write_block(port, (const unsigned char *)command,
+                                    strlen(command)) == RIG_OK);
+            TEST_ASSERT(read_string(port, (unsigned char *)response,
+                                    sizeof(response), "\n", 1, 0, 1) > 0);
+            TEST_CHECK(strncmp(response, "stream_close:", 13) == 0);
+            TEST_ASSERT(read_string(port, (unsigned char *)response,
+                                    sizeof(response), "\n", 1, 0, 1) > 0);
+            TEST_CHECK(strcmp(response, "RPRT 0\n") == 0);
+        }
+    }
+
+    rig_stream_t *stream = NULL;
+    TEST_ASSERT(rig_stream_open(rig, cfg, &stream) == RIG_OK);
+    TEST_CHECK(rig_stream_close(rig, stream) == RIG_OK);
+    rig_stream_config_free(cfg);
+    rig_close(rig);
+    rig_cleanup(rig);
+    stop_rigctld(&proc);
+}
 
 /* Open and close an RX stream.
  * Verify the SUBSCRIBE handshake completed and RX thread is running. */
@@ -2969,6 +3051,7 @@ TEST_LIST =
     { "rx_capture_time_propagates", test_rx_capture_time_propagates },
     { "open_close_tx",             test_open_close_tx },
     { "open_close_rx",             test_open_close_rx },
+    { "close_response_and_cleanup", test_close_response_and_cleanup },
     { "write_tx_multi",            test_write_tx_multi },
     { "tx_write_status_e2e",       test_tx_write_status_e2e },
     { "tx_underrun_e2e",           test_tx_underrun_e2e },

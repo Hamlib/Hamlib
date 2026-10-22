@@ -70,12 +70,12 @@ int rig_stream_state_init(struct rig_stream_state **state)
  * rig_stream_read()/rig_stream_wait_write_status() caller, runs the backend
  * close hook (which joins the backend I/O thread), then destroys the ring and
  * condvars and frees the stream. The backend hook runs with no lock held. */
-static void stream_teardown(struct rig_stream_state *ss,
-                            struct rig_stream *stream)
+static int stream_teardown(struct rig_stream_state *ss,
+                           struct rig_stream *stream)
 {
     if (!stream)
     {
-        return;
+        return RIG_OK;
     }
 
     pthread_mutex_lock(&stream->ringbuf.lock);
@@ -105,15 +105,18 @@ static void stream_teardown(struct rig_stream_state *ss,
 
     pthread_mutex_unlock(&ss->stream_mutex);
 
+    int ret = RIG_OK;
+
     if (stream->rig && stream->rig->caps->stream_close)
     {
-        stream->rig->caps->stream_close(stream->rig, stream);
+        ret = stream->rig->caps->stream_close(stream->rig, stream);
     }
 
     stream_ringbuf_destroy(&stream->ringbuf);
     stream_write_event_destroy(stream);
     stream_conv_free(stream->conv);
     free(stream);
+    return ret;
 }
 
 
@@ -135,7 +138,13 @@ void rig_stream_state_cleanup(struct rig_stream_state *state)
 
             if (s)
             {
-                stream_teardown(state, s);
+                int ret = stream_teardown(state, s);
+
+                if (ret != RIG_OK)
+                {
+                    rig_debug(RIG_DEBUG_WARN, "%s: stream close failed: %s\n",
+                              __func__, rigerror(ret));
+                }
             }
         }
     }
@@ -1769,8 +1778,7 @@ int HAMLIB_API rig_stream_close(RIG *rig, rig_stream_t *stream)
         return -RIG_EINVAL;
     }
 
-    stream_teardown(ss, stream);
-    return RIG_OK;
+    return stream_teardown(ss, stream);
 }
 
 

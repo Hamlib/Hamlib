@@ -2102,6 +2102,49 @@ void test_close_unknown_stream(void)
 }
 
 
+static int failed_close_calls;
+
+static int stub_stream_close_failed(RIG *rig, struct rig_stream *stream)
+{
+    (void)rig;
+    (void)stream;
+    ++failed_close_calls;
+    return -RIG_EIO;
+}
+
+void test_close_error_releases_stream(void)
+{
+    static struct rig_caps caps;
+    caps = stub_caps_with_stream;
+    caps.rig_model = 8;
+    caps.stream_close = stub_stream_close_failed;
+    failed_close_calls = 0;
+    RIG *rig = setup_rig(&caps);
+    TEST_ASSERT(rig != NULL);
+    struct rig_stream_caps profile = stub_stream_caps[0];
+    profile.max_streams = 1;
+    TEST_ASSERT(stream_set_session_caps(rig, &profile, 1) == RIG_OK);
+    struct rig_stream_config *config = rig_stream_config_alloc();
+    TEST_ASSERT(config != NULL);
+    config->type = RIG_STREAM_TYPE_AUDIO_RX;
+    config->format = RIG_STREAM_FORMAT_PCM_S16;
+    config->sample_rate = 48000;
+    config->channels = 1;
+
+    for (int i = 0; i < 2; ++i)
+    {
+        rig_stream_t *stream = NULL;
+        TEST_ASSERT(rig_stream_open(rig, config, &stream) == RIG_OK);
+        TEST_CHECK(rig_stream_close(rig, stream) == -RIG_EIO);
+        stream = NULL;
+        TEST_CHECK(failed_close_calls == i + 1);
+    }
+
+    rig_stream_config_free(config);
+    teardown_rig(rig);
+    TEST_CHECK(failed_close_calls == 2);
+}
+
 /* The generic (frontend, all-streams) stream conf tokens round-trip through
  * rig_set_conf / rig_get_conf2 and reject out-of-range input. */
 void test_stream_conf_tokens(void)
@@ -2583,6 +2626,7 @@ TEST_LIST =
     { "mute_while_paused",        test_mute_while_paused },
     { "default_buffer_size",      test_default_buffer_size },
     { "close_unknown_stream",     test_close_unknown_stream },
+    { "close_error_releases_stream", test_close_error_releases_stream },
     { "close_wakes_blocked_reader", test_close_wakes_blocked_reader },
     { "close_waits_for_inflight_call", test_close_waits_for_inflight_call },
     { "read_block_forever_until_close", test_read_block_forever_until_close },

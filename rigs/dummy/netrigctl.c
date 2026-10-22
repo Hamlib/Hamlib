@@ -3288,6 +3288,21 @@ static int netrigctl_stream_close(RIG *rig, struct rig_stream *stream)
     SNPRINTF(cmd, sizeof(cmd), "+\\stream_close %d\n", sess->remote_stream_id);
     ret = netrigctl_transaction(rig, cmd, strlen(cmd), buf);
 
+    if (ret >= 0)
+    {
+        if (strncmp(buf, "stream_close:", 13) == 0)
+        {
+            ret = read_string(RIGPORT(rig), (unsigned char *)buf, BUF_MAX,
+                              "\n", 1, 0, 1);
+        }
+
+        if (ret >= 0)
+        {
+            ret = strncmp(buf, NETRIGCTL_RET, strlen(NETRIGCTL_RET)) == 0
+                  ? parse_rprt_status(buf) : -RIG_EPROTO;
+        }
+    }
+
     if (ret < 0)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: stream_close returned %s\n",
@@ -3297,7 +3312,7 @@ static int netrigctl_stream_close(RIG *rig, struct rig_stream *stream)
     rig_stream_net_session_cleanup(sess);
     stream->backend_priv = NULL;
 
-    return RIG_OK;
+    return ret;
 }
 
 
