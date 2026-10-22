@@ -2718,7 +2718,8 @@ readline_repeat:
     }
 
 
-    if (retcode == -RIG_EIO && open_retcode == RIG_OK)
+    /* A completed stream close must report its backend error to the client. */
+    if (retcode == -RIG_EIO && open_retcode == RIG_OK && cmd != 0xb2)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: RIG_EIO?\n", __func__);
 
@@ -2737,6 +2738,12 @@ readline_repeat:
             fprintf(fout, NETRIGCTL_RET "%d\n", retcode);
             *ext_resp_ptr = 0;
             *resp_sep_ptr = '\n';
+
+            /* The close error is reported; do not reset the shared rig. */
+            if (cmd == 0xb2 && open_retcode == RIG_OK && retcode == -RIG_EIO)
+            {
+                retcode = RIG_OK;
+            }
         }
         else
         {
@@ -7432,9 +7439,9 @@ declare_proto_rig(stream_close)
               __func__, stream_id, stream_type_name(stream->type));
 
     rigctld_stream_feeder_stop(stream);
-    rigctld_stream_cleanup_resources(stream);
+    err = rigctld_stream_cleanup_resources(stream);
 
-    RETURNFUNC2(RIG_OK);
+    RETURNFUNC2(err);
 }
 
 
