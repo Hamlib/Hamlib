@@ -39,6 +39,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <limits.h>
 #include <errno.h>
 #include <math.h>
 #include <time.h>
@@ -169,23 +170,30 @@ static size_t default_buffer_size(rig_stream_type_t type)
 }
 
 
-/* Bytes per frame (all channels) for buffer_duration_ms sizing. Compressed
- * formats have no fixed sample size, so they fall back to a generous 4-byte
- * estimate to keep the duration-based ring comfortably sized. */
-static int stream_format_bytes_per_frame(rig_stream_format_t fmt, int channels)
+/* Resolve fixed-width frame sizing and distinguish opaque codec payloads. */
+static int stream_frame_geometry(rig_stream_format_t format, int channels,
+                                 int *frame_bytes, int *is_codec)
 {
-    if (channels <= 0)
+    if (!frame_bytes || !is_codec || channels <= 0)
     {
-        return 0;
+        return -RIG_EINVAL;
     }
 
-    int sample_size = rig_stream_format_sample_size(fmt);
+    int sample_size = rig_stream_format_sample_size(format);
 
-    return sample_size > 0 ? sample_size * channels : 4 * channels;
+    if (sample_size > 0 && channels > INT_MAX / sample_size)
+    {
+        return -RIG_EINVAL;
+    }
+
+    *frame_bytes = sample_size > 0 ? sample_size * channels : 0;
+    *is_codec = format != 0 && sample_size == 0;
+    return RIG_OK;
 }
 
 
-static size_t buffer_size_from_config(const struct rig_stream_config *config)
+static int buffer_size_from_config(const struct rig_stream_config *config,
+                                   int frame_bytes, size_t *result)
 {
     size_t buf_size = config->buffer_bytes;
     unsigned int duration_ms = config->buffer_duration_ms;
@@ -203,10 +211,15 @@ static size_t buffer_size_from_config(const struct rig_stream_config *config)
 
     if (buf_size == 0 && duration_ms > 0)
     {
-        int bpf = stream_format_bytes_per_frame(config->format,
-                                                config->channels);
-        uint64_t bytes = (uint64_t)config->sample_rate * (uint64_t)bpf
-                         * (uint64_t)duration_ms / 1000ULL;
+        uint64_t bytes_per_second = (uint64_t)config->sample_rate
+                                    * (uint64_t)frame_bytes;
+
+        if (bytes_per_second > UINT64_MAX / (uint64_t)duration_ms)
+        {
+            return -RIG_EINVAL;
+        }
+
+        uint64_t bytes = bytes_per_second * (uint64_t)duration_ms / 1000ULL;
 
         if (bytes == 0)
         {
@@ -215,7 +228,7 @@ static size_t buffer_size_from_config(const struct rig_stream_config *config)
 
         if (bytes > (uint64_t)SIZE_MAX)
         {
-            bytes = SIZE_MAX;
+            return -RIG_EINVAL;
         }
 
         buf_size = (size_t)bytes;
@@ -226,7 +239,8 @@ static size_t buffer_size_from_config(const struct rig_stream_config *config)
         buf_size = default_buffer_size(config->type);
     }
 
-    return buf_size;
+    *result = buf_size;
+    return RIG_OK;
 }
 
 
@@ -1225,6 +1239,65 @@ int HAMLIB_API rig_stream_open(RIG *rig,
         }
     }
 
+    /* The ring buffer holds the consumer's format: the client's request on
+     * RX, the backend-native side on TX. Validate all derived sizes before
+     * allocating conversion state or consuming a stream ID. */
+    int is_rx = stream_type_is_rx(config->type);
+    const struct rig_stream_config *ring_cfg = is_rx ? config : &backend_cfg;
+    int frame_bytes;
+    int is_codec;
+    int geometry_ret = stream_frame_geometry(ring_cfg->format,
+        ring_cfg->channels, &frame_bytes, &is_codec);
+
+    if (geometry_ret != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: stream frame geometry exceeds supported limits\n",
+                  __func__);
+        return geometry_ret;
+    }
+
+    int max_payload = stream_max_payload_from_mtu(config->mtu, frame_bytes);
+    size_t buf_size;
+
+    /* Codec rings hold framed records: budget one maximum-size record per
+     * 10 ms, the shortest assumed codec cadence, rather than PCM bytes. */
+    if (is_codec && ring_cfg->buffer_bytes == 0)
+    {
+        unsigned int dur_ms = ring_cfg->buffer_duration_ms > 0
+                              ? ring_cfg->buffer_duration_ms
+                              : RIG_STREAM_AUDIO_BUF_DEFAULT_MS;
+        uint64_t slots = ((uint64_t)dur_ms + 9ULL) / 10ULL;
+        size_t slot_bytes = (size_t)max_payload + STREAM_CODEC_REC_HDR_SIZE;
+
+        if (slots > SIZE_MAX / slot_bytes)
+        {
+            return -RIG_EINVAL;
+        }
+
+        buf_size = (size_t)slots * slot_bytes;
+
+        if (buf_size < 4096)
+        {
+            buf_size = 4096;
+        }
+    }
+    else
+    {
+        int size_ret = buffer_size_from_config(ring_cfg, frame_bytes,
+                                               &buf_size);
+
+        if (size_ret != RIG_OK)
+        {
+            return size_ret;
+        }
+    }
+
+    if (buf_size > STREAM_RINGBUF_MAX_CAPACITY)
+    {
+        return -RIG_EINVAL;
+    }
+
     struct rig_stream_state *ss = get_stream_state(rig);
 
     if (!ss)
@@ -1311,25 +1384,15 @@ int HAMLIB_API rig_stream_open(RIG *rig,
     s->backend_config = backend_cfg;
     s->conversions = conversions;
 
-    /* The ring buffer holds the consumer's format: the client's request on
-     * RX, the backend-native side on TX. */
-    int is_rx = stream_type_is_rx(config->type);
-    const struct rig_stream_config *ring_cfg = is_rx ? config
-                                               : &s->backend_config;
-
     /* Bytes per frame for producer-index accounting; 0 for compressed
      * formats. A codec (compressed) stream's ring carries length-prefixed
      * codec-frame records instead of raw bytes; its producer index is the
      * decoded-sample position accumulated from frame durations. */
-    {
-        int sample_size = rig_stream_format_sample_size(ring_cfg->format);
-        int channels = ring_cfg->channels > 0 ? ring_cfg->channels : 1;
-        s->frame_bytes = sample_size > 0 ? sample_size * channels : 0;
-        s->is_codec = ring_cfg->format != 0 && sample_size == 0;
-    }
+    s->frame_bytes = frame_bytes;
+    s->is_codec = is_codec;
 
     /* Effective sender payload budget from the configured (clamped) MTU. */
-    s->max_payload = stream_max_payload_from_mtu(config->mtu, s->frame_bytes);
+    s->max_payload = max_payload;
 
     s->caps_flags = found_caps->caps_flags;
     s->tx_horizon_ms = found_caps->tx_schedule_horizon_ms;
@@ -1366,39 +1429,6 @@ int HAMLIB_API rig_stream_open(RIG *rig,
             return conv_ret;
         }
     }
-
-    /* Initialize ring buffer. A codec ring is sized from the buffer
-     * duration as a worst case — one max_payload frame per 10 ms (the
-     * assumed shortest codec cadence) plus record headers — because the
-     * sample-rate math of buffer_size_from_config() has no meaning for
-     * compressed payloads. buffer_bytes still wins verbatim. */
-    size_t buf_size;
-
-    if (s->is_codec && ring_cfg->buffer_bytes == 0)
-    {
-        unsigned int dur_ms = ring_cfg->buffer_duration_ms > 0
-                              ? ring_cfg->buffer_duration_ms
-                              : RIG_STREAM_AUDIO_BUF_DEFAULT_MS;
-        size_t slots = (dur_ms + 9) / 10;
-
-        if (slots < 1)
-        {
-            slots = 1;
-        }
-
-        buf_size = slots * ((size_t)s->max_payload
-                            + STREAM_CODEC_REC_HDR_SIZE);
-
-        if (buf_size < 4096)
-        {
-            buf_size = 4096;
-        }
-    }
-    else
-    {
-        buf_size = buffer_size_from_config(ring_cfg);
-    }
-
 
     if (stream_ringbuf_init(&s->ringbuf, buf_size) != 0)
     {

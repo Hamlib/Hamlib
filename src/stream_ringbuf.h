@@ -33,6 +33,9 @@
 /* HAMLIB_ATOMIC is defined in hamlib/rig.h */
 
 
+#define STREAM_RINGBUF_MAX_CAPACITY ((SIZE_MAX >> 1) + 1)
+
+
 /* Ring buffer for streaming audio/I/Q data between producer and consumer. */
 struct rig_stream_ringbuf
 {
