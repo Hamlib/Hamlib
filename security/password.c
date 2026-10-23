@@ -20,65 +20,36 @@
  *
  */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "hamlib/rig.h"
 #include "password.h"
 #include "md5.h"
 
-#define HAMLIB_SECRET_LENGTH 32
-
-// makes a 32-byte secret key from password using MD5
-// yes -- this is security-by-obscurity
-// but password hacking software doesn't use this type of logic
-// we want a repeatable password that is not subject to "normal" md5 decryption logic
-// could use a MAC address to make it more random but making that portable is TBD
-HAMLIB_EXPORT(void) rig_password_generate_secret(char *pass,
+HAMLIB_EXPORT(void) rig_password_generate_secret(const char *pass,
         char result[HAMLIB_SECRET_LENGTH + 1])
 {
-    unsigned int product;
-    char newpass[256];
-    product = pass[0];
+    char *secret;
 
-    int i;
-
-    for (i = 1; pass[i]; ++i)
+    if (result == NULL)
     {
-        product *= pass[i];
+        return;
     }
 
-    srand(product);
+    result[0] = '\0';
 
-    snprintf(newpass, sizeof(newpass) - 1, "%s\t%ld\t%ld", pass, (long)rand(),
-             (long)time(NULL));
-    //printf("debug=%s\n", newpass);
-    const char *md5str = rig_make_md5(newpass);
+    if (pass == NULL)
+    {
+        return;
+    }
 
-    strncpy(result, md5str, HAMLIB_SECRET_LENGTH);
-    result[HAMLIB_SECRET_LENGTH] = '\0';
+    secret = rig_make_md5(pass);
 
-    // now that we have the md5 we'll do the AES256
+    if (secret == NULL)
+    {
+        return;
+    }
 
-    printf("sharedkey=%s\n", result);
-
-    printf("\nCan be used with rigctl --password [secret]\nOr can be placed in ~/.hamlib_settings\n");
+    memcpy(result, secret, HAMLIB_SECRET_LENGTH + 1);
+    free(secret);
 }
-
-//#define TESTPASSWORD
-#ifdef TESTPASSWORD
-int main(int argc, const char *argv[])
-{
-    char secret[HAMLIB_SECRET_LENGTH + 1];
-    char password[HAMLIB_SECRET_LENGTH +
-                                       1]; // maximum length usable for password too
-
-    // anything longer will not be used to generate the secret
-    if (argc == 1) { strcpy(password, "testpass"); }
-    else { strcpy(password, argv[1]); }
-
-    printf("Using password \"%s\" to generate shared key\n", password);
-    rig_password_generate_secret(password, secret);
-    return 0;
-}
-#endif

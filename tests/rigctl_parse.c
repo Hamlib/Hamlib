@@ -108,14 +108,16 @@ extern int read_history();
 #define ARG_IN4  0x40
 #define ARG_OUT4 0x80
 #define ARG_OUT5 0x100
+#define CMD_PREAUTH 0x2000
 #define ARG_IN_LINE 0x4000
 #define ARG_NOVFO 0x8000
 
 #define ARG_IN  (ARG_IN1|ARG_IN2|ARG_IN3|ARG_IN4)
 #define ARG_OUT (ARG_OUT1|ARG_OUT2|ARG_OUT3|ARG_OUT4|ARG_OUT5)
+#define RIGCTLD_PASSWORD_MAX_LENGTH 64
 
 static int chk_vfo_executed;
-char rigctld_password[65];
+static char rigctld_secret[HAMLIB_SECRET_LENGTH + 1];
 int is_rigctld;
 extern int lock_mode; // used by rigctld
 extern powerstat_t rig_powerstat;
@@ -387,8 +389,8 @@ static struct test_table test_list[] =
     { '4',  "mW2power",         ACTION(mW2power),       ARG_IN1 | ARG_IN2 | ARG_IN3 | ARG_OUT1 | ARG_NOVFO, "Power mW", "Freq", "Mode", "Power [0.0..1.0]" },
     { '1',  "dump_caps",        ACTION(dump_caps),      ARG_NOVFO },
     { '3',  "dump_conf",        ACTION(dump_conf),      ARG_NOVFO },
-    { 0x8f, "dump_state",       ACTION(dump_state),     ARG_OUT | ARG_NOVFO },
-    { 0xf0, "chk_vfo",          ACTION(chk_vfo),        ARG_NOVFO, "ChkVFO" },   /* rigctld only--check for VFO mode */
+    { 0x8f, "dump_state",       ACTION(dump_state),     ARG_OUT | ARG_NOVFO | CMD_PREAUTH },
+    { 0xf0, "chk_vfo",          ACTION(chk_vfo),        ARG_NOVFO | CMD_PREAUTH, "ChkVFO" },   /* rigctld only--check for VFO mode */
     { 0xf2, "set_vfo_opt",      ACTION(set_vfo_opt),    ARG_NOVFO | ARG_IN, "Status" }, /* turn vfo option on/off */
     { 0xf3, "get_vfo_info",     ACTION(get_vfo_info),   ARG_IN1 | ARG_NOVFO | ARG_OUT5, "VFO", "Freq", "Mode", "Width", "Split", "SatMode" }, /* get several vfo parameters at once */
     { 0xf5, "get_rig_info",     ACTION(get_rig_info),   ARG_NOVFO | ARG_OUT, "RigInfo" }, /* get several vfo parameters at once */
@@ -400,7 +402,7 @@ static struct test_table test_list[] =
     { 0xf1, "halt",             ACTION(halt),           ARG_NOVFO },   /* rigctld only--halt the daemon */
     { 0x8c, "pause",            ACTION(pause),          ARG_IN | ARG_NOVFO, "Seconds" },
 #if RIGCTLD_PASSWORDS
-    { 0x98, "password",         ACTION(password),       ARG_IN | ARG_NOVFO, "Password" },
+    { 0x98, "password",         ACTION(password),       ARG_IN | ARG_NOVFO | CMD_PREAUTH, "Password" },
 //    { 0x99, "set_password",     ACTION(set_password),   ARG_IN | ARG_NOVFO, "Password" },
 #endif
     { 0xa0, "set_separator",     ACTION(set_separator), ARG_IN | ARG_NOVFO, "Separator" },
@@ -962,6 +964,38 @@ void rigctl_parse_init(/* int threaded */)
     return;
 }
 
+int rigctld_password_configure(const char *password,
+                               char secret[HAMLIB_SECRET_LENGTH + 1])
+{
+    if (secret == NULL)
+    {
+        return -RIG_EINVAL;
+    }
+
+    secret[0] = '\0';
+
+    if (password == NULL || password[0] == '\0'
+            || strlen(password) > RIGCTLD_PASSWORD_MAX_LENGTH)
+    {
+        return -RIG_EINVAL;
+    }
+
+    rig_password_generate_secret(password, rigctld_secret);
+
+    if (rigctld_secret[0] == '\0')
+    {
+        return -RIG_EINTERNAL;
+    }
+
+    memcpy(secret, rigctld_secret, sizeof(rigctld_secret));
+    return RIG_OK;
+}
+
+int rigctld_password_is_enabled(void)
+{
+    return rigctld_secret[0] != '\0';
+}
+
 int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                  sync_cb_t sync_cb,
                  int interactive, int prompt, int *vfo_opt, char send_cmd_term,
@@ -981,6 +1015,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
     char client_version[32];
     char name_format[8];
     char arg_format[8];
+    int password_missing;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called, interactive=%d\n", __func__,
               interactive);
@@ -2022,7 +2057,18 @@ readline_repeat:
      */
     if (p1) { strip_quotes(p1); }
 
-    if (interactive && *ext_resp_ptr && !prompt && cmd != 0xf0)
+    connection = pthread_getspecific(thread_data_key);
+    password_missing = use_password
+                       && !(connection ? connection->is_passwordOK : 0)
+                       && !(cmd_entry->flags & CMD_PREAUTH);
+
+    if (password_missing)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: password has not been provided\n", __func__);
+    }
+
+    if (!password_missing && interactive && *ext_resp_ptr && !prompt
+            && cmd != 0xf0)
     {
         char a1[MAXARGSZ + 2];
         char a2[MAXARGSZ + 2];
@@ -2061,35 +2107,15 @@ readline_repeat:
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo_opt=%d\n", __func__, *vfo_opt);
 
-    if (rs->comm_state == 0)
+    if (!password_missing && rs->comm_state == 0)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: %p rig not open...trying to reopen\n", __func__,
                   &rs->comm_state);
         rig_open(my_rig);
     }
 
-    // chk_vfo is the one command we'll allow without a password
-    // since it's in the initial handshake
-    int preCmd =
-        0;  // some command are allowed without password to satisfy rigctld initialization from rigctl -m 2
-
-    if (cmd_entry->arg1 != NULL)
+    if (password_missing)
     {
-        if (strcmp(cmd_entry->arg1, "ChkVFO") == 0) { preCmd = 1; }
-        else if (strcmp(cmd_entry->arg1, "VFO") == 0) { preCmd = 1; }
-        else if (strcmp(cmd_entry->arg1, "Password") == 0) { preCmd = 1; }
-    }
-
-    connection = pthread_getspecific(
-                     thread_data_key);  // Get state of this connection
-
-    /* Streaming commands are gated even when they take no arguments */
-    int is_stream_cmd = (cmd >= 0xb0 && cmd <= 0xba);
-
-    if (use_password && !(connection ? connection->is_passwordOK : 0)
-            && (cmd_entry->arg1 != NULL || is_stream_cmd) && !preCmd)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: password has not been provided\n", __func__);
         fflush(fin);
         retcode = -RIG_ESECURITY;
     }
@@ -5989,33 +6015,22 @@ declare_proto_rig(pause)
 }
 
 #if RIGCTLD_PASSWORDS
-// Compare our known secret with remote submission
-// Returns 1 if match, 0 if not
-static int rigctld_password_check(RIG *rig, const char *md5)
+static int rigctld_password_check(const char *secret)
 {
-    int retval;
-    int len, hits = 0;
-    char padded[HAMLIB_SECRET_LENGTH + 1];
-    //fprintf(fout, "password %s\n", password);
-    //rig_debug(RIG_DEBUG_TRACE, "%s: %s == %s\n", __func__, md5, rigctld_password);
+    unsigned char difference = 0;
 
-    char *mymd5 = rig_make_md5(rigctld_password);
-
-    len = strlen(mymd5);
-    strncpy(padded, md5, HAMLIB_SECRET_LENGTH);
-    padded[HAMLIB_SECRET_LENGTH] = '\0';     // Make sure it's a terminated string
-
-    /* Brute force, constant time comparison */
-    for (int i = 0; i <= len; i++)
+    if (strlen(secret) != HAMLIB_SECRET_LENGTH)
     {
-        hits += (int)(padded[i] == mymd5[i]);
+        return 0;
     }
 
-    retval = (hits == len + 1);     // Entire string + terminator
+    for (int i = 0; i < HAMLIB_SECRET_LENGTH; i++)
+    {
+        difference |= (unsigned char)secret[i]
+                      ^ (unsigned char)rigctld_secret[i];
+    }
 
-    free(mymd5);
-
-    return (retval);
+    return difference == 0;
 }
 
 /* 0x98 */
@@ -6029,7 +6044,7 @@ declare_proto_rig(password)
 
     if (is_rigctld)
     {
-        retval = rigctld_password_check(rig, key);
+        retval = rigctld_password_check(key);
         connection = pthread_getspecific(thread_data_key);
 
         if (connection)
@@ -6055,8 +6070,6 @@ declare_proto_rig(password)
     }
     else
     {
-        //rig_debug(RIG_DEBUG_ERR, "%s: password error, '%s'!='%s'\n", __func__,
-        //          key, rigctld_password);
         rig_debug(RIG_DEBUG_ERR, "%s: password error\n", __func__);
     }
 
@@ -6068,9 +6081,8 @@ declare_proto_rig(password)
 /* 0x99 */
 declare_proto_rig(set_password)
 {
-    const char *passwd = arg1;
-    strncpy(rigctld_password, passwd, sizeof(passwd) - 1);
-    rig_debug(RIG_DEBUG_ERR, "%s: set_password %s\n", __func__, rigctld_password);
+    char secret[HAMLIB_SECRET_LENGTH + 1];
+    rigctld_password_configure(arg1, secret);
     return (RIG_OK);
 }
 #endif
