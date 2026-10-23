@@ -133,15 +133,14 @@ static inline int ftx1_vfo_to_p1(RIG *rig, vfo_t vfo)
  * Maps raw RM5 (PO) values to watts (approximate)
  */
 #define FTX1_RFPOWER_METER_CAL { \
-    7, \
+    6, \
     { \
         {0, 0.0f}, \
-        {10, 0.8f}, \
-        {50, 8.0f}, \
-        {100, 26.0f}, \
-        {150, 54.0f}, \
-        {200, 92.0f}, \
-        {250, 140.0f}, \
+        {50, 5.0f}, \
+        {70, 10.0f}, \
+        {95, 20.0f}, \
+        {125, 40.0f}, \
+        {235, 150.0f}, \
     } \
 }
 
