@@ -5612,6 +5612,7 @@ declare_proto_rig(send_cmd)
     char eom_buf[4] = { 0xa, 0xd, 0, 0 };
     int binary = 0;
     int rxbytes = BUFSZ;
+    int requested_rxbytes = -1;
     int cmdcount = 1;
     int simulate = rig->caps->rig_model == RIG_MODEL_DUMMY ||
                    rig->caps->rig_model == RIG_MODEL_NONE ||
@@ -5622,6 +5623,26 @@ declare_proto_rig(send_cmd)
     if (arg1 == NULL || arg1[0] == '\0')
     {
         RETURNFUNC2(-RIG_EINVAL);
+    }
+
+    if (arg2 != NULL)
+    {
+        char *endptr;
+        long value;
+
+        errno = 0;
+        value = strtol(arg2, &endptr, 10);
+
+        if (endptr != arg2)
+        {
+            if (*endptr != '\0' || errno == ERANGE || value < 0
+                    || value >= BUFSZ)
+            {
+                RETURNFUNC2(-RIG_EINVAL);
+            }
+
+            requested_rxbytes = (int)value;
+        }
     }
 
     /*
@@ -5795,12 +5816,10 @@ declare_proto_rig(send_cmd)
     do
     {
         int hexval;
-        rxbytes = BUFSZ; // leave room for CR
+        rxbytes = requested_rxbytes >= 0 ? requested_rxbytes : BUFSZ;
 
         if (arg2) // see if we have bytes or a hexval for terminating the 'W' command
         {
-            sscanf(arg2, "%d", &rxbytes);
-
             if (sscanf(arg2, "\\0x%2x", &hexval) == 1)
             {
                 eom_buf[0] = hexval;
