@@ -852,6 +852,17 @@ static int ftx1_open(RIG *rig)
                   "%s: PC reports SPA-1 but VE4 detection failed\n", __func__);
     }
 
+    if (priv->ftx1_head_type != FTX1_HEAD_SPA1) {
+        /* Tx Power range for FTX1 field heads is the same among all the frequency ranges */
+        for (int i = 0; i < HAMLIB_FRQRANGESIZ; i++) {
+            STATE(rig)->tx_range_list[i].low_power = FTX1_POWER_MIN_FIELD * 1000;
+            if (priv->ftx1_head_type == FTX1_HEAD_FIELD_BATTERY)
+                STATE(rig)->tx_range_list[i].high_power = FTX1_POWER_MAX_FIELD_BATTERY * 1000;
+            else
+                STATE(rig)->tx_range_list[i].high_power = FTX1_POWER_MAX_FIELD_12V * 1000;
+        }
+    }
+
     return RIG_OK;
 }
 
@@ -1309,8 +1320,9 @@ struct rig_caps ftx1_caps = {
     .set_split_mode = ftx1_set_split_mode,
     .get_split_mode = ftx1_get_split_mode,
     .get_info = newcat_get_info,
-    .power2mW = newcat_power2mW,
-    .mW2power = newcat_mW2power,
+    /* Fallback to the default power conversion functions */
+    .power2mW = NULL,
+    .mW2power = NULL,
     .morse_qsize = 50,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
