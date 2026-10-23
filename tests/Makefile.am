@@ -23,6 +23,8 @@ DIRECT_TESTS = \
 	testcachethread \
 	testcachevfo \
 	testctlparser \
+	testdaemonclient \
+	testdaemonclients \
 	testdebug \
 	testdummyparm \
 	testft991idmeter \
@@ -91,16 +93,17 @@ noinst_PROGRAMS = rigstreamtest
 RIGCOMMONSRC = rigctl_parse.c rigctl_parse.h rigctld_stream.c rigctld_stream.h rigctld_client.h dumpcaps.c dumpstate.c uthash.h rig_tests.c rig_tests.h dumpcaps.h
 ROTCOMMONSRC = rotctl_parse.c rotctl_parse.h dumpcaps_rot.c uthash.h dumpcaps_rot.h
 AMPCOMMONSRC = ampctl_parse.c ampctl_parse.h dumpcaps_amp.c uthash.h 
+DAEMONCLIENTSRC = daemon_client.c daemon_client.h
 
 rigctl_SOURCES = rigctl.c $(RIGCOMMONSRC)
-rigctld_SOURCES = rigctld.c $(RIGCOMMONSRC)
+rigctld_SOURCES = rigctld.c $(RIGCOMMONSRC) $(DAEMONCLIENTSRC)
 rigctlcom_SOURCES = rigctlcom.c $(RIGCOMMONSRC)
-rigctltcp_SOURCES = rigctltcp.c $(RIGCOMMONSRC)
+rigctltcp_SOURCES = rigctltcp.c $(RIGCOMMONSRC) $(DAEMONCLIENTSRC)
 rigctlsync_SOURCES = rigctlsync.c $(RIGCOMMONSRC)
 rotctl_SOURCES = rotctl.c $(ROTCOMMONSRC)
-rotctld_SOURCES = rotctld.c $(ROTCOMMONSRC)
+rotctld_SOURCES = rotctld.c $(ROTCOMMONSRC) $(DAEMONCLIENTSRC)
 ampctl_SOURCES = ampctl.c $(AMPCOMMONSRC)
-ampctld_SOURCES = ampctld.c $(AMPCOMMONSRC)
+ampctld_SOURCES = ampctld.c $(AMPCOMMONSRC) $(DAEMONCLIENTSRC)
 rigmem_SOURCES = rigmem.c memsave.c memload.c memcsv.c
 rigstreamtest_SOURCES = rigstreamtest.c rigstreamtest_util.c rigstreamtest_util.h
 if TESTS_HAVE_LIBUSB
@@ -133,6 +136,7 @@ testcachemode_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testcacherouting_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testcachethread_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testcachevfo_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testdaemonclient_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testctlparser_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testgeministatus_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testg90rit_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
@@ -171,6 +175,8 @@ rigctlcom_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rigctltcp_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rigctlsync_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 testdebug_LDADD = $(PTHREAD_LIBS) $(LDADD)
+testdaemonclient_SOURCES = testdaemonclient.c $(DAEMONCLIENTSRC)
+testdaemonclient_LDADD = $(PTHREAD_LIBS) $(LDADD)
 rigstreamtest_LDADD = $(PTHREAD_LIBS) $(LDADD)
 rigstreamtest_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 rigstreamtest_CPPFLAGS = -I$(top_srcdir)/src -I$(top_builddir)/src \
