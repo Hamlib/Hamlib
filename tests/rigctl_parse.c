@@ -37,6 +37,7 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <errno.h>
+#include <limits.h>
 #include "rig_tests.h"
 
 // If true adds some debug statements to see flow of rigctl parsing
@@ -108,6 +109,7 @@ extern int read_history();
 #define ARG_IN4  0x40
 #define ARG_OUT4 0x80
 #define ARG_OUT5 0x100
+#define CMD_SENSITIVE 0x1000
 #define CMD_PREAUTH 0x2000
 #define ARG_IN_LINE 0x4000
 #define ARG_NOVFO 0x8000
@@ -270,10 +272,8 @@ declare_proto_rig(set_cache);
 declare_proto_rig(get_cache);
 declare_proto_rig(halt);
 declare_proto_rig(pause);
-#if RIGCTLD_PASSWORDS
 declare_proto_rig(password);
 //declare_proto_rig(set_password);
-#endif
 declare_proto_rig(set_clock);
 declare_proto_rig(get_clock);
 declare_proto_rig(set_separator);
@@ -401,10 +401,8 @@ static struct test_table test_list[] =
     { 0xf8, "set_clock",        ACTION(set_clock),      ARG_IN | ARG_NOVFO, "local or utc or YYYY-MM-DDTHH:MM:SS.sss+ZZ or YYYY-MM-DDTHH:MM+ZZ" },
     { 0xf1, "halt",             ACTION(halt),           ARG_NOVFO },   /* rigctld only--halt the daemon */
     { 0x8c, "pause",            ACTION(pause),          ARG_IN | ARG_NOVFO, "Seconds" },
-#if RIGCTLD_PASSWORDS
-    { 0x98, "password",         ACTION(password),       ARG_IN | ARG_NOVFO | CMD_PREAUTH, "Password" },
+    { 0x98, "password",         ACTION(password),       ARG_IN | ARG_NOVFO | CMD_PREAUTH | CMD_SENSITIVE, "Password" },
 //    { 0x99, "set_password",     ACTION(set_password),   ARG_IN | ARG_NOVFO, "Password" },
-#endif
     { 0xa0, "set_separator",     ACTION(set_separator), ARG_IN | ARG_NOVFO, "Separator" },
     { 0xa1, "get_separator",     ACTION(get_separator), ARG_NOVFO, "Separator" },
     { 0xa2, "set_lock_mode",     ACTION(set_lock_mode), ARG_IN | ARG_NOVFO, "Locked" },
@@ -418,7 +416,7 @@ static struct test_table test_list[] =
     { 0xac, "set_conf",    ACTION(set_conf), ARG_NOVFO | ARG_IN, "Token", "Token Value" },
     { 0xad, "get_conf",    ACTION(get_conf), ARG_NOVFO | ARG_IN1 | ARG_OUT2, "Token", "Value"},
     { 0xa7, "test",    ACTION(test), ARG_NOVFO | ARG_IN, "routine" },
-    { 0xb0, "stream_caps",   ACTION(stream_caps),   ARG_OUT | ARG_NOVFO },
+    { 0xb0, "stream_caps",   ACTION(stream_caps),   ARG_OUT | ARG_NOVFO | CMD_PREAUTH },
     { 0xb1, "stream_open",  ACTION(stream_open),   ARG_IN1 | ARG_IN2 | ARG_IN3 | ARG_OUT | ARG_NOVFO, "Type", "Format", "Rate" },
     { 0xb2, "stream_close", ACTION(stream_close),  ARG_IN1 | ARG_NOVFO, "Stream ID" },
     { 0xb3, "stream_status",       ACTION(stream_status),       ARG_IN1 | ARG_OUT | ARG_NOVFO, "Stream ID" },
@@ -859,7 +857,8 @@ static int parse_protocol_clock(const char *timestamp, int *year, int *month,
  * returns <0 is error number
  * returns >=0 when successful
  */
-static int next_word(char *buffer, int argc, char *argv[], int newline)
+static int next_word(char *buffer, int argc, char *argv[], int newline,
+                     FILE *fin, FILE *fout, int sensitive)
 {
     int ret;
     char c;
@@ -884,7 +883,8 @@ static int next_word(char *buffer, int argc, char *argv[], int newline)
         {
             do
             {
-                ret = scanf(" %c%" STR(MAXARGSZ) "[^ \t\n#]", &c, &buffer[1]);
+                ret = fscanf(fin, " %c%" STR(MAXARGSZ) "[^ \t\n#]", &c,
+                             &buffer[1]);
             }
             while (EINTR == ret);
 
@@ -892,7 +892,7 @@ static int next_word(char *buffer, int argc, char *argv[], int newline)
             {
                 do
                 {
-                    ret = scanf("%*[^\n]");
+                    ret = fscanf(fin, "%*[^\n]");
                 }
                 while (EINTR == ret);   /* consume comments */
 
@@ -917,11 +917,11 @@ static int next_word(char *buffer, int argc, char *argv[], int newline)
 
             if (newline)
             {
-                putchar('\n');
+                fputc('\n', fout);
             }
 
-            fputs(buffer, stdout);
-            putchar(' ');
+            fputs(sensitive ? "<redacted>" : buffer, fout);
+            fputc(' ', fout);
         }
     }
 
@@ -996,6 +996,27 @@ int rigctld_password_is_enabled(void)
     return rigctld_secret[0] != '\0';
 }
 
+int rigctl_refresh_powerstat(RIG *rig)
+{
+    powerstat_t powerstat;
+    int retcode;
+
+    if (!rig || !rig->caps->get_powerstat || STATE(rig)->comm_state == 0)
+    {
+        return -RIG_ENAVAIL;
+    }
+
+    retcode = rig_get_powerstat(rig, &powerstat);
+
+    if (retcode == RIG_OK)
+    {
+        STATE(rig)->powerstat = powerstat;
+        rig_powerstat = powerstat;
+    }
+
+    return retcode;
+}
+
 int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                  sync_cb_t sync_cb,
                  int interactive, int prompt, int *vfo_opt, char send_cmd_term,
@@ -1015,7 +1036,11 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
     char client_version[32];
     char name_format[8];
     char arg_format[8];
+    int open_retcode = RIG_OK;
+    int password_authenticated;
     int password_missing;
+    int preauth_command;
+    int sensitive_command;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called, interactive=%d\n", __func__,
               interactive);
@@ -1196,7 +1221,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
         else
         {
             /* parse rest of command line */
-            retcode = next_word(command, argc, argv, 1);
+            retcode = next_word(command, argc, argv, 1, fin, fout, 0);
 
             if (EOF == retcode)
             {
@@ -1238,6 +1263,8 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             return (RIG_OK);
         }
 
+        sensitive_command = cmd_entry->flags & CMD_SENSITIVE;
+
         if (!(cmd_entry->flags & ARG_NOVFO) && *vfo_opt)
         {
             if (interactive)
@@ -1260,7 +1287,8 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             }
             else
             {
-                retcode = next_word(arg1, argc, argv, 0);
+                retcode = next_word(arg1, argc, argv, 0, fin, fout,
+                                    sensitive_command);
 
                 if (EOF == retcode)
                 {
@@ -1325,7 +1353,8 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             }
             else
             {
-                retcode = next_word(arg1, argc, argv, 0);
+                retcode = next_word(arg1, argc, argv, 0, fin, fout,
+                                    sensitive_command);
 
                 if (EOF == retcode)
                 {
@@ -1367,7 +1396,8 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             }
             else
             {
-                retcode = next_word(arg1, argc, argv, 0);
+                retcode = next_word(arg1, argc, argv, 0, fin, fout,
+                                    sensitive_command);
 
                 if (EOF == retcode)
                 {
@@ -1419,7 +1449,8 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             {
                 if (debugflow) { rig_debug(RIG_DEBUG_TRACE, "%s: debug9\n", __func__); }
 
-                retcode = next_word(arg2, argc, argv, 0);
+                retcode = next_word(arg2, argc, argv, 0, fin, fout,
+                                    sensitive_command);
 
                 if (EOF == retcode)
                 {
@@ -1468,7 +1499,8 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             {
                 if (debugflow) { rig_debug(RIG_DEBUG_TRACE, "%s: debug14\n", __func__); }
 
-                retcode = next_word(arg3, argc, argv, 0);
+                retcode = next_word(arg3, argc, argv, 0, fin, fout,
+                                    sensitive_command);
 
                 if (EOF == retcode)
                 {
@@ -1542,7 +1574,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             return (RIG_OK);
         }
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: input_line: %s\n", __func__, input_line);
+        rig_debug(RIG_DEBUG_TRACE, "%s: readline command received\n", __func__);
 
         /* Split input_line on any number of spaces to get the command token
          * Tabs are intercepted by readline for completion and a newline
@@ -1660,6 +1692,16 @@ readline_repeat:
             free(rp_hist_buf);
             return (RIG_OK);
         }
+
+#ifdef HAVE_READLINE_HISTORY
+
+        if ((cmd_entry->flags & CMD_SENSITIVE) && rp_hist_buf)
+        {
+            free(rp_hist_buf);
+            rp_hist_buf = NULL;
+        }
+
+#endif
 
         /* If vfo_opt is enabled (-o|--vfo) check if already given
          * or prompt for it.
@@ -2040,15 +2082,23 @@ readline_repeat:
 
     if (sync_cb) { sync_cb(1); }    /* lock if necessary */
 
+    connection = pthread_getspecific(thread_data_key);
+    password_authenticated = !use_password
+                             || (connection && connection->is_passwordOK);
+    preauth_command = use_password && (cmd_entry->flags & CMD_PREAUTH);
+    sensitive_command = cmd_entry->flags & CMD_SENSITIVE;
+    password_missing = use_password && !password_authenticated
+                       && !preauth_command;
+
     if (!prompt)
     {
         rig_debug(RIG_DEBUG_TRACE,
                   "rigctl(d): %c '%s' '%s' '%s' '%s'\n",
                   cmd,
                   rig_strvfo(vfo),
-                  p1 ? p1 : "",
-                  p2 ? p2 : "",
-                  p3 ? p3 : "");
+                  sensitive_command ? "<redacted>" : (p1 ? p1 : ""),
+                  sensitive_command ? "<redacted>" : (p2 ? p2 : ""),
+                  sensitive_command ? "<redacted>" : (p3 ? p3 : ""));
     }
 
     /*
@@ -2057,18 +2107,12 @@ readline_repeat:
      */
     if (p1) { strip_quotes(p1); }
 
-    connection = pthread_getspecific(thread_data_key);
-    password_missing = use_password
-                       && !(connection ? connection->is_passwordOK : 0)
-                       && !(cmd_entry->flags & CMD_PREAUTH);
-
     if (password_missing)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: password has not been provided\n", __func__);
     }
 
-    if (!password_missing && interactive && *ext_resp_ptr && !prompt
-            && cmd != 0xf0)
+    if (interactive && *ext_resp_ptr && !prompt && cmd != 0xf0)
     {
         char a1[MAXARGSZ + 2];
         char a2[MAXARGSZ + 2];
@@ -2076,12 +2120,18 @@ readline_repeat:
         char vfo_str[MAXARGSZ + 2];
 
         *vfo_opt == 0 ? vfo_str[0] = '\0' : snprintf(vfo_str,
-                                     sizeof(vfo_str),
-                                     " %s",
-                                     rig_strvfo(vfo));
+            sizeof(vfo_str),
+            " %s",
+            rig_strvfo(vfo));
 
         // exception for get_vfo_info cmd which fails with log4om otherwise
-        if (*vfo_opt && cmd != 0xf3)
+        if (sensitive_command)
+        {
+            a1[0] = '\0';
+            a2[0] = '\0';
+            a3[0] = '\0';
+        }
+        else if (*vfo_opt && cmd != 0xf3)
         {
             p1 == NULL ? a1[0] = '\0' : snprintf(a1, sizeof(a1), ":%s", p1);
         }
@@ -2090,8 +2140,11 @@ readline_repeat:
             p1 == NULL ? a1[0] = '\0' : snprintf(a1, sizeof(a1), " %s", p1);
         }
 
-        p2 == NULL ? a2[0] = '\0' : snprintf(a2, sizeof(a2), " %s", p2);
-        p3 == NULL ? a3[0] = '\0' : snprintf(a3, sizeof(a3), " %s", p3);
+        if (!sensitive_command)
+        {
+            p2 == NULL ? a2[0] = '\0' : snprintf(a2, sizeof(a2), " %s", p2);
+            p3 == NULL ? a3[0] = '\0' : snprintf(a3, sizeof(a3), " %s", p3);
+        }
 
         if (cmd == 'b') { strtok(a1, "\r\n"); }
 
@@ -2107,11 +2160,16 @@ readline_repeat:
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo_opt=%d\n", __func__, *vfo_opt);
 
-    if (!password_missing && rs->comm_state == 0)
+    if (!password_missing && !preauth_command && rs->comm_state == 0)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: %p rig not open...trying to reopen\n", __func__,
                   &rs->comm_state);
-        rig_open(my_rig);
+        open_retcode = rig_open(my_rig);
+
+        if (is_rigctld && open_retcode == RIG_OK)
+        {
+            rigctl_refresh_powerstat(my_rig);
+        }
     }
 
     if (password_missing)
@@ -2119,12 +2177,18 @@ readline_repeat:
         fflush(fin);
         retcode = -RIG_ESECURITY;
     }
-
+    else if (is_rigctld && open_retcode != RIG_OK)
+    {
+        retcode = open_retcode;
+    }
     else
     {
         // Allow only certain commands when the rig is powered off
-        if (rs->powerstat == RIG_POWER_OFF && (rig_powerstat == RIG_POWER_OFF
-                                               || rig_powerstat == RIG_POWER_STANDBY)
+        if (!preauth_command
+                && (rs->powerstat == RIG_POWER_OFF
+                    || rs->powerstat == RIG_POWER_STANDBY)
+                && (rig_powerstat == RIG_POWER_OFF
+                    || rig_powerstat == RIG_POWER_STANDBY)
                 && cmd_entry->cmd != '1' // dump_caps
                 && cmd_entry->cmd != '3' // dump_conf
                 && cmd_entry->cmd != 0x8f // dump_state
@@ -2192,7 +2256,7 @@ readline_repeat:
     }
 
 
-    if (retcode == -RIG_EIO)
+    if (retcode == -RIG_EIO && open_retcode == RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: RIG_EIO?\n", __func__);
 
@@ -6014,7 +6078,6 @@ declare_proto_rig(pause)
     return (RIG_OK);
 }
 
-#if RIGCTLD_PASSWORDS
 static int rigctld_password_check(const char *secret)
 {
     unsigned char difference = 0;
@@ -6039,6 +6102,7 @@ declare_proto_rig(password)
     int retval = -RIG_EPROTO;
     const char *key = arg1;
     struct handle_data *connection;
+    int was_authenticated;
 
     ENTERFUNC2;
 
@@ -6046,15 +6110,40 @@ declare_proto_rig(password)
     {
         retval = rigctld_password_check(key);
         connection = pthread_getspecific(thread_data_key);
+        was_authenticated = connection && connection->is_passwordOK;
 
-        if (connection)
+        if (connection && retval == 1)
         {
-            connection->is_passwordOK = retval;
-            retval = retval == 1 ? RIG_OK : -RIG_EPROTO;
+            connection->is_passwordOK = 1;
+            connection->auth_failures = 0;
+
+            if (connection->client_pool)
+            {
+                rigctld_client_set_authenticated(connection->client_pool,
+                                                 connection->client_slot, 1);
+            }
+
+            retval = RIG_OK;
         }
         else
         {
-            retval = -RIG_EPROTO;
+            if (connection)
+            {
+                connection->is_passwordOK = 0;
+
+                if (was_authenticated && connection->client_pool)
+                {
+                    rigctld_client_set_authenticated(connection->client_pool,
+                                                     connection->client_slot, 0);
+                }
+
+                if (connection->auth_failures < UINT_MAX)
+                {
+                    connection->auth_failures++;
+                }
+            }
+
+            retval = -RIG_ESECURITY;
         }
     }
     else
@@ -6075,7 +6164,6 @@ declare_proto_rig(password)
 
     RETURNFUNC2(retval);
 }
-#endif
 
 #if 0 // don't think we need this yet
 /* 0x99 */

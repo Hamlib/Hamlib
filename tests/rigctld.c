@@ -77,6 +77,7 @@
 #include "rigctld_stream.h"
 #include "rigctld_client.h"
 #include "daemon_client.h"
+#include "rig_tests.h"
 #include "riglist.h"
 #include "token.h"
 
@@ -112,9 +113,7 @@ static struct option long_options[] =
     {"twiddle_rit",     1, 0, 'w'},
     {"uplink",          1, 0, 'x'},
     {"debug-time-stamps", 0, 0, 'Z'},
-#if RIGCTLD_PASSWORDS
     {"password",        1, 0, 'A'},
-#endif
     {"rigctld-idle",    0, 0, 'R'},
     {"bind-all",        0, 0, 'b'},
     {"stream-metadata-interval", 1, 0, 'M'},
@@ -137,14 +136,13 @@ void *handle_socket(void *arg);
 static void usage(FILE *fout);
 static void short_usage(FILE *fout);
 
-static unsigned client_count;
+static struct rigctld_client_pool client_pool;
 static HAMLIB_ATOMIC int next_client_id =
     1;  /* Monotonically increasing client ID */
 static struct daemon_client_tracker client_tracker =
     DAEMON_CLIENT_TRACKER_INITIALIZER;
 
 static RIG *my_rig;             /* handle to rig (instance) */
-static volatile int rig_opened = 0;
 static int verbose = RIG_DEBUG_NONE;
 
 #ifdef HAVE_SIG_ATOMIC_T
@@ -192,7 +190,6 @@ static int rigctld_close_rig(void)
 
     rigctld_stream_registry_close_all(&g_stream_registry);
     retcode = rig_close(my_rig);
-    rig_opened = 0;
     return retcode;
 }
 
@@ -306,7 +303,6 @@ int main(int argc, char *argv[])
     pthread_t thread;
     pthread_attr_t attr;
     int vfo_mode = 0; /* vfo_mode=0 means target VFO is current VFO */
-    int i;
     extern int is_rigctld;
 
     is_rigctld = 1;
@@ -352,12 +348,12 @@ int main(int argc, char *argv[])
             bind_all = 1;
             break;
 
-#if RIGCTLD_PASSWORDS
-
         case 'A':
         {
             char secret[HAMLIB_SECRET_LENGTH + 1];
             int retval = rigctld_password_configure(optarg, secret);
+
+            rigctl_wipe_password(optarg);
 
             if (retval != RIG_OK)
             {
@@ -368,8 +364,6 @@ int main(int argc, char *argv[])
             printf("Secret key: %s\n", secret);
             break;
         }
-
-#endif
 
         case 'M':
             stream_metadata_interval = atoi(optarg);
@@ -705,9 +699,14 @@ int main(int argc, char *argv[])
 
 #endif
 
-    SNPRINTF(rigstartup, sizeof(rigstartup), "%s(%d) Startup:", __FILE__, __LINE__);
+    {
+        char startup_prefix[sizeof(rigstartup)];
 
-    for (i = 0; i < argc; ++i) { strcat(rigstartup, " "); strcat(rigstartup, argv[i]); }
+        SNPRINTF(startup_prefix, sizeof(startup_prefix), "%s(%d) Startup:",
+                 __FILE__, __LINE__);
+        rigctl_format_startup_args(rigstartup, sizeof(rigstartup),
+                                   startup_prefix, argc, argv);
+    }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", rigstartup);
 
@@ -841,12 +840,11 @@ int main(int argc, char *argv[])
     /* attempt to open rig to check early for issues */
     if (skip_open)
     {
-        rig_opened = 0;
+        retcode = RIG_OK;
     }
     else
     {
         retcode = rig_open(my_rig);
-        rig_opened = retcode == RIG_OK ? 1 : 0;
     }
 
     if (retcode != RIG_OK)
@@ -854,6 +852,12 @@ int main(int argc, char *argv[])
         fprintf(stderr, "rig_open: error = %s %s %s \n", rigerror(retcode), rig_file,
                 strerror(errno));
         // continue even if opening the rig fails, because it may be powered off
+    }
+    else if (!skip_open)
+    {
+        mutex_rigctld(1);
+        rigctl_refresh_powerstat(my_rig);
+        mutex_rigctld(0);
     }
 
     if (verbose > RIG_DEBUG_ERR)
@@ -1077,11 +1081,7 @@ int main(int argc, char *argv[])
             handle_error(RIG_DEBUG_WARN, "binding failed");
         }
 
-#ifdef __MINGW32__
-        closesocket(sock_listen);
-#else
-        close(sock_listen);
-#endif
+        rigctld_socket_close(sock_listen);
     }
     while (bind_all && ((result = result->ai_next) != NULL));
 
@@ -1190,6 +1190,18 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
+    retcode = rigctld_client_pool_init(&client_pool, &client_tracker,
+                                       rigctld_password_is_enabled()
+                                       ? RIGCTLD_AUTH_TIMEOUT_SECONDS * 1000U
+                                       : 0);
+
+    if (retcode != RIG_OK)
+    {
+        fprintf(stderr, "Unable to initialize client registry\n");
+        pthread_attr_destroy(&attr);
+        exit(1);
+    }
+
     /*
      * main loop accepting connections
      */
@@ -1252,19 +1264,6 @@ int main(int argc, char *argv[])
                 break;
             }
 
-            if (!daemon_client_tracker_acquire(&client_tracker))
-            {
-                rig_debug(RIG_DEBUG_WARN,
-                          "Client limit of %u reached; closing connection\n",
-                          client_tracker.limit);
-#ifdef __MINGW32__
-                closesocket(client_sock);
-#else
-                close(client_sock);
-#endif
-                continue;
-            }
-
             arg = calloc(1, sizeof(struct handle_data));
 
             if (!arg)
@@ -1275,7 +1274,6 @@ int main(int argc, char *argv[])
 #else
                 close(client_sock);
 #endif
-                daemon_client_tracker_release(&client_tracker);
                 continue;
             }
 
@@ -1301,6 +1299,20 @@ int main(int argc, char *argv[])
                           gai_strerror(retcode));
             }
 
+            arg->client_pool = &client_pool;
+            arg->client_slot = rigctld_client_reserve(&client_pool, arg->sock,
+                arg->use_password);
+
+            if (!arg->client_slot)
+            {
+                rig_debug(RIG_DEBUG_WARN,
+                          "Client limit of %u reached; closing connection\n",
+                          client_tracker.limit);
+                rigctld_socket_close(arg->sock);
+                free(arg);
+                continue;
+            }
+
             arg->client_id = next_client_id++;
 
             rig_debug(RIG_DEBUG_VERBOSE,
@@ -1312,13 +1324,11 @@ int main(int argc, char *argv[])
             if (retcode != 0)
             {
                 rig_debug(RIG_DEBUG_ERR, "pthread_create: %s\n", strerror(retcode));
-#ifdef __MINGW32__
-                closesocket(client_sock);
-#else
-                close(client_sock);
-#endif
+                rigctld_client_detach_socket(&client_pool,
+                                                    arg->client_slot);
+                rigctld_socket_close(arg->sock);
+                rigctld_client_release(&client_pool, arg->client_slot);
                 free(arg);
-                daemon_client_tracker_release(&client_tracker);
                 continue;
             }
 
@@ -1329,22 +1339,21 @@ int main(int argc, char *argv[])
     rig_debug(RIG_DEBUG_VERBOSE, "%s: while loop done\n", __func__);
     pthread_attr_destroy(&attr);
 
-    /* allow threads to finish current action */
-    mutex_rigctld(1);
+    unsigned int clients = rigctld_client_count(&client_pool);
 
-    if (client_count)
+    if (clients)
     {
-        rig_debug(RIG_DEBUG_WARN, "%u outstanding client(s)\n", client_count);
+        rig_debug(RIG_DEBUG_WARN, "%u outstanding client(s)\n", clients);
     }
 
-#ifdef __MINGW__
-    closesocket(sock_listen);
-#else
-    close(sock_listen);
-#endif
+    rigctld_socket_close(sock_listen);
+    rigctld_client_pool_stop(&client_pool);
+
+    mutex_rigctld(1);
     rigctld_close_rig();
     mutex_rigctld(0);
 
+    rigctld_client_pool_destroy(&client_pool);
     rigctld_stream_registry_destroy(&g_stream_registry);
     rig_cleanup(my_rig); /* if you care about memory */
 
@@ -1382,6 +1391,15 @@ static FILE *get_fsockin(struct handle_data *handle_data_arg)
 #endif
 }
 
+static void close_idle_rig(void *data)
+{
+    (void)data;
+
+    mutex_rigctld(1);
+    rigctld_close_rig();
+    mutex_rigctld(0);
+}
+
 /*
  * This is the function run by the threads
  */
@@ -1396,9 +1414,19 @@ void *handle_socket(void *arg)
     char send_cmd_term = '\r';  /* send_cmd termination char */
     int ext_resp = 0;
     char my_resp_sep = resp_sep;  // Separator for this connection, initial default
-    unsigned remaining_clients;
-    rig_powerstat = RIG_POWER_ON; // defaults to power on
     struct timespec powerstat_check_time;
+    int auth_timeout_active = handle_data_arg->use_password;
+    int powerstat_refreshed = 0;
+    int my_client_id = handle_data_arg->client_id;
+    int my_client_slot = handle_data_arg->client_slot;
+    unsigned int clients;
+
+    if (auth_timeout_active
+            && rigctld_socket_set_timeout(handle_data_arg->sock,
+                                          RIGCTLD_AUTH_TIMEOUT_SECONDS) != RIG_OK)
+    {
+        goto handle_exit;
+    }
 
     fsockin = get_fsockin(handle_data_arg);
 
@@ -1425,82 +1453,108 @@ void *handle_socket(void *arg)
 
     if (0 != retcode)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: Could not set thread daya\n", __func__);
-        // What do we do here?
+        rig_debug(RIG_DEBUG_ERR, "%s: Could not set thread data\n", __func__);
+        goto handle_exit;
     }
 
-    int my_client_id = handle_data_arg->client_id;
     rigctld_client_id_set(my_client_id);
 
-    mutex_rigctld(1);
-
-    ++client_count;
-#if 0
-
-    if (!client_count++)
-    {
-        retcode = rig_open(my_rig);
-
-        if (RIG_OK == retcode && verbose > RIG_DEBUG_ERR)
-        {
-            printf("Opened rig model %d, '%s'\n",
-                   my_rig->caps->rig_model,
-                   my_rig->caps->model_name);
-        }
-    }
-
-#endif
-
-    mutex_rigctld(0);
-
-    if (my_rig->caps->get_powerstat)
+    if (!handle_data_arg->use_password)
     {
         mutex_rigctld(1);
-        rig_get_powerstat(my_rig, &rig_powerstat);
+        rigctl_refresh_powerstat(my_rig);
         mutex_rigctld(0);
-        STATE(my_rig)->powerstat = rig_powerstat;
+        powerstat_refreshed = 1;
     }
 
     elapsed_ms(&powerstat_check_time, HAMLIB_ELAPSED_SET);
 
     do
     {
-        mutex_rigctld(1);
+        rig_debug(RIG_DEBUG_TRACE, "%s: doing rigctl_parse vfo_mode=%d, secure=%d\n",
+                  __func__, handle_data_arg->vfo_mode,
+                  handle_data_arg->use_password);
+        retcode = rigctl_parse(handle_data_arg->rig, fsockin, fsockout, NULL, 0,
+                               mutex_rigctld, 1, 0,
+                               &handle_data_arg->vfo_mode, send_cmd_term,
+                               &ext_resp, &my_resp_sep,
+                               handle_data_arg->use_password);
 
-        if (!rig_opened)
+        if (retcode != 0)
         {
-            retcode = rig_open(my_rig);
-            rig_opened = retcode == RIG_OK ? 1 : 0;
-            rig_debug(RIG_DEBUG_ERR, "%s: rig_open reopened retcode=%d\n", __func__,
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: rigctl_parse retcode=%d\n", __func__,
                       retcode);
         }
 
-        mutex_rigctld(0);
-
-        if (rig_opened) // only do this if rig is open
+        if (auth_timeout_active && handle_data_arg->is_passwordOK)
         {
-            rig_debug(RIG_DEBUG_TRACE, "%s: doing rigctl_parse vfo_mode=%d, secure=%d\n",
-                      __func__,
-                      handle_data_arg->vfo_mode, handle_data_arg->use_password);
-            retcode = rigctl_parse(handle_data_arg->rig, fsockin, fsockout, NULL, 0,
-                                   mutex_rigctld, 1, 0, &handle_data_arg->vfo_mode,
-                                   send_cmd_term, &ext_resp, &my_resp_sep,
-                                   handle_data_arg->use_password);
-
-            if (retcode != 0) { rig_debug(RIG_DEBUG_VERBOSE, "%s: rigctl_parse retcode=%d\n", __func__, retcode); }
-
-            // If we get a timeout, the rig might be powered off
-            // Update our power status in case power gets turned off
-            // Check power status if rig is powered off, but not more often than once per second
-            if (my_rig->caps->get_powerstat && (retcode == -RIG_ETIMEOUT ||
-                                                (retcode == -RIG_EPOWER
-                                                 && elapsed_ms(&powerstat_check_time, HAMLIB_ELAPSED_GET) >= 1000)))
+            if (rigctld_socket_set_timeout(handle_data_arg->sock, 0) != RIG_OK)
             {
-                powerstat_t powerstat;
-                rig_get_powerstat(my_rig, &powerstat);
-                rig_powerstat = powerstat;
+                break;
+            }
 
-                if (powerstat == RIG_POWER_OFF || powerstat == RIG_POWER_STANDBY)
+            auth_timeout_active = 0;
+
+            if (!powerstat_refreshed)
+            {
+                mutex_rigctld(1);
+                rigctl_refresh_powerstat(my_rig);
+                mutex_rigctld(0);
+                powerstat_refreshed = 1;
+            }
+        }
+        else if (!auth_timeout_active && handle_data_arg->use_password
+                 && !handle_data_arg->is_passwordOK)
+        {
+            powerstat_refreshed = 0;
+
+            if (rigctld_socket_set_timeout(handle_data_arg->sock,
+                                           RIGCTLD_AUTH_TIMEOUT_SECONDS) != RIG_OK)
+            {
+                break;
+            }
+
+            auth_timeout_active = 1;
+        }
+
+        if (handle_data_arg->auth_failures >= RIGCTLD_MAX_AUTH_FAILURES)
+        {
+            rig_debug(RIG_DEBUG_WARN, "%s: authentication failure limit reached\n",
+                      __func__);
+            break;
+        }
+
+        // If we get a timeout, the rig might be powered off
+        // Update our power status in case power gets turned off
+        // Check power status if rig is powered off, but not more often than once per second
+        if ((!handle_data_arg->use_password || handle_data_arg->is_passwordOK)
+                && my_rig->caps->get_powerstat
+                && (retcode == -RIG_ETIMEOUT || retcode == -RIG_EPOWER))
+        {
+            int powerstat_checked = 0;
+            int powerstat_retcode = RIG_OK;
+            powerstat_t powerstat = RIG_POWER_OFF;
+
+            mutex_rigctld(1);
+
+            if (STATE(my_rig)->comm_state != 0
+                    && (retcode == -RIG_ETIMEOUT
+                        || (retcode == -RIG_EPOWER
+                            && elapsed_ms(&powerstat_check_time,
+                                          HAMLIB_ELAPSED_GET) >= 1000)))
+            {
+                powerstat_retcode = rigctl_refresh_powerstat(my_rig);
+                powerstat = rig_powerstat;
+                powerstat_checked = 1;
+            }
+
+            mutex_rigctld(0);
+
+            if (powerstat_checked)
+            {
+                if (powerstat_retcode == RIG_OK
+                        && (powerstat == RIG_POWER_OFF
+                            || powerstat == RIG_POWER_STANDBY))
                 {
                     retcode = -RIG_EPOWER;
                 }
@@ -1508,20 +1562,20 @@ void *handle_socket(void *arg)
                 elapsed_ms(&powerstat_check_time, HAMLIB_ELAPSED_SET);
             }
         }
-        else
-        {
-            retcode = -RIG_EIO;
-        }
 
         // if we get a hard error we try to reopen the rig again
         // this should cover short dropouts that can occur
-        if (retcode < 0 && !RIG_IS_SOFT_ERRCODE(retcode))
+        if ((!handle_data_arg->use_password || handle_data_arg->is_passwordOK)
+                && retcode < 0 && !RIG_IS_SOFT_ERRCODE(retcode))
         {
             int retry = 3;
+            int rig_opened;
             rig_debug(RIG_DEBUG_ERR, "%s: i/o error\n", __func__);
 
             do
             {
+                int reopen_attempted = 0;
+
                 mutex_rigctld(1);
                 retcode = rigctld_close_rig();
                 mutex_rigctld(0);
@@ -1531,54 +1585,33 @@ void *handle_socket(void *arg)
 
                 mutex_rigctld(1);
 
-                if (!rig_opened)
+                if (STATE(my_rig)->comm_state == 0)
                 {
+                    reopen_attempted = 1;
                     retcode = rig_open(my_rig);
-                    rig_opened = retcode == RIG_OK ? 1 : 0;
-                    rig_debug(RIG_DEBUG_ERR, "%s: rig_open retcode=%d, opened=%d\n", __func__,
-                              retcode, rig_opened);
+
+                    if (retcode == RIG_OK)
+                    {
+                        rigctl_refresh_powerstat(my_rig);
+                    }
+
                 }
 
+                rig_opened = STATE(my_rig)->comm_state != 0;
                 mutex_rigctld(0);
+
+                if (reopen_attempted)
+                {
+                    rig_debug(RIG_DEBUG_ERR,
+                              "%s: rig_open retcode=%d, opened=%d\n",
+                              __func__, retcode, rig_opened);
+                }
             }
-            while (!ctrl_c && !rig_opened && retry-- > 0 && retcode != RIG_OK);
+            while (!ctrl_c && !rig_opened && retry-- > 0
+                    && retcode != RIG_OK);
         }
     }
     while (!ctrl_c && (retcode == RIG_OK || RIG_IS_SOFT_ERRCODE(retcode)));
-
-    mutex_rigctld(1);
-    rigctld_stream_registry_close_by_client(&g_stream_registry, my_client_id);
-    remaining_clients = --client_count;
-
-    if (rigctld_idle && remaining_clients == 0)
-    {
-        rigctld_close_rig();
-
-        if (verbose > RIG_DEBUG_ERR) { printf("Closed rig model %s.  Will reopen for new clients\n", my_rig->caps->model_name); }
-    }
-
-    mutex_rigctld(0);
-
-    if (rigctld_idle && remaining_clients > 0) { printf("%u client%s still connected so rig remains open\n", remaining_clients, remaining_clients > 1 ? "s" : ""); }
-
-#if 0
-    mutex_rigctld(1);
-
-    /* Release rig if there are no clients */
-    if (!--client_count)
-    {
-        rig_close(my_rig);
-
-        if (verbose > RIG_DEBUG_ERR)
-        {
-            printf("Closed rig model %d, '%s - no clients, will reopen for new clients'\n",
-                   my_rig->caps->rig_model,
-                   my_rig->caps->model_name);
-        }
-    }
-
-    mutex_rigctld(0);
-#endif
 
     if ((retcode = getnameinfo((struct sockaddr const *)&handle_data_arg->cli_addr,
                                handle_data_arg->clilen,
@@ -1599,6 +1632,11 @@ void *handle_socket(void *arg)
               serv);
 
 handle_exit:
+    mutex_rigctld(1);
+    rigctld_stream_registry_close_by_client(&g_stream_registry, my_client_id);
+    mutex_rigctld(0);
+    rigctld_client_detach_socket(&client_pool,
+                                 handle_data_arg->client_slot);
 
 // for MINGW we close the handle before fclose
 #ifdef __MINGW32__
@@ -1622,8 +1660,21 @@ handle_exit:
 
     pthread_setspecific(thread_data_key,
                         NULL);      // Tell pthreads we're done with the data
-    daemon_client_tracker_release(&client_tracker);
     free(arg);
+    clients = rigctld_client_release_last(&client_pool,
+                                          my_client_slot,
+                                          rigctld_idle ? close_idle_rig : NULL,
+                                          my_rig);
+
+    if (rigctld_idle && clients == 0 && verbose > RIG_DEBUG_ERR)
+    {
+        printf("Closed rig.  Will reopen for new clients\n");
+    }
+    else if (rigctld_idle && clients > 0)
+    {
+        printf("%u client%s still connected so rig remains open\n", clients,
+               clients > 1 ? "s" : "");
+    }
 
     pthread_exit(NULL);
     return NULL;
@@ -1659,9 +1710,7 @@ static void usage(FILE *fout)
             "  -w, --twiddle_rit=SECONDS     suppress VFOB getfreq so RIT can be twiddled\n"
             "  -x, --uplink=OPTION           set uplink get_freq ignore, option 1=Sub, 2=Main\n"
             "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
-#if RIGCTLD_PASSWORDS
-            "  -A, --password=PASSWORD       set password for rigctld access (NOT IMPLEMENTED)\n"
-#endif
+            "  -A, --password=PASSWORD       require a 1 to 64 byte password\n"
             "  -R, --rigctld-idle            make rigctld close the rig when no clients are connected\n"
             "  -b, --bind-all                make rigctld bind to first network device available\n"
             "  -M, --stream-metadata-interval=MS\n"
