@@ -171,9 +171,19 @@ size_t stream_ringbuf_write_record(struct rig_stream_ringbuf *rb,
                                    const void *hdr, size_t hdr_len,
                                    const void *payload, size_t len)
 {
-    size_t total = hdr_len + len;
-
     pthread_mutex_lock(&rb->lock);
+    size_t stored = stream_ringbuf_write_record_locked(rb, hdr, hdr_len,
+        payload, len);
+    pthread_mutex_unlock(&rb->lock);
+    return stored;
+}
+
+
+size_t stream_ringbuf_write_record_locked(struct rig_stream_ringbuf *rb,
+        const void *hdr, size_t hdr_len,
+        const void *payload, size_t len)
+{
+    size_t total = hdr_len + len;
 
     /* All or nothing: a partial record would strand the reader mid-frame,
      * and overwriting the oldest bytes would destroy record alignment.
@@ -181,7 +191,6 @@ size_t stream_ringbuf_write_record(struct rig_stream_ringbuf *rb,
      * so the caller decides whether a failure is a real drop. */
     if (total > rb->capacity - rb->count)
     {
-        pthread_mutex_unlock(&rb->lock);
         return 0;
     }
 
@@ -211,7 +220,6 @@ size_t stream_ringbuf_write_record(struct rig_stream_ringbuf *rb,
     }
 
     pthread_cond_signal(&rb->data_available);
-    pthread_mutex_unlock(&rb->lock);
 
     return total;
 }
