@@ -1407,6 +1407,70 @@ void test_cmd_stream_close_happy_path(void)
 }
 
 
+static int (*real_stream_close)(RIG *, struct rig_stream *);
+static int close_error_calls;
+
+static int stream_close_with_error(RIG *rig, struct rig_stream *stream)
+{
+    int ret = real_stream_close(rig, stream);
+    TEST_CHECK(ret == RIG_OK);
+    ++close_error_calls;
+    return -RIG_EIO;
+}
+
+void test_cmd_stream_close_error_cleanup(void)
+{
+    RIG *rig = stream_test_begin();
+    TEST_ASSERT(rig != NULL);
+    struct rig_caps *original_caps = rig->caps;
+    struct rig_caps caps = *original_caps;
+    real_stream_close = caps.stream_close;
+    caps.stream_close = stream_close_with_error;
+    rig->caps = &caps;
+    close_error_calls = 0;
+
+    char buf[1024];
+    char cmd[64];
+    int stream_id = -1, udp_port = -1;
+    TEST_ASSERT(run_cmd(rig, "\\stream_open AUDIO_TX PCM_S16 48000",
+                        buf, sizeof(buf)) == 0);
+    TEST_ASSERT(parse_open_response(buf, &stream_id, &udp_port) == 0);
+    struct rigctld_stream *stream = rigctld_stream_registry_find_by_id(
+                                        &g_stream_registry, stream_id);
+    TEST_ASSERT(stream != NULL);
+    int saved_fd = stream->udp_sock;
+    snprintf(cmd, sizeof(cmd), "\\stream_close %d", stream_id);
+    run_cmd(rig, cmd, buf, sizeof(buf));
+    int rprt = 0;
+    TEST_CHECK(parse_rprt_code(buf, &rprt) == 0);
+    TEST_CHECK(rprt == -RIG_EIO);
+    TEST_CHECK(close_error_calls == 1);
+    TEST_CHECK(rigctld_stream_registry_count(&g_stream_registry) == 0);
+    TEST_CHECK(!socket_is_open(saved_fd));
+
+    int bulk_fds[2];
+
+    for (int i = 0; i < 2; ++i)
+    {
+        TEST_ASSERT(run_cmd(rig, "\\stream_open AUDIO_TX PCM_S16 48000",
+                            buf, sizeof(buf)) == 0);
+        TEST_ASSERT(parse_open_response(buf, &stream_id, &udp_port) == 0);
+        stream = rigctld_stream_registry_find_by_id(&g_stream_registry,
+            stream_id);
+        TEST_ASSERT(stream != NULL);
+        bulk_fds[i] = stream->udp_sock;
+    }
+
+    TEST_CHECK(rigctld_stream_registry_close_all(&g_stream_registry) == 2);
+    TEST_CHECK(close_error_calls == 3);
+    TEST_CHECK(rigctld_stream_registry_count(&g_stream_registry) == 0);
+    TEST_CHECK(!socket_is_open(bulk_fds[0]));
+    TEST_CHECK(!socket_is_open(bulk_fds[1]));
+    rig->caps = original_caps;
+    stream_test_end(rig);
+    TEST_CHECK(close_error_calls == 3);
+}
+
 void test_cmd_stream_close_not_found(void)
 {
     RIG *rig = stream_test_begin();
@@ -6190,6 +6254,7 @@ TEST_LIST =
 
     /* stream_close — with cleanup verification */
     { "cmd_stream_close_happy_path",        test_cmd_stream_close_happy_path },
+    { "cmd_stream_close_error_cleanup",     test_cmd_stream_close_error_cleanup },
     { "cmd_stream_close_not_found",         test_cmd_stream_close_not_found },
     { "cmd_stream_close_double_close",      test_cmd_stream_close_double_close },
     { "cmd_stream_close_frees_slot",        test_cmd_stream_close_frees_slot },

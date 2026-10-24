@@ -760,8 +760,9 @@ record events your own thread detects (a late burst, a consumer-side underrun).
 int (*stream_close)(RIG *rig, struct rig_stream *stream);
 ```
 
-Stop all backend activity for this stream and free per-stream state. The
-frontend handles ring buffer destruction after this returns.
+Stop all backend activity for this stream and free per-stream state, even
+when returning a shutdown error. The frontend destroys the ring buffer and
+stream handle after this returns; a failure does not preserve them for retry.
 
 ### Steps
 

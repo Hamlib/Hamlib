@@ -2166,7 +2166,8 @@ readline_repeat:
     }
 
 
-    if (retcode == -RIG_EIO)
+    /* A completed stream close must report its backend error to the client. */
+    if (retcode == -RIG_EIO && cmd != 0xb2)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: RIG_EIO?\n", __func__);
 
@@ -7163,9 +7164,9 @@ declare_proto_rig(stream_close)
               __func__, stream_id, stream_type_name(stream->type));
 
     rigctld_stream_feeder_stop(stream);
-    rigctld_stream_cleanup_resources(stream);
+    err = rigctld_stream_cleanup_resources(stream);
 
-    RETURNFUNC2(RIG_OK);
+    RETURNFUNC2(err);
 }
 
 

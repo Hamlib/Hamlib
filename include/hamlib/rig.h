@@ -3696,9 +3696,11 @@ rig_stream_open(RIG *rig,
  * Wakes any thread blocked in rig_stream_read() or
  * rig_stream_wait_write_status() and waits for it to return before the handle
  * is destroyed, so a close may race an in-flight blocking call safely. The
- * handle must not be used again after this returns.
+ * handle is freed even when the backend close fails and must not be used
+ * again after this returns; do not retry close on that handle.
  *
- * \return RIG_OK, or -RIG_EINVAL for a NULL/unknown stream.
+ * \return RIG_OK, a backend close error, or -RIG_EINVAL for NULL or a
+ * live stream not registered with this rig. Freed handles are invalid.
  */
 extern HAMLIB_EXPORT(int)
 rig_stream_close(RIG *rig,
