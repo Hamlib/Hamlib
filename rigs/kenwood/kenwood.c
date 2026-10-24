@@ -279,8 +279,8 @@ static int remove_nonprint(char *s)
  *   RIG_REJECTED - if a negative acknowledge was received or command not
  *          recognized by rig.
  */
-int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
-                        size_t datasize)
+static int kenwood_transaction_retry(RIG *rig, const char *cmdstr, char *data,
+                                     size_t datasize, int retry_command, int flush_input)
 {
     char buffer[KENWOOD_MAX_BUF_LEN]; /* use our own buffer since
                                        verification may need a longer
@@ -291,6 +291,8 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
     int len;
     int resp_len;  // Response length
     int retry_read = 0;
+    int command_sent = 0;
+    int notifications = 0;
     struct kenwood_priv_data *priv = STATE(rig)->priv;
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
     struct rig_state *rs;
@@ -355,6 +357,13 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
 
 transaction_write:
 
+    /* A readback failure must not repeat a state change already sent to a K4. */
+    if (command_sent && !retry_command)
+    {
+        retval = RIG_OK;
+        goto transaction_verify;
+    }
+
     if (cmdstr)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: cmdstr = %s\n", __func__, cmdstr);
@@ -379,7 +388,7 @@ transaction_write:
         }
 
         /* flush anything in the read buffer before command is sent */
-        rig_flush(rp);
+        if (flush_input) { rig_flush(rp); }
 
         retval = write_block(rp, (unsigned char *) cmd, len);
 
@@ -390,6 +399,10 @@ transaction_write:
             goto transaction_quit;
         }
     }
+
+    command_sent = 1;
+
+transaction_verify:
 
     // we're not going to do the verify on RX cmd
     // Seems some rigs (like TS-480) return "?" when RX is done while PTT=OFF
@@ -450,6 +463,9 @@ transaction_read:
     // eventually we should be able to get rid of this but requires testing all Kenwood rigs
     len = min(datasize ? datasize + 1 : priv->verify_cmd_len + 48,
               KENWOOD_MAX_BUF_LEN);
+
+    if (RIG_IS_K4) { len = sizeof(buffer); }
+
     retval = read_string(rp, (unsigned char *) buffer, len,
                          cmdtrm_str, strlen(cmdtrm_str), 0, 1);
     rig_debug(RIG_DEBUG_TRACE, "%s: read_string len=%d '%s'\n", __func__,
@@ -511,6 +527,21 @@ transaction_read:
 
         retval = -RIG_EPROTO;
         goto transaction_quit;
+    }
+
+    if (RIG_IS_K4 && resp_len > 4 && strncmp(buffer, "ER", 2) == 0)
+    {
+        char *end;
+        long code = strtol(buffer + 2, &end, 10);
+
+        if (isdigit((unsigned char)buffer[2]) && code > 0
+                && (*end == ':' || *end == ';'))
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: K4 reported %s while waiting for %s\n",
+                      __func__, buffer, cmdstr ? cmdstr : "reply");
+            retval = -RIG_ERJCTED;
+            goto transaction_quit;
+        }
     }
 
     if (resp_len == 2)
@@ -690,10 +721,17 @@ transaction_read:
             //    and we just need to handle it
             if (buffer[0] == 'F' && (buffer[1] == 'A' || buffer[1] == 'B'))
             {
-                freq_t freq;
-                sscanf(buffer + 2, "%lg", &freq);
-                rig_set_cache_freq(rig, buffer[1] == 'A' ? RIG_VFO_A : RIG_VFO_B, freq);
-                goto transaction_read;
+                if (retry_command)
+                {
+                    freq_t freq;
+                    sscanf(buffer + 2, "%lg", &freq);
+                    rig_set_cache_freq(rig, buffer[1] == 'A' ? RIG_VFO_A : RIG_VFO_B, freq);
+                }
+
+                if (retry_command || notifications++ < 32) { goto transaction_read; }
+
+                retval = -RIG_EPROTO;
+                goto transaction_quit;
             }
 
             rig_debug(RIG_DEBUG_ERR, "%s: wrong reply %c%c for command verification %c%c\n",
@@ -725,6 +763,64 @@ transaction_quit:
 
     rs->transaction_active = 0;
     RETURNFUNC2(retval);
+}
+
+
+int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
+                        size_t datasize)
+{
+    return kenwood_transaction_retry(rig, cmdstr, data, datasize, 1, 1);
+}
+
+int kenwood_transaction_set_once(RIG *rig, const char *cmdstr)
+{
+    return kenwood_transaction_retry(rig, cmdstr, NULL, 0, 0, 0);
+}
+
+
+int kenwood_transaction_k4_read(RIG *rig, const char *cmdstr, char *data,
+                                size_t datasize)
+{
+    char marker[KENWOOD_MAX_BUF_LEN];
+    int retval;
+    int replies;
+
+    /* Drain earlier untagged state reports through ID without flushing ER notices. */
+    retval = kenwood_transaction_retry(rig, "ID", marker, sizeof(marker), 1, 0);
+
+    if (retval != RIG_OK) { return retval; }
+
+    if (strcmp(marker, "ID017") != 0) { return -RIG_EPROTO; }
+
+    retval = kenwood_transaction_retry(rig, cmdstr, data, datasize, 1, 0);
+
+    if (retval != RIG_OK) { return retval; }
+
+    retval = write_block(RIGPORT(rig), (const unsigned char *)"ID;", 3);
+
+    if (retval != RIG_OK) { return retval; }
+
+    /* Retain the latest report before the trailing marker, including rollback. */
+    for (replies = 0; replies < 32; replies++)
+    {
+        retval = kenwood_transaction_retry(rig, NULL, marker, sizeof(marker), 1, 0);
+
+        if (retval != RIG_OK) { return retval; }
+
+        if (strncmp(marker, "ID", 2) == 0)
+        {
+            return strcmp(marker, "ID017") == 0 ? RIG_OK : -RIG_EPROTO;
+        }
+
+        if (strncmp(marker, cmdstr, 2) == 0)
+        {
+            if (strlen(marker) >= datasize) { return -RIG_EPROTO; }
+
+            strcpy(data, marker);
+        }
+    }
+
+    return -RIG_EPROTO;
 }
 
 
