@@ -1,0 +1,9 @@
+check_PROGRAMS += testguohetec
+TESTS += testguohetec
+testguohetec_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/guohetec
+testguohetec_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testguohetec_LDADD = $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/guohetec/libhamlib-guohetec.la $(LDADD)
+
+$(top_builddir)/rigs/guohetec/libhamlib-guohetec.la:
+	$(MAKE) -C $(top_builddir)/rigs/guohetec/ libhamlib-guohetec.la

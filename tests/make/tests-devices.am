@@ -1,0 +1,36 @@
+check_PROGRAMS += testgeministatus
+TESTS += testgeministatus
+testgeministatus_CPPFLAGS = $(AM_CPPFLAGS) \
+	-I$(top_srcdir)/amplifiers/gemini
+testgeministatus_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testgeministatus_LDADD = $(PTHREAD_LIBS) \
+	$(top_builddir)/amplifiers/gemini/libhamlib-gemini.la $(LDADD)
+
+check_PROGRAMS += testgs100
+TESTS += testgs100
+testgs100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testgs100_LDADD = $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/gomspace/libhamlib-gomspace.la $(LDADD)
+
+check_PROGRAMS += testsmartsdrstatus
+TESTS += testsmartsdrstatus
+testsmartsdrstatus_CPPFLAGS = $(AM_CPPFLAGS) \
+	-I$(top_srcdir)/rigs/flexradio
+testsmartsdrstatus_LDADD = \
+	$(top_builddir)/rigs/flexradio/libhamlib-flexradio.la $(LDADD)
+
+if HAVE_USRP
+check_PROGRAMS += testusrp
+TESTS += testusrp
+testusrp_SOURCES = testusrp.cc
+testusrp_LDADD = $(top_builddir)/rigs/kit/libhamlib-kit.la $(LDADD)
+endif
+
+$(top_builddir)/amplifiers/gemini/libhamlib-gemini.la:
+	$(MAKE) -C $(top_builddir)/amplifiers/gemini/ libhamlib-gemini.la
+
+$(top_builddir)/rigs/gomspace/libhamlib-gomspace.la:
+	$(MAKE) -C $(top_builddir)/rigs/gomspace/ libhamlib-gomspace.la
+
+$(top_builddir)/rigs/flexradio/libhamlib-flexradio.la:
+	$(MAKE) -C $(top_builddir)/rigs/flexradio/ libhamlib-flexradio.la

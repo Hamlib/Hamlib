@@ -1,0 +1,2 @@
+check_PROGRAMS += testdummyparm
+TESTS += testdummyparm
