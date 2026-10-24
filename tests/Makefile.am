@@ -45,6 +45,7 @@ DIRECT_TESTS = \
 	testsmartsdrstatus \
 	testthd7x \
 	testthd75emu \
+	testtmd750emu \
 	testts990s \
 	testid5100
 
