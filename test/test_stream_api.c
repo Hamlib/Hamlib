@@ -30,6 +30,7 @@
 #include "test_debug.h"
 #include "stream.h"
 #include "cache.h"
+#include <limits.h>
 #include <string.h>
 #include <stddef.h>
 #include <unistd.h>
@@ -44,10 +45,13 @@
  * No actual I/O thread — tests write/read the ring buffer directly.
  */
 
+static int stub_stream_open_calls;
+
 static int stub_stream_open(RIG *rig, struct rig_stream *stream)
 {
     (void)rig;
     (void)stream;
+    stub_stream_open_calls++;
     return RIG_OK;
 }
 
@@ -315,6 +319,39 @@ static struct rig_caps stub_caps_codec_stream =
     .stream_close = stub_stream_close,
 };
 
+static const struct rig_stream_caps stub_unbounded_channel_stream_caps[] =
+{
+    {
+        .type = RIG_STREAM_TYPE_AUDIO_RX,
+        .formats = RIG_STREAM_FORMAT_PCM_F32,
+        .sample_rates = { 48000, 0 },
+        .channels = { 0 },
+        .max_streams = 1,
+    },
+    { 0 }
+};
+
+static struct rig_caps stub_caps_unbounded_channel_stream =
+{
+    .rig_model = 7,
+    .model_name = "Stub Unbounded Channels",
+    .mfg_name = "Test",
+    .version = "1.0",
+    .status = RIG_STATUS_STABLE,
+    .rig_type = RIG_TYPE_TRANSCEIVER,
+    .port_type = RIG_PORT_NONE,
+    .timeout = 1000,
+    .retry = 0,
+    .stream_caps = stub_unbounded_channel_stream_caps,
+    .rig_init = stub_rig_init,
+    .rig_cleanup = stub_rig_cleanup,
+    .rig_open = stub_rig_open,
+    .rig_close = stub_rig_close,
+    .stream_open = stub_stream_open,
+    .stream_close = stub_stream_close,
+};
+
+
 /* A native rate chosen so 8000 Hz is just outside libsamplerate's
  * single-stage ratio range while nearby standard and arbitrary rates remain
  * reachable. Both directions exercise RX downsampling and TX upsampling. */
@@ -537,6 +574,94 @@ void test_caps_derived_rates(void)
 
     teardown_rig(rig);
 }
+
+void test_stream_frame_geometry_limits(void)
+{
+    RIG *rig = setup_rig(&stub_caps_unbounded_channel_stream);
+    TEST_ASSERT(rig != NULL);
+
+    struct rig_stream_config *cfg = rig_stream_config_alloc();
+    TEST_ASSERT(cfg != NULL);
+    cfg->type = RIG_STREAM_TYPE_AUDIO_RX;
+    cfg->format = RIG_STREAM_FORMAT_PCM_F32;
+    cfg->sample_rate = 48000;
+    cfg->channels = INT_MAX;
+    cfg->buffer_bytes = 4096;
+
+    rig_stream_t *stream = NULL;
+    TEST_CHECK(rig_stream_open(rig, cfg, &stream) == -RIG_EINVAL);
+    TEST_CHECK(stream == NULL);
+
+    cfg->format = RIG_STREAM_FORMAT_PCM_F32;
+    cfg->channels = INT_MAX / 4;
+    cfg->buffer_bytes = 0;
+    cfg->buffer_duration_ms = UINT_MAX;
+    TEST_CHECK(rig_stream_open(rig, cfg, &stream) == -RIG_EINVAL);
+    TEST_CHECK(stream == NULL);
+
+    rig_stream_config_free(cfg);
+    teardown_rig(rig);
+}
+
+void test_stream_buffer_geometry_limits(void)
+{
+    RIG *rig = setup_rig(&stub_caps_codec_stream);
+    TEST_ASSERT(rig != NULL);
+    struct rig_stream_state *ss = STATE(rig)->stream_state;
+    TEST_ASSERT(ss != NULL);
+
+    struct rig_stream_config *cfg = rig_stream_config_alloc();
+    TEST_ASSERT(cfg != NULL);
+    cfg->type = RIG_STREAM_TYPE_AUDIO_RX;
+    cfg->sample_rate = 48000;
+    cfg->channels = 1;
+
+    const struct
+    {
+        rig_stream_format_t format;
+        size_t buffer_bytes;
+        uint32_t duration_ms;
+    } cases[] =
+    {
+        { RIG_STREAM_FORMAT_PCM_S16, STREAM_RINGBUF_MAX_CAPACITY + 1, 0 },
+        { RIG_STREAM_FORMAT_PCM_S16, SIZE_MAX, 0 },
+        { RIG_STREAM_FORMAT_OPUS, STREAM_RINGBUF_MAX_CAPACITY + 1, 0 },
+        { RIG_STREAM_FORMAT_OPUS, SIZE_MAX, 0 },
+#if SIZE_MAX == UINT32_MAX
+        /* Both derived sizes fit size_t but cannot round up to a ring. */
+        { RIG_STREAM_FORMAT_PCM_S16, 0, 30000000 },
+        { RIG_STREAM_FORMAT_OPUS, 0, 20000000 },
+#endif
+    };
+
+    for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++)
+    {
+        cfg->format = cases[i].format;
+        cfg->buffer_bytes = cases[i].buffer_bytes;
+        cfg->buffer_duration_ms = cases[i].duration_ms;
+        int next_id = ss->stream_next_id[cfg->type];
+        int open_calls = stub_stream_open_calls;
+        rig_stream_t *stream = NULL;
+
+        TEST_CHECK(rig_stream_open(rig, cfg, &stream) == -RIG_EINVAL);
+        TEST_MSG("case %zu", i);
+        TEST_CHECK(stream == NULL);
+        TEST_CHECK(ss->stream_next_id[cfg->type] == next_id);
+        TEST_CHECK(stub_stream_open_calls == open_calls);
+    }
+
+    cfg->format = RIG_STREAM_FORMAT_PCM_S16;
+    cfg->buffer_bytes = 4096;
+    cfg->buffer_duration_ms = 0;
+    rig_stream_t *stream = NULL;
+    TEST_ASSERT(rig_stream_open(rig, cfg, &stream) == RIG_OK);
+    TEST_ASSERT(stream != NULL);
+    TEST_CHECK(stream->ringbuf.capacity == 4096);
+    rig_stream_close(rig, stream);
+    rig_stream_config_free(cfg);
+    teardown_rig(rig);
+}
+
 
 void test_rate_ratio_limits(void)
 {
@@ -2548,6 +2673,8 @@ TEST_LIST =
     { "get_stream_caps",          test_get_stream_caps },
     { "caps_derived_formats",     test_caps_derived_formats },
     { "caps_derived_rates",       test_caps_derived_rates },
+    { "stream_frame_geometry_limits", test_stream_frame_geometry_limits },
+    { "stream_buffer_geometry_limits", test_stream_buffer_geometry_limits },
     { "rate_ratio_limits",        test_rate_ratio_limits },
     { "caps_derived_channels",    test_caps_derived_channels },
     { "channel_list_exact",       test_channel_list_exact },
