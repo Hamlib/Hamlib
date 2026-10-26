@@ -109,6 +109,7 @@ extern int read_history();
 #define ARG_IN4  0x40
 #define ARG_OUT4 0x80
 #define ARG_OUT5 0x100
+#define CMD_NO_RIG_LOCK 0x400
 #define CMD_SENSITIVE 0x1000
 #define CMD_PREAUTH 0x2000
 #define ARG_IN_LINE 0x4000
@@ -141,6 +142,18 @@ static char *rp_hist_buf = (char *)NULL;
 static const int have_rl = 0;
 #endif
 
+#define STREAM_OPEN_MAX_KV 12
+
+union rigctl_command_input
+{
+    channel_t channel;
+    struct
+    {
+        struct hamlib_kv_pair pairs[STREAM_OPEN_MAX_KV];
+        int count;
+    } stream_open;
+};
+
 
 struct test_table
 {
@@ -148,7 +161,7 @@ struct test_table
     const char *name;
     int (*rig_routine)(RIG *,
                        FILE *,
-                       FILE *,
+                       const union rigctl_command_input *,
                        int,
                        int,
                        int *,
@@ -175,7 +188,7 @@ struct test_table
 #define ACTION(f) rigctl_##f
 #define declare_proto_rig(f) static int (ACTION(f))(RIG *rig,           \
                                                     FILE *fout,         \
-                                                    FILE *fin,          \
+                                                    const union rigctl_command_input *prepared, \
                                                     int interactive,    \
                                                     int prompt,         \
                                                     int *vfo_opt,       \
@@ -400,7 +413,7 @@ static struct test_table test_list[] =
     { 0xf9, "get_clock",        ACTION(get_clock),      ARG_NOVFO },
     { 0xf8, "set_clock",        ACTION(set_clock),      ARG_IN | ARG_NOVFO, "local or utc or YYYY-MM-DDTHH:MM:SS.sss+ZZ or YYYY-MM-DDTHH:MM+ZZ" },
     { 0xf1, "halt",             ACTION(halt),           ARG_NOVFO },   /* rigctld only--halt the daemon */
-    { 0x8c, "pause",            ACTION(pause),          ARG_IN | ARG_NOVFO, "Seconds" },
+    { 0x8c, "pause",            ACTION(pause),          ARG_IN | ARG_NOVFO | CMD_NO_RIG_LOCK, "Seconds" },
     { 0x98, "password",         ACTION(password),       ARG_IN | ARG_NOVFO | CMD_PREAUTH | CMD_SENSITIVE, "Password" },
 //    { 0x99, "set_password",     ACTION(set_password),   ARG_IN | ARG_NOVFO, "Password" },
     { 0xa0, "set_separator",     ACTION(set_separator), ARG_IN | ARG_NOVFO, "Separator" },
@@ -1017,6 +1030,401 @@ int rigctl_refresh_powerstat(RIG *rig)
     return retcode;
 }
 
+static int rigctl_dispatch_ready(RIG *rig, const struct test_table *cmd_entry,
+                                 unsigned char cmd, int preauth_command,
+                                 int ext_resp, int *open_retcode)
+{
+    struct rig_state *rs = STATE(rig);
+
+    *open_retcode = RIG_OK;
+
+    if (!preauth_command && rs->comm_state == 0)
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: %p rig not open...trying to reopen\n",
+                  __func__, &rs->comm_state);
+        *open_retcode = rig_open(rig);
+
+        if (is_rigctld && *open_retcode == RIG_OK)
+        {
+            rigctl_refresh_powerstat(rig);
+        }
+    }
+
+    if (is_rigctld && *open_retcode != RIG_OK)
+    {
+        return *open_retcode;
+    }
+
+    if (!preauth_command
+            && (rs->powerstat == RIG_POWER_OFF
+                || rs->powerstat == RIG_POWER_STANDBY)
+            && (rig_powerstat == RIG_POWER_OFF
+                || rig_powerstat == RIG_POWER_STANDBY)
+            && cmd_entry->cmd != '1'
+            && cmd_entry->cmd != '3'
+            && cmd_entry->cmd != 0x8f
+            && cmd_entry->cmd != 0xf0
+            && cmd_entry->cmd != 0x87
+            && cmd_entry->cmd != 0x88
+            && cmd_entry->cmd != 0xa5
+            && cmd_entry->cmd != 0xf2
+            && rig->caps->rig_model != RIG_MODEL_POWERSDR)
+    {
+        rig_debug(RIG_DEBUG_WARN,
+                  "%s: command %s not allowed when rig is powered off\n",
+                  __func__, cmd_entry->name);
+        return -RIG_EPOWER;
+    }
+
+    if (cmd >= 0xb0 && cmd <= 0xba && !is_rigctld)
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: streaming command 0x%02x is available in rigctld only\n",
+                  __func__, cmd);
+        return -RIG_ENAVAIL;
+    }
+
+    if (cmd >= 0xb0 && cmd <= 0xba && !ext_resp)
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: streaming command 0x%02x requires ext_resp (+)\n",
+                  __func__, cmd);
+        return -RIG_EPROTO;
+    }
+
+    if (cmd > 0xb0 && cmd <= 0xba && !g_stream_registry.initialized)
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: streaming command 0x%02x needs a stream registry\n",
+                  __func__, cmd);
+        return -RIG_ENAVAIL;
+    }
+
+    return RIG_OK;
+}
+
+#define CHECK_PREPARED_ARG(a) do { \
+        if ((a) != 1) \
+        { \
+            rig_debug(RIG_DEBUG_ERR, "%s: invalid argument\n", __func__); \
+            return -RIG_EINVAL; \
+        } \
+    } while (0)
+
+static int rigctl_prepare_channel(RIG *rig, FILE *fin, FILE *fout,
+                                  int interactive, int prompt, int ext_resp,
+                                  const char *arg1, channel_t *chan)
+{
+    const channel_cap_t *mem_caps = NULL;
+    const chan_t *chan_list;
+    int status;
+    char s[HAMLIB_MAXCHANDESC];
+
+    memset(chan, 0, sizeof(*chan));
+
+    if (isdigit((unsigned char)arg1[0]))
+    {
+        chan->vfo = RIG_VFO_MEM;
+        CHECK_PREPARED_ARG(sscanf(arg1, "%d", &chan->channel_num));
+        chan_list = rig_lookup_mem_caps(rig, chan->channel_num);
+
+        if (chan_list)
+        {
+            mem_caps = &chan_list->mem_caps;
+        }
+    }
+    else
+    {
+        chan->vfo = rig_parse_vfo(arg1);
+        chan->channel_num = 0;
+    }
+
+    if (!mem_caps)
+    {
+        return -RIG_ECONF;
+    }
+
+    if (mem_caps->bank_num)
+    {
+        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+        {
+            fprintf_flush(fout, "Bank Num: ");
+        }
+
+        CHECK_PREPARED_ARG(scanfc(fin, "%d", &chan->bank_num));
+    }
+
+    if (mem_caps->ant)
+    {
+        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+        {
+            fprintf_flush(fout, "ant: ");
+        }
+
+        CHECK_PREPARED_ARG(scanfc(fin, "%d", &chan->ant));
+    }
+
+    if (mem_caps->freq)
+    {
+        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+        {
+            fprintf_flush(fout, "Frequency: ");
+        }
+
+        CHECK_PREPARED_ARG(scan_protocol_freq(fin, &chan->freq));
+    }
+
+    if (mem_caps->mode)
+    {
+        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+        {
+            fprintf_flush(fout, "mode (FM,LSB,etc...): ");
+        }
+
+        CHECK_PREPARED_ARG(scanfc(fin, "%10s", s));
+        chan->mode = rig_parse_mode(s);
+    }
+
+    if (mem_caps->width)
+    {
+        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+        {
+            fprintf_flush(fout, "width: ");
+        }
+
+        CHECK_PREPARED_ARG(scanfc(fin, "%ld", &chan->width));
+    }
+
+    if (mem_caps->tx_freq)
+    {
+        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+        {
+            fprintf_flush(fout, "tx freq: ");
+        }
+
+        CHECK_PREPARED_ARG(scan_protocol_freq(fin, &chan->tx_freq));
+    }
+
+    if (mem_caps->tx_mode)
+    {
+        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+        {
+            fprintf_flush(fout, "tx mode (FM,LSB,etc...): ");
+        }
+
+        CHECK_PREPARED_ARG(scanfc(fin, "%10s", s));
+        chan->tx_mode = rig_parse_mode(s);
+    }
+
+    if (mem_caps->tx_width)
+    {
+        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+        {
+            fprintf_flush(fout, "tx width: ");
+        }
+
+        CHECK_PREPARED_ARG(scanfc(fin, "%ld", &chan->tx_width));
+    }
+
+    if (mem_caps->split)
+    {
+        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+        {
+            fprintf_flush(fout, "split (0,1): ");
+        }
+
+        CHECK_PREPARED_ARG(scanfc(fin, "%d", &status));
+        chan->split = status;
+    }
+
+    if (mem_caps->tx_vfo)
+    {
+        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+        {
+            fprintf_flush(fout, "tx vfo (VFOA,MEM,etc...): ");
+        }
+
+        CHECK_PREPARED_ARG(scanfc(fin, "%10s", s));
+        chan->tx_vfo = rig_parse_vfo(s);
+    }
+
+    if (mem_caps->rptr_shift)
+    {
+        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+        {
+            fprintf_flush(fout, "rptr shift (+-0): ");
+        }
+
+        CHECK_PREPARED_ARG(scanfc(fin, "%12s", s));
+        chan->rptr_shift = rig_parse_rptr_shift(s);
+    }
+
+    if (mem_caps->rptr_offs)
+    {
+        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+        {
+            fprintf_flush(fout, "rptr offset: ");
+        }
+
+        CHECK_PREPARED_ARG(scanfc(fin, "%ld", &chan->rptr_offs));
+    }
+
+    if (mem_caps->tuning_step)
+    {
+        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+        {
+            fprintf_flush(fout, "tuning step: ");
+        }
+
+        CHECK_PREPARED_ARG(scanfc(fin, "%ld", &chan->tuning_step));
+    }
+
+    if (mem_caps->rit)
+    {
+        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+        {
+            fprintf_flush(fout, "rit (Hz,0=off): ");
+        }
+
+        CHECK_PREPARED_ARG(scanfc(fin, "%ld", &chan->rit));
+    }
+
+    if (mem_caps->xit)
+    {
+        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+        {
+            fprintf_flush(fout, "xit (Hz,0=off): ");
+        }
+
+        CHECK_PREPARED_ARG(scanfc(fin, "%ld", &chan->xit));
+    }
+
+    if (mem_caps->funcs)
+    {
+        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+        {
+            fprintf_flush(fout, "funcs: ");
+        }
+
+        CHECK_PREPARED_ARG(scanfc(fin, "%lx", &chan->funcs));
+    }
+
+    if (mem_caps->ctcss_tone)
+    {
+        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+        {
+            fprintf_flush(fout,
+                          "ctcss tone freq in tenth of Hz (0=off): ");
+        }
+
+        CHECK_PREPARED_ARG(scanfc(fin, "%d", &chan->ctcss_tone));
+    }
+
+    if (mem_caps->ctcss_sql)
+    {
+        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+        {
+            fprintf_flush(fout,
+                          "ctcss sql freq in tenth of Hz (0=off): ");
+        }
+
+        CHECK_PREPARED_ARG(scanfc(fin, "%d", &chan->ctcss_sql));
+    }
+
+    if (mem_caps->dcs_code)
+    {
+        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+        {
+            fprintf_flush(fout, "dcs code: ");
+        }
+
+        CHECK_PREPARED_ARG(scanfc(fin, "%d", &chan->dcs_code));
+    }
+
+    if (mem_caps->dcs_sql)
+    {
+        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+        {
+            fprintf_flush(fout, "dcs sql: ");
+        }
+
+        CHECK_PREPARED_ARG(scanfc(fin, "%d", &chan->dcs_sql));
+    }
+
+    if (mem_caps->scan_group)
+    {
+        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+        {
+            fprintf_flush(fout, "scan group: ");
+        }
+
+        CHECK_PREPARED_ARG(scanfc(fin, "%d", &chan->scan_group));
+    }
+
+    if (mem_caps->flags)
+    {
+        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+        {
+            fprintf_flush(fout, "flags: ");
+        }
+
+        CHECK_PREPARED_ARG(scanfc(fin, "%d", &chan->flags));
+    }
+
+    if (mem_caps->channel_desc)
+    {
+        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+        {
+            fprintf_flush(fout, "channel desc: ");
+        }
+
+        CHECK_PREPARED_ARG(scanfc(fin, "%29s", s));
+        strcpy(chan->channel_desc, s);
+    }
+
+    return RIG_OK;
+}
+
+static int rigctl_command_has_trailing_input(unsigned char cmd,
+        const char *arg1)
+{
+    return cmd == 'H' || cmd == 0xb1
+           || (cmd == 'V' && strcmp(arg1, "?") != 0
+               && rig_parse_vfo(arg1) == RIG_VFO_NONE);
+}
+
+static int rigctl_prepare_command_input(RIG *rig, FILE *fin, FILE *fout,
+                                        int interactive, int prompt,
+                                        int ext_resp, unsigned char cmd,
+                                        const char *arg1,
+                                        union rigctl_command_input *prepared)
+{
+    if (cmd == 'V')
+    {
+        int c;
+
+        while ((c = fgetc(fin)) != '\n' && c != '\r' && c > 0);
+
+        return -RIG_EINVAL;
+    }
+
+    if (cmd == 'H')
+    {
+        return rigctl_prepare_channel(rig, fin, fout, interactive, prompt,
+                                      ext_resp, arg1, &prepared->channel);
+    }
+
+    if (cmd == 0xb1 && interactive)
+    {
+        prepared->stream_open.count = hamlib_parse_kv_args(
+                                          fin, prepared->stream_open.pairs, STREAM_OPEN_MAX_KV);
+    }
+
+    return RIG_OK;
+}
+
+#undef CHECK_PREPARED_ARG
+
 int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                  sync_cb_t sync_cb,
                  int interactive, int prompt, int *vfo_opt, char send_cmd_term,
@@ -1041,6 +1449,8 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
     int password_missing;
     int preauth_command;
     int sensitive_command;
+    int lock_held = 0;
+    union rigctl_command_input prepared = { 0 };
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called, interactive=%d\n", __func__,
               interactive);
@@ -2078,7 +2488,11 @@ readline_repeat:
 
 #endif // HAVE_LIBREADLINE
 
-    if (sync_cb) { sync_cb(1); }    /* lock if necessary */
+    if (sync_cb)
+    {
+        sync_cb(1);
+        lock_held = 1;
+    }
 
     connection = pthread_getspecific(thread_data_key);
     password_authenticated = !use_password
@@ -2158,88 +2572,70 @@ readline_repeat:
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo_opt=%d\n", __func__, *vfo_opt);
 
-    if (!password_missing && !preauth_command && rs->comm_state == 0)
-    {
-        rig_debug(RIG_DEBUG_WARN, "%s: %p rig not open...trying to reopen\n", __func__,
-                  &rs->comm_state);
-        open_retcode = rig_open(my_rig);
-
-        if (is_rigctld && open_retcode == RIG_OK)
-        {
-            rigctl_refresh_powerstat(my_rig);
-        }
-    }
-
     if (password_missing)
     {
         fflush(fin);
         retcode = -RIG_ESECURITY;
     }
-    else if (is_rigctld && open_retcode != RIG_OK)
-    {
-        retcode = open_retcode;
-    }
     else
     {
-        // Allow only certain commands when the rig is powered off
-        if (!preauth_command
-                && (rs->powerstat == RIG_POWER_OFF
-                    || rs->powerstat == RIG_POWER_STANDBY)
-                && (rig_powerstat == RIG_POWER_OFF
-                    || rig_powerstat == RIG_POWER_STANDBY)
-                && cmd_entry->cmd != '1' // dump_caps
-                && cmd_entry->cmd != '3' // dump_conf
-                && cmd_entry->cmd != 0x8f // dump_state
-                && cmd_entry->cmd != 0xf0 // chk_vfo
-                && cmd_entry->cmd != 0x87 // set_powerstat
-                && cmd_entry->cmd != 0x88 // get_powerstat
-                && cmd_entry->cmd != 0xa5 // client_version
-                && cmd_entry->cmd != 0xf2 // set_vfo_opt
-                && my_rig->caps->rig_model !=
-                RIG_MODEL_POWERSDR) // some rigs can do stuff when powered off
+        retcode = rigctl_dispatch_ready(my_rig, cmd_entry, cmd,
+                                        preauth_command, *ext_resp_ptr,
+                                        &open_retcode);
+
+        if (retcode == RIG_OK
+                && rigctl_command_has_trailing_input(cmd, p1))
         {
-            rig_debug(RIG_DEBUG_WARN,
-                      "%s: command %s not allowed when rig is powered off\n", __func__,
-                      cmd_entry->name);
-            retcode = -RIG_EPOWER;
+            int prepared_status;
+
+            if (lock_held)
+            {
+                sync_cb(0);
+                lock_held = 0;
+            }
+
+            prepared_status = rigctl_prepare_command_input(
+                                  my_rig, fin, fout, interactive, prompt,
+                                  *ext_resp_ptr, cmd, p1, &prepared);
+
+            if (sync_cb)
+            {
+                sync_cb(1);
+                lock_held = 1;
+            }
+
+            retcode = rigctl_dispatch_ready(my_rig, cmd_entry, cmd,
+                                            preauth_command, *ext_resp_ptr,
+                                            &open_retcode);
+
+            if (retcode == RIG_OK)
+            {
+                retcode = prepared_status;
+            }
         }
-        else if (cmd >= 0xb0 && cmd <= 0xba && !is_rigctld)
-        {
-            /* Streaming is served by rigctld only; checked ahead of the
-             * protocol-format rules so a local rigctl reports the feature as
-             * unavailable rather than complaining about the response format. */
-            rig_debug(RIG_DEBUG_ERR,
-                      "%s: streaming command 0x%02x is available in rigctld only\n",
-                      __func__, cmd);
-            retcode = -RIG_ENAVAIL;
-        }
-        else if (cmd >= 0xb0 && cmd <= 0xba && !*ext_resp_ptr)
-        {
-            /* Streaming commands require extended response protocol */
-            rig_debug(RIG_DEBUG_ERR,
-                      "%s: streaming command 0x%02x requires ext_resp (+)\n",
-                      __func__, cmd);
-            retcode = -RIG_EPROTO;
-        }
-        else if (cmd > 0xb0 && cmd <= 0xba && !g_stream_registry.initialized)
-        {
-            /* Every command past stream_caps works on the registry, which only
-             * rigctld owns; stream_caps is a pure capability query. */
-            rig_debug(RIG_DEBUG_ERR,
-                      "%s: streaming command 0x%02x needs a stream registry\n",
-                      __func__, cmd);
-            retcode = -RIG_ENAVAIL;
-        }
-        else
+
+        if (retcode == RIG_OK)
         {
             if (password_authenticated)
             {
                 rs->vfo_opt = *vfo_opt;
             }
 
+            if (cmd_entry->flags & CMD_NO_RIG_LOCK)
+            {
+                memcpy(client_version, rs->client_version,
+                       sizeof(client_version));
+
+                if (lock_held)
+                {
+                    sync_cb(0);
+                    lock_held = 0;
+                }
+            }
+
             retcode = (*cmd_entry->rig_routine)(my_rig,
                                                 fout,
-                                                fin,
+                                                &prepared,
                                                 interactive,
                                                 prompt,
                                                 vfo_opt,
@@ -2253,9 +2649,12 @@ readline_repeat:
                                                 p3 ? p3 : "");
         }
 
-        // we need to copy client_version to our thread in case there are multiple client versions
-        // client_version is used to determine any backward compatibility requirements or problems
-        memcpy(client_version, rs->client_version, sizeof(client_version));
+        if (lock_held)
+        {
+            // we need to copy client_version to our thread in case there are multiple client versions
+            // client_version is used to determine any backward compatibility requirements or problems
+            memcpy(client_version, rs->client_version, sizeof(client_version));
+        }
     }
 
 
@@ -2263,7 +2662,7 @@ readline_repeat:
     {
         rig_debug(RIG_DEBUG_ERR, "%s: RIG_EIO?\n", __func__);
 
-        if (sync_cb) { sync_cb(0); }    /* unlock if necessary */
+        if (lock_held) { sync_cb(0); }
 
         return (retcode);
     }
@@ -2322,7 +2721,7 @@ readline_repeat:
 
 #endif
 
-    if (sync_cb) { sync_cb(0); }    /* unlock if necessary */
+    if (lock_held) { sync_cb(0); }
 
     return (retcode);
 }
@@ -2787,11 +3186,7 @@ declare_proto_rig(set_vfo)
 
     if (vfo == RIG_VFO_NONE)
     {
-        int c;
-
-        while ((c = fgetc(fin)) != '\n' && c != '\r' && c > 0);
-
-        return -RIG_EINVAL;
+        RETURNFUNC2(-RIG_EINVAL);
     }
 
     retval = rig_set_vfo(rig, vfo);
@@ -3667,7 +4062,8 @@ declare_proto_rig(power2mW)
 
     ENTERFUNC2;
 
-    CHKSCN1ARG(rigctl_parse_float(arg1, RIGCTL_DECIMAL_DOT_OR_COMMA, &power) == RIG_OK);
+    CHKSCN1ARG(rigctl_parse_float(arg1, RIGCTL_DECIMAL_DOT_OR_COMMA,
+                                  &power) == RIG_OK);
     CHKSCN1ARG(parse_protocol_freq(arg2, &freq));
     mode = rig_parse_mode(arg3);
 
@@ -3815,11 +4211,13 @@ declare_proto_rig(set_level)
             break;
 
         case RIG_CONF_INT:
-            CHKSCN1ARG(rigctl_parse_float(arg2, RIGCTL_DECIMAL_DOT_OR_COMMA, &val.f) == RIG_OK);
+            CHKSCN1ARG(rigctl_parse_float(arg2, RIGCTL_DECIMAL_DOT_OR_COMMA,
+                                          &val.f) == RIG_OK);
             break;
 
         case RIG_CONF_NUMERIC:
-            CHKSCN1ARG(rigctl_parse_float(arg2, RIGCTL_DECIMAL_DOT_OR_COMMA, &val.f) == RIG_OK);
+            CHKSCN1ARG(rigctl_parse_float(arg2, RIGCTL_DECIMAL_DOT_OR_COMMA,
+                                          &val.f) == RIG_OK);
             break;
 
         case RIG_CONF_STRING:
@@ -3856,7 +4254,8 @@ declare_proto_rig(set_level)
 
     if (RIG_LEVEL_IS_FLOAT(level))
     {
-        CHKSCN1ARG(rigctl_parse_float(arg2, RIGCTL_DECIMAL_DOT_OR_COMMA, &val.f) == RIG_OK);
+        CHKSCN1ARG(rigctl_parse_float(arg2, RIGCTL_DECIMAL_DOT_OR_COMMA,
+                                      &val.f) == RIG_OK);
     }
     else
     {
@@ -4185,11 +4584,13 @@ declare_proto_rig(set_parm)
             break;
 
         case RIG_CONF_INT:
-            CHKSCN1ARG(rigctl_parse_float(arg2, RIGCTL_DECIMAL_DOT_OR_COMMA, &val.f) == RIG_OK);
+            CHKSCN1ARG(rigctl_parse_float(arg2, RIGCTL_DECIMAL_DOT_OR_COMMA,
+                                          &val.f) == RIG_OK);
             break;
 
         case RIG_CONF_NUMERIC:
-            CHKSCN1ARG(rigctl_parse_float(arg2, RIGCTL_DECIMAL_DOT_OR_COMMA, &val.f) == RIG_OK);
+            CHKSCN1ARG(rigctl_parse_float(arg2, RIGCTL_DECIMAL_DOT_OR_COMMA,
+                                          &val.f) == RIG_OK);
             break;
 
         case RIG_CONF_STRING:
@@ -4219,7 +4620,8 @@ declare_proto_rig(set_parm)
 
     if (RIG_PARM_IS_FLOAT(parm))
     {
-        CHKSCN1ARG(rigctl_parse_float(arg2, RIGCTL_DECIMAL_DOT_OR_COMMA, &val.f) == RIG_OK);
+        CHKSCN1ARG(rigctl_parse_float(arg2, RIGCTL_DECIMAL_DOT_OR_COMMA,
+                                      &val.f) == RIG_OK);
     }
     else if (RIG_PARM_IS_STRING(parm))
     {
@@ -4492,322 +4894,9 @@ declare_proto_rig(scan)
 /* 'H' */
 declare_proto_rig(set_channel)
 {
-    const channel_cap_t *mem_caps = NULL;
-    const chan_t *chan_list;
-    channel_t chan;
-    int status;
-    char s[HAMLIB_MAXCHANDESC];
-
     ENTERFUNC2;
-
-    memset(&chan, 0, sizeof(channel_t));
-
-    if (isdigit((int)arg1[0]))
-    {
-        chan.vfo = RIG_VFO_MEM;
-        CHKSCN1ARG(sscanf(arg1, "%d", &chan.channel_num));
-        /*
-         * find mem_caps in caps, we'll need it later
-         */
-        chan_list = rig_lookup_mem_caps(rig, chan.channel_num);
-
-        if (chan_list)
-        {
-            mem_caps = &chan_list->mem_caps;
-        }
-
-    }
-    else
-    {
-        chan.vfo = rig_parse_vfo(arg1);
-        chan.channel_num = 0;
-
-        /* TODO: mem_caps for VFO! */
-        /*       either from mem, or reverse computed from caps */
-    }
-
-    if (!mem_caps)
-    {
-        RETURNFUNC2(-RIG_ECONF);
-    }
-
-    if (mem_caps->bank_num)
-    {
-        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-        {
-            fprintf_flush(fout, "Bank Num: ");
-        }
-
-        CHKSCN1ARG(scanfc(fin, "%d", &chan.bank_num));
-    }
-
-#if 0
-
-    if (mem_caps->vfo)
-    {
-        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-        {
-            fprintf_flush(fout, "vfo (VFOA,MEM,etc...): ");
-        }
-
-        CHKSCN1ARG(scanfc(fin, "%10s", s));
-        chan.vfo = rig_parse_vfo(s);
-    }
-
-#endif
-
-    if (mem_caps->ant)
-    {
-        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-        {
-            fprintf_flush(fout, "ant: ");
-        }
-
-        CHKSCN1ARG(scanfc(fin, "%d", &chan.ant));
-    }
-
-    if (mem_caps->freq)
-    {
-        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-        {
-            fprintf_flush(fout, "Frequency: ");
-        }
-
-        CHKSCN1ARG(scan_protocol_freq(fin, &chan.freq));
-    }
-
-    if (mem_caps->mode)
-    {
-        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-        {
-            fprintf_flush(fout, "mode (FM,LSB,etc...): ");
-        }
-
-        CHKSCN1ARG(scanfc(fin, "%10s", s));
-        chan.mode = rig_parse_mode(s);
-    }
-
-    if (mem_caps->width)
-    {
-        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-        {
-            fprintf_flush(fout, "width: ");
-        }
-
-        CHKSCN1ARG(scanfc(fin, "%ld", &chan.width));
-    }
-
-    if (mem_caps->tx_freq)
-    {
-        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-        {
-            fprintf_flush(fout, "tx freq: ");
-        }
-
-        CHKSCN1ARG(scan_protocol_freq(fin, &chan.tx_freq));
-    }
-
-    if (mem_caps->tx_mode)
-    {
-        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-        {
-            fprintf_flush(fout, "tx mode (FM,LSB,etc...): ");
-        }
-
-        CHKSCN1ARG(scanfc(fin, "%10s", s));
-        chan.tx_mode = rig_parse_mode(s);
-    }
-
-    if (mem_caps->tx_width)
-    {
-        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-        {
-            fprintf_flush(fout, "tx width: ");
-        }
-
-        CHKSCN1ARG(scanfc(fin, "%ld", &chan.tx_width));
-    }
-
-    if (mem_caps->split)
-    {
-        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-        {
-            fprintf_flush(fout, "split (0,1): ");
-        }
-
-        CHKSCN1ARG(scanfc(fin, "%d", &status));
-        chan.split = status;
-    }
-
-    if (mem_caps->tx_vfo)
-    {
-        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-        {
-            fprintf_flush(fout, "tx vfo (VFOA,MEM,etc...): ");
-        }
-
-        CHKSCN1ARG(scanfc(fin, "%10s", s));
-        chan.tx_vfo = rig_parse_vfo(s);
-    }
-
-    if (mem_caps->rptr_shift)
-    {
-        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-        {
-            fprintf_flush(fout, "rptr shift (+-0): ");
-        }
-
-        CHKSCN1ARG(scanfc(fin, "%12s", s));
-        chan.rptr_shift = rig_parse_rptr_shift(s);
-    }
-
-    if (mem_caps->rptr_offs)
-    {
-        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-        {
-            fprintf_flush(fout, "rptr offset: ");
-        }
-
-        CHKSCN1ARG(scanfc(fin, "%ld", &chan.rptr_offs));
-    }
-
-    if (mem_caps->tuning_step)
-    {
-        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-        {
-            fprintf_flush(fout, "tuning step: ");
-        }
-
-        CHKSCN1ARG(scanfc(fin, "%ld", &chan.tuning_step));
-    }
-
-    if (mem_caps->rit)
-    {
-        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-        {
-            fprintf_flush(fout, "rit (Hz,0=off): ");
-        }
-
-        CHKSCN1ARG(scanfc(fin, "%ld", &chan.rit));
-    }
-
-    if (mem_caps->xit)
-    {
-        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-        {
-            fprintf_flush(fout, "xit (Hz,0=off): ");
-        }
-
-        CHKSCN1ARG(scanfc(fin, "%ld", &chan.xit));
-    }
-
-    if (mem_caps->funcs)
-    {
-        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-        {
-            fprintf_flush(fout, "funcs: ");
-        }
-
-        CHKSCN1ARG(scanfc(fin, "%lx", &chan.funcs));
-    }
-
-#if 0
-
-    /* for all levels (except READONLY), ask */
-    if (mem_caps->levels)
-    {
-        sscanf(arg1, "%d", &chan.levels);
-    }
-
-#endif
-
-    if (mem_caps->ctcss_tone)
-    {
-        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-        {
-            fprintf_flush(fout, "ctcss tone freq in tenth of Hz (0=off): ");
-        }
-
-        CHKSCN1ARG(scanfc(fin, "%d", &chan.ctcss_tone));
-    }
-
-    if (mem_caps->ctcss_sql)
-    {
-        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-        {
-            fprintf_flush(fout, "ctcss sql freq in tenth of Hz (0=off): ");
-        }
-
-        CHKSCN1ARG(scanfc(fin, "%d", &chan.ctcss_sql));
-    }
-
-    if (mem_caps->dcs_code)
-    {
-        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-        {
-            fprintf_flush(fout, "dcs code: ");
-        }
-
-        CHKSCN1ARG(scanfc(fin, "%d", &chan.dcs_code));
-    }
-
-    if (mem_caps->dcs_sql)
-    {
-        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-        {
-            fprintf_flush(fout, "dcs sql: ");
-        }
-
-        CHKSCN1ARG(scanfc(fin, "%d", &chan.dcs_sql));
-    }
-
-    if (mem_caps->scan_group)
-    {
-        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-        {
-            fprintf_flush(fout, "scan group: ");
-        }
-
-        CHKSCN1ARG(scanfc(fin, "%d", &chan.scan_group));
-    }
-
-    if (mem_caps->flags)
-    {
-        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-        {
-            fprintf_flush(fout, "flags: ");
-        }
-
-        CHKSCN1ARG(scanfc(fin, "%d", &chan.flags));
-    }
-
-    if (mem_caps->channel_desc)
-    {
-        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-        {
-            fprintf_flush(fout, "channel desc: ");
-        }
-
-        CHKSCN1ARG(scanfc(fin, "%29s", s));
-        strcpy(chan.channel_desc, s);
-    }
-
-#if 0
-
-    /* TODO: same as levels, allocate/free the array */
-    if (mem_caps->ext_levels)
-    {
-        sscanf(arg1, "%d", &chan.ext_levels[i].val.i);
-    }
-
-#endif
-
-    status = rig_set_channel(rig, vfo, &chan);
-
-    RETURNFUNC2(status);
+    RETURNFUNC2(rig_set_channel(rig, vfo, &prepared->channel));
 }
-
-
 /* 'h' */
 declare_proto_rig(get_channel)
 {
@@ -4917,6 +5006,7 @@ int dump_chan(FILE *fout, RIG *rig, channel_t *chan)
     {
         RETURNFUNC2(-RIG_EINVAL);
     }
+
     fprintf(fout,
             "Freq:   %s\tMode:   %s\tWidth:   %s\n",
             freqbuf,
@@ -4928,6 +5018,7 @@ int dump_chan(FILE *fout, RIG *rig, channel_t *chan)
     {
         RETURNFUNC2(-RIG_EINVAL);
     }
+
     fprintf(fout,
             "txFreq: %s\ttxMode: %s\ttxWidth: %s\n",
             freqbuf,
@@ -4938,6 +5029,7 @@ int dump_chan(FILE *fout, RIG *rig, channel_t *chan)
     {
         RETURNFUNC2(-RIG_EINVAL);
     }
+
     fprintf(fout,
             "Shift: %s, Offset: %s%s, ",
             rig_strptrshift(chan->rptr_shift),
@@ -4948,16 +5040,21 @@ int dump_chan(FILE *fout, RIG *rig, channel_t *chan)
     {
         RETURNFUNC2(-RIG_EINVAL);
     }
+
     fprintf(fout, "Step: %s, ", freqbuf);
+
     if (format_protocol_freq(freqbuf, sizeof(freqbuf), chan->rit) != RIG_OK)
     {
         RETURNFUNC2(-RIG_EINVAL);
     }
+
     fprintf(fout, "RIT: %s%s, ", chan->rit > 0 ? "+" : "", freqbuf);
+
     if (format_protocol_freq(freqbuf, sizeof(freqbuf), chan->xit) != RIG_OK)
     {
         RETURNFUNC2(-RIG_EINVAL);
     }
+
     fprintf(fout, "XIT: %s%s\n", chan->xit > 0 ? "+" : "", freqbuf);
 
     fprintf(fout, "CTCSS: %u.%uHz, ", chan->ctcss_tone / 10, chan->ctcss_tone % 10);
@@ -5045,6 +5142,7 @@ int dump_chan(FILE *fout, RIG *rig, channel_t *chan)
             {
                 RETURNFUNC2(-RIG_EINVAL);
             }
+
             break;
 
         case RIG_CONF_NUMERIC:
@@ -5053,6 +5151,7 @@ int dump_chan(FILE *fout, RIG *rig, channel_t *chan)
             {
                 RETURNFUNC2(-RIG_EINVAL);
             }
+
             break;
 
         case RIG_CONF_CHECKBUTTON:
@@ -5528,7 +5627,6 @@ declare_proto_rig(set_powerstat)
         rig_powerstat = stat; // update our global so others can see powerstat
     }
 
-    fflush(fin);
     RETURNFUNC2(retval);
 }
 
@@ -5588,7 +5686,7 @@ static int hex_digit_value(char digit)
 
 static int has_binary_command_prefix(const char *command)
 {
-    while (isspace((unsigned char)*command))
+    while (isspace((unsigned char) * command))
     {
         command++;
     }
@@ -5613,7 +5711,7 @@ static int decode_binary_command(const char *command, char *decoded,
     {
         int bytes_in_group = 0;
 
-        while (isspace((unsigned char)*p))
+        while (isspace((unsigned char) * p))
         {
             p++;
         }
@@ -5636,7 +5734,7 @@ static int decode_binary_command(const char *command, char *decoded,
             return -RIG_EINVAL;
         }
 
-        while (isxdigit((unsigned char)*p))
+        while (isxdigit((unsigned char) * p))
         {
             int high = hex_digit_value(p[0]);
             int low = hex_digit_value(p[1]);
@@ -5656,7 +5754,7 @@ static int decode_binary_command(const char *command, char *decoded,
             return -RIG_EINVAL;
         }
 
-        if (*p != '\0' && !isspace((unsigned char)*p) && *p != '\\'
+        if (*p != '\0' && !isspace((unsigned char) * p) && *p != '\\'
                 && *p != 'x' && *p != 'X')
         {
             return -RIG_EINVAL;
@@ -6808,11 +6906,10 @@ struct stream_open_opts
 /* Returns 0, or -1 if a parameter was rejected outright (only require_native
  * is that strict — see below); the whole argument line is consumed either
  * way, so the caller can simply fail the command. */
-static int stream_open_parse_opts(FILE *fin, struct rig_stream_config *cfg,
+static int stream_open_parse_opts(const struct hamlib_kv_pair *kv, int nkv,
+                                  struct rig_stream_config *cfg,
                                   struct stream_open_opts *opts)
 {
-    struct hamlib_kv_pair kv[12];
-    int nkv = hamlib_parse_kv_args(fin, kv, 12);
     int err = 0;
     int i;
 
@@ -6976,7 +7073,9 @@ declare_proto_rig(stream_open)
     /* Optional key=value parameters follow the positional arguments */
     if (interactive)
     {
-        if (stream_open_parse_opts(fin, &cfg, &opts) < 0)
+        if (stream_open_parse_opts(prepared->stream_open.pairs,
+                                   prepared->stream_open.count,
+                                   &cfg, &opts) < 0)
         {
             free(opts.multicast_spec);
             RETURNFUNC2(-RIG_EINVAL);
@@ -7360,7 +7459,7 @@ declare_proto_rig(stream_status)
 
     struct rig_stream_time_anchor anchor;
     int have_anchor = rig_stream_get_time_anchor(stream->backend_stream,
-                      &anchor) == RIG_OK;
+        &anchor) == RIG_OK;
     int paused = stream->backend_stream->paused;
     int muted = stream->backend_stream->muted;
 
