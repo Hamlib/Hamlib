@@ -1655,6 +1655,111 @@ done:
     return result;
 }
 
+static int parse_interactive_text(RIG *rig, const char *text, int parse_count,
+                                  char *response, size_t response_size,
+                                  char *remaining, size_t remaining_size)
+{
+    FILE *input = tmpfile();
+    FILE *output = tmpfile();
+    char *argv[] = { "testctlparser" };
+    int vfo_mode = 0;
+    int ext_resp = 0;
+    char resp_sep = '\n';
+    int ret = RIGCTL_PARSE_ERROR;
+
+    if (response != NULL && response_size > 0) { response[0] = '\0'; }
+
+    if (remaining != NULL && remaining_size > 0) { remaining[0] = '\0'; }
+
+    if (input == NULL || output == NULL)
+    {
+        if (input != NULL) { fclose(input); }
+
+        if (output != NULL) { fclose(output); }
+
+        return ret;
+    }
+
+    fputs(text, input);
+    rewind(input);
+
+    for (int i = 0; i < parse_count; i++)
+    {
+        ret = rigctl_parse(rig, input, output, argv, 1, NULL, 1, 0,
+                           &vfo_mode, 0, &ext_resp, &resp_sep, 0);
+
+        if (ret != RIG_OK)
+        {
+            break;
+        }
+    }
+
+    if (response != NULL && response_size > 0)
+    {
+        fflush(output);
+        rewind(output);
+        response[fread(response, 1, response_size - 1, output)] = '\0';
+    }
+
+    if (remaining != NULL && remaining_size > 0)
+    {
+        remaining[fread(remaining, 1, remaining_size - 1, input)] = '\0';
+    }
+
+    fclose(input);
+    fclose(output);
+    return ret;
+}
+
+static int check_long_command_framing(RIG *rig)
+{
+    char response[64];
+    char remaining[64];
+    int ret;
+
+    ret = parse_interactive_text(rig, "\\chk_vfo\n\\c", 2, response,
+                                 sizeof(response), NULL, 0);
+
+    if (ret != RIG_OK || strcmp(response, "0\n") != 0)
+    {
+        fprintf(stderr, "truncated long command replayed prior command: '%s'\n",
+                response);
+        return 1;
+    }
+
+    captured_freq = -1;
+    ret = parse_interactive_text(rig, "\\f\n\\set_freq 123\n", 2, NULL, 0,
+                                 NULL, 0);
+
+    if (ret != RIG_OK || captured_freq != 123)
+    {
+        fprintf(stderr, "single-character long command consumed next line\n");
+        return 1;
+    }
+
+    ret = parse_interactive_text(rig, "\\chk_vfo", 1, response,
+                                 sizeof(response), NULL, 0);
+
+    if (ret != RIG_OK || strcmp(response, "0\n") != 0)
+    {
+        fprintf(stderr, "complete long command at EOF failed: '%s'\n", response);
+        return 1;
+    }
+
+    ret = parse_interactive_text(rig, "\\\n\\password test-secret\n", 1,
+                                 NULL, 0, remaining, sizeof(remaining));
+
+    if (ret != RIGCTL_PARSE_ERROR
+            || strcmp(remaining, "\\password test-secret\n") != 0)
+    {
+        fprintf(stderr, "empty long command consumed next line: '%s'\n",
+                remaining);
+        return 1;
+    }
+
+    return 0;
+}
+
 static int check_send_command(RIG *rig, const char *command,
                               const unsigned char *expected,
                               size_t expected_length)
@@ -2074,7 +2179,8 @@ int main(void)
         return 1;
     }
 
-    if (check_description(rig, maximum, maximum) != 0
+    if (check_long_command_framing(rig) != 0
+            || check_description(rig, maximum, maximum) != 0
             || check_description(rig, thirty, maximum) != 0
             || check_description(rig, thirty_one, maximum) != 0)
     {
