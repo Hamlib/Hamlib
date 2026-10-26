@@ -50,8 +50,9 @@ static int parse_command(RIG *rig, FILE *input, char *argv[], int argc,
 }
 
 static int parse_command_output(RIG *rig, FILE *input, char *argv[], int argc,
-                                char send_cmd_term, unsigned char *output,
-                                size_t output_size, size_t *output_length)
+                                int interactive, char send_cmd_term,
+                                unsigned char *output, size_t output_size,
+                                size_t *output_length)
 {
     FILE *stream = tmpfile();
     int vfo_mode = 0;
@@ -65,7 +66,7 @@ static int parse_command_output(RIG *rig, FILE *input, char *argv[], int argc,
     }
 
     optind = 1;
-    ret = rigctl_parse(rig, input, stream, argv, argc, NULL, 0, 0,
+    ret = rigctl_parse(rig, input, stream, argv, argc, NULL, interactive, 0,
                        &vfo_mode, send_cmd_term, &ext_resp, &resp_sep, 0);
     rewind(stream);
     *output_length = fread(output, 1, output_size, stream);
@@ -88,7 +89,7 @@ static int check_send_command(RIG *rig, const char *command,
         return 1;
     }
 
-    ret = parse_command_output(rig, input, argv, 3, -1, actual,
+    ret = parse_command_output(rig, input, argv, 3, 0, -1, actual,
                                sizeof(actual), &actual_length);
     fclose(input);
 
@@ -234,6 +235,42 @@ static int check_description(RIG *rig, const char *input,
     return 0;
 }
 
+static int check_get_clock_failure_response(RIG *rig, struct rig_caps *caps)
+{
+    static const unsigned char expected[] = "RPRT -4\n";
+    int (*saved_get_clock)(RIG *, int *, int *, int *, int *, int *, int *,
+                           double *, int *) = caps->get_clock;
+    char *argv[] = { "testctlparser", "get_clock" };
+    unsigned char output[sizeof(expected)];
+    size_t output_length;
+    FILE *input = tmpfile();
+    int ret;
+
+    if (input == NULL)
+    {
+        return 1;
+    }
+
+    fputs("\\get_clock\n", input);
+    rewind(input);
+    caps->get_clock = NULL;
+    ret = parse_command_output(rig, input, argv, 2, 1, -1, output,
+                               sizeof(output), &output_length);
+    caps->get_clock = saved_get_clock;
+    fclose(input);
+
+    if (ret != -RIG_ENIMPL || output_length != sizeof(expected) - 1
+            || memcmp(output, expected, sizeof(expected) - 1) != 0)
+    {
+        fprintf(stderr,
+                "failed get_clock: expected %d without timestamp data, got %d and %zu bytes: '%.*s'\n",
+                -RIG_ENIMPL, ret, output_length, (int)output_length, output);
+        return 1;
+    }
+
+    return 0;
+}
+
 int main(void)
 {
     static const char maximum[] = "12345678901234567890123456789";
@@ -318,7 +355,8 @@ int main(void)
             || check_receive_length(rig, "12junk", -RIG_EINVAL) != 0
             || check_receive_length(rig, "999999999999999999999999",
                                     -RIG_EINVAL) != 0
-            || check_bad_input_stream(rig) != 0)
+            || check_bad_input_stream(rig) != 0
+            || check_get_clock_failure_response(rig, &caps) != 0)
     {
         rig_cleanup(rig);
         return 1;

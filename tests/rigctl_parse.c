@@ -5893,9 +5893,16 @@ declare_proto_rig(set_clock)
 declare_proto_rig(get_clock)
 {
     //char option[64];
-    int year, month, day, hour, min, sec, utc_offset, aoffset;
+    int year = 0;
+    int month = 0;
+    int day = 0;
+    int hour = 0;
+    int min = 0;
+    int sec = 0;
+    int utc_offset = 0;
+    int aoffset;
     int retval;
-    double msec;
+    double msec = 0.0;
 
     ENTERFUNC2;
 
@@ -5903,6 +5910,12 @@ declare_proto_rig(get_clock)
 
     retval = rig_get_clock(rig, &year, &month, &day, &hour, &min, &sec, &msec,
                            &utc_offset);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
     aoffset = abs(utc_offset);
     fprintf(fout, "%04d-%02d-%02dT%02d:%02d:%06.3f%s%02d:%02d\n", year, month, day,
             hour, min, sec + msec / 1000, utc_offset >= 0 ? "+" : "-",
