@@ -1676,7 +1676,6 @@ handle_exit:
                clients > 1 ? "s" : "");
     }
 
-    pthread_exit(NULL);
     return NULL;
 }
 

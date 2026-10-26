@@ -1001,7 +1001,7 @@ int rigctl_refresh_powerstat(RIG *rig)
     powerstat_t powerstat;
     int retcode;
 
-    if (!rig || !rig->caps->get_powerstat || STATE(rig)->comm_state == 0)
+    if (!rig || STATE(rig)->comm_state == 0)
     {
         return -RIG_ENAVAIL;
     }

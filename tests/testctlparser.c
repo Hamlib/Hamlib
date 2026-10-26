@@ -749,6 +749,58 @@ static int check_socket_timeouts(void)
     return 0;
 }
 
+static int check_powerstat_refresh(RIG *rig)
+{
+    static const powerstat_t stale_states[] =
+    {
+        RIG_POWER_OFF, RIG_POWER_STANDBY
+    };
+    int (*saved_get_powerstat)(RIG *, powerstat_t *) =
+        rig->caps->get_powerstat;
+    int result = 1;
+    int ret;
+
+    ((struct rig_caps *)rig->caps)->get_powerstat = NULL;
+    ret = rig_open(rig);
+
+    if (ret != RIG_OK || HAMLIB_STATE(rig)->comm_state == 0)
+    {
+        fprintf(stderr, "unable to open rig for power refresh test: %d\n", ret);
+        goto done;
+    }
+
+    for (size_t i = 0; i < sizeof(stale_states) / sizeof(stale_states[0]); i++)
+    {
+        HAMLIB_STATE(rig)->powerstat = stale_states[i];
+        rig_powerstat = stale_states[i];
+        ret = rigctl_refresh_powerstat(rig);
+
+        if (ret != RIG_OK || HAMLIB_STATE(rig)->powerstat != RIG_POWER_ON
+                || rig_powerstat != RIG_POWER_ON)
+        {
+            fprintf(stderr,
+                    "unsupported power query kept stale state: state=%d ret=%d\n",
+                    stale_states[i], ret);
+            goto done;
+        }
+    }
+
+    result = 0;
+
+done:
+    HAMLIB_STATE(rig)->powerstat = RIG_POWER_ON;
+    rig_powerstat = RIG_POWER_ON;
+
+    if (HAMLIB_STATE(rig)->comm_state != 0)
+    {
+        rig_close(rig);
+    }
+
+    ((struct rig_caps *)rig->caps)->get_powerstat = saved_get_powerstat;
+
+    return result;
+}
+
 static int check_password_authorization(RIG *rig)
 {
     static const char *protected_commands[] =
@@ -1454,6 +1506,7 @@ int main(void)
             || check_startup_argument_redaction() != 0
             || check_batch_password_redaction(rig) != 0
             || check_socket_timeouts() != 0
+            || check_powerstat_refresh(rig) != 0
             || check_password_authorization(rig) != 0
        )
     {
