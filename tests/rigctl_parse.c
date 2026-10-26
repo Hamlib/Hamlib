@@ -637,6 +637,62 @@ static int scanfc(FILE *fin, const char *format, void *p)
     while (1);
 }
 
+static int read_long_command_name(FILE *fin, char *name, size_t name_size)
+{
+    size_t length = 0;
+    int too_long = 0;
+    int c;
+
+    name[0] = '\0';
+
+    while (1)
+    {
+        errno = 0;
+        c = fgetc(fin);
+
+        if (c == EOF)
+        {
+            if (ferror(fin) && errno == EINTR)
+            {
+                clearerr(fin);
+                continue;
+            }
+
+            if (ferror(fin))
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: errno=%d, %s\n", __func__, errno,
+                          strerror(errno));
+                return RIGCTL_PARSE_ERROR;
+            }
+
+            break;
+        }
+
+        if (isspace((unsigned char)c))
+        {
+            if (length > 0 && !too_long && ungetc(c, fin) == EOF)
+            {
+                return RIGCTL_PARSE_ERROR;
+            }
+
+            break;
+        }
+
+        if (length + 1 < name_size)
+        {
+            name[length++] = (char)c;
+        }
+        else
+        {
+            too_long = 1;
+        }
+    }
+
+    name[length] = '\0';
+
+    return length > 0 && !too_long ? RIG_OK : RIGCTL_PARSE_ERROR;
+}
+
 static int parse_protocol_freq(const char *token, freq_t *value)
 {
     return rigctl_parse_double(token, RIGCTL_DECIMAL_DOT_OR_COMMA, value) == RIG_OK;
@@ -1442,7 +1498,6 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
     char arg3[MAXARGSZ + 1], *p3 = NULL;
     vfo_t vfo = RIG_VFO_CURR;
     char client_version[32];
-    char name_format[8];
     char arg_format[8];
     int open_retcode = RIG_OK;
     int password_authenticated;
@@ -1455,7 +1510,6 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
     rig_debug(RIG_DEBUG_TRACE, "%s: called, interactive=%d\n", __func__,
               interactive);
 
-    SNPRINTF(name_format, sizeof(name_format), "%%%ds", MAXNAMSIZ - 1);
     SNPRINTF(arg_format, sizeof(arg_format), "%%%ds", MAXARGSZ - 1);
 
     /* cmd, internal, rigctld */
@@ -1551,22 +1605,17 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 /* command by name */
                 if (cmd == '\\')
                 {
-                    char cmd_name[MAXNAMSIZ + 1], *pcmd = cmd_name;
+                    char cmd_name[MAXNAMSIZ + 1];
 
-                    if (scanfc(fin, "%c", pcmd) < 1)
+                    if (read_long_command_name(fin, cmd_name,
+                                               sizeof(cmd_name)) != RIG_OK)
                     {
-                        rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#4?\n", __func__);
+                        rig_debug(RIG_DEBUG_WARN,
+                                  "%s: invalid long command name\n", __func__);
                         return (RIGCTL_PARSE_ERROR);
                     }
 
-                    retcode = fscanf(fin, name_format, ++pcmd); // Get the rest of the command
-
-                    if (retcode == 0 || retcode == EOF) { rig_debug(RIG_DEBUG_WARN, "%s: unable to scan %c\n", __func__, *(pcmd - 1)); }
-
-                    while (*++pcmd);
-
-                    *pcmd = '\0';
-                    cmd = parse_arg((char *)cmd_name);
+                    cmd = parse_arg(cmd_name);
                     rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd=%s handle=%d\n", __func__, cmd_name,
                               fileno(fin));
                     break;
