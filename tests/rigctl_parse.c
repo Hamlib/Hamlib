@@ -1199,8 +1199,6 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 return (RIG_OK);
             }
 
-            rs->vfo_opt = *vfo_opt;
-
             if (cmd == 'Q' || cmd == 'q')
             {
                 rig_debug(RIG_DEBUG_TRACE, "%s: quit returning NETRIGCTL_RET 0\n", __func__);
@@ -2234,6 +2232,11 @@ readline_repeat:
         }
         else
         {
+            if (password_authenticated)
+            {
+                rs->vfo_opt = *vfo_opt;
+            }
+
             retcode = (*cmd_entry->rig_routine)(my_rig,
                                                 fout,
                                                 fin,
@@ -6039,7 +6042,7 @@ declare_proto_rig(chk_vfo)
         fprintf(fout, "%s: ", cmd->arg1);    /* i.e. "Frequency" */
     }
 
-    fprintf(fout, "%d\n", STATE(rig)->vfo_opt);
+    fprintf(fout, "%d\n", *vfo_opt);
 
     chk_vfo_executed = 1; // this allows us to control dump_state version
 

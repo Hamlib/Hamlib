@@ -240,7 +240,6 @@ static int parse_secure_network_command_output(RIG *rig, const char *command,
     FILE *input = tmpfile();
     FILE *output = tmpfile();
     char *argv[] = { "testctlparser" };
-    int vfo_mode = 0;
     int ext_resp = 0;
     char resp_sep = '\n';
     int ret;
@@ -258,7 +257,7 @@ static int parse_secure_network_command_output(RIG *rig, const char *command,
     rewind(input);
     pthread_setspecific(thread_data_key, connection);
     ret = rigctl_parse(rig, input, output, argv, 1, NULL, 1, 0,
-                       &vfo_mode, 0, &ext_resp, &resp_sep, 1);
+                       &connection->vfo_mode, 0, &ext_resp, &resp_sep, 1);
 
     if (response != NULL && response_size > 0)
     {
@@ -842,6 +841,7 @@ static int check_password_authorization(RIG *rig)
     int (*saved_rig_open)(RIG *) = rig->caps->rig_open;
     int (*saved_get_powerstat)(RIG *, powerstat_t *) =
         rig->caps->get_powerstat;
+    int saved_vfo_opt = HAMLIB_STATE(rig)->vfo_opt;
     int result = 1;
     int ret;
 
@@ -1006,12 +1006,35 @@ static int check_password_authorization(RIG *rig)
         goto done;
     }
 
+    connection.vfo_mode = 1;
+    ret = parse_secure_network_command(rig, "\\chk_vfo\n", &connection);
+
+    if (ret != RIG_OK || HAMLIB_STATE(rig)->vfo_opt != 1)
+    {
+        fprintf(stderr, "authenticated VFO mode was not applied\n");
+        goto done;
+    }
+
+    ret = parse_secure_network_command_output(rig, "\\chk_vfo\n",
+        &other_connection, response, sizeof(response));
+
+    if (ret != RIG_OK || strcmp(response, "0\n") != 0
+            || HAMLIB_STATE(rig)->vfo_opt != 1)
+    {
+        fprintf(stderr,
+                "pre-authentication VFO check changed shared mode: '%s'\n",
+                response);
+        goto done;
+    }
+
     ret = parse_secure_network_command(rig, "\\hamlib_version\n",
                                        &other_connection);
 
-    if (ret != -RIG_ESECURITY || other_connection.is_passwordOK)
+    if (ret != -RIG_ESECURITY || other_connection.is_passwordOK
+            || HAMLIB_STATE(rig)->vfo_opt != 1)
     {
-        fprintf(stderr, "password authentication leaked between connections\n");
+        fprintf(stderr,
+                "unauthenticated connection changed authenticated state\n");
         goto done;
     }
 
@@ -1199,6 +1222,7 @@ done:
     ((struct rig_caps *)rig->caps)->rig_open = saved_rig_open;
     ((struct rig_caps *)rig->caps)->get_powerstat = saved_get_powerstat;
     powerstat_retcode = RIG_OK;
+    HAMLIB_STATE(rig)->vfo_opt = saved_vfo_opt;
     checking_halt_authorization = 0;
     is_rigctld = 0;
     return result;
