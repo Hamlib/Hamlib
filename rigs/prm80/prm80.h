@@ -25,11 +25,13 @@
 #include <sys/time.h>
 #include "hamlib/rig.h"
 
-#define BACKEND_VER "20231002.0"
+#define BACKEND_VER "20261026.0"
 
 #define PRM80_MEM_CAP {    \
         .freq = 1,  \
         .rptr_shift = 1, \
+        .rptr_offs = 1, \
+        .funcs = RIG_FUNC_REV, \
         .flags = 1, /* lockout */ \
         }
 
@@ -40,10 +42,13 @@ struct prm80_priv_data
     split_t split;   /* emulated split on/off */
     struct timeval status_tv; /* date of last "E" command */
     char cached_statebuf[32]; /* response of last "E" command */
+    int fw_major;    /* firmware version, read by prm80_open() */
+    int fw_minor;
 };
 
 int prm80_init(RIG *rig);
 int prm80_cleanup(RIG *rig);
+int prm80_open(RIG *rig);
 int prm80_reset(RIG *rig, reset_t reset);
 int prm80_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int prm80_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
