@@ -30,6 +30,7 @@
 #include "iofunc.h"
 #include "register.h"
 #include "idx_builtin.h"
+#include "cache.h"
 
 #include "prm80.h"
 
@@ -158,6 +159,11 @@ static void prm80_force_cache_timeout(RIG *rig)
     struct prm80_priv_data *priv = (struct prm80_priv_data *)STATE(rig)->priv;
 
     rig_force_cache_timeout(&priv->status_tv);
+
+    // A new channel, reverse or channel state changes the frequency
+    // without rig_set_freq(), so the frequency cache of the rig
+    // layer has to be invalidated too.
+    rig_set_cache_freq(rig, RIG_VFO_ALL, (freq_t)0);
 }
 
 /*
