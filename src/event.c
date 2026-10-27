@@ -908,6 +908,11 @@ static int print_spectrum_line(char *str, size_t length,
     int i, c;
     int charlen = strlen("█");
 
+    if (aggregate_count < 1)
+    {
+        aggregate_count = 1;
+    }
+
     str[0] = '\0';
 
     for (i = 0, c = 0; i < line->spectrum_data_length; i++)
@@ -964,7 +969,7 @@ int rig_fire_spectrum_event(RIG *rig, struct rig_spectrum_line *line)
 
     if (rig_need_debug(RIG_DEBUG_TRACE))
     {
-        char spectrum_debug[line->spectrum_data_length * 4];
+        char spectrum_debug[line->spectrum_data_length * 4 + 1];
         print_spectrum_line(spectrum_debug, sizeof(spectrum_debug), line);
         rig_debug(RIG_DEBUG_TRACE, "%s: ASCII Spectrum Scope: %s\n", __func__,
                   spectrum_debug);
