@@ -1336,6 +1336,7 @@ static int read_string_generic(hamlib_port_t *p,
                                int expected_len,
                                int direct)
 {
+    static const char flrig_terminator[] = "</methodResponse>";
     struct timeval start_time, end_time, elapsed_time;
     int total_count = 0;
     int i = 0;
@@ -1457,9 +1458,12 @@ shortcut:
             }
 
             // special read for FLRig
-            if (stopset != NULL && strcmp(stopset, "</methodResponse>") == 0)
+            if (stopset != NULL
+                    && stopset_len == sizeof(flrig_terminator) - 1
+                    && memcmp(stopset, flrig_terminator,
+                              sizeof(flrig_terminator) - 1) == 0)
             {
-                if (strstr((char *)rxbuffer, stopset))
+                if (strstr((char *)rxbuffer, flrig_terminator))
                 {
                     HAMLIB_TRACE2;
                 }
