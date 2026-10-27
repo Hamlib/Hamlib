@@ -93,9 +93,6 @@ extern int read_history();
 /* Hash table implementation See:  http://uthash.sourceforge.net/ */
 #include "uthash.h"
 
-#define STR1(S) #S
-#define STR(S) STR1(S)
-
 #define MAXNAMSIZ 32
 #define MAXNBOPT 100    /* max number of different options */
 #define MAXARGSZ 511
@@ -892,12 +889,15 @@ static int next_word(char *buffer, int argc, char *argv[], int newline,
 
     if (reading_stdin)
     {
+        char stdin_format[32];
+        SNPRINTF(stdin_format, sizeof(stdin_format), " %%c%%%d[^ \t\n#]",
+                 MAXARGSZ - 1);
+
         do
         {
             do
             {
-                ret = fscanf(fin, " %c%" STR(MAXARGSZ) "[^ \t\n#]", &c,
-                             &buffer[1]);
+                ret = fscanf(fin, stdin_format, &c, &buffer[1]);
             }
             while (EINTR == ret);
 

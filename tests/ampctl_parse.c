@@ -79,9 +79,6 @@ extern int read_history();
 
 static pthread_mutex_t amp_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-#define STR1(S) #S
-#define STR(S) STR1(S)
-
 #define MAXNAMSIZ 32
 #define MAXNBOPT 100    /* max number of different options */
 #define MAXARGSZ 127
@@ -403,11 +400,15 @@ static int next_word(char *buffer, int argc, char *argv[], int newline)
 
     if (reading_stdin)
     {
+        char stdin_format[32];
+        SNPRINTF(stdin_format, sizeof(stdin_format), " %%c%%%d[^ \t\n#]",
+                 MAXARGSZ - 1);
+
         do
         {
             do
             {
-                ret = scanf(" %c%" STR(MAXARGSZ) "[^ \t\n#]", &c, &buffer[1]);
+                ret = scanf(stdin_format, &c, &buffer[1]);
             }
             while (EINTR == ret);
 
