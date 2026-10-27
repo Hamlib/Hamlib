@@ -3359,9 +3359,9 @@ declare_proto_rig(get_modes)
 
     fprintf(fout, "\nBandwidths:");
 
-    for (int i = 1; i < RIG_MODE_TESTS_MAX; i <<= 1)
+    for (rmode_t mode = 1; mode < RIG_MODE_TESTS_MAX; mode <<= 1)
     {
-        pbwidth_t pbnorm = rig_passband_normal(rig, i);
+        pbwidth_t pbnorm = rig_passband_normal(rig, mode);
 
         if (pbnorm == 0)
         {
@@ -3369,12 +3369,12 @@ declare_proto_rig(get_modes)
         }
 
         sprintf_freq(freqbuf, sizeof(freqbuf), pbnorm);
-        fprintf(fout, "\n\t%s\tNormal: %s,\t", rig_strrmode(i), freqbuf);
+        fprintf(fout, "\n\t%s\tNormal: %s,\t", rig_strrmode(mode), freqbuf);
 
-        sprintf_freq(freqbuf, sizeof(freqbuf), rig_passband_narrow(rig, i));
+        sprintf_freq(freqbuf, sizeof(freqbuf), rig_passband_narrow(rig, mode));
         fprintf(fout, "Narrow: %s,\t", freqbuf);
 
-        sprintf_freq(freqbuf, sizeof(freqbuf), rig_passband_wide(rig, i));
+        sprintf_freq(freqbuf, sizeof(freqbuf), rig_passband_wide(rig, mode));
         fprintf(fout, "Wide: %s", freqbuf);
     }
 
@@ -3390,15 +3390,15 @@ declare_proto_rig(get_mode_bandwidths)
 
     rmode_t mode = rig_parse_mode(arg1);
 
-    for (int i = 1; i < RIG_MODE_TESTS_MAX; i <<= 1)
+    for (rmode_t mode_bit = 1; mode_bit < RIG_MODE_TESTS_MAX; mode_bit <<= 1)
     {
-        if (i != mode) { continue; }
+        if (mode_bit != mode) { continue; }
 
         if (mode == RIG_MODE_CWR) { mode = RIG_MODE_CW; }
 
         if (mode == RIG_MODE_RTTYR) { mode = RIG_MODE_RTTY; }
 
-        pbwidth_t pbnorm = rig_passband_normal(rig, i);
+        pbwidth_t pbnorm = rig_passband_normal(rig, mode_bit);
 
         if (pbnorm == 0)
         {
@@ -3407,13 +3407,15 @@ declare_proto_rig(get_mode_bandwidths)
 
 //        sprintf_freq(freqbuf, sizeof(freqbuf), pbnorm);
         SNPRINTF(freqbuf, sizeof(freqbuf), "%ldHz", pbnorm);
-        fprintf(fout, "Mode=%s\n", rig_strrmode(i));
+        fprintf(fout, "Mode=%s\n", rig_strrmode(mode_bit));
         fprintf(fout, "Normal=%s\n", freqbuf);
 
-        SNPRINTF(freqbuf, sizeof(freqbuf), "%ldHz", rig_passband_narrow(rig, i));
+        SNPRINTF(freqbuf, sizeof(freqbuf), "%ldHz",
+                 rig_passband_narrow(rig, mode_bit));
         fprintf(fout, "Narrow=%s\n", freqbuf);
 
-        SNPRINTF(freqbuf, sizeof(freqbuf), "%ldHz", rig_passband_wide(rig, i));
+        SNPRINTF(freqbuf, sizeof(freqbuf), "%ldHz",
+                 rig_passband_wide(rig, mode_bit));
         fprintf(fout, "Wide=%s", freqbuf);
     }
 
