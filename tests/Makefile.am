@@ -27,8 +27,9 @@ DIRECT_TESTS = \
 	testdaemonclients \
 	testdebug \
 	testdummyparm \
-	testft991idmeter \
 	testelecraftvfo \
+	testfrontendconf \
+	testft991idmeter \
 	testftx1parsers \
 	testg90af \
 	testg90rit \
@@ -204,6 +205,7 @@ testcachevfo_LDADD = $(PTHREAD_LIBS) \
 testctlparser_SOURCES = testctlparser.c $(RIGCOMMONSRC)
 testctlparser_LDADD = $(PTHREAD_LIBS) $(READLINE_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
 testrigctlprotocol_LDADD = $(LDADD)
+testfrontendconf_LDADD = $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
 testmodecompat_LDADD = $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
 testicomts_LDADD = $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testid5100_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
