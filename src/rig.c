@@ -4827,9 +4827,17 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     rig_get_cache_routing_snapshot(rig, &routing);
     tx_vfo = routing.tx_vfo;
 
-    // Always send the TX frequency. Skipping the set when rig_get_freq()
-    // reported the same value trusted a cached or wrong-VFO read and silently
-    // left the TX VFO on its old frequency.
+    // While transmitting, setting the TX frequency again can drop PTT on the
+    // band check in rig_set_freq() or stall on rigs that refuse it during TX
+    if (routing.ptt != RIG_PTT_OFF
+            && rig_get_freq(rig, tx_vfo, &tfreq) == RIG_OK
+            && tfreq == tx_freq)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: TX freq already set while transmitting\n",
+                  __func__);
+        ELAPSED2;
+        RETURNFUNC2(RIG_OK);
+    }
 
     // Use set_split_freq directly if implemented and frequency is targetable
     if (caps->set_split_freq && (caps->targetable_vfo & RIG_TARGETABLE_FREQ))
