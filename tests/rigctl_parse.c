@@ -5130,8 +5130,10 @@ int dump_chan(FILE *fout, RIG *rig, channel_t *chan)
         switch (cfp->type)
         {
         case RIG_CONF_STRING:
-            strcpy(lstr, chan->ext_levels[idx].val.s);
-            break;
+            fprintf(fout, ",\t %s: %s", cfp->name,
+                    chan->ext_levels[idx].val.s != NULL ?
+                    chan->ext_levels[idx].val.s : "");
+            continue;
 
         case RIG_CONF_COMBO:
             SNPRINTF(lstr, sizeof(lstr), "%d", chan->ext_levels[idx].val.i);
@@ -5386,8 +5388,8 @@ declare_proto_rig(dump_state)
             }
             else
             {
-                fprintf(fout, "%d=%d,%d,%d;", i, rs->parm_gran[i].min.i,
-                        rs->parm_gran[i].max.i, rs->parm_gran[i].step.i);
+                fprintf(fout, "%d=%d,%d,%d;", i, rs->level_gran[i].min.i,
+                        rs->level_gran[i].max.i, rs->level_gran[i].step.i);
             }
         }
 
@@ -5409,12 +5411,15 @@ declare_proto_rig(dump_state)
             }
             else if (RIG_PARM_IS_STRING(parm))
             {
-                fprintf(fout, "%d=%s;", i, rs->parm_gran[i].step.cs);
+                if (rs->parm_gran[i].step.cs != NULL)
+                {
+                    fprintf(fout, "%d=%s;", i, rs->parm_gran[i].step.cs);
+                }
             }
             else
             {
-                fprintf(fout, "%d=%d,%d,%d;", i, rs->level_gran[i].min.i,
-                        rs->level_gran[i].max.i, rs->level_gran[i].step.i);
+                fprintf(fout, "%d=%d,%d,%d;", i, rs->parm_gran[i].min.i,
+                        rs->parm_gran[i].max.i, rs->parm_gran[i].step.i);
             }
         }
 
