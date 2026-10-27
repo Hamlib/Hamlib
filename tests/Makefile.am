@@ -30,6 +30,7 @@ DIRECT_TESTS = \
 	testft991idmeter \
 	testelecraftvfo \
 	testftx1parsers \
+	testg90af \
 	testg90rit \
 	testgeministatus \
 	testgs100 \
@@ -140,6 +141,7 @@ testcachevfo_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testdaemonclient_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testctlparser_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testgeministatus_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testg90af_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testg90rit_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testgs100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testguohetec_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
@@ -152,6 +154,7 @@ testnewcatwidth_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testicomts_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testid5100_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testicomfallback_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+testg90af_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testg90rit_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testgeministatus_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/amplifiers/gemini
 testftx1parsers_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/yaesu/ftx1
@@ -205,6 +208,7 @@ testmodecompat_LDADD = $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
 testicomts_LDADD = $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testid5100_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testicomfallback_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+testg90af_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testg90rit_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testgeministatus_LDADD = $(PTHREAD_LIBS) $(top_builddir)/amplifiers/gemini/libhamlib-gemini.la $(LDADD)
 testgs100_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/gomspace/libhamlib-gomspace.la $(LDADD)
