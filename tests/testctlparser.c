@@ -1911,6 +1911,109 @@ done:
     return result;
 }
 
+static int contains_between(const char *start, const char *end,
+                            const char *needle)
+{
+    const char *match = strstr(start, needle);
+
+    return match != NULL && match < end;
+}
+
+static int check_state_granularity_output(RIG *rig)
+{
+    struct rig_state *state = HAMLIB_STATE(rig);
+    const int level_index = rig_setting2idx(RIG_LEVEL_ATT);
+    const int parm_index = rig_setting2idx(RIG_PARM_ANN);
+    const int band_index = rig_setting2idx(RIG_PARM_BANDSELECT);
+    const int keyer_index = rig_setting2idx(RIG_PARM_KEYERTYPE);
+    unsigned char output[32768];
+    char level_expected[64];
+    char level_wrong[64];
+    char parm_expected[64];
+    char parm_wrong[64];
+    char band_expected[64];
+    char keyer_entry[32];
+    char *level_start;
+    char *parm_start;
+    char *state_end;
+    FILE *input = tmpfile();
+    char *chk_vfo_argv[] = { "testctlparser", "chk_vfo" };
+    char *dump_state_argv[] = { "testctlparser", "dump_state" };
+    size_t output_length;
+    int ret;
+
+    if (input == NULL)
+    {
+        return 1;
+    }
+
+    state->level_gran[level_index].min.i = 101;
+    state->level_gran[level_index].max.i = 102;
+    state->level_gran[level_index].step.i = 103;
+    state->parm_gran[level_index].min.i = 201;
+    state->parm_gran[level_index].max.i = 202;
+    state->parm_gran[level_index].step.i = 203;
+    state->parm_gran[parm_index].min.i = 301;
+    state->parm_gran[parm_index].max.i = 302;
+    state->parm_gran[parm_index].step.i = 303;
+    state->level_gran[parm_index].min.i = 401;
+    state->level_gran[parm_index].max.i = 402;
+    state->level_gran[parm_index].step.i = 403;
+    state->parm_gran[band_index].step.cs = "BAND160M,BAND80M";
+    state->parm_gran[keyer_index].step.cs = NULL;
+
+    ret = parse_command_output(rig, input, chk_vfo_argv, 2, -1, output,
+                               sizeof(output) - 1, &output_length);
+
+    if (ret == RIG_OK)
+    {
+        ret = parse_command_output(rig, input, dump_state_argv, 2, -1, output,
+                                   sizeof(output) - 1, &output_length);
+    }
+
+    fclose(input);
+
+    if (ret != RIG_OK || output_length >= sizeof(output) - 1)
+    {
+        fprintf(stderr, "unable to capture complete state output\n");
+        return 1;
+    }
+
+    output[output_length] = '\0';
+    level_start = strstr((char *)output, "level_gran=");
+    parm_start = strstr((char *)output, "\nparm_gran=");
+    state_end = parm_start == NULL ? NULL : strstr(parm_start, "\nrig_model=");
+
+    if (level_start == NULL || parm_start == NULL || state_end == NULL)
+    {
+        fprintf(stderr, "state output is missing granularity sections\n");
+        return 1;
+    }
+
+    SNPRINTF(level_expected, sizeof(level_expected), "%d=101,102,103;",
+             level_index);
+    SNPRINTF(level_wrong, sizeof(level_wrong), "%d=201,202,203;", level_index);
+    SNPRINTF(parm_expected, sizeof(parm_expected), "%d=301,302,303;",
+             parm_index);
+    SNPRINTF(parm_wrong, sizeof(parm_wrong), "%d=401,402,403;", parm_index);
+    SNPRINTF(band_expected, sizeof(band_expected), "%d=BAND160M,BAND80M;",
+             band_index);
+    SNPRINTF(keyer_entry, sizeof(keyer_entry), "%d=", keyer_index);
+
+    if (!contains_between(level_start, parm_start, level_expected)
+            || contains_between(level_start, parm_start, level_wrong)
+            || !contains_between(parm_start, state_end, parm_expected)
+            || contains_between(parm_start, state_end, parm_wrong)
+            || !contains_between(parm_start, state_end, band_expected)
+            || contains_between(parm_start, state_end, keyer_entry))
+    {
+        fprintf(stderr, "state output contains incorrect granularity data\n");
+        return 1;
+    }
+
+    return 0;
+}
+
 int main(void)
 {
     static const char maximum[] = "12345678901234567890123456789";
@@ -2020,7 +2123,8 @@ int main(void)
             || check_receive_length(rig, "12junk", -RIG_EINVAL) != 0
             || check_receive_length(rig, "999999999999999999999999",
                                     -RIG_EINVAL) != 0
-            || check_bad_input_stream(rig) != 0)
+            || check_bad_input_stream(rig) != 0
+            || check_state_granularity_output(rig) != 0)
     {
         rig_cleanup(rig);
         return 1;
