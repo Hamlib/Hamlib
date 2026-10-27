@@ -54,6 +54,8 @@ DECLARE_INITRIG_BACKEND(anytone)
     int retval = RIG_OK;
 
     rig_register(&anytone_d578_caps);
+    rig_register(&at778uv_caps);
+    rig_register(&rt95_caps);
 
     return retval;
 }
