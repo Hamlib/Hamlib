@@ -44,6 +44,12 @@ struct prm80_priv_data
     char cached_statebuf[32]; /* response of last "E" command */
     int fw_major;    /* firmware version, read by prm80_open() */
     int fw_minor;
+    /* channel list [C], cached for get_channel() */
+    int list_valid;
+    struct timeval list_tv;
+    int last_chan;
+    unsigned stored_shift[100];  /* shift in the channel memory, 0 = default shift */
+    long default_offs[100];      /* offset reported for a channel with the default shift, 0 = none */
 };
 
 int prm80_init(RIG *rig);

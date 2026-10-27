@@ -46,6 +46,9 @@
 // "E" system state is cached for this time (ms)
 #define PRM80_CACHE_TIMEOUT 200
 
+// The channel list "C" is cached for this time (ms)
+#define PRM80_LIST_CACHE_TIMEOUT 10000
+
 // Length (in bytes) of the response to the "E" command
 #define CMD_E_RSP_LEN 22
 
@@ -153,6 +156,8 @@ MessageAide:  DB   "H",0Dh,0Ah
 
  * *********************************************************************
  */
+
+static int prm80_read_channel_list(RIG *rig, int force);
 
 static void prm80_force_cache_timeout(RIG *rig)
 {
@@ -434,6 +439,7 @@ int prm80_reset(RIG *rig, reset_t reset)
         return retval;
     }
 
+    ((struct prm80_priv_data *)STATE(rig)->priv)->list_valid = 0;
     prm80_force_cache_timeout(rig);
 
     return RIG_OK;
@@ -831,7 +837,7 @@ static int prm80_read_system_state(RIG *rig, char *statebuf)
  */
 int prm80_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 {
-    const struct prm80_priv_data *priv = (struct prm80_priv_data *)STATE(rig)->priv;
+    struct prm80_priv_data *priv = (struct prm80_priv_data *)STATE(rig)->priv;
     char statebuf[BUFSZ];
     int ret, chanstate, mode_byte, lock_byte;
 
@@ -914,6 +920,22 @@ int prm80_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
         chan->split = priv->split; // RIG_SPLIT_ON; ?
     }
 
+    // For a memory channel, remember whether it uses the default shift, so
+    // that set_channel() keeps it when the channel is written back.
+    if (chan->vfo == RIG_VFO_MEM && chan->channel_num >= CHAN_MIN
+            && chan->channel_num <= CHAN_MAX)
+    {
+        priv->default_offs[chan->channel_num] = 0;
+
+        if (chan->rptr_shift != RIG_RPT_SHIFT_NONE
+                && prm80_read_channel_list(rig, 0) == RIG_OK
+                && chan->channel_num <= priv->last_chan
+                && priv->stored_shift[chan->channel_num] == 0)
+        {
+            priv->default_offs[chan->channel_num] = chan->rptr_offs;
+        }
+    }
+
     if (!read_only)
     {
         // Set rig to channel values
@@ -928,16 +950,28 @@ int prm80_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 }
 
 /*
- * Number of the last channel, from the channel list [C]:
+ * Read the channel list [C] into the cache (unless the cache is recent
+ * and force is not set):
  *   "Channel Frequency Shift State" CRLF
- *   "0 2D80 0030 01" CRLF ... (one line per channel) CRLF '>'
+ *   "00 2D80 0030 01" CRLF ... (one line per channel) CRLF '>'
+ * The shift column is the shift stored in the channel, 0000 meaning
+ * the default shift of the rig.
  */
-static int prm80_read_last_channel(RIG *rig, int *last)
+static int prm80_read_channel_list(RIG *rig, int force)
 {
+    struct prm80_priv_data *priv = (struct prm80_priv_data *)STATE(rig)->priv;
     hamlib_port_t *rp = RIGPORT(rig);
     char list[2048];
     const char *p;
-    int ret;
+    int ret, last = -1;
+
+    if (!force && priv->list_valid
+            && !rig_check_cache_timeout(&priv->list_tv, PRM80_LIST_CACHE_TIMEOUT))
+    {
+        return RIG_OK;
+    }
+
+    priv->list_valid = 0;
 
     ret = prm80_transaction(rig, "C", NULL, 0);
 
@@ -955,24 +989,49 @@ static int prm80_read_last_channel(RIG *rig, int *last)
 
     list[(ret < (int)sizeof(list)) ? ret : ((int)sizeof(list) - 1)] = '\0';
 
-    *last = -1;
-
-    // the number of the last line starting with a digit
     for (p = list; *p != '\0'; p++)
     {
-        if ((p == list || p[-1] == '\n') && isdigit((unsigned char)*p))
+        unsigned num, pll, shift, state;
+
+        // the lines starting with a channel number
+        if ((p == list || p[-1] == '\n') && isdigit((unsigned char)*p)
+                && sscanf(p, "%u %x %x %x", &num, &pll, &shift, &state) == 4
+                && num <= CHAN_MAX)
         {
-            *last = atoi(p);
+            priv->stored_shift[num] = shift;
+            last = (int)num;
         }
     }
 
-    if (*last < 0)
+    if (last < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: no channel in the list '%s'\n", __func__, list);
         return -RIG_EPROTO;
     }
 
+    priv->last_chan = last;
+    priv->list_valid = 1;
+    gettimeofday(&priv->list_tv, NULL);
+
     return RIG_OK;
+}
+
+/*
+ * Number of the last channel, read fresh from the channel list [C].
+ */
+static int prm80_read_last_channel(RIG *rig, int *last)
+{
+    const struct prm80_priv_data *priv = (struct prm80_priv_data *)STATE(rig)->priv;
+    int ret;
+
+    ret = prm80_read_channel_list(rig, 1);
+
+    if (ret == RIG_OK)
+    {
+        *last = priv->last_chan;
+    }
+
+    return ret;
 }
 
 /*
@@ -1065,7 +1124,7 @@ static int prm80_program_channel(RIG *rig, int channel_num, unsigned pll,
             return ret;
         }
 
-        prm80_wait_for_prompt(rp);
+        return prm80_wait_for_prompt(rp);
     }
 
     return RIG_OK;
@@ -1079,6 +1138,7 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
     struct prm80_priv_data *priv = (struct prm80_priv_data *)STATE(rig)->priv;
     int ret, chanstate, asked, last;
     unsigned shift;
+    long offs;
     freq_t tx_freq, nominal;
 
     if (chan->vfo == RIG_VFO_MEM)
@@ -1091,11 +1151,19 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
         }
 
         // Size of the shift, 0 means the default shift of the rig.
-        shift = 0;
+        offs = (chan->rptr_shift != RIG_RPT_SHIFT_NONE) ? labs(chan->rptr_offs) : 0;
+        shift = (unsigned)(offs / FREQ_DIV + 0.5);
 
-        if (chan->rptr_shift != RIG_RPT_SHIFT_NONE)
+        // A channel that uses the default shift is reported by get_channel()
+        // with the effective offset. Written back with that offset, it keeps
+        // the default shift (0), so a later change of the default still
+        // applies to it.
+        if (shift != 0 && priv->default_offs[chan->channel_num] != 0
+                && labs(offs - priv->default_offs[chan->channel_num]) < FREQ_DIV / 2)
         {
-            shift = (unsigned)(labs(chan->rptr_offs) / FREQ_DIV + 0.5);
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: channel %d keeps the default shift\n",
+                      __func__, chan->channel_num);
+            shift = 0;
         }
 
         // The channel memory holds the nominal frequency (the rig adds or
@@ -1108,12 +1176,10 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 
         if ((chan->funcs & RIG_FUNC_REV) && chan->rptr_shift != RIG_RPT_SHIFT_NONE)
         {
-            if (shift != 0)
+            if (offs != 0)
             {
-                freq_t offs = (freq_t)shift * FREQ_DIV;
-
                 nominal = (chan->rptr_shift == RIG_RPT_SHIFT_PLUS) ?
-                          chan->freq - offs : chan->freq + offs;
+                          chan->freq - (freq_t)offs : chan->freq + (freq_t)offs;
             }
             else if (chan->tx_freq != 0)
             {
@@ -1168,6 +1234,10 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
             ret = prm80_program_channel(rig, chan->channel_num,
                                         (unsigned)(nominal / FREQ_DIV + 0.5), shift, chanstate, 1, &asked);
         }
+
+        // the channel memory has changed
+        priv->list_valid = 0;
+        priv->default_offs[chan->channel_num] = 0;
 
         if (ret != RIG_OK)
         {
@@ -1240,7 +1310,10 @@ int prm80_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
     if (func & RIG_FUNC_REV)
     {
-        // Read-Modify-Write of the state of the current channel
+        // Read-Modify-Write of the state of the current channel, with a
+        // fresh state (not the cache), so that the state of the channel
+        // selected right now is modified
+        prm80_force_cache_timeout(rig);
         ret = prm80_read_system_state(rig, buf);
 
         if (ret != RIG_OK)
@@ -1264,7 +1337,7 @@ int prm80_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
         if (ret == RIG_OK)
         {
-            prm80_wait_for_prompt(RIGPORT(rig));
+            ret = prm80_wait_for_prompt(RIGPORT(rig));
         }
     }
     else if (func & RIG_FUNC_LOCK)
