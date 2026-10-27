@@ -128,7 +128,7 @@ static inline long scale_round_clamp(float v, float scale, long lo, long hi)
 /* Direct integer converters (fast path)                               */
 /* ------------------------------------------------------------------ */
 
-/* S8 -> S16: sign-extend and shift left 8 */
+/* S8 -> S16: sign-extend and scale by 256 */
 static void convert_s8_to_s16(const void *src, void *dst, size_t n)
 {
     const int8_t *s = src;
@@ -136,11 +136,11 @@ static void convert_s8_to_s16(const void *src, void *dst, size_t n)
 
     for (size_t i = 0; i < n; i++)
     {
-        d[i] = (int16_t)s[i] << 8;
+        d[i] = (int16_t)((int)s[i] * 256);
     }
 }
 
-/* U8 -> S16: subtract 128 offset, shift left 8 */
+/* U8 -> S16: subtract 128 offset, scale by 256 */
 static void convert_u8_to_s16(const void *src, void *dst, size_t n)
 {
     const uint8_t *s = src;
@@ -148,7 +148,7 @@ static void convert_u8_to_s16(const void *src, void *dst, size_t n)
 
     for (size_t i = 0; i < n; i++)
     {
-        d[i] = (int16_t)((int)s[i] - 128) << 8;
+        d[i] = (int16_t)(((int)s[i] - 128) * 256);
     }
 }
 
@@ -200,7 +200,7 @@ static void convert_cs8_to_cu8(const void *src, void *dst, size_t n)
     }
 }
 
-/* CU8 -> CS16: subtract 128, shift left 8 per component */
+/* CU8 -> CS16: subtract 128, scale by 256 per component */
 static void convert_cu8_to_cs16(const void *src, void *dst, size_t n)
 {
     const uint8_t *s = src;
@@ -208,11 +208,11 @@ static void convert_cu8_to_cs16(const void *src, void *dst, size_t n)
 
     for (size_t i = 0; i < 2 * n; i++)
     {
-        d[i] = (int16_t)((int)s[i] - 128) << 8;
+        d[i] = (int16_t)(((int)s[i] - 128) * 256);
     }
 }
 
-/* CS8 -> CS16: sign-extend and shift left 8 per component */
+/* CS8 -> CS16: sign-extend and scale by 256 per component */
 static void convert_cs8_to_cs16(const void *src, void *dst, size_t n)
 {
     const int8_t *s = src;
@@ -220,7 +220,7 @@ static void convert_cs8_to_cs16(const void *src, void *dst, size_t n)
 
     for (size_t i = 0; i < 2 * n; i++)
     {
-        d[i] = (int16_t)s[i] << 8;
+        d[i] = (int16_t)((int)s[i] * 256);
     }
 }
 
