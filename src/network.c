@@ -453,9 +453,8 @@ void network_flush(hamlib_port_t *rp)
         {
             int len_read = 0;
             rig_debug(RIG_DEBUG_WARN,
-                      "%s: network data clear d: ret=%d, len=%d, '%s'\n",
-                      __func__,
-                      ret, (int)len, buffer);
+                      "%s: network data clear: ret=%d, len=%d\n",
+                      __func__, ret, (int)len);
             len_read = recv(rp->fd, buffer, len < NET_BUFFER_SIZE ? len : NET_BUFFER_SIZE,
                             0);
 
