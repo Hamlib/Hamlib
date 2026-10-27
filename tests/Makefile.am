@@ -23,12 +23,15 @@ DIRECT_TESTS = \
 	testcachethread \
 	testcachevfo \
 	testctlparser \
+	testdaemonclient \
+	testdaemonclients \
 	testdebug \
 	testdummyparm \
 	testft991idmeter \
 	testelecraftvfo \
 	testftx1parsers \
 	testg90af \
+	testg90rit \
 	testgeministatus \
 	testgs100 \
 	testguohetec \
@@ -38,10 +41,13 @@ DIRECT_TESTS = \
 	testnewcatset \
 	testnewcatwidth \
 	testrigctlprotocol \
+	testsendraw \
 	testmodecompat \
+	testsmartsdrstatus \
 	testthd7x \
 	testthd75emu \
 	testts990s \
+	testtrusdx \
 	testid5100
 
 GENERATED_TEST_WRAPPERS = \
@@ -73,6 +79,7 @@ check_PROGRAMS = \
 	testloc \
 	testmW2power \
 	testnetrigctl \
+	testsendraw \
 	testrig \
 	testrigcaps \
 	testrigopen \
@@ -88,16 +95,17 @@ noinst_PROGRAMS = rigstreamtest
 RIGCOMMONSRC = rigctl_parse.c rigctl_parse.h rigctld_stream.c rigctld_stream.h rigctld_client.h dumpcaps.c dumpstate.c uthash.h rig_tests.c rig_tests.h dumpcaps.h
 ROTCOMMONSRC = rotctl_parse.c rotctl_parse.h dumpcaps_rot.c uthash.h dumpcaps_rot.h
 AMPCOMMONSRC = ampctl_parse.c ampctl_parse.h dumpcaps_amp.c uthash.h 
+DAEMONCLIENTSRC = daemon_client.c daemon_client.h
 
 rigctl_SOURCES = rigctl.c $(RIGCOMMONSRC)
-rigctld_SOURCES = rigctld.c $(RIGCOMMONSRC)
+rigctld_SOURCES = rigctld.c $(RIGCOMMONSRC) $(DAEMONCLIENTSRC)
 rigctlcom_SOURCES = rigctlcom.c $(RIGCOMMONSRC)
-rigctltcp_SOURCES = rigctltcp.c $(RIGCOMMONSRC)
+rigctltcp_SOURCES = rigctltcp.c $(RIGCOMMONSRC) $(DAEMONCLIENTSRC)
 rigctlsync_SOURCES = rigctlsync.c $(RIGCOMMONSRC)
 rotctl_SOURCES = rotctl.c $(ROTCOMMONSRC)
-rotctld_SOURCES = rotctld.c $(ROTCOMMONSRC)
+rotctld_SOURCES = rotctld.c $(ROTCOMMONSRC) $(DAEMONCLIENTSRC)
 ampctl_SOURCES = ampctl.c $(AMPCOMMONSRC)
-ampctld_SOURCES = ampctld.c $(AMPCOMMONSRC)
+ampctld_SOURCES = ampctld.c $(AMPCOMMONSRC) $(DAEMONCLIENTSRC)
 rigmem_SOURCES = rigmem.c memsave.c memload.c memcsv.c
 rigstreamtest_SOURCES = rigstreamtest.c rigstreamtest_util.c rigstreamtest_util.h
 if TESTS_HAVE_LIBUSB
@@ -125,13 +133,16 @@ rigctltcp_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_srcdir)/src -I$(top_bu
 rigctlsync_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_srcdir)/src -I$(top_builddir)/security
 testdebug_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testnetrigctl_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testsendraw_CFLAGS = $(AM_CFLAGS)
 testcachemode_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testcacherouting_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testcachethread_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testcachevfo_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testdaemonclient_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testctlparser_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testgeministatus_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testg90af_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testg90rit_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testgs100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testguohetec_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testid5100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
@@ -144,10 +155,12 @@ testicomts_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testid5100_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testicomfallback_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testg90af_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+testg90rit_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testgeministatus_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/amplifiers/gemini
 testftx1parsers_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/yaesu/ftx1
 testft991idmeter_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/yaesu
 testguohetec_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/guohetec
+testsmartsdrstatus_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/flexradio
 if TESTS_HAVE_LIBUSB
     rigtestlibusb_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) $(LIBUSB_CFLAGS)
 endif
@@ -166,12 +179,16 @@ rigctlcom_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rigctltcp_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rigctlsync_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 testdebug_LDADD = $(PTHREAD_LIBS) $(LDADD)
+testdaemonclient_SOURCES = testdaemonclient.c $(DAEMONCLIENTSRC)
+testdaemonclient_LDADD = $(PTHREAD_LIBS) $(LDADD)
 rigstreamtest_LDADD = $(PTHREAD_LIBS) $(LDADD)
 rigstreamtest_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 rigstreamtest_CPPFLAGS = -I$(top_srcdir)/src -I$(top_builddir)/src \
     $(AM_CPPFLAGS)
 testnetrigctl_SOURCES = testnetrigctl.c $(top_srcdir)/rigs/dummy/dummy_common.c
 testnetrigctl_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
+testsendraw_SOURCES = testsendraw.c
+testsendraw_LDADD = $(NET_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
 testcachemode_LDADD = $(PTHREAD_LIBS) \
                        $(top_builddir)/rigs/dummy/libhamlib-dummy.la \
                        $(LDADD)
@@ -192,6 +209,7 @@ testicomts_LDADD = $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testid5100_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testicomfallback_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testg90af_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+testg90rit_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testgeministatus_LDADD = $(PTHREAD_LIBS) $(top_builddir)/amplifiers/gemini/libhamlib-gemini.la $(LDADD)
 testgs100_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/gomspace/libhamlib-gomspace.la $(LDADD)
 testelecraftvfo_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/kenwood/libhamlib-kenwood.la $(LDADD)
@@ -201,6 +219,7 @@ testft991idmeter_LDADD = $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
 testguohetec_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/guohetec/libhamlib-guohetec.la $(LDADD)
 testnewcatset_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
 testnewcatwidth_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
+testsmartsdrstatus_LDADD = $(top_builddir)/rigs/flexradio/libhamlib-flexradio.la $(LDADD)
 if TESTS_HAVE_LIBUSB
     rigtestlibusb_LDADD = $(LIBUSB_LIBS)
 endif
@@ -250,6 +269,7 @@ EXTRA_DIST = \
 	testcaps.sh \
 	testctlbounds.sh \
 	testctld.pl \
+	testctlptt.sh \
 	testroutingaccess.sh \
 	testrotctld.pl
 
@@ -260,6 +280,7 @@ check_SCRIPTS = \
 	rigstreamtest.sh \
 	testcaps.sh \
 	testctlbounds.sh \
+	testctlptt.sh \
 	testroutingaccess.sh \
 	$(GENERATED_TEST_WRAPPERS)
 
@@ -298,6 +319,9 @@ $(top_builddir)/rigs/kenwood/libhamlib-kenwood.la:
 
 $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la:
 	$(MAKE) -C $(top_builddir)/rigs/yaesu/ libhamlib-yaesu.la
+
+$(top_builddir)/rigs/flexradio/libhamlib-flexradio.la:
+	$(MAKE) -C $(top_builddir)/rigs/flexradio/ libhamlib-flexradio.la
 
 testrig.sh:
 	echo 'LD_LIBRARY_PATH=$(top_builddir)/src/.libs:$(top_builddir)/dummy/.libs ./testrig 1' > testrig.sh

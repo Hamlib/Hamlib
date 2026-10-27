@@ -76,6 +76,7 @@
 #include "rigctl_parse.h"
 #include "rigctld_stream.h"
 #include "rigctld_client.h"
+#include "daemon_client.h"
 #include "riglist.h"
 #include "token.h"
 
@@ -84,7 +85,7 @@
  *      keep up to date SHORT_OPTIONS, usage()'s output and man page. thanks.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:p:d:P:D:s:S:c:T:t:C:W:w:x:lLuovhVZRA:bM:G:"
+#define SHORT_OPTIONS "m:r:p:d:P:D:s:S:c:T:t:N:C:W:w:x:lLuovhVZRA:bM:G:"
 static struct option long_options[] =
 {
     {"model",           1, 0, 'm'},
@@ -98,6 +99,7 @@ static struct option long_options[] =
     {"civaddr",         1, 0, 'c'},
     {"listen-addr",     1, 0, 'T'},
     {"port",            1, 0, 't'},
+    {"max-clients",     1, 0, 'N'},
     {"set-conf",        1, 0, 'C'},
     {"list",            0, 0, 'l'},
     {"show-conf",       0, 0, 'L'},
@@ -138,6 +140,8 @@ static void short_usage(FILE *fout);
 static unsigned client_count;
 static HAMLIB_ATOMIC int next_client_id =
     1;  /* Monotonically increasing client ID */
+static struct daemon_client_tracker client_tracker =
+    DAEMON_CLIENT_TRACKER_INITIALIZER;
 
 static RIG *my_rig;             /* handle to rig (instance) */
 static volatile int rig_opened = 0;
@@ -271,6 +275,7 @@ int main(int argc, char *argv[])
     int dump_caps_opt = 0;
     const char *rig_file = NULL, *ptt_file = NULL, *dcd_file = NULL;
     ptt_type_t ptt_type = RIG_PTT_NONE;
+    int ptt_type_set = 0;
     dcd_type_t dcd_type = RIG_DCD_NONE;
     int serial_rate = 0;
     const char *civaddr = NULL;   /* NULL means no need to set conf */
@@ -300,6 +305,7 @@ int main(int argc, char *argv[])
 #endif
 
     pthread_t thread;
+    pthread_attr_t attr;
     int vfo_mode = 0; /* vfo_mode=0 means target VFO is current VFO */
     int i;
     extern int is_rigctld;
@@ -519,10 +525,11 @@ int main(int argc, char *argv[])
             }
             else
             {
-                puts("Unrecognised PTT type, using NONE");
-                ptt_type = RIG_PTT_NONE;
+                fprintf(stderr, "Unrecognised PTT type '%s'\n", optarg);
+                exit(2);
             }
 
+            ptt_type_set = 1;
             break;
 
         case 'D':
@@ -622,6 +629,15 @@ int main(int argc, char *argv[])
             src_addr = optarg;
             break;
 
+        case 'N':
+            if (daemon_client_limit_parse(optarg, &client_tracker.limit) != 0)
+            {
+                fprintf(stderr, "Invalid maximum client count: %s\n", optarg);
+                exit(1);
+            }
+
+            break;
+
         case 'o':
             vfo_mode++;
             //rig_debug(RIG_DEBUG_ERR, "%s: #0 vfo_mode=%d\n", __func__, vfo_mode);
@@ -692,8 +708,8 @@ int main(int argc, char *argv[])
     rig_debug(RIG_DEBUG_VERBOSE, "rigctld %s\n", hamlib_version2);
     rig_debug(RIG_DEBUG_VERBOSE, "%s",
               "Report bugs to <hamlib-developer@lists.sourceforge.net>\n\n");
-    rig_debug(RIG_DEBUG_VERBOSE, "Max# of rigctld client services=%d\n",
-              NI_MAXSERV);
+    rig_debug(RIG_DEBUG_VERBOSE, "Max# of rigctld client services=%u\n",
+              client_tracker.limit);
 
     my_rig = rig_init(my_model);
 
@@ -707,7 +723,11 @@ int main(int argc, char *argv[])
         exit(2);
     }
 
-    my_rig->caps->ptt_type = ptt_type;
+    if (ptt_type_set)
+    {
+        PTTPORT(my_rig)->type.ptt = ptt_type;
+    }
+
     const char *token = strtok(conf_parms, ",");
     struct rig_state *rs = STATE(my_rig);
 
@@ -735,7 +755,11 @@ int main(int argc, char *argv[])
         }
 
         token = strtok(NULL, ",");
-        ptt_type = my_rig->caps->ptt_type; // in case we set the ptt_type with set_conf
+
+        if (lookup == TOK_PTT_TYPE)
+        {
+            ptt_type_set = 1;
+        }
     }
 
     if (rig_file)
@@ -750,17 +774,6 @@ int main(int argc, char *argv[])
               __func__,
               rs->twiddle_timeout, rs->uplink, rs->twiddle_rit);
 
-    /*
-     * ex: RIG_PTT_PARALLEL and /dev/parport0
-     */
-    if (ptt_type != RIG_PTT_NONE)
-    {
-        PTTPORT(my_rig)->type.ptt = ptt_type;
-        // This causes segfault since backend rig_caps are const
-        // rigctld will use the STATE(rig) version of this for clients
-        //my_rig->caps->ptt_type = ptt_type;
-    }
-
     if (dcd_type != RIG_DCD_NONE)
     {
         DCDPORT(my_rig)->type.dcd = dcd_type;
@@ -771,10 +784,10 @@ int main(int argc, char *argv[])
         strncpy(PTTPORT(my_rig)->pathname, ptt_file, HAMLIB_FILPATHLEN - 1);
 
         // default to RTS when ptt_type is not specified
-        if (ptt_type == RIG_PTT_NONE)
+        if (!ptt_type_set)
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s: defaulting to RTS PTT\n", __func__);
-            my_rig->caps->ptt_type = RIG_PTT_SERIAL_RTS;
+            PTTPORT(my_rig)->type.ptt = RIG_PTT_SERIAL_RTS;
         }
     }
 
@@ -1153,6 +1166,24 @@ int main(int argc, char *argv[])
 
     rigctl_parse_init();
 
+    retcode = pthread_attr_init(&attr);
+
+    if (retcode != 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "pthread_attr_init: %s\n", strerror(retcode));
+        exit(1);
+    }
+
+    retcode = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+    if (retcode != 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "pthread_attr_setdetachstate: %s\n",
+                  strerror(retcode));
+        pthread_attr_destroy(&attr);
+        exit(1);
+    }
+
     /*
      * main loop accepting connections
      */
@@ -1201,35 +1232,57 @@ int main(int argc, char *argv[])
         else
         {
             struct handle_data *arg;
-            pthread_attr_t attr;
-            int attr_ret;
+            struct sockaddr_storage cli_addr;
+            socklen_t clilen = sizeof(cli_addr);
+            int client_sock;
+
+            client_sock = accept(sock_listen,
+                                 (struct sockaddr *)&cli_addr,
+                                 &clilen);
+
+            if (client_sock < 0)
+            {
+                handle_error(RIG_DEBUG_ERR, "accept");
+                break;
+            }
+
+            if (!daemon_client_tracker_acquire(&client_tracker))
+            {
+                rig_debug(RIG_DEBUG_WARN,
+                          "Client limit of %u reached; closing connection\n",
+                          client_tracker.limit);
+#ifdef __MINGW32__
+                closesocket(client_sock);
+#else
+                close(client_sock);
+#endif
+                continue;
+            }
 
             arg = calloc(1, sizeof(struct handle_data));
 
             if (!arg)
             {
                 rig_debug(RIG_DEBUG_ERR, "calloc: %s\n", strerror(errno));
-                exit(1);
+#ifdef __MINGW32__
+                closesocket(client_sock);
+#else
+                close(client_sock);
+#endif
+                daemon_client_tracker_release(&client_tracker);
+                continue;
             }
 
             if (rigctld_password[0] != 0) { arg->use_password = 1; }
 
             arg->rig = my_rig;
-            arg->clilen = sizeof(arg->cli_addr);
+            arg->sock = client_sock;
+            arg->cli_addr = cli_addr;
+            arg->clilen = clilen;
             arg->vfo_mode = vfo_mode;
-            arg->sock = accept(sock_listen,
-                               (struct sockaddr *)&arg->cli_addr,
-                               &arg->clilen);
 
-            if (arg->sock < 0)
-            {
-                handle_error(RIG_DEBUG_ERR, "accept");
-                free(arg);
-                break;
-            }
-
-            if ((retcode = getnameinfo((struct sockaddr const *)&arg->cli_addr,
-                                       arg->clilen,
+            if ((retcode = getnameinfo((struct sockaddr const *)&cli_addr,
+                                       clilen,
                                        host,
                                        sizeof(host),
                                        serv,
@@ -1242,69 +1295,25 @@ int main(int argc, char *argv[])
                           gai_strerror(retcode));
             }
 
-            if (client_count >= RIGCTLD_MAX_CLIENTS)
-            {
-                rig_debug(RIG_DEBUG_ERR,
-                          "Connection from %s:%s rejected — "
-                          "max clients (%d) reached\n",
-                          host, serv, RIGCTLD_MAX_CLIENTS);
-                socket_close(arg->sock);
-                free(arg);
-                continue;
-            }
-
             arg->client_id = next_client_id++;
 
             rig_debug(RIG_DEBUG_VERBOSE,
                       "Connection opened from %s:%s (client %d)\n",
                       host, serv, arg->client_id);
 
-            attr_ret = pthread_attr_init(&attr);
-
-            if (attr_ret != 0)
-            {
-                rig_debug(RIG_DEBUG_ERR, "pthread_attr_init: %s\n",
-                          strerror(attr_ret));
-                socket_close(arg->sock);
-                free(arg);
-                break;
-            }
-
-            attr_ret = pthread_attr_setdetachstate(&attr,
-                                                   PTHREAD_CREATE_DETACHED);
-
-            if (attr_ret != 0)
-            {
-                rig_debug(RIG_DEBUG_ERR, "pthread_attr_setdetachstate: %s\n",
-                          strerror(attr_ret));
-                int destroy_ret = pthread_attr_destroy(&attr);
-
-                if (destroy_ret != 0)
-                {
-                    rig_debug(RIG_DEBUG_WARN, "pthread_attr_destroy: %s\n",
-                              strerror(destroy_ret));
-                }
-
-                socket_close(arg->sock);
-                free(arg);
-                break;
-            }
-
             retcode = pthread_create(&thread, &attr, handle_socket, arg);
-            attr_ret = pthread_attr_destroy(&attr);
-
-            if (attr_ret != 0)
-            {
-                rig_debug(RIG_DEBUG_WARN, "pthread_attr_destroy: %s\n",
-                          strerror(attr_ret));
-            }
 
             if (retcode != 0)
             {
                 rig_debug(RIG_DEBUG_ERR, "pthread_create: %s\n", strerror(retcode));
-                socket_close(arg->sock);
+#ifdef __MINGW32__
+                closesocket(client_sock);
+#else
+                close(client_sock);
+#endif
                 free(arg);
-                break;
+                daemon_client_tracker_release(&client_tracker);
+                continue;
             }
 
         }
@@ -1312,6 +1321,7 @@ int main(int argc, char *argv[])
     while (!ctrl_c);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: while loop done\n", __func__);
+    pthread_attr_destroy(&attr);
 
     /* allow threads to finish current action */
     mutex_rigctld(1);
@@ -1606,6 +1616,7 @@ handle_exit:
 
     pthread_setspecific(thread_data_key,
                         NULL);      // Tell pthreads we're done with the data
+    daemon_client_tracker_release(&client_tracker);
     free(arg);
 
     pthread_exit(NULL);
@@ -1629,6 +1640,7 @@ static void usage(FILE *fout)
             "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
             "  -c, --civaddr=ID              set CI-V address, decimal (for Icom rigs only)\n"
             "  -t, --port=NUM                set TCP listening port, default %s\n"
+            "  -N, --max-clients=NUM         set maximum concurrent clients, default %u\n"
             "  -S, --separator=CHAR          set char as rigctld response separator, default is \\n\n"
             "  -T, --listen-addr=IPADDR      set listening IP address, default ANY\n"
             "  -C, --set-conf=PARM=VAL[,...] set config parameters\n"
@@ -1665,6 +1677,7 @@ static void usage(FILE *fout)
             "  -h, --help                    display this help and exit\n"
             "  -V, --version                 output version information and exit\n\n",
             portno,
+            DAEMON_DEFAULT_MAX_CLIENTS,
             RIGCTLD_METADATA_INTERVAL_MIN,
             RIGCTLD_METADATA_INTERVAL_MAX,
             RIGCTLD_METADATA_INTERVAL_DEFAULT,

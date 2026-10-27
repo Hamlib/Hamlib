@@ -3051,7 +3051,7 @@ int newcat_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
     case 41: // FT-991 V2-01 seems to randomly give 13 extra bytes
     case 28: offset = 14; break;
 
-    case 30: offset = 14; break;
+    case 30: offset = 16; break; // FTX-1: 5-digit P1, P3 at 16
 
     default: offset = 0;
     }
@@ -3167,7 +3167,7 @@ int newcat_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
     {
     case 27: offset = 13; break;
 
-    case 30: offset = 14; break;
+    case 30: offset = 16; break; // FTX-1: 5-digit P1, P3 at 16
 
     case 41: // FT-991 V2-01 seems to randomly give 13 extra bytes
     case 28: offset = 14; break;
@@ -9276,7 +9276,13 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SH0%02d;", w);
     }
-    else if (is_ftdx10 || is_ft710 || is_ftx1)
+    else if (is_ftx1)
+    {
+        /* SH P1 P2 P3P3; P1 0=MAIN 1=SUB (the FTX-1 has two receivers), P2 0 */
+        char p1 = (RIG_VFO_SUB == vfo || RIG_VFO_B == vfo) ? '1' : '0';
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SH%c0%02d;", p1, w);
+    }
+    else if (is_ftdx10 || is_ft710)
     {
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SH00%02d;", w);
     }
@@ -10246,7 +10252,7 @@ int newcat_get_vfo_mode(RIG *rig, vfo_t vfo, vfo_t *vfo_mode)
     {
     case 27: offset = 21; priv->width_frequency = 8; break;
 
-    case 30: offset = 21; priv->width_frequency = 8; break;
+    case 30: offset = 24; priv->width_frequency = 9; break; // FTX-1: 5-digit P1, 9-digit P2
 
     case 41: // FT-991 V2-01 seems to randomly give 13 extra bytes
     case 28: offset = 22; priv->width_frequency = 9; break;
