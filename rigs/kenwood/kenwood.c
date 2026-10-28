@@ -130,6 +130,7 @@ static const struct kenwood_id_string kenwood_id_string_list[] =
     { RIG_MODEL_THD72A, "TH-D72" },
     { RIG_MODEL_THD74, "TH-D74" },
     { RIG_MODEL_THD75, "TH-D75" },
+    { RIG_MODEL_TMD750, "TM-D750" },
     { RIG_MODEL_TMV7, "TM-V7" },
     { RIG_MODEL_TMV71,  "TM-V71" },
     { RIG_MODEL_THF6A,  "TH-F6" },
@@ -1186,7 +1187,8 @@ int kenwood_open(RIG *rig)
                                                       it's not supported */
             }
 
-            if (!RIG_IS_THD74 && !RIG_IS_THD75 && !RIG_IS_THD7A && !RIG_IS_TMD700)
+            if (!RIG_IS_THD74 && !RIG_IS_THD75 && !RIG_IS_THD7A && !RIG_IS_TMD700
+                    && !RIG_IS_TMD750)
             {
                 int retval;
                 // call get_split to fill in current split and tx_vfo status
@@ -5334,6 +5336,7 @@ int kenwood_set_trn(RIG *rig, int trn)
     case RIG_MODEL_THD7A:
     case RIG_MODEL_THD74:
     case RIG_MODEL_THD75:
+    case RIG_MODEL_TMD750:
         RETURNFUNC(kenwood_transaction(rig, (trn == RIG_TRN_RIG) ? "AI 1" : "AI 0", buf,
                                        sizeof buf));
 
@@ -5365,7 +5368,8 @@ int kenwood_get_trn(RIG *rig, int *trn)
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
-    if (RIG_IS_THD74 || RIG_IS_THD75 || RIG_IS_THD7A || RIG_IS_TMD700)
+    if (RIG_IS_THD74 || RIG_IS_THD75 || RIG_IS_THD7A || RIG_IS_TMD700
+            || RIG_IS_TMD750)
     {
         retval = kenwood_safe_transaction(rig, "AI", trnbuf, 6, 4);
     }
@@ -5379,7 +5383,8 @@ int kenwood_get_trn(RIG *rig, int *trn)
         RETURNFUNC(retval);
     }
 
-    if (RIG_IS_THD74 || RIG_IS_THD75 || RIG_IS_THD7A || RIG_IS_TMD700)
+    if (RIG_IS_THD74 || RIG_IS_THD75 || RIG_IS_THD7A || RIG_IS_TMD700
+            || RIG_IS_TMD750)
     {
         *trn = trnbuf[3] != '0' ? RIG_TRN_RIG : RIG_TRN_OFF;
     }
@@ -6581,6 +6586,7 @@ DECLARE_INITRIG_BACKEND(kenwood)
     rig_register(&tmv7_caps);
     rig_register(&tmv71_caps);
     rig_register(&tmd710_caps);
+    rig_register(&tmd750_caps);
 
     rig_register(&ts590_caps);
     rig_register(&ts990s_caps);
