@@ -8,6 +8,10 @@
  * version 2.1 of the License, or (at your option) any later version.
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <locale.h>
 #include <stdlib.h>
