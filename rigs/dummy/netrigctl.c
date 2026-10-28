@@ -52,6 +52,7 @@ struct netrigctl_priv_data
     int rigctld_vfo_mode;
     vfo_t rx_vfo;
     vfo_t tx_vfo;
+    char parm_value[BUF_MAX];
 };
 
 static int parse_rprt_status(const char *response)
@@ -2329,29 +2330,84 @@ static int netrigctl_get_powerstat(RIG *rig, powerstat_t *status)
 }
 
 
+int netrigctl_format_parm_command(char *cmd, size_t cmd_size,
+                                  setting_t parm, value_t val)
+{
+    const char *parm_name;
+    int len;
+
+    if (cmd == NULL || cmd_size == 0)
+    {
+        return -RIG_EINVAL;
+    }
+
+    cmd[0] = '\0';
+    parm_name = rig_strparm(parm);
+
+    if (parm_name[0] == '\0')
+    {
+        return -RIG_EINVAL;
+    }
+
+    if (RIG_PARM_IS_FLOAT(parm))
+    {
+        char pstr[32];
+        int ret = rigctl_format_decimal(pstr, sizeof(pstr), "%f", val.f);
+
+        if (ret != RIG_OK)
+        {
+            return ret;
+        }
+
+        len = snprintf(cmd, cmd_size, "P %s %s\n", parm_name, pstr);
+    }
+    else if (RIG_PARM_IS_STRING(parm))
+    {
+        if (val.cs == NULL || val.cs[0] == '\0'
+                || strpbrk(val.cs, "\r\n") != NULL)
+        {
+            return -RIG_EINVAL;
+        }
+
+        len = snprintf(cmd, cmd_size, "P %s %s\n", parm_name, val.cs);
+    }
+    else
+    {
+        len = snprintf(cmd, cmd_size, "P %s %d\n", parm_name, val.i);
+    }
+
+    if (len < 0)
+    {
+        cmd[0] = '\0';
+        return -RIG_EINVAL;
+    }
+
+    if ((size_t)len >= cmd_size)
+    {
+        cmd[0] = '\0';
+        return -RIG_ETRUNC;
+    }
+
+    return len;
+}
+
+
 static int netrigctl_set_parm(RIG *rig, setting_t parm, value_t val)
 {
     int ret;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
-    char pstr[32];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (RIG_PARM_IS_FLOAT(parm))
-    {
-        ret = rigctl_format_decimal(pstr, sizeof(pstr), "%f", val.f);
+    ret = netrigctl_format_parm_command(cmd, sizeof(cmd), parm, val);
 
-        if (ret != RIG_OK) { return ret; }
-    }
-    else
+    if (ret < 0)
     {
-        SNPRINTF(pstr, sizeof(pstr), "%d", val.i);
+        return ret;
     }
 
-    SNPRINTF(cmd, sizeof(cmd), "P %s %s\n", rig_strparm(parm), pstr);
-
-    ret = netrigctl_transaction(rig, cmd, strlen(cmd), buf);
+    ret = netrigctl_transaction(rig, cmd, ret, buf);
 
     if (ret > 0)
     {
@@ -2364,11 +2420,102 @@ static int netrigctl_set_parm(RIG *rig, setting_t parm, value_t val)
 }
 
 
+int netrigctl_decode_parm_response(setting_t parm, value_t *val,
+                                   const char *response, size_t response_len,
+                                   char *string_value,
+                                   size_t string_value_size)
+{
+    const char *source = response;
+    size_t source_len;
+
+    if (val == NULL || response == NULL || response_len == 0
+            || response[response_len - 1] != '\n')
+    {
+        return -RIG_EPROTO;
+    }
+
+    source_len = response_len - 1;
+
+    if (source_len > 0 && response[source_len - 1] == '\r')
+    {
+        source_len--;
+    }
+
+    if (source_len == 0 || memchr(response, '\0', source_len) != NULL
+            || memchr(response, '\r', source_len) != NULL
+            || memchr(response, '\n', source_len) != NULL)
+    {
+        return -RIG_EPROTO;
+    }
+
+    if (RIG_PARM_IS_FLOAT(parm))
+    {
+        if (rigctl_parse_float(response, RIGCTL_DECIMAL_DOT_ONLY,
+                               &val->f) != RIG_OK)
+        {
+            return -RIG_EPROTO;
+        }
+
+        return RIG_OK;
+    }
+
+    if (!RIG_PARM_IS_STRING(parm))
+    {
+        val->i = atoi(response);
+        return RIG_OK;
+    }
+
+    if (string_value == NULL || string_value_size == 0)
+    {
+        return -RIG_EINVAL;
+    }
+
+    if (parm == RIG_PARM_KEYERTYPE)
+    {
+        static const struct
+        {
+            const char *name;
+            const char *value;
+        } keyertype_values[] = {
+            { "STRAIGHT", "0" },
+            { "BUG", "1" },
+            { "PADDLE", "2" },
+            { "UNKNOWN", "4" },
+        };
+
+        for (size_t i = 0;
+                i < sizeof(keyertype_values) / sizeof(keyertype_values[0]); i++)
+        {
+            if (strlen(keyertype_values[i].name) == source_len
+                    && memcmp(source, keyertype_values[i].name, source_len) == 0)
+            {
+                source = keyertype_values[i].value;
+                source_len = strlen(source);
+                break;
+            }
+        }
+    }
+
+    if (source_len >= string_value_size)
+    {
+        return -RIG_ETRUNC;
+    }
+
+    memcpy(string_value, source, source_len);
+    string_value[source_len] = '\0';
+    val->cs = string_value;
+
+    return RIG_OK;
+}
+
+
 static int netrigctl_get_parm(RIG *rig, setting_t parm, value_t *val)
 {
     int ret;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
+    struct netrigctl_priv_data *priv =
+        (struct netrigctl_priv_data *)STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -2381,19 +2528,14 @@ static int netrigctl_get_parm(RIG *rig, setting_t parm, value_t *val)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    if (RIG_PARM_IS_FLOAT(parm))
+    if (ret == sizeof(buf) - 1 && buf[ret - 1] != '\n')
     {
-        if (rigctl_parse_float(buf, RIGCTL_DECIMAL_DOT_ONLY, &val->f) != RIG_OK)
-        {
-            return -RIG_EPROTO;
-        }
-    }
-    else
-    {
-        val->i = atoi(buf);
+        return -RIG_ETRUNC;
     }
 
-    return RIG_OK;
+    return netrigctl_decode_parm_response(parm, val, buf, ret,
+                                          priv->parm_value,
+                                          sizeof(priv->parm_value));
 }
 
 

@@ -291,10 +291,38 @@ int ftx1_get_tuner_select(RIG *rig, int *tuner_type)
  * Mirrors the hardware-verified rad-con Power.getTuner(): the effective tuner
  * is the per-antenna type of the active antenna, independent of the general
  * TUNER SELECT (EX030104).
+ *
+ * On a Field head without SPA-1, the general tuner select (EX030104) is used
+ * as the effective tuner type. If the head type couldn't be detected, the
+ * per-antenna type is used as before.
  */
 int ftx1_get_effective_tuner_type(RIG *rig, int *type)
 {
     int ret, ant, item;
+    int head_type = ftx1_get_head_type(rig);
+
+    if ((head_type == FTX1_HEAD_FIELD_BATTERY || head_type == FTX1_HEAD_FIELD_12V)
+            && !ftx1_has_spa1(rig)) {
+        int tuner_select;
+        ret = ftx1_get_ex_menu(rig, 3, 1, 4, &tuner_select);
+        if (ret != RIG_OK)
+        {
+            return ret;
+        }
+        if (tuner_select == 0)
+        {
+            *type = FTX1_TUNER_TYPE_EXT;
+        }
+        else if (tuner_select == 1)
+        {
+            *type = FTX1_TUNER_TYPE_ATAS;
+        }
+        else
+        {
+            return -RIG_EPROTO;
+        }
+        return RIG_OK;
+    }
 
     /* Active HF antenna: EX030704 (0=ANT1, 1=ANT2) */
     ret = ftx1_get_ex_menu(rig, 3, 7, 4, &ant);
