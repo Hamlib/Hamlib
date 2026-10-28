@@ -64,7 +64,7 @@ int stream_ringbuf_init(struct rig_stream_ringbuf *rb, size_t capacity)
 
     /* Reject sizes whose power-of-two rounding would wrap to 0, which would
      * otherwise yield a live zero-capacity ring that silently drops data. */
-    if (capacity > (SIZE_MAX >> 1) + 1)
+    if (capacity > STREAM_RINGBUF_MAX_CAPACITY)
     {
         return -1;
     }
