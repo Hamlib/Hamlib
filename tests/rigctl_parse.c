@@ -667,7 +667,7 @@ static int read_long_command_name(FILE *fin, char *name, size_t name_size)
 
         if (isspace((unsigned char)c))
         {
-            if (length > 0 && !too_long && ungetc(c, fin) == EOF)
+            if (ungetc(c, fin) == EOF)
             {
                 return RIGCTL_PARSE_ERROR;
             }
@@ -687,7 +687,7 @@ static int read_long_command_name(FILE *fin, char *name, size_t name_size)
 
     name[length] = '\0';
 
-    return length > 0 && !too_long ? RIG_OK : RIGCTL_PARSE_ERROR;
+    return length > 0 && !too_long ? RIG_OK : -RIG_EINVAL;
 }
 
 static int parse_protocol_freq(const char *token, freq_t *value)
@@ -1607,12 +1607,22 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 {
                     char cmd_name[MAXNAMSIZ + 1];
 
-                    if (read_long_command_name(fin, cmd_name,
-                                               sizeof(cmd_name)) != RIG_OK)
+                    retcode = read_long_command_name(fin, cmd_name,
+                                                     sizeof(cmd_name));
+
+                    if (retcode != RIG_OK)
                     {
                         rig_debug(RIG_DEBUG_WARN,
                                   "%s: invalid long command name\n", __func__);
-                        return (RIGCTL_PARSE_ERROR);
+
+                        if (retcode != -RIG_EINVAL)
+                        {
+                            return (RIGCTL_PARSE_ERROR);
+                        }
+
+                        while ((retcode = fgetc(fin)) != EOF && retcode != '\n');
+
+                        return (ferror(fin) ? RIGCTL_PARSE_ERROR : RIG_OK);
                     }
 
                     cmd = parse_arg(cmd_name);

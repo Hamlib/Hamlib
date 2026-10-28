@@ -1749,10 +1749,44 @@ static int check_long_command_framing(RIG *rig)
     ret = parse_interactive_text(rig, "\\\n\\password test-secret\n", 1,
                                  NULL, 0, remaining, sizeof(remaining));
 
-    if (ret != RIGCTL_PARSE_ERROR
+    if (ret != RIG_OK
             || strcmp(remaining, "\\password test-secret\n") != 0)
     {
         fprintf(stderr, "empty long command consumed next line: '%s'\n",
+                remaining);
+        return 1;
+    }
+
+    captured_freq = -1;
+    ret = parse_interactive_text(rig, "\\ set_freq 1\n\\set_freq 456\n", 2,
+                                 NULL, 0, NULL, 0);
+
+    if (ret != RIG_OK || captured_freq != 456)
+    {
+        fprintf(stderr, "empty long command name ended the session\n");
+        return 1;
+    }
+
+    captured_freq = -1;
+    ret = parse_interactive_text(rig,
+                                 "\\aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa set_freq 1\n"
+                                 "\\set_freq 789\n", 2, NULL, 0, NULL, 0);
+
+    if (ret != RIG_OK || captured_freq != 789)
+    {
+        fprintf(stderr, "overlong long command name ended the session\n");
+        return 1;
+    }
+
+    ret = parse_interactive_text(rig,
+                                 "\\aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n"
+                                 "\\password test-secret\n", 1, NULL, 0,
+                                 remaining, sizeof(remaining));
+
+    if (ret != RIG_OK
+            || strcmp(remaining, "\\password test-secret\n") != 0)
+    {
+        fprintf(stderr, "overlong long command consumed next line: '%s'\n",
                 remaining);
         return 1;
     }
