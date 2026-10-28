@@ -17,8 +17,11 @@ int main(int argc, char *argv[])
     long freq = 14075000;
     int mode = 2;
 
+#if defined(WIN32) || defined(_WIN32)
+    /* Only the Windows openPort() opens the named port. */
     if (argc != 2) { return 1; }
-    fd = openPort(argv[1]);
+#endif
+    fd = openPort(argc > 1 ? argv[1] : NULL);
     if (fd < 0) { return 1; }
 
     while (1)
