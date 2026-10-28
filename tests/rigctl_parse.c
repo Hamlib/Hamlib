@@ -2488,12 +2488,6 @@ readline_repeat:
 
 #endif // HAVE_LIBREADLINE
 
-    if (sync_cb)
-    {
-        sync_cb(1);
-        lock_held = 1;
-    }
-
     connection = pthread_getspecific(thread_data_key);
     password_authenticated = !use_password
                              || (connection && connection->is_passwordOK);
@@ -2501,6 +2495,13 @@ readline_repeat:
     sensitive_command = cmd_entry->flags & CMD_SENSITIVE;
     password_missing = use_password && !password_authenticated
                        && !preauth_command;
+
+    /* Rejections can block on client output without using the rig. */
+    if (sync_cb && !password_missing)
+    {
+        sync_cb(1);
+        lock_held = 1;
+    }
 
     if (!prompt)
     {

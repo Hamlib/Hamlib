@@ -8,6 +8,10 @@
  * version 2.1 of the License, or (at your option) any later version.
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <locale.h>
 #include <stdlib.h>
@@ -571,6 +575,21 @@ static int parse_command_output(RIG *rig, FILE *input, char *argv[], int argc,
     return ret;
 }
 
+static int parser_lock_calls;
+static int parser_unlock_calls;
+
+static void count_parser_lock(int lock)
+{
+    if (lock)
+    {
+        parser_lock_calls++;
+    }
+    else
+    {
+        parser_unlock_calls++;
+    }
+}
+
 static int parse_secure_network_command_output(RIG *rig, const char *command,
         struct handle_data *connection, char *response, size_t response_size)
 {
@@ -593,7 +612,9 @@ static int parse_secure_network_command_output(RIG *rig, const char *command,
     fputs(command, input);
     rewind(input);
     pthread_setspecific(thread_data_key, connection);
-    ret = rigctl_parse(rig, input, output, argv, 1, NULL, 1, 0,
+    parser_lock_calls = 0;
+    parser_unlock_calls = 0;
+    ret = rigctl_parse(rig, input, output, argv, 1, count_parser_lock, 1, 0,
                        &connection->vfo_mode, 0, &ext_resp, &resp_sep, 1);
 
     if (response != NULL && response_size > 0)
@@ -1246,6 +1267,13 @@ static int check_password_authorization(RIG *rig)
                     protected_names[i], -RIG_ESECURITY, ret);
             goto done;
         }
+
+        if (parser_lock_calls != 0 || parser_unlock_calls != 0)
+        {
+            fprintf(stderr, "rejected %s used the rig lock: %d/%d\n",
+                    protected_names[i], parser_lock_calls, parser_unlock_calls);
+            goto done;
+        }
     }
 
     for (unsigned int i = 0; i <= RIGCTLD_MAX_AUTH_FAILURES; i++)
@@ -1276,6 +1304,13 @@ static int check_password_authorization(RIG *rig)
         {
             fprintf(stderr, "unauthenticated %s: expected success, got %d\n",
                     preauth_names[i], ret);
+            goto done;
+        }
+
+        if (parser_lock_calls != 1 || parser_unlock_calls != 1)
+        {
+            fprintf(stderr, "pre-authentication %s lost rig locking: %d/%d\n",
+                    preauth_names[i], parser_lock_calls, parser_unlock_calls);
             goto done;
         }
     }
@@ -1397,6 +1432,13 @@ static int check_password_authorization(RIG *rig)
     if (ret != RIG_OK || HAMLIB_STATE(rig)->vfo_opt != 1)
     {
         fprintf(stderr, "authenticated VFO mode was not applied\n");
+        goto done;
+    }
+
+    if (parser_lock_calls != 1 || parser_unlock_calls != 1)
+    {
+        fprintf(stderr, "authenticated command lost rig locking: %d/%d\n",
+                parser_lock_calls, parser_unlock_calls);
         goto done;
     }
 
