@@ -33,6 +33,7 @@
 #include "daemon_client.h"
 #include "rigctl_parse.h"
 #include "rigctld_client.h"
+#include "rigctld_stream.h"
 #include "rig_tests.h"
 
 extern powerstat_t rig_powerstat;
@@ -153,6 +154,132 @@ static void count_last_client(void *data)
 }
 
 #ifdef HAVE_SOCKETPAIR
+static pthread_mutex_t parser_sync_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+struct parser_thread_context
+{
+    RIG *rig;
+    FILE *input;
+    FILE *output;
+    sync_cb_t sync_cb;
+    pthread_t thread;
+    pthread_mutex_t state_mutex;
+    int vfo_mode;
+    int ext_resp;
+    char resp_sep;
+    int ret;
+    int lock_entered;
+    int finished;
+};
+
+static struct parser_thread_context *waiting_parser_context;
+
+static void parser_sync(int lock)
+{
+    if (lock)
+    {
+        pthread_mutex_lock(&parser_sync_mutex);
+    }
+    else
+    {
+        pthread_mutex_unlock(&parser_sync_mutex);
+    }
+}
+
+static void waiting_parser_sync(int lock)
+{
+    parser_sync(lock);
+
+    if (lock)
+    {
+        pthread_mutex_lock(&waiting_parser_context->state_mutex);
+        waiting_parser_context->lock_entered = 1;
+        pthread_mutex_unlock(&waiting_parser_context->state_mutex);
+    }
+}
+
+static void *run_parser_thread(void *data)
+{
+    struct parser_thread_context *context = data;
+    char *argv[] = { "testctlparser" };
+
+    context->ret = rigctl_parse(context->rig, context->input,
+                                context->output, argv, 1, context->sync_cb,
+                                1, 0, &context->vfo_mode, 0,
+                                &context->ext_resp, &context->resp_sep, 0);
+    pthread_mutex_lock(&context->state_mutex);
+    context->finished = 1;
+    pthread_mutex_unlock(&context->state_mutex);
+    return NULL;
+}
+
+static int parser_thread_finished(struct parser_thread_context *context)
+{
+    int finished;
+
+    pthread_mutex_lock(&context->state_mutex);
+    finished = context->finished;
+    pthread_mutex_unlock(&context->state_mutex);
+    return finished;
+}
+
+static int parser_thread_entered_lock(struct parser_thread_context *context)
+{
+    int lock_entered;
+
+    pthread_mutex_lock(&context->state_mutex);
+    lock_entered = context->lock_entered;
+    pthread_mutex_unlock(&context->state_mutex);
+    return lock_entered;
+}
+
+static int wait_for_parser_thread(struct parser_thread_context *context,
+                                  unsigned int timeout_ms)
+{
+    for (unsigned int i = 0; i < timeout_ms; i++)
+    {
+        if (parser_thread_finished(context))
+        {
+            return 1;
+        }
+
+        usleep(1000);
+    }
+
+    return parser_thread_finished(context);
+}
+
+static int init_parser_thread(struct parser_thread_context *context, RIG *rig,
+                              FILE *input)
+{
+    memset(context, 0, sizeof(*context));
+    context->rig = rig;
+    context->input = input;
+    context->output = tmpfile();
+    context->sync_cb = parser_sync;
+    context->resp_sep = '\n';
+
+    if (context->output == NULL
+            || pthread_mutex_init(&context->state_mutex, NULL) != 0)
+    {
+        if (context->output != NULL)
+        {
+            fclose(context->output);
+        }
+
+        return -1;
+    }
+
+    return 0;
+}
+
+static void destroy_parser_thread(struct parser_thread_context *context)
+{
+    fclose(context->input);
+    fclose(context->output);
+    pthread_mutex_destroy(&context->state_mutex);
+}
+
 struct pool_stop_context
 {
     struct rigctld_client_pool *pool;
@@ -190,6 +317,216 @@ static int wait_for_socket_shutdown(int socket_fd, unsigned int timeout_ms)
     }
 
     return recv(socket_fd, &byte, 1, MSG_DONTWAIT) == 0;
+}
+
+struct parser_wait_case
+{
+    const char *name;
+    const char *initial_input;
+    const char *remaining_input;
+    int expected_ret;
+};
+
+static int check_parser_wait_case(RIG *rig,
+                                  const struct parser_wait_case *test_case)
+{
+    struct parser_thread_context waiting;
+    struct parser_thread_context other;
+    FILE *waiting_input = NULL;
+    FILE *other_input = NULL;
+    int sockets[2] = { -1, -1 };
+    int waiting_started = 0;
+    int other_started = 0;
+    int result = 1;
+
+    if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) != 0)
+    {
+        return 1;
+    }
+
+    waiting_input = fdopen(sockets[0], "r");
+    other_input = tmpfile();
+
+    if (waiting_input == NULL || other_input == NULL)
+    {
+        goto done;
+    }
+
+    sockets[0] = -1;
+    fputs("\\chk_vfo\n", other_input);
+    rewind(other_input);
+
+    if (init_parser_thread(&waiting, rig, waiting_input) != 0)
+    {
+        goto done;
+    }
+
+    waiting_input = NULL;
+    waiting.sync_cb = waiting_parser_sync;
+    waiting_parser_context = &waiting;
+
+    if (init_parser_thread(&other, rig, other_input) != 0)
+    {
+        destroy_parser_thread(&waiting);
+        goto done;
+    }
+
+    other_input = NULL;
+
+    if (send(sockets[1], test_case->initial_input,
+             strlen(test_case->initial_input), 0)
+            != (ssize_t)strlen(test_case->initial_input)
+            || pthread_create(&waiting.thread, NULL, run_parser_thread,
+                              &waiting) != 0)
+    {
+        goto release;
+    }
+
+    waiting_started = 1;
+
+    for (unsigned int i = 0; i < 500
+            && !parser_thread_entered_lock(&waiting); i++)
+    {
+        usleep(1000);
+    }
+
+    if (!parser_thread_entered_lock(&waiting))
+    {
+        fprintf(stderr, "%s did not enter the parser lock\n", test_case->name);
+        goto release;
+    }
+
+    if (parser_thread_finished(&waiting))
+    {
+        fprintf(stderr, "%s did not wait for its client\n", test_case->name);
+        goto release;
+    }
+
+    if (pthread_create(&other.thread, NULL, run_parser_thread, &other) != 0)
+    {
+        goto release;
+    }
+
+    other_started = 1;
+
+    if (!wait_for_parser_thread(&other, 500))
+    {
+        fprintf(stderr, "%s held the parser lock\n", test_case->name);
+        goto release;
+    }
+
+    result = 0;
+
+release:
+
+    if (test_case->remaining_input != NULL)
+    {
+        send(sockets[1], test_case->remaining_input,
+             strlen(test_case->remaining_input), 0);
+    }
+
+    shutdown(sockets[1], SHUT_WR);
+
+    if (waiting_started)
+    {
+        pthread_join(waiting.thread, NULL);
+
+        if (waiting.ret != test_case->expected_ret)
+        {
+            fprintf(stderr, "%s returned %d instead of %d\n",
+                    test_case->name, waiting.ret, test_case->expected_ret);
+            result = 1;
+        }
+    }
+
+    if (other_started)
+    {
+        pthread_join(other.thread, NULL);
+
+        if (other.ret != RIG_OK)
+        {
+            fprintf(stderr, "concurrent command returned %d during %s\n",
+                    other.ret, test_case->name);
+            result = 1;
+        }
+    }
+
+    destroy_parser_thread(&waiting);
+    destroy_parser_thread(&other);
+
+done:
+
+    if (waiting_input != NULL)
+    {
+        fclose(waiting_input);
+    }
+    else if (sockets[0] >= 0)
+    {
+        close(sockets[0]);
+    }
+
+    if (other_input != NULL)
+    {
+        fclose(other_input);
+    }
+
+    if (sockets[1] >= 0)
+    {
+        close(sockets[1]);
+    }
+
+    waiting_parser_context = NULL;
+
+    return result;
+}
+
+static int check_client_wait_lock_scope(RIG *rig)
+{
+    static const struct parser_wait_case cases[] =
+    {
+        { "invalid set_vfo", "V INVALID ", "ignored\n", -RIG_EINVAL },
+        { "set_channel", "H 0 ", "memory\n", RIG_OK },
+        {
+            "stream_open",
+            "+\\stream_open AUDIO_RX PCM_S16 48000 ",
+            "require_native=BOGUS\n",
+            -RIG_EINVAL
+        },
+        { "pause", "\\pause 1\n", NULL, RIG_OK }
+    };
+    int saved_is_rigctld = is_rigctld;
+    int result = 0;
+
+    is_rigctld = 1;
+    HAMLIB_STATE(rig)->powerstat = RIG_POWER_ON;
+    rig_powerstat = RIG_POWER_ON;
+
+    if (HAMLIB_STATE(rig)->comm_state == 0 && rig_open(rig) != RIG_OK)
+    {
+        result = 1;
+        goto done;
+    }
+
+    if (rigctld_stream_registry_init(&g_stream_registry) != 0)
+    {
+        result = 1;
+        goto done;
+    }
+
+    for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++)
+    {
+        if (check_parser_wait_case(rig, &cases[i]) != 0)
+        {
+            result = 1;
+            break;
+        }
+    }
+
+    rigctld_stream_registry_destroy(&g_stream_registry);
+
+done:
+    is_rigctld = saved_is_rigctld;
+    return result;
 }
 #endif
 
@@ -238,6 +575,21 @@ static int parse_command_output(RIG *rig, FILE *input, char *argv[], int argc,
     return ret;
 }
 
+static int parser_lock_calls;
+static int parser_unlock_calls;
+
+static void count_parser_lock(int lock)
+{
+    if (lock)
+    {
+        parser_lock_calls++;
+    }
+    else
+    {
+        parser_unlock_calls++;
+    }
+}
+
 static int parse_secure_network_command_output(RIG *rig, const char *command,
         struct handle_data *connection, char *response, size_t response_size)
 {
@@ -260,7 +612,9 @@ static int parse_secure_network_command_output(RIG *rig, const char *command,
     fputs(command, input);
     rewind(input);
     pthread_setspecific(thread_data_key, connection);
-    ret = rigctl_parse(rig, input, output, argv, 1, NULL, 1, 0,
+    parser_lock_calls = 0;
+    parser_unlock_calls = 0;
+    ret = rigctl_parse(rig, input, output, argv, 1, count_parser_lock, 1, 0,
                        &connection->vfo_mode, 0, &ext_resp, &resp_sep, 1);
 
     if (response != NULL && response_size > 0)
@@ -283,6 +637,52 @@ static int parse_secure_network_command(RIG *rig, const char *command,
 {
     return parse_secure_network_command_output(rig, command, connection,
             NULL, 0);
+}
+
+static int check_invalid_vfo_line_recovery(RIG *rig)
+{
+    FILE *input = tmpfile();
+    FILE *output = tmpfile();
+    char *argv[] = { "testctlparser" };
+    char response[64];
+    int vfo_mode = 0;
+    int ext_resp = 0;
+    char resp_sep = '\n';
+    int first_ret;
+    int second_ret;
+    size_t length;
+
+    if (input == NULL || output == NULL)
+    {
+        if (input != NULL) { fclose(input); }
+
+        if (output != NULL) { fclose(output); }
+
+        return 1;
+    }
+
+    fputs("V INVALID ignored\n\\chk_vfo\n", input);
+    rewind(input);
+    first_ret = rigctl_parse(rig, input, output, argv, 1, NULL, 1, 0,
+                             &vfo_mode, 0, &ext_resp, &resp_sep, 0);
+    second_ret = rigctl_parse(rig, input, output, argv, 1, NULL, 1, 0,
+                              &vfo_mode, 0, &ext_resp, &resp_sep, 0);
+    rewind(output);
+    length = fread(response, 1, sizeof(response) - 1, output);
+    response[length] = '\0';
+    fclose(input);
+    fclose(output);
+
+    if (first_ret != -RIG_EINVAL || second_ret != RIG_OK
+            || strcmp(response, "RPRT -1\n0\n") != 0)
+    {
+        fprintf(stderr,
+                "invalid VFO line recovery failed: first=%d second=%d '%s'\n",
+                first_ret, second_ret, response);
+        return 1;
+    }
+
+    return 0;
 }
 
 static int check_client_pool(void)
@@ -810,13 +1210,15 @@ static int check_password_authorization(RIG *rig)
     {
         "\\halt\n",
         "\\set_vfo VFOA\n",
-        "\\hamlib_version\n"
+        "\\hamlib_version\n",
+        "\\set_channel 0\n"
     };
     static const char *protected_names[] =
     {
         "halt",
         "set_vfo",
-        "hamlib_version"
+        "hamlib_version",
+        "set_channel"
     };
     static const char *preauth_commands[] =
     {
@@ -865,6 +1267,13 @@ static int check_password_authorization(RIG *rig)
                     protected_names[i], -RIG_ESECURITY, ret);
             goto done;
         }
+
+        if (parser_lock_calls != 0 || parser_unlock_calls != 0)
+        {
+            fprintf(stderr, "rejected %s used the rig lock: %d/%d\n",
+                    protected_names[i], parser_lock_calls, parser_unlock_calls);
+            goto done;
+        }
     }
 
     for (unsigned int i = 0; i <= RIGCTLD_MAX_AUTH_FAILURES; i++)
@@ -895,6 +1304,13 @@ static int check_password_authorization(RIG *rig)
         {
             fprintf(stderr, "unauthenticated %s: expected success, got %d\n",
                     preauth_names[i], ret);
+            goto done;
+        }
+
+        if (parser_lock_calls != 1 || parser_unlock_calls != 1)
+        {
+            fprintf(stderr, "pre-authentication %s lost rig locking: %d/%d\n",
+                    preauth_names[i], parser_lock_calls, parser_unlock_calls);
             goto done;
         }
     }
@@ -1016,6 +1432,13 @@ static int check_password_authorization(RIG *rig)
     if (ret != RIG_OK || HAMLIB_STATE(rig)->vfo_opt != 1)
     {
         fprintf(stderr, "authenticated VFO mode was not applied\n");
+        goto done;
+    }
+
+    if (parser_lock_calls != 1 || parser_unlock_calls != 1)
+    {
+        fprintf(stderr, "authenticated command lost rig locking: %d/%d\n",
+                parser_lock_calls, parser_unlock_calls);
         goto done;
     }
 
@@ -1418,7 +1841,8 @@ static int check_decimal_command(RIG *rig, char *argv[], int argc,
 
 static int check_locale_decimal_output(RIG *rig)
 {
-    static const char *comma_locales[] = {
+    static const char *comma_locales[] =
+    {
         "de_DE.UTF-8", "de_DE.utf8", "fr_FR.UTF-8", "fr_FR.utf8",
         "German_Germany.1252", "French_France.1252"
     };
@@ -1436,6 +1860,7 @@ static int check_locale_decimal_output(RIG *rig)
     if (input == NULL || (current_locale != NULL && saved_locale == NULL))
     {
         if (input != NULL) { fclose(input); }
+
         free(saved_locale);
         return 1;
     }
@@ -1464,8 +1889,8 @@ static int check_locale_decimal_output(RIG *rig)
     }
 
     if (result == 0 && (parse_command_output(rig, input, clock_argv, 2, -1,
-                                             output, sizeof(output),
-                                             &output_length) != RIG_OK
+            output, sizeof(output),
+            &output_length) != RIG_OK
                         || output_length != sizeof(clock_expected) - 1
                         || memcmp(output, clock_expected,
                                   sizeof(clock_expected) - 1) != 0))
@@ -1536,6 +1961,10 @@ int main(void)
             || check_socket_timeouts() != 0
             || check_powerstat_refresh(rig) != 0
             || check_password_authorization(rig) != 0
+            || check_invalid_vfo_line_recovery(rig) != 0
+#ifdef HAVE_SOCKETPAIR
+            || check_client_wait_lock_scope(rig) != 0
+#endif
        )
     {
         rig_cleanup(rig);
@@ -1601,31 +2030,39 @@ int main(void)
         char *set_freq_dot[] = { "testctlparser", "F", "14.25" };
         char *set_freq_comma[] = { "testctlparser", "F", "14,25" };
         char *set_split_comma[] = { "testctlparser", "I", "7,125" };
-        char *set_split_mode_comma[] = {
+        char *set_split_mode_comma[] =
+        {
             "testctlparser", "K", "7,125", "USB", "2400"
         };
-        char *set_level_comma[] = {
+        char *set_level_comma[] =
+        {
             "testctlparser", "L", "AF", "0,5"
         };
-        char *set_parm_comma[] = {
+        char *set_parm_comma[] =
+        {
             "testctlparser", "P", "BACKLIGHT", "0,5"
         };
-        char *power_comma[] = {
+        char *power_comma[] =
+        {
             "testctlparser", "2", "0,5", "14,25", "USB"
         };
-        char *mw_power_comma[] = {
+        char *mw_power_comma[] =
+        {
             "testctlparser", "4", "100", "14,25", "USB"
         };
         char *invalid_trailing[] = { "testctlparser", "F", "14.25junk" };
         char *invalid_mixed[] = { "testctlparser", "F", "14,25.5" };
         char *invalid_nonfinite[] = { "testctlparser", "F", "nan" };
-        char *clock_dot[] = {
+        char *clock_dot[] =
+        {
             "testctlparser", "set_clock", "2026-01-02T03:04:05.500+00:00"
         };
-        char *clock_comma[] = {
+        char *clock_comma[] =
+        {
             "testctlparser", "set_clock", "2026-01-02T03:04:05,500+00:00"
         };
-        char *clock_missing_separator[] = {
+        char *clock_missing_separator[] =
+        {
             "testctlparser", "set_clock", "2026-01-02T03:04:050+00:00"
         };
 
