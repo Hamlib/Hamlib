@@ -2153,6 +2153,69 @@ static int check_state_granularity_output(RIG *rig)
     return 0;
 }
 
+static int state_output_has(RIG *rig, const char *needle)
+{
+    unsigned char output[32768];
+    FILE *input = tmpfile();
+    char *chk_vfo_argv[] = { "testctlparser", "chk_vfo" };
+    char *dump_state_argv[] = { "testctlparser", "dump_state" };
+    size_t output_length;
+    int ret;
+
+    if (input == NULL)
+    {
+        return -1;
+    }
+
+    ret = parse_command_output(rig, input, chk_vfo_argv, 2, -1, output,
+                               sizeof(output) - 1, &output_length);
+
+    if (ret == RIG_OK)
+    {
+        ret = parse_command_output(rig, input, dump_state_argv, 2, -1, output,
+                                   sizeof(output) - 1, &output_length);
+    }
+
+    fclose(input);
+
+    if (ret != RIG_OK || output_length >= sizeof(output) - 1)
+    {
+        fprintf(stderr, "unable to capture complete state output\n");
+        return -1;
+    }
+
+    output[output_length] = '\0';
+    return strstr((char *)output, needle) != NULL;
+}
+
+/* A network client asks for the VFO only if dump_state says the rig answers */
+static int check_state_get_vfo_output(RIG *rig)
+{
+    struct rig_state *state = HAMLIB_STATE(rig);
+    int refused, answering;
+
+    state->no_get_vfo = 1;
+    refused = state_output_has(rig, "\nhas_get_vfo=0\n");
+    state->no_get_vfo = 0;
+    answering = state_output_has(rig, "\nhas_get_vfo=1\n");
+
+    if (refused != 1)
+    {
+        fprintf(stderr, "dump_state advertises get_vfo for a rig that"
+                " refused it\n");
+        return 1;
+    }
+
+    if (answering != 1)
+    {
+        fprintf(stderr, "dump_state hides get_vfo from a rig that answers"
+                " it\n");
+        return 1;
+    }
+
+    return 0;
+}
+
 int main(void)
 {
     static const char maximum[] = "12345678901234567890123456789";
@@ -2264,7 +2327,8 @@ int main(void)
             || check_receive_length(rig, "999999999999999999999999",
                                     -RIG_EINVAL) != 0
             || check_bad_input_stream(rig) != 0
-            || check_state_granularity_output(rig) != 0)
+            || check_state_granularity_output(rig) != 0
+            || check_state_get_vfo_output(rig) != 0)
     {
         rig_cleanup(rig);
         return 1;
