@@ -337,6 +337,7 @@ struct icom_priv_data
                                     lost; 0 disables the check */
     int  net_auto_reconnect;   /*!< Re-establish a lost session in the background */
     const void *net_model;   /*!< Per-model icom_network_model descriptor */
+    int g90_af_quirk;        /*!< Opt-in G90 AF reply encoding workaround */
 };
 
 extern const struct ts_sc_list r8500_ts_sc_list[];

@@ -44,6 +44,7 @@
 
 #include <stdlib.h>
 #include <hamlib/rig.h>
+#include <assert.h>
 #include "serial.h"
 #include "misc.h"
 #include "cal.h"
@@ -181,6 +182,43 @@ extern int ftx1_get_lock(RIG *rig, int *lock);
 extern int ftx1_set_if_shift(RIG *rig, vfo_t vfo, int on, int shift_hz);
 extern int ftx1_get_if_shift(RIG *rig, vfo_t vfo, int *on, int *shift_hz);
 
+static tone_t ftx1_next_ctcss_mode(tone_t current, setting_t func, int status)
+{
+    tone_t new = current;
+    switch (func) {
+        case RIG_FUNC_TONE:
+            if (status == 0) {
+                if (current == FTX1_CTCSS_MODE_ENC || current == FTX1_CTCSS_MODE_TSQ)
+                    new = FTX1_CTCSS_MODE_OFF;
+            } else {
+                if (current != FTX1_CTCSS_MODE_ENC && current != FTX1_CTCSS_MODE_TSQ)
+                    new = FTX1_CTCSS_MODE_ENC;
+            }
+            break;
+        case RIG_FUNC_TSQL:
+            if (status == 0) {
+                if (current == FTX1_CTCSS_MODE_TSQ)
+                    new = FTX1_CTCSS_MODE_ENC;
+            } else {
+                if (current != FTX1_CTCSS_MODE_TSQ)
+                    new = FTX1_CTCSS_MODE_TSQ;
+            }
+            break;
+        case RIG_FUNC_CSQL:
+            if (status == 0) {
+                if (current == FTX1_CTCSS_MODE_DCS)
+                    new = FTX1_CTCSS_MODE_OFF;
+            } else {
+                if (current != FTX1_CTCSS_MODE_DCS)
+                    new = FTX1_CTCSS_MODE_DCS;
+            }
+            break;
+        default:
+            assert(0 && "ftx1_next_ctcss_mode: Unknown function");
+    }
+    return new;
+}
+
 /* Main override for set_func */
 int ftx1_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
@@ -228,11 +266,23 @@ int ftx1_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             }
             return ftx1_set_breakin(rig, 0);
         case RIG_FUNC_TONE:
-            return ftx1_set_ctcss_mode(rig, status ? FTX1_CTCSS_MODE_ENC : FTX1_CTCSS_MODE_OFF);
         case RIG_FUNC_TSQL:
-            return ftx1_set_ctcss_mode(rig, status ? FTX1_CTCSS_MODE_TSQ : FTX1_CTCSS_MODE_OFF);
         case RIG_FUNC_CSQL:
-            return ftx1_set_ctcss_mode(rig, status ? FTX1_CTCSS_MODE_DCS : FTX1_CTCSS_MODE_OFF);
+            {
+                tone_t ctcss_mode;
+                tone_t new_mode;
+                int ret;
+
+                /* Switch to VFO mode before reading the CTCSS mode
+                 * so that our read-modify-write operations happen on the same target. */
+                ftx1_ensure_vfo_mode(rig);
+                ret = ftx1_get_ctcss_mode(rig, &ctcss_mode);
+                if (ret != RIG_OK) return ret;
+                new_mode = ftx1_next_ctcss_mode(ctcss_mode, func, status);
+                if (new_mode != ctcss_mode)
+                    return ftx1_set_ctcss_mode(rig, new_mode);
+                return RIG_OK;  /* No change needed */
+            }
         case RIG_FUNC_RIT:
             /* FTX-1: Setting RX CLAR to 0 disables it; to enable, use set_rit with offset */
             if (!status) return ftx1_set_rx_clar(rig, vfo, 0);
@@ -305,7 +355,7 @@ int ftx1_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
             {
                 tone_t ctcss_mode;
                 ret = ftx1_get_ctcss_mode(rig, &ctcss_mode);
-                if (ret == RIG_OK) *status = (ctcss_mode == FTX1_CTCSS_MODE_ENC) ? 1 : 0;
+                if (ret == RIG_OK) *status = (ctcss_mode == FTX1_CTCSS_MODE_ENC || ctcss_mode == FTX1_CTCSS_MODE_TSQ) ? 1 : 0;
                 return ret;
             }
         case RIG_FUNC_TSQL:

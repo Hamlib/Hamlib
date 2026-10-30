@@ -433,7 +433,8 @@ static int icom_network_session_send_raw(
     struct icom_network_session_socket *sock, const uint8_t *packet,
     size_t length)
 {
-    ssize_t w = send(sock->fd, packet, length, 0);
+    /* Winsock takes a char buffer where POSIX takes void */
+    ssize_t w = send(sock->fd, (const char *)packet, length, 0);
 
     if (w == (ssize_t)length) { return RIG_OK; }
 
@@ -507,7 +508,7 @@ static int icom_network_session_recv_timeout(
 
     if (r > 0)
     {
-        got = recv(sock->fd, buf, buffer_length, 0);
+        got = recv(sock->fd, (char *)buf, buffer_length, 0);
 
         if (got >= 0) { return (int)got; }
     }

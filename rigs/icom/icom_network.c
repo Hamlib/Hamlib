@@ -127,8 +127,16 @@ static int icom_network_open(RIG *rig)
     }
 
     memset(&config, 0, sizeof(config));
-    /* the radio host comes from the -r/rig_pathname argument, host[:port] */
-    strncpy(config.host, rp->pathname, sizeof(config.host) - 1);
+    /* the radio host comes from the -r/rig_pathname argument, host[:port];
+     * refuse one that does not fit rather than connect to a truncated name */
+    if (strlen(rp->pathname) >= sizeof(config.host))
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: radio address too long (max %d): %s\n",
+                  __func__, (int)sizeof(config.host) - 1, rp->pathname);
+        return -RIG_EINVAL;
+    }
+
+    SNPRINTF(config.host, sizeof(config.host), "%s", rp->pathname);
     colon = strchr(config.host, ':');
 
     if (colon)
@@ -142,9 +150,11 @@ static int icom_network_open(RIG *rig)
         config.control_port = (uint16_t)priv->net_control_port;
     }
 
-    strncpy(config.username, priv->net_username, sizeof(config.username) - 1);
-    strncpy(config.password, priv->net_password, sizeof(config.password) - 1);
-    strncpy(config.client_name, "hamlib", sizeof(config.client_name) - 1);
+    SNPRINTF(config.username, sizeof(config.username), "%s",
+             priv->net_username);
+    SNPRINTF(config.password, sizeof(config.password), "%s",
+             priv->net_password);
+    SNPRINTF(config.client_name, sizeof(config.client_name), "%s", "hamlib");
 
     const struct icom_network_model *m =
         icom_network_find_model(STATE(rig)->rig_model);
@@ -154,14 +164,14 @@ static int icom_network_open(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    strncpy(config.radio_name, m->radio_name, sizeof(config.radio_name) - 1);
+    SNPRINTF(config.radio_name, sizeof(config.radio_name), "%s", m->radio_name);
     config.radio_index = priv->net_radio_index;
     /* net_liveness_timeout defaults to 0 in a zeroed priv, which would mean
      * "disabled"; an untouched token should get the built-in default instead. */
     config.liveness_timeout_ms = priv->net_liveness_timeout;
     config.auto_reconnect = priv->net_auto_reconnect;
-    strncpy(config.radio_select_name, priv->net_radio_name,
-            sizeof(config.radio_select_name) - 1);
+    SNPRINTF(config.radio_select_name, sizeof(config.radio_select_name), "%s",
+             priv->net_radio_name);
     priv->net_model = m;
     /* Audio formats come from the config tokens; I/Q mode forces a stereo
      * LPCM16 RX stream (I=left, Q=right) unless an RX codec was set explicitly. */

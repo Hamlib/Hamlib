@@ -51,6 +51,20 @@ const uint8_t mock_audio[] =
     0x00, 0x05, 0x00, 0x06, 0x00, 0x07, 0x00, 0x08
 };
 
+/* Winsock's sendto()/recvfrom() take char buffers where POSIX takes void,
+ * so pass the mock's uint8_t packets through these to keep MinGW quiet. */
+static ssize_t mock_sendto(int fd, const void *buf, size_t length, int flags,
+                           const struct sockaddr *to, socklen_t to_length)
+{
+    return sendto(fd, (const char *)buf, length, flags, to, to_length);
+}
+
+static ssize_t mock_recvfrom(int fd, void *buf, size_t length, int flags,
+                             struct sockaddr *from, socklen_t *from_length)
+{
+    return recvfrom(fd, (char *)buf, length, flags, from, from_length);
+}
+
 uint16_t bind_ephemeral(int *out_fd)
 {
     int fd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -73,7 +87,7 @@ static void mock_send_control(int fd, struct sockaddr_in *to, uint16_t ctl,
     uint8_t p[ICOM_NETWORK_HEADER_LEN];
     icom_network_packet_build_control(p, sizeof(p), ctl, 0, MOCK_SERVER_ID,
                                       rcvd);
-    sendto(fd, p, sizeof(p), 0, (struct sockaddr *)to, sizeof(*to));
+    mock_sendto(fd, p, sizeof(p), 0, (struct sockaddr *)to, sizeof(*to));
 }
 
 /* Send a control-socket packet the way the radio sends its tracked ones: with
@@ -102,7 +116,8 @@ static void mock_ctrl_send(struct mock_server *m, struct sockaddr_in *to,
 
     if (!drop)
     {
-        sendto(m->ctrl_fd, buf, length, 0, (struct sockaddr *)to, to_length);
+        mock_sendto(m->ctrl_fd, buf, length, 0, (struct sockaddr *)to,
+                    to_length);
     }
 }
 
@@ -125,8 +140,10 @@ static void mock_ctrl_retransmit(struct mock_server *m, const uint8_t *buf,
         {
             if (m->ctrl_sent[j].length > 0 && m->ctrl_sent[j].sequence == want)
             {
-                sendto(m->ctrl_fd, m->ctrl_sent[j].data, m->ctrl_sent[j].length,
-                       0, (struct sockaddr *)&m->ctrl_peer, m->ctrl_peer_length);
+                mock_sendto(m->ctrl_fd, m->ctrl_sent[j].data,
+                            m->ctrl_sent[j].length, 0,
+                            (struct sockaddr *)&m->ctrl_peer,
+                            m->ctrl_peer_length);
             }
         }
     }
@@ -190,8 +207,8 @@ static void mock_send_unsolicited(struct mock_server *m)
         icom_network_packet_build_control(idle, sizeof(idle), ICOM_NETWORK_CTL_IDLE,
                                           m->civ_sequence++, MOCK_SERVER_ID,
                                           m->civ_client_id);
-        sendto(m->civ_fd, idle, sizeof(idle), 0, (struct sockaddr *)&m->civ_peer,
-               m->civ_peer_length);
+        mock_sendto(m->civ_fd, idle, sizeof(idle), 0,
+                    (struct sockaddr *)&m->civ_peer, m->civ_peer_length);
         m->civ_last_idle_ms = mock_now_ms();
     }
 
@@ -204,8 +221,8 @@ static void mock_send_unsolicited(struct mock_server *m)
 
         if (pl > 0)
         {
-            sendto(m->civ_fd, packet, pl, 0, (struct sockaddr *)&m->civ_peer,
-                   m->civ_peer_length);
+            mock_sendto(m->civ_fd, packet, pl, 0,
+                        (struct sockaddr *)&m->civ_peer, m->civ_peer_length);
         }
     }
 
@@ -218,8 +235,8 @@ static void mock_send_unsolicited(struct mock_server *m)
 
         if (pl > 0)
         {
-            sendto(m->civ_fd, packet, pl, 0, (struct sockaddr *)&m->civ_peer,
-                   m->civ_peer_length);
+            mock_sendto(m->civ_fd, packet, pl, 0,
+                        (struct sockaddr *)&m->civ_peer, m->civ_peer_length);
         }
     }
 
@@ -232,8 +249,8 @@ static void mock_send_unsolicited(struct mock_server *m)
         icom_network_put_le32(st + 0x30, 0);
         st[0x40] = 0x01;                  /* disconnect flag */
         m->announce_disconnect = 0;
-        sendto(m->ctrl_fd, st, sizeof(st), 0,
-               (struct sockaddr *)&m->ctrl_peer, m->ctrl_peer_length);
+        mock_sendto(m->ctrl_fd, st, sizeof(st), 0,
+                    (struct sockaddr *)&m->ctrl_peer, m->ctrl_peer_length);
     }
 }
 
@@ -248,7 +265,7 @@ static void mock_drain(struct mock_server *m, fd_set *r, uint8_t *buf,
     {
         if (fds[i] >= 0 && FD_ISSET(fds[i], r))
         {
-            recvfrom(fds[i], buf, buf_size, 0, NULL, NULL);
+            mock_recvfrom(fds[i], buf, buf_size, 0, NULL, NULL);
             m->rx_packets++;
         }
     }
@@ -287,7 +304,7 @@ static void mock_reply_ping(int fd, uint8_t *buf, int n,
     buf[0x10] = 0x01;
     icom_network_put_be32(buf + ICOM_NETWORK_OFF_LOCAL_ID, MOCK_SERVER_ID);
     icom_network_put_be32(buf + ICOM_NETWORK_OFF_REMOTE_ID, cli);
-    sendto(fd, buf, n, 0, (struct sockaddr *)from, from_length);
+    mock_sendto(fd, buf, n, 0, (struct sockaddr *)from, from_length);
 }
 
 static void mock_reply_login(struct mock_server *m, struct sockaddr_in *from,
@@ -389,7 +406,8 @@ static void mock_civ_stream_open(struct mock_server *m, struct sockaddr_in *from
 
     if (pl > 0)
     {
-        sendto(m->civ_fd, packet, pl, 0, (struct sockaddr *)from, from_length);
+        mock_sendto(m->civ_fd, packet, pl, 0, (struct sockaddr *)from,
+                    from_length);
     }
 }
 
@@ -422,7 +440,8 @@ static void mock_reply_civ(struct mock_server *m, struct sockaddr_in *from,
 
         if (pl > 0)
         {
-            sendto(m->civ_fd, packet, pl, 0, (struct sockaddr *)from, from_length);
+            mock_sendto(m->civ_fd, packet, pl, 0, (struct sockaddr *)from,
+                        from_length);
         }
     }
 
@@ -438,11 +457,13 @@ static void mock_reply_civ(struct mock_server *m, struct sockaddr_in *from,
 
     if (pl > 0)
     {
-        sendto(m->civ_fd, packet, pl, 0, (struct sockaddr *)from, from_length);
+        mock_sendto(m->civ_fd, packet, pl, 0, (struct sockaddr *)from,
+                    from_length);
 
         if (m->civ_duplicate_reply)
         {
-            sendto(m->civ_fd, packet, pl, 0, (struct sockaddr *)from, from_length);
+            mock_sendto(m->civ_fd, packet, pl, 0, (struct sockaddr *)from,
+                        from_length);
         }
     }
 
@@ -463,7 +484,8 @@ static void mock_send_audio(struct mock_server *m, struct sockaddr_in *from,
 
     if (pl > 0)
     {
-        sendto(m->audio_fd, packet, pl, 0, (struct sockaddr *)from, from_length);
+        mock_sendto(m->audio_fd, packet, pl, 0, (struct sockaddr *)from,
+                    from_length);
     }
 }
 
@@ -492,8 +514,8 @@ static void mock_send_audio_seq(struct mock_server *m, uint16_t sequence,
 
     if (pl > 0)
     {
-        sendto(m->audio_fd, packet, pl, 0, (struct sockaddr *)&m->audio_peer,
-               m->audio_peer_length);
+        mock_sendto(m->audio_fd, packet, pl, 0,
+                    (struct sockaddr *)&m->audio_peer, m->audio_peer_length);
     }
 }
 
@@ -709,7 +731,8 @@ static int mock_recv(struct mock_server *m, int fd, uint8_t *buf,
     int n;
 
     *from_length = sizeof(*from);
-    n = recvfrom(fd, buf, buf_size, 0, (struct sockaddr *)from, from_length);
+    n = mock_recvfrom(fd, buf, buf_size, 0, (struct sockaddr *)from,
+                      from_length);
 
     if (n > 0) { m->rx_packets++; }
 

@@ -9,6 +9,11 @@ Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 
 Version 5.x -- future
+        * Fix: Keep PTT overrides local to each rig instance without changing
+          model capabilities. GitHub PR #2255.
+        * rigctl/rigctld: Honor explicit PTT NONE selections and default to
+          RTS for a PTT device path only when no type was selected. Invalid
+          PTT types now report an error on stderr and exit with status 2.
         * QMX: Add SWR and RF power meter readback using the QRP Labs
           SW and PC CAT commands.  The power meter full scale (6W stock,
           12W with the PA0RDT PA modification) is read from the radio at

@@ -29,6 +29,9 @@ LDADD = $(top_builddir)/src/libhamlib.la $(top_builddir)/lib/libmisc.la $(DL_LIB
 
 check_PROGRAMS = test_stream_ringbuf test_stream_convert test_stream_codec test_stream_time test_stream_account test_stream_reorder test_stream_api test_dummy_stream test_rigctld_stream test_rigstreamtest test_rigctld_commands test_netrigctl_stream test_icom_frame test_icom_network_proto test_icom_network_seqbuf test_icom_network_session test_icom_network_conf test_icom_network_stream test_icom_network_reconnect
 
+check_PROGRAMS += test_conf
+test_conf_SOURCES = test_conf.c
+
 test_stream_codec_SOURCES = test_stream_codec.c
 test_stream_codec_LDADD = $(LDADD)
 
@@ -72,6 +75,8 @@ test_netrigctl_stream_LDADD = $(LDADD) $(PTHREAD_LIBS) $(NET_LIBS)
 
 test_rigctld_commands_SOURCES = test_rigctld_commands.c \
     $(top_srcdir)/tests/rigctl_parse.c \
+    $(top_srcdir)/tests/rigctld_client.c \
+    $(top_srcdir)/tests/daemon_client.c \
     $(top_srcdir)/tests/rigctld_stream.c \
     $(top_srcdir)/tests/dumpcaps.c \
     $(top_srcdir)/tests/dumpstate.c \

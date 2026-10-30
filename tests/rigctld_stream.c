@@ -62,25 +62,6 @@ static void __attribute__((constructor)) stream_socket_sys_init(void)
 }
 #endif
 
-/* Thread-local client ID storage. */
-static pthread_key_t client_id_key;
-
-void rigctld_client_id_init(void)
-{
-    pthread_key_create(&client_id_key, NULL);
-}
-
-void rigctld_client_id_set(int client_id)
-{
-    pthread_setspecific(client_id_key, (void *)(intptr_t)client_id);
-}
-
-int rigctld_client_id_get(void)
-{
-    return (int)(intptr_t)pthread_getspecific(client_id_key);
-}
-
-
 /* Extract the family and raw IP bytes from a sockaddr_storage, folding
  * IPv4-mapped IPv6 (::ffff:A.B.C.D) to plain IPv4 so dual-stack sockets
  * compare correctly across TCP/UDP boundaries. Returns the address length

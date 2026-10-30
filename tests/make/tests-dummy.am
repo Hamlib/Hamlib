@@ -1,0 +1,5 @@
+check_PROGRAMS += testdummyparm
+TESTS += testdummyparm
+
+$(top_builddir)/rigs/dummy/libhamlib-dummy.la:
+	$(MAKE) -C $(top_builddir)/rigs/dummy/ libhamlib-dummy.la

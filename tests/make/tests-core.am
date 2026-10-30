@@ -1,0 +1,42 @@
+check_PROGRAMS += testbandmetadata
+TESTS += testbandmetadata
+
+check_PROGRAMS += testcachemode
+TESTS += testcachemode
+testcachemode_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testcachemode_LDADD = $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
+
+check_PROGRAMS += testcacherouting
+TESTS += testcacherouting
+testcacherouting_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testcacherouting_LDADD = $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
+
+check_PROGRAMS += testcachethread
+TESTS += testcachethread
+testcachethread_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testcachethread_LDADD = $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
+
+check_PROGRAMS += testcachevfo
+TESTS += testcachevfo
+testcachevfo_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testcachevfo_LDADD = $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
+
+check_PROGRAMS += testdebug
+TESTS += testdebug
+testdebug_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testdebug_LDADD = $(PTHREAD_LIBS) $(LDADD)
+
+check_PROGRAMS += testfrontendconf
+TESTS += testfrontendconf
+testfrontendconf_LDADD = $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
+
+check_PROGRAMS += testmodecompat
+TESTS += testmodecompat
+testmodecompat_LDADD = $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
+
+check_PROGRAMS += testpoll
+TESTS += testpoll

@@ -1387,6 +1387,14 @@ Set
 Power Status is a value: \(oq0\(cq = Power Off, \(oq1\(cq = Power On,
 \(oq2\(cq = Power Standby (enter standby), \(oq4\(cq = Power Operate (leave
 standby).
+.IP
+When connected to
+.BR rigctld ,
+ordinary rig operations are rejected with
+.B RIG_EPOWER
+while the server's cached power status is Standby.
+.B set_powerstat
+remains available so a client can request Power Operate or Power On.
 .
 .TP
 .BR 0x88 ", " get_powerstat
@@ -1635,8 +1643,30 @@ before sending the next command to the radio.
 .
 .TP
 .BR password " \(aq" \fIPassword\fP \(aq
-Sends password to rigctld when rigctld has been secured with -A.  Must use the 32-char shared secret from rigctld.
-(NOT IMPLEMENTED)
+Authenticate to a
+.B rigctld
+server started with
+.BR \-A .
+.B rigctld
+accepts a configuration password containing 1 to 64 bytes and prints a
+32-character bearer secret at startup.
+.I Password
+must be that exact bearer secret.
+Before authentication, the only rig commands accepted by the server are
+.BR \\password ,
+.BR \\chk_vfo ,
+.BR \\dump_state ,
+and
+.B \\stream_caps
+so clients can complete the opening handshake.  An unauthenticated connection
+must authenticate within 30 seconds of connection establishment and is closed
+after five incorrect password submissions.  Rejected commands do not count
+toward this limit.  An incorrect password submitted after successful
+authentication revokes access and starts a new 30-second authentication
+deadline.  Configure a long, unique password.  The 32-character secret is a
+static bearer credential for as long as the same configuration password is
+used; anyone who captures it can replay it as a password-equivalent credential.
+It is sent over plaintext TCP, so use a trusted network or secure tunnel.
 .
 .TP
 .BR set_lock_mode " \(aq" \fILocked\fP \(aq

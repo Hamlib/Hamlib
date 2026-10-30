@@ -330,22 +330,23 @@ static int frontend_set_conf(RIG *rig, hamlib_token_t token, const char *val)
     switch (token)
     {
     case TOK_PATHNAME:
-        strncpy(rp->pathname, val, HAMLIB_FILPATHLEN - 1);
+        SNPRINTF(rp->pathname, sizeof(rp->pathname), "%s", val);
 
         if (strstr(rig->caps->model_name, "SmartSDR Slice"))
         {
             char *val2 = strdup(val);
-            char *p = strchr(val2, ':');
+            char *p;
 
             if (val2 == NULL)
             {
                 return -RIG_ENOMEM;
             }
 
+            p = strchr(val2, ':');
+
             if (p != NULL && p[1] != '\0')
             {
-                strncpy(rp->pathname, val, HAMLIB_FILPATHLEN - 1);
-                rp->pathname[HAMLIB_FILPATHLEN - 1] = 0;
+                SNPRINTF(rp->pathname, sizeof(rp->pathname), "%s", val);
             }
             else
             {
@@ -619,32 +620,26 @@ static int frontend_set_conf(RIG *rig, hamlib_token_t token, const char *val)
         if (!strcmp(val, "RIG"))
         {
             pttp->type.ptt = RIG_PTT_RIG;
-            caps->ptt_type = RIG_PTT_RIG;
         }
         else if (!strcmp(val, "RIGMICDATA"))
         {
             pttp->type.ptt = RIG_PTT_RIG_MICDATA;
-            caps->ptt_type = RIG_PTT_RIG_MICDATA;
         }
         else if (!strcmp(val, "DTR"))
         {
             pttp->type.ptt = RIG_PTT_SERIAL_DTR;
-            caps->ptt_type = RIG_PTT_SERIAL_DTR;
         }
         else if (!strcmp(val, "RTS"))
         {
             pttp->type.ptt = RIG_PTT_SERIAL_RTS;
-            caps->ptt_type = RIG_PTT_SERIAL_RTS;
         }
         else if (!strcmp(val, "Parallel"))
         {
             pttp->type.ptt = RIG_PTT_PARALLEL;
-            caps->ptt_type = RIG_PTT_PARALLEL;
         }
         else if (!strcmp(val, "CM108"))
         {
             pttp->type.ptt = RIG_PTT_CM108;
-            caps->ptt_type = RIG_PTT_CM108;
         }
         else if (!strcmp(val, "GPIO"))
         {
@@ -653,25 +648,20 @@ static int frontend_set_conf(RIG *rig, hamlib_token_t token, const char *val)
         else if (!strcmp(val, "GPION"))
         {
             pttp->type.ptt = RIG_PTT_GPION;
-            caps->ptt_type = RIG_PTT_GPION;
         }
         else if (!strcmp(val, "None"))
         {
             pttp->type.ptt = RIG_PTT_NONE;
-            caps->ptt_type = RIG_PTT_NONE;
         }
         else
         {
             return -RIG_EINVAL;
         }
 
-        // JTDX and WSJTX currently use state.pttport to check for PTT_NONE
-        //rs->pttport_deprecated.type.ptt = pttp->type.ptt;
-
         break;
 
     case TOK_PTT_PATHNAME:
-        strncpy(pttp->pathname, val, HAMLIB_FILPATHLEN - 1);
+        SNPRINTF(pttp->pathname, sizeof(pttp->pathname), "%s", val);
         break;
 
     case TOK_PTT_BITNUM:
@@ -729,11 +719,11 @@ static int frontend_set_conf(RIG *rig, hamlib_token_t token, const char *val)
         break;
 
     case TOK_DCD_PATHNAME:
-        strncpy(dcdp->pathname, val, HAMLIB_FILPATHLEN - 1);
+        SNPRINTF(dcdp->pathname, sizeof(dcdp->pathname), "%s", val);
         break;
 
     case TOK_DEVICE_ID:
-        strncpy(rs->device_id, val, HAMLIB_RIGNAMSIZ - 1);
+        SNPRINTF(rs->device_id, sizeof(rs->device_id), "%s", val);
         break;
 
 
@@ -1162,7 +1152,7 @@ static int frontend_get_conf2(RIG *rig, hamlib_token_t token, char *val,
             return -RIG_EINVAL;
         }
 
-        strcpy(val, s);
+        SNPRINTF(val, val_len, "%s", s);
         break;
 
     case TOK_HANDSHAKE:
@@ -1192,7 +1182,7 @@ static int frontend_get_conf2(RIG *rig, hamlib_token_t token, char *val,
             return -RIG_EINVAL;
         }
 
-        strcpy(val, s);
+        SNPRINTF(val, val_len, "%s", s);
         break;
 
     case TOK_RTS_STATE:
@@ -1219,7 +1209,7 @@ static int frontend_get_conf2(RIG *rig, hamlib_token_t token, char *val,
             return -RIG_EINVAL;
         }
 
-        strcpy(val, s);
+        SNPRINTF(val, val_len, "%s", s);
         break;
 
     case TOK_DTR_STATE:
@@ -1246,7 +1236,7 @@ static int frontend_get_conf2(RIG *rig, hamlib_token_t token, char *val,
             return -RIG_EINVAL;
         }
 
-        strcpy(val, s);
+        SNPRINTF(val, val_len, "%s", s);
         break;
 
     case TOK_DEVICE_ID:
@@ -1304,11 +1294,11 @@ static int frontend_get_conf2(RIG *rig, hamlib_token_t token, char *val,
             return -RIG_EINVAL;
         }
 
-        strcpy(val, s);
+        SNPRINTF(val, val_len, "%s", s);
         break;
 
     case TOK_PTT_PATHNAME:
-        strcpy(val, pttp->pathname);
+        SNPRINTF(val, val_len, "%s", pttp->pathname);
         break;
 
     case TOK_PTT_BITNUM:
@@ -1358,11 +1348,11 @@ static int frontend_get_conf2(RIG *rig, hamlib_token_t token, char *val,
             return -RIG_EINVAL;
         }
 
-        strcpy(val, s);
+        SNPRINTF(val, val_len, "%s", s);
         break;
 
     case TOK_DCD_PATHNAME:
-        strcpy(val, dcdp->pathname);
+        SNPRINTF(val, val_len, "%s", dcdp->pathname);
         break;
 
     case TOK_LO_FREQ:

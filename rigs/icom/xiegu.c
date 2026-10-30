@@ -140,6 +140,9 @@
 
 #define G90_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SWR)
 
+/* Radioddity G90 User Manual V5, p.35: RIT adjustment is +/-500 Hz. */
+#define G90_MAX_RIT Hz(500)
+
 #define G90_MEM_CAP {    \
         .freq = 1,  \
         .mode = 1,  \
@@ -162,6 +165,7 @@
 static int x108g_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 static int g90_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 static int g90_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+static int g90_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
 static const char *g90_get_info(RIG *rig);
 static int x108g_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
                                vfo_t tx_vfo);
@@ -944,7 +948,7 @@ struct rig_caps g90_caps =
     .dcs_list =  common_dcs_list,
     .preamp =   { 10, RIG_DBLST_END, }, /* FIXME: TBC it's a guess*/
     .attenuator =   { 12, RIG_DBLST_END, },
-    .max_rit =  Hz(9999),
+    .max_rit =  G90_MAX_RIT,
     .max_xit =  Hz(9999),
     .max_ifshift =  Hz(0), /* TODO */
     .vfo_ops =  X108G_VFO_OPS,
@@ -1037,6 +1041,11 @@ struct rig_caps g90_caps =
     .get_ant =  NULL,
     .get_info =  g90_get_info,
 
+    .set_rit =  g90_set_rit,
+    /* Distinct displayed -101/-111 Hz both returned FF FF 01 in testing.
+     * Negative GET is lossy; do not advertise a getter or cache SET as GET.
+     */
+    .get_rit =  NULL,
     .decode_event =  icom_decode_event,
     .set_level =  g90_set_level,
     .get_level =  g90_get_level,
@@ -1284,6 +1293,44 @@ int x108g_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     return RIG_OK;
 }
 
+/* Standard BCD magnitude and sign for SET, independent of negative GET. */
+static int g90_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
+{
+    unsigned char payload[3], ackbuf[MAXFRAMELEN];
+    int ack_len = sizeof(ackbuf), retval;
+
+    /* CI-V 21 00 targets the selected VFO; the frontend handles selection.
+     * Check bounds before negating, including for LONG_MIN inputs.
+     */
+    (void) vfo;
+
+    if (rit < -G90_MAX_RIT || rit > G90_MAX_RIT)
+    {
+        return -RIG_EINVAL;
+    }
+
+    to_bcd(payload, rit < 0 ? -rit : rit, 4);
+    payload[2] = rit < 0 ? 1 : 0;
+
+    /* Zero disables RIT; nonzero enables it on the tested G90.
+     * Do not send a separate 21 01 command or query the lossy 21 00 GET.
+     */
+    retval = icom_transaction(rig, C_CTL_RIT, S_RIT_FREQ,
+                              payload, sizeof(payload), ackbuf, &ack_len);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    if (ack_len != 1 || ackbuf[0] != ACK)
+    {
+        return -RIG_EPROTO;
+    }
+
+    return RIG_OK;
+}
+
 /*
  * The stock G90 firmware (v1.81) does not implement C_CTL_ATT the Icom way.
  *
@@ -1386,6 +1433,57 @@ static int g90_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 }
 
 /*
+ * Hardware evidence from one G90 is consistent
+ * with decimal hundreds/tens and the binary low nibble of the entire value.
+ * Examples: 01 9f -> 191, 02 08 -> 200, 02 01 -> 209, 02 5f -> 255.
+ * Even syntactically valid BCD can be affected. Do not auto-detect this from
+ * one reply or apply it to other levels/models or enable it by default.
+ */
+static int g90_get_af_quirk(RIG *rig, value_t *val)
+{
+    unsigned char response[MAXFRAMELEN];
+    int length = sizeof(response), retval, prefix, units, level;
+
+    retval = icom_transaction(rig, C_CTL_LVL, S_LVL_AF, NULL, 0,
+                              response, &length);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    if (length == 1 && response[0] == NAK)
+    {
+        return -RIG_ERJCTED;
+    }
+
+    if (length != 4 || response[0] != C_CTL_LVL
+            || response[1] != S_LVL_AF || response[2] > 2
+            || (response[3] >> 4) > 9)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid AF response, len=%d\n",
+                  __func__, length);
+        return -RIG_EPROTO;
+    }
+
+    prefix = 100 * response[2] + 10 * (response[3] >> 4);
+    units = ((response[3] & 0x0f) - (prefix & 0x0f) + 16) % 16;
+    level = prefix + units;
+
+    if (units > 9 || level > 255)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: inconsistent AF encoding %02x %02x\n",
+                  __func__, response[2], response[3]);
+        return -RIG_EPROTO;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: raw %02x %02x -> %d (opt-in quirk)\n",
+              __func__, response[2], response[3], level);
+    val->f = level / 255.0f;
+    return RIG_OK;
+}
+
+/*
  * g90_get_level
  * Assumes rig!=NULL, STATE(rig)->priv!=NULL, val!=NULL
  *
@@ -1397,6 +1495,12 @@ static int g90_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 static int g90_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     int retval, state;
+    struct icom_priv_data *priv = STATE(rig)->priv;
+
+    if (level == RIG_LEVEL_AF && priv->g90_af_quirk)
+    {
+        return g90_get_af_quirk(rig, val);
+    }
 
     if (level == RIG_LEVEL_RFPOWER)
     {

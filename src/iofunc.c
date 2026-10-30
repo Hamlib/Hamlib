@@ -1060,8 +1060,9 @@ int HAMLIB_API port_flush_sync_pipes(hamlib_port_t *p)
  * it could work very well also with any file handle, like a socket.
  */
 
-int HAMLIB_API write_block(hamlib_port_t *p, const unsigned char *txbuffer,
-                           size_t count)
+static int write_block_internal(hamlib_port_t *p,
+                                const unsigned char *txbuffer,
+                                size_t count, int sensitive)
 {
     int ret;
 
@@ -1135,9 +1136,13 @@ int HAMLIB_API write_block(hamlib_port_t *p, const unsigned char *txbuffer,
         }
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s(): TX %d bytes\n", __func__,
-              (int)count);
-    dump_hex((unsigned char *) txbuffer, count);
+    rig_debug(RIG_DEBUG_TRACE, "write_block(): TX %d bytes%s\n", (int)count,
+              sensitive ? " (sensitive data redacted)" : "");
+
+    if (!sensitive)
+    {
+        dump_hex((unsigned char *) txbuffer, count);
+    }
 
     if (p->post_write_delay > 0)
     {
@@ -1162,6 +1167,19 @@ int HAMLIB_API write_block(hamlib_port_t *p, const unsigned char *txbuffer,
     }
 
     return RIG_OK;
+}
+
+int HAMLIB_API write_block(hamlib_port_t *p, const unsigned char *txbuffer,
+                           size_t count)
+{
+    return write_block_internal(p, txbuffer, count, 0);
+}
+
+int HAMLIB_API write_block_sensitive(hamlib_port_t *p,
+                                     const unsigned char *txbuffer,
+                                     size_t count)
+{
+    return write_block_internal(p, txbuffer, count, 1);
 }
 
 static int read_block_generic(hamlib_port_t *p, unsigned char *rxbuffer,
@@ -1318,6 +1336,7 @@ static int read_string_generic(hamlib_port_t *p,
                                int expected_len,
                                int direct)
 {
+    static const char flrig_terminator[] = "</methodResponse>";
     struct timeval start_time, end_time, elapsed_time;
     int total_count = 0;
     int i = 0;
@@ -1439,9 +1458,12 @@ shortcut:
             }
 
             // special read for FLRig
-            if (stopset != NULL && strcmp(stopset, "</methodResponse>") == 0)
+            if (stopset != NULL
+                    && stopset_len == sizeof(flrig_terminator) - 1
+                    && memcmp(stopset, flrig_terminator,
+                              sizeof(flrig_terminator) - 1) == 0)
             {
-                if (strstr((char *)rxbuffer, stopset))
+                if (strstr((char *)rxbuffer, flrig_terminator))
                 {
                     HAMLIB_TRACE2;
                 }

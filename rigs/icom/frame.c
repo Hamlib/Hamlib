@@ -438,10 +438,13 @@ again2:
     }
 
     // The frame must be the response to the command we sent: a set replies
-    // ACK/NAK/COL, a get echoes our cmd (and subcmd). Any other cmd byte is an
-    // unsolicited or interleaved frame (e.g. on a shared or echoing CI-V bus),
-    // so skip it and read the next frame.
-    if (buf[4] != ACK && buf[4] != NAK && buf[4] != COL
+    // ACK/NAK/COL, a get echoes our cmd (and subcmd). A data frame carrying
+    // some other cmd is an unsolicited or interleaved reply (e.g. on a shared
+    // or echoing CI-V bus), so skip it and read the next frame. A frame no
+    // longer than an ACK is not skipped: it is a garbled ACK and is rejected
+    // below as a protocol error.
+    if (frm_len > ACKFRMLEN
+            && buf[4] != ACK && buf[4] != NAK && buf[4] != COL
             && !icom_frame_matches_cmd(cmd, subcmd, buf, frm_len))
     {
         rig_debug(RIG_DEBUG_VERBOSE,
