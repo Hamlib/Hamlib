@@ -61,8 +61,10 @@ TEST_LIST =
 #include <unistd.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <fcntl.h>
 #include <errno.h>
 #include <math.h>
+#include <pthread.h>
 
 
 /* --- Subprocess rigctld management --- */
@@ -71,6 +73,14 @@ struct rigctld_proc
 {
     pid_t pid;
     int port;
+    int idle;
+    int model;
+    int trace;
+    const char *rig_path;
+    const char *password;
+    int (*after_fork)(void *data);
+    void (*after_fork_cleanup)(void *data);
+    void *after_fork_data;
     char log_path[64];
 };
 
@@ -107,6 +117,633 @@ static int find_free_port(void)
     int port = ntohs(addr.sin_port);
     close(sock);
     return port;
+}
+
+
+struct tcp_pause_proxy
+{
+    pthread_t thread;
+    pthread_mutex_t mutex;
+    int listen_sock;
+    int client_sock;
+    int upstream_sock;
+    int port;
+    int upstream_port;
+    int pause_stream_close;
+    int thread_started;
+    int thread_running;
+    int stop;
+    int commands_seen;
+    int close_response_held;
+    int close_response_released;
+    int release_close_response;
+    int command_during_close;
+};
+
+
+static void socket_disable_sigpipe(int sock)
+{
+#ifdef SO_NOSIGPIPE
+    int value = 1;
+    setsockopt(sock, SOL_SOCKET, SO_NOSIGPIPE, &value, sizeof(value));
+#else
+    (void)sock;
+#endif
+}
+
+
+static ssize_t socket_send(int sock, const void *buf, size_t len)
+{
+#ifdef MSG_NOSIGNAL
+    return send(sock, buf, len, MSG_NOSIGNAL);
+#else
+    return send(sock, buf, len, 0);
+#endif
+}
+
+
+static int proxy_send_all(int sock, const void *buf, size_t len)
+{
+    const unsigned char *p = buf;
+
+    while (len > 0)
+    {
+        ssize_t n = socket_send(sock, p, len);
+
+        if (n <= 0)
+        {
+            return -1;
+        }
+
+        p += n;
+        len -= (size_t)n;
+    }
+
+    return 0;
+}
+
+
+static void proxy_count_commands(struct tcp_pause_proxy *proxy,
+                                 const char *buf, size_t len)
+{
+    int count = 0;
+
+    for (size_t i = 0; i < len; i++)
+    {
+        if (buf[i] == '\n')
+        {
+            count++;
+        }
+    }
+
+    pthread_mutex_lock(&proxy->mutex);
+    proxy->commands_seen += count;
+    pthread_mutex_unlock(&proxy->mutex);
+}
+
+
+static int proxy_buffer_contains(const char *buf, size_t len,
+                                 const char *needle, size_t needle_len)
+{
+    if (needle_len > len)
+    {
+        return 0;
+    }
+
+    for (size_t i = 0; i <= len - needle_len; i++)
+    {
+        if (memcmp(buf + i, needle, needle_len) == 0)
+        {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+
+static int proxy_response_complete(const char *buf, size_t len)
+{
+    size_t line_start = 0;
+
+    for (size_t i = 0; i < len; i++)
+    {
+        if (buf[i] != '\n')
+        {
+            continue;
+        }
+
+        if (i - line_start >= 5
+                && memcmp(buf + line_start, "RPRT ", 5) == 0)
+        {
+            return 1;
+        }
+
+        line_start = i + 1;
+    }
+
+    return 0;
+}
+
+
+static void *tcp_pause_proxy_thread(void *arg)
+{
+    struct tcp_pause_proxy *proxy = arg;
+    struct sockaddr_in upstream_addr;
+    char command_line[4096];
+    char held_response[8192];
+    char pending_command[8192];
+    size_t command_line_len = 0;
+    size_t held_len = 0;
+    size_t pending_len = 0;
+    int client_sock = -1;
+    int upstream_sock = -1;
+    int close_pending = 0;
+    int close_response_complete = 0;
+
+    client_sock = accept(proxy->listen_sock, NULL, NULL);
+
+    if (client_sock < 0)
+    {
+        goto cleanup;
+    }
+
+    socket_disable_sigpipe(client_sock);
+    pthread_mutex_lock(&proxy->mutex);
+    proxy->client_sock = client_sock;
+    int stop = proxy->stop;
+    pthread_mutex_unlock(&proxy->mutex);
+
+    if (stop)
+    {
+        goto cleanup;
+    }
+
+    upstream_sock = socket(AF_INET, SOCK_STREAM, 0);
+
+    if (upstream_sock < 0)
+    {
+        goto cleanup;
+    }
+
+    socket_disable_sigpipe(upstream_sock);
+    pthread_mutex_lock(&proxy->mutex);
+    proxy->upstream_sock = upstream_sock;
+    pthread_mutex_unlock(&proxy->mutex);
+
+    memset(&upstream_addr, 0, sizeof(upstream_addr));
+    upstream_addr.sin_family = AF_INET;
+    upstream_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    upstream_addr.sin_port = htons(proxy->upstream_port);
+
+    if (connect(upstream_sock, (struct sockaddr *)&upstream_addr,
+                sizeof(upstream_addr)) < 0)
+    {
+        goto cleanup;
+    }
+
+    while (1)
+    {
+        fd_set readfds;
+        struct timeval tv = { 0, 50000 };
+        int maxfd = client_sock > upstream_sock ? client_sock : upstream_sock;
+        int should_stop;
+        int release;
+
+        pthread_mutex_lock(&proxy->mutex);
+        should_stop = proxy->stop;
+        release = proxy->release_close_response;
+        pthread_mutex_unlock(&proxy->mutex);
+
+        if (should_stop)
+        {
+            break;
+        }
+
+        if (close_pending && close_response_complete && release)
+        {
+            if (proxy_send_all(client_sock, held_response, held_len) < 0)
+            {
+                break;
+            }
+
+            if (pending_len > 0
+                    && proxy_send_all(upstream_sock, pending_command,
+                                      pending_len) < 0)
+            {
+                break;
+            }
+
+            close_pending = 0;
+            close_response_complete = 0;
+            held_len = 0;
+            pending_len = 0;
+
+            pthread_mutex_lock(&proxy->mutex);
+            proxy->close_response_released = 1;
+            pthread_mutex_unlock(&proxy->mutex);
+        }
+
+        FD_ZERO(&readfds);
+        FD_SET(client_sock, &readfds);
+
+        if (!close_response_complete)
+        {
+            FD_SET(upstream_sock, &readfds);
+        }
+
+        if (select(maxfd + 1, &readfds, NULL, NULL, &tv) < 0)
+        {
+            if (errno == EINTR)
+            {
+                continue;
+            }
+
+            break;
+        }
+
+        if (FD_ISSET(client_sock, &readfds))
+        {
+            char buf[4096];
+            ssize_t n = recv(client_sock, buf, sizeof(buf), 0);
+
+            if (n <= 0)
+            {
+                break;
+            }
+
+            proxy_count_commands(proxy, buf, (size_t)n);
+
+            if (close_pending)
+            {
+                size_t room = sizeof(pending_command) - pending_len;
+
+                if ((size_t)n > room)
+                {
+                    break;
+                }
+
+                memcpy(pending_command + pending_len, buf, (size_t)n);
+                pending_len += (size_t)n;
+
+                pthread_mutex_lock(&proxy->mutex);
+                proxy->command_during_close = 1;
+                pthread_mutex_unlock(&proxy->mutex);
+            }
+            else
+            {
+                size_t forward_len = (size_t)n;
+
+                for (size_t i = 0; i < (size_t)n; i++)
+                {
+                    if (command_line_len < sizeof(command_line))
+                    {
+                        command_line[command_line_len++] = buf[i];
+                    }
+
+                    if (buf[i] == '\n')
+                    {
+                        if (proxy->pause_stream_close
+                                && proxy_buffer_contains(command_line,
+                                                         command_line_len,
+                                                         "\\stream_close", 13))
+                        {
+                            size_t remainder = (size_t)n - i - 1;
+                            close_pending = 1;
+                            forward_len = i + 1;
+
+                            pthread_mutex_lock(&proxy->mutex);
+
+                            if (remainder > 0)
+                            {
+                                proxy->command_during_close = 1;
+                            }
+
+                            pthread_mutex_unlock(&proxy->mutex);
+
+                            if (remainder > 0)
+                            {
+                                size_t room = sizeof(pending_command)
+                                              - pending_len;
+
+                                if (remainder > room)
+                                {
+                                    goto cleanup;
+                                }
+
+                                memcpy(pending_command + pending_len,
+                                       buf + i + 1, remainder);
+                                pending_len += remainder;
+                            }
+
+                            command_line_len = 0;
+                            break;
+                        }
+
+                        command_line_len = 0;
+                    }
+                }
+
+                if (proxy_send_all(upstream_sock, buf, forward_len) < 0)
+                {
+                    break;
+                }
+            }
+        }
+
+        if (FD_ISSET(upstream_sock, &readfds))
+        {
+            char buf[4096];
+            ssize_t n = recv(upstream_sock, buf, sizeof(buf), 0);
+
+            if (n <= 0)
+            {
+                break;
+            }
+
+            if (close_pending)
+            {
+                size_t room = sizeof(held_response) - held_len;
+
+                if ((size_t)n > room)
+                {
+                    break;
+                }
+
+                memcpy(held_response + held_len, buf, (size_t)n);
+                held_len += (size_t)n;
+
+                if (proxy_response_complete(held_response, held_len))
+                {
+                    close_response_complete = 1;
+                    pthread_mutex_lock(&proxy->mutex);
+                    proxy->close_response_held = 1;
+                    pthread_mutex_unlock(&proxy->mutex);
+                }
+            }
+            else if (proxy_send_all(client_sock, buf, (size_t)n) < 0)
+            {
+                break;
+            }
+        }
+    }
+
+cleanup:
+    pthread_mutex_lock(&proxy->mutex);
+
+    if (client_sock >= 0)
+    {
+        close(client_sock);
+        proxy->client_sock = -1;
+    }
+
+    if (upstream_sock >= 0)
+    {
+        close(upstream_sock);
+        proxy->upstream_sock = -1;
+    }
+
+    proxy->thread_running = 0;
+    pthread_mutex_unlock(&proxy->mutex);
+    return NULL;
+}
+
+
+static int tcp_pause_proxy_init(struct tcp_pause_proxy *proxy,
+                                int upstream_port,
+                                int pause_stream_close)
+{
+    struct sockaddr_in addr;
+    socklen_t addrlen = sizeof(addr);
+    int reuse = 1;
+
+    memset(proxy, 0, sizeof(*proxy));
+    proxy->listen_sock = -1;
+    proxy->client_sock = -1;
+    proxy->upstream_sock = -1;
+    proxy->upstream_port = upstream_port;
+    proxy->pause_stream_close = pause_stream_close;
+
+    if (pthread_mutex_init(&proxy->mutex, NULL) != 0)
+    {
+        return -1;
+    }
+
+    proxy->listen_sock = socket(AF_INET, SOCK_STREAM, 0);
+
+    if (proxy->listen_sock < 0)
+    {
+        pthread_mutex_destroy(&proxy->mutex);
+        return -1;
+    }
+
+    int fd_flags = fcntl(proxy->listen_sock, F_GETFD);
+
+    if (fd_flags < 0
+            || fcntl(proxy->listen_sock, F_SETFD,
+                     fd_flags | FD_CLOEXEC) < 0)
+    {
+        close(proxy->listen_sock);
+        pthread_mutex_destroy(&proxy->mutex);
+        return -1;
+    }
+
+    setsockopt(proxy->listen_sock, SOL_SOCKET, SO_REUSEADDR, &reuse,
+               sizeof(reuse));
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    addr.sin_port = 0;
+
+    if (bind(proxy->listen_sock, (struct sockaddr *)&addr, sizeof(addr)) < 0
+            || getsockname(proxy->listen_sock, (struct sockaddr *)&addr,
+                           &addrlen) < 0
+            || listen(proxy->listen_sock, 2) < 0)
+    {
+        close(proxy->listen_sock);
+        pthread_mutex_destroy(&proxy->mutex);
+        return -1;
+    }
+
+    proxy->port = ntohs(addr.sin_port);
+    return 0;
+}
+
+
+static void tcp_pause_proxy_wake_accept(struct tcp_pause_proxy *proxy)
+{
+    struct sockaddr_in addr;
+    int sock = socket(AF_INET, SOCK_STREAM, 0);
+
+    if (sock < 0)
+    {
+        return;
+    }
+
+    socket_disable_sigpipe(sock);
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    addr.sin_port = htons(proxy->port);
+    connect(sock, (struct sockaddr *)&addr, sizeof(addr));
+    close(sock);
+}
+
+
+static void tcp_pause_proxy_stop_thread(struct tcp_pause_proxy *proxy)
+{
+    int thread_started;
+    int wake_accept;
+
+    pthread_mutex_lock(&proxy->mutex);
+    thread_started = proxy->thread_started;
+
+    if (!thread_started)
+    {
+        pthread_mutex_unlock(&proxy->mutex);
+        return;
+    }
+
+    proxy->stop = 1;
+    wake_accept = proxy->thread_running && proxy->client_sock < 0;
+
+    if (proxy->client_sock >= 0)
+    {
+        shutdown(proxy->client_sock, SHUT_RDWR);
+    }
+
+    if (proxy->upstream_sock >= 0)
+    {
+        shutdown(proxy->upstream_sock, SHUT_RDWR);
+    }
+
+    pthread_mutex_unlock(&proxy->mutex);
+
+    if (wake_accept)
+    {
+        tcp_pause_proxy_wake_accept(proxy);
+    }
+
+    pthread_join(proxy->thread, NULL);
+    pthread_mutex_lock(&proxy->mutex);
+    proxy->thread_started = 0;
+    proxy->client_sock = -1;
+    proxy->upstream_sock = -1;
+    pthread_mutex_unlock(&proxy->mutex);
+}
+
+
+static int tcp_pause_proxy_start_thread(void *data)
+{
+    struct tcp_pause_proxy *proxy = data;
+
+    pthread_mutex_lock(&proxy->mutex);
+
+    if (proxy->thread_started)
+    {
+        pthread_mutex_unlock(&proxy->mutex);
+        return -1;
+    }
+
+    proxy->stop = 0;
+    proxy->commands_seen = 0;
+    proxy->close_response_held = 0;
+    proxy->close_response_released = 0;
+    proxy->release_close_response = 0;
+    proxy->command_during_close = 0;
+    proxy->thread_started = 1;
+    proxy->thread_running = 1;
+    pthread_mutex_unlock(&proxy->mutex);
+
+    if (pthread_create(&proxy->thread, NULL, tcp_pause_proxy_thread, proxy) != 0)
+    {
+        pthread_mutex_lock(&proxy->mutex);
+        proxy->thread_started = 0;
+        proxy->thread_running = 0;
+        pthread_mutex_unlock(&proxy->mutex);
+        return -1;
+    }
+
+    return 0;
+}
+
+
+static void tcp_pause_proxy_cleanup_thread(void *data)
+{
+    tcp_pause_proxy_stop_thread(data);
+}
+
+
+static int tcp_pause_proxy_value(struct tcp_pause_proxy *proxy, int *value)
+{
+    pthread_mutex_lock(&proxy->mutex);
+    int result = *value;
+    pthread_mutex_unlock(&proxy->mutex);
+    return result;
+}
+
+
+static int tcp_pause_proxy_wait(struct tcp_pause_proxy *proxy, int *value,
+                                int timeout_ms)
+{
+    for (int elapsed = 0; elapsed < timeout_ms; elapsed += 10)
+    {
+        if (tcp_pause_proxy_value(proxy, value))
+        {
+            return 0;
+        }
+
+        usleep(10000);
+    }
+
+    return -1;
+}
+
+
+static int tcp_pause_proxy_remained_quiet(struct tcp_pause_proxy *proxy,
+        int command_count, int timeout_ms)
+{
+    for (int elapsed = 0; elapsed < timeout_ms; elapsed += 10)
+    {
+        int forbidden;
+
+        pthread_mutex_lock(&proxy->mutex);
+        forbidden = proxy->command_during_close
+                    || proxy->commands_seen != command_count;
+        pthread_mutex_unlock(&proxy->mutex);
+
+        if (forbidden)
+        {
+            return 0;
+        }
+
+        usleep(10000);
+    }
+
+    return 1;
+}
+
+
+static void tcp_pause_proxy_release(struct tcp_pause_proxy *proxy)
+{
+    pthread_mutex_lock(&proxy->mutex);
+    proxy->release_close_response = 1;
+    pthread_mutex_unlock(&proxy->mutex);
+}
+
+
+static void tcp_pause_proxy_destroy(struct tcp_pause_proxy *proxy)
+{
+    tcp_pause_proxy_release(proxy);
+    tcp_pause_proxy_stop_thread(proxy);
+
+    if (proxy->listen_sock >= 0)
+    {
+        close(proxy->listen_sock);
+        proxy->listen_sock = -1;
+    }
+
+    pthread_mutex_destroy(&proxy->mutex);
 }
 
 
@@ -229,14 +866,21 @@ static int start_rigctld_opt(struct rigctld_proc *proc,
             proc->pid = -1;
         }
 
-        dump_rigctld_log(proc->log_path);
-
-        if (pinned)
+        if (proc->after_fork_cleanup)
         {
-            return -1;   /* the caller needs this exact port */
+            proc->after_fork_cleanup(proc->after_fork_data);
         }
 
-        proc->port = 0;  /* pick a fresh port next round */
+        dump_rigctld_log(proc->log_path);
+
+        if (!pinned)
+        {
+            proc->port = 0;  /* pick a fresh port next round */
+        }
+
+        /* A pinned port keeps its number and is retried as it is: the usual
+         * reason a restart on the same port fails is the previous daemon
+         * still letting go of it, which the next attempt resolves. */
     }
 
     return -1;
@@ -247,6 +891,7 @@ static int start_rigctld_once(struct rigctld_proc *proc,
                               const char *set_conf_opt)
 {
     const char *rigctld_path;
+    char model_str[16];
     char port_str[16];
 
     if (proc->port <= 0)
@@ -260,6 +905,8 @@ static int start_rigctld_once(struct rigctld_proc *proc,
     }
 
     rigctld_path = find_rigctld();
+    snprintf(model_str, sizeof(model_str), "%d",
+             proc->model > 0 ? proc->model : 1);
     snprintf(port_str, sizeof(port_str), "%d", proc->port);
     snprintf(proc->log_path, sizeof(proc->log_path),
              "rigctld-%d.log", proc->port);
@@ -275,10 +922,14 @@ static int start_rigctld_once(struct rigctld_proc *proc,
      * events (token/IP validation) leave a trace the parent can dump
      * when a test fails; RIG_TEST_DEBUG raises it to TRACE like the
      * suite itself (see test_debug.h). */
-    const char *verbosity = getenv("RIG_TEST_DEBUG") ? "-vvvvv" : "-vvv";
+    const char *verbosity = proc->trace || getenv("RIG_TEST_DEBUG")
+                            ? "-vvvvv" : "-vvv";
 
     if (proc->pid == 0)
     {
+        char *child_argv[24];
+        int child_argc = 0;
+
         /* Child: silence stdout, but capture stderr in a per-daemon log;
          * /dev/null for stderr made failures undiagnosable. On redirect
          * failure the inherited stream simply stays in place. */
@@ -289,29 +940,54 @@ static int start_rigctld_once(struct rigctld_proc *proc,
             if (freopen("/dev/null", "w", stderr) == NULL) {}
         }
 
-        if (source_id_opt && set_conf_opt)
+        child_argv[child_argc++] = (char *)"rigctld";
+        child_argv[child_argc++] = (char *)"-m";
+        child_argv[child_argc++] = model_str;
+        child_argv[child_argc++] = (char *)"-t";
+        child_argv[child_argc++] = port_str;
+        child_argv[child_argc++] = (char *)verbosity;
+
+        if (proc->rig_path)
         {
-            execlp(rigctld_path, "rigctld", "-m", "1", "-t", port_str, verbosity,
-                   "--stream-source-id", source_id_opt,
-                   "--set-conf", set_conf_opt, NULL);
-        }
-        else if (source_id_opt)
-        {
-            execlp(rigctld_path, "rigctld", "-m", "1", "-t", port_str, verbosity,
-                   "--stream-source-id", source_id_opt, NULL);
-        }
-        else if (set_conf_opt)
-        {
-            execlp(rigctld_path, "rigctld", "-m", "1", "-t", port_str, verbosity,
-                   "--set-conf", set_conf_opt, NULL);
-        }
-        else
-        {
-            execlp(rigctld_path, "rigctld", "-m", "1", "-t", port_str, verbosity,
-                   NULL);
+            child_argv[child_argc++] = (char *)"-r";
+            child_argv[child_argc++] = (char *)proc->rig_path;
         }
 
+        if (proc->password)
+        {
+            child_argv[child_argc++] = (char *)"-A";
+            child_argv[child_argc++] = (char *)proc->password;
+        }
+
+        if (proc->idle)
+        {
+            child_argv[child_argc++] = (char *)"-R";
+        }
+
+        if (source_id_opt)
+        {
+            child_argv[child_argc++] = (char *)"--stream-source-id";
+            child_argv[child_argc++] = (char *)source_id_opt;
+        }
+
+        if (set_conf_opt)
+        {
+            child_argv[child_argc++] = (char *)"--set-conf";
+            child_argv[child_argc++] = (char *)set_conf_opt;
+        }
+
+        child_argv[child_argc] = NULL;
+        execvp(rigctld_path, child_argv);
         _exit(127);
+    }
+
+    if (proc->after_fork
+            && proc->after_fork(proc->after_fork_data) < 0)
+    {
+        kill(proc->pid, SIGTERM);
+        waitpid(proc->pid, NULL, 0);
+        proc->pid = -1;
+        return -1;
     }
 
     /* Parent: wait for rigctld to start */
@@ -319,6 +995,7 @@ static int start_rigctld_once(struct rigctld_proc *proc,
     {
         kill(proc->pid, SIGTERM);
         waitpid(proc->pid, NULL, 0);
+        proc->pid = -1;
         return -1;
     }
 
@@ -328,6 +1005,13 @@ static int start_rigctld_once(struct rigctld_proc *proc,
 
 static int start_rigctld(struct rigctld_proc *proc)
 {
+    return start_rigctld_opt(proc, NULL, NULL);
+}
+
+
+static int start_idle_rigctld(struct rigctld_proc *proc)
+{
+    proc->idle = 1;
     return start_rigctld_opt(proc, NULL, NULL);
 }
 
@@ -362,6 +1046,47 @@ static void dump_rigctld_log(const char *path)
     }
 
     fclose(fp);
+}
+
+
+static int count_log_occurrences(const char *path, const char *needle)
+{
+    FILE *fp = fopen(path, "r");
+    char line[1024];
+    int count = 0;
+
+    if (!fp)
+    {
+        return 0;
+    }
+
+    while (fgets(line, sizeof(line), fp))
+    {
+        if (strstr(line, needle))
+        {
+            count++;
+        }
+    }
+
+    fclose(fp);
+    return count;
+}
+
+
+static int wait_for_log_occurrences(const char *path, const char *needle,
+                                    int minimum, int timeout_ms)
+{
+    for (int elapsed = 0; elapsed < timeout_ms; elapsed += 10)
+    {
+        if (count_log_occurrences(path, needle) >= minimum)
+        {
+            return 0;
+        }
+
+        usleep(10000);
+    }
+
+    return -1;
 }
 
 
@@ -451,6 +1176,17 @@ static RIG *open_netrigctl(int port)
 }
 
 
+static int authenticate_netrigctl(RIG *rig, const char *password)
+{
+    char secret[HAMLIB_SECRET_LENGTH + 1];
+
+    rig_password_generate_secret(password, secret);
+    int ret = rig_password(rig, secret);
+    memset(secret, 0, sizeof(secret));
+    return ret;
+}
+
+
 /* Helper: find a stream_caps entry by type, return pointer or NULL. */
 /* The relayed advertisement is published as SESSION caps (netrigctl
  * never writes rig->caps), so lookups go through the public served view:
@@ -490,7 +1226,382 @@ static int has_rate(const int *rates, int rate)
 }
 
 
+static int send_all(int sock, const void *buf, size_t len);
+static int raw_control_connect(int port);
+static int raw_control_read(int sock, char *response, size_t response_size,
+                            int timeout_ms);
+static int raw_control_command(int sock, const char *command, char *response,
+                               size_t response_size);
+
+
 /* --- Tests --- */
+
+
+/* Startup capability probes must remain usable before authentication without
+ * consuming the failure budget or closing the model-2 client connection. */
+void test_password_startup_and_stream_caps(void)
+{
+    static const char password[] = "integration-test-password";
+    struct rigctld_proc upstream = {0};
+    struct rigctld_proc frontend = {0};
+    struct tcp_pause_proxy proxy;
+    char proxy_path[64];
+    RIG *rig = NULL;
+    freq_t freq = 0;
+    int baseline_commands;
+    int preauth_commands;
+    int ret;
+
+    if (start_rigctld(&upstream) < 0)
+    {
+        TEST_CHECK_(0, "could not start upstream rigctld");
+        return;
+    }
+
+    if (tcp_pause_proxy_init(&proxy, upstream.port, 0) < 0)
+    {
+        TEST_CHECK_(0, "could not initialize upstream transaction proxy");
+        stop_rigctld(&upstream);
+        return;
+    }
+
+    snprintf(proxy_path, sizeof(proxy_path), "127.0.0.1:%d", proxy.port);
+    frontend.model = RIG_MODEL_NETRIGCTL;
+    frontend.rig_path = proxy_path;
+    frontend.password = password;
+    frontend.after_fork = tcp_pause_proxy_start_thread;
+    frontend.after_fork_cleanup = tcp_pause_proxy_cleanup_thread;
+    frontend.after_fork_data = &proxy;
+
+    if (start_rigctld(&frontend) < 0)
+    {
+        TEST_CHECK_(0, "could not start password-protected chained rigctld");
+        tcp_pause_proxy_destroy(&proxy);
+        stop_rigctld(&upstream);
+        return;
+    }
+
+    baseline_commands = tcp_pause_proxy_value(&proxy, &proxy.commands_seen);
+    rig = open_netrigctl(frontend.port);
+    TEST_CHECK(rig != NULL);
+
+    if (!rig)
+    {
+        goto cleanup;
+    }
+
+    TEST_CHECK(rig_stream_caps_count(rig) == 4);
+    TEST_MSG("pre-authentication stream capability discovery returned %d entries",
+             rig_stream_caps_count(rig));
+
+    rig_set_cache_timeout_ms(rig, HAMLIB_CACHE_ALL, 0);
+    ret = rig_get_freq(rig, RIG_VFO_CURR, &freq);
+    TEST_CHECK(ret == -RIG_ESECURITY);
+    TEST_MSG("protected read before authentication returned %d", ret);
+
+    preauth_commands = tcp_pause_proxy_value(&proxy, &proxy.commands_seen);
+    TEST_CHECK(preauth_commands - baseline_commands == 0);
+    TEST_MSG("unauthenticated startup and read sent %d upstream commands",
+             preauth_commands - baseline_commands);
+
+    ret = authenticate_netrigctl(rig, password);
+    TEST_CHECK(ret == RIG_OK);
+    TEST_MSG("password authentication returned %d", ret);
+
+    for (int elapsed = 0; elapsed < 2000; elapsed += 10)
+    {
+        if (tcp_pause_proxy_value(&proxy, &proxy.commands_seen)
+                > baseline_commands)
+        {
+            break;
+        }
+
+        usleep(10000);
+    }
+
+    TEST_CHECK(tcp_pause_proxy_value(&proxy, &proxy.commands_seen)
+               > baseline_commands);
+    TEST_MSG("authentication did not trigger the upstream power refresh");
+
+    TEST_CHECK(rig_stream_caps_count(rig) == 4);
+    TEST_MSG("post-authentication stream capability view returned %d entries",
+             rig_stream_caps_count(rig));
+
+    rig_set_cache_timeout_ms(rig, HAMLIB_CACHE_ALL, 0);
+    ret = rig_get_freq(rig, RIG_VFO_CURR, &freq);
+    TEST_CHECK(ret == RIG_OK);
+    TEST_MSG("protected read after authentication returned %d", ret);
+
+cleanup:
+
+    if (rig)
+    {
+        rig_close(rig);
+        rig_cleanup(rig);
+    }
+
+    tcp_pause_proxy_destroy(&proxy);
+    stop_rigctld(&frontend);
+    stop_rigctld(&upstream);
+}
+
+
+static void check_connection_power_refresh(int use_password)
+{
+    static const char password[] = "power-refresh-password";
+    struct rigctld_proc upstream = {0};
+    struct rigctld_proc frontend = {0};
+    char upstream_path[64];
+    char password_command[HAMLIB_SECRET_LENGTH + 16];
+    char response[256];
+    char secret[HAMLIB_SECRET_LENGTH + 1];
+    RIG *frontend_client = NULL;
+    RIG *upstream_client = NULL;
+    int raw_sock = -1;
+    int ret;
+
+    if (start_rigctld(&upstream) < 0)
+    {
+        TEST_CHECK_(0, "could not start upstream rigctld");
+        return;
+    }
+
+    snprintf(upstream_path, sizeof(upstream_path), "127.0.0.1:%d",
+             upstream.port);
+    frontend.model = RIG_MODEL_NETRIGCTL;
+    frontend.rig_path = upstream_path;
+    frontend.password = use_password ? password : NULL;
+
+    if (start_rigctld(&frontend) < 0)
+    {
+        TEST_CHECK_(0, "could not start chained rigctld");
+        stop_rigctld(&upstream);
+        return;
+    }
+
+    frontend_client = open_netrigctl(frontend.port);
+    TEST_CHECK(frontend_client != NULL);
+
+    if (!frontend_client)
+    {
+        goto cleanup;
+    }
+
+    if (use_password)
+    {
+        ret = authenticate_netrigctl(frontend_client, password);
+        TEST_CHECK(ret == RIG_OK);
+
+        if (ret != RIG_OK)
+        {
+            goto cleanup;
+        }
+    }
+
+    ret = rig_set_powerstat(frontend_client, RIG_POWER_OFF);
+    TEST_CHECK(ret == RIG_OK);
+    TEST_MSG("setting the chained daemon power cache OFF returned %d", ret);
+    rig_close(frontend_client);
+    rig_cleanup(frontend_client);
+    frontend_client = NULL;
+
+    upstream_client = open_netrigctl(upstream.port);
+    TEST_CHECK(upstream_client != NULL);
+
+    if (!upstream_client)
+    {
+        goto cleanup;
+    }
+
+    ret = rig_set_powerstat(upstream_client, RIG_POWER_ON);
+    TEST_CHECK(ret == RIG_OK);
+    TEST_MSG("restoring upstream power behind the chained daemon returned %d",
+             ret);
+    rig_close(upstream_client);
+    rig_cleanup(upstream_client);
+    upstream_client = NULL;
+
+    raw_sock = raw_control_connect(frontend.port);
+    TEST_CHECK(raw_sock >= 0);
+
+    if (raw_sock < 0)
+    {
+        goto cleanup;
+    }
+
+    if (use_password)
+    {
+        ret = send_all(raw_sock, "\\get_freq\n", 10);
+        TEST_CHECK(ret == 0);
+
+        if (ret < 0)
+        {
+            goto cleanup;
+        }
+
+        ret = raw_control_read(raw_sock, response, sizeof(response), 5000);
+        TEST_CHECK(ret > 0);
+
+        if (ret < 0)
+        {
+            goto cleanup;
+        }
+
+        TEST_CHECK(strstr(response, "RPRT -19") != NULL);
+        TEST_MSG("unauthenticated read response was %s", response);
+
+        rig_password_generate_secret(password, secret);
+        snprintf(password_command, sizeof(password_command),
+                 "\\password %s\n", secret);
+        memset(secret, 0, sizeof(secret));
+        ret = send_all(raw_sock, password_command, strlen(password_command));
+        TEST_CHECK(ret == 0);
+        memset(password_command, 0, sizeof(password_command));
+
+        if (ret < 0)
+        {
+            goto cleanup;
+        }
+
+        ret = raw_control_read(raw_sock, response, sizeof(response), 5000);
+        TEST_CHECK(ret > 0);
+
+        if (ret < 0)
+        {
+            goto cleanup;
+        }
+
+        TEST_CHECK(strstr(response, "RPRT 0") != NULL);
+        TEST_MSG("password response was %s", response);
+    }
+
+    ret = send_all(raw_sock, "\\get_freq\n", 10);
+    TEST_CHECK(ret == 0);
+
+    if (ret < 0)
+    {
+        goto cleanup;
+    }
+
+    ret = raw_control_read(raw_sock, response, sizeof(response), 5000);
+    TEST_CHECK(ret > 0);
+
+    if (ret < 0)
+    {
+        goto cleanup;
+    }
+
+    TEST_CHECK(strstr(response, "RPRT -") == NULL);
+    TEST_MSG("first authorized command after upstream recovery returned %s",
+             response);
+
+    if (use_password)
+    {
+        ret = raw_control_command(raw_sock, "\\set_powerstat 0\n", response,
+                                  sizeof(response));
+        TEST_CHECK(ret > 0);
+
+        if (ret < 0)
+        {
+            goto cleanup;
+        }
+
+        TEST_CHECK(strstr(response, "RPRT 0") != NULL);
+        TEST_MSG("setting power OFF before reauthentication returned %s",
+                 response);
+
+        upstream_client = open_netrigctl(upstream.port);
+        TEST_CHECK(upstream_client != NULL);
+
+        if (!upstream_client)
+        {
+            goto cleanup;
+        }
+
+        ret = rig_set_powerstat(upstream_client, RIG_POWER_ON);
+        TEST_CHECK(ret == RIG_OK);
+        TEST_MSG("restoring upstream power before reauthentication returned %d",
+                 ret);
+        rig_close(upstream_client);
+        rig_cleanup(upstream_client);
+        upstream_client = NULL;
+
+        ret = raw_control_command(raw_sock, "\\password invalid\n", response,
+                                  sizeof(response));
+        TEST_CHECK(ret > 0);
+
+        if (ret < 0)
+        {
+            goto cleanup;
+        }
+
+        TEST_CHECK(strstr(response, "RPRT -19") != NULL);
+        TEST_MSG("incorrect password response was %s", response);
+
+        rig_password_generate_secret(password, secret);
+        snprintf(password_command, sizeof(password_command),
+                 "\\password %s\n", secret);
+        memset(secret, 0, sizeof(secret));
+        ret = raw_control_command(raw_sock, password_command, response,
+                                  sizeof(response));
+        memset(password_command, 0, sizeof(password_command));
+        TEST_CHECK(ret > 0);
+
+        if (ret < 0)
+        {
+            goto cleanup;
+        }
+
+        TEST_CHECK(strstr(response, "RPRT 0") != NULL);
+        TEST_MSG("reauthentication response was %s", response);
+
+        ret = raw_control_command(raw_sock, "\\get_freq\n", response,
+                                  sizeof(response));
+        TEST_CHECK(ret > 0);
+
+        if (ret < 0)
+        {
+            goto cleanup;
+        }
+
+        TEST_CHECK(strstr(response, "RPRT -") == NULL);
+        TEST_MSG("first command after reauthentication returned %s", response);
+    }
+
+cleanup:
+
+    if (frontend_client)
+    {
+        rig_close(frontend_client);
+        rig_cleanup(frontend_client);
+    }
+
+    if (upstream_client)
+    {
+        rig_close(upstream_client);
+        rig_cleanup(upstream_client);
+    }
+
+    if (raw_sock >= 0)
+    {
+        close(raw_sock);
+    }
+
+    stop_rigctld(&frontend);
+    stop_rigctld(&upstream);
+}
+
+
+void test_connection_power_refresh(void)
+{
+    check_connection_power_refresh(0);
+}
+
+
+void test_authenticated_connection_power_refresh(void)
+{
+    check_connection_power_refresh(1);
+}
 
 
 /* Verify all 4 stream types are discovered with correct format bitmasks,
@@ -899,6 +2010,124 @@ void test_write_tx_multi(void)
 }
 
 
+/* Open an AUDIO_TX stream of 48 kHz float through rigctld. */
+static rig_stream_t *open_tx_f32(RIG *rig, int channels)
+{
+    struct rig_stream_config cfg;
+    rig_stream_t *stream = NULL;
+
+    memset(&cfg, 0, sizeof(cfg));
+    cfg.struct_size = sizeof(cfg);
+    cfg.type = RIG_STREAM_TYPE_AUDIO_TX;
+    cfg.format = RIG_STREAM_FORMAT_PCM_F32;
+    cfg.sample_rate = 48000;
+    cfg.channels = channels;
+
+    return rig_stream_open(rig, &cfg, &stream) == RIG_OK ? stream : NULL;
+}
+
+/* A write is not limited to one datagram: 20 ms of stereo float is 7680 bytes,
+ * several times the payload budget, and is sent whole as consecutive datagrams
+ * of whole sample frames, with the timestamp advancing by every sample. */
+void test_write_tx_larger_than_payload(void)
+{
+    struct rigctld_proc proc = {0};
+
+    if (start_rigctld(&proc) < 0)
+    {
+        TEST_CHECK_(0, "could not start rigctld");
+        return;
+    }
+
+    RIG *rig = open_netrigctl(proc.port);
+    TEST_ASSERT(rig != NULL);
+
+    rig_stream_t *stream = open_tx_f32(rig, 2);
+    TEST_ASSERT(stream != NULL);
+
+    struct rig_stream_net_session *sess =
+        (struct rig_stream_net_session *)stream->backend_priv;
+    TEST_ASSERT(sess != NULL);
+
+    float samples[960 * 2];
+    memset(samples, 0, sizeof(samples));
+
+    size_t frame = 2 * sizeof(float);
+    size_t budget = (size_t)rig_stream_get_max_payload(stream);
+    budget -= budget % frame;
+    TEST_ASSERT_(budget > 0 && budget < sizeof(samples),
+                 "budget %zu must be below the %zu-byte write", budget,
+                 sizeof(samples));
+    unsigned expect_seq = (unsigned)((sizeof(samples) + budget - 1) / budget);
+
+    size_t written = 0;
+    int ret = rig_stream_write(rig, stream, samples, sizeof(samples), &written,
+                               1000, NULL);
+    TEST_CHECK_(ret == RIG_OK, "rig_stream_write returned %d", ret);
+    TEST_CHECK_(written == sizeof(samples), "written=%zu, expected %zu",
+                written, sizeof(samples));
+    TEST_CHECK_(sess->tx_seq == expect_seq, "tx_seq=%u, expected %u datagrams",
+                sess->tx_seq, expect_seq);
+    TEST_CHECK_(sess->tx_timestamp == 960, "tx_timestamp=%llu, expected 960",
+                (unsigned long long)sess->tx_timestamp);
+
+    rig_stream_close(rig, stream);
+    rig_close(rig);
+    rig_cleanup(rig);
+    stop_rigctld(&proc);
+}
+
+/* A timed burst larger than one datagram keeps its target: it travels on the
+ * first datagram (with SOB, and EOB on the last), so the server still sees the
+ * burst start late and reports it. */
+void test_tx_timed_burst_split_keeps_target(void)
+{
+    struct rigctld_proc proc = {0};
+
+    if (start_rigctld(&proc) < 0)
+    {
+        TEST_CHECK_(0, "could not start rigctld");
+        return;
+    }
+
+    RIG *rig = open_netrigctl(proc.port);
+    TEST_ASSERT(rig != NULL);
+
+    rig_stream_t *stream = open_tx_f32(rig, 2);
+    TEST_ASSERT(stream != NULL);
+
+    struct rig_stream_write_info winfo;
+    memset(&winfo, 0, sizeof(winfo));
+    winfo.time_valid = 1;
+    winfo.seconds = (int64_t)time(NULL) - 2;
+    winfo.flags = RIG_STREAM_TIME_FLAG_SOB | RIG_STREAM_TIME_FLAG_EOB;
+
+    float samples[960 * 2];
+    memset(samples, 0, sizeof(samples));
+    size_t written = 0;
+    TEST_CHECK(rig_stream_write(rig, stream, samples, sizeof(samples),
+                                &written, 1000, &winfo) == RIG_OK);
+    TEST_CHECK_(written == sizeof(samples), "written=%zu", written);
+
+    struct rig_stream_write_status ev;
+    memset(&ev, 0, sizeof(ev));
+    int rc = rig_stream_wait_write_status(rig, stream, &ev, 3000);
+
+    TEST_CHECK_(rc == RIG_OK, "wait_write_status rc=%d (target lost?)", rc);
+
+    if (rc == RIG_OK)
+    {
+        TEST_CHECK_(ev.event == RIG_STREAM_WRITE_EVENT_LATE,
+                    "event=%u (expected LATE)", ev.event);
+    }
+
+    rig_stream_close(rig, stream);
+    rig_close(rig);
+    rig_cleanup(rig);
+    stop_rigctld(&proc);
+}
+
+
 /* End-to-end write-status: a past-scheduled TX burst makes the server's dummy
  * backend detect a late burst, which must travel back as a WRITE_STATUS frame
  * and surface at the client's rig_stream_wait_write_status(). */
@@ -1254,6 +2483,14 @@ void test_rx_codec_passthrough_e2e(void)
 
     RIG *rig = open_netrigctl(proc.port);
     TEST_ASSERT(rig != NULL);
+
+    /* This test admits no loss at all -- every sample index must follow the
+     * last -- so give the receive socket room for the whole run rather than
+     * relying on the host's default. The reader below only comes back every
+     * 200 ms while the server sends in real time, and a datagram dropped for
+     * want of buffer space would read here as a broken counter. */
+    rig_set_conf(rig, rig_token_lookup(rig, "stream_transport_buffer_bytes"),
+                 "4194304");
 
     struct rig_stream_config cfg;
     memset(&cfg, 0, sizeof(cfg));
@@ -1618,8 +2855,25 @@ void test_rx_continuous_data(void)
     TEST_CHECK(ret == RIG_OK);
     TEST_ASSERT(stream != NULL);
 
-    /* Wait for data to start flowing */
-    usleep(500000);  /* 500ms */
+    /* Wait for data to start flowing -- for the data itself, not for a
+     * stretch of wall clock, as the RX tests below do. */
+    {
+        int16_t warm[480];
+        size_t warm_read = 0;
+        int warmed = 0;
+        int i;
+
+        for (i = 0; i < 15 && !warmed; i++)
+        {
+            if (rig_stream_read(rig, stream, warm, sizeof(warm), &warm_read,
+                                200, NULL) == RIG_OK && warm_read > 0)
+            {
+                warmed = 1;
+            }
+        }
+
+        TEST_CHECK_(warmed, "no data within 3 s of opening the stream");
+    }
 
     /* Read 5 consecutive frames */
     int successful_reads = 0;
@@ -2327,6 +3581,102 @@ void test_rx_error_frame_dropped(void)
     stream_ringbuf_destroy(&s.ringbuf);
 }
 
+static size_t wb_error(unsigned char *buf, int32_t rig_error, uint32_t reason,
+                       uint16_t version,
+                       const struct rig_stream_net_session *sess)
+{
+    struct rig_stream_packet_header hdr;
+    stream_control_header_init(&hdr, RIG_STREAM_TYPE_AUDIO_RX,
+                               (uint16_t)sess->remote_stream_id,
+                               sess->subscribe_token, RIG_STREAM_CTRL_ERROR);
+    hdr.payload_len = RIG_STREAM_ERROR_WIRE_SIZE;
+    stream_packet_header_pack(&hdr, buf);
+    stream_error_block_pack(rig_error, reason, buf + RIG_STREAM_HEADER_SIZE);
+    /* overwrite the version to exercise an unknown one */
+    buf[RIG_STREAM_HEADER_SIZE] = (uint8_t)(version >> 8);
+    buf[RIG_STREAM_HEADER_SIZE + 1] = (uint8_t)version;
+    return RIG_STREAM_HEADER_SIZE + RIG_STREAM_ERROR_WIRE_SIZE;
+}
+
+/* An ERROR frame from the server fails the local stream with the server's
+ * reason: data already received stays readable, nothing is written by the
+ * frame itself, repeats change nothing, and an unknown version is ignored. */
+void test_rx_error_frame_fails_stream(void)
+{
+    struct rig_stream s;
+    struct rig_stream_net_session sess;
+    unsigned char buf[256];
+    unsigned char out[64];
+    wb_setup(&s, &sess);
+
+    rig_stream_net_process_packet(&sess, &s, buf, wb_data(buf, 0, 0, 10, &sess));
+
+    /* Unknown block version: not understood, so not acted on. */
+    TEST_CHECK(rig_stream_net_process_packet(&sess, &s, buf,
+               wb_error(buf, -RIG_EIO, RIG_COMM_REASON_SOCKET_ERROR, 99,
+                        &sess)) == 0);
+    TEST_CHECK(!stream_is_failed(&s));
+
+    TEST_CHECK(rig_stream_net_process_packet(&sess, &s, buf,
+               wb_error(buf, -RIG_EIO, RIG_COMM_REASON_LINK_TIMEOUT,
+                        RIG_STREAM_ERROR_BLOCK_VERSION, &sess)) == 0);
+    TEST_CHECK(stream_is_failed(&s));
+    TEST_CHECK_(s.fail_reason == RIG_COMM_REASON_LINK_TIMEOUT,
+                "fail_reason=%u", s.fail_reason);
+
+    /* A repeat (the server re-sends on every PING) keeps the first reason. */
+    rig_stream_net_process_packet(&sess, &s, buf,
+                                  wb_error(buf, -RIG_EIO,
+                                           RIG_COMM_REASON_PEER_DISCONNECT,
+                                           RIG_STREAM_ERROR_BLOCK_VERSION, &sess));
+    TEST_CHECK(s.fail_reason == RIG_COMM_REASON_LINK_TIMEOUT);
+
+    /* The 20 bytes received before the failure are still there, and only
+     * those: the ERROR payload never reached the ring. */
+    TEST_CHECK(stream_ringbuf_available(&s.ringbuf) == 20);
+    TEST_CHECK(stream_ringbuf_read(&s.ringbuf, out, sizeof(out), 50) == 20);
+    TEST_CHECK(stream_ringbuf_read(&s.ringbuf, out, sizeof(out), 50) == 0);
+    TEST_CHECK(s.link_loss == 0);
+
+    stream_write_event_destroy(&s);
+    stream_ringbuf_destroy(&s.ringbuf);
+}
+
+/* Data still in flight when the ERROR frame arrives is taken in no further:
+ * the application drains what came before the failure and then reads -RIG_EIO
+ * for good, instead of a late datagram making a read succeed again. Nor is the
+ * late data accounted -- a seq gap after the failure is not a link loss. */
+void test_rx_data_after_error_frame_ignored(void)
+{
+    struct rig_stream s;
+    struct rig_stream_net_session sess;
+    unsigned char buf[256];
+    unsigned char out[64];
+    wb_setup(&s, &sess);
+
+    rig_stream_net_process_packet(&sess, &s, buf, wb_data(buf, 0, 0, 10, &sess));
+    rig_stream_net_process_packet(&sess, &s, buf,
+                                  wb_error(buf, -RIG_EIO,
+                                           RIG_COMM_REASON_LINK_TIMEOUT,
+                                           RIG_STREAM_ERROR_BLOCK_VERSION, &sess));
+    TEST_ASSERT(stream_is_failed(&s));
+
+    /* seq 3 skips 1 and 2: counted as link loss if it were taken in. */
+    TEST_CHECK(rig_stream_net_process_packet(&sess, &s, buf,
+               wb_data(buf, 3, 30, 10, &sess)) == 0);
+
+    TEST_CHECK_(stream_ringbuf_available(&s.ringbuf) == 20,
+                "avail=%zu (expected the 20 bytes from before the failure)",
+                stream_ringbuf_available(&s.ringbuf));
+    TEST_CHECK_(s.link_loss == 0, "link_loss=%u", s.link_loss);
+
+    TEST_CHECK(stream_ringbuf_read(&s.ringbuf, out, sizeof(out), 50) == 20);
+    TEST_CHECK(stream_ringbuf_read(&s.ringbuf, out, sizeof(out), 50) == 0);
+
+    stream_write_event_destroy(&s);
+    stream_ringbuf_destroy(&s.ringbuf);
+}
+
 /* A received WRITE_STATUS frame must surface through
  * rig_stream_wait_write_status() (marked REMOTE), bump the matching remote_*
  * stat, and not disturb seq accounting or write sample data. */
@@ -2384,7 +3734,7 @@ struct sub_server
     int port;
     int drop_first;         /* answer nothing to the first SUBSCRIBE */
     int pong_before_ack;    /* emit a PONG ahead of the ACK */
-    int subscribes_seen;
+    HAMLIB_ATOMIC int subscribes_seen;   /* the server thread writes it */
     HAMLIB_ATOMIC int stop;
     pthread_t thread;
 };
@@ -2603,6 +3953,7 @@ static int query_source_id_once(int port)
         return -1;
     }
 
+    socket_disable_sigpipe(sock);
     struct sockaddr_in addr;
 
     memset(&addr, 0, sizeof(addr));
@@ -2618,7 +3969,7 @@ static int query_source_id_once(int port)
 
     const char *cmd = "+\\stream_open AUDIO_RX PCM_S16 48000\n";
 
-    if (send(sock, cmd, strlen(cmd), 0) != (ssize_t)strlen(cmd))
+    if (socket_send(sock, cmd, strlen(cmd)) != (ssize_t)strlen(cmd))
     {
         close(sock);
         return -1;
@@ -2687,6 +4038,474 @@ static int query_source_id_raw(int port)
 }
 
 
+struct raw_stream_connection
+{
+    int tcp_sock;
+    int udp_sock;
+};
+
+
+static int send_all(int sock, const void *buf, size_t len)
+{
+    const unsigned char *p = buf;
+
+    while (len > 0)
+    {
+        ssize_t n = socket_send(sock, p, len);
+
+        if (n <= 0)
+        {
+            return -1;
+        }
+
+        p += n;
+        len -= (size_t)n;
+    }
+
+    return 0;
+}
+
+
+static int raw_control_connect(int port)
+{
+    struct sockaddr_in addr;
+    int sock = socket(AF_INET, SOCK_STREAM, 0);
+
+    if (sock < 0)
+    {
+        return -1;
+    }
+
+    socket_disable_sigpipe(sock);
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    addr.sin_port = htons(port);
+
+    if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+    {
+        close(sock);
+        return -1;
+    }
+
+    return sock;
+}
+
+
+static int raw_control_read(int sock, char *response, size_t response_size,
+                            int timeout_ms)
+{
+    size_t total = 0;
+
+    while (total < response_size - 1)
+    {
+        fd_set fds;
+        struct timeval tv;
+        ssize_t n;
+
+        FD_ZERO(&fds);
+        FD_SET(sock, &fds);
+        tv.tv_sec = timeout_ms / 1000;
+        tv.tv_usec = (timeout_ms % 1000) * 1000;
+
+        if (select(sock + 1, &fds, NULL, NULL, &tv) <= 0)
+        {
+            return -1;
+        }
+
+        n = recv(sock, response + total, response_size - 1 - total, 0);
+
+        if (n <= 0)
+        {
+            return -1;
+        }
+
+        total += (size_t)n;
+        response[total] = '\0';
+
+        if (memchr(response, '\n', total))
+        {
+            return (int)total;
+        }
+    }
+
+    return (int)total;
+}
+
+
+static int raw_control_command(int sock, const char *command, char *response,
+                               size_t response_size)
+{
+    if (send_all(sock, command, strlen(command)) < 0)
+    {
+        return -1;
+    }
+
+    return raw_control_read(sock, response, response_size, 5000);
+}
+
+
+static int raw_stream_open_once(int port, struct raw_stream_connection *conn)
+{
+    struct sockaddr_in addr;
+    const char *cmd = "+\\stream_open AUDIO_RX PCM_S16 48000\n";
+    char response[1024] = "";
+    size_t total = 0;
+    int stream_id = -1;
+    int udp_port = -1;
+    unsigned int subscribe_token = 0;
+
+    conn->tcp_sock = -1;
+    conn->udp_sock = -1;
+    conn->tcp_sock = socket(AF_INET, SOCK_STREAM, 0);
+
+    if (conn->tcp_sock < 0)
+    {
+        return -1;
+    }
+
+    socket_disable_sigpipe(conn->tcp_sock);
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    addr.sin_port = htons(port);
+
+    if (connect(conn->tcp_sock, (struct sockaddr *)&addr, sizeof(addr)) < 0
+            || send_all(conn->tcp_sock, cmd, strlen(cmd)) < 0)
+    {
+        goto fail;
+    }
+
+    while (total < sizeof(response) - 1 && strstr(response, "RPRT") == NULL)
+    {
+        fd_set fds;
+        struct timeval tv = { 3, 0 };
+        FD_ZERO(&fds);
+        FD_SET(conn->tcp_sock, &fds);
+
+        if (select(conn->tcp_sock + 1, &fds, NULL, NULL, &tv) <= 0)
+        {
+            goto fail;
+        }
+
+        ssize_t n = recv(conn->tcp_sock, response + total,
+                         sizeof(response) - 1 - total, 0);
+
+        if (n <= 0)
+        {
+            goto fail;
+        }
+
+        total += (size_t)n;
+        response[total] = '\0';
+    }
+
+    const char *id_line = strstr(response, "stream_id: ");
+    const char *port_line = strstr(response, "udp_port: ");
+    const char *token_line = strstr(response, "subscribe_token: ");
+
+    if (!strstr(response, "RPRT 0") || !id_line || !port_line || !token_line
+            || sscanf(id_line, "stream_id: %d", &stream_id) != 1
+            || sscanf(port_line, "udp_port: %d", &udp_port) != 1
+            || sscanf(token_line, "subscribe_token: %u", &subscribe_token) != 1)
+    {
+        goto fail;
+    }
+
+    conn->udp_sock = socket(AF_INET, SOCK_DGRAM, 0);
+
+    if (conn->udp_sock < 0)
+    {
+        goto fail;
+    }
+
+    unsigned char packet[RIG_STREAM_HEADER_SIZE];
+    struct rig_stream_packet_header hdr;
+    stream_control_header_init(&hdr, RIG_STREAM_TYPE_AUDIO_RX,
+                               (uint16_t)stream_id, subscribe_token,
+                               RIG_STREAM_CTRL_SUBSCRIBE);
+    stream_packet_header_pack(&hdr, packet);
+    addr.sin_port = htons((uint16_t)udp_port);
+
+    if (sendto(conn->udp_sock, packet, sizeof(packet), 0,
+               (struct sockaddr *)&addr, sizeof(addr)) != (ssize_t)sizeof(packet))
+    {
+        goto fail;
+    }
+
+    fd_set fds;
+    struct timeval tv = { 3, 0 };
+    FD_ZERO(&fds);
+    FD_SET(conn->udp_sock, &fds);
+
+    if (select(conn->udp_sock + 1, &fds, NULL, NULL, &tv) <= 0)
+    {
+        goto fail;
+    }
+
+    ssize_t n = recv(conn->udp_sock, packet, sizeof(packet), 0);
+
+    if (n < RIG_STREAM_HEADER_SIZE
+            || stream_packet_header_unpack(packet, (size_t)n, &hdr) != 0
+            || hdr.stream_id != stream_id
+            || hdr.subscribe_token != subscribe_token
+            || !(hdr.control & RIG_STREAM_CTRL_SUBSCRIBE_ACK))
+    {
+        goto fail;
+    }
+
+    return 0;
+
+fail:
+
+    if (conn->udp_sock >= 0)
+    {
+        close(conn->udp_sock);
+        conn->udp_sock = -1;
+    }
+
+    if (conn->tcp_sock >= 0)
+    {
+        close(conn->tcp_sock);
+        conn->tcp_sock = -1;
+    }
+
+    return -1;
+}
+
+
+static int raw_stream_open(int port, struct raw_stream_connection *conn)
+{
+    for (int attempt = 0; attempt < 3; attempt++)
+    {
+        if (raw_stream_open_once(port, conn) == 0)
+        {
+            return 0;
+        }
+
+        usleep(100000);
+    }
+
+    return -1;
+}
+
+
+/* In idle mode the last control disconnect closes the backend rig. A live RX
+ * feeder must be joined before that close, even when the client never sends
+ * stream_close. */
+void test_idle_abrupt_disconnect_closes_stream(void)
+{
+    struct rigctld_proc proc = {0};
+    struct raw_stream_connection first = { -1, -1 };
+    struct raw_stream_connection reopened = { -1, -1 };
+
+    if (start_idle_rigctld(&proc) < 0)
+    {
+        TEST_CHECK_(0, "could not start idle rigctld");
+        return;
+    }
+
+    int opened = raw_stream_open(proc.port, &first);
+    TEST_CHECK(opened == 0);
+
+    if (opened < 0)
+    {
+        stop_rigctld(&proc);
+        return;
+    }
+
+    /* Drop the control session without a stream_close command. */
+    close(first.tcp_sock);
+    close(first.udp_sock);
+    usleep(250000);
+
+    TEST_CHECK(rigctld_alive(&proc));
+    opened = raw_stream_open(proc.port, &reopened);
+    TEST_CHECK(opened == 0);
+
+    if (reopened.tcp_sock >= 0)
+    {
+        close(reopened.tcp_sock);
+    }
+
+    if (reopened.udp_sock >= 0)
+    {
+        close(reopened.udp_sock);
+    }
+
+    usleep(250000);
+    stop_rigctld(&proc);
+}
+
+
+/* Disconnect cleanup transacts on the shared model-2 control socket. Holding
+ * its stream_close response makes any concurrent command observable at the
+ * proxy before cleanup can finish. */
+void test_disconnect_stream_close_serialized(void)
+{
+    struct rigctld_proc upstream = {0};
+    struct rigctld_proc frontend = {0};
+    struct tcp_pause_proxy proxy;
+    struct raw_stream_connection first = { -1, -1 };
+    char proxy_path[64];
+    char response[256];
+    const char *get_freq = "\\get_freq\n";
+    const char *get_freq_log = "rigctl_parse: cmd=get_freq handle=";
+    int second_sock = -1;
+    int command_count;
+    int parsed_commands;
+    int n;
+
+    if (start_rigctld(&upstream) < 0)
+    {
+        TEST_CHECK_(0, "could not start upstream rigctld");
+        return;
+    }
+
+    if (tcp_pause_proxy_init(&proxy, upstream.port, 1) < 0)
+    {
+        TEST_CHECK_(0, "could not initialize pause proxy");
+        stop_rigctld(&upstream);
+        return;
+    }
+
+    snprintf(proxy_path, sizeof(proxy_path), "127.0.0.1:%d", proxy.port);
+    frontend.model = RIG_MODEL_NETRIGCTL;
+    frontend.trace = 1;
+    frontend.rig_path = proxy_path;
+    frontend.after_fork = tcp_pause_proxy_start_thread;
+    frontend.after_fork_cleanup = tcp_pause_proxy_cleanup_thread;
+    frontend.after_fork_data = &proxy;
+
+    if (start_rigctld_opt(&frontend, NULL, "cache_timeout=0") < 0)
+    {
+        TEST_CHECK_(0, "could not start chained rigctld");
+        goto cleanup;
+    }
+
+    if (raw_stream_open(frontend.port, &first) < 0)
+    {
+        TEST_CHECK_(0, "could not open stream through chained rigctld");
+        goto cleanup;
+    }
+
+    second_sock = raw_control_connect(frontend.port);
+    TEST_CHECK(second_sock >= 0);
+
+    if (second_sock < 0
+            || send_all(second_sock, get_freq, strlen(get_freq)) < 0)
+    {
+        TEST_CHECK_(0, "could not send second client warm-up command");
+        goto cleanup;
+    }
+
+    n = raw_control_read(second_sock, response, sizeof(response), 5000);
+    TEST_CHECK(n > 0);
+    TEST_MSG("second client warm-up command did not receive a response");
+
+    if (n <= 0 || strstr(response, "RPRT -"))
+    {
+        TEST_CHECK_(0, "second client warm-up response was %s",
+                    n > 0 ? response : "unavailable");
+        goto cleanup;
+    }
+
+    TEST_CHECK(wait_for_log_occurrences(frontend.log_path, get_freq_log,
+                                        1, 2000) == 0);
+    TEST_MSG("second client warm-up command was not observed in the daemon log");
+    parsed_commands = count_log_occurrences(frontend.log_path, get_freq_log);
+
+    close(first.tcp_sock);
+    close(first.udp_sock);
+    first.tcp_sock = -1;
+    first.udp_sock = -1;
+
+    TEST_CHECK(tcp_pause_proxy_wait(&proxy, &proxy.close_response_held,
+                                    5000) == 0);
+    TEST_MSG("disconnect cleanup did not reach a held stream_close response");
+
+    if (!tcp_pause_proxy_value(&proxy, &proxy.close_response_held))
+    {
+        goto cleanup;
+    }
+
+    command_count = tcp_pause_proxy_value(&proxy, &proxy.commands_seen);
+
+    if (send_all(second_sock, get_freq, strlen(get_freq)) < 0)
+    {
+        TEST_CHECK_(0, "could not send second client command");
+        goto cleanup;
+    }
+
+    if (wait_for_log_occurrences(frontend.log_path, get_freq_log,
+                                 parsed_commands + 1, 2000) < 0)
+    {
+        TEST_CHECK_(0, "competing command was not parsed before the mutex wait");
+        goto cleanup;
+    }
+
+    TEST_CHECK(tcp_pause_proxy_remained_quiet(&proxy, command_count,
+            2000));
+    TEST_MSG("competing command reached the proxy during the mutex grace period");
+    TEST_CHECK(!tcp_pause_proxy_value(&proxy, &proxy.command_during_close));
+    TEST_MSG("a second client reached the upstream control socket while "
+             "stream_close cleanup was waiting for its response");
+    TEST_CHECK(tcp_pause_proxy_value(&proxy, &proxy.commands_seen)
+               == command_count);
+    TEST_MSG("upstream command count changed while stream_close was held");
+
+    tcp_pause_proxy_release(&proxy);
+    TEST_CHECK(tcp_pause_proxy_wait(&proxy, &proxy.close_response_released,
+                                    5000) == 0);
+    TEST_MSG("proxy did not release the complete stream_close response");
+
+    n = raw_control_read(second_sock, response, sizeof(response), 5000);
+    TEST_CHECK(n > 0);
+    TEST_MSG("second client did not receive a response after cleanup resumed");
+
+    if (n > 0)
+    {
+        TEST_CHECK(strstr(response, "RPRT -") == NULL);
+        TEST_MSG("second client response was %s", response);
+        TEST_CHECK(tcp_pause_proxy_value(&proxy, &proxy.commands_seen)
+                   > command_count);
+        TEST_MSG("competing command did not reach upstream after cleanup");
+    }
+
+cleanup:
+    tcp_pause_proxy_release(&proxy);
+
+    if (first.tcp_sock >= 0)
+    {
+        close(first.tcp_sock);
+    }
+
+    if (first.udp_sock >= 0)
+    {
+        close(first.udp_sock);
+    }
+
+    if (second_sock >= 0)
+    {
+        close(second_sock);
+    }
+
+    if (tcp_pause_proxy_value(&proxy, &proxy.close_response_held))
+    {
+        tcp_pause_proxy_wait(&proxy, &proxy.close_response_released, 2000);
+    }
+
+    tcp_pause_proxy_destroy(&proxy);
+
+    if (frontend.pid > 0)
+    {
+        stop_rigctld(&frontend);
+    }
+
+    stop_rigctld(&upstream);
+}
+
+
 /* rigctld --stream-source-id stamps the CLI value; without it a stable
  * derived ID in 0x1000-0xFFFF is used, unchanged across a daemon restart
  * on the same static configuration. */
@@ -2728,12 +4547,19 @@ TEST_LIST =
     { "rx_ack_no_false_link_loss",      test_rx_ack_no_false_link_loss },
     { "rx_real_gap_counts_link_loss",   test_rx_real_gap_counts_link_loss },
     { "rx_error_frame_dropped",         test_rx_error_frame_dropped },
+    { "rx_error_frame_fails_stream",    test_rx_error_frame_fails_stream },
+    { "rx_data_after_error_frame_ignored", test_rx_data_after_error_frame_ignored },
     { "rx_write_status_frame",          test_rx_write_status_frame },
+    { "password_startup_and_stream_caps", test_password_startup_and_stream_caps },
+    { "connection_power_refresh", test_connection_power_refresh },
+    { "authenticated_connection_power_refresh", test_authenticated_connection_power_refresh },
     { "caps_discovery_all_types",  test_caps_discovery_all_types },
     { "rx_capture_time_propagates", test_rx_capture_time_propagates },
     { "open_close_tx",             test_open_close_tx },
     { "open_close_rx",             test_open_close_rx },
     { "write_tx_multi",            test_write_tx_multi },
+    { "write_tx_larger_than_payload", test_write_tx_larger_than_payload },
+    { "tx_timed_burst_split_keeps_target", test_tx_timed_burst_split_keeps_target },
     { "tx_write_status_e2e",       test_tx_write_status_e2e },
     { "tx_underrun_e2e",           test_tx_underrun_e2e },
     { "rx_data_received",          test_rx_data_received },
@@ -2750,6 +4576,8 @@ TEST_LIST =
     { "open_close_reopen",         test_open_close_reopen },
     { "rx_pause_resume",           test_rx_pause_resume },
     { "tx_flush_forwards",         test_tx_flush_forwards },
+    { "idle_abrupt_disconnect_closes_stream", test_idle_abrupt_disconnect_closes_stream },
+    { "disconnect_stream_close_serialized", test_disconnect_stream_close_serialized },
     { "stream_source_id_cli_and_derived", test_stream_source_id_cli_and_derived },
     { "subscribe_retransmits_after_loss", test_subscribe_retransmits_after_loss },
     { "subscribe_ignores_non_ack_first", test_subscribe_ignores_non_ack_first },

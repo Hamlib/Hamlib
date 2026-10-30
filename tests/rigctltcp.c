@@ -75,8 +75,11 @@
 #include "hamlib/rig_state.h"
 #include "misc.h"
 #include "network.h"
+#include "daemon_client.h"
 #include "riglist.h"
 #include "rigctl_parse.h"
+#include "rigctld_client.h"
+#include "rig_tests.h"
 
 
 /*
@@ -84,7 +87,7 @@
  *      keep up to date SHORT_OPTIONS, usage()'s output and man page. thanks.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:p:d:P:D:s:S:c:T:t:C:W:w:x:M:n:A:lLuovhVZR:"
+#define SHORT_OPTIONS "m:r:p:d:P:D:s:S:c:T:t:N:C:W:w:x:M:n:lLuovhVZR:"
 static struct option long_options[] =
 {
     {"model",           1, 0, 'm'},
@@ -98,6 +101,7 @@ static struct option long_options[] =
     {"civaddr",         1, 0, 'c'},
     {"listen-addr",     1, 0, 'T'},
     {"port",            1, 0, 't'},
+    {"max-clients",     1, 0, 'N'},
     {"set-conf",        1, 0, 'C'},
     {"list",            0, 0, 'l'},
     {"show-conf",       0, 0, 'L'},
@@ -112,9 +116,6 @@ static struct option long_options[] =
     {"debug-time-stamps", 0, 0, 'Z'},
     {"multicast-addr",  1, 0, 'M'},
     {"multicast-port",  1, 0, 'n'},
-#if RIGCTLD_PASSWORDS
-    {"password",        1, 0, 'A'},
-#endif
     {"rigctld-idle",    0, 0, 'R'},
     {0, 0, 0, 0}
 };
@@ -123,7 +124,9 @@ static struct option long_options[] =
 void *handle_socket(void *arg);
 static void usage(FILE *fout);
 
-static unsigned client_count;
+static struct daemon_client_tracker client_tracker =
+    DAEMON_CLIENT_TRACKER_INITIALIZER;
+static struct rigctld_client_pool client_pool;
 
 static RIG *my_rig;             /* handle to rig (instance) */
 static volatile int rig_opened = 0;
@@ -139,7 +142,6 @@ const char *portno = "4531";            /* -t */
 const char *src_addr = NULL;            /* -T INADDR_ANY */
 const char *multicast_addr = "0.0.0.0"; /* -M */
 int multicast_port = 4532;              /* -n */
-extern char rigctld_password[65];       /* -A */
 char resp_sep = '\n';                   /* -S */
 extern int lock_mode;
 extern powerstat_t rig_powerstat;
@@ -262,7 +264,6 @@ int main(int argc, char *argv[])
     pthread_t thread;
     pthread_attr_t attr;
     int vfo_mode = 0; /* vfo_mode=0 means target VFO is current VFO */
-    int i;
     extern int is_rigctld;
     struct rig_state *rs;
 
@@ -273,6 +274,7 @@ int main(int argc, char *argv[])
     if (err) { rig_debug(RIG_DEBUG_ERR, "%s: setvbuf err=%s\n", __func__, strerror(err)); }
 
     rig_set_debug(verbose);
+
     while (1)
     {
         int c;
@@ -303,17 +305,6 @@ int main(int argc, char *argv[])
         case 'R':
             rigctld_idle = 1;
             break;
-
-#if RIIGCTLD_PASSWORDS
-        case 'A':
-            strncpy(rigctld_password, optarg, sizeof(rigctld_password) - 1);
-            //char *md5 = rig_make_m d5(rigctld_password);
-            char md5[HAMLIB_SECRET_LENGTH + 1];
-            rig_password_generate_secret(rigctld_password, md5);
-            printf("Secret key: %s\n", md5);
-            rig_settings_save("sharedkey", md5, e_CHAR);
-            break;
-#endif
 
         case 'm':
             my_model = atoi(optarg);
@@ -459,6 +450,15 @@ int main(int argc, char *argv[])
             src_addr = optarg;
             break;
 
+        case 'N':
+            if (daemon_client_limit_parse(optarg, &client_tracker.limit) != 0)
+            {
+                fprintf(stderr, "Invalid maximum client count: %s\n", optarg);
+                exit(1);
+            }
+
+            break;
+
         case 'o':
             vfo_mode++;
             //rig_debug(RIG_DEBUG_ERR, "%s: #0 vfo_mode=%d\n", __func__, vfo_mode);
@@ -534,17 +534,22 @@ int main(int argc, char *argv[])
 
 #endif
 
-    SNPRINTF(rigstartup, sizeof(rigstartup), "%s(%d) Startup:", __FILE__, __LINE__);
+    {
+        char startup_prefix[sizeof(rigstartup)];
 
-    for (i = 0; i < argc; ++i) { strcat(rigstartup, " "); strcat(rigstartup, argv[i]); }
+        SNPRINTF(startup_prefix, sizeof(startup_prefix), "%s(%d) Startup:",
+                 __FILE__, __LINE__);
+        rigctl_format_startup_args(rigstartup, sizeof(rigstartup),
+                                   startup_prefix, argc, argv);
+    }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", rigstartup);
 
     rig_debug(RIG_DEBUG_VERBOSE, "rigctltcp %s\n", hamlib_version2);
     rig_debug(RIG_DEBUG_VERBOSE, "%s",
               "Report bugs to <hamlib-developer@lists.sourceforge.net>\n\n");
-    rig_debug(RIG_DEBUG_VERBOSE, "Max# of rigctld client services=%d\n",
-              NI_MAXSERV);
+    rig_debug(RIG_DEBUG_VERBOSE, "Max# of rigctltcp client services=%u\n",
+              client_tracker.limit);
 
     my_rig = rig_init(my_model);
 
@@ -729,7 +734,7 @@ int main(int argc, char *argv[])
     enum multicast_item_e items = RIG_MULTICAST_POLL | RIG_MULTICAST_TRANSCEIVE |
                                   RIG_MULTICAST_SPECTRUM;
     retcode = network_multicast_publisher_start(my_rig, multicast_addr,
-              multicast_port, items);
+        multicast_port, items);
 
     if (retcode != RIG_OK)
     {
@@ -794,11 +799,7 @@ int main(int argc, char *argv[])
         }
 
         handle_error(RIG_DEBUG_WARN, "binding failed (trying next interface)");
-#ifdef __MINGW32__
-        closesocket(sock_listen);
-#else
-        close(sock_listen);
-#endif
+        rigctld_socket_close(sock_listen);
     }
     while ((result = result->ai_next) != NULL);
 
@@ -871,6 +872,33 @@ int main(int argc, char *argv[])
 
     rigctl_parse_init();
 
+    retcode = pthread_attr_init(&attr);
+
+    if (retcode != 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "pthread_attr_init: %s\n", strerror(retcode));
+        exit(1);
+    }
+
+    retcode = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+    if (retcode != 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "pthread_attr_setdetachstate: %s\n",
+                  strerror(retcode));
+        pthread_attr_destroy(&attr);
+        exit(1);
+    }
+
+    retcode = rigctld_client_pool_init(&client_pool, &client_tracker, 0);
+
+    if (retcode != RIG_OK)
+    {
+        fprintf(stderr, "Unable to initialize client registry\n");
+        pthread_attr_destroy(&attr);
+        exit(1);
+    }
+
     /*
      * main loop accepting connections
      */
@@ -919,33 +947,41 @@ int main(int argc, char *argv[])
         else
         {
             struct handle_data *arg;
+            struct sockaddr_storage cli_addr;
+            socklen_t clilen = sizeof(cli_addr);
+            int client_sock;
+
+            client_sock = accept(sock_listen,
+                                 (struct sockaddr *)&cli_addr,
+                                 &clilen);
+
+            if (client_sock < 0)
+            {
+                handle_error(RIG_DEBUG_ERR, "accept");
+                break;
+            }
 
             arg = calloc(1, sizeof(struct handle_data));
 
             if (!arg)
             {
                 rig_debug(RIG_DEBUG_ERR, "calloc: %s\n", strerror(errno));
-                exit(1);
+#ifdef __MINGW32__
+                closesocket(client_sock);
+#else
+                close(client_sock);
+#endif
+                continue;
             }
-
-            if (rigctld_password[0] != 0) { arg->use_password = 1; }
 
             arg->rig = my_rig;
-            arg->clilen = sizeof(arg->cli_addr);
+            arg->sock = client_sock;
+            arg->cli_addr = cli_addr;
+            arg->clilen = clilen;
             arg->vfo_mode = vfo_mode;
-            arg->sock = accept(sock_listen,
-                               (struct sockaddr *)&arg->cli_addr,
-                               &arg->clilen);
 
-            if (arg->sock < 0)
-            {
-                handle_error(RIG_DEBUG_ERR, "accept");
-                free(arg);
-                break;
-            }
-
-            if ((retcode = getnameinfo((struct sockaddr const *)&arg->cli_addr,
-                                       arg->clilen,
+            if ((retcode = getnameinfo((struct sockaddr const *)&cli_addr,
+                                       clilen,
                                        host,
                                        sizeof(host),
                                        serv,
@@ -958,20 +994,35 @@ int main(int argc, char *argv[])
                           gai_strerror(retcode));
             }
 
+            arg->client_pool = &client_pool;
+            arg->client_slot = rigctld_client_reserve(&client_pool, arg->sock, 0);
+
+            if (!arg->client_slot)
+            {
+                rig_debug(RIG_DEBUG_WARN,
+                          "Client limit of %u reached; closing connection\n",
+                          client_tracker.limit);
+                rigctld_socket_close(arg->sock);
+                free(arg);
+                continue;
+            }
+
             rig_debug(RIG_DEBUG_VERBOSE,
                       "Connection opened from %s:%s\n",
                       host,
                       serv);
-
-            pthread_attr_init(&attr);
-            pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
             retcode = pthread_create(&thread, &attr, handle_socket, arg);
 
             if (retcode != 0)
             {
                 rig_debug(RIG_DEBUG_ERR, "pthread_create: %s\n", strerror(retcode));
-                break;
+                rigctld_client_detach_socket(&client_pool,
+                                                    arg->client_slot);
+                rigctld_socket_close(arg->sock);
+                rigctld_client_release(&client_pool, arg->client_slot);
+                free(arg);
+                continue;
             }
 
         }
@@ -980,19 +1031,25 @@ int main(int argc, char *argv[])
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: while loop done\n", __func__);
 
-    /* allow threads to finish current action */
-    mutex_rigctld(1);
+    pthread_attr_destroy(&attr);
+    unsigned int clients = rigctld_client_count(&client_pool);
 
-    if (client_count)
+    if (clients)
     {
-        rig_debug(RIG_DEBUG_WARN, "%u outstanding client(s)\n", client_count);
+        rig_debug(RIG_DEBUG_WARN, "%u outstanding client(s)\n", clients);
     }
 
+    rigctld_socket_close(sock_listen);
+
+    rigctld_client_pool_stop(&client_pool);
+
+    mutex_rigctld(1);
     rig_close(my_rig);
     mutex_rigctld(0);
 
     network_multicast_publisher_stop(my_rig);
 
+    rigctld_client_pool_destroy(&client_pool);
     rig_cleanup(my_rig); /* if you care about memory */
 
 #ifdef __MINGW32__
@@ -1029,6 +1086,16 @@ static FILE *get_fsockin(struct handle_data *handle_data_arg)
 #endif
 }
 
+static void close_idle_rig(void *data)
+{
+    RIG *rig = data;
+
+    mutex_rigctld(1);
+    rig_close(rig);
+    rig_opened = 0;
+    mutex_rigctld(0);
+}
+
 /*
  * This is the function run by the threads
  */
@@ -1041,6 +1108,8 @@ void *handle_socket(void *arg)
     char host[NI_MAXHOST];
     char serv[NI_MAXSERV];
     rig_powerstat = RIG_POWER_ON; // defaults to power on
+    int my_client_slot = handle_data_arg->client_slot;
+    unsigned int clients;
 
     fsockin = get_fsockin(handle_data_arg);
 
@@ -1064,32 +1133,12 @@ void *handle_socket(void *arg)
     }
 
     retcode = pthread_setspecific(thread_data_key, arg);
+
     if (retcode != 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: Could not set thread data\n", __func__);
-        // What should we do here???
+        goto handle_exit;
     }
-
-    mutex_rigctld(1);
-
-    ++client_count;
-#if 0
-
-    if (!client_count++)
-    {
-        retcode = rig_open(my_rig);
-
-        if (RIG_OK == retcode && verbose > RIG_DEBUG_ERR)
-        {
-            printf("Opened rig model %d, '%s'\n",
-                   my_rig->caps->rig_model,
-                   my_rig->caps->model_name);
-        }
-    }
-
-#endif
-
-    mutex_rigctld(0);
 
     if (my_rig->caps->get_powerstat)
     {
@@ -1121,14 +1170,14 @@ void *handle_socket(void *arg)
             unsigned char cmd[64];
             unsigned char reply[64];
             unsigned char term[2] = ";";
-            rig_debug(RIG_DEBUG_TRACE, "%s: doing rigctl_parse vfo_mode=%d, secure=%d\n",
+            rig_debug(RIG_DEBUG_TRACE, "%s: doing rigctl_parse vfo_mode=%d\n",
                       __func__,
-                      handle_data_arg->vfo_mode, handle_data_arg->use_password);
+                      handle_data_arg->vfo_mode);
 #if 0
             retcode = rigctl_parse(handle_data_arg->rig, fsockin, fsockout, NULL, 0,
                                    mutex_rigctld,
                                    1, 0, &handle_data_arg->vfo_mode, send_cmd_term, &ext_resp, &resp_sep,
-                                   handle_data_arg->use_password);
+                                   0);
 #else
             memset(cmd, 0, sizeof(cmd));
             nbytes = -1;
@@ -1284,38 +1333,6 @@ void *handle_socket(void *arg)
 
 client_done:
 
-    if (rigctld_idle && client_count == 1)
-    {
-        rig_close(my_rig);
-
-        if (verbose > RIG_DEBUG_ERR) { printf("Closed rig model %s.  Will reopen for new clients\n", my_rig->caps->model_name); }
-    }
-
-    mutex_rigctld(1);
-    --client_count;
-
-    if (rigctld_idle && client_count > 0) { printf("%u client%s still connected so rig remains open\n", client_count, client_count > 1 ? "s" : ""); }
-    mutex_rigctld(0);
-
-#if 0
-    mutex_rigctld(1);
-
-    /* Release rig if there are no clients */
-    if (!--client_count)
-    {
-        rig_close(my_rig);
-
-        if (verbose > RIG_DEBUG_ERR)
-        {
-            printf("Closed rig model %d, '%s - no clients, will reopen for new clients'\n",
-                   my_rig->caps->rig_model,
-                   my_rig->caps->model_name);
-        }
-    }
-
-    mutex_rigctld(0);
-#endif
-
     if ((retcode = getnameinfo((struct sockaddr const *)&handle_data_arg->cli_addr,
                                handle_data_arg->clilen,
                                host,
@@ -1335,6 +1352,8 @@ client_done:
               serv);
 
 handle_exit:
+    rigctld_client_detach_socket(&client_pool,
+                                 handle_data_arg->client_slot);
 
 // for MINGW we close the handle before fclose
 #ifdef __MINGW32__
@@ -1358,6 +1377,20 @@ handle_exit:
 
     pthread_setspecific(thread_data_key, NULL);
     free(arg);
+    clients = rigctld_client_release_last(&client_pool,
+                                          my_client_slot,
+                                          rigctld_idle ? close_idle_rig : NULL,
+                                          my_rig);
+
+    if (rigctld_idle && clients == 0 && verbose > RIG_DEBUG_ERR)
+    {
+        printf("Closed rig.  Will reopen for new clients\n");
+    }
+    else if (rigctld_idle && clients > 0)
+    {
+        printf("%u client%s still connected so rig remains open\n", clients,
+               clients > 1 ? "s" : "");
+    }
 
     pthread_exit(NULL);
     return NULL;
@@ -1367,7 +1400,7 @@ handle_exit:
 static void usage(FILE *fout)
 {
     fprintf(fout, "Usage: rigctltcp [OPTION]...\n"
-           "Daemon serving COMMANDs to a connected radio transceiver or receiver.\n\n");
+                  "Daemon serving COMMANDs to a connected radio transceiver or receiver.\n\n");
 
     fprintf(fout,
         "  -m, --model=ID                select radio model number. See model list (-l)\n"
@@ -1387,6 +1420,7 @@ static void usage(FILE *fout)
         "  -v, --verbose                 set verbose mode, cumulative (-v to -vvvvv)\n"
         "  -T, --listen-addr=IPADDR      set listening IP address, default ANY\n"
         "  -t, --port=NUM                set TCP listening port, default %s\n"
+        "  -N, --max-clients=NUM         set maximum concurrent clients, default %u\n"
         "  -M, --multicast-addr=ADDR     set multicast UDP address, default %s (off), recommend 224.0.1.1\n"
         "  -n, --multicast-port=PORT     set multicast UDP port, default %d\n"
         "  -W, --twiddle_timeout=SECONDS timeout after detecting vfo manual change\n"
@@ -1394,12 +1428,12 @@ static void usage(FILE *fout)
         "  -x, --uplink=OPTION           set uplink get_freq ignore, option 1=Sub, 2=Main\n"
         "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
 #if RIGCTLD_PASSWORDS
-        "  -A, --password=PASSWORD       set password for rigctld access (64 chars max), default none\n"
 #endif
         "  -R, --rigctltcp-idle          make rigctltcp close the rig when no clients are connected\n"
         "  -h, --help                    display this help and exit\n"
         "  -V, --version                 output version information and exit\n\n",
         portno,
+        DAEMON_DEFAULT_MAX_CLIENTS,
         multicast_addr,
         multicast_port);
 

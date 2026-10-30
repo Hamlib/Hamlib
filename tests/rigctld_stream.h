@@ -147,6 +147,14 @@ struct rigctld_stream
     HAMLIB_ATOMIC uint32_t gap_count;
     HAMLIB_ATOMIC int send_drops;
 
+    /* The backend stream's source died (a read or write returned -RIG_EIO).
+     * The feeder stops using the backend and answers the client with ERROR
+     * frames until the stream is closed or the client goes quiet. */
+    HAMLIB_ATOMIC int backend_failed;
+    uint32_t fail_reason;                   /* RIG_COMM_REASON_* */
+    int32_t fail_error;                     /* the Hamlib error code */
+    struct timespec last_error_sent;
+
     /* Metadata */
     int metadata_interval_ms;
     int metadata_refresh_ms;   /* Unconditional refresh cadence (stream-data
@@ -229,6 +237,10 @@ struct rigctld_stream *rigctld_stream_registry_remove(
 int rigctld_stream_registry_close_by_client(struct rigctld_stream_registry *reg,
         int client_id);
 
+/* Remove and free every stream while leaving the registry reusable.
+ * Returns the number of streams closed. */
+int rigctld_stream_registry_close_all(struct rigctld_stream_registry *reg);
+
 /* Count active streams in the registry. */
 int rigctld_stream_registry_count(struct rigctld_stream_registry *reg);
 
@@ -308,6 +320,11 @@ int rigctld_stream_registry_multicast_in_use(
  * Returns 0 on success, -1 on failure. */
 int rigctld_stream_send_control_reply(struct rigctld_stream *stream,
                                       uint16_t control_flag);
+
+/* Tell the stream's client that the backend source failed: an ERROR frame
+ * carrying stream->fail_error and stream->fail_reason, sent with seq 0.
+ * Returns 0 on success, -1 on failure. */
+int rigctld_stream_send_error(struct rigctld_stream *stream);
 
 /* Forward one write-status event to the client as a WRITE_STATUS packet.
  * The TX feeder normally drains these from the backend stream's event FIFO;

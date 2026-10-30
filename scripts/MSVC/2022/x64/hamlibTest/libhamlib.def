@@ -520,6 +520,7 @@ EXPORTS
     write_block @519
     write_block_sync @520
     write_block_sync_error @521
+    write_block_sensitive @522
 
 IMPORTS
 

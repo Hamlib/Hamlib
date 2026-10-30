@@ -331,11 +331,6 @@ static const int stream_curated_rates[] =
 #define STREAM_MAX_DECIM_FACTOR 10
 #endif
 
-static int stream_type_is_iq_type(rig_stream_type_t type)
-{
-    return type == RIG_STREAM_TYPE_IQ_RX || type == RIG_STREAM_TYPE_IQ_TX;
-}
-
 #ifdef HAVE_SAMPLERATE
 /* Append rate to a 0-terminated list if absent and there is room; the
  * caller adds in priority order, so on overflow the least useful entries
@@ -373,6 +368,8 @@ static int stream_rate_list_max(const int *rates)
 
     return max;
 }
+
+static int stream_rate_source(const int *native_rates, int requested_rate);
 
 #endif /* HAVE_SAMPLERATE */
 
@@ -425,7 +422,7 @@ static void chan_list_add(int *list, int count)
 static void stream_derive_caps(struct rig_stream_caps *dst,
                                const struct rig_stream_caps *src)
 {
-    int is_iq = stream_type_is_iq_type(src->type);
+    int is_iq = stream_type_is_iq(src->type);
 
     *dst = *src;
 
@@ -493,11 +490,11 @@ static void stream_derive_caps(struct rig_stream_caps *dst,
     }
 
 #ifdef HAVE_SAMPLERATE
-    /* Rates (resampler built): native, then curated standards, then
-     * integer divisions of each native rate (factors 2..10, exact results
-     * only) — in that priority order, deduplicated, ascending. This list
-     * is discoverability; acceptance at open is rule-based. Audio may go
-     * up to the largest native rate, I/Q only strictly below it
+    /* Rates (resampler built): native, then reachable curated standards,
+     * then integer divisions of each native rate (factors 2..10, exact
+     * results only) — in that priority order, deduplicated, ascending. This
+     * list is discoverability; acceptance at open is rule-based. Audio may
+     * go up to the largest native rate, I/Q only strictly below it
      * (downward-only: the I/Q sample rate is the represented bandwidth).
      * Without the resampler the effective rates equal the native rates. */
     {
@@ -507,8 +504,11 @@ static void stream_derive_caps(struct rig_stream_caps *dst,
         for (int i = 0; stream_curated_rates[i] != 0; i++)
         {
             int r = stream_curated_rates[i];
+            int native_rate = stream_rate_source(src->sample_rates, r);
 
-            if ((is_iq && r < native_max) || (!is_iq && r <= native_max))
+            if (((is_iq && r < native_max) || (!is_iq && r <= native_max))
+                    && native_rate > 0
+                    && stream_conv_rate_supported(native_rate, r))
             {
                 stream_rate_list_add(dst->sample_rates, r);
             }
@@ -815,29 +815,27 @@ static int caps_rate_native(const struct rig_stream_caps *caps, int rate)
     return rate_in_list(caps->sample_rates, rate);
 }
 
-
 #ifdef HAVE_SAMPLERATE
-/* Smallest native rate >= rate (the cheapest downconversion source), or 0
- * when the request exceeds every native rate — the effective set is
- * bounded by the largest native rate for audio and I/Q alike. */
-static int caps_rate_source(const struct rig_stream_caps *caps, int rate)
+/* Smallest native rate at or above the requested rate, or zero. */
+static int stream_rate_source(const int *native_rates, int requested_rate)
 {
     int best = 0;
 
     for (int i = 0; i < HAMLIB_MAX_STREAM_RATES
-            && caps->sample_rates[i] != 0; i++)
+            && native_rates[i] != 0; i++)
     {
-        int r = caps->sample_rates[i];
+        int rate = native_rates[i];
 
-        if (r >= rate && (best == 0 || r < best))
+        if (rate >= requested_rate && (best == 0 || rate < best))
         {
-            best = r;
+            best = rate;
         }
     }
 
     return best;
 }
 #endif
+
 
 /* Resolution for a pre-derived caps entry (native_formats set — a relaying
  * backend such as netrigctl): conversion happens on the far side of the
@@ -938,8 +936,7 @@ static int resolve_stream_source(const struct rig_stream_config *config,
                                  struct rig_stream_config *backend_cfg,
                                  int *conversions)
 {
-    int is_iq = config->type == RIG_STREAM_TYPE_IQ_RX
-                || config->type == RIG_STREAM_TYPE_IQ_TX;
+    int is_iq = stream_type_is_iq(config->type);
     rig_stream_format_t family = is_iq ? STREAM_IQ_FORMAT_MASK
                                  : STREAM_PCM_FORMAT_MASK;
     int conv = RIG_STREAM_CONV_NONE;
@@ -1046,19 +1043,29 @@ static int resolve_stream_source(const struct rig_stream_config *config,
         return RIG_OK;    /* conv stays RIG_STREAM_CONV_NONE */
     }
 
-    /* Rate: native, or (resampler built) any rate up to the largest
-     * native rate — audio and I/Q alike; I/Q upsampling beyond the
-     * hardware is impossible by this bound (sample rate = bandwidth). */
+    /* Rate: native, or any rate that a single resampler stage can convert
+     * against the smallest suitable native source. I/Q remains bounded by
+     * the native bandwidth just like audio is bounded by its largest rate. */
     if (!caps_rate_native(caps, config->sample_rate))
     {
 #ifdef HAVE_SAMPLERATE
-        int src_rate = caps_rate_source(caps, config->sample_rate);
+        int src_rate = stream_rate_source(caps->sample_rates,
+                                          config->sample_rate);
 
         if (src_rate <= 0)
         {
             rig_debug(RIG_DEBUG_ERR,
                       "%s: rate %d exceeds the largest native rate\n",
                       __func__, config->sample_rate);
+            return -RIG_EINVAL;
+        }
+
+        if (!stream_conv_rate_supported(src_rate, config->sample_rate))
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: rate conversion %d <-> %d exceeds the "
+                      "resampler ratio limit\n",
+                      __func__, config->sample_rate, src_rate);
             return -RIG_EINVAL;
         }
 
@@ -1304,10 +1311,9 @@ int HAMLIB_API rig_stream_open(RIG *rig,
     s->backend_config = backend_cfg;
     s->conversions = conversions;
 
-    /* The ring buffer holds the CONSUMER's format: the client's request on
+    /* The ring buffer holds the consumer's format: the client's request on
      * RX, the backend-native side on TX. */
-    int is_rx = config->type == RIG_STREAM_TYPE_AUDIO_RX
-                || config->type == RIG_STREAM_TYPE_IQ_RX;
+    int is_rx = stream_type_is_rx(config->type);
     const struct rig_stream_config *ring_cfg = is_rx ? config
                                                : &s->backend_config;
 
@@ -1336,40 +1342,28 @@ int HAMLIB_API rig_stream_open(RIG *rig,
      * reported), so no local pipeline is installed for it. */
     if (conversions != RIG_STREAM_CONV_NONE && found_caps->native_formats == 0)
     {
-        int is_iq = config->type == RIG_STREAM_TYPE_IQ_RX
-                    || config->type == RIG_STREAM_TYPE_IQ_TX;
+        int is_iq = stream_type_is_iq(config->type);
         int quality = stream_resample_quality(rig);
-        int conv_ret;
+        const struct rig_stream_config *src_cfg = is_rx ? &backend_cfg
+                : config;
+        const struct rig_stream_config *dst_cfg = is_rx ? config
+                : &backend_cfg;
+        int conv_ret = stream_conv_init(&s->conv,
+                                        src_cfg->format,
+                                        src_cfg->sample_rate,
+                                        src_cfg->channels,
+                                        dst_cfg->format,
+                                        dst_cfg->sample_rate,
+                                        dst_cfg->channels, is_iq, quality);
 
-        if (is_rx)
-        {
-            conv_ret = stream_conv_init(&s->conv,
-                                        backend_cfg.format,
-                                        backend_cfg.sample_rate,
-                                        backend_cfg.channels,
-                                        config->format,
-                                        config->sample_rate,
-                                        config->channels, is_iq, quality);
-        }
-        else
-        {
-            conv_ret = stream_conv_init(&s->conv,
-                                        config->format,
-                                        config->sample_rate,
-                                        config->channels,
-                                        backend_cfg.format,
-                                        backend_cfg.sample_rate,
-                                        backend_cfg.channels, is_iq, quality);
-        }
-
-        if (conv_ret != 0)
+        if (conv_ret != RIG_OK)
         {
             rig_debug(RIG_DEBUG_ERR,
                       "%s: conversion pipeline init failed (0x%x)\n",
                       __func__, conversions);
             free(s);
             pthread_mutex_unlock(&ss->stream_mutex);
-            return -RIG_ENOMEM;
+            return conv_ret;
         }
     }
 
@@ -1456,7 +1450,11 @@ static size_t conv_ring_sink(void *ctx, const void *buf, size_t len)
 {
     struct rig_stream *s = ctx;
 
-    return stream_ringbuf_write(&s->ringbuf, buf, len);
+    stream_ringbuf_write(&s->ringbuf, buf, len);
+
+    /* The overwrite ring consumes the full producer span even when only its
+     * last capacity bytes remain readable. */
+    return len;
 }
 
 size_t stream_backend_write(struct rig_stream *stream, const void *buf,
@@ -1472,6 +1470,14 @@ size_t stream_backend_write(struct rig_stream *stream, const void *buf,
         rig_debug(RIG_DEBUG_ERR,
                   "%s: codec stream requires stream_backend_write_frame()\n",
                   __func__);
+        return 0;
+    }
+
+    /* A failed stream's source is gone by definition: nothing produced after
+     * the failure is accepted, so readers can drain to the end and see
+     * -RIG_EIO even from a producer that has not stopped yet. */
+    if (stream_is_failed(stream))
+    {
         return 0;
     }
 
@@ -1601,6 +1607,12 @@ ssize_t stream_backend_write_frame(struct rig_stream *stream,
                                    const void *buf, size_t len,
                                    uint32_t duration_samples)
 {
+    /* As stream_backend_write(): nothing enters a failed stream. */
+    if (stream && stream_is_failed(stream))
+    {
+        return 0;
+    }
+
     return codec_produce(stream, buf, len, duration_samples, 0, 0, 1);
 }
 
@@ -1609,6 +1621,11 @@ ssize_t stream_backend_write_frame_indexed(struct rig_stream *stream,
                                            uint32_t duration_samples,
                                            uint64_t start_index)
 {
+    if (stream && stream_is_failed(stream))
+    {
+        return 0;
+    }
+
     return codec_produce(stream, buf, len, duration_samples, 1, start_index,
                          1);
 }
@@ -1678,8 +1695,11 @@ int stream_backend_read_frame(struct rig_stream *stream, void *buf,
 
     if (stream_ringbuf_wait_data_locked(rb, timeout_ms) < 0)
     {
+        /* A dead application-side producer is not a late one. */
+        int ret = (rb->failed && !rb->closing) ? -RIG_EIO : -RIG_ETIMEOUT;
+
         pthread_mutex_unlock(&rb->lock);
-        return -RIG_ETIMEOUT;
+        return ret;
     }
 
     int ret = codec_consume_locked(stream, buf, cap, len,
@@ -1780,6 +1800,26 @@ int HAMLIB_API rig_stream_close(RIG *rig, rig_stream_t *stream)
 /* rig_stream_read                                                     */
 /* ------------------------------------------------------------------ */
 
+/* The one mapping from ring state to a read's terminal result, used before
+ * and after the wait so the two can never disagree. A deliberate close wins:
+ * it is the application's own action and must not turn into an I/O error
+ * report. A failed ring keeps handing out what it holds and reports -RIG_EIO
+ * only once empty. RIG_OK means neither applies. Caller holds rb->lock. */
+static int stream_read_terminal_locked(const struct rig_stream_ringbuf *rb)
+{
+    if (rb->closing)
+    {
+        return -RIG_ENAVAIL;
+    }
+
+    if (rb->failed && rb->count == 0)
+    {
+        return -RIG_EIO;
+    }
+
+    return RIG_OK;
+}
+
 int HAMLIB_API rig_stream_read(RIG *rig,
                                rig_stream_t *stream,
                                void *buffer,
@@ -1839,12 +1879,12 @@ int HAMLIB_API rig_stream_read(RIG *rig,
 
     pthread_mutex_lock(&rb->lock);
 
-    if (rb->closing || rb->failed)
+    ret = stream_read_terminal_locked(rb);
+
+    if (ret != RIG_OK)
     {
-        int failed = rb->failed;
         pthread_mutex_unlock(&rb->lock);
         *bytes_read = 0;
-        ret = failed ? -RIG_EIO : -RIG_ENAVAIL;
         goto out;
     }
 
@@ -1852,66 +1892,12 @@ int HAMLIB_API rig_stream_read(RIG *rig,
 
     if (stream_ringbuf_wait_data_locked(rb, timeout_ms) < 0)
     {
-        int closing = rb->closing;
-        int failed = rb->failed;
+        ret = stream_read_terminal_locked(rb);
 
-        if (--stream->blocked_waiters == 0 && closing)
+        if (ret == RIG_OK)
         {
-            pthread_cond_signal(&stream->quiesced);
+            ret = -RIG_ETIMEOUT;
         }
-
-        pthread_mutex_unlock(&rb->lock);
-        *bytes_read = 0;
-        ret = closing ? -RIG_ENAVAIL : (failed ? -RIG_EIO : -RIG_ETIMEOUT);
-        goto out;
-    }
-
-    if (stream->is_codec)
-    {
-        /* Codec stream: exactly ONE whole codec frame per call. The
-         * record's start index and duration drive the accounting; a
-         * buffer of rig_stream_get_max_payload() bytes always
-         * suffices. */
-        size_t flen = 0;
-        uint32_t fdur = 0;
-        uint64_t fidx = 0;
-        int cret = codec_consume_locked(stream, buffer, buffer_size,
-                                        &flen, &fdur, &fidx);
-
-        if (cret != RIG_OK)
-        {
-            if (--stream->blocked_waiters == 0 && rb->closing)
-            {
-                pthread_cond_signal(&stream->quiesced);
-            }
-
-            pthread_mutex_unlock(&rb->lock);
-            *bytes_read = 0;
-            ret = cret;
-            goto out;
-        }
-
-        stream_consume_account_locked(stream, fidx, fdur, info);
-        pthread_mutex_unlock(&rb->lock);
-
-        /* Muted: the frame is consumed and DISCARDED — zeroed bytes are
-         * not a valid codec frame, so the app gets no data instead. */
-        if (stream->muted)
-        {
-            *bytes_read = 0;
-        }
-        else
-        {
-            *bytes_read = flen;
-        }
-
-        if (info)
-        {
-            info->codec_frame_samples = fdur;
-            stream_fill_read_time(stream, info);
-        }
-
-        pthread_mutex_lock(&rb->lock);
 
         if (--stream->blocked_waiters == 0 && rb->closing)
         {
@@ -1919,8 +1905,7 @@ int HAMLIB_API rig_stream_read(RIG *rig,
         }
 
         pthread_mutex_unlock(&rb->lock);
-
-        ret = RIG_OK;
+        *bytes_read = 0;
         goto out;
     }
 
@@ -2107,6 +2092,16 @@ int HAMLIB_API rig_stream_write(RIG *rig,
 
     int ret = RIG_OK;
 
+    /* The source is gone: nothing written now can ever reach the radio, and
+     * accepting it would only fill the ring and report overruns for a dead
+     * stream. */
+    if (stream_is_failed(stream))
+    {
+        *bytes_written = 0;
+        ret = -RIG_EIO;
+        goto out;
+    }
+
     /* Muted: accept the write for the caller's pacing but discard it so
      * nothing is transmitted (neither the backend nor the ring sees it). */
     if (stream->muted)
@@ -2172,6 +2167,14 @@ int HAMLIB_API rig_stream_write(RIG *rig,
             {
                 *bytes_written = 0;
                 ret = -RIG_ETIMEOUT;
+                goto out;
+            }
+
+            /* The consumer died while we waited for space: it never will. */
+            if (stream_is_failed(stream))
+            {
+                *bytes_written = 0;
+                ret = -RIG_EIO;
                 goto out;
             }
 
@@ -2347,10 +2350,23 @@ void stream_skip_samples(struct rig_stream *stream, uint64_t dropped_samples,
 
     pthread_mutex_lock(&stream->ringbuf.lock);
 
-    stream->pending_drop_flags |= drop_flag;
+    /* The local-overrun marker is internal: the reader sees a plain OVERRUN. */
+    stream->pending_drop_flags |= (drop_flag == STREAM_DROP_LOCAL_OVERRUN)
+                                  ? RIG_STREAM_DROP_OVERRUN : drop_flag;
 
     switch (drop_flag)
     {
+    case STREAM_DROP_LOCAL_OVERRUN:
+        stream->backend_overruns++;
+
+        if (dropped_samples == 0)
+        {
+            stream->pending_drop_flags |= RIG_STREAM_DROP_UNSIZED;
+        }
+
+        stream->dropped_samples_overrun += dropped_samples;
+        break;
+
     case RIG_STREAM_DROP_GAP:
         stream->gap_count++;
 
@@ -2399,6 +2415,150 @@ void stream_skip_samples(struct rig_stream *stream, uint64_t dropped_samples,
 }
 
 
+/* The byte that means silence in a sample format: the midpoint of the range,
+ * which is 0 for signed and float formats but 0x80 for unsigned bytes. */
+static unsigned char stream_silence_byte(rig_stream_format_t format)
+{
+    return (format == RIG_STREAM_FORMAT_PCM_U8
+            || format == RIG_STREAM_FORMAT_IQ_CU8) ? 0x80 : 0x00;
+}
+
+
+int stream_fill_gap(struct rig_stream *stream, uint64_t native_samples,
+                    uint8_t cause)
+{
+    unsigned char silence[4096];
+    uint64_t fill_samples, rest_samples, remaining;
+    int bpf;
+
+    if (!stream || stream->is_codec
+            || (cause != RIG_STREAM_DROP_GAP && cause != RIG_STREAM_DROP_OVERRUN))
+    {
+        return -RIG_EINVAL;
+    }
+
+    uint8_t skip_flag = (cause == RIG_STREAM_DROP_GAP)
+                        ? RIG_STREAM_DROP_GAP : STREAM_DROP_LOCAL_OVERRUN;
+
+    bpf = stream_format_bytes_per_frame(stream->backend_config.format,
+                                        stream->backend_config.channels);
+
+    /* Nothing to size the fill by: report the loss without inventing
+     * anything. */
+    if (native_samples == 0 || bpf <= 0)
+    {
+        stream_skip_samples(stream, native_samples, skip_flag);
+        return RIG_OK;
+    }
+
+    /* Conceal at most one second; a longer outage is a hole, not a pause. */
+    fill_samples = native_samples;
+
+    if (stream->backend_config.sample_rate > 0
+            && fill_samples > (uint64_t)stream->backend_config.sample_rate)
+    {
+        fill_samples = (uint64_t)stream->backend_config.sample_rate;
+    }
+
+    rest_samples = native_samples - fill_samples;
+
+    /* Flags and counters first, so the read that consumes the silence
+     * already carries them. */
+    pthread_mutex_lock(&stream->ringbuf.lock);
+
+    uint64_t concealed = stream_scale_backend_samples(stream, fill_samples);
+
+    stream->pending_drop_flags |= cause | RIG_STREAM_DROP_CONCEALED;
+
+    if (cause == RIG_STREAM_DROP_GAP)
+    {
+        stream->gap_count++;
+        stream->concealed_samples_gap += concealed;
+    }
+    else
+    {
+        stream->backend_overruns++;
+        stream->concealed_samples_overrun += concealed;
+    }
+
+    pthread_mutex_unlock(&stream->ringbuf.lock);
+
+    memset(silence, stream_silence_byte(stream->backend_config.format),
+           sizeof(silence));
+    remaining = fill_samples * (uint64_t)bpf;
+
+    while (remaining > 0)
+    {
+        size_t chunk = sizeof(silence) - (sizeof(silence) % (size_t)bpf);
+
+        if ((uint64_t)chunk > remaining)
+        {
+            chunk = (size_t)remaining;
+        }
+
+        (void)stream_backend_write(stream, silence, chunk);
+        remaining -= chunk;
+    }
+
+    /* The part beyond the cap is reported as an index hole. It adds to the
+     * same event, so it must not count a second one. */
+    if (rest_samples > 0)
+    {
+        uint64_t hole = stream_scale_backend_samples(stream, rest_samples);
+
+        pthread_mutex_lock(&stream->ringbuf.lock);
+
+        if (cause == RIG_STREAM_DROP_GAP)
+        {
+            stream->dropped_samples_gap += hole;
+        }
+        else
+        {
+            stream->dropped_samples_overrun += hole;
+        }
+
+        stream->skipped_samples += hole;
+        stream->skip_samples_unread += hole;
+        pthread_mutex_unlock(&stream->ringbuf.lock);
+    }
+
+    return RIG_OK;
+}
+
+
+void stream_mark_failed(struct rig_stream *stream, unsigned int reason)
+{
+    if (!stream)
+    {
+        return;
+    }
+
+    pthread_mutex_lock(&stream->ringbuf.lock);
+
+    if (!stream->ringbuf.failed)
+    {
+        stream->ringbuf.failed = 1;
+        stream->fail_reason = reason;
+    }
+
+    pthread_cond_broadcast(&stream->ringbuf.data_available);
+    pthread_cond_broadcast(&stream->write_event_available);
+    pthread_mutex_unlock(&stream->ringbuf.lock);
+}
+
+
+int stream_is_failed(struct rig_stream *stream)
+{
+    int failed;
+
+    pthread_mutex_lock(&stream->ringbuf.lock);
+    failed = stream->ringbuf.failed;
+    pthread_mutex_unlock(&stream->ringbuf.lock);
+
+    return failed;
+}
+
+
 int HAMLIB_API rig_stream_get_stats(RIG *rig, rig_stream_t *stream,
                                     struct rig_stream_stats *stats)
 {
@@ -2418,7 +2578,8 @@ int HAMLIB_API rig_stream_get_stats(RIG *rig, rig_stream_t *stream,
     pthread_mutex_lock(&stream->ringbuf.lock);
 
     /* overruns/underruns are LOCAL-ring only; remote losses are separate. */
-    stats->overruns = (uint32_t)stream->ringbuf.overrun_count;
+    stats->overruns = (uint32_t)stream->ringbuf.overrun_count
+                      + stream->backend_overruns;
     stats->underruns = (uint32_t)stream->ringbuf.underrun_count;
     stats->gaps = (uint32_t)stream->gap_count;
     stats->gaps_unknown = stream->gaps_unknown;
@@ -2431,6 +2592,9 @@ int HAMLIB_API rig_stream_get_stats(RIG *rig, rig_stream_t *stream,
     stats->dropped_samples_overrun = stream->dropped_samples_overrun;
     stats->dropped_samples_link = stream->dropped_samples_link;
     stats->codec_frames = stream->codec_frames;
+    stats->concealed_samples_gap = stream->concealed_samples_gap;
+    stats->concealed_samples_overrun = stream->concealed_samples_overrun;
+    stats->fail_reason = stream->fail_reason;
 
     pthread_mutex_unlock(&stream->ringbuf.lock);
 
@@ -2608,6 +2772,14 @@ int HAMLIB_API rig_stream_wait_write_status(RIG *rig, rig_stream_t *stream,
             *status = stream->write_events[idx];
             stream->write_event_count--;
             ret = RIG_OK;
+            break;
+        }
+
+        /* Events recorded before the failure are still delivered above; once
+         * they are gone no new one can arrive. */
+        if (stream->ringbuf.failed)
+        {
+            ret = -RIG_EIO;
             break;
         }
 

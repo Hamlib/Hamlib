@@ -24,6 +24,7 @@ RIGSRC = hamlibdatetime.h rig.c serial.c serial.h misc.c misc.h register.c regis
 	stream_codec.c stream_codec.h \
 	stream_proto.c stream_proto.h stream_time.c stream_time.h \
 	stream_net.c stream_net.h \
+	stream_reorder.c stream_reorder.h \
 	rigctl_protocol.c rigctl_protocol.h
 
 if VERSIONDLL

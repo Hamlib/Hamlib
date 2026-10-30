@@ -317,8 +317,16 @@ run_test()
 
             # A stream that opened, carried nothing and closed tidily exits 0,
             # so the exit status alone would call a dead radio a pass. Matches
-            # bytes=, rx_bytes= and tx_bytes= alike.
+            # bytes=, rx_bytes= and tx_bytes= alike. Every mode prints such a
+            # line within its first second, so none at all means the run
+            # stopped before moving anything.
             case $detail in
+            "")
+                echo "FAIL  no progress or summary line"
+                record "FAIL  $name (no progress or summary line)"
+                FAIL=`expr $FAIL + 1`
+                return 1
+                ;;
             *bytes=0\ *|*bytes=0)
                 echo "FAIL  no data moved: $detail"
                 record "FAIL  $name (no data moved)"
@@ -335,17 +343,31 @@ run_test()
         ;;
     esac
 
-    # The model declares every format it can serve natively in some
-    # configuration, but a session serves only what its own negotiated
-    # geometry gives it. A refusal here says this session would have had to
-    # convert -- which is the question the test asked, so it is an answer,
-    # not a defect. The mask says what would have converted: 0x1 format,
-    # 0x2 rate, 0x4 channels.
+    # The advertised list comes from the model declaration, which covers every
+    # configuration the radio has. A backend whose transport negotiates one
+    # geometry per connection serves only what this session can carry, so a
+    # type can be declared by the model and absent from the session -- e.g. an
+    # Icom network rig carries I/Q only on the stereo codec (net_rx_codec=3).
+    # That is a configuration mismatch, not a defect: skip it and say so,
+    # rather than reporting the radio as broken.
     case $out in
-    *"require_native is set"*)
-        mask=`echo "$out" | sed -n 's/.*requires conversions \(0x[0-9a-f]*\).*/\1/p' | tail -1`
-        echo "SKIP  not native to this session (would convert ${mask:-?})"
-        record "SKIP  $name (not native to this session, conv ${mask:-?})"
+    *"no caps found for stream type"*)
+        echo "SKIP  not offered by this session (check -C)"
+        record "SKIP  $name (not offered by this session)"
+        SKIP=`expr $SKIP + 1`
+        return 0
+        ;;
+    # Same reasoning one level down: the model declares every format it can
+    # serve natively in some configuration, but a session serves only what its
+    # own negotiated codec and rate give it. A refusal here says this session
+    # would have had to convert -- which is the question the test asked, so it
+    # is an answer, not a defect. rigstreamtest names the stages that would
+    # have converted (FORMAT, RATE, CHANNELS) on a line of its own, so this
+    # does not depend on the library's log wording.
+    *"refused: native stream required"*)
+        stages=`echo "$out" | sed -n 's/^refused: native stream required, needs=\(.*\)$/\1/p' | tail -1`
+        echo "SKIP  not native to this session (would convert ${stages:-?})"
+        record "SKIP  $name (not native to this session, needs ${stages:-?})"
         SKIP=`expr $SKIP + 1`
         return 0
         ;;

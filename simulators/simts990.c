@@ -382,18 +382,16 @@ int main(int argc, char *argv[])
             sprintf(buf, "OM0%c;", modeA);
             write(fd, buf, strlen(buf));
         }
-        else if (strncmp(buf, "OM0", 3) == 0)
-        {
-            modeA = buf[3];
-        }
         else if (strncmp(buf, "OM1;", 4) == 0)
         {
             sprintf(buf, "OM1%c;", modeB);
             write(fd, buf, strlen(buf));
         }
-        else if (strncmp(buf, "OM1", 3) == 0)
+        else if (strncmp(buf, "OM0", 3) == 0 || strncmp(buf, "OM1", 3) == 0)
         {
-            modeB = buf[3];
+            /* OM writes ignore the band field and affect the operating band. */
+            if (operatingband == 0) { modeA = buf[3]; }
+            else { modeB = buf[3]; }
         }
         else if (strcmp(buf, "RM;") == 0)
         {

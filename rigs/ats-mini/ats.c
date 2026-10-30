@@ -34,10 +34,10 @@ static int p_ats_write(RIG *rig, const unsigned char *cmd) {
     int res_uart = write_block(RIGPORT(rig), cmd, strlen((const char *)cmd));
     if (res_uart != RIG_OK) {
         rig_debug(RIG_DEBUG_ERR, "%s: write_block failed: %d\n", __func__, res_uart);
-        return RIG_EIO;
+        return -RIG_EIO;
     }
     usleep(MINI_UART_CMD_DLY * 1000);
-    return res_uart;
+    return RIG_OK;
 }
 
 static int p_ats_update_state(RIG *rig) {
@@ -57,7 +57,7 @@ static int p_ats_update_state(RIG *rig) {
 
         if (to > MINI_UART_TO_CNT) {
             rig_debug(RIG_DEBUG_ERR, "%s: read_block TIMEOUT\n", __func__);
-            return RIG_ETIMEOUT;
+            return -RIG_ETIMEOUT;
         }
         if (nb_uart <= 0) {
             // rig_debug(RIG_DEBUG_ERR, "%s: read_block failed: %d\n", __func__, n_b);
@@ -83,7 +83,7 @@ static int p_ats_update_state(RIG *rig) {
     struct ats_mini_mon_data *tmp_mon_data = (struct ats_mini_mon_data *)
             calloc(1, sizeof(struct ats_mini_mon_data));
     if (!tmp_mon_data) {
-        return RIG_ENOMEM;
+        return -RIG_ENOMEM;
     }
 
     idx = 0;
@@ -101,7 +101,7 @@ static int p_ats_update_state(RIG *rig) {
                 if (strlen(token) >= MINI_BANDNAME_LEN) {
                     rig_debug(RIG_DEBUG_ERR, "UNEXPECTED bandname");
                     free(tmp_mon_data);
-                    return RIG_EPROTO;
+                    return -RIG_EPROTO;
                 }
                 memcpy(tmp_mon_data->bandname, token, (MINI_BANDNAME_LEN - 1));
                 break;
@@ -154,7 +154,7 @@ static int p_ats_update_state(RIG *rig) {
         if (idx > MINI_UART_MAX_TOKEN) {
             rig_debug(RIG_DEBUG_ERR, "%s: parse failure\n", __func__);
             free(tmp_mon_data);
-            return RIG_EPROTO;
+            return -RIG_EPROTO;
         }
     }
 
@@ -206,7 +206,7 @@ static int p_ats_set_band(RIG *rig, mini_band_id_t band_id) {
 
         if (strcmp(mon_data->bandname, start_bandname) == 0) {
             rig_debug(RIG_DEBUG_ERR, "%s: CANNOT switch band\n", __func__);
-            return RIG_EINVAL;
+            return -RIG_EINVAL;
         }
     };
 
@@ -217,7 +217,7 @@ static int p_ats_set_mode(RIG *rig, rmode_t mode_id) {
     if ((mode_id != RIG_MODE_AM) && (mode_id != RIG_MODE_USB) && (mode_id != RIG_MODE_LSB)
             && ( mode_id != RIG_MODE_FM)) {
         rig_debug(RIG_DEBUG_ERR, "%s: UNSUPPORTED mode\n", __func__);
-        return RIG_EINVAL;
+        return -RIG_EINVAL;
     }
 
     struct ats_mini_mon_data *mon_data = STATE(rig)->priv;
@@ -246,7 +246,7 @@ static int p_ats_set_mode(RIG *rig, rmode_t mode_id) {
 
         if (mon_data->mode == start_mode_id) {
             rig_debug(RIG_DEBUG_ERR, "%s: CANNOT switch mode\n", __func__);
-            return RIG_EINVAL;
+            return -RIG_EINVAL;
         }
     };
 
@@ -285,7 +285,7 @@ static int ats_mini_open(RIG *rig) {
 
     if (!rig || !STATE(rig)) {
         rig_debug(RIG_DEBUG_ERR, "%s: NULL rig or state\n", __func__);
-        return RIG_EARG;
+        return -RIG_EARG;
     }
 
     // rig_debug(RIG_DEBUG_VERBOSE, "%s, flush UART\n", __func__);
@@ -423,9 +423,9 @@ struct rig_caps ats_mini_caps = {
     RIG_MODEL(RIG_MODEL_ATS_MINI),
     .model_name = "ATS Mini",
     .mfg_name = "AMNVOLT",
-    .version = "20260701.0",
+    .version = "20260901.0",
     .copyright = "LGPL",
-    .status = RIG_STATUS_ALPHA,
+    .status = RIG_STATUS_BETA,
     .rig_type = RIG_TYPE_RECEIVER,
     .ptt_type = RIG_PTT_NONE,
     .dcd_type = RIG_DCD_NONE,
@@ -485,6 +485,10 @@ struct rig_caps ats_mini_caps = {
         },
         RIG_FRNG_END,
     },
+    .tx_range_list1 =
+    {
+        RIG_FRNG_END,
+    },
     .rx_range_list2 =
     {
         {
@@ -499,7 +503,7 @@ struct rig_caps ats_mini_caps = {
         },
         RIG_FRNG_END,
     },
-    .tx_range_list1 =
+    .tx_range_list2 =
     {
         RIG_FRNG_END,
     },

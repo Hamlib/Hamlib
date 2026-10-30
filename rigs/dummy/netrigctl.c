@@ -52,7 +52,31 @@ struct netrigctl_priv_data
     int rigctld_vfo_mode;
     vfo_t rx_vfo;
     vfo_t tx_vfo;
+    char parm_value[BUF_MAX];
 };
+
+static int parse_rprt_status(const char *response)
+{
+    const char *token = response + strlen(NETRIGCTL_RET);
+    char *end;
+    long status;
+
+    errno = 0;
+    status = strtol(token, &end, 10);
+
+    while (*end == ' ' || *end == '\t' || *end == '\r' || *end == '\n')
+    {
+        ++end;
+    }
+
+    if (errno == ERANGE || end == token || *end != '\0'
+            || status > 0 || status < INT_MIN || status > INT_MAX)
+    {
+        return -RIG_EPROTO;
+    }
+
+    return (int)status;
+}
 
 static int parse_protocol_uint(const char *token, unsigned int *value)
 {
@@ -91,7 +115,8 @@ int netrigctl_get_vfo_mode(RIG *rig)
 /*
  * Helper function with protocol return code parsing
  */
-static int netrigctl_transaction(RIG *rig, char *cmd, int len, char *buf)
+static int netrigctl_transaction_internal(RIG *rig, char *cmd, int len,
+        char *buf, int sensitive)
 {
     int ret;
     hamlib_port_t *rp = RIGPORT(rig);
@@ -101,7 +126,8 @@ static int netrigctl_transaction(RIG *rig, char *cmd, int len, char *buf)
     /* flush anything in the read buffer before command is sent */
     rig_flush(rp);
 
-    ret = write_block(rp, (unsigned char *) cmd, len);
+    ret = sensitive ? write_block_sensitive(rp, (unsigned char *) cmd, len)
+          : write_block(rp, (unsigned char *) cmd, len);
 
     if (ret != RIG_OK)
     {
@@ -117,10 +143,15 @@ static int netrigctl_transaction(RIG *rig, char *cmd, int len, char *buf)
 
     if (strncmp(buf, NETRIGCTL_RET, strlen(NETRIGCTL_RET)) == 0)
     {
-        return atoi(buf + strlen(NETRIGCTL_RET));
+        return parse_rprt_status(buf);
     }
 
     return ret;
+}
+
+static int netrigctl_transaction(RIG *rig, char *cmd, int len, char *buf)
+{
+    return netrigctl_transaction_internal(rig, cmd, len, buf, 0);
 }
 
 /* this will fill vfostr with the vfo value if the vfo mode is enabled
@@ -2306,29 +2337,84 @@ static int netrigctl_get_powerstat(RIG *rig, powerstat_t *status)
 }
 
 
+int netrigctl_format_parm_command(char *cmd, size_t cmd_size,
+                                  setting_t parm, value_t val)
+{
+    const char *parm_name;
+    int len;
+
+    if (cmd == NULL || cmd_size == 0)
+    {
+        return -RIG_EINVAL;
+    }
+
+    cmd[0] = '\0';
+    parm_name = rig_strparm(parm);
+
+    if (parm_name[0] == '\0')
+    {
+        return -RIG_EINVAL;
+    }
+
+    if (RIG_PARM_IS_FLOAT(parm))
+    {
+        char pstr[32];
+        int ret = rigctl_format_decimal(pstr, sizeof(pstr), "%f", val.f);
+
+        if (ret != RIG_OK)
+        {
+            return ret;
+        }
+
+        len = snprintf(cmd, cmd_size, "P %s %s\n", parm_name, pstr);
+    }
+    else if (RIG_PARM_IS_STRING(parm))
+    {
+        if (val.cs == NULL || val.cs[0] == '\0'
+                || strpbrk(val.cs, "\r\n") != NULL)
+        {
+            return -RIG_EINVAL;
+        }
+
+        len = snprintf(cmd, cmd_size, "P %s %s\n", parm_name, val.cs);
+    }
+    else
+    {
+        len = snprintf(cmd, cmd_size, "P %s %d\n", parm_name, val.i);
+    }
+
+    if (len < 0)
+    {
+        cmd[0] = '\0';
+        return -RIG_EINVAL;
+    }
+
+    if ((size_t)len >= cmd_size)
+    {
+        cmd[0] = '\0';
+        return -RIG_ETRUNC;
+    }
+
+    return len;
+}
+
+
 static int netrigctl_set_parm(RIG *rig, setting_t parm, value_t val)
 {
     int ret;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
-    char pstr[32];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (RIG_PARM_IS_FLOAT(parm))
-    {
-        ret = rigctl_format_decimal(pstr, sizeof(pstr), "%f", val.f);
+    ret = netrigctl_format_parm_command(cmd, sizeof(cmd), parm, val);
 
-        if (ret != RIG_OK) { return ret; }
-    }
-    else
+    if (ret < 0)
     {
-        SNPRINTF(pstr, sizeof(pstr), "%d", val.i);
+        return ret;
     }
 
-    SNPRINTF(cmd, sizeof(cmd), "P %s %s\n", rig_strparm(parm), pstr);
-
-    ret = netrigctl_transaction(rig, cmd, strlen(cmd), buf);
+    ret = netrigctl_transaction(rig, cmd, ret, buf);
 
     if (ret > 0)
     {
@@ -2341,11 +2427,102 @@ static int netrigctl_set_parm(RIG *rig, setting_t parm, value_t val)
 }
 
 
+int netrigctl_decode_parm_response(setting_t parm, value_t *val,
+                                   const char *response, size_t response_len,
+                                   char *string_value,
+                                   size_t string_value_size)
+{
+    const char *source = response;
+    size_t source_len;
+
+    if (val == NULL || response == NULL || response_len == 0
+            || response[response_len - 1] != '\n')
+    {
+        return -RIG_EPROTO;
+    }
+
+    source_len = response_len - 1;
+
+    if (source_len > 0 && response[source_len - 1] == '\r')
+    {
+        source_len--;
+    }
+
+    if (source_len == 0 || memchr(response, '\0', source_len) != NULL
+            || memchr(response, '\r', source_len) != NULL
+            || memchr(response, '\n', source_len) != NULL)
+    {
+        return -RIG_EPROTO;
+    }
+
+    if (RIG_PARM_IS_FLOAT(parm))
+    {
+        if (rigctl_parse_float(response, RIGCTL_DECIMAL_DOT_ONLY,
+                               &val->f) != RIG_OK)
+        {
+            return -RIG_EPROTO;
+        }
+
+        return RIG_OK;
+    }
+
+    if (!RIG_PARM_IS_STRING(parm))
+    {
+        val->i = atoi(response);
+        return RIG_OK;
+    }
+
+    if (string_value == NULL || string_value_size == 0)
+    {
+        return -RIG_EINVAL;
+    }
+
+    if (parm == RIG_PARM_KEYERTYPE)
+    {
+        static const struct
+        {
+            const char *name;
+            const char *value;
+        } keyertype_values[] = {
+            { "STRAIGHT", "0" },
+            { "BUG", "1" },
+            { "PADDLE", "2" },
+            { "UNKNOWN", "4" },
+        };
+
+        for (size_t i = 0;
+                i < sizeof(keyertype_values) / sizeof(keyertype_values[0]); i++)
+        {
+            if (strlen(keyertype_values[i].name) == source_len
+                    && memcmp(source, keyertype_values[i].name, source_len) == 0)
+            {
+                source = keyertype_values[i].value;
+                source_len = strlen(source);
+                break;
+            }
+        }
+    }
+
+    if (source_len >= string_value_size)
+    {
+        return -RIG_ETRUNC;
+    }
+
+    memcpy(string_value, source, source_len);
+    string_value[source_len] = '\0';
+    val->cs = string_value;
+
+    return RIG_OK;
+}
+
+
 static int netrigctl_get_parm(RIG *rig, setting_t parm, value_t *val)
 {
     int ret;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
+    struct netrigctl_priv_data *priv =
+        (struct netrigctl_priv_data *)STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -2358,19 +2535,14 @@ static int netrigctl_get_parm(RIG *rig, setting_t parm, value_t *val)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    if (RIG_PARM_IS_FLOAT(parm))
+    if (ret == sizeof(buf) - 1 && buf[ret - 1] != '\n')
     {
-        if (rigctl_parse_float(buf, RIGCTL_DECIMAL_DOT_ONLY, &val->f) != RIG_OK)
-        {
-            return -RIG_EPROTO;
-        }
-    }
-    else
-    {
-        val->i = atoi(buf);
+        return -RIG_ETRUNC;
     }
 
-    return RIG_OK;
+    return netrigctl_decode_parm_response(parm, val, buf, ret,
+                                          priv->parm_value,
+                                          sizeof(priv->parm_value));
 }
 
 
@@ -2936,13 +3108,13 @@ int netrigctl_password(RIG *rig, const char *key1)
     int retval;
 
     ENTERFUNC;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: key1=%s\n", __func__, key1);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: submitting password\n", __func__);
     SNPRINTF(cmdbuf, sizeof(cmdbuf), "\\password %s\n", key1);
-    retval = netrigctl_transaction(rig, cmdbuf, strlen(cmdbuf), buf);
+    retval = netrigctl_transaction_internal(rig, cmdbuf, strlen(cmdbuf), buf,
+                                            1);
 
-    if (retval != RIG_OK)
+    if (retval > RIG_OK)
     {
-        //rig_debug(RIG_DEBUG_ERR, "%s; retval = %d\n", __func__, retval);
         retval = -RIG_EPROTO;
     }
 
@@ -3284,7 +3456,9 @@ static int netrigctl_stream_write(RIG *rig, struct rig_stream *stream,
                                   const struct rig_stream_write_info *info)
 {
     struct rig_stream_net_session *sess;
-    int ret;
+    const unsigned char *p = buffer;
+    size_t left = buffer_size, sent = 0, budget;
+    int timed;
 
     (void)timeout_ms;  /* UDP sendto is non-blocking */
 
@@ -3295,18 +3469,87 @@ static int netrigctl_stream_write(RIG *rig, struct rig_stream *stream,
         return -RIG_EINVAL;
     }
 
-    /* Burst targets travel as embedded time blocks; the server's TX
-     * feeder extracts them into the backend's target channel. */
-    ret = rig_stream_net_send_data(sess, stream, buffer, buffer_size, info);
-
-    if (ret < 0)
+    /* A codec frame is one datagram: it cannot be cut. */
+    if (stream->is_codec)
     {
-        return -RIG_EIO;
+        int ret = rig_stream_net_send_data(sess, stream, buffer, buffer_size,
+                                           info);
+
+        if (ret < 0) { return -RIG_EIO; }
+
+        if (bytes_written) { *bytes_written = (size_t)ret; }
+
+        return RIG_OK;
+    }
+
+    /* A write is not limited to one datagram -- locally it never is -- so cut
+     * it into whole sample frames of at most the negotiated payload. A burst
+     * target travels as an embedded time block; room is kept for it in every
+     * datagram, as the first carries the target and SOB and the last EOB.
+     * The server writes each datagram to its backend with that datagram's
+     * flags, which is how a burst written in pieces looks anyway. */
+    timed = info && (info->time_valid || info->flags);
+    budget = stream->max_payload > 0 ? (size_t)stream->max_payload : 0;
+
+    if (timed)
+    {
+        budget = budget > RIG_STREAM_TIME_BLOCK_SIZE
+                 ? budget - RIG_STREAM_TIME_BLOCK_SIZE : 0;
+    }
+
+    if (stream->frame_bytes > 0)
+    {
+        budget -= budget % stream->frame_bytes;
+    }
+
+    if (budget == 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: no room for a sample frame in a %d-byte "
+                  "payload\n", __func__, stream->max_payload);
+        return -RIG_EINVAL;
+    }
+
+    while (left > 0)
+    {
+        size_t n = left < budget ? left : budget;
+        struct rig_stream_write_info part;
+        const struct rig_stream_write_info *part_info = NULL;
+        int ret;
+
+        if (timed && sent == 0)
+        {
+            part = *info;
+
+            if (n < left) { part.flags &= ~RIG_STREAM_TIME_FLAG_EOB; }
+
+            part_info = &part;
+        }
+        else if (timed && n == left && (info->flags & RIG_STREAM_TIME_FLAG_EOB))
+        {
+            memset(&part, 0, sizeof(part));
+            part.flags = RIG_STREAM_TIME_FLAG_EOB;
+            part_info = &part;
+        }
+
+        ret = rig_stream_net_send_data(sess, stream, p, n, part_info);
+
+        if (ret < 0)
+        {
+            /* What already went out stays sent: report it as a short
+             * write, and the failure only when nothing could be sent. */
+            if (sent == 0) { return -RIG_EIO; }
+
+            break;
+        }
+
+        p += n;
+        left -= n;
+        sent += n;
     }
 
     if (bytes_written)
     {
-        *bytes_written = (size_t)ret;
+        *bytes_written = sent;
     }
 
     return RIG_OK;

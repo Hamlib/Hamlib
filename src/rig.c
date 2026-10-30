@@ -1042,6 +1042,48 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
  *
  * \sa rig_init(), rig_close()
  */
+/* Report the rig's power state during open and clear auto_power_on when it is
+ * already on. Split out of rig_open() because the probe has to run at
+ * different points depending on who owns the transport: for an ordinary port
+ * the core has already opened it, but a RIG_PORT_CUSTOM backend only opens its
+ * own transport inside caps->rig_open(), so probing before that would talk to
+ * a closed port. */
+static void rig_open_check_powerstat(RIG *rig, int skip_init)
+{
+    struct rig_state *rs = STATE(rig);
+    powerstat_t powerflag;
+    int status;
+
+    if (rig->caps->get_powerstat == NULL || skip_init)
+    {
+        return;
+    }
+
+    status = rig_get_powerstat(rig, &powerflag);
+
+    if (status == RIG_OK && (powerflag == RIG_POWER_OFF
+                             || powerflag == RIG_POWER_STANDBY)
+            && rs->auto_power_on == 0)
+    {
+        // rig_open() should succeed even if the rig is powered off, so simply log power status
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: rig power is off, use --set-conf=auto_power_on=1 or set_powerstat if power on is wanted\n",
+                  __func__);
+    }
+
+    // don't need auto_power_on if power is already on
+    if (status == RIG_OK && powerflag == RIG_POWER_ON) { rs->auto_power_on = 0; }
+
+    if (status == -RIG_ETIMEOUT)
+    {
+        // rig_open() should succeed even if get_powerstat() fails,
+        // as many rigs cannot get power status while powered off
+        rig_debug(RIG_DEBUG_ERR, "%s: Some rigs cannot get_powerstat while off\n",
+                  __func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: Known rigs: K3, K3S\n", __func__);
+    }
+}
+
 int HAMLIB_API rig_open(RIG *rig)
 {
     struct rig_caps *caps;
@@ -1505,32 +1547,13 @@ int HAMLIB_API rig_open(RIG *rig)
 
     if (caps->rig_open != NULL)
     {
-        if (caps->get_powerstat != NULL && !skip_init)
+        /* A RIG_PORT_CUSTOM backend owns its transport and only opens it in
+         * caps->rig_open(), so its power probe has to wait until after that. */
+        int custom_port = (rp->type.rig == RIG_PORT_CUSTOM);
+
+        if (!custom_port)
         {
-            powerstat_t powerflag;
-            status = rig_get_powerstat(rig, &powerflag);
-
-            if (status == RIG_OK && (powerflag == RIG_POWER_OFF
-                                     || powerflag == RIG_POWER_STANDBY)
-                    && rs->auto_power_on == 0)
-            {
-                // rig_open() should succeed even if the rig is powered off, so simply log power status
-                rig_debug(RIG_DEBUG_ERR,
-                          "%s: rig power is off, use --set-conf=auto_power_on=1 or set_powerstat if power on is wanted\n",
-                          __func__);
-            }
-
-            // don't need auto_power_on if power is already on
-            if (status == RIG_OK && powerflag == RIG_POWER_ON) { STATE(rig)->auto_power_on = 0; }
-
-            if (status == -RIG_ETIMEOUT)
-            {
-                // rig_open() should succeed even if get_powerstat() fails,
-                // as many rigs cannot get power status while powered off
-                rig_debug(RIG_DEBUG_ERR, "%s: Some rigs cannot get_powerstat while off\n",
-                          __func__);
-                rig_debug(RIG_DEBUG_ERR, "%s: Known rigs: K3, K3S\n", __func__);
-            }
+            rig_open_check_powerstat(rig, skip_init);
         }
 
         status = caps->rig_open(rig);
@@ -1542,6 +1565,11 @@ int HAMLIB_API rig_open(RIG *rig)
             rs->comm_state = 0;
             rs->comm_status = RIG_COMM_STATUS_ERROR;
             RETURNFUNC2(status);
+        }
+
+        if (custom_port)
+        {
+            rig_open_check_powerstat(rig, skip_init);
         }
     }
 
@@ -1760,7 +1788,6 @@ int HAMLIB_API rig_close(RIG *rig)
     }
 
     ENTERFUNC;
-
 
     caps = rig->caps;
     rs = STATE(rig);
@@ -2841,6 +2868,28 @@ int HAMLIB_API rig_get_freqs(RIG *rig, freq_t *freqA, freq_t freqB)
     return (-RIG_ENIMPL);
 }
 
+static int mode_satisfies_request(rmode_t requested, rmode_t current)
+{
+    if (requested == current)
+    {
+        return 1;
+    }
+
+    if (requested == RIG_MODE_PKTUSB)
+    {
+        return current == RIG_MODE_USBD1 || current == RIG_MODE_USBD2
+               || current == RIG_MODE_USBD3;
+    }
+
+    if (requested == RIG_MODE_PKTLSB)
+    {
+        return current == RIG_MODE_LSBD1 || current == RIG_MODE_LSBD2
+               || current == RIG_MODE_LSBD3;
+    }
+
+    return 0;
+}
+
 
 /**
  * \brief set the mode of the target VFO
@@ -2874,10 +2923,10 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         return -RIG_EINVAL;
     }
 
-    rig_get_cache_routing_snapshot(rig, &routing);
     ENTERFUNC;
     ELAPSED1;
     LOCK(1);
+    rig_get_cache_routing_snapshot(rig, &routing);
 
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s called, vfo=%s, mode=%s, width=%d, curr_vfo=%s\n", __func__,
@@ -2925,30 +2974,30 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     vfo = vfo_fixup_current(rig, vfo);
 
-    // if we're not asking for bandwidth and the mode is already set we don't need to do it
-    // this will prevent flashing on some rigs like the TS-870
-    if (caps->get_mode && width == RIG_PASSBAND_NOCHANGE)
+    // Resolve a generic packet request against a specific DATA profile before setting it.
+    if (caps->get_mode && (width == RIG_PASSBAND_NOCHANGE
+                           || mode == RIG_MODE_PKTUSB || mode == RIG_MODE_PKTLSB)
+            && ((caps->targetable_vfo & RIG_TARGETABLE_MODE)
+                || vfo == rig_get_current_vfo_state(rig)))
     {
         rmode_t mode_curr;
         pbwidth_t width_curr;
         retcode = caps->get_mode(rig, vfo, &mode_curr, &width_curr);
 
-        // For Icom rigs we may need to force the filter so we always set mode
-#if 0
-        // This should not be necessary anymore with the new filter method for Icom rigs
-        // Hopefully fixes issue https://github.com/Hamlib/Hamlib/issues/1580
-        if (retcode == RIG_OK && mode == mode_curr
-                && RIG_ICOM != RIG_BACKEND_NUM(rig->caps->rig_model))
-#else
-        if (retcode == RIG_OK && mode == mode_curr)
-#endif
+        if (retcode == RIG_OK && mode_satisfies_request(mode, mode_curr))
         {
-            rig_debug(RIG_DEBUG_VERBOSE,
-                      "%s: mode already %s and bw change not requested\n", __func__,
-                      rig_strrmode(mode));
-            ELAPSED2;
-            LOCK(0);
-            RETURNFUNC(RIG_OK);
+            mode = mode_curr;
+
+            if (width == RIG_PASSBAND_NOCHANGE)
+            {
+                rig_set_cache_mode(rig, vfo, mode_curr, width_curr);
+                rig_debug(RIG_DEBUG_VERBOSE,
+                          "%s: mode already %s and bw change not requested\n", __func__,
+                          rig_strrmode(mode_curr));
+                ELAPSED2;
+                LOCK(0);
+                RETURNFUNC(RIG_OK);
+            }
         }
     }
 
@@ -2977,7 +3026,7 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             rig_get_cache(rig, vfo, &cache_freq, &cache_ms_freq, &cache_mode,
                           &cache_ms_mode, &cache_width, &cache_ms_width);
 
-            if (cache_mode == mode)
+            if (cache_mode == mode && width == RIG_PASSBAND_NOCHANGE)
             {
                 rig_debug(RIG_DEBUG_TRACE, "%s: mode not changing, so ignoring\n",
                           __func__);
@@ -3010,7 +3059,37 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             RETURNFUNC(retcode);
         }
 
-        retcode = caps->set_mode(rig, vfo, mode, width);
+        int skip_set_mode = 0;
+
+        if (caps->get_mode && (width == RIG_PASSBAND_NOCHANGE
+                               || mode == RIG_MODE_PKTUSB || mode == RIG_MODE_PKTLSB))
+        {
+            rmode_t mode_curr;
+            pbwidth_t width_curr;
+
+            retcode = caps->get_mode(rig, vfo, &mode_curr, &width_curr);
+
+            if (retcode == RIG_OK && mode_satisfies_request(mode, mode_curr))
+            {
+                mode = mode_curr;
+
+                if (width == RIG_PASSBAND_NOCHANGE)
+                {
+                    width = width_curr;
+                    skip_set_mode = 1;
+                }
+            }
+            else
+            {
+                retcode = RIG_OK;
+            }
+        }
+
+        if (retcode == RIG_OK && !skip_set_mode)
+        {
+            retcode = caps->set_mode(rig, vfo, mode, width);
+        }
+
         /* try and revert even if we had an error above */
         rc2 = caps->set_vfo(rig, curr_vfo);
 
@@ -4779,11 +4858,14 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     rig_get_cache_routing_snapshot(rig, &routing);
     tx_vfo = routing.tx_vfo;
 
-    rig_get_freq(rig, tx_vfo, &tfreq);
-
-    if (tfreq == tx_freq)
+    // While transmitting, setting the TX frequency again can drop PTT on the
+    // band check in rig_set_freq() or stall on rigs that refuse it during TX
+    if (routing.ptt != RIG_PTT_OFF
+            && rig_get_freq(rig, tx_vfo, &tfreq) == RIG_OK
+            && tfreq == tx_freq)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: freq set not needed\n", __func__);
+        rig_debug(RIG_DEBUG_TRACE, "%s: TX freq already set while transmitting\n",
+                  __func__);
         ELAPSED2;
         RETURNFUNC2(RIG_OK);
     }
@@ -5186,14 +5268,8 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
                            || (rig->caps->rig_model == RIG_MODEL_NETRIGCTL)))
     {
         HAMLIB_TRACE;
-        retcode = caps->set_mode(rig, tx_vfo, tx_mode, tx_width);
+        retcode = rig_set_mode(rig, tx_vfo, tx_mode, tx_width);
         ELAPSED2;
-
-        if (retcode == RIG_OK)
-        {
-            rig_set_cache_mode(rig, tx_vfo, tx_mode, tx_width);
-        }
-
         RETURNFUNC(retcode);
     }
 
@@ -8915,6 +8991,11 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
 
     ELAPSED1;
 
+    if (reply != NULL && reply_len < 1)
+    {
+        RETURNFUNC(-RIG_EINVAL);
+    }
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s: writing %d bytes\n", __func__, send_len);
 
     set_transaction_active(rig);
@@ -8939,7 +9020,26 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
 
     if (reply)
     {
-        unsigned char buf[200];
+        unsigned char stack_buf[200];
+        unsigned char *buf = stack_buf;
+        /* Detect terminated replies that fill the caller's buffer. */
+        size_t buf_len = (size_t)reply_len + 1;
+        int buffer_allocated = 0;
+
+        if (buf_len > sizeof(stack_buf))
+        {
+            buf = malloc(buf_len);
+
+            if (buf == NULL)
+            {
+                rig_flush_force(rp, 1);
+                set_transaction_inactive(rig);
+                ELAPSED2;
+                RETURNFUNC(-RIG_ENOMEM);
+            }
+
+            buffer_allocated = 1;
+        }
 
         if (simulate)
         {
@@ -8967,13 +9067,13 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
             else if (*term == 0xfd) // then we want an Icom frame
             {
                 rig_debug(RIG_DEBUG_VERBOSE, "%s: reading icom frame\n", __func__);
-                retval = read_icom_frame(rp, buf, sizeof(buf));
+                retval = read_icom_frame(rp, buf, reply_len);
             }
             else // we'll assume the provided terminator works
             {
                 rig_debug(RIG_DEBUG_VERBOSE, "%s: reading frame terminated by 0x%x\n", __func__,
                           *term);
-                retval = read_string(rp, buf, sizeof(buf), (const char *)term,
+                retval = read_string(rp, buf, buf_len, (const char *)term,
                                      1, 0, 1);
             }
 
@@ -8982,6 +9082,8 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
                 rig_debug(RIG_DEBUG_ERR, "%s: read_string, result=%d\n", __func__, retval);
                 rig_flush_force(rp, 1);
                 set_transaction_inactive(rig);
+
+                if (buffer_allocated) { free(buf); }
                 ELAPSED2;
                 RETURNFUNC(retval);
             }
@@ -8994,12 +9096,16 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
                           __func__, reply_len, nbytes);
                 rig_flush_force(rp, 1);
                 set_transaction_inactive(rig);
+
+                if (buffer_allocated) { free(buf); }
                 ELAPSED2;
                 RETURNFUNC(-RIG_EINVAL);
             }
         }
 
         memcpy(reply, buf, nbytes);
+
+        if (buffer_allocated) { free(buf); }
     }
     else
     {

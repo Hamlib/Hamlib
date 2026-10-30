@@ -152,9 +152,6 @@ struct newcat_priv_data
     vfo_t ftx1_tx_vfo;           /* TX VFO for virtual split */
     int ftx1_cache_fix_needed;   /* 1 if Main cache needs restoration */
     freq_t ftx1_cache_fix_freq;  /* Saved Main freq for cache restoration */
-    int ftx1_clar_cached;        /* 1 if RX/TX CLAR states have been cached */
-    char ftx1_rx_clar_on;        /* Cached RX CLAR enable: '0' or '1' */
-    char ftx1_tx_clar_on;        /* Cached TX CLAR enable: '0' or '1' */
     int ftx1_in_memory_mode;     /* 1 if driver knows the Main-side is in Memory mode (VM011) */
 };
 

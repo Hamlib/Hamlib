@@ -35,20 +35,6 @@
 #define FTX1_CF_SETTING_RESP_LEN  11
 #define FTX1_CF_FREQ_RESP_LEN     11
 
-/*
- * Cache RX/TX CLAR enable states from a CF setting response.
- * Eliminates the read-then-write race in set functions (Bug 3.1):
- * without caching, set_rx_clar must read TX state before writing both,
- * creating a window where the TX state could change between read and write.
- */
-static void ftx1_cache_clar_state(struct newcat_priv_data *priv,
-                                  const char *resp)
-{
-    priv->ftx1_rx_clar_on = resp[5];
-    priv->ftx1_tx_clar_on = resp[6];
-    priv->ftx1_clar_cached = 1;
-}
-
 int ftx1_parse_clar_state(const char *resp, char vfo,
                           char *rx_enabled, char *tx_enabled)
 {
@@ -144,9 +130,6 @@ int ftx1_get_rx_clar(RIG *rig, vfo_t vfo, shortfreq_t *offset)
         return -RIG_EPROTO;
     }
 
-    /* Cache both RX and TX CLAR states for use by set functions */
-    ftx1_cache_clar_state(priv, priv->ret_data);
-
     rig_debug(RIG_DEBUG_TRACE, "%s: CF setting response='%s', rx_clar_enabled=%c\n",
               __func__, priv->ret_data, rx_clar_enabled);
 
@@ -191,6 +174,7 @@ int ftx1_set_rx_clar(RIG *rig, vfo_t vfo, shortfreq_t offset)
     struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
     char vfo_param;
+    char rx_clar_enabled;
     char tx_clar_enabled;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called with offset=%ld\n", __func__,
@@ -205,37 +189,25 @@ int ftx1_set_rx_clar(RIG *rig, vfo_t vfo, shortfreq_t offset)
     }
 
     vfo_param = ftx1_get_cf_vfo_param(rig, vfo);
-
     /*
-     * Get TX CLAR state from cache if available, otherwise read from radio.
-     * Using the cache eliminates the read-then-write race (Bug 3.1):
-     * without it, an external actor could change TX CLAR between our
-     * read and write, and we'd overwrite their change with a stale value.
+     * CF P3=0 sets the RX and TX CLAR flags in one write, so read this side's
+     * current flags right before writing to preserve the TX one.  Don't
+     * cache them: the front panel or another CAT client can change them at
+     * any time, and a cached copy would silently undo that change.
      */
-    if (priv->ftx1_clar_cached)
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF%c00;", vfo_param);
+
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
     {
-        tx_clar_enabled = priv->ftx1_tx_clar_on;
+        return err;
     }
-    else
+
+    if (ftx1_parse_clar_state(priv->ret_data, vfo_param,
+                              &rx_clar_enabled, &tx_clar_enabled) != RIG_OK)
     {
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF%c00;", vfo_param);
-
-        if (RIG_OK != (err = newcat_get_cmd(rig)))
-        {
-            return err;
-        }
-
-        char rx_clar_enabled;
-
-        if (ftx1_parse_clar_state(priv->ret_data, vfo_param,
-                                  &rx_clar_enabled, &tx_clar_enabled) != RIG_OK)
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: invalid CF setting response '%s'\n",
-                      __func__, priv->ret_data);
-            return -RIG_EPROTO;
-        }
-
-        ftx1_cache_clar_state(priv, priv->ret_data);
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid CF setting response '%s'\n",
+                  __func__, priv->ret_data);
+        return -RIG_EPROTO;
     }
 
     if (offset == 0)
@@ -243,14 +215,12 @@ int ftx1_set_rx_clar(RIG *rig, vfo_t vfo, shortfreq_t offset)
         /* Disable RX CLAR, preserve TX CLAR state */
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF%c000%c000;",
                  vfo_param, tx_clar_enabled);
-        priv->ftx1_rx_clar_on = '0';
     }
     else
     {
         /* Enable RX CLAR, preserve TX CLAR state, then set frequency */
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF%c001%c000;",
                  vfo_param, tx_clar_enabled);
-        priv->ftx1_rx_clar_on = '1';
 
         rig_debug(RIG_DEBUG_TRACE, "%s: enable cmd=%s\n", __func__, priv->cmd_str);
 
@@ -322,9 +292,6 @@ int ftx1_get_tx_clar(RIG *rig, vfo_t vfo, shortfreq_t *offset)
         return -RIG_EPROTO;
     }
 
-    /* Cache both RX and TX CLAR states for use by set functions */
-    ftx1_cache_clar_state(priv, priv->ret_data);
-
     rig_debug(RIG_DEBUG_TRACE, "%s: CF setting response='%s', tx_clar_enabled=%c\n",
               __func__, priv->ret_data, tx_clar_enabled);
 
@@ -370,6 +337,7 @@ int ftx1_set_tx_clar(RIG *rig, vfo_t vfo, shortfreq_t offset)
     int err;
     char vfo_param;
     char rx_clar_enabled;
+    char tx_clar_enabled;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called with offset=%ld\n", __func__,
               (long)offset);
@@ -383,35 +351,25 @@ int ftx1_set_tx_clar(RIG *rig, vfo_t vfo, shortfreq_t offset)
     }
 
     vfo_param = ftx1_get_cf_vfo_param(rig, vfo);
-
     /*
-     * Get RX CLAR state from cache if available, otherwise read from radio.
-     * Using the cache eliminates the read-then-write race (Bug 3.1).
+     * CF P3=0 sets the RX and TX CLAR flags in one write, so read this side's
+     * current flags right before writing to preserve the RX one.  Don't
+     * cache them: the front panel or another CAT client can change them at
+     * any time, and a cached copy would silently undo that change.
      */
-    if (priv->ftx1_clar_cached)
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF%c00;", vfo_param);
+
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
     {
-        rx_clar_enabled = priv->ftx1_rx_clar_on;
+        return err;
     }
-    else
+
+    if (ftx1_parse_clar_state(priv->ret_data, vfo_param,
+                              &rx_clar_enabled, &tx_clar_enabled) != RIG_OK)
     {
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF%c00;", vfo_param);
-
-        if (RIG_OK != (err = newcat_get_cmd(rig)))
-        {
-            return err;
-        }
-
-        char tx_clar_enabled;
-
-        if (ftx1_parse_clar_state(priv->ret_data, vfo_param,
-                                  &rx_clar_enabled, &tx_clar_enabled) != RIG_OK)
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: invalid CF setting response '%s'\n",
-                      __func__, priv->ret_data);
-            return -RIG_EPROTO;
-        }
-
-        ftx1_cache_clar_state(priv, priv->ret_data);
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid CF setting response '%s'\n",
+                  __func__, priv->ret_data);
+        return -RIG_EPROTO;
     }
 
     if (offset == 0)
@@ -419,14 +377,12 @@ int ftx1_set_tx_clar(RIG *rig, vfo_t vfo, shortfreq_t offset)
         /* Disable TX CLAR, preserve RX CLAR state */
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF%c00%c0000;",
                  vfo_param, rx_clar_enabled);
-        priv->ftx1_tx_clar_on = '0';
     }
     else
     {
         /* Enable TX CLAR, preserve RX CLAR state, then set frequency */
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF%c00%c1000;",
                  vfo_param, rx_clar_enabled);
-        priv->ftx1_tx_clar_on = '1';
 
         rig_debug(RIG_DEBUG_TRACE, "%s: enable cmd=%s\n", __func__, priv->cmd_str);
 

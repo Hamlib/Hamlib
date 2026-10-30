@@ -555,16 +555,21 @@ AC_ARG_WITH([samplerate],
 
 AC_MSG_RESULT([$cf_with_samplerate])
 
+HAMLIB_PC_SAMPLERATE=""
+
 AS_IF([test x"${cf_with_samplerate}" = "xyes"], [
     PKG_CHECK_MODULES([SAMPLERATE],
                       [samplerate >= 0.1.9],
                       [AC_DEFINE([HAVE_SAMPLERATE],
                           [1],
-                          [Define if libsamplerate is available])],
+                          [Define if libsamplerate is available])
+                      HAMLIB_PC_SAMPLERATE="samplerate >= 0.1.9"],
                       [AC_MSG_WARN([libsamplerate >= 0.1.9 not found, stream resampling will be disabled])
                       cf_with_samplerate=no
                       ])
     ])
+
+AC_SUBST([HAMLIB_PC_SAMPLERATE])
 
 
 dnl libxml2 required for rigmem XML support; make it build time optional.

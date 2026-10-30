@@ -29,6 +29,7 @@
 #include "acutest.h"
 #include "test_debug.h"
 #include "stream_convert.h"
+#include <stdint.h>
 #include <string.h>
 #include <math.h>
 
@@ -698,6 +699,104 @@ void test_resample_quality_levels(void)
     }
 }
 
+#ifdef HAVE_SAMPLERATE
+struct counting_sink
+{
+    size_t bytes;
+};
+
+static size_t count_converted_bytes(void *ctx, const void *buf, size_t len)
+{
+    struct counting_sink *sink = ctx;
+    (void)buf;
+    sink->bytes += len;
+    return len;
+}
+#endif
+
+void test_conversion_context_rate_bounds(void)
+{
+    struct stream_conv *conv = NULL;
+
+    TEST_CHECK(stream_conv_rate_supported(48000, 48000));
+    TEST_CHECK(!stream_conv_rate_supported(0, 48000));
+    TEST_CHECK(!stream_conv_rate_supported(48000, 0));
+
+#ifdef HAVE_SAMPLERATE
+    TEST_CHECK(stream_conv_rate_supported(1, 256));
+    TEST_CHECK(stream_conv_rate_supported(256, 1));
+    TEST_CHECK(!stream_conv_rate_supported(1, 257));
+    TEST_CHECK(!stream_conv_rate_supported(257, 1));
+    TEST_CHECK(!stream_conv_rate_supported(1, 24000));
+
+    TEST_CHECK(stream_conv_init(&conv,
+                                RIG_STREAM_FORMAT_PCM_F32, 1, 1,
+                                RIG_STREAM_FORMAT_PCM_F32, 256, 1,
+                                0, RIG_RESAMPLE_FAST) == RIG_OK);
+    TEST_ASSERT(conv != NULL);
+
+    float upsample_input[1024] = { 0 };
+    struct counting_sink sink = { 0 };
+    TEST_CHECK(stream_conv_process(conv, upsample_input,
+                                   sizeof(upsample_input),
+                                   count_converted_bytes, &sink)
+               == (ssize_t)sizeof(upsample_input));
+    TEST_CHECK(sink.bytes > 0);
+    stream_conv_free(conv);
+    conv = NULL;
+
+    TEST_CHECK(stream_conv_init(&conv,
+                                RIG_STREAM_FORMAT_PCM_F32, 256, 1,
+                                RIG_STREAM_FORMAT_PCM_F32, 1, 1,
+                                0, RIG_RESAMPLE_FAST) == RIG_OK);
+    TEST_ASSERT(conv != NULL);
+
+    float downsample_input[4096] = { 0 };
+    sink.bytes = 0;
+    TEST_CHECK(stream_conv_process(conv, downsample_input,
+                                   sizeof(downsample_input),
+                                   count_converted_bytes, &sink)
+               == (ssize_t)sizeof(downsample_input));
+    stream_conv_free(conv);
+    conv = NULL;
+
+    /* The exact ratio limit remains available for current four-channel IQ. */
+    TEST_CHECK(stream_conv_init(&conv,
+                                RIG_STREAM_FORMAT_IQ_CF32, 1, 4,
+                                RIG_STREAM_FORMAT_IQ_CF32, 256, 4,
+                                1, RIG_RESAMPLE_FAST) == RIG_OK);
+    TEST_ASSERT(conv != NULL);
+    stream_conv_free(conv);
+    conv = NULL;
+
+    /* Supported ratios still have to fit the scratch working-set limit. */
+    TEST_CHECK(stream_conv_init(&conv,
+                                RIG_STREAM_FORMAT_IQ_CF32, 1, 64,
+                                RIG_STREAM_FORMAT_IQ_CF32, 256, 64,
+                                1, RIG_RESAMPLE_FAST) == -RIG_EINVAL);
+    TEST_CHECK(conv == NULL);
+#else
+    TEST_CHECK(!stream_conv_rate_supported(1, 256));
+    TEST_CHECK(!stream_conv_rate_supported(256, 1));
+#endif
+
+    TEST_CHECK(stream_conv_init(&conv,
+                                RIG_STREAM_FORMAT_PCM_F32, 1, 1,
+                                RIG_STREAM_FORMAT_PCM_F32, 257, 1,
+                                0, RIG_RESAMPLE_FAST) == -RIG_EINVAL);
+    TEST_CHECK(conv == NULL);
+    TEST_CHECK(stream_conv_init(&conv,
+                                RIG_STREAM_FORMAT_PCM_F32, 257, 1,
+                                RIG_STREAM_FORMAT_PCM_F32, 1, 1,
+                                0, RIG_RESAMPLE_FAST) == -RIG_EINVAL);
+    TEST_CHECK(conv == NULL);
+    TEST_CHECK(stream_conv_init(&conv,
+                                RIG_STREAM_FORMAT_IQ_CF32, 1, 4,
+                                RIG_STREAM_FORMAT_IQ_CF32, 24000, 4,
+                                1, RIG_RESAMPLE_FAST) == -RIG_EINVAL);
+    TEST_CHECK(conv == NULL);
+}
+
 
 TEST_LIST =
 {
@@ -747,5 +846,9 @@ TEST_LIST =
     { "resample_downsample",      test_resample_downsample },
     { "resample_identity",        test_resample_identity },
     { "resample_quality_levels",  test_resample_quality_levels },
+    {
+        "conversion_context_rate_bounds",
+        test_conversion_context_rate_bounds
+    },
     { NULL, NULL }
 };

@@ -30,7 +30,8 @@
 #include <stdio.h>
 
 /* Per-direction backend problem counters accumulated over a run. gaps_unknown
- * is a subset of gaps, and dropped_* are sample totals of the same events. */
+ * is a subset of gaps, and dropped_* and concealed_* are sample totals of the
+ * same events. */
 struct dir_stats
 {
     uint64_t phases;
@@ -39,6 +40,7 @@ struct dir_stats
     uint64_t gaps, gaps_unknown, overruns, underruns, link_loss;
     uint64_t tx_late, remote_overruns, remote_underruns, write_events_dropped;
     uint64_t dropped_gap, dropped_overrun, dropped_link;
+    uint64_t concealed_gap, concealed_overrun;
 };
 
 /* Categorised tool-level issue counters (separate from backend stats). */

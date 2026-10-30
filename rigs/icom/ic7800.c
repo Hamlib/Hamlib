@@ -158,7 +158,8 @@ static const struct icom_priv_caps ic7800_priv_caps =
     .x1ax03_supported = 1,
     .mode_with_filter = 1,
     .data_mode_supported = 1,
-    .clock_cmds = &ic7800_clock_cmds
+    .clock_cmds = &ic7800_clock_cmds,
+    .power_status_read_not_supported = 1
 };
 
 struct rig_caps ic7800_caps =
@@ -346,7 +347,7 @@ struct rig_caps ic7800_caps =
     .set_split_vfo =  icom_set_split_vfo,
     .get_split_vfo =  icom_get_split_vfo,
     .set_powerstat = icom_set_powerstat,
-//    .get_powerstat = icom_get_powerstat,
+    .get_powerstat = icom_get_powerstat,
     .send_morse = icom_send_morse,
     .stop_morse = icom_stop_morse,
     .wait_morse = rig_wait_morse,

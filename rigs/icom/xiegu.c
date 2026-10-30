@@ -116,11 +116,56 @@
 }
 
 /*
+ * G90-specific capabilities, kept separate from the X108G_* macros above
+ * so X108G/X6100/X6200/X5105 are unaffected.
+ *
+ * Sources: Radioddity "Xiegu G90 CAT control and digital modes" manual v1.0
+ * (2021-06-23) and the official Radioddity G90 spec sheet.
+ *
+ * - HF+60m only: 0.5-30MHz RX, no 6m/2m/70cm/VHF/UHF.
+ * - No RIG_FUNC_NR / RIG_LEVEL_NR: no noise reduction on this rig.
+ * - RIG_FUNC_TUNER added: built-in ATU, CI-V 0x1C/0x01.
+ * - RIG_LEVEL_VOXDELAY, RIG_FUNC_ARO: not implemented on this rig.
+ * - RIG_LEVEL_BKINDL/MICGAIN/PBT_IN/PBT_OUT/NOTCHF_RAW/VOXGAIN/ALC/COMP:
+ *   undocumented 0x14 subcommands; manual states these return a fixed 255.
+ * - RIG_LEVEL_RF kept though undocumented; confirmed working.
+ * - RIG_FUNC_ANF dropped: no auto notch filter on this rig.
+ * - RIG_MODE_FMN kept (S_FMN == S_FM == 0x05, not a distinct mode);
+ *   RIG_MODE_WFM dropped (S_WFM == 0x06, no broadcast-FM reception).
+ */
+#define G90_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_FMN|RIG_MODE_PKTUSB|RIG_MODE_PKTLSB)
+#define G90_NOT_TS_MODES (G90_ALL_RX_MODES &~ X108G_1HZ_TS_MODES)
+
+#define G90_FUNCS (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_VSC|RIG_FUNC_LOCK|RIG_FUNC_TUNER)
+
+#define G90_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SWR)
+
+/* Radioddity G90 User Manual V5, p.35: RIT adjustment is +/-500 Hz. */
+#define G90_MAX_RIT Hz(500)
+
+#define G90_MEM_CAP {    \
+        .freq = 1,  \
+        .mode = 1,  \
+        .width = 1, \
+        .split = 1, \
+        .tx_freq = 1,   \
+        .tx_mode = 1,   \
+        .tx_width = 1,  \
+        .rptr_offs = 1, \
+        .rptr_shift = 1, \
+        .ctcss_tone = 1, \
+        .ctcss_sql = 1, \
+        .funcs = G90_FUNCS, \
+        .levels = RIG_LEVEL_SET(G90_LEVELS), \
+}
+
+/*
  * Prototypes
 */
 static int x108g_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 static int g90_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 static int g90_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+static int g90_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
 static const char *g90_get_info(RIG *rig);
 static int x108g_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
                                vfo_t tx_vfo);
@@ -889,10 +934,10 @@ struct rig_caps g90_caps =
     .post_write_delay =  0,
     .timeout =  1000,
     .retry =  3,
-    .has_get_func =  X108G_FUNCS,
-    .has_set_func =  X108G_FUNCS,
-    .has_get_level =  X108G_LEVELS,
-    .has_set_level =  RIG_LEVEL_SET(X108G_LEVELS),
+    .has_get_func =  G90_FUNCS,
+    .has_set_func =  G90_FUNCS,
+    .has_get_level =  G90_LEVELS,
+    .has_set_level =  RIG_LEVEL_SET(G90_LEVELS),
     .has_get_parm =  X108G_PARMS,
     .has_set_parm =  RIG_PARM_SET(X108G_PARMS),
     .level_gran = {
@@ -903,7 +948,7 @@ struct rig_caps g90_caps =
     .dcs_list =  common_dcs_list,
     .preamp =   { 10, RIG_DBLST_END, }, /* FIXME: TBC it's a guess*/
     .attenuator =   { 12, RIG_DBLST_END, },
-    .max_rit =  Hz(9999),
+    .max_rit =  G90_MAX_RIT,
     .max_xit =  Hz(9999),
     .max_ifshift =  Hz(0), /* TODO */
     .vfo_ops =  X108G_VFO_OPS,
@@ -915,55 +960,45 @@ struct rig_caps g90_caps =
     .chan_desc_sz =  0, /* TODO */
 
     .chan_list =  {
-        {   1,  99, RIG_MTYPE_MEM,  X108G_MEM_CAP },
-        { 100, 105, RIG_MTYPE_EDGE, X108G_MEM_CAP },    /* two by two */
-        { 106, 107, RIG_MTYPE_CALL, X108G_MEM_CAP },
+        {   1,  99, RIG_MTYPE_MEM,  G90_MEM_CAP },
+        { 100, 105, RIG_MTYPE_EDGE, G90_MEM_CAP },    /* two by two */
+        { 106, 107, RIG_MTYPE_CALL, G90_MEM_CAP },
         RIG_CHAN_END,
     },
 
-    .rx_range_list1 =   { {kHz(30), MHz(199.999999), X108G_ALL_RX_MODES, -1, -1, X108G_VFOS},
-        {MHz(400), MHz(470), X108G_ALL_RX_MODES, -1, -1, X108G_VFOS}, RIG_FRNG_END,
+    .rx_range_list1 =   { {kHz(500), MHz(30), G90_ALL_RX_MODES, -1, -1, X108G_VFOS}, RIG_FRNG_END,
     },
     .tx_range_list1 =   {
-        FRQ_RNG_HF(1, X108G_OTHER_TX_MODES, W(2), W(100), X108G_VFOS, RIG_ANT_1),
-        FRQ_RNG_6m(1, X108G_OTHER_TX_MODES, W(2), W(100), X108G_VFOS, RIG_ANT_1),
-        FRQ_RNG_2m(1, X108G_OTHER_TX_MODES, W(2), W(50), X108G_VFOS, RIG_ANT_2),
-        FRQ_RNG_70cm(1, X108G_OTHER_TX_MODES, W(2), W(35), X108G_VFOS, RIG_ANT_2),
-        FRQ_RNG_HF(1, X108G_AM_TX_MODES, W(1), W(40), X108G_VFOS, RIG_ANT_1), /* AM class */
-        FRQ_RNG_6m(1, X108G_AM_TX_MODES, W(1), W(40), X108G_VFOS, RIG_ANT_1), /* AM class */
-        FRQ_RNG_2m(1, X108G_AM_TX_MODES, W(2), W(20), X108G_VFOS, RIG_ANT_2),
-        FRQ_RNG_70cm(1, X108G_OTHER_TX_MODES, W(2), W(14), X108G_VFOS, RIG_ANT_2),
+        FRQ_RNG_HF(1, X108G_OTHER_TX_MODES, W(2), W(20), X108G_VFOS, RIG_ANT_1),
+        FRQ_RNG_60m(1, X108G_OTHER_TX_MODES, W(2), W(20), X108G_VFOS, RIG_ANT_1),
+        FRQ_RNG_HF(1, X108G_AM_TX_MODES, W(1), W(20), X108G_VFOS, RIG_ANT_1), /* AM class */
+        FRQ_RNG_60m(1, X108G_AM_TX_MODES, W(1), W(20), X108G_VFOS, RIG_ANT_1), /* AM class */
         RIG_FRNG_END,
     },
 
-    .rx_range_list2 =   { {kHz(30), MHz(199.999999), X108G_ALL_RX_MODES, -1, -1, X108G_VFOS},
-        {MHz(400), MHz(470), X108G_ALL_RX_MODES, -1, -1, X108G_VFOS}, RIG_FRNG_END,
+    .rx_range_list2 =   { {kHz(500), MHz(30), G90_ALL_RX_MODES, -1, -1, X108G_VFOS}, RIG_FRNG_END,
     },
-    .tx_range_list2 =  { /* needs the 5 MHz channels added */
-        FRQ_RNG_HF(2, X108G_OTHER_TX_MODES, W(2), W(100), X108G_VFOS, RIG_ANT_1),
-        FRQ_RNG_6m(2, X108G_OTHER_TX_MODES, W(2), W(100), X108G_VFOS, RIG_ANT_1),
-        FRQ_RNG_2m(2, X108G_OTHER_TX_MODES, W(2), W(50), X108G_VFOS, RIG_ANT_2),
-        FRQ_RNG_70cm(2, X108G_OTHER_TX_MODES, W(2), W(35), X108G_VFOS, RIG_ANT_2),
-        FRQ_RNG_HF(2, X108G_AM_TX_MODES, W(1), W(40), X108G_VFOS, RIG_ANT_1), /* AM class */
-        FRQ_RNG_6m(2, X108G_AM_TX_MODES, W(1), W(40), X108G_VFOS, RIG_ANT_1), /* AM class */
-        FRQ_RNG_2m(2, X108G_AM_TX_MODES, W(2), W(20), X108G_VFOS, RIG_ANT_2),
-        FRQ_RNG_70cm(2, X108G_OTHER_TX_MODES, W(2), W(14), X108G_VFOS, RIG_ANT_2),
+    .tx_range_list2 =  {
+        FRQ_RNG_HF(2, X108G_OTHER_TX_MODES, W(2), W(20), X108G_VFOS, RIG_ANT_1),
+        FRQ_RNG_60m(2, X108G_OTHER_TX_MODES, W(2), W(20), X108G_VFOS, RIG_ANT_1),
+        FRQ_RNG_HF(2, X108G_AM_TX_MODES, W(1), W(20), X108G_VFOS, RIG_ANT_1), /* AM class */
+        FRQ_RNG_60m(2, X108G_AM_TX_MODES, W(1), W(20), X108G_VFOS, RIG_ANT_1), /* AM class */
         RIG_FRNG_END,
     },
 
     .tuning_steps = {
         {X108G_1HZ_TS_MODES, 1},
-        {X108G_NOT_TS_MODES, 10},
-        {X108G_ALL_RX_MODES, Hz(100)},
-        {X108G_ALL_RX_MODES, kHz(1)},
-        {X108G_ALL_RX_MODES, kHz(5)},
-        {X108G_ALL_RX_MODES, kHz(9)},
-        {X108G_ALL_RX_MODES, kHz(10)},
-        {X108G_ALL_RX_MODES, kHz(12.5)},
-        {X108G_ALL_RX_MODES, kHz(20)},
-        {X108G_ALL_RX_MODES, kHz(25)},
-        {X108G_ALL_RX_MODES, kHz(100)},
-        {X108G_NOT_TS_MODES, MHz(1)},
+        {G90_NOT_TS_MODES, 10},
+        {G90_ALL_RX_MODES, Hz(100)},
+        {G90_ALL_RX_MODES, kHz(1)},
+        {G90_ALL_RX_MODES, kHz(5)},
+        {G90_ALL_RX_MODES, kHz(9)},
+        {G90_ALL_RX_MODES, kHz(10)},
+        {G90_ALL_RX_MODES, kHz(12.5)},
+        {G90_ALL_RX_MODES, kHz(20)},
+        {G90_ALL_RX_MODES, kHz(25)},
+        {G90_ALL_RX_MODES, kHz(100)},
+        {G90_NOT_TS_MODES, MHz(1)},
         RIG_TS_END,
     },
 
@@ -982,7 +1017,6 @@ struct rig_caps g90_caps =
         {RIG_MODE_AM, kHz(6)},
         {RIG_MODE_AM, kHz(3)},
         {RIG_MODE_AM, kHz(9)},
-        {RIG_MODE_WFM, kHz(280)},
         RIG_FLT_END,
     },
 
@@ -1007,6 +1041,11 @@ struct rig_caps g90_caps =
     .get_ant =  NULL,
     .get_info =  g90_get_info,
 
+    .set_rit =  g90_set_rit,
+    /* Distinct displayed -101/-111 Hz both returned FF FF 01 in testing.
+     * Negative GET is lossy; do not advertise a getter or cache SET as GET.
+     */
+    .get_rit =  NULL,
     .decode_event =  icom_decode_event,
     .set_level =  g90_set_level,
     .get_level =  g90_get_level,
@@ -1254,6 +1293,44 @@ int x108g_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     return RIG_OK;
 }
 
+/* Standard BCD magnitude and sign for SET, independent of negative GET. */
+static int g90_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
+{
+    unsigned char payload[3], ackbuf[MAXFRAMELEN];
+    int ack_len = sizeof(ackbuf), retval;
+
+    /* CI-V 21 00 targets the selected VFO; the frontend handles selection.
+     * Check bounds before negating, including for LONG_MIN inputs.
+     */
+    (void) vfo;
+
+    if (rit < -G90_MAX_RIT || rit > G90_MAX_RIT)
+    {
+        return -RIG_EINVAL;
+    }
+
+    to_bcd(payload, rit < 0 ? -rit : rit, 4);
+    payload[2] = rit < 0 ? 1 : 0;
+
+    /* Zero disables RIT; nonzero enables it on the tested G90.
+     * Do not send a separate 21 01 command or query the lossy 21 00 GET.
+     */
+    retval = icom_transaction(rig, C_CTL_RIT, S_RIT_FREQ,
+                              payload, sizeof(payload), ackbuf, &ack_len);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    if (ack_len != 1 || ackbuf[0] != ACK)
+    {
+        return -RIG_EPROTO;
+    }
+
+    return RIG_OK;
+}
+
 /*
  * The stock G90 firmware (v1.81) does not implement C_CTL_ATT the Icom way.
  *
@@ -1356,12 +1433,86 @@ static int g90_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 }
 
 /*
+ * Hardware evidence from one G90 is consistent
+ * with decimal hundreds/tens and the binary low nibble of the entire value.
+ * Examples: 01 9f -> 191, 02 08 -> 200, 02 01 -> 209, 02 5f -> 255.
+ * Even syntactically valid BCD can be affected. Do not auto-detect this from
+ * one reply or apply it to other levels/models or enable it by default.
+ */
+static int g90_get_af_quirk(RIG *rig, value_t *val)
+{
+    unsigned char response[MAXFRAMELEN];
+    int length = sizeof(response), retval, prefix, units, level;
+
+    retval = icom_transaction(rig, C_CTL_LVL, S_LVL_AF, NULL, 0,
+                              response, &length);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    if (length == 1 && response[0] == NAK)
+    {
+        return -RIG_ERJCTED;
+    }
+
+    if (length != 4 || response[0] != C_CTL_LVL
+            || response[1] != S_LVL_AF || response[2] > 2
+            || (response[3] >> 4) > 9)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid AF response, len=%d\n",
+                  __func__, length);
+        return -RIG_EPROTO;
+    }
+
+    prefix = 100 * response[2] + 10 * (response[3] >> 4);
+    units = ((response[3] & 0x0f) - (prefix & 0x0f) + 16) % 16;
+    level = prefix + units;
+
+    if (units > 9 || level > 255)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: inconsistent AF encoding %02x %02x\n",
+                  __func__, response[2], response[3]);
+        return -RIG_EPROTO;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: raw %02x %02x -> %d (opt-in quirk)\n",
+              __func__, response[2], response[3], level);
+    val->f = level / 255.0f;
+    return RIG_OK;
+}
+
+/*
  * g90_get_level
  * Assumes rig!=NULL, STATE(rig)->priv!=NULL, val!=NULL
+ *
+ * RIG_LEVEL_RFPOWER: at full power, G90 firmware replies with a
+ * non-conformant BCD byte (0x5f) instead of 0x02 0x55 (255), which
+ * decodes to a value above the declared 1.0 max. Clamped here rather
+ * than in icom_get_level() since it's G90-specific.
  */
 static int g90_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     int retval, state;
+    struct icom_priv_data *priv = STATE(rig)->priv;
+
+    if (level == RIG_LEVEL_AF && priv->g90_af_quirk)
+    {
+        return g90_get_af_quirk(rig, val);
+    }
+
+    if (level == RIG_LEVEL_RFPOWER)
+    {
+        retval = icom_get_level(rig, vfo, level, val);
+
+        if (retval == RIG_OK && val->f > 1.0f)
+        {
+            val->f = 1.0f;
+        }
+
+        return retval;
+    }
 
     if (level != RIG_LEVEL_ATT)
     {

@@ -394,6 +394,7 @@ struct icom_addr
 #define TOK_FILTER_USB TOKEN_BACKEND(6)
 #define TOK_FILTER_CW TOKEN_BACKEND(7)
 #define TOK_FILTER_FM TOKEN_BACKEND(8)
+#define TOK_G90_AF_QUIRK TOKEN_BACKEND(9)
 
 const struct confparams icom_cfg_params[] =
 {
@@ -431,6 +432,11 @@ const struct confparams icom_cfg_params[] =
     {
         TOK_FILTER_FM, "filter_fm", "Filter to use FM", "Filter to use for FM/PKTFM when setting mode",
         "1", RIG_CONF_NUMERIC, {.n = {0, 3, 1}}
+    },
+    {
+        TOK_G90_AF_QUIRK, "g90_af_quirk", "G90 AF readback workaround",
+        "Interpret affected G90 AF replies using decimal prefix and binary low nibble; enable only for a verified affected radio",
+        "0", RIG_CONF_CHECKBUTTON
     },
     {RIG_CONF_END, NULL,}
 };
@@ -5272,6 +5278,16 @@ int icom_set_conf(RIG *rig, hamlib_token_t token, const char *val)
         priv->tone_enable = atoi(val) ? 1 : 0;
         break;
 
+    case TOK_G90_AF_QUIRK:
+        if (rig->caps->rig_model != RIG_MODEL_G90
+                || (strcmp(val, "0") != 0 && strcmp(val, "1") != 0))
+        {
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        priv->g90_af_quirk = val[0] == '1';
+        break;
+
     case TOK_FILTER_USBD:
         priv->filter_usbd = atoi(val);
 
@@ -5339,6 +5355,15 @@ static int icom_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len
         break;
 
     case TOK_NOXCHG: SNPRINTF(val, val_len, "%d", priv->no_xchg);
+        break;
+
+    case TOK_G90_AF_QUIRK:
+        if (rig->caps->rig_model != RIG_MODEL_G90)
+        {
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        SNPRINTF(val, val_len, "%d", priv->g90_af_quirk);
         break;
 
     default: RETURNFUNC(-RIG_EINVAL);
@@ -7720,13 +7745,33 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
         {
             int retval = icom_get_cmd(rig, RIG_VFO_NONE, (struct cmdparams *)&cmd[i], val);
 
+            if (retval != RIG_OK)
+            {
+                RETURNFUNC(retval);
+            }
+
             if (parm == RIG_PARM_BANDSELECT)
             {
                 char *s = (char *)icom_get_band(rig, val->i);
                 val->s = s;
             }
+            else if (parm == RIG_PARM_KEYERTYPE)
+            {
+                static const char *keyer_types[] = { "0", "1", "2" };
 
-            RETURNFUNC(retval);
+                if (val->i < 0
+                        || val->i >= (int)(sizeof(keyer_types) /
+                                           sizeof(keyer_types[0])))
+                {
+                    rig_debug(RIG_DEBUG_ERR, "%s: invalid keyer type %d\n",
+                              __func__, val->i);
+                    RETURNFUNC(-RIG_EPROTO);
+                }
+
+                val->cs = keyer_types[val->i];
+            }
+
+            RETURNFUNC(RIG_OK);
         }
     }
 
@@ -8337,6 +8382,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
  */
 int icom_get_powerstat(RIG *rig, powerstat_t *status)
 {
+    const struct icom_priv_caps *priv_caps = rig->caps->priv;
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf), retval;
 
@@ -8366,18 +8412,7 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status)
 
     HAMLIB_TRACE;
 
-    if (RIG_IS_IC2730
-            || RIG_IS_IC705
-            || RIG_IS_IC7100
-            || RIG_IS_IC7300
-            || RIG_IS_IC7300MK2
-            || RIG_IS_IC7600
-            || RIG_IS_IC7610
-            || RIG_IS_IC7700
-            || RIG_IS_IC7800
-            || RIG_IS_IC785X
-            || RIG_IS_IC9700
-            || RIG_IS_IC905)
+    if (priv_caps != NULL && priv_caps->power_status_read_not_supported)
     {
         freq_t freq;
         hamlib_port_t *rp = RIGPORT(rig);
@@ -10223,6 +10258,8 @@ DECLARE_INITRIG_BACKEND(icom)
 
     rig_register(&ic703_caps);
     rig_register(&ic705_caps);
+    ic705net_init_caps();
+    rig_register(&ic705net_caps);
     rig_register(&ic706_caps);
     rig_register(&ic706mkii_caps);
     rig_register(&ic706mkiig_caps);
@@ -10254,8 +10291,14 @@ DECLARE_INITRIG_BACKEND(icom)
     rig_register(&ic7200_caps);
     rig_register(&ic7300_caps);
     rig_register(&ic7300mk2_caps);
+    ic7300mk2net_init_caps();
+    rig_register(&ic7300mk2net_caps);
     rig_register(&ic7610_caps);
+    ic7610net_init_caps();
+    rig_register(&ic7610net_caps);
     rig_register(&ic7760_caps);
+    ic7760net_init_caps();
+    rig_register(&ic7760net_caps);
     rig_register(&ic781_caps);
     rig_register(&ic707_caps);
     rig_register(&ic728_caps);
@@ -10264,10 +10307,14 @@ DECLARE_INITRIG_BACKEND(icom)
     rig_register(&ic820h_caps);
     rig_register(&ic821h_caps);
     rig_register(&ic905_caps);
+    ic905net_init_caps();
+    rig_register(&ic905net_caps);
     rig_register(&ic910_caps);
     rig_register(&ic9100_caps);
     rig_register(&ic970_caps);
     rig_register(&ic9700_caps);
+    ic9700net_init_caps();
+    rig_register(&ic9700net_caps);
 
     rig_register(&icrx7_caps);
     rig_register(&icr6_caps);

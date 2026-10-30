@@ -5,7 +5,7 @@
 .\"
 .\" Note: Please keep this page in sync with the source, rigctltcp.c
 .\"
-.TH RIGCTLTCP "1" "2026-02-14" "Hamlib" "Hamlib Utilities"
+.TH RIGCTLTCP "1" "2026-08-16" "Hamlib" "Hamlib Utilities"
 .
 .
 .SH NAME
@@ -29,12 +29,12 @@ rigctltcp \- TCP multicast control of radio transceivers and receivers
 .OP \-C parm=val
 .OP \-T ipaddr
 .OP \-t num
+.OP \-N num
 .OP \-M addr
 .OP \-n port
 .OP \-W secs
 .OP \-w secs
 .OP \-x option
-.OP \-A password
 .RB [ \-v [ \-Z ]]
 .YS
 .
@@ -398,6 +398,15 @@ The default is 4531.
 .
 .
 .TP
+.BR \-N ", " \-\-max\-clients = \fINUM\fP
+Limit the number of concurrent TCP clients to
+.IR NUM .
+.IP
+The value must be a positive integer. The default is 32. Connections accepted
+while the limit is reached are closed immediately.
+.
+.
+.TP
 .BR \-M ", " \-\-multicast\-addr = \fIADDR\fP
 Use
 .I ADDR
@@ -455,21 +464,6 @@ Enable time stamps for the debug messages.
 Use only in combination with the
 .B \-v
 option as it generates no output on its own.
-.
-.
-.TP
-.BR \-A ", " \-\-password = \fIPASSWORD\fP
-Sets a password on
-.B rigctltcp
-which requires Hamlib to use
-.B rig_set_password
-and clients to use
-.I PASSWORD
-to access rigctltcp.
-.
-A 32 character shared secret will be displayed to be used on the client side.
-.IP
-.B (NOT IMPLEMENTED)
 .
 .
 .TP

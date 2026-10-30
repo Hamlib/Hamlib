@@ -69,6 +69,7 @@ extern int read_history();
 #include "hamlib/rig_state.h"
 #include "misc.h"
 #include "rigctl_parse.h"
+#include "rig_tests.h"
 #include "riglist.h"
 #include "token.h"
 
@@ -223,6 +224,7 @@ int main(int argc, char *argv[])
 
     const char *rig_file = NULL, *ptt_file = NULL, *dcd_file = NULL;
     ptt_type_t ptt_type = RIG_PTT_NONE;
+    int ptt_type_set = 0;
     dcd_type_t dcd_type = RIG_DCD_NONE;
     int serial_rate = 0;
     const char *civaddr = NULL;   /* NULL means no need to set conf */
@@ -232,7 +234,6 @@ int main(int argc, char *argv[])
     int vfo_opt = 0;       /* vfo_opt = 0 means target VFO is 'currVFO' */
     char send_cmd_term = '\r';  /* send_cmd termination char */
     int ext_resp = 0;
-    int i;
     char rigstartup[1024];
     char vbuf[1024];
     rig_powerstat = RIG_POWER_ON; // defaults to power on
@@ -246,6 +247,7 @@ int main(int argc, char *argv[])
     if (err) { rig_debug(RIG_DEBUG_ERR, "%s: setvbuf err=%s\n", __func__, strerror(err)); }
 
     rig_set_debug(verbose);
+
     while (1)
     {
         int c;
@@ -332,10 +334,11 @@ int main(int argc, char *argv[])
             }
             else
             {
-                puts("Unrecognised PTT type, using NONE");
-                ptt_type = RIG_PTT_NONE;
+                fprintf(stderr, "Unrecognised PTT type '%s'\n", optarg);
+                exit(2);
             }
 
+            ptt_type_set = 1;
             break;
 
         case 'D':
@@ -474,9 +477,14 @@ int main(int argc, char *argv[])
         }
     }
 
-    SNPRINTF(rigstartup, sizeof(rigstartup), "%s(%d) Startup:", __FILE__, __LINE__);
+    {
+        char startup_prefix[sizeof(rigstartup)];
 
-    for (i = 0; i < argc; ++i) { strcat(rigstartup, " "); strcat(rigstartup, argv[i]); }
+        SNPRINTF(startup_prefix, sizeof(startup_prefix), "%s(%d) Startup:",
+                 __FILE__, __LINE__);
+        rigctl_format_startup_args(rigstartup, sizeof(rigstartup),
+                                   startup_prefix, argc, argv);
+    }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", rigstartup);
 
@@ -511,7 +519,11 @@ int main(int argc, char *argv[])
         exit(2);
     }
 
-    my_rig->caps->ptt_type = ptt_type;
+    if (ptt_type_set)
+    {
+        PTTPORT(my_rig)->type.ptt = ptt_type;
+    }
+
     const char *token = strtok(conf_parms, ",");
     struct rig_state *rs = STATE(my_rig);
 
@@ -538,7 +550,10 @@ int main(int argc, char *argv[])
             exit(2);
         }
 
-        ptt_type = my_rig->caps->ptt_type; // in case we set the ptt_type with set_conf
+        if (lookup == TOK_PTT_TYPE)
+        {
+            ptt_type_set = 1;
+        }
 
         token = strtok(NULL, ",");
     }
@@ -546,14 +561,6 @@ int main(int argc, char *argv[])
     if (rig_file)
     {
         rig_set_conf(my_rig, TOK_PATHNAME, rig_file);
-    }
-
-    /*
-     * ex: RIG_PTT_PARALLEL and /dev/parport0
-     */
-    if (ptt_type != RIG_PTT_NONE)
-    {
-        PTTPORT(my_rig)->type.ptt = ptt_type;
     }
 
     if (dcd_type != RIG_DCD_NONE)
@@ -566,10 +573,10 @@ int main(int argc, char *argv[])
         strncpy(PTTPORT(my_rig)->pathname, ptt_file, HAMLIB_FILPATHLEN - 1);
 
         // default to RTS when ptt_type is not specified
-        if (ptt_type == RIG_PTT_NONE)
+        if (!ptt_type_set)
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s: defaulting to RTS PTT\n", __func__);
-            my_rig->caps->ptt_type = RIG_PTT_SERIAL_RTS;
+            PTTPORT(my_rig)->type.ptt = RIG_PTT_SERIAL_RTS;
         }
     }
 
@@ -707,7 +714,7 @@ int main(int argc, char *argv[])
             {
                 SNPRINTF(hist_path, hist_path_size, "%s%s", hist_dir, hist_file);
             }
-	    else
+            else
             {
                 fprintf(stderr, "Allocation failed - no readline history\n");
             }
@@ -889,38 +896,38 @@ int main(int argc, char *argv[])
 static void usage(FILE *fout)
 {
     fprintf(fout, "Usage: rigctl [OPTION]... [COMMAND]...\n"
-           "Send COMMANDs to a connected radio transceiver or receiver.\n\n");
+                  "Send COMMANDs to a connected radio transceiver or receiver.\n\n");
 
     fprintf(fout,
-        "  -m, --model=ID                select radio model number. See model list (-l)\n"
-        "  -r, --rig-file=DEVICE         set device of the radio to operate on\n"
-        "  -p, --ptt-file=DEVICE         set device of the PTT device to operate on\n"
-        "  -d, --dcd-file=DEVICE         set device of the DCD device to operate on\n"
-        "  -P, --ptt-type=TYPE           set type of the PTT device to operate on\n"
-        "  -D, --dcd-type=TYPE           set type of the DCD device to operate on\n"
-        "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
-        "  -c, --civaddr=ID              set CI-V address, decimal (for Icom rigs only)\n"
-        "  -t, --send-cmd-term=CHAR      set send_cmd command termination char\n"
-        "  -C, --set-conf=PARM=VAL[,...] set config parameters\n"
-        "  -L, --show-conf               list all config parameters\n"
-        "  -l, --list                    list all model numbers and exit\n"
-        "  -u, --dump-caps               dump capabilities and exit\n"
-        "  -o, --vfo                     do not default to VFO_CURR, require extra vfo arg\n"
-        "  -n, --no-restore-ai           do not restore auto information mode on rig\n"
+            "  -m, --model=ID                select radio model number. See model list (-l)\n"
+            "  -r, --rig-file=DEVICE         set device of the radio to operate on\n"
+            "  -p, --ptt-file=DEVICE         set device of the PTT device to operate on\n"
+            "  -d, --dcd-file=DEVICE         set device of the DCD device to operate on\n"
+            "  -P, --ptt-type=TYPE           set type of the PTT device to operate on\n"
+            "  -D, --dcd-type=TYPE           set type of the DCD device to operate on\n"
+            "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
+            "  -c, --civaddr=ID              set CI-V address, decimal (for Icom rigs only)\n"
+            "  -t, --send-cmd-term=CHAR      set send_cmd command termination char\n"
+            "  -C, --set-conf=PARM=VAL[,...] set config parameters\n"
+            "  -L, --show-conf               list all config parameters\n"
+            "  -l, --list                    list all model numbers and exit\n"
+            "  -u, --dump-caps               dump capabilities and exit\n"
+            "  -o, --vfo                     do not default to VFO_CURR, require extra vfo arg\n"
+            "  -n, --no-restore-ai           do not restore auto information mode on rig\n"
 #ifdef HAVE_READLINE_HISTORY
-        "  -i, --read-history            read prior interactive session history\n"
-        "  -I, --save-history            save current interactive session history\n"
+            "  -i, --read-history            read prior interactive session history\n"
+            "  -I, --save-history            save current interactive session history\n"
 #endif
-        "  -v, --verbose                 set verbose mode, cumulative (-v to -vvvvv)\n"
-        "  -Y, --ignore-err              ignore rig_open errors\n"
-        "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
-        "  -h, --help                    display this help and exit\n"
-        "  -V, --version                 output version information and exit\n"
-        "  -!, --cookie                  use cookie control\n"
-        "  -#, --skip-init               skip rig initialization\n"
-        "  -                             read commands from standard input\n"
-        "\n"
-    );
+            "  -v, --verbose                 set verbose mode, cumulative (-v to -vvvvv)\n"
+            "  -Y, --ignore-err              ignore rig_open errors\n"
+            "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
+            "  -h, --help                    display this help and exit\n"
+            "  -V, --version                 output version information and exit\n"
+            "  -!, --cookie                  use cookie control\n"
+            "  -#, --skip-init               skip rig initialization\n"
+            "  -                             read commands from standard input\n"
+            "\n"
+           );
 
     usage_rig(fout);
 }
@@ -928,7 +935,9 @@ static void usage(FILE *fout)
 
 static void short_usage(FILE *fout)
 {
-    fprintf(fout, "Usage: rigctl [OPTION]... [-m ID] [-r DEVICE] [-s BAUD] [COMMAND...|-]\n");
-    fprintf(fout, "Send COMMANDs to a connected radio transceiver or receiver.\n\n");
+    fprintf(fout,
+            "Usage: rigctl [OPTION]... [-m ID] [-r DEVICE] [-s BAUD] [COMMAND...|-]\n");
+    fprintf(fout,
+            "Send COMMANDs to a connected radio transceiver or receiver.\n\n");
     fprintf(fout, "Type: rigctl --help for extended usage.\n");
 }

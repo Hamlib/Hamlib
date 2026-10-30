@@ -9,7 +9,7 @@
  *   RG P1 P2P3P4;    - RF Gain (P1=VFO 0/1, P2-P4=000-255)
  *   MG P1P2P3;       - Mic Gain (000-100)
  *   GT P1P2P3P4;     - AGC Time Constant (0000-6000ms or code)
- *   ML P1P2P3;       - Monitor Level (000-100)
+ *   ML P1P2P3;       - Monitor on/off or level (selector-dependent)
  *   SM P1;           - S-Meter Read (P1=0 main, returns 0000-0255)
  *   RM P1;           - Meter Read (1=Main S, 2=Sub S, 3=COMP, 4=ALC, 5=PO, 6=SWR, 7=ID, 8=VDD)
  *   PC P1 P2P2P2;    - Power Control (P1=1 field head, P1=2 SPA-1)
@@ -174,6 +174,33 @@ int ftx1_get_mic_gain(RIG *rig, float *val)
     }
 
     *val = (float)level / FTX1_MIC_GAIN_MAX;
+    return RIG_OK;
+}
+
+int ftx1_parse_monitor_response(const char *response, int selector, int *level)
+{
+    int parsed_level;
+
+    if (selector < 0 || selector > 1 || strlen(response) != 7
+            || response[0] != 'M' || response[1] != 'L'
+            || response[2] != '0' + selector
+            || response[3] < '0' || response[3] > '9'
+            || response[4] < '0' || response[4] > '9'
+            || response[5] < '0' || response[5] > '9'
+            || response[6] != ';')
+    {
+        return -RIG_EPROTO;
+    }
+
+    parsed_level = (response[3] - '0') * 100 + (response[4] - '0') * 10
+                   + response[5] - '0';
+
+    if ((selector == 0 && parsed_level > 1) || parsed_level > 100)
+    {
+        return -RIG_EPROTO;
+    }
+
+    *level = parsed_level;
     return RIG_OK;
 }
 
@@ -584,46 +611,46 @@ int ftx1_get_vox_delay(RIG *rig, int *tenths)
 }
 
 /*
- * ftx1_set_monitor_level - Set Monitor Level (ML P1 P2P3P4;)
- * CAT command: ML P1 P2P3P4; (P1=VFO 0/1, P2-P4=000-100)
+ * ftx1_set_monitor_level - Set Monitor Level (ML 1 P2P3P4;)
+ * The FTX-1's ML selector 1 controls the global monitor level; it is not a
+ * VFO selector.
  */
 int ftx1_set_monitor_level(RIG *rig, vfo_t vfo, float val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
-    int p1 = ftx1_vfo_to_p1(rig, vfo);
     int level = (int)(val * 100);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d val=%f\n", __func__,
-              rig_strvfo(vfo), p1, val);
+    (void)vfo;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: val=%f\n", __func__, val);
 
     if (level < 0) level = 0;
     if (level > 100) level = 100;
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "ML%d%03d;", p1, level);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "ML1%03d;", level);
     return newcat_set_cmd(rig);
 }
 
 /*
  * ftx1_get_monitor_level - Get Monitor Level
- * Response: ML P1 P2P3P4; (P1=VFO, P2-P4=level)
+ * Response: ML P1 P2P3P4; (P1=1, P2-P4=level)
  */
 int ftx1_get_monitor_level(RIG *rig, vfo_t vfo, float *val)
 {
     struct newcat_priv_data *priv = STATE(rig)->priv;
     int ret;
-    int p1 = ftx1_vfo_to_p1(rig, vfo);
-    int p1_resp, level;
+    int level;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s p1=%d\n", __func__,
-              rig_strvfo(vfo), p1);
+    (void)vfo;
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "ML%d;", p1);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "ML1;");
 
     ret = newcat_get_cmd(rig);
     if (ret != RIG_OK) return ret;
 
-    /* Response: ML0100 (P1=0, level=100) */
-    if (sscanf(priv->ret_data + 2, "%1d%3d", &p1_resp, &level) != 2)
+    if (ftx1_parse_monitor_response(priv->ret_data, 1, &level) != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: failed to parse '%s'\n", __func__,
                   priv->ret_data);

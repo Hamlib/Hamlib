@@ -107,4 +107,20 @@ run "alternating" $RIGSTREAMTEST -m 1 -s $RATE -c 1 --rx-secs 1 --tx-secs 1 --cy
 # keeps pace, so it exercises the concurrent RX+TX path with a zero issue tally.
 run "full-duplex" $RIGSTREAMTEST -m 1 -s $RATE --full-duplex --iq --rx-secs 1 --tx-secs 1 -d 2 --buffer-ms 2000
 
+# --require-native on a request the dummy can serve only through conversion
+# (its native format is F32) must be refused with the one stable line that
+# rigstreamtest-hw.sh matches, naming the stage that would have converted.
+out=$($RIGSTREAMTEST -m 1 -s $RATE -c 1 -t audio_rx --format s16 --require-native -d 1 2>&1)
+
+case $out in
+*"refused: native stream required, needs=FORMAT"*)
+    echo "ok: require_native refusal line"
+    ;;
+*)
+    echo "FAIL (require_native refusal line): expected a needs=FORMAT refusal"
+    echo "$out"
+    exit 1
+    ;;
+esac
+
 echo "All rigstreamtest dummy-backend tests passed."
