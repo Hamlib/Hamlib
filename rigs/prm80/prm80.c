@@ -1154,6 +1154,16 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
         offs = (chan->rptr_shift != RIG_RPT_SHIFT_NONE) ? labs(chan->rptr_offs) : 0;
         shift = (unsigned)(offs / FREQ_DIV + 0.5);
 
+        // An offset that rounds to 0 would select the default shift of the
+        // rig, and the 4 hex digits limit the shift: refuse such offsets.
+        if ((offs != 0 && shift == 0) || shift > 0xffff)
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: offset %ld Hz can't be stored (steps of %.0f Hz, 0 = default shift)\n",
+                      __func__, offs, FREQ_DIV);
+            return -RIG_EINVAL;
+        }
+
         // A channel that uses the default shift is reported by get_channel()
         // with the effective offset. Written back with that offset, it keeps
         // the default shift (0), so a later change of the default still
@@ -1310,9 +1320,27 @@ int prm80_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
     if (func & RIG_FUNC_REV)
     {
-        // Read-Modify-Write of the state of the current channel, with a
-        // fresh state (not the cache), so that the state of the channel
-        // selected right now is modified
+        // Read-Modify-Write of the state of the current channel.
+        // While the rig scans, [E] (V5.1) reports the channel being
+        // received, but [T] writes to the channel the scan started on. So
+        // the channel reported by [E] is selected first with [N], which
+        // stops a running scan (V5.1) and makes [T] act on that channel.
+        // Then the state is read fresh (not from the cache).
+        prm80_force_cache_timeout(rig);
+        ret = prm80_read_system_state(rig, buf);
+
+        if (ret != RIG_OK)
+        {
+            return ret;
+        }
+
+        ret = prm80_set_mem(rig, vfo, (int)hhtoi(buf + 2));
+
+        if (ret != RIG_OK)
+        {
+            return ret;
+        }
+
         prm80_force_cache_timeout(rig);
         ret = prm80_read_system_state(rig, buf);
 
