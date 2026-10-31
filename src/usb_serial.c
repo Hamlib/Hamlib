@@ -50,6 +50,19 @@
 
 #define USBSER_MAX 4                    /* adapters open at once */
 
+/* What this calls to reach usbfs and sysfs, and to start its threads:
+ * tests/testusbserial.c defines these to a fake adapter before including
+ * this file. */
+#ifndef USBSER_IOCTL
+#define USBSER_IOCTL ioctl
+#define USBSER_READ read
+#define USBSER_LSEEK lseek
+#define USBSER_OPEN open
+#define USBSER_CLOSE close
+#define USBSER_SYSFS "/sys/bus/usb/devices"
+#define USBSER_PTHREAD_CREATE pthread_create
+#endif
+
 struct usbser;
 
 typedef struct
@@ -81,6 +94,8 @@ struct usbser
     int master, slave;                  /* the pseudo-terminal; Hamlib has slave */
     int rts, dtr;
     volatile int run;
+    volatile int gone;                  /* the adapter went away */
+    int pumps;                          /* pump threads still running */
     pthread_t rx, tx;
 };
 
@@ -123,7 +138,7 @@ static int ctrl(struct usbser *u, uint8_t type, uint8_t req, uint16_t value,
     c.wLength = len;
     c.timeout = 1000;
     c.data = data;
-    r = ioctl(u->usbfd, USBDEVFS_CONTROL, &c);
+    r = USBSER_IOCTL(u->usbfd, USBDEVFS_CONTROL, &c);
 
     if (r < 0)
     {
@@ -143,7 +158,24 @@ static int bulk(struct usbser *u, unsigned int ep, void *buf, size_t len,
     b.len = (unsigned int)len;
     b.timeout = (unsigned int)timeout_ms;
     b.data = buf;
-    return ioctl(u->usbfd, USBDEVFS_BULK, &b);
+    return USBSER_IOCTL(u->usbfd, USBDEVFS_BULK, &b);
+}
+
+/* Framing every chip refuses rather than replaces: a port opened at
+ * settings other than the ones asked for would only fail later, quietly. */
+static int framing(const hamlib_port_t *rp, int min_bits, int *bits, int *stop)
+{
+    *bits = rp->parm.serial.data_bits > 0 ? rp->parm.serial.data_bits : 8;
+    *stop = rp->parm.serial.stop_bits > 0 ? rp->parm.serial.stop_bits : 1;
+
+    if (*bits < min_bits || *bits > 8 || (*stop != 1 && *stop != 2))
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: %d data bits, %d stop bits: not supported\n",
+                  __func__, *bits, *stop);
+        return -RIG_EINVAL;
+    }
+
+    return RIG_OK;
 }
 
 /* ---- CP210x (AN571) ---- */
@@ -162,11 +194,16 @@ static int cp_setup(struct usbser *u, const hamlib_port_t *rp)
     int rate = rp->parm.serial.rate > 0 ? rp->parm.serial.rate : 9600;
     uint8_t b[4];
     uint16_t line = 0;
+    int bits, stop, r;
 
-    switch (rp->parm.serial.stop_bits)
+    if ((r = framing(rp, 5, &bits, &stop)) != RIG_OK)
     {
-    case 2: line |= 2; break;
-    default: break;                     /* 1 stop bit */
+        return r;
+    }
+
+    if (stop == 2)
+    {
+        line |= 2;
     }
 
     switch (rp->parm.serial.parity)
@@ -178,9 +215,7 @@ static int cp_setup(struct usbser *u, const hamlib_port_t *rp)
     default: break;
     }
 
-    line |= (uint16_t)((rp->parm.serial.data_bits >= 5
-                        && rp->parm.serial.data_bits <= 8
-                        ? rp->parm.serial.data_bits : 8) << 8);
+    line |= (uint16_t)(bits << 8);
 
     if (rp->parm.serial.handshake == RIG_HANDSHAKE_HARDWARE)
     {
@@ -236,23 +271,6 @@ static void cp_fini(struct usbser *u)
 }
 
 static const usbser_chip_t cp210x = { "CP210x", cp_setup, cp_set_lines, cp_get_status, cp_fini, NULL };
-
-/* Framing every chip below refuses rather than replaces: a port opened at
- * settings other than the ones asked for would only fail later, quietly. */
-static int framing(const hamlib_port_t *rp, int min_bits, int *bits, int *stop)
-{
-    *bits = rp->parm.serial.data_bits > 0 ? rp->parm.serial.data_bits : 8;
-    *stop = rp->parm.serial.stop_bits > 0 ? rp->parm.serial.stop_bits : 1;
-
-    if (*bits < min_bits || *bits > 8 || (*stop != 1 && *stop != 2))
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: %d data bits, %d stop bits: not supported\n",
-                  __func__, *bits, *stop);
-        return -RIG_EINVAL;
-    }
-
-    return RIG_OK;
-}
 
 /* RIG_PARITY_* as CDC (and PL2303) line coding numbers it: none, odd, even,
  * mark, space. */
@@ -817,7 +835,7 @@ static int sysfs_read(const char *dev, const char *name, char *out, size_t len)
     char p[512];
     FILE *f;
 
-    snprintf(p, sizeof(p), "/sys/bus/usb/devices/%s/%s", dev, name);
+    snprintf(p, sizeof(p), "%s/%s/%s", USBSER_SYSFS, dev, name);
     f = fopen(p, "r");
 
     if (!f)
@@ -841,7 +859,7 @@ static int sysfs_read(const char *dev, const char *name, char *out, size_t len)
 static int find_node(unsigned int vid, unsigned int pid, const char *serial,
                      char *node, size_t len)
 {
-    DIR *dir = opendir("/sys/bus/usb/devices");
+    DIR *dir = opendir(USBSER_SYSFS);
     struct dirent *e;
     int found = -1;
 
@@ -920,8 +938,8 @@ static int find_endpoints(struct usbser *u, int want, unsigned int *vid,
 
     for (k = 0; k < 32; k++) { union_ctl[k] = -1; }
 
-    lseek(u->usbfd, 0, SEEK_SET);
-    n = read(u->usbfd, d, sizeof(d));
+    USBSER_LSEEK(u->usbfd, 0, SEEK_SET);
+    n = USBSER_READ(u->usbfd, d, sizeof(d));
 
     if (n < 18 || d[1] != 1)
     {
@@ -1049,21 +1067,49 @@ static int find_endpoints(struct usbser *u, int want, unsigned int *vid,
 
 /* ---- the pump ---- */
 
+/* A pump stopping.  The last one to stop after the adapter went away hangs
+ * up the pseudo-terminal, so Hamlib's reads and writes on it fail (EIO)
+ * instead of writes going nowhere until a reply times out. */
+static void pump_done(struct usbser *u)
+{
+    if (__atomic_sub_fetch(&u->pumps, 1, __ATOMIC_ACQ_REL) == 0 && u->gone
+            && u->master >= 0)
+    {
+        close(u->master);
+        u->master = -1;
+    }
+}
+
+static int unplugged(int err)
+{
+    return err == ENODEV || err == ESHUTDOWN;
+}
+
 static void *rx_pump(void *arg)
 {
     struct usbser *u = arg;
-    uint8_t b[512];
+    uint8_t b[1024];
+    /* One packet per transfer: usbfs hands back nothing of a transfer that
+     * times out, so a longer one would drop the full packets that arrived
+     * before the deadline. */
+    size_t want = u->in_mps ? u->in_mps : 64;
 
-    while (u->run)
+    if (want > sizeof(b))
     {
-        int n = bulk(u, u->ep_in, b, sizeof(b), 100);
+        want = sizeof(b);
+    }
+
+    while (u->run && !u->gone)
+    {
+        int n = bulk(u, u->ep_in, b, want, 100);
         int off = 0;
 
         if (n < 0)
         {
-            if (errno == ENODEV)
+            if (unplugged(errno))
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: adapter gone\n", __func__);
+                u->gone = 1;
                 break;
             }
 
@@ -1080,7 +1126,9 @@ static void *rx_pump(void *arg)
             n = u->chip->rx_filter(u, b, n);
         }
 
-        while (off < n)
+        /* the master is non-blocking: with nobody reading the port, this
+         * waits for room, but never past a close */
+        while (off < n && u->run && !u->gone)
         {
             ssize_t w = write(u->master, b + off, (size_t)(n - off));
 
@@ -1099,15 +1147,18 @@ static void *rx_pump(void *arg)
         }
     }
 
+    pump_done(u);
     return NULL;
 }
 
+/* Until close, and then what is still queued: bytes written just before
+ * a close reach the adapter. */
 static void *tx_pump(void *arg)
 {
     struct usbser *u = arg;
     uint8_t b[512];
 
-    while (u->run)
+    while (!u->gone)
     {
         struct pollfd p;
         ssize_t n;
@@ -1116,20 +1167,32 @@ static void *tx_pump(void *arg)
         p.events = POLLIN;
         p.revents = 0;
 
-        if (poll(&p, 1, 100) <= 0 || !(p.revents & POLLIN))
+        if (poll(&p, 1, 100) <= 0 || !(p.revents & POLLIN)
+                || (n = read(u->master, b, sizeof(b))) <= 0)
         {
+            if (!u->run)
+            {
+                break;                  /* closing, and nothing left */
+            }
+
             continue;
         }
 
-        n = read(u->master, b, sizeof(b));
-
-        if (n > 0 && bulk(u, u->ep_out, b, (size_t)n, 1000) != n)
+        if (bulk(u, u->ep_out, b, (size_t)n, 1000) != n)
         {
+            if (unplugged(errno))
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: adapter gone\n", __func__);
+                u->gone = 1;
+                break;
+            }
+
             rig_debug(RIG_DEBUG_WARN, "%s: write to the adapter failed: %s\n", __func__,
                       strerror(errno));
         }
     }
 
+    pump_done(u);
     return NULL;
 }
 
@@ -1163,11 +1226,11 @@ static void give_back(struct usbser *u, int ifno)
         return;
     }
 
-    ioctl(u->usbfd, USBDEVFS_RELEASEINTERFACE, &i);
+    USBSER_IOCTL(u->usbfd, USBDEVFS_RELEASEINTERFACE, &i);
     c.ifno = ifno;
     c.ioctl_code = USBDEVFS_CONNECT;
     c.data = NULL;
-    ioctl(u->usbfd, USBDEVFS_IOCTL, &c);
+    USBSER_IOCTL(u->usbfd, USBDEVFS_IOCTL, &c);
 }
 
 /* Claim an interface, detaching a kernel driver bound to it (cp210x,
@@ -1180,8 +1243,8 @@ static int take(struct usbser *u, int ifno)
     memset(&dc, 0, sizeof(dc));
     dc.interface = i;
 
-    if (ioctl(u->usbfd, USBDEVFS_DISCONNECT_CLAIM, &dc) < 0
-            && ioctl(u->usbfd, USBDEVFS_CLAIMINTERFACE, &i) < 0)
+    if (USBSER_IOCTL(u->usbfd, USBDEVFS_DISCONNECT_CLAIM, &dc) < 0
+            && USBSER_IOCTL(u->usbfd, USBDEVFS_CLAIMINTERFACE, &i) < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: cannot claim interface %d: %s\n", __func__,
                   ifno, strerror(errno));
@@ -1200,7 +1263,7 @@ static void release(struct usbser *u)
         pthread_join(u->tx, NULL);
     }
 
-    if (u->chip && u->ifno >= 0)
+    if (u->chip && u->ifno >= 0 && !u->gone)
     {
         u->rts = u->dtr = 0;
         u->chip->set_lines(u);
@@ -1215,7 +1278,7 @@ static void release(struct usbser *u)
         give_back(u, u->ctl_if);
     }
 
-    if (u->own_usbfd && u->usbfd >= 0) { close(u->usbfd); }
+    if (u->own_usbfd && u->usbfd >= 0) { USBSER_CLOSE(u->usbfd); }
     if (u->slave >= 0) { close(u->slave); }
     if (u->master >= 0) { close(u->master); }
 
@@ -1298,7 +1361,7 @@ int usb_serial_open(hamlib_port_t *rp)
             }
         }
 
-        u->usbfd = open(node, O_RDWR | O_CLOEXEC);
+        u->usbfd = USBSER_OPEN(node, O_RDWR | O_CLOEXEC);
 
         if (u->usbfd < 0)
         {
@@ -1336,13 +1399,13 @@ int usb_serial_open(hamlib_port_t *rp)
         u->ctl_if = -1;
     }
 
-    if (take(u, u->ifno) != RIG_OK)
+    if ((err = take(u, u->ifno)) != RIG_OK)
     {
         u->ifno = u->ctl_if = -1;
         goto fail;
     }
 
-    if (u->ctl_if >= 0 && u->ctl_if != u->ifno && take(u, u->ctl_if) != RIG_OK)
+    if (u->ctl_if >= 0 && u->ctl_if != u->ifno && (err = take(u, u->ctl_if)) != RIG_OK)
     {
         u->ctl_if = -1;
         goto fail;
@@ -1370,6 +1433,8 @@ int usb_serial_open(hamlib_port_t *rp)
         tcsetattr(u->master, TCSANOW, &t);
     }
 
+    fcntl(u->master, F_SETFL, fcntl(u->master, F_GETFL) | O_NONBLOCK);
+
     u->slave = open(tty, O_RDWR | O_NOCTTY | O_NDELAY | O_CLOEXEC);
 
     if (u->slave < 0)
@@ -1381,17 +1446,20 @@ int usb_serial_open(hamlib_port_t *rp)
     }
 
     u->run = 1;
+    u->pumps = 2;
 
-    if (pthread_create(&u->rx, NULL, rx_pump, u))
+    if (USBSER_PTHREAD_CREATE(&u->rx, NULL, rx_pump, u))
     {
         u->run = 0;
+        err = -RIG_EIO;
         goto fail;
     }
 
-    if (pthread_create(&u->tx, NULL, tx_pump, u))
+    if (USBSER_PTHREAD_CREATE(&u->tx, NULL, tx_pump, u))
     {
         u->run = 0;
         pthread_join(u->rx, NULL);
+        err = -RIG_EIO;
         goto fail;
     }
 
@@ -1404,7 +1472,8 @@ fail:
     pthread_mutex_lock(&usbser_lock);
     release(u);
     pthread_mutex_unlock(&usbser_lock);
-    return err;
+    /* never a descriptor: 0 would hand the caller stdin as the port */
+    return err < 0 ? err : -RIG_EIO;
 }
 
 /* serial_setup() runs on the pseudo-terminal too (raw mode, its termios

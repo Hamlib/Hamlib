@@ -415,7 +415,7 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
      * to the chip. */
     if (usb_serial_is_fd(rp->fd))
     {
-#if defined(HAVE_TERMIOS_H)
+#if defined(HAVE_TERMIOS_H) && defined(HAVE_CFMAKERAW)
         struct termios t;
 
         if (tcgetattr(rp->fd, &t) == 0)
