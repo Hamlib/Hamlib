@@ -8559,7 +8559,7 @@ static int async_data_handler_start(RIG *rig)
     if (err)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: pthread_create error: %s\n", __func__,
-                  strerror(errno));
+                  strerror(err));
         RETURNFUNC(-RIG_EINTERNAL);
     }
 
@@ -8597,7 +8597,7 @@ static int morse_data_handler_start(RIG *rig)
     if (err)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: pthread_create error: %s\n", __func__,
-                  strerror(errno));
+                  strerror(err));
         RETURNFUNC(-RIG_EINTERNAL);
     }
 
@@ -8629,7 +8629,7 @@ static int async_data_handler_stop(RIG *rig)
             if (err)
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: pthread_join error: %s\n", __func__,
-                          strerror(errno));
+                          strerror(err));
                 // just ignore the error
             }
 
@@ -8684,7 +8684,7 @@ static int morse_data_handler_stop(RIG *rig)
             if (err)
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: pthread_join error: %s\n", __func__,
-                          strerror(errno));
+                          strerror(err));
                 // just ignore the error
             }
 
