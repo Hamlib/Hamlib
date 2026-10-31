@@ -39,6 +39,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <termios.h>
 #include <time.h>
 #include <unistd.h>
 #include <linux/usbdevice_fs.h>
@@ -61,6 +62,8 @@ static char sysfs_root[256];
 #define USBSER_PTHREAD_CREATE fake_pthread_create
 
 #include "../src/usb_serial.c"
+#include "misc.h"
+#include "serial.h"
 
 /* ---- the fake adapter ---- */
 
@@ -70,7 +73,7 @@ static char sysfs_root[256];
 static struct
 {
     pthread_mutex_t lock;
-    uint8_t desc[512];
+    uint8_t desc[8192];
     size_t desc_len;
     char node[64];                      /* the usbfs node it answers at */
     int claim_fail;                     /* interface whose claim fails, or -1 */
@@ -78,6 +81,7 @@ static struct
     int threads;
     volatile int gone;                  /* unplugged: everything ENODEV */
     int slow_out_ms;                    /* each bulk OUT takes this long */
+    int ctl_fail;                       /* control transfers fail */
     uint8_t rx[RXQ][MPS];
     int rx_len[RXQ];
     int rx_head, rx_tail;
@@ -120,6 +124,12 @@ static int fake_ioctl(int fd, unsigned long req, void *arg)
     if (req == USBDEVFS_CONTROL)
     {
         struct usbdevfs_ctrltransfer *c = arg;
+
+        if (F.ctl_fail)
+        {
+            errno = EPIPE;
+            return -1;
+        }
 
         pthread_mutex_lock(&F.lock);
 
@@ -570,6 +580,47 @@ static void test_failed_opens(void)
               "truncated descriptors (%d): not released", t);
     }
 
+    /* descriptors that lie about their length: one too short to be an
+     * interface, and the last one cut off in the middle */
+    {
+        const uint8_t bad[] = { 3, 4, 0 };
+
+        fake_reset();
+        cp2105();
+        sysfs(0x10c4, 0xea70);
+        F.desc_len = put(F.desc, 18 + 9, bad, 3);
+        F.desc_len = put(F.desc, F.desc_len, (const uint8_t[]) { 9, 4, 0, 2, 0xff, 0 }, 6);
+        CHECK(open_port("usb:10c4:ea70") < 0, "malformed descriptors: opened");
+        CHECK(slots_free() == USBSER_MAX, "malformed descriptors: not released");
+    }
+
+    /* descriptors filling usbfs' read, the last one cut off at its end:
+     * nothing may be read past it */
+    {
+        const uint8_t pad[2] = { 255, 0x30 };   /* a vendor descriptor */
+        size_t n;
+
+        fake_reset();
+        cp2105();
+        sysfs(0x10c4, 0xea70);
+        n = 18 + 9;
+
+        while (n + 255 <= 4094)
+        {
+            put(F.desc, n, pad, 2);
+            memset(F.desc + n + 2, 0, 253);
+            n += 255;
+        }
+
+        while (n < 4094) { F.desc[n++] = 2; F.desc[n++] = 0x30; }   /* 2-byte fillers */
+
+        F.desc[n++] = 9;                        /* an interface, 2 bytes of it */
+        F.desc[n++] = 4;
+        F.desc_len = n;                         /* = 4096, the read's size */
+        CHECK(F.desc_len == 4096, "test setup: %zu bytes", F.desc_len);
+        CHECK(open_port("usb:10c4:ea70") < 0, "descriptors cut at the read's end: opened");
+    }
+
     /* a framing the chip cannot do: refused, not opened as 8N1 */
     {
         hamlib_port_t rp;
@@ -666,6 +717,52 @@ static void test_shutdown_and_unplug(void)
     CHECK(slots_free() == USBSER_MAX, "unplugged port: slot not freed");
 }
 
+/* what the rest of Hamlib does with a "usb:" port */
+static void test_hamlib_paths(void)
+{
+    hamlib_port_t cat, ptt;
+    char host[256], portstr[6];
+    struct termios t;
+    int st = -1;
+
+    /* not a network address */
+    CHECK(parse_hoststr((char *)"usb:", 5, host, portstr) != RIG_OK, "usb: taken for a host");
+    CHECK(parse_hoststr((char *)"usbfd:42", 9, host, portstr) != RIG_OK, "usbfd:42 taken for a host");
+    CHECK(parse_hoststr((char *)"usb:10c4:ea70", 14, host, portstr) != RIG_OK,
+          "usb:10c4:ea70 taken for a host");
+
+    /* CAT on @0, RTS PTT through ser_open() on @1 */
+    fake_reset();
+    cp2105();
+    sysfs(0x10c4, 0xea70);
+    port(&cat, "usb:10c4:ea70@0");
+    cat.parm.serial.handshake = RIG_HANDSHAKE_XONXOFF;
+    cat.fd = usb_serial_open(&cat);
+    CHECK(cat.fd >= 0, "CAT open = %d", cat.fd);
+    CHECK(serial_setup(&cat) == RIG_OK, "serial_setup on the CAT port");
+    CHECK(tcgetattr(cat.fd, &t) == 0 && (t.c_iflag & IXON), "XON/XOFF not set on the port");
+    port(&ptt, "usb:10c4:ea70@1");
+    CHECK(ser_open(&ptt) >= 0 && F.claimed[1], "ser_open() did not open the PTT port");
+    CHECK(ser_set_rts(&ptt, 1) == RIG_OK, "RTS on the PTT port");
+
+    /* a failed RTS is not reported as set, nor sent again with DTR */
+    F.ctl_fail = 1;
+    CHECK(usb_serial_set_rts(ptt.fd, 0) != RIG_OK, "RTS off with the adapter failing");
+    CHECK(usb_serial_get_rts(ptt.fd, &st) == RIG_OK && st == 1, "a failed RTS off changed the state");
+    F.ctl_fail = 0;
+    CHECK(usb_serial_set_rts(ptt.fd, 0) == RIG_OK, "RTS off");
+    F.ctl_fail = 1;
+    CHECK(usb_serial_set_rts(ptt.fd, 1) != RIG_OK, "RTS on with the adapter failing");
+    CHECK(usb_serial_get_rts(ptt.fd, &st) == RIG_OK && st == 0, "a failed RTS on reported as on");
+    F.ctl_fail = 0;
+    F.nctl = 0;
+    CHECK(usb_serial_set_dtr(ptt.fd, 1) == RIG_OK && F.nctl == 1
+          && !(F.ctl[0].value & 0x02), "a DTR change keyed RTS after a failed RTS");
+    ser_close(&ptt);
+    usb_serial_close(cat.fd);
+    CHECK(!F.claimed[0] && !F.claimed[1], "ports not released");
+}
+
 /* an FTDI's two status bytes per packet do not reach the caller */
 static void test_ftdi(void)
 {
@@ -731,6 +828,7 @@ int main(void)
     RUN(test_failed_opens);
     RUN(test_no_lost_bytes);
     RUN(test_shutdown_and_unplug);
+    RUN(test_hamlib_paths);
     RUN(test_ftdi);
     RUN(test_cdc_acm);
 
