@@ -80,6 +80,7 @@
 #endif
 
 #include "microham.h"
+#include "usb_serial.h"
 
 static int uh_ptt_fd   = -1;
 static int uh_radio_fd = -1;
@@ -319,6 +320,33 @@ int HAMLIB_API serial_open(hamlib_port_t *rp)
     }
 
     /*
+     * "usb:..." or "usbfd:N": a USB-serial chip Hamlib drives itself, behind a
+     * pseudo-terminal (usb_serial.h).
+     */
+    if (usb_serial_is_path(rp->pathname))
+    {
+        fd = usb_serial_open(rp);
+
+        if (fd < 0)
+        {
+            return (fd);
+        }
+
+        rp->fd = fd;
+        err = serial_setup(rp);
+
+        if (err != RIG_OK)
+        {
+            usb_serial_close(fd);
+            rp->fd = -1;
+            return (err);
+        }
+
+        serial_flush(rp);
+        return (RIG_OK);
+    }
+
+    /*
      * Open in Non-blocking mode. Watch for EAGAIN errors!
      */
     int i = 1;
@@ -383,6 +411,32 @@ int HAMLIB_API serial_open(hamlib_port_t *rp)
  */
 int HAMLIB_API serial_setup(hamlib_port_t *rp)
 {
+    /* A USB-serial chip: raw mode on the pseudo-terminal, the line settings
+     * to the chip. */
+    if (usb_serial_is_fd(rp->fd))
+    {
+#if defined(HAVE_TERMIOS_H) && defined(HAVE_CFMAKERAW)
+        struct termios t;
+
+        if (tcgetattr(rp->fd, &t) == 0)
+        {
+            cfmakeraw(&t);
+
+            /* XON/XOFF as on a tty: the pseudo-terminal stops Hamlib's
+             * output on the rig's XOFF, and keeps both bytes from the
+             * reply parser */
+            if (rp->parm.serial.handshake == RIG_HANDSHAKE_XONXOFF)
+            {
+                t.c_iflag |= IXON;
+            }
+
+            tcsetattr(rp->fd, TCSANOW, &t);
+        }
+
+#endif
+        return (usb_serial_setup(rp));
+    }
+
     int fd;
     /* There's a lib replacement for termios under Mingw */
 #if defined(HAVE_TERMIOS_H)
@@ -963,6 +1017,13 @@ int ser_open(hamlib_port_t *p)
             ret = uh_open_ptt();
             uh_ptt_fd = ret;
         }
+        else if (usb_serial_is_path(p->pathname))
+        {
+            /* a PTT or DCD port on a USB-serial chip ("usb:...@1") */
+            ret = usb_serial_open(p);
+            p->fd = ret;
+            return (ret);
+        }
         else
         {
             /*
@@ -1009,6 +1070,13 @@ int ser_close(hamlib_port_t *p)
     term_options_backup_t *term_backup, *term_backup_prev;
 
     //rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (usb_serial_is_fd(p->fd))
+    {
+        usb_serial_close(p->fd);
+        p->fd = -1;
+        return (0);
+    }
 
     /*
      * For microHam devices, do not close the
@@ -1130,6 +1198,11 @@ int HAMLIB_API ser_set_rts(hamlib_port_t *p, int state)
         return (RIG_OK);
     }
 
+    if (usb_serial_is_fd(p->fd))
+    {
+        return (usb_serial_set_rts(p->fd, state));
+    }
+
 #if defined(TIOCMBIS) && defined(TIOCMBIC)
     rc = IOCTL(p->fd, state ? TIOCMBIS : TIOCMBIC, &y);
 #else
@@ -1180,6 +1253,11 @@ int HAMLIB_API ser_get_rts(hamlib_port_t *p, int *state)
         return (-RIG_ENIMPL);
     }
 
+    if (usb_serial_is_fd(p->fd))
+    {
+        return (usb_serial_get_rts(p->fd, state));
+    }
+
     retcode = IOCTL(p->fd, TIOCMGET, &y);
     *state = (y & TIOCM_RTS) == TIOCM_RTS;
 
@@ -1211,6 +1289,11 @@ int HAMLIB_API ser_set_dtr(hamlib_port_t *p, int state)
     {
         uh_set_ptt(state);
         return (RIG_OK);
+    }
+
+    if (usb_serial_is_fd(p->fd))
+    {
+        return (usb_serial_set_dtr(p->fd, state));
     }
 
 #if defined(TIOCMBIS) && defined(TIOCMBIC)
@@ -1269,6 +1352,11 @@ int HAMLIB_API ser_get_dtr(hamlib_port_t *p, int *state)
         return (-RIG_ENIMPL);
     }
 
+    if (usb_serial_is_fd(p->fd))
+    {
+        return (usb_serial_get_dtr(p->fd, state));
+    }
+
     retcode = IOCTL(p->fd, TIOCMGET, &y);
     *state = (y & TIOCM_DTR) == TIOCM_DTR;
 
@@ -1288,6 +1376,11 @@ int HAMLIB_API ser_set_brk(const hamlib_port_t *p, int state)
     if (p->fd == uh_ptt_fd || p->fd == uh_radio_fd)
     {
         return (RIG_OK);
+    }
+
+    if (usb_serial_is_fd(p->fd))
+    {
+        return (-RIG_ENIMPL);
     }
 
 #if defined(TIOCSBRK) && defined(TIOCCBRK)
@@ -1315,6 +1408,11 @@ int HAMLIB_API ser_get_car(hamlib_port_t *p, int *state)
         return (-RIG_ENIMPL);
     }
 
+    if (usb_serial_is_fd(p->fd))
+    {
+        return (usb_serial_get_status(p->fd, NULL, NULL, state));
+    }
+
     retcode = IOCTL(p->fd, TIOCMGET, &y);
     *state = (y & TIOCM_CAR) == TIOCM_CAR;
 
@@ -1338,6 +1436,11 @@ int HAMLIB_API ser_get_cts(hamlib_port_t *p, int *state)
         return (-RIG_ENIMPL);
     }
 
+    if (usb_serial_is_fd(p->fd))
+    {
+        return (usb_serial_get_status(p->fd, state, NULL, NULL));
+    }
+
     retcode = IOCTL(p->fd, TIOCMGET, &y);
     *state = (y & TIOCM_CTS) == TIOCM_CTS;
 
@@ -1359,6 +1462,11 @@ int HAMLIB_API ser_get_dsr(hamlib_port_t *p, int *state)
     if (p->fd == uh_ptt_fd || p->fd == uh_radio_fd)
     {
         return (-RIG_ENIMPL);
+    }
+
+    if (usb_serial_is_fd(p->fd))
+    {
+        return (usb_serial_get_status(p->fd, NULL, state, NULL));
     }
 
     retcode = IOCTL(p->fd, TIOCMGET, &y);

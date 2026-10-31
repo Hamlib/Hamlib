@@ -57,6 +57,7 @@
 #include "network.h"
 #include "sprintflst.h"
 #include "../rigs/icom/icom.h"
+#include "usb_serial.h"
 
 #if defined(_WIN32)
 #  include <time.h>
@@ -2266,6 +2267,9 @@ int HAMLIB_API parse_hoststr(char *hoststr, int hoststr_len, char host[256],
     // Exclude any names that aren't a host:port format
     // Handle device names 1st
     if (strstr(hoststr, "/dev")) { return -RIG_EINVAL; }
+
+    // a USB-serial chip Hamlib drives itself ("usb:...", "usbfd:N")
+    if (usb_serial_is_path(hoststr)) { return -RIG_EINVAL; }
 
     if (strstr(hoststr, "/")) { return -RIG_EINVAL; } // probably a path so not a hoststr
 
