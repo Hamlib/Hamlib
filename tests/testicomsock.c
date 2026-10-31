@@ -21,6 +21,13 @@ int close_test_socket(int fd)
 #endif
 }
 
+void stop_test_peer(int sockets[2], pthread_t thread)
+{
+    close_test_socket(sockets[0]);
+    pthread_join(thread, NULL);
+    close_test_socket(sockets[1]);
+}
+
 int read_test_socket(int fd, void *buffer, size_t length)
 {
 #ifdef _WIN32

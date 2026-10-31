@@ -134,9 +134,7 @@ static int open_handle(struct handle *h, int band_sel_answer)
 
 static void close_handle(struct handle *h)
 {
-    close_test_socket(h->sockets[0]);
-    close_test_socket(h->sockets[1]);
-    pthread_join(h->thread, NULL);
+    stop_test_peer(h->sockets, h->thread);
     STATE(h->rig)->comm_state = 0;
     RIGPORT(h->rig)->fd = -1;
     rig_cleanup(h->rig);
