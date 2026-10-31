@@ -873,6 +873,7 @@ static int start_rigctld_opt(struct rigctld_proc *proc,
         }
 
         dump_rigctld_log(proc->log_path);
+        unlink(proc->log_path);
 
         if (!pinned)
         {
