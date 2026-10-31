@@ -93,15 +93,20 @@ static void watchdog_stop(struct watchdog *watchdog)
     REQUIRE(pthread_mutex_destroy(&watchdog->mutex) == 0);
 }
 
-#ifndef _WIN32
-
 static void require_unprepared(const hamlib_port_t *port)
 {
+#ifdef _WIN32
+    REQUIRE(port->sync_data_pipe == NULL);
+    REQUIRE(port->sync_data_error_pipe == NULL);
+#else
     REQUIRE(port->fd_sync_read == -1);
     REQUIRE(port->fd_sync_write == -1);
     REQUIRE(port->fd_sync_error_read == -1);
     REQUIRE(port->fd_sync_error_write == -1);
+#endif
 }
+
+#ifndef _WIN32
 
 /* Descriptor exhaustion must never affect the parent test process. */
 static void pipe_failure_probe(int available)
@@ -154,7 +159,14 @@ static void pipe_failure_probe(int available)
     port.type.rig = RIG_PORT_NONE;
     port.timeout = 200;
     port.asyncio = 1;
-    REQUIRE(port_open(&port) == -RIG_EINTERNAL);
+    REQUIRE(port_open(&port) == RIG_OK);
+    REQUIRE(!port.asyncio);
+    REQUIRE(!port_async_is_prepared(&port));
+    require_unprepared(&port);
+    REQUIRE(port_prepare_async(&port) == -RIG_EINTERNAL);
+    REQUIRE(!port.asyncio);
+    REQUIRE(!port_async_is_prepared(&port));
+    require_unprepared(&port);
     require_unprepared(&port);
 
     for (i = 0; i < (int)limit.rlim_cur; ++i)
@@ -191,7 +203,9 @@ static void pipe_failure_probe(int available)
     require_unprepared(&port);
     port.asyncio = 1;
     REQUIRE(port_open(&port) == RIG_OK);
+    REQUIRE(port_prepare_async(&port) == RIG_OK);
     REQUIRE(write_block_sync(&port, &sent, 1) == 1);
+    port.asyncio = 1;
     REQUIRE(read_block(&port, &received, 1) == 1);
     REQUIRE(received == sent);
     REQUIRE(port_close(&port, port.type.rig) == RIG_OK);
@@ -238,7 +252,30 @@ static void test_pipe_failure(int available)
 #define TEST_MORSE_MODEL RIG_MAKE_MODEL(RIG_DUMMY, 998)
 #define TEST_FRAME_BYTE 0x5a
 
+static int backend_opened_in_direct_mode;
+static int backend_closed_in_direct_mode;
 static int frame_sent;
+
+static int stub_rig_open(RIG *rig)
+{
+    hamlib_port_t *port = RIGPORT(rig);
+
+    require_unprepared(port);
+    backend_opened_in_direct_mode = !port->asyncio
+                                    && !port_async_is_prepared(port);
+    return backend_opened_in_direct_mode ? RIG_OK : -RIG_EINTERNAL;
+}
+
+static int stub_rig_close(RIG *rig)
+{
+    hamlib_port_t *port = RIGPORT(rig);
+
+    require_unprepared(port);
+    backend_closed_in_direct_mode = !port->asyncio
+                                    && !port_async_is_prepared(port);
+    return RIG_OK;
+}
+
 static char thread_error[512];
 
 static int stub_read_frame_direct(RIG *rig, size_t buffer_length,
@@ -296,6 +333,8 @@ static struct rig_caps async_caps =
     .port_type = RIG_PORT_NONE,
     .timeout = 200,
     .retry = 0,
+    .rig_open = stub_rig_open,
+    .rig_close = stub_rig_close,
     .async_data_supported = 1,
     .read_frame_direct = stub_read_frame_direct,
     .is_async_frame = stub_is_async_frame,
@@ -367,6 +406,9 @@ static void test_failed_reader_start_rolls_back_state(void)
         REQUIRE(rig_async_data_handler_start(rig, fail_thread_start)
                 == -RIG_EINTERNAL);
         check_thread_error();
+        REQUIRE(!RIGPORT(rig)->asyncio);
+        REQUIRE(!port_async_is_prepared(RIGPORT(rig)));
+        require_unprepared(RIGPORT(rig));
         REQUIRE(!STATE(rig)->async_data_handler_thread_run);
         REQUIRE(STATE(rig)->async_data_handler_priv_data == NULL);
     }
@@ -406,6 +448,115 @@ static void test_failed_morse_start_rolls_back_state(void)
     REQUIRE(rig_cleanup(rig) == RIG_OK);
 }
 
+
+static void test_sync_pipe_is_separate_from_active_routing(void)
+{
+    hamlib_port_t port;
+    unsigned char sent = TEST_FRAME_BYTE;
+    unsigned char received = 0;
+    unsigned char error = (unsigned char) - RIG_EIO;
+
+    memset(&port, 0, sizeof(port));
+    port.type.rig = RIG_PORT_NONE;
+    port.timeout = 200;
+    port.asyncio = 1;
+
+    REQUIRE(port_open(&port) == RIG_OK);
+    REQUIRE(!port.asyncio);
+    REQUIRE(!port_async_is_prepared(&port));
+    require_unprepared(&port);
+    REQUIRE(port_prepare_async(&port) == RIG_OK);
+    REQUIRE(!port.asyncio);
+    REQUIRE(port_async_is_prepared(&port));
+
+    REQUIRE(write_block_sync(&port, &sent, 1) == 1);
+    port.asyncio = 1;
+    REQUIRE(read_block(&port, &received, 1) == 1);
+    REQUIRE(received == sent);
+    port.asyncio = 0;
+    REQUIRE(write_block_sync_error(&port, &error, 1) == 1);
+
+    port_cleanup_async(&port);
+    REQUIRE(!port.asyncio);
+    REQUIRE(!port_async_is_prepared(&port));
+    require_unprepared(&port);
+    port_cleanup_async(&port);
+    REQUIRE(port_close(&port, port.type.rig) == RIG_OK);
+}
+
+static void test_reader_owns_port_only_while_running(void)
+{
+    RIG *rig = new_test_rig(TEST_ASYNC_MODEL, 1);
+    unsigned char received = 0;
+
+    frame_sent = 0;
+    backend_opened_in_direct_mode = 0;
+    REQUIRE(rig_open(rig) == RIG_OK);
+    REQUIRE(backend_opened_in_direct_mode);
+    REQUIRE(STATE(rig)->async_data_enabled);
+    REQUIRE(RIGPORT(rig)->asyncio);
+    REQUIRE(port_async_is_prepared(RIGPORT(rig)));
+    REQUIRE(STATE(rig)->async_data_handler_thread_run);
+    REQUIRE(STATE(rig)->async_data_handler_priv_data != NULL);
+    REQUIRE(read_block(RIGPORT(rig), &received, 1) == 1);
+    REQUIRE(received == TEST_FRAME_BYTE);
+
+    backend_closed_in_direct_mode = 0;
+    REQUIRE(rig_close(rig) == RIG_OK);
+    REQUIRE(backend_closed_in_direct_mode);
+    REQUIRE(STATE(rig)->async_data_enabled);
+    REQUIRE(!RIGPORT(rig)->asyncio);
+    REQUIRE(!port_async_is_prepared(RIGPORT(rig)));
+    require_unprepared(RIGPORT(rig));
+    REQUIRE(!STATE(rig)->async_data_handler_thread_run);
+    REQUIRE(STATE(rig)->async_data_handler_priv_data == NULL);
+    REQUIRE(rig_cleanup(rig) == RIG_OK);
+}
+
+static void test_disabled_async_never_prepares_routing(void)
+{
+    RIG *rig = new_test_rig(TEST_ASYNC_MODEL, 0);
+
+    backend_opened_in_direct_mode = 0;
+    REQUIRE(rig_open(rig) == RIG_OK);
+    REQUIRE(backend_opened_in_direct_mode);
+    REQUIRE(!RIGPORT(rig)->asyncio);
+    REQUIRE(!port_async_is_prepared(RIGPORT(rig)));
+    require_unprepared(RIGPORT(rig));
+    REQUIRE(!STATE(rig)->async_data_handler_thread_run);
+    REQUIRE(STATE(rig)->async_data_handler_priv_data == NULL);
+
+    backend_closed_in_direct_mode = 0;
+    REQUIRE(rig_close(rig) == RIG_OK);
+    REQUIRE(backend_closed_in_direct_mode);
+    REQUIRE(rig_cleanup(rig) == RIG_OK);
+}
+
+static void test_skip_init_never_prepares_routing(void)
+{
+    RIG *rig = new_test_rig(TEST_ASYNC_MODEL, 1);
+    int status;
+
+    backend_opened_in_direct_mode = 0;
+    skip_init = 1;
+    status = rig_open(rig);
+    skip_init = 0;
+
+    REQUIRE(status == RIG_OK);
+    REQUIRE(backend_opened_in_direct_mode);
+    REQUIRE(STATE(rig)->async_data_enabled);
+    REQUIRE(!RIGPORT(rig)->asyncio);
+    REQUIRE(!port_async_is_prepared(RIGPORT(rig)));
+    require_unprepared(RIGPORT(rig));
+    REQUIRE(!STATE(rig)->async_data_handler_thread_run);
+    REQUIRE(STATE(rig)->async_data_handler_priv_data == NULL);
+
+    backend_closed_in_direct_mode = 0;
+    REQUIRE(rig_close(rig) == RIG_OK);
+    REQUIRE(backend_closed_in_direct_mode);
+    REQUIRE(rig_cleanup(rig) == RIG_OK);
+}
+
 static void run_test(const char *name, void (*test)(void))
 {
     struct watchdog watchdog;
@@ -435,6 +586,14 @@ int main(void)
     morse_caps.send_morse = stub_send_morse;
     REQUIRE(rig_register(&morse_caps) == RIG_OK);
 
+    run_test("prepared pipes are independent of routing",
+             test_sync_pipe_is_separate_from_active_routing);
+    run_test("reader owns routing only while running",
+             test_reader_owns_port_only_while_running);
+    run_test("disabled async never prepares routing",
+             test_disabled_async_never_prepares_routing);
+    run_test("skip_init never prepares routing",
+             test_skip_init_never_prepares_routing);
     run_test("reader startup rollback and retry",
              test_failed_reader_start_rolls_back_state);
     run_test("Morse startup rollback and retry",
