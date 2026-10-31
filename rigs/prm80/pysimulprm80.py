@@ -35,7 +35,7 @@ class Prm80Simul:
         self.SetupPseudoSerial(self.pty_r)
         self.SetupPseudoSerial(self.pty_w)
 
-        self.msg_version = "PRM8060 V5.0 430"
+        self.msg_version = "PRM8060 V5.1 430"
 
         self.mdict = {
             'V' : self.tch_Version,
@@ -64,6 +64,9 @@ class Prm80Simul:
         self.MaxChan = 80
         self.RxPLL = 0x7970 # 410 MHz (w/ IF offset)
         self.TxPLL = 0x8020 # 410 MHz
+        # channel memory (FW V5): [nominal PLL word, shift in PLL steps, state]
+        self.Channels = [[0x8464, 0, 0x04], [0x81B0, 0x0C0, 0x00], [0x8464, 0, 0x0C]]
+        self.MaxChan = len(self.Channels) - 1
 
     def SetupPseudoSerial(self, fd):
         """ make it raw, at 4800 bauds (defaults to 8N1) """
@@ -78,6 +81,12 @@ class Prm80Simul:
         self.pty_w.write(a)
         self.flush_w()
 
+    def read_echo(self, n):
+        """ read n characters for a prompt, the rig echoes them """
+        data = pty_r.read(n)
+        self.pty_write(data.upper())
+        return data.decode('ascii')
+
 
     def tch_autre(self):
         """ Unknown command """
@@ -90,32 +99,52 @@ class Prm80Simul:
     def tch_Nmem(self):
         """ Set current channel """
         self.pty_write(b'Channel : ')
-        self.ChanNum = int(pty_r.read(2).decode('ascii'))
+        chan = int(self.read_echo(2))
+        if chan <= self.MaxChan:
+            self.ChanNum = chan
+            self.load_channel()
+
+    def load_channel(self):
+        """ tune to the current channel (shift 0 = default shift 600 kHz,
+            reverse swaps RX and TX) """
+        pll, shift, state = self.Channels[self.ChanNum]
+        self.ChanState = state
+        if shift == 0:
+            shift = 48 # 600 kHz
+        tx = pll
+        if state & 0x01:
+            tx = pll + shift if state & 0x04 else pll - shift
+        rx = pll
+        if state & 0x02:
+            rx, tx = tx, rx
+        self.RxPLL = rx - 0x06B0 # 430 MHz band: RX PLL = RX - IF (21.4 MHz)
+        self.TxPLL = tx
 
     def tch_Klock(self):
         """ Set lock byte """
         self.pty_write(b'Lock : ')
-        self.LockByte = int(pty_r.read(2).decode('ascii'), 16)
+        self.LockByte = int(self.read_echo(2), 16)
 
     def tch_Fsquelch(self):
         """ Set squelch. """
         self.pty_write(b'Squelch : ')
-        self.Squelch = int(pty_r.read(2).decode('ascii'))
+        self.Squelch = int(self.read_echo(2))
 
     def tch_Ovolume(self):
         """ Set volume. """
         self.pty_write(b'Volume : ')
-        self.Volume = int(pty_r.read(2).decode('ascii'))
+        self.Volume = int(self.read_echo(2))
 
     def tch_Dmode(self):
         """ Set "Mode" byte. """
         self.pty_write(b'Mode : ')
-        self.ModeByte = int(pty_r.read(2).decode('ascii'), 16)
+        self.ModeByte = int(self.read_echo(2), 16)
 
     def tch_Tstate(self):
-        """ Set Channel State. """
+        """ Set Channel State (decimal, despite the '$' prompt). """
         self.pty_write(b'Channel state : $')
-        self.ChanState = int(pty_r.read(2).decode('ascii'))
+        self.Channels[self.ChanNum][2] = int(self.read_echo(2))
+        self.load_channel()
 
     def tch_UprintRAM(self):
         """ Print 80c552 internal RAM. """
@@ -143,32 +172,49 @@ class Prm80Simul:
     def tch_Qmaxchan(self):
         """ Set channels number. """
         self.pty_write(b'Channels number (00 to 99) : ')
-        self.MaxChan = int(pty_r.read(2).decode('ascii'))
+        self.MaxChan = int(self.read_echo(2))
+        del self.Channels[self.MaxChan + 1:]
+        self.MaxChan = len(self.Channels) - 1
+        if self.ChanNum > self.MaxChan:
+            self.ChanNum = 0
+            self.load_channel()
         # This command gets an extra CRLF ??!
         self.pty_write(b'\r\n')
 
     def tch_Peditchannel(self):
-        """ Edit/Add channel """
-        # TODO keep edited channel content in the class
+        """ Edit/Add channel (FW V5: with shift value) """
         self.pty_write(b'Channel to set : ')
-        chan_num = int(pty_r.read(2).decode('ascii'))
+        chan_num = int(self.read_echo(2))
         self.pty_write(b'\r\n')
 
         # NB: here prompts end with '$'
         self.pty_write(b'PLL value to load : $')
-        pll_freq_value = int(pty_r.read(4).decode('ascii'), 16)
+        pll_freq_value = int(self.read_echo(4), 16)
+        self.pty_write(b'\r\n')
+
+        self.pty_write(b'Shift value : $')
+        shift_value = int(self.read_echo(4), 16)
         self.pty_write(b'\r\n')
 
         self.pty_write(b'Channel state : $')
-        chan_state = int(pty_r.read(2).decode('ascii'), 16)
+        chan_state = int(self.read_echo(2), 16)
         self.pty_write(b'\r\n')
 
-        # for higher channels, allow to test this scenario
-        if chan_num > self.MaxChan and chan_num != 99:
+        channel = [pll_freq_value, shift_value, chan_state]
+        if chan_num > self.MaxChan:
             self.pty_write(b'This channel number doesn\'t exist. Add new channel (Y/N) ? ')
             # response "Y/N"
             yesno = pty_r.read(1).decode('ascii')
             self.pty_write(b'\r\n')
+            if yesno.upper() != 'Y':
+                return
+            # the firmware appends the channel after the last one
+            self.Channels.append(channel)
+            self.MaxChan = len(self.Channels) - 1
+        else:
+            self.Channels[chan_num] = channel
+        self.pty_write(b'\r\n')
+        print("Channels", self.Channels)
 
     def tch_Estate(self):
         """ Show system state (Mode-Chan-Chanstate-Sql-Vol-Lock-RX freq-TX freq-RSSI) (FW V5)"""
@@ -188,15 +234,17 @@ class Prm80Simul:
 
     def tch_Chanlist(self):
         """ Print channels list """
-        self.pty_write(b'Channels list :\r\n00 : 8464 84\r\n01 : 81B0 00\r\n02 : 8464 0C')
+        self.pty_write(b'Channel Frequency Shift State\r\n')
+        for i, (pll, shift, state) in enumerate(self.Channels):
+            self.pty_write('{:02d} {:04X} {:04X} {:02X}\r\n'.format(i, pll, shift, state).encode())
 
     def tch_Rfreq(self):
         """ Set synthetiser frequencies """
         self.pty_write(b'RX frequency : ')
-        self.RxPLL = int(pty_r.read(4).decode('ascii'), 16)
+        self.RxPLL = int(self.read_echo(4), 16)
 
         self.pty_write(b'\r\nTX frequency : ')
-        self.TxPLL = int(pty_r.read(4).decode('ascii'), 16)
+        self.TxPLL = int(self.read_echo(4), 16)
 
     def tch_diese(self):
         """ Ping """

@@ -30,6 +30,7 @@
 #include "iofunc.h"
 #include "register.h"
 #include "idx_builtin.h"
+#include "cache.h"
 
 #include "prm80.h"
 
@@ -44,6 +45,9 @@
 
 // "E" system state is cached for this time (ms)
 #define PRM80_CACHE_TIMEOUT 200
+
+// The channel list "C" is cached for this time (ms)
+#define PRM80_LIST_CACHE_TIMEOUT 10000
 
 // Length (in bytes) of the response to the "E" command
 #define CMD_E_RSP_LEN 22
@@ -129,6 +133,20 @@ MessageAide:  DB   "H",0Dh,0Ah
     b3: Scanning locked out channel if set
     b4-7: na.
 
+   Firmware V5 (shift per channel), as implemented in inc_ser.a51:
+    - every digit received for a prompt is echoed by the rig.
+    - [P] = Edit/Add channel:
+        "Channel to set : "      2 decimal digits
+        CRLF "PLL value to load : $" 4 hex digits, nominal frequency / 12.5 kHz
+                                 (no IF offset, unlike [R])
+        CRLF "Shift value : $"   4 hex digits, shift / 12.5 kHz,
+                                 0000 = default shift of the rig
+        CRLF "Channel state : $" 2 hex digits (see Channel state byte)
+        CRLF, then for a channel above the last one:
+        "This channel number doesn't exist. Add new channel (Y/N) ? "
+    - [T] = Set current channel state: "Channel state : $" 2 DECIMAL digits
+    - [V] = Print firmware version, e.g. "PRM8070 V5.1 144"
+
    Lock byte, which disables user controls when connected to a computer
     b0: Keys disabled when true
     b1: TX disabled when true
@@ -139,11 +157,18 @@ MessageAide:  DB   "H",0Dh,0Ah
  * *********************************************************************
  */
 
+static int prm80_read_channel_list(RIG *rig, int force);
+
 static void prm80_force_cache_timeout(RIG *rig)
 {
     struct prm80_priv_data *priv = (struct prm80_priv_data *)STATE(rig)->priv;
 
     rig_force_cache_timeout(&priv->status_tv);
+
+    // A new channel, reverse or channel state changes the frequency
+    // without rig_set_freq(), so the frequency cache of the rig
+    // layer has to be invalidated too.
+    rig_set_cache_freq(rig, RIG_VFO_ALL, (freq_t)0);
 }
 
 /*
@@ -310,6 +335,93 @@ int prm80_cleanup(RIG *rig)
 
 
 /*
+ * Read the firmware version string with [V], e.g. "PRM8070 V5.1 144"
+ */
+static int prm80_read_version(RIG *rig, char *buf, int buflen)
+{
+    hamlib_port_t *rp = RIGPORT(rig);
+    char *p;
+    int ret;
+
+    // Get rid of possible prompt sent by the rig
+    rig_flush(rp);
+
+    /* [V] = Print firmware version. */
+    ret = write_block(rp, (unsigned char *) "V", 1);
+
+    if (ret < 0)
+    {
+        return ret;
+    }
+
+    ret = read_string(rp, (unsigned char *) buf, buflen, ">", 1, 0, 1);
+
+    if (ret < 0)
+    {
+        return ret;
+    }
+
+    buf[(ret < buflen) ? ret : (buflen - 1)] = '\0';
+
+    p = strchr(buf, '\r');
+
+    if (p)
+    {
+        // chomp
+        *p = '\0';
+    }
+
+    return RIG_OK;
+}
+
+/*
+ * prm80_open
+ * Only firmware V5.0 and newer is supported: the [E] answer with RSSI
+ * and the [P] command with the shift per channel are V5 features.
+ */
+int prm80_open(RIG *rig)
+{
+    struct prm80_priv_data *priv = (struct prm80_priv_data *)STATE(rig)->priv;
+    char buf[BUFSZ];
+    const char *p;
+    int ret, major = 0, minor = 0;
+
+    ret = prm80_read_version(rig, buf, sizeof(buf));
+
+    if (ret != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: no answer to the version command [V]\n",
+                  __func__);
+        return ret;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: firmware '%s'\n", __func__, buf);
+
+    // look for " V<major>.<minor>"
+    p = strstr(buf, " V");
+
+    if (p == NULL || sscanf(p + 2, "%d.%d", &major, &minor) < 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown firmware version '%s'\n",
+                  __func__, buf);
+        return -RIG_EPROTO;
+    }
+
+    if (major < 5)
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: PRM80 firmware V%d.%d is not supported, V5.0 or newer is needed\n",
+                  __func__, major, minor);
+        return -RIG_EPROTO;
+    }
+
+    priv->fw_major = major;
+    priv->fw_minor = minor;
+
+    return RIG_OK;
+}
+
+/*
  * prm80_reset
  * Assumes rig!=NULL
  */
@@ -327,6 +439,7 @@ int prm80_reset(RIG *rig, reset_t reset)
         return retval;
     }
 
+    ((struct prm80_priv_data *)STATE(rig)->priv)->list_valid = 0;
     prm80_force_cache_timeout(rig);
 
     return RIG_OK;
@@ -724,7 +837,7 @@ static int prm80_read_system_state(RIG *rig, char *statebuf)
  */
 int prm80_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 {
-    const struct prm80_priv_data *priv = (struct prm80_priv_data *)STATE(rig)->priv;
+    struct prm80_priv_data *priv = (struct prm80_priv_data *)STATE(rig)->priv;
     char statebuf[BUFSZ];
     int ret, chanstate, mode_byte, lock_byte;
 
@@ -767,10 +880,10 @@ int prm80_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
        ; b2: shift +         b3: lock out
      */
     chanstate = hhtoi(statebuf + 4) & 0x0f;
-    /* is it rptr_shift or split mode ? */
+    /* is it rptr_shift or split mode ?
+     * b0 enables the shift, b2 gives its direction (b1 is reverse) */
     chan->rptr_shift = (chanstate & 0x01) == 0 ? RIG_RPT_SHIFT_NONE :
-                       (chanstate & 0x02) ? RIG_RPT_SHIFT_MINUS :
-                       (chanstate & 0x04) ? RIG_RPT_SHIFT_PLUS : RIG_RPT_SHIFT_NONE;
+                       (chanstate & 0x04) ? RIG_RPT_SHIFT_PLUS : RIG_RPT_SHIFT_MINUS;
     chan->flags = (chanstate & 0x08) ? RIG_CHFLAG_SKIP : 0;
 
     // squelch is in low nibble
@@ -795,13 +908,32 @@ int prm80_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 
     if (chan->rptr_shift != RIG_RPT_SHIFT_NONE)
     {
-        chan->rptr_offs = chan->tx_freq - chan->freq;
+        // the size of the shift (also in reverse mode, where the rig
+        // swaps RX and TX)
+        chan->rptr_offs = (shortfreq_t)((chan->tx_freq > chan->freq) ?
+                                        chan->tx_freq - chan->freq : chan->freq - chan->tx_freq);
         chan->split = RIG_SPLIT_OFF;
     }
     else
     {
         chan->rptr_offs = 0;
         chan->split = priv->split; // RIG_SPLIT_ON; ?
+    }
+
+    // For a memory channel, remember whether it uses the default shift, so
+    // that set_channel() keeps it when the channel is written back.
+    if (chan->vfo == RIG_VFO_MEM && chan->channel_num >= CHAN_MIN
+            && chan->channel_num <= CHAN_MAX)
+    {
+        priv->default_offs[chan->channel_num] = 0;
+
+        if (chan->rptr_shift != RIG_RPT_SHIFT_NONE
+                && prm80_read_channel_list(rig, 0) == RIG_OK
+                && chan->channel_num <= priv->last_chan
+                && priv->stored_shift[chan->channel_num] == 0)
+        {
+            priv->default_offs[chan->channel_num] = chan->rptr_offs;
+        }
     }
 
     if (!read_only)
@@ -818,15 +950,196 @@ int prm80_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 }
 
 /*
+ * Read the channel list [C] into the cache (unless the cache is recent
+ * and force is not set):
+ *   "Channel Frequency Shift State" CRLF
+ *   "00 2D80 0030 01" CRLF ... (one line per channel) CRLF '>'
+ * The shift column is the shift stored in the channel, 0000 meaning
+ * the default shift of the rig.
+ */
+static int prm80_read_channel_list(RIG *rig, int force)
+{
+    struct prm80_priv_data *priv = (struct prm80_priv_data *)STATE(rig)->priv;
+    hamlib_port_t *rp = RIGPORT(rig);
+    char list[2048];
+    const char *p;
+    int ret, last = -1;
+
+    if (!force && priv->list_valid
+            && !rig_check_cache_timeout(&priv->list_tv, PRM80_LIST_CACHE_TIMEOUT))
+    {
+        return RIG_OK;
+    }
+
+    priv->list_valid = 0;
+
+    ret = prm80_transaction(rig, "C", NULL, 0);
+
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    ret = read_string(rp, (unsigned char *) list, sizeof(list), ">", 1, 0, 1);
+
+    if (ret < 0)
+    {
+        return ret;
+    }
+
+    list[(ret < (int)sizeof(list)) ? ret : ((int)sizeof(list) - 1)] = '\0';
+
+    for (p = list; *p != '\0'; p++)
+    {
+        unsigned num, pll, shift, state;
+
+        // the lines starting with a channel number
+        if ((p == list || p[-1] == '\n') && isdigit((unsigned char)*p)
+                && sscanf(p, "%u %x %x %x", &num, &pll, &shift, &state) == 4
+                && num <= CHAN_MAX)
+        {
+            priv->stored_shift[num] = shift;
+            last = (int)num;
+        }
+    }
+
+    if (last < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: no channel in the list '%s'\n", __func__, list);
+        return -RIG_EPROTO;
+    }
+
+    priv->last_chan = last;
+    priv->list_valid = 1;
+    gettimeofday(&priv->list_tv, NULL);
+
+    return RIG_OK;
+}
+
+/*
+ * Number of the last channel, read fresh from the channel list [C].
+ */
+static int prm80_read_last_channel(RIG *rig, int *last)
+{
+    const struct prm80_priv_data *priv = (struct prm80_priv_data *)STATE(rig)->priv;
+    int ret;
+
+    ret = prm80_read_channel_list(rig, 1);
+
+    if (ret == RIG_OK)
+    {
+        *last = priv->last_chan;
+    }
+
+    return ret;
+}
+
+/*
+ * Program a memory channel with [P] (firmware V5).
+ * Example
+ *   Channel to set : 00
+ *   PLL value to load : $2D80   (145.600 MHz)
+ *   Shift value : $0030         (600 kHz)
+ *   Channel state : $01         (shift enabled, negative)
+ * For a channel above the last one the rig asks
+ *   "This channel number doesn't exist. Add new channel (Y/N) ? "
+ * and then appends the channel directly after the last one, whatever
+ * number was requested. The query is confirmed only if add_new is set,
+ * otherwise it is refused and *asked is set.
+ */
+static int prm80_program_channel(RIG *rig, int channel_num, unsigned pll,
+                                 unsigned shift, int chanstate, int add_new, int *asked)
+{
+    hamlib_port_t *rp = RIGPORT(rig);
+    char buf[BUFSZ];
+    int ret;
+
+    *asked = 0;
+
+    SNPRINTF(buf, sizeof(buf), "%02u", (unsigned)channel_num);
+
+    ret = prm80_transaction(rig, "P", buf, 0);
+
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    SNPRINTF(buf, sizeof(buf), "%04X", pll & 0xffff);
+
+    // "PLL value to load : $"
+    ret = read_dollar_prompt_and_send(rp, NULL, NULL, buf);
+
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    SNPRINTF(buf, sizeof(buf), "%04X", shift & 0xffff);
+
+    // "Shift value : $"
+    ret = read_dollar_prompt_and_send(rp, NULL, NULL, buf);
+
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    SNPRINTF(buf, sizeof(buf), "%02X", (unsigned)chanstate);
+
+    // "Channel state : $"
+    ret = read_dollar_prompt_and_send(rp, NULL, NULL, buf);
+
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    // The rig echoes the state, then either the prompt comes back
+    // (CRLF'>') or the query for a new channel.
+    ret = read_string(rp, (unsigned char *) buf, sizeof(buf), ">?", 2, 0, 1);
+
+    if (ret < 0)
+    {
+        return ret;
+    }
+
+    if (ret > 0 && buf[ret - 1] == '?')
+    {
+        *asked = 1;
+
+        // Read extra space
+        ret = read_block(rp, (unsigned char *) buf, 1);
+
+        if (ret < 0)
+        {
+            return ret;
+        }
+
+        // Answer the query; with "N" nothing is changed
+        ret = write_block(rp, (unsigned char *)(add_new ? "Y" : "N"), 1);
+
+        if (ret < 0)
+        {
+            return ret;
+        }
+
+        return prm80_wait_for_prompt(rp);
+    }
+
+    return RIG_OK;
+}
+
+/*
  * prm80_set_channel handles RIG_VFO_MEM and RIG_VFO_CURR
  */
 int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
     struct prm80_priv_data *priv = (struct prm80_priv_data *)STATE(rig)->priv;
-    hamlib_port_t *rp = RIGPORT(rig);
-    char buf[BUFSZ];
-    int ret, chanstate;
-    freq_t tx_freq;
+    int ret, chanstate, asked, last;
+    unsigned shift;
+    long offs;
+    freq_t tx_freq, nominal;
 
     if (chan->vfo == RIG_VFO_MEM)
     {
@@ -837,34 +1150,58 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
             return -RIG_EINVAL;
         }
 
-        /* [P] = Edit/Add channel */
-        /* Example
-           Channel to set : 00
-           PLL value to load : $8020
-           Channel state : $00
+        // Size of the shift, 0 means the default shift of the rig.
+        offs = (chan->rptr_shift != RIG_RPT_SHIFT_NONE) ? labs(chan->rptr_offs) : 0;
+        shift = (unsigned)(offs / FREQ_DIV + 0.5);
 
-          Possibly:
-            "This channel number doesn't exist. Add new channel (Y/N) ? "
-           */
-
-        SNPRINTF(buf, sizeof(buf), "%02u", (unsigned)chan->channel_num);
-
-        ret = prm80_transaction(rig, "P", buf, 0);
-
-        if (ret != RIG_OK)
+        // An offset that rounds to 0 would select the default shift of the
+        // rig, and the 4 hex digits limit the shift: refuse such offsets.
+        if ((offs != 0 && shift == 0) || shift > 0xffff)
         {
-            return ret;
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: offset %ld Hz can't be stored (steps of %.0f Hz, 0 = default shift)\n",
+                      __func__, offs, FREQ_DIV);
+            return -RIG_EINVAL;
         }
 
-        // Set the RX frequency as PLL word.
-        SNPRINTF(buf, sizeof(buf), "%04X", rx_freq_to_pll_value(chan->freq));
-
-        // "PLL value to load : $"
-        ret = read_dollar_prompt_and_send(rp, NULL, NULL, buf);
-
-        if (ret != RIG_OK)
+        // A channel that uses the default shift is reported by get_channel()
+        // with the effective offset. Written back with that offset, it keeps
+        // the default shift (0), so a later change of the default still
+        // applies to it.
+        if (shift != 0 && priv->default_offs[chan->channel_num] != 0
+                && labs(offs - priv->default_offs[chan->channel_num]) < FREQ_DIV / 2)
         {
-            return ret;
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: channel %d keeps the default shift\n",
+                      __func__, chan->channel_num);
+            shift = 0;
+        }
+
+        // The channel memory holds the nominal frequency (the rig adds or
+        // subtracts the IF itself), so no IF offset here, unlike [R].
+        // chan->freq is the RX frequency, as get_channel() reports it.
+        // In reverse mode the rig transmits on the nominal frequency and
+        // receives on the shifted one, so the nominal frequency is the RX
+        // frequency minus the shift (or the TX frequency).
+        nominal = chan->freq;
+
+        if ((chan->funcs & RIG_FUNC_REV) && chan->rptr_shift != RIG_RPT_SHIFT_NONE)
+        {
+            if (offs != 0)
+            {
+                nominal = (chan->rptr_shift == RIG_RPT_SHIFT_PLUS) ?
+                          chan->freq - (freq_t)offs : chan->freq + (freq_t)offs;
+            }
+            else if (chan->tx_freq != 0)
+            {
+                nominal = chan->tx_freq;
+            }
+            else
+            {
+                rig_debug(RIG_DEBUG_ERR,
+                          "%s: reverse with the default shift needs rptr_offs or tx_freq\n",
+                          __func__);
+                return -RIG_EINVAL;
+            }
         }
 
         // the channel status byte.
@@ -872,64 +1209,50 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
         {
         case RIG_RPT_SHIFT_NONE : chanstate = 0x00; break;
 
-        case RIG_RPT_SHIFT_MINUS : chanstate = 0x03; break;
+        case RIG_RPT_SHIFT_MINUS : chanstate = 0x01; break;
 
         case RIG_RPT_SHIFT_PLUS : chanstate = 0x05; break;
 
         default: chanstate = 0x00; break;
         }
 
+        chanstate |= (chan->funcs & RIG_FUNC_REV) ? 0x02 : 0;
         chanstate |= (chan->flags & RIG_CHFLAG_SKIP) ? 0x08 : 0;
 
-        SNPRINTF(buf, sizeof(buf), "%02X", chanstate);
+        ret = prm80_program_channel(rig, chan->channel_num,
+                                    (unsigned)(nominal / FREQ_DIV + 0.5), shift, chanstate, 0, &asked);
 
-        // "Channel state : $"
-        ret = read_dollar_prompt_and_send(rp, NULL, NULL, buf);
+        if (ret == RIG_OK && asked)
+        {
+            // A new channel: the rig would append it after the last one,
+            // so only the channel directly after the last one is created.
+            ret = prm80_read_last_channel(rig, &last);
+
+            if (ret != RIG_OK)
+            {
+                return ret;
+            }
+
+            if (chan->channel_num != last + 1)
+            {
+                rig_debug(RIG_DEBUG_ERR,
+                          "%s: channel %d can't be created, the last channel is %d (only %d can be added)\n",
+                          __func__, chan->channel_num, last, last + 1);
+                return -RIG_EINVAL;
+            }
+
+            ret = prm80_program_channel(rig, chan->channel_num,
+                                        (unsigned)(nominal / FREQ_DIV + 0.5), shift, chanstate, 1, &asked);
+        }
+
+        // the channel memory has changed
+        priv->list_valid = 0;
+        priv->default_offs[chan->channel_num] = 0;
 
         if (ret != RIG_OK)
         {
             return ret;
         }
-
-        // Determine if prompt came back (CRLF'>') or have to
-        // handle the possible query from the rig:
-        // "This channel number doesn't exist. Add new channel (Y/N) ? "
-        ret = read_block(rp, (unsigned char *) buf, 3);
-
-        if (ret < 0)
-        {
-            return ret;
-        }
-
-        if (ret == 3 && buf[2] == 'T')
-        {
-            // Read the question
-            ret = read_string(rp, (unsigned char *) buf, sizeof(buf), "?", 1, 0,
-                              1);
-
-            if (ret < 0)
-            {
-                return ret;
-            }
-
-            // Read extra space
-            ret = read_block(rp, (unsigned char *) buf, 1);
-
-            if (ret < 0)
-            {
-                return ret;
-            }
-
-            // Send confirmation
-            ret = write_block(rp, (unsigned char *) "Y", 1);
-
-            if (ret < 0)
-            {
-                return ret;
-            }
-        }
-
-        prm80_wait_for_prompt(rp);
     }
     else
     {
@@ -989,13 +1312,63 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 }
 
 
-// TODO FUNC_REV through Channel state byte ?
 // TODO "Read-Modify-Write" (or shadowing in priv area) of the lock bits
 int prm80_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
-    int ret;
+    char buf[BUFSZ];
+    int ret, chanstate;
 
-    if (func & RIG_FUNC_LOCK)
+    if (func & RIG_FUNC_REV)
+    {
+        // Read-Modify-Write of the state of the current channel.
+        // While the rig scans, [E] (V5.1) reports the channel being
+        // received, but [T] writes to the channel the scan started on. So
+        // the channel reported by [E] is selected first with [N], which
+        // stops a running scan (V5.1) and makes [T] act on that channel.
+        // Then the state is read fresh (not from the cache).
+        prm80_force_cache_timeout(rig);
+        ret = prm80_read_system_state(rig, buf);
+
+        if (ret != RIG_OK)
+        {
+            return ret;
+        }
+
+        ret = prm80_set_mem(rig, vfo, (int)hhtoi(buf + 2));
+
+        if (ret != RIG_OK)
+        {
+            return ret;
+        }
+
+        prm80_force_cache_timeout(rig);
+        ret = prm80_read_system_state(rig, buf);
+
+        if (ret != RIG_OK)
+        {
+            return ret;
+        }
+
+        chanstate  = hhtoi(buf + 4) & 0x0f;
+        chanstate &= ~0x02;
+        chanstate |= (status != 0) ? 0x02 : 0;
+
+        // [T] reads the state as decimal number (despite its "$" prompt)
+        SNPRINTF(buf, sizeof(buf), "%02u", (unsigned)chanstate);
+
+        ret = prm80_transaction(rig, "T", NULL, 0);
+
+        if (ret == RIG_OK)
+        {
+            ret = read_dollar_prompt_and_send(RIGPORT(rig), NULL, NULL, buf);
+        }
+
+        if (ret == RIG_OK)
+        {
+            ret = prm80_wait_for_prompt(RIGPORT(rig));
+        }
+    }
+    else if (func & RIG_FUNC_LOCK)
     {
         /* Lock keys(b0)/Vol(b2) */
         ret = prm80_transaction(rig, "K", (status != 0) ? "05" : "00", 1);
@@ -1263,34 +1636,10 @@ int prm80_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 const char *prm80_get_info(RIG *rig)
 {
     static char s_buf[BUFSZ];
-    hamlib_port_t *rp = RIGPORT(rig);
-    char *p;
-    int ret;
 
-    // Get rid of possible prompt sent by the rig
-    rig_flush(rp);
-
-    /* [V] = Print firmware version. */
-    ret = write_block(rp, (unsigned char *) "V", 1);
-
-    if (ret < 0)
+    if (prm80_read_version(rig, s_buf, sizeof(s_buf)) != RIG_OK)
     {
         return NULL;
-    }
-
-    ret = read_string(rp, (unsigned char *) s_buf, BUFSZ, ">", 1, 0, 1);
-
-    if (ret < 0)
-    {
-        return NULL;
-    }
-
-    p = strchr(s_buf, '\r');
-
-    if (p)
-    {
-        // chomp
-        *p = '\0';
     }
 
     return s_buf;
