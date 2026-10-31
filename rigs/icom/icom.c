@@ -10036,6 +10036,13 @@ static int icom_get_spectrum_vfo(RIG *rig, vfo_t vfo, unsigned char *scope)
         {
             vfo = rig_get_current_vfo_state(rig);
         }
+        else if (vfo == RIG_VFO_TX)
+        {
+            struct rig_cache_routing_snapshot routing;
+
+            rig_get_cache_routing_snapshot(rig, &routing);
+            vfo = icom_tx_vfo(rig, routing.satmode);
+        }
 
         if (VFO_HAS_MAIN_SUB_ONLY)
         {
