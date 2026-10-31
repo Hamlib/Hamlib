@@ -747,41 +747,6 @@ static void tcp_pause_proxy_destroy(struct tcp_pause_proxy *proxy)
 }
 
 
-/* Wait until rigctld is accepting TCP connections. */
-static int wait_for_rigctld(int port, int timeout_ms)
-{
-    int elapsed = 0;
-
-    while (elapsed < timeout_ms)
-    {
-        int sock = socket(AF_INET, SOCK_STREAM, 0);
-        struct sockaddr_in addr;
-
-        if (sock < 0)
-        {
-            return -1;
-        }
-
-        memset(&addr, 0, sizeof(addr));
-        addr.sin_family = AF_INET;
-        addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-        addr.sin_port = htons(port);
-
-        if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) == 0)
-        {
-            close(sock);
-            return 0;
-        }
-
-        close(sock);
-        usleep(50000);  /* 50ms */
-        elapsed += 50;
-    }
-
-    return -1;
-}
-
-
 /* Find the rigctld binary — check build tree first, then PATH. */
 static const char *find_rigctld(void)
 {
@@ -839,11 +804,7 @@ static int start_rigctld_once(struct rigctld_proc *proc,
                               const char *source_id_opt,
                               const char *set_conf_opt);
 
-/* find_free_port() closes the probe socket before rigctld binds the port,
- * so another process on a busy CI runner can steal it in between and the
- * daemon exits on the bind failure — observed as a connect that breaks
- * mid-handshake followed by connection-refused. Verify the child survived
- * startup and retry on a fresh port (unless the caller pinned one). */
+/* Retry with a fresh port if the daemon has already exited during startup. */
 static int start_rigctld_opt(struct rigctld_proc *proc,
                              const char *source_id_opt,
                              const char *set_conf_opt)
@@ -990,15 +951,6 @@ static int start_rigctld_once(struct rigctld_proc *proc,
         return -1;
     }
 
-    /* Parent: wait for rigctld to start */
-    if (wait_for_rigctld(proc->port, 5000) < 0)
-    {
-        kill(proc->pid, SIGTERM);
-        waitpid(proc->pid, NULL, 0);
-        proc->pid = -1;
-        return -1;
-    }
-
     return 0;
 }
 
@@ -1124,14 +1076,48 @@ static void stop_rigctld(struct rigctld_proc *proc)
 }
 
 
+/* Connect and disconnect without sending a command. This exercises the
+ * daemon's client-thread setup and teardown path. */
+static int connect_and_close_rigctld(int port)
+{
+    for (int attempt = 0; attempt < 100; attempt++)
+    {
+        int sock = socket(AF_INET, SOCK_STREAM, 0);
+        struct sockaddr_in addr;
+
+        if (sock < 0)
+        {
+            return -1;
+        }
+
+        memset(&addr, 0, sizeof(addr));
+        addr.sin_family = AF_INET;
+        addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+        addr.sin_port = htons(port);
+
+        if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) == 0)
+        {
+            shutdown(sock, SHUT_RDWR);
+            close(sock);
+            return 0;
+        }
+
+        close(sock);
+        usleep(50000);
+    }
+
+    return -1;
+}
+
+
 /* Open a netrigctl RIG connected to the subprocess rigctld. */
 static RIG *open_netrigctl(int port)
 {
     /* A freshly spawned rigctld can stall for hundreds of ms on a loaded
      * CI runner between accepting the TCP connection and serving it, which
      * makes a single rig_open attempt time out and fail the whole test.
-     * Retry a few times before declaring the daemon unusable. */
-    for (int attempt = 0; attempt < 3; attempt++)
+     * Retry for several seconds before declaring the daemon unusable. */
+    for (int attempt = 0; attempt < 20; attempt++)
     {
         RIG *rig;
         char pathname[64];
@@ -1173,6 +1159,27 @@ static RIG *open_netrigctl(int port)
     }
 
     return NULL;
+}
+
+
+static int start_ready_rigctld(struct rigctld_proc *proc)
+{
+    if (start_rigctld(proc) < 0)
+    {
+        return -1;
+    }
+
+    RIG *rig = open_netrigctl(proc->port);
+
+    if (!rig)
+    {
+        stop_rigctld(proc);
+        return -1;
+    }
+
+    rig_close(rig);
+    rig_cleanup(rig);
+    return 0;
 }
 
 
@@ -1237,6 +1244,48 @@ static int raw_control_command(int sock, const char *command, char *response,
 /* --- Tests --- */
 
 
+/* A client that disconnects during setup must not poison the daemon for the
+ * next client. */
+void test_immediate_disconnect_preserves_daemon(void)
+{
+    struct rigctld_proc proc = {0};
+
+    if (start_rigctld(&proc) < 0)
+    {
+        TEST_CHECK_(0, "could not start rigctld");
+        return;
+    }
+
+    for (int attempt = 0; attempt < 16; attempt++)
+    {
+        if (!TEST_CHECK_(connect_and_close_rigctld(proc.port) == 0,
+                         "could not connect to rigctld"))
+        {
+            break;
+        }
+
+        if (!TEST_CHECK_(rigctld_alive(&proc),
+                         "rigctld exited after disconnect"))
+        {
+            break;
+        }
+    }
+
+    RIG *rig = open_netrigctl(proc.port);
+    TEST_CHECK(rig != NULL);
+
+    if (rig)
+    {
+        TEST_CHECK_(rig_stream_caps_count(rig) > 0,
+                    "next client did not receive stream capabilities");
+        rig_close(rig);
+        rig_cleanup(rig);
+    }
+
+    stop_rigctld(&proc);
+}
+
+
 /* Startup capability probes must remain usable before authentication without
  * consuming the failure budget or closing the model-2 client connection. */
 void test_password_startup_and_stream_caps(void)
@@ -1252,7 +1301,7 @@ void test_password_startup_and_stream_caps(void)
     int preauth_commands;
     int ret;
 
-    if (start_rigctld(&upstream) < 0)
+    if (start_ready_rigctld(&upstream) < 0)
     {
         TEST_CHECK_(0, "could not start upstream rigctld");
         return;
@@ -1281,6 +1330,17 @@ void test_password_startup_and_stream_caps(void)
         return;
     }
 
+    rig = open_netrigctl(frontend.port);
+    TEST_CHECK(rig != NULL);
+
+    if (!rig)
+    {
+        goto cleanup;
+    }
+
+    rig_close(rig);
+    rig_cleanup(rig);
+    rig = NULL;
     baseline_commands = tcp_pause_proxy_value(&proxy, &proxy.commands_seen);
     rig = open_netrigctl(frontend.port);
     TEST_CHECK(rig != NULL);
@@ -1360,7 +1420,7 @@ static void check_connection_power_refresh(int use_password)
     int raw_sock = -1;
     int ret;
 
-    if (start_rigctld(&upstream) < 0)
+    if (start_ready_rigctld(&upstream) < 0)
     {
         TEST_CHECK_(0, "could not start upstream rigctld");
         return;
@@ -4016,13 +4076,13 @@ static int query_source_id_once(int port)
 
 
 /* A daemon that has only just begun listening may leave the first connection
- * unanswered on a busy machine, so allow the query a few attempts before
+ * unanswered on a busy machine, so allow the query several seconds before
  * reporting the ID as unavailable. */
 static int query_source_id_raw(int port)
 {
     int attempt;
 
-    for (attempt = 0; attempt < 3; attempt++)
+    for (attempt = 0; attempt < 20; attempt++)
     {
         int source_id = query_source_id_once(port);
 
@@ -4031,7 +4091,7 @@ static int query_source_id_raw(int port)
             return source_id;
         }
 
-        usleep(100000);  /* 100ms */
+        usleep(250000);
     }
 
     return -1;
@@ -4276,14 +4336,14 @@ fail:
 
 static int raw_stream_open(int port, struct raw_stream_connection *conn)
 {
-    for (int attempt = 0; attempt < 3; attempt++)
+    for (int attempt = 0; attempt < 20; attempt++)
     {
         if (raw_stream_open_once(port, conn) == 0)
         {
             return 0;
         }
 
-        usleep(100000);
+        usleep(250000);
     }
 
     return -1;
@@ -4356,7 +4416,7 @@ void test_disconnect_stream_close_serialized(void)
     int parsed_commands;
     int n;
 
-    if (start_rigctld(&upstream) < 0)
+    if (start_ready_rigctld(&upstream) < 0)
     {
         TEST_CHECK_(0, "could not start upstream rigctld");
         return;
@@ -4540,6 +4600,10 @@ void test_stream_source_id_cli_and_derived(void)
 
 TEST_LIST =
 {
+    {
+        "immediate_disconnect_preserves_daemon",
+        test_immediate_disconnect_preserves_daemon
+    },
     { "rx_overlong_payload_len_rejected", test_rx_overlong_payload_len_rejected },
     { "rx_metadata_no_false_link_loss", test_rx_metadata_no_false_link_loss },
     { "source_ip_equal_decision",       test_source_ip_equal_decision },
