@@ -1165,7 +1165,6 @@ int HAMLIB_API rig_open(RIG *rig)
               "%s: async_data_enable=%d, async_data_supported=%d\n", __func__,
               rs->async_data_enabled, caps->async_data_supported);
     rs->async_data_enabled = rs->async_data_enabled && caps->async_data_supported;
-    rp->asyncio = rs->async_data_enabled;
 
     if (strlen(rp->pathname) > 0)
     {
@@ -8536,6 +8535,7 @@ int rig_async_data_handler_start(RIG *rig,
 {
     struct rig_state *rs = STATE(rig);
     async_data_handler_priv_data *async_data_handler_priv;
+    int status;
 
     ENTERFUNC;
 
@@ -8549,17 +8549,27 @@ int rig_async_data_handler_start(RIG *rig,
 
     sleep(2);  // give other things a chance to finish opening up the rig
 
+    status = port_prepare_async(RIGPORT(rig));
+
+    if (status < 0)
+    {
+        RETURNFUNC(status);
+    }
+
     rs->async_data_handler_priv_data = calloc(1,
                                        sizeof(async_data_handler_priv_data));
 
     if (rs->async_data_handler_priv_data == NULL)
     {
+        port_cleanup_async(RIGPORT(rig));
         RETURNFUNC(-RIG_ENOMEM);
     }
 
     async_data_handler_priv = (async_data_handler_priv_data *)
                               rs->async_data_handler_priv_data;
     async_data_handler_priv->args.rig = rig;
+    // Raised before the thread exists, so this write does not race the thread
+    RIGPORT(rig)->asyncio = 1;
     rs->async_data_handler_thread_run = 1;
     int err = thread_start(&async_data_handler_priv->thread_id,
                            async_data_handler, &async_data_handler_priv->args);
@@ -8569,6 +8579,7 @@ int rig_async_data_handler_start(RIG *rig,
         rs->async_data_handler_thread_run = 0;
         free(rs->async_data_handler_priv_data);
         rs->async_data_handler_priv_data = NULL;
+        port_cleanup_async(RIGPORT(rig));
         rig_debug(RIG_DEBUG_ERR, "%s: pthread_create error: %s\n", __func__,
                   strerror(err));
         RETURNFUNC(-RIG_EINTERNAL);
@@ -8655,7 +8666,7 @@ static int async_data_handler_stop(RIG *rig)
         rs->async_data_handler_priv_data = NULL;
     }
 
-
+    port_cleanup_async(RIGPORT(rig));
     RETURNFUNC(RIG_OK);
 }
 

@@ -107,7 +107,7 @@ typedef struct hamlib_port {
     } parm;                 /*!< Port parameter union */
     int client_port;        /*!< client socket port for tcp connection */
     RIG *rig;               /*!< our parent RIG device */
-    int asyncio;            /*!< enable asynchronous data handling if true -- async collides with python keyword so _async is used */
+    int asyncio;            /*!< route reads through sync pipes while the asynchronous reader owns the port; named asyncio because async is a Python keyword */
 #if defined(_WIN32)
     hamlib_async_pipe_t *sync_data_pipe;         /*!< pipe data structure for synchronous data */
     hamlib_async_pipe_t *sync_data_error_pipe;   /*!< pipe data structure for synchronous data error codes */
