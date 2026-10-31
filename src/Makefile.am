@@ -17,7 +17,7 @@ RIGSRC = hamlibdatetime.h rig.c serial.c serial.h misc.c misc.h register.c regis
    	amp_conf.h amp_settings.c amp_ext.c \
    	sleep.c sleep.h sprintflst.c \
    	sprintflst.h cache.c cache.h snapshot_data.c snapshot_data.h fifo.c fifo.h \
-	serial_cfg_params.h mutex.h \
+	serial_cfg_params.h mutex.h rig_internal.h \
 	stream.c stream.h stream_ringbuf.c stream_ringbuf.h \
 	stream_anchor.c stream_anchor.h stream_account.c stream_account.h \
 	stream_convert.c stream_convert.h \
