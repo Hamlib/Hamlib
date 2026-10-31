@@ -3065,6 +3065,18 @@ int icom_get_vfo(RIG *rig, vfo_t *vfo)
     RETURNFUNC(RIG_OK);
 }
 
+/* The VFO that icom_set_vfo() selects for RIG_VFO_TX. */
+static vfo_t icom_tx_vfo(RIG *rig, int satmode)
+{
+    if (VFO_HAS_A_B_ONLY && satmode) { return RIG_VFO_B; }
+
+    if (VFO_HAS_MAIN_SUB_ONLY) { return RIG_VFO_SUB; }
+
+    if (VFO_HAS_MAIN_SUB_A_B_ONLY && satmode) { return RIG_VFO_SUB; }
+
+    return RIG_VFO_A;
+}
+
 /*
  * icom_set_vfo
  * Assumes rig!=NULL, STATE(rig)->priv!=NULL
@@ -3113,11 +3125,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: vfo line#%d vfo=%s\n", __func__, __LINE__,
                   rig_strvfo(vfo));
-        vfo = RIG_VFO_A;
-
-        if (VFO_HAS_A_B_ONLY && routing.satmode) { vfo = RIG_VFO_B; }
-        else if (VFO_HAS_MAIN_SUB_ONLY) { vfo = RIG_VFO_SUB; }
-        else if (VFO_HAS_MAIN_SUB_A_B_ONLY && routing.satmode) { vfo = RIG_VFO_SUB; }
+        vfo = icom_tx_vfo(rig, routing.satmode);
     }
 
     else if ((vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN) && VFO_HAS_DUAL)
