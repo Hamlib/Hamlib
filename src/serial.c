@@ -421,6 +421,15 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
         if (tcgetattr(rp->fd, &t) == 0)
         {
             cfmakeraw(&t);
+
+            /* XON/XOFF as on a tty: the pseudo-terminal stops Hamlib's
+             * output on the rig's XOFF, and keeps both bytes from the
+             * reply parser */
+            if (rp->parm.serial.handshake == RIG_HANDSHAKE_XONXOFF)
+            {
+                t.c_iflag |= IXON;
+            }
+
             tcsetattr(rp->fd, TCSANOW, &t);
         }
 
@@ -1007,6 +1016,13 @@ int ser_open(hamlib_port_t *p)
              */
             ret = uh_open_ptt();
             uh_ptt_fd = ret;
+        }
+        else if (usb_serial_is_path(p->pathname))
+        {
+            /* a PTT or DCD port on a USB-serial chip ("usb:...@1") */
+            ret = usb_serial_open(p);
+            p->fd = ret;
+            return (ret);
         }
         else
         {

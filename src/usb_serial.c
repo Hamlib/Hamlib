@@ -957,7 +957,12 @@ static int find_endpoints(struct usbser *u, int want, unsigned int *vid,
 
     for (i = d[0]; i + 2 <= n && d[i] >= 2; i += d[i])
     {
-        if (d[i + 1] == 4 && i + 7 < n)                 /* interface */
+        if (d[i] > n - i)
+        {
+            break;                                      /* cut off: stop here */
+        }
+
+        if (d[i + 1] == 4 && d[i] >= 9)                 /* interface */
         {
             if (best_if < 0 && cur >= 0 && in && out && (want < 0 || cur == want))
             {
@@ -981,7 +986,7 @@ static int find_endpoints(struct usbser *u, int want, unsigned int *vid,
                 sub_acm[cur] = d[i + 5] == 2 && d[i + 6] == 2;
             }
         }
-        else if (d[i + 1] == 0x0b && i + 5 < n && d[i + 4] == 2 && d[i + 5] == 2)
+        else if (d[i + 1] == 0x0b && d[i] >= 8 && d[i + 4] == 2 && d[i + 5] == 2)
         {
             /* an IAD grouping a CDC-ACM function: the one holding "want" */
             if (want < 0 ? iad_first < 0 : (want >= d[i + 2] && want < d[i + 2] + d[i + 3]))
@@ -990,15 +995,15 @@ static int find_endpoints(struct usbser *u, int want, unsigned int *vid,
                 iad_count = d[i + 3];
             }
         }
-        else if (d[i + 1] == 0x24 && i + 4 < n && d[i + 2] == 0x06)
+        else if (d[i + 1] == 0x24 && d[i] >= 5 && d[i + 2] == 0x06)
         {
             /* CDC Union: bMasterInterface, then its bSlaveInterfaces */
-            for (k = 4; k < d[i] && i + k < n; k++)
+            for (k = 4; k < d[i]; k++)
             {
                 if (d[i + k] < 32) { union_ctl[d[i + k]] = d[i + 3]; }
             }
         }
-        else if (d[i + 1] == 5 && cur >= 0 && i + 5 < n && (d[i + 3] & 3) == 2)   /* bulk */
+        else if (d[i + 1] == 5 && d[i] >= 7 && cur >= 0 && (d[i + 3] & 3) == 2)   /* bulk */
         {
             if (d[i + 2] & 0x80)
             {
@@ -1505,10 +1510,20 @@ static int set_line(int fd, int rts, int state)
 
     if (u)
     {
+        int old_rts = u->rts, old_dtr = u->dtr;
+
         if (rts) { u->rts = state != 0; }
         else { u->dtr = state != 0; }
 
         r = u->chip->set_lines(u);
+
+        if (r != RIG_OK)
+        {
+            /* the lines are as they were: a failed RTS (PTT) must not be
+             * sent again by the next DTR change */
+            u->rts = old_rts;
+            u->dtr = old_dtr;
+        }
     }
 
     pthread_mutex_unlock(&usbser_lock);
