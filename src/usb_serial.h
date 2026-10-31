@@ -28,9 +28,12 @@ __BEGIN_DECLS
 
 /*
  * A serial port whose pathname starts with "usb:" or "usbfd:" is a
- * USB-serial bridge chip (CP210x so far) that Hamlib drives itself through
- * Linux usbfs, with no kernel driver: an Android app gets no /dev/ttyUSB*,
- * and some phone kernels have no driver for the chip.
+ * USB-serial bridge chip that Hamlib drives itself through Linux usbfs, with
+ * no kernel driver: an Android app gets no /dev/ttyUSB*, and some phone
+ * kernels have no driver for the chip.  Chips: Silicon Labs CP210x, FTDI
+ * (FT232R, FT2232H, FT4232H, FT232H, FT-X), WCH CH340/CH341, Prolific
+ * PL2303, and any CDC-ACM device (by its interface class; "usb:" alone does
+ * not pick one, name it by vendor:product).
  *
  *   usb:                       the first supported adapter
  *   usb:VVVV:PPPP              the first with this vendor:product (hex)

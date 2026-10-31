@@ -90,10 +90,22 @@ under /dev/bus/usb themselves (the user needs access to it, e.g. a udev
 rule).  A kernel driver bound to the chip is detached while Hamlib has it.
 
 The serial settings (rate, data bits, parity, stop bits) and RTS/DTR go to
-the chip, so RTS/DTR PTT works as on a tty.  Supported chips: Silicon Labs
-CP210x (10c4:ea60, ea70, ea71: Icom IC-7100/IC-7300, Yaesu FT-710 and
-many cables).
-Hardware handshake is not implemented yet.
+the chip, so RTS/DTR PTT works as on a tty.  Supported chips:
+
+    Silicon Labs CP210x  10c4:ea60, ea70, ea71  Icom IC-7100/IC-7300,
+                                                Yaesu FT-710, many cables
+    FTDI                 0403:6001, 6010, 6011,  FT232R, FT2232H, FT4232H,
+                         6014, 6015              FT232H, FT-X
+    WCH CH340/CH341      1a86:7523, 5523
+    Prolific PL2303      067b:2303, 23a3-23f3    01, T, HX and HXN types
+    CDC-ACM              any vendor:product      by interface class
+
+A CDC-ACM device has no fixed id: name it by vendor:product, as "usb:"
+alone looks only for the chips above.  FTDI, CH34x and PL2303 support
+hardware handshake (RTS/CTS); CP210x and CDC-ACM run without it, and say
+so.  CTS, DSR and DCD are not read from a CDC-ACM device.  A framing the
+chip cannot do (FTDI: 7 or 8 data bits only) fails to open rather than
+opening as 8N1.
 
     rigctl -m 3070 -s 19200 -r "usb:10c4:ea60:IC-7100 02010347 A" f
     rigctl -m 1049 -s 38400 -r usb:10c4:ea70@0 f

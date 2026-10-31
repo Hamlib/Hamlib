@@ -20,8 +20,9 @@
  */
 
 /*
- * See usb_serial.h.  The chip protocols follow the Linux kernel drivers
- * (drivers/usb/serial/cp210x.c) and Silicon Labs AN571.
+ * See usb_serial.h.  The CP210x protocol follows Silicon Labs AN571.  The
+ * FTDI, CH34x, PL2303 and CDC-ACM ones are translated from
+ * usb-serial-for-android (MIT; see usb_serial.LICENSE).
  */
 
 #include "hamlib/config.h"
@@ -58,6 +59,8 @@ typedef struct
     int (*set_lines)(struct usbser *u);
     int (*get_status)(struct usbser *u, int *cts, int *dsr, int *car);
     void (*fini)(struct usbser *u);
+    /* received bytes as the chip sends them, in place: the data's length */
+    int (*rx_filter)(struct usbser *u, uint8_t *b, int n);
 } usbser_chip_t;
 
 struct usbser
@@ -66,7 +69,14 @@ struct usbser
     int usbfd;                          /* usbfs */
     int own_usbfd;                      /* we opened it (not "usbfd:N") */
     int ifno;
+    int ctl_if;                         /* CDC-ACM's control interface, or -1 */
     unsigned int ep_in, ep_out;
+    unsigned int in_mps;                /* ep_in's wMaxPacketSize */
+    unsigned int dev_class, mps0;       /* from the device descriptor */
+    unsigned int bcd_usb, bcd_device;
+    int ninterfaces;
+    int cdc_data;                       /* ifno is a CDC data interface */
+    int variant;                        /* the chip's: FTDI H/multi-port, PL2303 type */
     const usbser_chip_t *chip;
     int master, slave;                  /* the pseudo-terminal; Hamlib has slave */
     int rts, dtr;
@@ -100,7 +110,7 @@ static struct usbser *by_fd(int fd)
 /* ---- usbfs ---- */
 
 static int ctrl(struct usbser *u, uint8_t type, uint8_t req, uint16_t value,
-                void *data, uint16_t len)
+                uint16_t index, void *data, uint16_t len)
 {
     struct usbdevfs_ctrltransfer c;
     int r;
@@ -109,7 +119,7 @@ static int ctrl(struct usbser *u, uint8_t type, uint8_t req, uint16_t value,
     c.bRequestType = type;
     c.bRequest = req;
     c.wValue = value;
-    c.wIndex = (uint16_t)u->ifno;
+    c.wIndex = index;
     c.wLength = len;
     c.timeout = 1000;
     c.data = data;
@@ -183,14 +193,14 @@ static int cp_setup(struct usbser *u, const hamlib_port_t *rp)
     b[2] = (uint8_t)(rate >> 16);
     b[3] = (uint8_t)(rate >> 24);
 
-    if (ctrl(u, CP_OUT, CP_IFC_ENABLE, 1, NULL, 0) < 0
-            || ctrl(u, CP_OUT, CP_SET_BAUDRATE, 0, b, 4) < 0
-            || ctrl(u, CP_OUT, CP_SET_LINE_CTL, line, NULL, 0) < 0)
+    if (ctrl(u, CP_OUT, CP_IFC_ENABLE, 1, (uint16_t)u->ifno, NULL, 0) < 0
+            || ctrl(u, CP_OUT, CP_SET_BAUDRATE, 0, (uint16_t)u->ifno, b, 4) < 0
+            || ctrl(u, CP_OUT, CP_SET_LINE_CTL, line, (uint16_t)u->ifno, NULL, 0) < 0)
     {
         return -RIG_EIO;
     }
 
-    ctrl(u, CP_OUT, CP_PURGE, 0x000f, NULL, 0);
+    ctrl(u, CP_OUT, CP_PURGE, 0x000f, (uint16_t)u->ifno, NULL, 0);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: %d baud, line control 0x%04x\n", __func__,
               rate, line);
     return RIG_OK;
@@ -201,14 +211,14 @@ static int cp_set_lines(struct usbser *u)
     /* bit 0 DTR, bit 1 RTS; bits 8 and 9 say both are being set */
     uint16_t v = (uint16_t)(0x0300 | (u->dtr ? 0x01 : 0) | (u->rts ? 0x02 : 0));
 
-    return ctrl(u, CP_OUT, CP_SET_MHS, v, NULL, 0) < 0 ? -RIG_EIO : RIG_OK;
+    return ctrl(u, CP_OUT, CP_SET_MHS, v, (uint16_t)u->ifno, NULL, 0) < 0 ? -RIG_EIO : RIG_OK;
 }
 
 static int cp_get_status(struct usbser *u, int *cts, int *dsr, int *car)
 {
     uint8_t s = 0;
 
-    if (ctrl(u, CP_IN, CP_GET_MDMSTS, 0, &s, 1) < 1)
+    if (ctrl(u, CP_IN, CP_GET_MDMSTS, 0, (uint16_t)u->ifno, &s, 1) < 1)
     {
         return -RIG_EIO;
     }
@@ -222,10 +232,543 @@ static int cp_get_status(struct usbser *u, int *cts, int *dsr, int *car)
 
 static void cp_fini(struct usbser *u)
 {
-    ctrl(u, CP_OUT, CP_IFC_ENABLE, 0, NULL, 0);
+    ctrl(u, CP_OUT, CP_IFC_ENABLE, 0, (uint16_t)u->ifno, NULL, 0);
 }
 
-static const usbser_chip_t cp210x = { "CP210x", cp_setup, cp_set_lines, cp_get_status, cp_fini };
+static const usbser_chip_t cp210x = { "CP210x", cp_setup, cp_set_lines, cp_get_status, cp_fini, NULL };
+
+/* Framing every chip below refuses rather than replaces: a port opened at
+ * settings other than the ones asked for would only fail later, quietly. */
+static int framing(const hamlib_port_t *rp, int min_bits, int *bits, int *stop)
+{
+    *bits = rp->parm.serial.data_bits > 0 ? rp->parm.serial.data_bits : 8;
+    *stop = rp->parm.serial.stop_bits > 0 ? rp->parm.serial.stop_bits : 1;
+
+    if (*bits < min_bits || *bits > 8 || (*stop != 1 && *stop != 2))
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: %d data bits, %d stop bits: not supported\n",
+                  __func__, *bits, *stop);
+        return -RIG_EINVAL;
+    }
+
+    return RIG_OK;
+}
+
+/* RIG_PARITY_* as CDC (and PL2303) line coding numbers it: none, odd, even,
+ * mark, space. */
+static uint8_t cdc_parity(const hamlib_port_t *rp)
+{
+    switch (rp->parm.serial.parity)
+    {
+    case RIG_PARITY_ODD:   return 1;
+    case RIG_PARITY_EVEN:  return 2;
+    case RIG_PARITY_MARK:  return 3;
+    case RIG_PARITY_SPACE: return 4;
+    default:               return 0;
+    }
+}
+
+static int rate_of(const hamlib_port_t *rp)
+{
+    return rp->parm.serial.rate > 0 ? rp->parm.serial.rate : 9600;
+}
+
+/* ---- FTDI (FT232R, FT2232H, FT4232H, FT232H, FT-X) ---- */
+
+#define FT_OUT          0x40            /* vendor, device */
+#define FT_IN           0xc0
+#define FT_RESET        0x00
+#define FT_MODEM_CTRL   0x01
+#define FT_SET_FLOW     0x02
+#define FT_SET_BAUD     0x03
+#define FT_SET_DATA     0x04
+#define FT_GET_STATUS   0x05
+
+/* Every request names the port, 1 for the first. */
+static uint16_t ft_port(const struct usbser *u) { return (uint16_t)(u->ifno + 1); }
+
+static int ft_set_baud(struct usbser *u, int rate)
+{
+    int divisor, sub;
+    uint16_t value, index = 0;
+
+    if (rate > 3500000 || rate < 183)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: %d baud: out of range\n", __func__, rate);
+        return -RIG_EINVAL;
+    }
+
+    if (rate >= 2500000) { divisor = 0; sub = 0; }
+    else if (rate >= 1750000) { divisor = 1; sub = 0; }
+    else
+    {
+        divisor = ((24000000 << 1) / rate + 1) >> 1;    /* in 1/8ths, rounded */
+        sub = divisor & 7;
+        divisor >>= 3;
+    }
+
+    value = (uint16_t)divisor;
+
+    /* the sub-integer divisor's three bits: 15..14 of value, 0 of index */
+    switch (sub)
+    {
+    case 4: value |= 0x4000; break;
+    case 2: value |= 0x8000; break;
+    case 1: value |= 0xc000; break;
+    case 3: index = 1; break;
+    case 5: value |= 0x4000; index = 1; break;
+    case 6: value |= 0x8000; index = 1; break;
+    case 7: value |= 0xc000; index = 1; break;
+    default: break;
+    }
+
+    if (u->variant)                     /* H and multi-port chips: and the port */
+    {
+        index = (uint16_t)(index << 8 | ft_port(u));
+    }
+
+    return ctrl(u, FT_OUT, FT_SET_BAUD, value, index, NULL, 0) < 0 ? -RIG_EIO : RIG_OK;
+}
+
+static int ft_setup(struct usbser *u, const hamlib_port_t *rp)
+{
+    int bits, stop, r;
+    uint16_t data, flow = 0;
+
+    if ((r = framing(rp, 7, &bits, &stop)) != RIG_OK)
+    {
+        return r;
+    }
+
+    /* the baud rate's index carries the port on H chips and on chips with
+     * more than one (bcdDevice 0x07xx-0x09xx: FT2232H, FT4232H, FT232H) */
+    u->variant = (u->bcd_device >> 8) == 7 || (u->bcd_device >> 8) == 8
+                 || (u->bcd_device >> 8) == 9 || u->ninterfaces > 1;
+    data = (uint16_t)(bits | cdc_parity(rp) << 8 | (stop == 2 ? 0x1000 : 0));
+
+    if (rp->parm.serial.handshake == RIG_HANDSHAKE_HARDWARE)
+    {
+        flow = 0x100;                   /* RTS/CTS */
+    }
+
+    if (ctrl(u, FT_OUT, FT_RESET, 0, ft_port(u), NULL, 0) < 0
+            || (r = ft_set_baud(u, rate_of(rp))) != RIG_OK
+            || ctrl(u, FT_OUT, FT_SET_DATA, data, ft_port(u), NULL, 0) < 0
+            || ctrl(u, FT_OUT, FT_SET_FLOW, 0, (uint16_t)(flow | ft_port(u)), NULL, 0) < 0)
+    {
+        return r != RIG_OK ? r : -RIG_EIO;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: %d baud, data 0x%04x%s\n", __func__,
+              rate_of(rp), data, flow ? ", RTS/CTS" : "");
+    return RIG_OK;
+}
+
+static int ft_set_lines(struct usbser *u)
+{
+    /* the high byte says which lines are being set */
+    uint16_t v = (uint16_t)(0x0300 | (u->dtr ? 0x01 : 0) | (u->rts ? 0x02 : 0));
+
+    return ctrl(u, FT_OUT, FT_MODEM_CTRL, v, ft_port(u), NULL, 0) < 0 ? -RIG_EIO : RIG_OK;
+}
+
+static int ft_get_status(struct usbser *u, int *cts, int *dsr, int *car)
+{
+    uint8_t s[2] = { 0, 0 };
+
+    if (ctrl(u, FT_IN, FT_GET_STATUS, 0, ft_port(u), s, 2) < 2)
+    {
+        return -RIG_EIO;
+    }
+
+    if (cts) { *cts = (s[0] & 0x10) != 0; }
+    if (dsr) { *dsr = (s[0] & 0x20) != 0; }
+    if (car) { *car = (s[0] & 0x80) != 0; }
+
+    return RIG_OK;
+}
+
+/* Every packet the chip sends starts with two status bytes, data or not. */
+static int ft_rx_filter(struct usbser *u, uint8_t *b, int n)
+{
+    int mps = u->in_mps ? (int)u->in_mps : 64;
+    int src, dst = 0;
+
+    for (src = 0; src < n; src += mps)
+    {
+        int len = (src + mps < n ? src + mps : n) - (src + 2);
+
+        if (len > 0)
+        {
+            memmove(b + dst, b + src + 2, (size_t)len);
+            dst += len;
+        }
+    }
+
+    return dst;
+}
+
+static const usbser_chip_t ftdi = { "FTDI", ft_setup, ft_set_lines, ft_get_status, NULL, ft_rx_filter };
+
+/* ---- CH340 / CH341 ---- */
+
+#define CH_OUT          0x40            /* vendor, device */
+#define CH_IN           0xc0
+#define CH_READ_VERSION 0x5f
+#define CH_READ_REG     0x95
+#define CH_WRITE_REG    0x9a
+#define CH_SERIAL_INIT  0xa1
+#define CH_MODEM_CTRL   0xa4
+
+static int ch_set_baud(struct usbser *u, int rate)
+{
+    long factor, divisor;
+
+    if (rate == 921600) { divisor = 7; factor = 0xf300; }
+    else if (rate == 307200) { divisor = 7; factor = 0xd900; }
+    else
+    {
+        factor = 1532620800L / rate;
+        divisor = 3;
+
+        while (factor > 0xfff0 && divisor > 0)
+        {
+            factor >>= 3;
+            divisor--;
+        }
+
+        if (factor > 0xfff0)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: %d baud: not supported\n", __func__, rate);
+            return -RIG_EINVAL;
+        }
+
+        factor = 0x10000 - factor;
+    }
+
+    divisor |= 0x0080;                  /* else the CH341A waits for a full buffer */
+
+    if (ctrl(u, CH_OUT, CH_WRITE_REG, 0x1312, (uint16_t)((factor & 0xff00) | divisor), NULL, 0) < 0
+            || ctrl(u, CH_OUT, CH_WRITE_REG, 0x0f2c, (uint16_t)(factor & 0xff), NULL, 0) < 0)
+    {
+        return -RIG_EIO;
+    }
+
+    return RIG_OK;
+}
+
+static int ch_setup(struct usbser *u, const hamlib_port_t *rp)
+{
+    uint8_t v[2];
+    int bits, stop, r;
+    uint16_t lcr = 0x80 | 0x40;         /* RX and TX on */
+
+    if ((r = framing(rp, 5, &bits, &stop)) != RIG_OK)
+    {
+        return r;
+    }
+
+    lcr |= (uint16_t)(bits - 5);
+
+    switch (rp->parm.serial.parity)
+    {
+    case RIG_PARITY_ODD:   lcr |= 0x08; break;
+    case RIG_PARITY_EVEN:  lcr |= 0x08 | 0x10; break;
+    case RIG_PARITY_MARK:  lcr |= 0x08 | 0x20; break;
+    case RIG_PARITY_SPACE: lcr |= 0x08 | 0x20 | 0x10; break;
+    default: break;
+    }
+
+    if (stop == 2) { lcr |= 0x04; }
+
+    /* the chip's own start-up sequence, register reads included */
+    if (ctrl(u, CH_IN, CH_READ_VERSION, 0, 0, v, 2) < 2
+            || ctrl(u, CH_OUT, CH_SERIAL_INIT, 0, 0, NULL, 0) < 0
+            || (r = ch_set_baud(u, rate_of(rp))) != RIG_OK
+            || ctrl(u, CH_IN, CH_READ_REG, 0x2518, 0, v, 2) < 2
+            || ctrl(u, CH_OUT, CH_WRITE_REG, 0x2518, lcr, NULL, 0) < 0
+            || ctrl(u, CH_IN, CH_READ_REG, 0x0706, 0, v, 2) < 2
+            || ctrl(u, CH_OUT, CH_SERIAL_INIT, 0x501f, 0xd90a, NULL, 0) < 0
+            || (r = ch_set_baud(u, rate_of(rp))) != RIG_OK
+            || ctrl(u, CH_OUT, CH_WRITE_REG, 0x2727,
+                    rp->parm.serial.handshake == RIG_HANDSHAKE_HARDWARE ? 0x0101 : 0, NULL, 0) < 0)
+    {
+        return r != RIG_OK ? r : -RIG_EIO;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: %d baud, line control 0x%02x\n", __func__,
+              rate_of(rp), lcr);
+    return RIG_OK;
+}
+
+static int ch_set_lines(struct usbser *u)
+{
+    /* active low: bit 5 DTR, bit 6 RTS */
+    uint16_t v = (uint16_t)~((u->dtr ? 0x20 : 0) | (u->rts ? 0x40 : 0));
+
+    return ctrl(u, CH_OUT, CH_MODEM_CTRL, v, 0, NULL, 0) < 0 ? -RIG_EIO : RIG_OK;
+}
+
+static int ch_get_status(struct usbser *u, int *cts, int *dsr, int *car)
+{
+    uint8_t s[2] = { 0xff, 0xff };
+
+    if (ctrl(u, CH_IN, CH_READ_REG, 0x0706, 0, s, 2) < 2)
+    {
+        return -RIG_EIO;
+    }
+
+    /* active low */
+    if (cts) { *cts = !(s[0] & 0x01); }
+    if (dsr) { *dsr = !(s[0] & 0x02); }
+    if (car) { *car = !(s[0] & 0x08); }
+
+    return RIG_OK;
+}
+
+static const usbser_chip_t ch34x = { "CH34x", ch_setup, ch_set_lines, ch_get_status, NULL, NULL };
+
+/* ---- PL2303 (01, T, HX, HXN) ---- */
+
+#define PL_OUT          0x40            /* vendor, device */
+#define PL_IN           0xc0
+#define PL_CLASS_OUT    0x21            /* class, interface */
+#define PL_SET_LINE     0x20
+#define PL_SET_CONTROL  0x22
+
+enum { PL_01, PL_T, PL_HX, PL_HXN };
+
+static int pl_vendor_in(struct usbser *u, uint16_t value, uint16_t index, uint8_t *b)
+{
+    return ctrl(u, PL_IN, u->variant == PL_HXN ? 0x81 : 0x01, value, index, b, 1) == 1
+           ? RIG_OK : -RIG_EIO;
+}
+
+static int pl_vendor_out(struct usbser *u, uint16_t value, uint16_t index)
+{
+    return ctrl(u, PL_OUT, u->variant == PL_HXN ? 0x80 : 0x01, value, index, NULL, 0) < 0
+           ? -RIG_EIO : RIG_OK;
+}
+
+static void pl_purge(struct usbser *u)
+{
+    if (u->variant == PL_HXN)
+    {
+        pl_vendor_out(u, 0x07, 3);       /* both pipes */
+    }
+    else
+    {
+        pl_vendor_out(u, 0x08, 0);
+        pl_vendor_out(u, 0x09, 0);
+    }
+}
+
+/* Which PL2303 it is, from its device descriptor; a T answers 0x8080. */
+static int pl_variant(struct usbser *u)
+{
+    uint8_t b;
+    int saved = u->variant;
+
+    if (u->dev_class == 0x02 || u->mps0 != 64)
+    {
+        return PL_01;
+    }
+
+    if (u->bcd_usb != 0x200)
+    {
+        return PL_HX;
+    }
+
+    u->variant = PL_HX;                 /* pl_vendor_in's request 0x01 */
+
+    if ((u->bcd_device == 0x300 || u->bcd_device == 0x500)
+            && pl_vendor_in(u, 0x8080, 0, &b) == RIG_OK)
+    {
+        u->variant = saved;
+        return PL_T;
+    }
+
+    u->variant = saved;
+    return PL_HXN;
+}
+
+/* A rate the chip has no table entry for, as its divisor encoding. */
+static uint32_t pl_rate(const struct usbser *u, int rate)
+{
+    static const int std[] = { 75, 150, 300, 600, 1200, 1800, 2400, 3600, 4800, 7200,
+                               9600, 14400, 19200, 28800, 38400, 57600, 115200, 230400,
+                               460800, 614400, 921600, 1228800, 2457600, 3000000, 6000000
+                             };
+    uint32_t baseline = 12000000U * 32, mantissa, exponent = 0;
+    size_t i;
+
+    if (u->variant == PL_HXN)
+    {
+        return (uint32_t)rate;
+    }
+
+    for (i = 0; i < sizeof(std) / sizeof(std[0]); i++)
+    {
+        if (std[i] == rate)
+        {
+            return (uint32_t)rate;
+        }
+    }
+
+    mantissa = baseline / (uint32_t)rate;
+
+    if (u->variant == PL_T)
+    {
+        while (mantissa >= 2048 && exponent < 15)
+        {
+            mantissa >>= 1;
+            exponent++;
+        }
+
+        return mantissa + ((exponent & ~1U) << 12) + ((exponent & 1U) << 16) + (1U << 31);
+    }
+
+    while (mantissa >= 512 && exponent < 7)
+    {
+        mantissa >>= 2;
+        exponent++;
+    }
+
+    return mantissa + (exponent << 9) + (1U << 31);
+}
+
+static int pl_setup(struct usbser *u, const hamlib_port_t *rp)
+{
+    uint8_t line[7], b;
+    uint32_t rate;
+    int bits, stop, r, hw = rp->parm.serial.handshake == RIG_HANDSHAKE_HARDWARE;
+
+    if ((r = framing(rp, 5, &bits, &stop)) != RIG_OK)
+    {
+        return r;
+    }
+
+    u->variant = pl_variant(u);
+    pl_purge(u);
+
+    if (u->variant != PL_HXN)           /* the vendor's start-up sequence */
+    {
+        if (pl_vendor_in(u, 0x8484, 0, &b) || pl_vendor_out(u, 0x0404, 0)
+                || pl_vendor_in(u, 0x8484, 0, &b) || pl_vendor_in(u, 0x8383, 0, &b)
+                || pl_vendor_in(u, 0x8484, 0, &b) || pl_vendor_out(u, 0x0404, 1)
+                || pl_vendor_in(u, 0x8484, 0, &b) || pl_vendor_in(u, 0x8383, 0, &b)
+                || pl_vendor_out(u, 0, 1) || pl_vendor_out(u, 1, 0)
+                || pl_vendor_out(u, 2, u->variant == PL_01 ? 0x24 : 0x44))
+        {
+            return -RIG_EIO;
+        }
+    }
+
+    rate = pl_rate(u, rate_of(rp));
+    line[0] = (uint8_t)rate;
+    line[1] = (uint8_t)(rate >> 8);
+    line[2] = (uint8_t)(rate >> 16);
+    line[3] = (uint8_t)(rate >> 24);
+    line[4] = stop == 2 ? 2 : 0;
+    line[5] = cdc_parity(rp);
+    line[6] = (uint8_t)bits;
+
+    if (ctrl(u, PL_CLASS_OUT, PL_SET_LINE, 0, 0, line, 7) < 0)
+    {
+        return -RIG_EIO;
+    }
+
+    pl_purge(u);
+
+    if (u->variant == PL_HXN ? pl_vendor_out(u, 0x0a, hw ? 0xfa : 0xff)
+            : pl_vendor_out(u, 0, hw ? 0x61 : 0))
+    {
+        return -RIG_EIO;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: type %d, %d baud (0x%08x)%s\n", __func__,
+              u->variant, rate_of(rp), rate, hw ? ", RTS/CTS" : "");
+    return RIG_OK;
+}
+
+static int pl_set_lines(struct usbser *u)
+{
+    uint16_t v = (uint16_t)((u->dtr ? 0x01 : 0) | (u->rts ? 0x02 : 0));
+
+    return ctrl(u, PL_CLASS_OUT, PL_SET_CONTROL, v, 0, NULL, 0) < 0 ? -RIG_EIO : RIG_OK;
+}
+
+static int pl_get_status(struct usbser *u, int *cts, int *dsr, int *car)
+{
+    uint8_t s = 0xff;
+    int hxn = u->variant == PL_HXN;
+
+    if (pl_vendor_in(u, hxn ? 0x80 : 0x87, 0, &s) != RIG_OK)
+    {
+        return -RIG_EIO;
+    }
+
+    /* active low */
+    if (cts) { *cts = !(s & 0x08); }
+    if (dsr) { *dsr = !(s & (hxn ? 0x20 : 0x04)); }
+    if (car) { *car = !(s & (hxn ? 0x40 : 0x02)); }
+
+    return RIG_OK;
+}
+
+static const usbser_chip_t pl2303 = { "PL2303", pl_setup, pl_set_lines, pl_get_status, pl_purge, NULL };
+
+/* ---- CDC-ACM (USB class 2/2, by interface class, not by id) ---- */
+
+#define ACM_OUT                 0x21    /* class, interface */
+#define ACM_SET_LINE_CODING     0x20
+#define ACM_SET_CONTROL_LINE    0x22
+
+static int acm_setup(struct usbser *u, const hamlib_port_t *rp)
+{
+    uint8_t line[7];
+    int rate = rate_of(rp), bits, stop, r;
+
+    if ((r = framing(rp, 5, &bits, &stop)) != RIG_OK)
+    {
+        return r;
+    }
+
+    if (rp->parm.serial.handshake == RIG_HANDSHAKE_HARDWARE)
+    {
+        rig_debug(RIG_DEBUG_WARN,
+                  "%s: CDC-ACM has no hardware handshake to set, using none\n", __func__);
+    }
+
+    line[0] = (uint8_t)rate;
+    line[1] = (uint8_t)(rate >> 8);
+    line[2] = (uint8_t)(rate >> 16);
+    line[3] = (uint8_t)(rate >> 24);
+    line[4] = stop == 2 ? 2 : 0;
+    line[5] = cdc_parity(rp);
+    line[6] = (uint8_t)bits;
+
+    if (ctrl(u, ACM_OUT, ACM_SET_LINE_CODING, 0, (uint16_t)u->ctl_if, line, 7) < 0)
+    {
+        return -RIG_EIO;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: %d baud on control interface %d\n", __func__,
+              rate, u->ctl_if);
+    return RIG_OK;
+}
+
+static int acm_set_lines(struct usbser *u)
+{
+    uint16_t v = (uint16_t)((u->dtr ? 0x01 : 0) | (u->rts ? 0x02 : 0));
+
+    return ctrl(u, ACM_OUT, ACM_SET_CONTROL_LINE, v, (uint16_t)u->ctl_if, NULL, 0) < 0
+           ? -RIG_EIO : RIG_OK;
+}
+
+/* CTS, DSR and DCD arrive as notifications on an interrupt endpoint, which
+ * this does not read: get_status is not implemented. */
+static const usbser_chip_t cdc_acm = { "CDC-ACM", acm_setup, acm_set_lines, NULL, NULL, NULL };
 
 static const struct
 {
@@ -234,8 +777,22 @@ static const struct
 } usbser_ids[] =
 {
     { 0x10c4, 0xea60, &cp210x },        /* CP2102/CP2104/CP2109: Icom IC-7100/7300, many cables */
-    { 0x10c4, 0xea70, &cp210x },        /* CP2105 */
+    { 0x10c4, 0xea70, &cp210x },        /* CP2105: Yaesu FT-710, FT-991A */
     { 0x10c4, 0xea71, &cp210x },        /* CP2108 */
+    { 0x0403, 0x6001, &ftdi },          /* FT232R */
+    { 0x0403, 0x6010, &ftdi },          /* FT2232H */
+    { 0x0403, 0x6011, &ftdi },          /* FT4232H */
+    { 0x0403, 0x6014, &ftdi },          /* FT232H */
+    { 0x0403, 0x6015, &ftdi },          /* FT230X, FT231X, FT234XD */
+    { 0x1a86, 0x7523, &ch34x },         /* CH340 */
+    { 0x1a86, 0x5523, &ch34x },         /* CH341A */
+    { 0x067b, 0x2303, &pl2303 },        /* PL2303 (01, T, HX) */
+    { 0x067b, 0x23a3, &pl2303 },        /* PL2303GC (HXN) */
+    { 0x067b, 0x23b3, &pl2303 },        /* PL2303GB */
+    { 0x067b, 0x23c3, &pl2303 },        /* PL2303GT */
+    { 0x067b, 0x23d3, &pl2303 },        /* PL2303GL */
+    { 0x067b, 0x23e3, &pl2303 },        /* PL2303GE */
+    { 0x067b, 0x23f3, &pl2303 },        /* PL2303GS */
 };
 
 static const usbser_chip_t *chip_for(unsigned int vid, unsigned int pid)
@@ -340,15 +897,28 @@ static int find_node(unsigned int vid, unsigned int pid, const char *serial,
     return found;
 }
 
-/* The first interface with a bulk IN and a bulk OUT endpoint, from the
- * descriptors usbfs returns on read(): the device's, then its configuration's. */
+/* The first interface with a bulk IN and a bulk OUT endpoint (or interface
+ * "want"), from the descriptors usbfs returns on read(): the device's, then
+ * its configuration's.  Also what the chips need from them: the device's
+ * class, EP0 size and versions, the IN endpoint's packet size, the number
+ * of interfaces, and for a CDC data interface its control interface (from
+ * the Union descriptor, else the IAD, else the interface before it). */
 static int find_endpoints(struct usbser *u, int want, unsigned int *vid,
                           unsigned int *pid)
 {
     uint8_t d[4096];
+    uint8_t cls[32];                    /* bInterfaceClass by number */
+    int sub_acm[32];                    /* subclass 2 (ACM) under class 2 */
+    int union_ctl[32];                  /* data interface -> control, from Union */
+    int iad_first = -1, iad_count = 0;
     ssize_t n, i;
-    int ifno = -1;
-    unsigned int in = 0, out = 0;
+    int ifno = -1, cur = -1, best_if = -1, k;
+    unsigned int in = 0, out = 0, mps = 0, best_in = 0, best_out = 0, best_mps = 0;
+
+    memset(cls, 0, sizeof(cls));
+    memset(sub_acm, 0, sizeof(sub_acm));
+
+    for (k = 0; k < 32; k++) { union_ctl[k] = -1; }
 
     lseek(u->usbfd, 0, SEEK_SET);
     n = read(u->usbfd, d, sizeof(d));
@@ -359,26 +929,66 @@ static int find_endpoints(struct usbser *u, int want, unsigned int *vid,
         return -RIG_EIO;
     }
 
+    u->bcd_usb = (unsigned int)(d[2] | d[3] << 8);
+    u->dev_class = d[4];
+    u->mps0 = d[7];
     *vid = (unsigned int)(d[8] | d[9] << 8);
     *pid = (unsigned int)(d[10] | d[11] << 8);
+    u->bcd_device = (unsigned int)(d[12] | d[13] << 8);
+    u->ninterfaces = 0;
 
     for (i = d[0]; i + 2 <= n && d[i] >= 2; i += d[i])
     {
-        if (d[i + 1] == 4)              /* interface */
+        if (d[i + 1] == 4 && i + 7 < n)                 /* interface */
         {
-            if (in && out && (want < 0 || ifno == want))
+            if (best_if < 0 && cur >= 0 && in && out && (want < 0 || cur == want))
             {
-                break;
+                best_if = cur;
+                best_in = in;
+                best_out = out;
+                best_mps = mps;
             }
 
-            ifno = d[i + 2];
-            in = out = 0;
+            cur = d[i + 2];
+            in = out = mps = 0;
+
+            if (d[i + 3] == 0)                          /* alternate setting 0 */
+            {
+                u->ninterfaces++;
+            }
+
+            if (cur < 32)
+            {
+                cls[cur] = d[i + 5];
+                sub_acm[cur] = d[i + 5] == 2 && d[i + 6] == 2;
+            }
         }
-        else if (d[i + 1] == 5 && ifno >= 0 && (d[i + 3] & 3) == 2)   /* bulk */
+        else if (d[i + 1] == 0x0b && i + 5 < n && d[i + 4] == 2 && d[i + 5] == 2)
+        {
+            /* an IAD grouping a CDC-ACM function: the one holding "want" */
+            if (want < 0 ? iad_first < 0 : (want >= d[i + 2] && want < d[i + 2] + d[i + 3]))
+            {
+                iad_first = d[i + 2];
+                iad_count = d[i + 3];
+            }
+        }
+        else if (d[i + 1] == 0x24 && i + 4 < n && d[i + 2] == 0x06)
+        {
+            /* CDC Union: bMasterInterface, then its bSlaveInterfaces */
+            for (k = 4; k < d[i] && i + k < n; k++)
+            {
+                if (d[i + k] < 32) { union_ctl[d[i + k]] = d[i + 3]; }
+            }
+        }
+        else if (d[i + 1] == 5 && cur >= 0 && i + 5 < n && (d[i + 3] & 3) == 2)   /* bulk */
         {
             if (d[i + 2] & 0x80)
             {
-                if (!in) { in = d[i + 2]; }
+                if (!in)
+                {
+                    in = d[i + 2];
+                    mps = (unsigned int)(d[i + 4] | (d[i + 5] & 0x07) << 8);
+                }
             }
             else if (!out)
             {
@@ -387,16 +997,53 @@ static int find_endpoints(struct usbser *u, int want, unsigned int *vid,
         }
     }
 
-    if (ifno < 0 || !in || !out || (want >= 0 && ifno != want))
+    if (best_if < 0 && cur >= 0 && in && out && (want < 0 || cur == want))
+    {
+        best_if = cur;
+        best_in = in;
+        best_out = out;
+        best_mps = mps;
+    }
+
+    if (best_if < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: %04x:%04x has no bulk endpoint pair%s\n",
                   __func__, *vid, *pid, want >= 0 ? " on that interface" : "");
         return -RIG_EIO;
     }
 
+    ifno = best_if;
     u->ifno = ifno;
-    u->ep_in = in;
-    u->ep_out = out;
+    u->ep_in = best_in;
+    u->ep_out = best_out;
+    u->in_mps = best_mps;
+    u->ctl_if = -1;
+    u->cdc_data = ifno < 32 && (cls[ifno] == 0x0a || sub_acm[ifno]);
+
+    if (u->cdc_data)
+    {
+        if (sub_acm[ifno])
+        {
+            u->ctl_if = ifno;                           /* one interface does both */
+        }
+        else if (union_ctl[ifno] >= 0)
+        {
+            u->ctl_if = union_ctl[ifno];
+        }
+        else if (iad_first >= 0 && ifno >= iad_first && ifno < iad_first + iad_count)
+        {
+            u->ctl_if = iad_first;
+        }
+        else if (ifno > 0 && sub_acm[ifno - 1])
+        {
+            u->ctl_if = ifno - 1;
+        }
+        else
+        {
+            u->cdc_data = 0;                            /* a data interface, but no ACM */
+        }
+    }
+
     return RIG_OK;
 }
 
@@ -426,6 +1073,11 @@ static void *rx_pump(void *arg)
             }
 
             continue;
+        }
+
+        if (u->chip->rx_filter)
+        {
+            n = u->chip->rx_filter(u, b, n);
         }
 
         while (off < n)
@@ -499,6 +1151,46 @@ int usb_serial_is_fd(int fd)
     return r;
 }
 
+/* Release a claimed interface, and give it back to a kernel driver that
+ * had it. */
+static void give_back(struct usbser *u, int ifno)
+{
+    unsigned int i = (unsigned int)ifno;
+    struct usbdevfs_ioctl c;
+
+    if (ifno < 0 || u->usbfd < 0)
+    {
+        return;
+    }
+
+    ioctl(u->usbfd, USBDEVFS_RELEASEINTERFACE, &i);
+    c.ifno = ifno;
+    c.ioctl_code = USBDEVFS_CONNECT;
+    c.data = NULL;
+    ioctl(u->usbfd, USBDEVFS_IOCTL, &c);
+}
+
+/* Claim an interface, detaching a kernel driver bound to it (cp210x,
+ * ftdi_sio, cdc_acm on a PC) for now. */
+static int take(struct usbser *u, int ifno)
+{
+    struct usbdevfs_disconnect_claim dc;
+    unsigned int i = (unsigned int)ifno;
+
+    memset(&dc, 0, sizeof(dc));
+    dc.interface = i;
+
+    if (ioctl(u->usbfd, USBDEVFS_DISCONNECT_CLAIM, &dc) < 0
+            && ioctl(u->usbfd, USBDEVFS_CLAIMINTERFACE, &i) < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: cannot claim interface %d: %s\n", __func__,
+                  ifno, strerror(errno));
+        return -RIG_EIO;
+    }
+
+    return RIG_OK;
+}
+
 static void release(struct usbser *u)
 {
     if (u->run)
@@ -512,20 +1204,15 @@ static void release(struct usbser *u)
     {
         u->rts = u->dtr = 0;
         u->chip->set_lines(u);
-        u->chip->fini(u);
+
+        if (u->chip->fini) { u->chip->fini(u); }
     }
 
-    if (u->ifno >= 0)
-    {
-        unsigned int ifno = (unsigned int)u->ifno;
-        struct usbdevfs_ioctl c;
+    give_back(u, u->ifno);
 
-        ioctl(u->usbfd, USBDEVFS_RELEASEINTERFACE, &ifno);
-        /* give the interface back to a kernel driver that had it */
-        c.ifno = u->ifno;
-        c.ioctl_code = USBDEVFS_CONNECT;
-        c.data = NULL;
-        ioctl(u->usbfd, USBDEVFS_IOCTL, &c);
+    if (u->ctl_if != u->ifno)
+    {
+        give_back(u, u->ctl_if);
     }
 
     if (u->own_usbfd && u->usbfd >= 0) { close(u->usbfd); }
@@ -544,7 +1231,6 @@ int usb_serial_open(hamlib_port_t *rp)
     int want = -1;
     char tty[64];
     unsigned int vid = 0, pid = 0;
-    struct usbdevfs_disconnect_claim dc;
     struct termios t;
     int i, err = -RIG_EIO;
 
@@ -567,7 +1253,7 @@ int usb_serial_open(hamlib_port_t *rp)
 
     memset(u, 0, sizeof(*u));
     u->used = 1;
-    u->usbfd = u->master = u->slave = u->ifno = -1;
+    u->usbfd = u->master = u->slave = u->ifno = u->ctl_if = -1;
     pthread_mutex_unlock(&usbser_lock);
 
     /* "...@N": interface N of a multi-port chip (the CP2105's second UART) */
@@ -632,6 +1318,11 @@ int usb_serial_open(hamlib_port_t *rp)
 
     u->chip = chip_for(vid, pid);
 
+    if (!u->chip && u->cdc_data)
+    {
+        u->chip = &cdc_acm;             /* a class device: any vendor's */
+    }
+
     if (!u->chip)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: %04x:%04x is not a supported USB-serial chip\n",
@@ -640,21 +1331,21 @@ int usb_serial_open(hamlib_port_t *rp)
         goto fail;
     }
 
-    /* A kernel driver bound to it (cp210x on a PC) is detached for now. */
-    memset(&dc, 0, sizeof(dc));
-    dc.interface = (unsigned int)u->ifno;
-
-    if (ioctl(u->usbfd, USBDEVFS_DISCONNECT_CLAIM, &dc) < 0)
+    if (u->chip != &cdc_acm)
     {
-        unsigned int ifno = (unsigned int)u->ifno;
+        u->ctl_if = -1;
+    }
 
-        if (ioctl(u->usbfd, USBDEVFS_CLAIMINTERFACE, &ifno) < 0)
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: cannot claim interface %d: %s\n", __func__,
-                      u->ifno, strerror(errno));
-            u->ifno = -1;
-            goto fail;
-        }
+    if (take(u, u->ifno) != RIG_OK)
+    {
+        u->ifno = u->ctl_if = -1;
+        goto fail;
+    }
+
+    if (u->ctl_if >= 0 && u->ctl_if != u->ifno && take(u, u->ctl_if) != RIG_OK)
+    {
+        u->ctl_if = -1;
+        goto fail;
     }
 
     if ((err = u->chip->setup(u, rp)) != RIG_OK || (err = u->chip->set_lines(u)) != RIG_OK)
