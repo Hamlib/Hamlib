@@ -23,7 +23,8 @@ GENERATED_TEST_WRAPPERS = \
 	testgrid.sh \
 	testloc.sh \
 	testrig.sh \
-	testrigcaps.sh
+	testrigcaps.sh \
+	testusbserial.sh
 
 check_PROGRAMS = \
 	cachetest \
@@ -42,7 +43,8 @@ check_PROGRAMS = \
 	testmW2power \
 	testrig \
 	testrigcaps \
-	testrigopen
+	testrigopen \
+	testusbserial
 # Document building testsecurity
 ### check_PROGRAMS += testsecurity
 
@@ -98,6 +100,9 @@ endif
 ### testsecurity_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_srcdir)/security
 
 rigctl_LDADD = $(PTHREAD_LIBS) $(READLINE_LIBS) $(LDADD)
+# includes src/usb_serial.c, its usbfs calls going to a fake adapter
+testusbserial_CPPFLAGS = -I$(top_srcdir)/src -I$(top_builddir)/src $(AM_CPPFLAGS)
+testusbserial_LDADD = $(PTHREAD_LIBS) $(LDADD)
 rigctld_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rotctl_LDADD = $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rotctld_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
@@ -205,6 +210,10 @@ testloc.sh:
 testrigcaps.sh:
 	echo './testrigcaps' > testrigcaps.sh
 	chmod +x ./testrigcaps.sh
+
+testusbserial.sh:
+	echo './testusbserial' > testusbserial.sh
+	chmod +x ./testusbserial.sh
 
 testcache.sh:
 	echo './testcache 1' > testcache.sh
