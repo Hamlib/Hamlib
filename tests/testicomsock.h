@@ -18,6 +18,7 @@
 #ifndef TESTICOMSOCK_H
 #define TESTICOMSOCK_H
 
+#include <pthread.h>
 #include <stddef.h>
 
 #ifdef _WIN32
@@ -32,6 +33,10 @@ int close_test_socket(int fd);
 int read_test_socket(int fd, void *buffer, size_t length);
 int write_test_socket(int fd, const void *buffer, size_t length);
 int open_test_connection(int sockets[2]);
+
+/* Stops the fake rig reading sockets[1]: closing the backend's end,
+   sockets[0], ends its read; its own end is closed after the join */
+void stop_test_peer(int sockets[2], pthread_t thread);
 
 /* Reads one CI-V frame, i.e. everything up to and including an FD byte */
 int read_frame(int fd, unsigned char *buffer, size_t capacity,
