@@ -948,14 +948,19 @@ static int wait_for_subscribe(struct rigctld_stream *stream)
     socklen_t addr_len;
     unsigned char buf[RIG_STREAM_MAX_DATAGRAM];
     struct rig_stream_packet_header hdr;
-    time_t start_time = time(NULL);
+    struct timespec start_time, now;
+
+    clock_gettime(CLOCK_MONOTONIC, &start_time);
 
     while (stream->running)
     {
         fd_set fds;
         struct timeval tv;
 
-        if (time(NULL) - start_time >= stream->subscribe_timeout_s)
+        clock_gettime(CLOCK_MONOTONIC, &now);
+
+        if (rigctld_stream_timed_out(&start_time, &now,
+                                     stream->subscribe_timeout_s))
         {
             rig_debug(RIG_DEBUG_WARN,
                       "%s: subscribe timeout for stream %d\n",
@@ -1028,7 +1033,7 @@ static int wait_for_subscribe(struct rigctld_stream *stream)
 
         /* SUBSCRIBE received — finalize client address and send ACK */
         stream->client_addr_known = 1;
-        stream->last_subscribe = time(NULL);
+        clock_gettime(CLOCK_MONOTONIC, &stream->last_subscribe);
         rigctld_stream_send_control_reply(stream, RIG_STREAM_CTRL_SUBSCRIBE_ACK);
 
         return 0;
@@ -1313,6 +1318,13 @@ static long elapsed_ms(const struct timespec *start, const struct timespec *end)
 }
 
 
+int rigctld_stream_timed_out(const struct timespec *since,
+                             const struct timespec *now, int timeout_s)
+{
+    return elapsed_ms(since, now) >= (long) timeout_s * 1000;
+}
+
+
 int rigctld_stream_metadata_refresh_due(int refresh_ms, int sample_rate,
                                         uint64_t samples_since)
 {
@@ -1350,7 +1362,7 @@ static void *rigctld_stream_feeder_tx(void *arg)
     int first_data = 1;  /* Skip gap detection on first data packet */
     struct timespec ts_now;
     clock_gettime(CLOCK_MONOTONIC, &ts_now);
-    time_t last_activity = ts_now.tv_sec;
+    struct timespec last_activity = ts_now;
 
     /* Cache per-stream invariants */
     stream->format_id = stream_format_to_id(stream->config.format);
@@ -1401,7 +1413,8 @@ static void *rigctld_stream_feeder_tx(void *arg)
             /* Check inactivity timeout */
             clock_gettime(CLOCK_MONOTONIC, &ts_now);
 
-            if (ts_now.tv_sec - last_activity >= stream->subscribe_timeout_s)
+            if (rigctld_stream_timed_out(&last_activity, &ts_now,
+                                         stream->subscribe_timeout_s))
             {
                 rig_debug(RIG_DEBUG_WARN,
                           "%s: inactivity timeout for TX stream %d\n",
@@ -1415,7 +1428,7 @@ static void *rigctld_stream_feeder_tx(void *arg)
         }
 
         clock_gettime(CLOCK_MONOTONIC, &ts_now);
-        last_activity = ts_now.tv_sec;
+        last_activity = ts_now;
 
         struct sockaddr_storage from_addr;
         socklen_t from_len = sizeof(from_addr);
@@ -1658,7 +1671,7 @@ static void poll_incoming_control(struct rigctld_stream *stream,
             && ctrl_hdr.stream_id == stream->stream_id)
     {
         rigctld_stream_send_control_reply(stream, RIG_STREAM_CTRL_PONG);
-        stream->last_subscribe = now->tv_sec;
+        stream->last_subscribe = *now;
     }
     else if (ctrl_hdr.control & RIG_STREAM_CTRL_SUBSCRIBE)
     {
@@ -1666,7 +1679,7 @@ static void poll_incoming_control(struct rigctld_stream *stream,
         memcpy(&stream->client_addr, &from_addr, from_len);
         stream->client_addr_len = from_len;
         stream->client_addr_known = 1;
-        stream->last_subscribe = now->tv_sec;
+        stream->last_subscribe = *now;
         rigctld_stream_send_control_reply(stream, RIG_STREAM_CTRL_SUBSCRIBE_ACK);
     }
     else
@@ -1710,7 +1723,8 @@ static int rigctld_stream_hold_failed(struct rigctld_stream *stream)
 
         poll_incoming_control(stream, &now);
 
-        if (now.tv_sec - stream->last_subscribe >= stream->subscribe_timeout_s)
+        if (rigctld_stream_timed_out(&stream->last_subscribe, &now,
+                                     stream->subscribe_timeout_s))
         {
             rig_debug(RIG_DEBUG_WARN,
                       "%s: keepalive timeout for failed stream %d\n",
@@ -1809,7 +1823,7 @@ static void *rigctld_stream_feeder_rx(void *arg)
     clock_gettime(CLOCK_MONOTONIC, &last_meta_time);
     last_ctrl_check = last_meta_time;
     last_data_time = last_meta_time;
-    stream->last_subscribe = last_meta_time.tv_sec;
+    stream->last_subscribe = last_meta_time;
 
     /* Producer sample index at the last metadata frame — drives the
      * unconditional refresh cadence. */
@@ -1955,8 +1969,8 @@ static void *rigctld_stream_feeder_rx(void *arg)
 
         /* Keepalive timeout check — unicast only */
         if (!stream->multicast
-                && now.tv_sec - stream->last_subscribe
-                >= stream->subscribe_timeout_s)
+                && rigctld_stream_timed_out(&stream->last_subscribe, &now,
+                                            stream->subscribe_timeout_s))
         {
             rig_debug(RIG_DEBUG_WARN,
                       "%s: keepalive timeout for stream %d\n",
