@@ -152,6 +152,17 @@ static int create_sync_data_pipe(hamlib_port_t *p)
     int flags;
 
     status = pipe(sync_pipe_fds);
+
+    if (status != 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: synchronous data pipe open status=%d, err=%s\n",
+                  __func__, status, strerror(errno));
+        close_sync_data_pipe(p);
+        return (-RIG_EINTERNAL);
+    }
+
+    p->fd_sync_read = sync_pipe_fds[0];
+    p->fd_sync_write = sync_pipe_fds[1];
     flags = fcntl(sync_pipe_fds[0], F_GETFL);
     flags |= O_NONBLOCK;
 
@@ -170,19 +181,19 @@ static int create_sync_data_pipe(hamlib_port_t *p)
                   __func__, strerror(errno));
     }
 
+    status = pipe(sync_pipe_fds);
+
     if (status != 0)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: synchronous data pipe open status=%d, err=%s\n",
-                  __func__,
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: synchronous data error code pipe open status=%d, err=%s\n", __func__,
                   status, strerror(errno));
         close_sync_data_pipe(p);
         return (-RIG_EINTERNAL);
     }
 
-    p->fd_sync_read = sync_pipe_fds[0];
-    p->fd_sync_write = sync_pipe_fds[1];
-
-    status = pipe(sync_pipe_fds);
+    p->fd_sync_error_read = sync_pipe_fds[0];
+    p->fd_sync_error_write = sync_pipe_fds[1];
     flags = fcntl(sync_pipe_fds[0], F_GETFL);
     flags |= O_NONBLOCK;
 
@@ -201,18 +212,6 @@ static int create_sync_data_pipe(hamlib_port_t *p)
                   __func__, strerror(errno));
     }
 
-    if (status != 0)
-    {
-        rig_debug(RIG_DEBUG_ERR,
-                  "%s: synchronous data error code pipe open status=%d, err=%s\n", __func__,
-                  status, strerror(errno));
-        close_sync_data_pipe(p);
-        return (-RIG_EINTERNAL);
-    }
-
-    p->fd_sync_error_read = sync_pipe_fds[0];
-    p->fd_sync_error_write = sync_pipe_fds[1];
-
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s: created data pipe for synchronous transactions\n", __func__);
 
@@ -220,6 +219,31 @@ static int create_sync_data_pipe(hamlib_port_t *p)
 }
 
 #endif
+
+/* Meaningful only after port_open() has run init_sync_data_pipe(): the
+   POSIX fds compare against its -1 sentinel, so on a zeroed port they
+   read as 0 and the port would wrongly look prepared. */
+int HAMLIB_API port_async_is_prepared(const hamlib_port_t *p)
+{
+#if defined(WIN32) && defined(HAVE_WINDOWS_H)
+    return p->sync_data_pipe != NULL && p->sync_data_error_pipe != NULL;
+#else
+    return p->fd_sync_read != -1 && p->fd_sync_write != -1
+           && p->fd_sync_error_read != -1 && p->fd_sync_error_write != -1;
+#endif
+}
+
+/* Called once per reader start, on a port that port_open() set up. */
+int HAMLIB_API port_prepare_async(hamlib_port_t *p)
+{
+    return create_sync_data_pipe(p);
+}
+
+void HAMLIB_API port_cleanup_async(hamlib_port_t *p)
+{
+    p->asyncio = 0;
+    close_sync_data_pipe(p);
+}
 
 /**
  * \brief Open a hamlib_port based on its rig port type
@@ -233,16 +257,7 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
     p->fd = -1;
     init_sync_data_pipe(p);
-
-    if (p->asyncio)
-    {
-        status = create_sync_data_pipe(p);
-
-        if (status < 0)
-        {
-            return (status);
-        }
-    }
+    p->asyncio = 0;
 
     switch (p->type.rig)
     {
@@ -258,7 +273,6 @@ int HAMLIB_API port_open(hamlib_port_t *p)
             rig_debug(RIG_DEBUG_ERR, "%s: serial_open(%s) status=%d, err=%s\n", __func__,
                       p->pathname, status, strerror(errno));
 #endif
-            close_sync_data_pipe(p);
             return (status);
         }
 
@@ -272,7 +286,6 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
         if (status != 0)
         {
-            close_sync_data_pipe(p);
             return (status);
         }
 
@@ -286,7 +299,6 @@ int HAMLIB_API port_open(hamlib_port_t *p)
         if (status != 0)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: set_dtr status=%d\n", __func__, status);
-            close_sync_data_pipe(p);
             return (status);
         }
 
@@ -306,7 +318,6 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
         if (status < 0)
         {
-            close_sync_data_pipe(p);
             return (status);
         }
 
@@ -317,7 +328,6 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
         if (status < 0)
         {
-            close_sync_data_pipe(p);
             return (status);
         }
 
@@ -328,7 +338,6 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
         if (status < 0)
         {
-            close_sync_data_pipe(p);
             return (-RIG_EIO);
         }
 
@@ -342,7 +351,6 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
         if (status < 0)
         {
-            close_sync_data_pipe(p);
             return (status);
         }
 
@@ -361,14 +369,12 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
         if (status < 0)
         {
-            close_sync_data_pipe(p);
             return (status);
         }
 
         break;
 
     default:
-        close_sync_data_pipe(p);
         return (-RIG_EINVAL);
     }
 
@@ -418,7 +424,7 @@ int HAMLIB_API port_close(hamlib_port_t *p, rig_port_t port_type)
         p->fd = -1;
     }
 
-    close_sync_data_pipe(p);
+    port_cleanup_async(p);
 
     return (ret);
 }
@@ -962,16 +968,7 @@ static int port_wait_for_data(hamlib_port_t *p, int direct)
 int HAMLIB_API write_block_sync(hamlib_port_t *p, const unsigned char *txbuffer,
                                 size_t count)
 {
-    int retval = RIG_OK;
-
-    if (p->asyncio)
-    {
-        retval = write(p->fd_sync_write, txbuffer, count);
-    }
-    else
-    {
-        retval = write(p->fd, txbuffer, count);
-    }
+    int retval = write(p->fd_sync_write, txbuffer, count);
 
     if (retval != count)
     {
@@ -985,11 +982,6 @@ int HAMLIB_API write_block_sync(hamlib_port_t *p, const unsigned char *txbuffer,
 int HAMLIB_API write_block_sync_error(hamlib_port_t *p,
                                       const unsigned char *txbuffer, size_t count)
 {
-    if (!p->asyncio)
-    {
-        return -RIG_EINTERNAL;
-    }
-
     return (int) write(p->fd_sync_error_write, txbuffer, count);
 }
 
