@@ -568,6 +568,157 @@ void test_transmit_loses_nothing_at_real_time(void)
 
 
 
+/* Opens an audio TX stream on the mock and forgets the commands that took,
+ * so a test sees only what its burst caused. */
+static rig_stream_t *open_tx_on_mock(struct smartsdr_mock *m, RIG **rig)
+{
+    rig_stream_t *st;
+
+    smartsdr_mock_reply(m, "stream create", "0x84000000");
+    *rig = open_on_mock(m);
+    st = open_stream(*rig, RIG_STREAM_TYPE_AUDIO_TX, AUDIO_RATE, 2,
+                     RIG_STREAM_FORMAT_PCM_F32);
+
+    if (st != NULL)
+    {
+        smartsdr_mock_wait_udp(m, 2000);
+        smartsdr_mock_forget(m);
+    }
+
+    return st;
+}
+
+
+static void close_tx_on_mock(RIG *rig, rig_stream_t *st,
+                             struct smartsdr_mock *m)
+{
+    if (st != NULL)
+    {
+        rig_stream_close(rig, st);
+    }
+
+    rig_close(rig);
+    rig_cleanup(rig);
+    smartsdr_mock_stop(m);
+}
+
+
+/* A burst written as one write carrying SOB and EOB keys before its first
+ * sample and unkeys after its last. The end used to be bound to the first
+ * sample of the write and acted on before the frame holding it was sent, so
+ * the radio was unkeyed before any of the burst went out. */
+void test_burst_unkeys_after_its_last_sample(void)
+{
+    struct smartsdr_mock m;
+    RIG *rig;
+    rig_stream_t *st;
+    struct rig_stream_write_info winfo;
+    static float burst[1000 * 2];   /* 1000 stereo pairs, not a frame multiple */
+    size_t wrote = 0;
+    size_t i;
+
+    smartsdr_mock_start(&m);
+    TEST_ASSERT(m.started);
+    st = open_tx_on_mock(&m, &rig);
+    TEST_ASSERT(st != NULL);
+
+    for (i = 0; i < sizeof(burst) / sizeof(burst[0]); i++)
+    {
+        burst[i] = SMARTSDR_MOCK_TX_MARK;
+    }
+
+    memset(&winfo, 0, sizeof(winfo));
+    winfo.flags = RIG_STREAM_TIME_FLAG_SOB | RIG_STREAM_TIME_FLAG_EOB;
+    TEST_CHECK(rig_stream_write(rig, st, burst, sizeof(burst), &wrote, 500,
+                                &winfo) == RIG_OK);
+
+    TEST_CHECK(smartsdr_mock_wait_for(&m, "xmit 0", 1, 3000) == 1);
+    TEST_CHECK(smartsdr_mock_saw_before(&m, "xmit 1", "xmit 0"));
+
+    TEST_CHECK(smartsdr_mock_tx_marked_at(&m, "xmit 1") == 0);
+    TEST_MSG("%d burst samples went out before the radio was keyed",
+             smartsdr_mock_tx_marked_at(&m, "xmit 1"));
+
+    TEST_CHECK(smartsdr_mock_tx_marked_at(&m, "xmit 0")
+               == (int)(sizeof(burst) / sizeof(burst[0])));
+    TEST_MSG("unkeyed after %d of %d burst samples",
+             smartsdr_mock_tx_marked_at(&m, "xmit 0"),
+             (int)(sizeof(burst) / sizeof(burst[0])));
+
+    close_tx_on_mock(rig, st, &m);
+}
+
+
+/* Closing the stream while a timed burst waits for its start cancels it. The
+ * wait used to end on the close and fall through to keying, so cancelling a
+ * scheduled burst put the radio on the air. */
+void test_cancelled_timed_burst_never_keys(void)
+{
+    struct smartsdr_mock m;
+    RIG *rig;
+    rig_stream_t *st;
+    struct rig_stream_write_info winfo;
+    static float burst[128 * 2];
+    struct timeval now;
+    size_t wrote = 0;
+
+    smartsdr_mock_start(&m);
+    TEST_ASSERT(m.started);
+    st = open_tx_on_mock(&m, &rig);
+    TEST_ASSERT(st != NULL);
+
+    gettimeofday(&now, NULL);
+    memset(&winfo, 0, sizeof(winfo));
+    winfo.time_valid = 1;
+    winfo.seconds = (int64_t)now.tv_sec + 2;
+    winfo.picoseconds = (uint64_t)now.tv_usec * 1000000ULL;
+    winfo.flags = RIG_STREAM_TIME_FLAG_SOB | RIG_STREAM_TIME_FLAG_EOB;
+    TEST_CHECK(rig_stream_write(rig, st, burst, sizeof(burst), &wrote, 500,
+                                &winfo) == RIG_OK);
+
+    /* Long enough for the TX thread to be waiting on the start. */
+    usleep(200 * 1000);
+    rig_stream_close(rig, st);
+
+    TEST_CHECK(!smartsdr_mock_saw(&m, "xmit 1"));
+    TEST_MSG("a burst cancelled before its start keyed the radio");
+
+    close_tx_on_mock(rig, NULL, &m);
+}
+
+
+/* A stream closed mid-burst, before any EOB, must not leave the radio keyed
+ * with nothing feeding it. */
+void test_closing_mid_burst_unkeys(void)
+{
+    struct smartsdr_mock m;
+    RIG *rig;
+    rig_stream_t *st;
+    struct rig_stream_write_info winfo;
+    static float burst[4800 * 2];   /* 200 ms */
+    size_t wrote = 0;
+
+    smartsdr_mock_start(&m);
+    TEST_ASSERT(m.started);
+    st = open_tx_on_mock(&m, &rig);
+    TEST_ASSERT(st != NULL);
+
+    memset(&winfo, 0, sizeof(winfo));
+    winfo.flags = RIG_STREAM_TIME_FLAG_SOB;
+    TEST_CHECK(rig_stream_write(rig, st, burst, sizeof(burst), &wrote, 500,
+                                &winfo) == RIG_OK);
+    TEST_CHECK(smartsdr_mock_wait_for(&m, "xmit 1", 1, 3000) == 1);
+
+    rig_stream_close(rig, st);
+
+    TEST_CHECK(smartsdr_mock_saw_before(&m, "xmit 1", "xmit 0"));
+    TEST_MSG("closing mid-burst left the radio keyed");
+
+    close_tx_on_mock(rig, NULL, &m);
+}
+
+
+
 /* ================================================================== */
 /* Meters and spectrum                                                 */
 /* ================================================================== */
@@ -1053,6 +1204,9 @@ TEST_LIST =
     { "losing_exactly_sixteen_cannot_be_seen", test_losing_exactly_sixteen_cannot_be_seen },
     { "two_streams_both_receive",           test_two_streams_both_receive },
     { "transmit_loses_nothing_at_real_time", test_transmit_loses_nothing_at_real_time },
+    { "burst_unkeys_after_its_last_sample",  test_burst_unkeys_after_its_last_sample },
+    { "cancelled_timed_burst_never_keys",    test_cancelled_timed_burst_never_keys },
+    { "closing_mid_burst_unkeys",            test_closing_mid_burst_unkeys },
     { "meters_resolve_and_scale",           test_meters_resolve_and_scale },
     { "a_split_fft_frame_reassembles",      test_a_split_fft_frame_reassembles },
     { "caps_declare_only_the_wire_formats", test_caps_declare_only_the_wire_formats },

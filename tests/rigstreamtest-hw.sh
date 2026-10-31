@@ -109,8 +109,8 @@ Usage: rigstreamtest-hw.sh -m MODEL [-r HOST] [options]
   -o, --outdir DIR       output directory (default streamtest-<model>-<stamp>)
       --tests LIST       comma-separated subset of:
                          audio_rx,iq_rx,audio_tx,iq_tx,loopback,full_duplex,
-                         reconnect, native (opt-in: never part of the
-                         default sweep)
+                         burst, burst_cancel, reconnect, native (opt-in:
+                         never part of the default sweep)
                          (default: everything the model advertises)
       --mono             force mono even when the model advertises stereo
       --vfo V[,V]        VFO(s) to set up, e.g. MainA or MainA,SubA
@@ -357,6 +357,14 @@ run_test()
         SKIP=`expr $SKIP + 1`
         return 0
         ;;
+    # A transmit stream that leaves PTT to the application cannot be tested
+    # for burst keying, which is a property of the model, not a defect.
+    *"does not key PTT from bursts"*)
+        echo "SKIP  this model does not key PTT from bursts"
+        record "SKIP  $name (no BURST_PTT)"
+        SKIP=`expr $SKIP + 1`
+        return 0
+        ;;
     # Same reasoning one level down: the model declares every format it can
     # serve natively in some configuration, but a session serves only what its
     # own negotiated codec and rate give it. A refusal here says this session
@@ -480,10 +488,31 @@ if [ "$DO_TX" = 1 ]; then
     elif wanted full_duplex; then
         skip_test "full_duplex" "needs both audio_rx and audio_tx"
     fi
+
+    # Bursts the backend keys itself from SOB/EOB: a scheduled burst must key
+    # while it plays and release once its last sample has gone, and one whose
+    # stream is closed before its start must never key at all. A model whose
+    # transmit stream does not key from bursts is skipped.
+    if wanted burst && advertises audio_tx; then
+        run_test "burst" "" -t burst -s "$AUDIO_RATE" -c "$CHANNELS" \
+            --bursts 3 --burst-ms 1000 --burst-gap-ms 1000 \
+            --burst-lead-ms 500 --power "$POWER"
+    elif wanted burst; then
+        skip_test "burst" "not advertised by this model"
+    fi
+
+    if wanted burst_cancel && advertises audio_tx; then
+        run_test "burst_cancel" "" -t burst -s "$AUDIO_RATE" -c "$CHANNELS" \
+            --burst-cancel --burst-lead-ms 2000 --power "$POWER"
+    elif wanted burst_cancel; then
+        skip_test "burst_cancel" "not advertised by this model"
+    fi
 else
-    wanted audio_tx    && skip_test "audio_tx"    "transmit not enabled (--tx)"
-    wanted iq_tx       && skip_test "iq_tx"       "transmit not enabled (--tx)"
-    wanted full_duplex && skip_test "full_duplex" "transmit not enabled (--tx)"
+    wanted audio_tx     && skip_test "audio_tx"     "transmit not enabled (--tx)"
+    wanted iq_tx        && skip_test "iq_tx"        "transmit not enabled (--tx)"
+    wanted full_duplex  && skip_test "full_duplex"  "transmit not enabled (--tx)"
+    wanted burst        && skip_test "burst"        "transmit not enabled (--tx)"
+    wanted burst_cancel && skip_test "burst_cancel" "transmit not enabled (--tx)"
 fi
 
 # Reconnect deliberately drops the link, and a radio that holds its session slot

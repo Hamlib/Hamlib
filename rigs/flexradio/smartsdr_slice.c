@@ -254,9 +254,32 @@ pbwidth_t smartsdr_slice_width(const struct smartsdr_priv_data *priv)
 
 /* PTT is the radio-wide interlock state, but only reported for this rig when
  * its slice holds the transmitter. */
+int smartsdr_own_split_slice(const struct smartsdr_priv_data *priv)
+{
+    if (priv->split_slice_override >= 0
+            && priv->split_slice_override < SMARTSDR_MAX_SLICES)
+    {
+        return priv->split_slice_override;
+    }
+
+    return priv->split_created_slice;
+}
+
+
+/* Transmitting counts for this rig when the transmitter is on its own slice,
+ * or on the transmit slice of a split it set up. */
 int smartsdr_slice_ptt(const struct smartsdr_priv_data *priv)
 {
-    if (!priv->props[SMARTSDR_P_TX].seen || priv->props[SMARTSDR_P_TX].ival == 0)
+    int split_slice = smartsdr_own_split_slice(priv);
+    int ours = priv->props[SMARTSDR_P_TX].seen
+               && priv->props[SMARTSDR_P_TX].ival != 0;
+
+    if (!ours && split_slice >= 0 && split_slice < SMARTSDR_MAX_SLICES)
+    {
+        ours = priv->slices[split_slice].tx;
+    }
+
+    if (!ours)
     {
         return 0;
     }

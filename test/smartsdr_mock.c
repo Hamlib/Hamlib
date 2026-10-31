@@ -404,6 +404,72 @@ void smartsdr_mock_send_fft(struct smartsdr_mock *m, uint32_t stream_id,
 }
 
 
+/* Count the 32-bit words of a datagram that hold SMARTSDR_MOCK_TX_MARK, in
+ * either byte order. The VITA-49 header words are ids, counters and stamps,
+ * none of which is that float's bit pattern. */
+static int mock_count_marked(const uint8_t *buf, size_t len)
+{
+    float mark = SMARTSDR_MOCK_TX_MARK;
+    uint8_t fwd[4];
+    uint8_t rev[4];
+    size_t off;
+    int i;
+    int count = 0;
+
+    memcpy(fwd, &mark, sizeof(fwd));
+
+    for (i = 0; i < 4; i++)
+    {
+        rev[i] = fwd[3 - i];
+    }
+
+    for (off = 0; off + 4 <= len; off += 4)
+    {
+        if (memcmp(buf + off, fwd, 4) == 0 || memcmp(buf + off, rev, 4) == 0)
+        {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+
+int smartsdr_mock_tx_marked(struct smartsdr_mock *m)
+{
+    int n;
+
+    pthread_mutex_lock(&m->lock);
+    n = m->tx_marked;
+    pthread_mutex_unlock(&m->lock);
+    return n;
+}
+
+
+int smartsdr_mock_tx_marked_at(struct smartsdr_mock *m, const char *needle)
+{
+    int marked = -1;
+    int i;
+    int n;
+
+    pthread_mutex_lock(&m->lock);
+    n = m->command_count < SMARTSDR_MOCK_MAX_COMMANDS
+        ? m->command_count : SMARTSDR_MOCK_MAX_COMMANDS;
+
+    for (i = 0; i < n; i++)
+    {
+        if (strstr(m->commands[i], needle) != NULL)
+        {
+            marked = m->command_tx_marked[i];
+            break;
+        }
+    }
+
+    pthread_mutex_unlock(&m->lock);
+    return marked;
+}
+
+
 void smartsdr_mock_capture_tx(struct smartsdr_mock *m)
 {
     pthread_mutex_lock(&m->lock);
@@ -473,6 +539,7 @@ static void mock_record_command(struct smartsdr_mock *m, const char *cmd)
         strncpy(m->commands[m->command_count], cmd,
                 sizeof(m->commands[0]) - 1);
         m->commands[m->command_count][sizeof(m->commands[0]) - 1] = '\0';
+        m->command_tx_marked[m->command_count] = m->tx_marked;
     }
 
     m->command_count++;
@@ -727,14 +794,21 @@ static void *mock_run(void *arg)
             continue;
         }
 
-        if (udp_fd >= 0 && FD_ISSET(udp_fd, &r))
+        /* Every datagram already queued is taken before any command, so a
+         * command the client sent after its audio is counted after it too. */
+        while (udp_fd >= 0 && FD_ISSET(udp_fd, &r))
         {
             uint8_t datagram[8192];
+            struct timeval zero = { 0, 0 };
             ssize_t n = recv(udp_fd, (char *)datagram, sizeof(datagram), 0);
 
             if (n > 0)
             {
+                int marked = mock_count_marked(datagram, (size_t)n);
+
                 pthread_mutex_lock(&m->lock);
+
+                m->tx_marked += marked;
 
                 if (m->tx_capture)
                 {
@@ -752,6 +826,35 @@ static void *mock_run(void *arg)
 
                 pthread_mutex_unlock(&m->lock);
             }
+
+            FD_ZERO(&r);
+            FD_SET(udp_fd, &r);
+
+            if (n <= 0 || select(udp_fd + 1, &r, NULL, NULL, &zero) <= 0)
+            {
+                break;
+            }
+        }
+
+        /* The drain above cleared the set; ask again what is readable. */
+        FD_ZERO(&r);
+
+        if (m->listen_fd >= 0)
+        {
+            FD_SET(m->listen_fd, &r);
+        }
+
+        if (m->client_fd >= 0)
+        {
+            FD_SET(m->client_fd, &r);
+        }
+
+        tv.tv_sec = 0;
+        tv.tv_usec = 0;
+
+        if (select(maxfd + 1, &r, NULL, NULL, &tv) <= 0)
+        {
+            continue;
         }
 
         if (FD_ISSET(m->listen_fd, &r))

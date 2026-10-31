@@ -94,6 +94,13 @@ struct smartsdr_stream_state
     uint32_t anchor_pkt_counter;        /* RX: host-anchor cadence counter */
     uint64_t tx_consumed;               /* TX: frames consumed (pairs) */
     int burst_ptt;                      /* TX: SOB/EOB keys PTT (from caps) */
+    /* TX: the next burst target, popped ahead so a frame can stop at it.
+     * Touched only by the TX thread. */
+    struct rig_stream_tx_target tx_next;
+    int tx_next_valid;
+    /* TX: an SOB keyed PTT that no EOB has released yet. Written by the TX
+     * thread; close reads it only after joining that thread. */
+    int tx_ptt_keyed;
 };
 
 

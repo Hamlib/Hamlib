@@ -36,6 +36,10 @@ extern void smartsdr_slice_info_absorb(struct smartsdr_priv_data *priv,
 /* The slice currently designated to transmit, or -1 if none is known. */
 extern int smartsdr_tx_slice(const struct smartsdr_priv_data *priv);
 
+/* The transmit slice of a split this rig set up -- the slice it created, or
+ * the one split_slice names -- or -1. Caller holds the state lock. */
+extern int smartsdr_own_split_slice(const struct smartsdr_priv_data *priv);
+
 /* Classic operating values, derived from the tracked properties. */
 extern freq_t smartsdr_slice_freq(const struct smartsdr_priv_data *priv);
 extern void smartsdr_slice_set_freq(struct smartsdr_priv_data *priv, freq_t hz);

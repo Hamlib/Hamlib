@@ -67,6 +67,9 @@ struct smartsdr_mock
     volatile int ping_count;    /* "ping" commands answered */
     int command_count;          /* commands seen, including any dropped */
     char commands[SMARTSDR_MOCK_MAX_COMMANDS][160];
+    /* tx_marked as each command arrived, so a test can tell how much of a
+     * burst had been transmitted when the radio was told to unkey. */
+    int command_tx_marked[SMARTSDR_MOCK_MAX_COMMANDS];
 
     struct smartsdr_mock_reply replies[SMARTSDR_MOCK_MAX_REPLIES];
     int reply_count;
@@ -101,7 +104,14 @@ struct smartsdr_mock
     int tx_bytes;
     int64_t tx_first_us;
     int64_t tx_last_us;
+    /* Transmitted samples equal to SMARTSDR_MOCK_TX_MARK, counted whether or
+     * not tx_capture is set. Silence never matches, so this counts exactly
+     * the samples of a burst written with the mark. */
+    int tx_marked;
 };
+
+/* A sample value a test writes so the mock can count it in what arrives. */
+#define SMARTSDR_MOCK_TX_MARK 0.5f
 
 
 /* The slice line the mock reports by default: slice A in use on 14.100 USB. */
@@ -201,5 +211,10 @@ void smartsdr_mock_send_fft(struct smartsdr_mock *m, uint32_t stream_id,
 void smartsdr_mock_capture_tx(struct smartsdr_mock *m);
 int smartsdr_mock_tx_count(struct smartsdr_mock *m);
 int64_t smartsdr_mock_tx_mean_interval_us(struct smartsdr_mock *m);
+
+/* Samples equal to SMARTSDR_MOCK_TX_MARK transmitted so far, and how many had
+ * arrived when the first command containing needle did (-1 if none has). */
+int smartsdr_mock_tx_marked(struct smartsdr_mock *m);
+int smartsdr_mock_tx_marked_at(struct smartsdr_mock *m, const char *needle);
 
 #endif /* _SMARTSDR_MOCK_H */

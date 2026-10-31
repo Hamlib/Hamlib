@@ -313,11 +313,11 @@ void test_func_off_writes_zero(void)
 /* PTT                                                                 */
 /* ================================================================== */
 
-/* Keying a slice that does not hold the transmitter would put a different
- * slice on the air, so the guard reads this slice's own tx= and refuses.
- * The status is edited before the rig opens, so the backend never sees a
- * slice claiming the transmitter. */
-void test_ptt_refused_when_the_slice_has_no_transmitter(void)
+/* Programs running on different slices each transmit on their own: keying
+ * takes the transmitter for this rig's slice even when another slice holds
+ * it. The status is edited before the rig opens, so this slice starts out
+ * without the transmitter. */
+void test_ptt_on_claims_this_slice_when_not_split(void)
 {
     struct smartsdr_mock m;
     RIG *rig;
@@ -334,12 +334,95 @@ void test_ptt_refused_when_the_slice_has_no_transmitter(void)
     rig = open_on_mock(&m);
     smartsdr_mock_forget(&m);
 
-    TEST_CHECK(rig_set_ptt(rig, RIG_VFO_CURR, RIG_PTT_ON) == -RIG_ENTARGET);
-    TEST_CHECK(!smartsdr_mock_saw(&m, "xmit 1"));
-    TEST_MSG("a slice without the transmitter must not key the radio");
+    TEST_CHECK(rig_set_ptt(rig, RIG_VFO_CURR, RIG_PTT_ON) == RIG_OK);
+    TEST_CHECK(smartsdr_mock_saw_before(&m, "slice set 0 tx=1", "xmit 1"));
+    TEST_MSG("keying must take the transmitter for this slice first");
 
     close_on_mock(rig, &m);
 }
+
+
+/* Split puts the transmitter on the slice set_split_vfo created. Keying must
+ * transmit there: claiming tx= for the receive slice would undo the split. */
+void test_ptt_in_split_keys_the_split_slice(void)
+{
+    struct smartsdr_mock m;
+    RIG *rig;
+
+    smartsdr_mock_start(&m);
+    TEST_ASSERT(m.started);
+    smartsdr_mock_reply(&m, "slice create", "1");
+
+    rig = open_on_mock(&m);
+    TEST_CHECK(rig_set_split_vfo(rig, RIG_VFO_CURR, RIG_SPLIT_ON, RIG_VFO_SUB)
+               == RIG_OK);
+    smartsdr_mock_forget(&m);
+
+    TEST_CHECK(rig_set_ptt(rig, RIG_VFO_CURR, RIG_PTT_ON) == RIG_OK);
+    TEST_CHECK(smartsdr_mock_saw_before(&m, "slice set 1 tx=1", "xmit 1"));
+    TEST_CHECK(!smartsdr_mock_saw(&m, "slice set 0 tx=1"));
+    TEST_MSG("keying in split must not take the transmitter back");
+
+    close_on_mock(rig, &m);
+}
+
+
+/* split_slice names the transmit slice outright, created by anyone. */
+void test_ptt_keys_the_configured_split_slice(void)
+{
+    struct smartsdr_mock m;
+    RIG *rig;
+
+    smartsdr_mock_start(&m);
+    TEST_ASSERT(m.started);
+
+    rig = open_on_mock(&m);
+    TEST_CHECK(rig_set_conf(rig, rig_token_lookup(rig, "split_slice"), "C")
+               == RIG_OK);
+    smartsdr_mock_forget(&m);
+
+    TEST_CHECK(rig_set_ptt(rig, RIG_VFO_CURR, RIG_PTT_ON) == RIG_OK);
+    TEST_CHECK(smartsdr_mock_saw_before(&m, "slice set 2 tx=1", "xmit 1"));
+    TEST_CHECK(!smartsdr_mock_saw(&m, "slice set 0 tx=1"));
+
+    close_on_mock(rig, &m);
+}
+
+
+/* While split, the radio transmits on the split slice and this rig's own slice
+ * reports tx=0. That is still this rig transmitting. */
+void test_ptt_reads_on_while_transmitting_in_split(void)
+{
+    struct smartsdr_mock m;
+    RIG *rig;
+    ptt_t ptt = RIG_PTT_OFF;
+    int waited;
+
+    smartsdr_mock_start(&m);
+    TEST_ASSERT(m.started);
+    smartsdr_mock_reply(&m, "slice create", "1");
+
+    rig = open_on_mock(&m);
+    TEST_CHECK(rig_set_split_vfo(rig, RIG_VFO_CURR, RIG_SPLIT_ON, RIG_VFO_SUB)
+               == RIG_OK);
+
+    smartsdr_mock_push_status(&m, "slice 0 tx=0");
+    smartsdr_mock_push_status(&m, "slice 1 in_use=1 RF_frequency=14.100000 "
+                                  "index_letter=B mode=USB tx=1");
+    smartsdr_mock_push_status(&m, "interlock state=TRANSMITTING");
+
+    for (waited = 0; waited < 2000 && ptt == RIG_PTT_OFF; waited += 50)
+    {
+        usleep(50 * 1000);
+        rig_get_ptt(rig, RIG_VFO_CURR, &ptt);
+    }
+
+    TEST_CHECK(ptt == RIG_PTT_ON);
+    TEST_MSG("transmitting on this rig's split slice must read as PTT on");
+
+    close_on_mock(rig, &m);
+}
+
 
 /* Keying routes this slice's DAX audio to the transmitter. The radio rejects
  * the command unless slice= accompanies tx=, so both operands must be there;
@@ -424,24 +507,26 @@ void test_ptt_off_unkeys_without_dax(void)
 }
 
 
-/* An unkey has to reach the radio even when the command before it is refused,
- * or a rejected transmitter claim would leave the radio on the air. */
-void test_ptt_off_unkeys_even_when_the_slice_claim_fails(void)
+/* Unkeying only stops the transmitter. Claiming tx= on the way out would
+ * undo a split, and a refused claim used to be able to skip the unkey. */
+void test_ptt_off_never_moves_the_transmitter(void)
 {
     struct smartsdr_mock m;
     RIG *rig;
 
     smartsdr_mock_start(&m);
     TEST_ASSERT(m.started);
+    smartsdr_mock_reply(&m, "slice create", "1");
 
     rig = open_on_mock(&m);
+    TEST_CHECK(rig_set_split_vfo(rig, RIG_VFO_CURR, RIG_SPLIT_ON, RIG_VFO_SUB)
+               == RIG_OK);
     smartsdr_mock_forget(&m);
 
-    smartsdr_mock_fail(&m, "slice set 0 tx=1", "50001000");
-    rig_set_ptt(rig, RIG_VFO_CURR, RIG_PTT_OFF);
-
+    TEST_CHECK(rig_set_ptt(rig, RIG_VFO_CURR, RIG_PTT_OFF) == RIG_OK);
     TEST_CHECK(smartsdr_mock_saw(&m, "xmit 0"));
-    TEST_MSG("the radio must still be told to stop transmitting");
+    TEST_CHECK(!smartsdr_mock_saw(&m, "tx=1"));
+    TEST_MSG("unkeying must not claim the transmitter for any slice");
 
     close_on_mock(rig, &m);
 }
@@ -511,12 +596,15 @@ TEST_LIST =
     { "func_mon_writes_mon",                    test_func_mon_writes_mon },
     { "func_mon_does_not_write_sb_monitor",     test_func_mon_does_not_write_sb_monitor },
     { "func_off_writes_zero",                   test_func_off_writes_zero },
-    { "ptt_refused_when_the_slice_has_no_transmitter", test_ptt_refused_when_the_slice_has_no_transmitter },
+    { "ptt_on_claims_this_slice_when_not_split", test_ptt_on_claims_this_slice_when_not_split },
+    { "ptt_in_split_keys_the_split_slice",      test_ptt_in_split_keys_the_split_slice },
+    { "ptt_keys_the_configured_split_slice",    test_ptt_keys_the_configured_split_slice },
+    { "ptt_reads_on_while_transmitting_in_split", test_ptt_reads_on_while_transmitting_in_split },
     { "ptt_on_binds_dax_with_slice",            test_ptt_on_binds_dax_with_slice },
     { "ptt_on_does_not_send_dax_without_slice", test_ptt_on_does_not_send_dax_without_slice },
     { "ptt_on_keys_the_transmitter",            test_ptt_on_keys_the_transmitter },
     { "ptt_off_unkeys_without_dax",             test_ptt_off_unkeys_without_dax },
-    { "ptt_off_unkeys_even_when_the_slice_claim_fails", test_ptt_off_unkeys_even_when_the_slice_claim_fails },
+    { "ptt_off_never_moves_the_transmitter",    test_ptt_off_never_moves_the_transmitter },
     { "every_advertised_level_has_a_range",     test_every_advertised_level_has_a_range },
     { "tuner_is_not_advertised",                test_tuner_is_not_advertised },
     { NULL, NULL }

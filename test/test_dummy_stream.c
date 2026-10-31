@@ -2943,6 +2943,143 @@ void test_timed_tx_gates_and_keys_ptt(void)
 }
 
 
+/* An S16 mono 48 kHz audio TX stream on the dummy, which declares
+ * BURST_PTT. */
+static rig_stream_t *open_dummy_tx(RIG *rig)
+{
+    struct rig_stream_config *config = rig_stream_config_alloc();
+    rig_stream_t *stream = NULL;
+
+    TEST_ASSERT(config != NULL);
+    config->type = RIG_STREAM_TYPE_AUDIO_TX;
+    config->format = RIG_STREAM_FORMAT_PCM_S16;
+    config->sample_rate = 48000;
+    config->channels = 1;
+    TEST_ASSERT(rig_stream_open(rig, config, &stream) == RIG_OK);
+    rig_stream_config_free(config);
+
+    return stream;
+}
+
+
+/* One write carrying SOB and EOB is a whole burst: PTT stays keyed while its
+ * samples play out. EOB used to bind to the write's first sample, the same
+ * position as SOB, so the burst keyed and unkeyed before any of it played.
+ * The burst fits the default 250 ms ring, so none of it is overwritten. */
+void test_single_write_burst_stays_keyed(void)
+{
+    RIG *rig = open_dummy();
+    TEST_ASSERT(rig != NULL);
+    rig_stream_t *stream = open_dummy_tx(rig);
+
+    struct rig_stream_write_info winfo;
+    memset(&winfo, 0, sizeof(winfo));
+    winfo.flags = RIG_STREAM_TIME_FLAG_SOB | RIG_STREAM_TIME_FLAG_EOB;
+
+    static int16_t buf[9600];       /* 200 ms */
+    size_t written = 0;
+    TEST_ASSERT(rig_stream_write(rig, stream, buf, sizeof(buf), &written,
+                                 100, &winfo) == RIG_OK);
+
+    ptt_t ptt = RIG_PTT_OFF;
+    int keyed = 0;
+
+    for (int i = 0; i < 50 && !keyed; i++)
+    {
+        struct timespec ts = { 0, 10000000L };  /* 10 ms */
+        nanosleep(&ts, NULL);
+        rig_get_ptt(rig, RIG_VFO_CURR, &ptt);
+        keyed = ptt != RIG_PTT_OFF;
+    }
+
+    TEST_CHECK_(keyed, "PTT never seen keyed during a 200 ms burst");
+
+    int unkeyed = 0;
+
+    for (int i = 0; i < 150 && !unkeyed; i++)
+    {
+        struct timespec ts = { 0, 20000000L };  /* 20 ms */
+        nanosleep(&ts, NULL);
+        rig_get_ptt(rig, RIG_VFO_CURR, &ptt);
+        unkeyed = ptt == RIG_PTT_OFF;
+    }
+
+    TEST_CHECK_(unkeyed, "PTT never released after the burst");
+
+    rig_stream_close(rig, stream);
+    close_dummy(rig);
+}
+
+
+/* Closing the stream while a timed burst waits for its start cancels it; the
+ * wait used to end on the close and fall through to keying. */
+void test_cancelled_timed_burst_never_keys(void)
+{
+    RIG *rig = open_dummy();
+    TEST_ASSERT(rig != NULL);
+    rig_stream_t *stream = open_dummy_tx(rig);
+
+    struct rig_stream_write_info winfo;
+    memset(&winfo, 0, sizeof(winfo));
+    winfo.time_valid = 1;
+    stream_time_now(&winfo.seconds, &winfo.picoseconds);
+    winfo.seconds += 2;
+    winfo.flags = RIG_STREAM_TIME_FLAG_SOB;
+
+    int16_t buf[480];
+    memset(buf, 0, sizeof(buf));
+    size_t written = 0;
+    TEST_ASSERT(rig_stream_write(rig, stream, buf, sizeof(buf), &written,
+                                 100, &winfo) == RIG_OK);
+
+    struct timespec ts = { 0, 200000000L };     /* 200 ms */
+    nanosleep(&ts, NULL);
+    rig_stream_close(rig, stream);
+
+    ptt_t ptt = RIG_PTT_ON;
+    rig_get_ptt(rig, RIG_VFO_CURR, &ptt);
+    TEST_CHECK_(ptt == RIG_PTT_OFF, "a cancelled burst keyed PTT");
+
+    close_dummy(rig);
+}
+
+
+/* A stream closed mid-burst, before any EOB, releases the PTT it keyed. */
+void test_closing_mid_burst_unkeys(void)
+{
+    RIG *rig = open_dummy();
+    TEST_ASSERT(rig != NULL);
+    rig_stream_t *stream = open_dummy_tx(rig);
+
+    struct rig_stream_write_info winfo;
+    memset(&winfo, 0, sizeof(winfo));
+    winfo.flags = RIG_STREAM_TIME_FLAG_SOB;
+
+    static int16_t buf[9600];       /* 200 ms */
+    size_t written = 0;
+    TEST_ASSERT(rig_stream_write(rig, stream, buf, sizeof(buf), &written,
+                                 100, &winfo) == RIG_OK);
+
+    ptt_t ptt = RIG_PTT_OFF;
+
+    for (int i = 0; i < 50 && ptt == RIG_PTT_OFF; i++)
+    {
+        struct timespec ts = { 0, 10000000L };  /* 10 ms */
+        nanosleep(&ts, NULL);
+        rig_get_ptt(rig, RIG_VFO_CURR, &ptt);
+    }
+
+    TEST_CHECK_(ptt != RIG_PTT_OFF, "SOB never keyed PTT");
+
+    rig_stream_close(rig, stream);
+
+    rig_get_ptt(rig, RIG_VFO_CURR, &ptt);
+    TEST_CHECK_(ptt == RIG_PTT_OFF, "closing mid-burst left PTT keyed");
+
+    close_dummy(rig);
+}
+
+
 void test_timed_tx_horizon_rejected(void)
 {
     RIG *rig = open_dummy();
@@ -3456,5 +3593,8 @@ TEST_LIST =
     { "tx_write_overrun_direct",               test_tx_write_overrun_direct },
     { "timed_tx_gates_and_keys_ptt",           test_timed_tx_gates_and_keys_ptt },
     { "timed_tx_horizon_rejected",             test_timed_tx_horizon_rejected },
+    { "single_write_burst_stays_keyed",        test_single_write_burst_stays_keyed },
+    { "cancelled_timed_burst_never_keys",      test_cancelled_timed_burst_never_keys },
+    { "closing_mid_burst_unkeys",              test_closing_mid_burst_unkeys },
     { NULL, NULL }
 };

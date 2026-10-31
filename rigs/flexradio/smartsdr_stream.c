@@ -69,67 +69,112 @@
 #define SMARTSDR_FLEX_OUI 0x00001C2D
 
 
-/* Honour the transmit targets due within the next frame.
+/* Act on one burst target the transmit position has reached.
  *
  * A timed target gates play-out until its instant: the thread sleeps in short
  * steps so a close while it waits is still noticed. A target already past the
  * tolerance is not delayed -- it is transmitted at once and recorded as late,
  * because holding audio back to punish it would only make it later. SOB and
- * EOB key and unkey PTT for backends that advertise CAP_BURST_PTT. */
-static void smartsdr_tx_service_targets(struct smartsdr_stream_state *ss,
-                                        struct rig_stream *stream)
+ * EOB key and unkey PTT for backends that advertise CAP_BURST_PTT.
+ *
+ * Returns 0 when the stream stopped during the wait. The target is then
+ * abandoned: a burst cancelled before its start must not key the radio. */
+static int smartsdr_tx_apply_target(struct smartsdr_stream_state *ss,
+                                    struct rig_stream *stream,
+                                    const struct rig_stream_tx_target *tgt)
 {
-    struct rig_stream_tx_target tgt;
-
-    while (rig_stream_pop_tx_target(stream,
-                                    ss->tx_consumed + SMARTSDR_TX_STEREO_PAIRS,
-                                    &tgt))
+    if (tgt->flags & RIG_STREAM_TIME_FLAG_TX_TIMED)
     {
-        if (tgt.flags & RIG_STREAM_TIME_FLAG_TX_TIMED)
-        {
-            int64_t now_s;
-            uint64_t now_ps;
-            int64_t wait_ms;
+        int64_t now_s;
+        uint64_t now_ps;
+        int64_t wait_ms;
 
+        stream_time_now(&now_s, &now_ps);
+        wait_ms = stream_time_diff_ms(tgt->seconds, tgt->picoseconds,
+                                      now_s, now_ps);
+
+        if (wait_ms < -SMARTSDR_TX_LATE_TOLERANCE_MS)
+        {
+            struct rig_stream_write_status ev;
+
+            memset(&ev, 0, sizeof(ev));
+            ev.event = RIG_STREAM_WRITE_EVENT_LATE;
+            ev.sample_index = rig_stream_get_samples_written(stream);
+            ev.lateness = (int64_t)(-wait_ms)
+                          * (int64_t)stream->backend_config.sample_rate / 1000;
+            ev.time_valid = 1;
+            ev.seconds = tgt->seconds;
+            ev.picoseconds = tgt->picoseconds;
+            ev.time_source = RIG_STREAM_TIME_SRC_HOST;
+            ev.time_accuracy = RIG_STREAM_TIME_ACC_MS;
+            stream_record_write_status(stream, &ev, 0);
+        }
+
+        while (wait_ms > 0 && ss->running)
+        {
+            hl_usleep(10 * 1000);
             stream_time_now(&now_s, &now_ps);
-            wait_ms = stream_time_diff_ms(tgt.seconds, tgt.picoseconds,
+            wait_ms = stream_time_diff_ms(tgt->seconds, tgt->picoseconds,
                                           now_s, now_ps);
+        }
 
-            if (wait_ms < -SMARTSDR_TX_LATE_TOLERANCE_MS)
+        if (!ss->running)
+        {
+            return 0;
+        }
+    }
+
+    if (ss->burst_ptt && (tgt->flags & RIG_STREAM_TIME_FLAG_SOB))
+    {
+        if (rig_set_ptt(ss->rig, RIG_VFO_CURR, RIG_PTT_ON) == RIG_OK)
+        {
+            ss->tx_ptt_keyed = 1;
+        }
+    }
+
+    if (ss->burst_ptt && (tgt->flags & RIG_STREAM_TIME_FLAG_EOB))
+    {
+        rig_set_ptt(ss->rig, RIG_VFO_CURR, RIG_PTT_OFF);
+        ss->tx_ptt_keyed = 0;
+    }
+
+    return 1;
+}
+
+
+/* Act on every burst target the transmit position has reached, in sample
+ * order, and return how many of the next max_pairs may be sent before the
+ * following one. The frame is cut there, so SOB keys before its first sample
+ * goes out and EOB unkeys only after the last sample ahead of it has been
+ * sent. Returns 0 when the stream is stopping. */
+static size_t smartsdr_tx_service_targets(struct smartsdr_stream_state *ss,
+        struct rig_stream *stream,
+        size_t max_pairs)
+{
+    for (;;)
+    {
+        if (!ss->tx_next_valid)
+        {
+            if (!rig_stream_pop_tx_target(stream, ss->tx_consumed + max_pairs,
+                                          &ss->tx_next))
             {
-                struct rig_stream_write_status ev;
-
-                memset(&ev, 0, sizeof(ev));
-                ev.event = RIG_STREAM_WRITE_EVENT_LATE;
-                ev.sample_index = rig_stream_get_samples_written(stream);
-                ev.lateness = (int64_t)(-wait_ms)
-                              * (int64_t)stream->backend_config.sample_rate / 1000;
-                ev.time_valid = 1;
-                ev.seconds = tgt.seconds;
-                ev.picoseconds = tgt.picoseconds;
-                ev.time_source = RIG_STREAM_TIME_SRC_HOST;
-                ev.time_accuracy = RIG_STREAM_TIME_ACC_MS;
-                stream_record_write_status(stream, &ev, 0);
+                return max_pairs;
             }
 
-            while (wait_ms > 0 && ss->running)
-            {
-                hl_usleep(10 * 1000);
-                stream_time_now(&now_s, &now_ps);
-                wait_ms = stream_time_diff_ms(tgt.seconds, tgt.picoseconds,
-                                              now_s, now_ps);
-            }
+            ss->tx_next_valid = 1;
         }
 
-        if (ss->burst_ptt && (tgt.flags & RIG_STREAM_TIME_FLAG_SOB))
+        if (ss->tx_next.sample_index > ss->tx_consumed)
         {
-            rig_set_ptt(ss->rig, RIG_VFO_CURR, RIG_PTT_ON);
+            return (size_t)(ss->tx_next.sample_index - ss->tx_consumed);
         }
 
-        if (ss->burst_ptt && (tgt.flags & RIG_STREAM_TIME_FLAG_EOB))
+        if (!smartsdr_tx_apply_target(ss, stream, &ss->tx_next))
         {
-            rig_set_ptt(ss->rig, RIG_VFO_CURR, RIG_PTT_OFF);
+            return 0;
         }
+
+        ss->tx_next_valid = 0;
     }
 }
 
@@ -919,6 +964,15 @@ int smartsdr_stream_close(RIG *rig, struct rig_stream *stream)
     else
     {
         pthread_join(ss->thread, NULL);
+
+        /* A burst this stream keyed and never ended -- closed mid-burst, or
+         * written without an EOB -- would otherwise leave the radio on the
+         * air with nothing feeding it. A lost session has nothing to unkey. */
+        if (ss->tx_ptt_keyed && !priv->session_lost)
+        {
+            rig_set_ptt(rig, RIG_VFO_CURR, RIG_PTT_OFF);
+            ss->tx_ptt_keyed = 0;
+        }
     }
 
     /* Remove stream on radio */
@@ -2172,7 +2226,23 @@ static void *smartsdr_tx_thread(void *arg)
             continue;
         }
 
-        smartsdr_tx_service_targets(ss, stream);
+        size_t send_pairs = smartsdr_tx_service_targets(
+                                ss, stream, SMARTSDR_TX_STEREO_PAIRS);
+
+        if (send_pairs == 0)
+        {
+            break;
+        }
+
+        /* Bytes of a pair already read count towards this frame's limit. */
+        size_t send_bytes = send_pairs * (size_t)pair_bytes;
+        send_bytes = send_bytes > tx_partial_bytes
+                     ? send_bytes - tx_partial_bytes : 0;
+
+        if (send_bytes > (size_t)frame_bytes)
+        {
+            send_bytes = (size_t)frame_bytes;
+        }
 
         /* Wait for a whole frame rather than running a clock of our own.
          * The application writes at real time, so consuming one frame at a
@@ -2192,11 +2262,11 @@ static void *smartsdr_tx_thread(void *arg)
          * "not yet" from "not coming". */
         const int wait_ms = SMARTSDR_TX_FRAME_WAIT_MS;
 
-        while (got < (size_t)frame_bytes && ss->running)
+        while (got < send_bytes && ss->running)
         {
             size_t n = stream_ringbuf_read(&stream->ringbuf,
                                            (uint8_t *)sample_buf + got,
-                                           frame_bytes - got, wait_ms);
+                                           send_bytes - got, wait_ms);
 
             if (n == 0)
             {

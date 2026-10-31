@@ -656,6 +656,10 @@ static void *dummy_stream_tx_scheduler(void *arg)
 
     int had_data = 0;   /* for underrun-episode edge detection */
 
+    /* The next burst target, popped ahead so a frame can stop at it. */
+    struct rig_stream_tx_target next;
+    int have_next = 0;
+
     while (ds->running)
     {
         if (stream->paused)
@@ -664,21 +668,41 @@ static void *dummy_stream_tx_scheduler(void *arg)
             continue;
         }
 
-        /* Process burst targets reachable within the next frame */
-        struct rig_stream_tx_target tgt;
+        /* Act on every burst target play-out has reached, in sample order,
+         * and cut this frame at the next one: SOB keys before its first
+         * sample is consumed, EOB unkeys only after the last sample ahead of
+         * it has been. */
+        size_t send_samples = frame_samples;
+        int stopping = 0;
 
-        while (rig_stream_pop_tx_target(stream,
-                                        ds->tx_consumed + frame_samples,
-                                        &tgt))
+        for (;;)
         {
-            if (tgt.flags & RIG_STREAM_TIME_FLAG_TX_TIMED)
+            if (!have_next)
+            {
+                if (!rig_stream_pop_tx_target(stream,
+                                              ds->tx_consumed + frame_samples,
+                                              &next))
+                {
+                    break;
+                }
+
+                have_next = 1;
+            }
+
+            if (next.sample_index > ds->tx_consumed)
+            {
+                send_samples = (size_t)(next.sample_index - ds->tx_consumed);
+                break;
+            }
+
+            if (next.flags & RIG_STREAM_TIME_FLAG_TX_TIMED)
             {
                 int64_t now_s;
                 uint64_t now_ps;
                 stream_time_now(&now_s, &now_ps);
 
-                int64_t wait_ms = stream_time_diff_ms(tgt.seconds,
-                                                      tgt.picoseconds,
+                int64_t wait_ms = stream_time_diff_ms(next.seconds,
+                                                      next.picoseconds,
                                                       now_s, now_ps);
 
                 if (wait_ms < -DUMMY_TX_LATE_TOLERANCE_MS)
@@ -690,8 +714,8 @@ static void *dummy_stream_tx_scheduler(void *arg)
                     ev.lateness = (int64_t)(-wait_ms)
                                   * (int64_t)cfg->sample_rate / 1000;
                     ev.time_valid = 1;
-                    ev.seconds = tgt.seconds;
-                    ev.picoseconds = tgt.picoseconds;
+                    ev.seconds = next.seconds;
+                    ev.picoseconds = next.picoseconds;
                     ev.time_source = RIG_STREAM_TIME_SRC_HOST;
                     ev.time_accuracy = RIG_STREAM_TIME_ACC_MS;
                     stream_record_write_status(stream, &ev, 0);
@@ -703,30 +727,69 @@ static void *dummy_stream_tx_scheduler(void *arg)
                     struct timespec gate = { 0, 10000000L };  /* 10 ms */
                     nanosleep(&gate, NULL);
                     stream_time_now(&now_s, &now_ps);
-                    wait_ms = stream_time_diff_ms(tgt.seconds,
-                                                  tgt.picoseconds,
+                    wait_ms = stream_time_diff_ms(next.seconds,
+                                                  next.picoseconds,
                                                   now_s, now_ps);
+                }
+
+                /* Closed while waiting: the burst was cancelled before it
+                 * started, so it must not key. */
+                if (!ds->running)
+                {
+                    stopping = 1;
+                    break;
                 }
             }
 
-            if (ds->burst_ptt && (tgt.flags & RIG_STREAM_TIME_FLAG_SOB))
+            if (ds->burst_ptt && (next.flags & RIG_STREAM_TIME_FLAG_SOB))
             {
-                rig_set_ptt(ds->rig, RIG_VFO_CURR, RIG_PTT_ON);
+                if (rig_set_ptt(ds->rig, RIG_VFO_CURR, RIG_PTT_ON) == RIG_OK)
+                {
+                    ds->tx_ptt_keyed = 1;
+                }
             }
 
-            if (ds->burst_ptt && (tgt.flags & RIG_STREAM_TIME_FLAG_EOB))
+            if (ds->burst_ptt && (next.flags & RIG_STREAM_TIME_FLAG_EOB))
             {
                 rig_set_ptt(ds->rig, RIG_VFO_CURR, RIG_PTT_OFF);
+                ds->tx_ptt_keyed = 0;
             }
+
+            have_next = 0;
         }
 
-        size_t got = stream_ringbuf_read(&stream->ringbuf, buf, frame_bytes, 100);
+        if (stopping)
+        {
+            break;
+        }
+
+        size_t got = stream_ringbuf_read(&stream->ringbuf, buf,
+                                         send_samples * (size_t)sample_size
+                                         * channels, 100);
 
         if (got > 0)
         {
+            size_t got_samples = got / ((size_t)sample_size * channels);
+
             had_data = 1;
-            ds->tx_consumed += got / ((size_t)sample_size * channels);
-            nanosleep(&sleep_ts, NULL);   /* real-time pacing */
+            ds->tx_consumed += got_samples;
+
+            /* Real-time pacing; a frame cut short at a burst target paces
+             * only the samples it carried. */
+            if (got_samples >= frame_samples)
+            {
+                nanosleep(&sleep_ts, NULL);
+            }
+            else
+            {
+                long part_ns = (long)((double)got_samples
+                                      / (double)cfg->sample_rate * 1e9);
+                struct timespec part_ts;
+
+                part_ts.tv_sec = part_ns / 1000000000L;
+                part_ts.tv_nsec = part_ns % 1000000000L;
+                nanosleep(&part_ts, NULL);
+            }
         }
         else if (had_data)
         {
@@ -853,6 +916,14 @@ int dummy_stream_close(RIG *rig, struct rig_stream *stream)
     if (ds->thread_started)
     {
         pthread_join(ds->thread, NULL);
+    }
+
+    /* A burst this stream keyed and never ended would otherwise leave PTT
+     * on after the stream is gone. */
+    if (ds->tx_ptt_keyed)
+    {
+        rig_set_ptt(rig, RIG_VFO_CURR, RIG_PTT_OFF);
+        ds->tx_ptt_keyed = 0;
     }
 
     /* The loopback pipeline is owned by the (now joined) thread. */

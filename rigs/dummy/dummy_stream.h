@@ -61,6 +61,9 @@ struct dummy_stream_state
     long synth_gap;                 /* RX: inject one gap of N samples */
     int burst_ptt;                  /* TX: SOB/EOB keys PTT (from caps) */
     uint64_t tx_consumed;           /* TX: frames consumed by the scheduler */
+    int tx_ptt_keyed;               /* TX: an SOB keyed PTT that no EOB has
+                                     * released; close reads it after the
+                                     * join */
 
     /* Loopback channel/rate adaptation between the TX peer's native side
      * and this RX stream's native side, seam-free across frames (stateful

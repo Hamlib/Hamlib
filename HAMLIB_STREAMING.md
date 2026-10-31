@@ -1700,8 +1700,12 @@ enum rig_stream_time_accuracy {     /* coarse absolute-UTC quality hint */
 #define RIG_STREAM_TIME_FLAG_LOCKED            (1<<0)
 #define RIG_STREAM_TIME_FLAG_HOLDOVER          (1<<1)  /* lost lock, coasting */
 #define RIG_STREAM_TIME_FLAG_DISCONTINUITY     (1<<2)  /* gap/overrun precedes */
-#define RIG_STREAM_TIME_FLAG_SOB               (1<<3)  /* TX: start of burst */
-#define RIG_STREAM_TIME_FLAG_EOB               (1<<4)  /* TX: end of burst */
+#define RIG_STREAM_TIME_FLAG_SOB               (1<<3)  /* TX: start of burst,
+                                                     before the write's
+                                                     first sample */
+#define RIG_STREAM_TIME_FLAG_EOB               (1<<4)  /* TX: end of burst,
+                                                     after the write's last
+                                                     sample */
 #define RIG_STREAM_TIME_FLAG_TX_TIMED          (1<<0)  /* TX: seconds/picoseconds
                                                      hold a scheduled UTC
                                                      instant (shares the bit
@@ -1893,8 +1897,17 @@ declared via `caps_flags`:
   backend has such hardware; the framework supports it and the dummy
   backend simulates it.
 
-PTT: if the TX caps entry sets `CAP_BURST_PTT`, SOB keys PTT at the
-target and EOB unkeys ; otherwise the app drives PTT itself.
+Burst markers bind to sample positions: the scheduled time and SOB to the
+first sample of the write that carries them, EOB to the position after
+that write's last sample. A single write with SOB and EOB is a complete
+burst; a write of no samples with EOB ends the burst after everything
+already written.
+
+PTT: if the TX caps entry sets `CAP_BURST_PTT`, SOB keys PTT before the
+burst's first sample is sent and EOB unkeys after its last; otherwise the
+app drives PTT itself. A backend that keyed for a burst unkeys when the
+stream closes before its EOB, and a timed burst cancelled by closing the
+stream before its start never keys.
 Targets beyond `tx_schedule_horizon_ms` are
 rejected at write time with `-RIG_EINVAL`; past targets transmit
 immediately and increment the `tx_late` counter. Apps schedule in

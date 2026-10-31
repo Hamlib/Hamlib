@@ -196,6 +196,15 @@ radio and may be in use by the operator or another client, so one made in the
 SmartSDR GUI is never deleted. If another program moves the transmit slice
 somewhere unexpected, `split_slice` pins it.
 
+**PTT follows the split this rig set up.** Keying transmits on the slice
+`set_split_vfo` created or the one `split_slice` names; without either, it
+takes `tx=1` for this rig's own slice, so programs running on different
+slices (one per model A–H) each transmit on their own. A transmit slice set
+up by another client is not followed — set `split_slice` to use it.
+Unkeying only sends `xmit 0`: it is never refused and never moves the
+transmitter. `get_ptt` reports transmitting when the radio transmits on this
+rig's slice or on its split slice.
+
 For small transmit offsets there is also `RIG_FUNC_XIT` with `xit_freq`, which
 shifts transmit within a single slice and needs no second slice at all.
 
