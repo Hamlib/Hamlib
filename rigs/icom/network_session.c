@@ -2581,15 +2581,20 @@ int icom_network_audio_start(struct icom_network_session *s,
     }
     else if (s->audio_rx_users + s->audio_tx_users == 0)
     {
+        /* Flushes the queue before the handshake; flushing it again here
+         * would drop what the receive thread has queued since. */
         ret = icom_network_audio_start_locked(s);
+    }
+    else if (user == ICOM_NETWORK_AUDIO_RX)
+    {
+        /* A transmit-only flow fills the queue with nobody reading it. */
+        icom_network_session_audio_flush_queue(s);
     }
 
     if (ret == RIG_OK)
     {
         if (user == ICOM_NETWORK_AUDIO_RX)
         {
-            /* A transmit-only flow fills the queue with nobody reading it. */
-            icom_network_session_audio_flush_queue(s);
             s->audio_rx_users++;
         }
         else
