@@ -717,6 +717,65 @@ static void test_shutdown_and_unplug(void)
     CHECK(slots_free() == USBSER_MAX, "unplugged port: slot not freed");
 }
 
+/* A hub reset re-enumerates the adapter: the same chip comes back under a
+ * new device number. Closing the dead port and opening the same "usb:"
+ * path again, as an application does to recover, reaches it there. */
+static void test_replug(void)
+{
+    uint8_t b[8];
+    char p[512];
+    FILE *f;
+    int fd, failed = 0;
+    double t;
+
+    fake_reset();
+    cp2105();
+    sysfs(0x10c4, 0xea70);
+    fd = open_port("usb:10c4:ea70:ABC123");
+    CHECK(fd > 0, "first open failed");
+    F.gone = 1;
+    t = now();
+
+    while (now() - t < 2.0 && !failed)
+    {
+        failed = write(fd, "x", 1) < 0;
+        usleep(10 * 1000);
+    }
+
+    CHECK(failed, "after unplug, the port still looked alive");
+    usb_serial_close(fd);
+
+    fake_reset();                       /* back, as device 6 */
+    cp2105();
+    sysfs(0x10c4, 0xea70);
+    snprintf(p, sizeof(p), "%s/1-1/devnum", sysfs_root);
+    f = fopen(p, "w");
+
+    if (f)
+    {
+        fprintf(f, "6\n");
+        fclose(f);
+    }
+
+    snprintf(F.node, sizeof(F.node), "/dev/bus/usb/001/006");
+
+    fd = open_port("usb:10c4:ea70:ABC123");
+    CHECK(fd > 0, "reopen after a replug failed");
+
+    if (fd <= 0) { return; }
+
+    CHECK(write(fd, "FA;", 3) == 3, "write after a replug failed");
+    rx_queue((const uint8_t *)"FA7074000;", 10);
+    CHECK(read_all(fd, b, sizeof(b), 2) == (int)sizeof(b), "no reply after a replug");
+    t = now();
+
+    while (now() - t < 2.0 && F.tx_len < 3) { usleep(1000); }
+
+    CHECK(F.tx_len == 3 && !memcmp(F.tx, "FA;", 3), "the command did not reach the adapter");
+    usb_serial_close(fd);
+    CHECK(slots_free() == USBSER_MAX, "replugged port: slot not freed");
+}
+
 /* what the rest of Hamlib does with a "usb:" port */
 static void test_hamlib_paths(void)
 {
@@ -828,6 +887,7 @@ int main(void)
     RUN(test_failed_opens);
     RUN(test_no_lost_bytes);
     RUN(test_shutdown_and_unplug);
+    RUN(test_replug);
     RUN(test_hamlib_paths);
     RUN(test_ftdi);
     RUN(test_cdc_acm);
