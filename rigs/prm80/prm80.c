@@ -925,10 +925,21 @@ int prm80_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
     if (chan->vfo == RIG_VFO_MEM && chan->channel_num >= CHAN_MIN
             && chan->channel_num <= CHAN_MAX)
     {
+        if (chan->rptr_shift != RIG_RPT_SHIFT_NONE)
+        {
+            // Without the stored shift the read is incomplete: a write-back
+            // could replace the default shift by a fixed one.
+            ret = prm80_read_channel_list(rig, 0);
+
+            if (ret != RIG_OK)
+            {
+                return ret;
+            }
+        }
+
         priv->default_offs[chan->channel_num] = 0;
 
         if (chan->rptr_shift != RIG_RPT_SHIFT_NONE
-                && prm80_read_channel_list(rig, 0) == RIG_OK
                 && chan->channel_num <= priv->last_chan
                 && priv->stored_shift[chan->channel_num] == 0)
         {
@@ -1315,12 +1326,24 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 // TODO "Read-Modify-Write" (or shadowing in priv area) of the lock bits
 int prm80_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
+    struct prm80_priv_data *priv = (struct prm80_priv_data *)STATE(rig)->priv;
     char buf[BUFSZ];
     int ret, chanstate;
 
     if (func & RIG_FUNC_REV)
     {
-        // Read-Modify-Write of the state of the current channel.
+        // V5.0: [N] does not stop a running scan, so [E] may report another
+        // channel than the one [T] writes to. The read-modify-write below
+        // could then store the state of one channel in another one.
+        if (priv->fw_major == 5 && priv->fw_minor < 1)
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: setting REV needs PRM80 firmware V5.1 or newer (found V%d.%d)\n",
+                      __func__, priv->fw_major, priv->fw_minor);
+            return -RIG_ENAVAIL;
+        }
+
+        // Read-Modify-Write of the state of the current channel (V5.1+).
         // While the rig scans, [E] (V5.1) reports the channel being
         // received, but [T] writes to the channel the scan started on. So
         // the channel reported by [E] is selected first with [N], which
@@ -1367,6 +1390,9 @@ int prm80_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         {
             ret = prm80_wait_for_prompt(RIGPORT(rig));
         }
+
+        // the stored state of the channel may have changed
+        priv->list_valid = 0;
     }
     else if (func & RIG_FUNC_LOCK)
     {
