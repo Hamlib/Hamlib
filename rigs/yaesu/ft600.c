@@ -497,8 +497,8 @@ static int ft600_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         return ret;
     }
 
-    f = ((((priv->status.freq[1] << 8) + priv->status.freq[2]) << 8) +
-         priv->status.freq[3]) * 10;
+    f = ((((priv->status.freq[2] << 8) + priv->status.freq[3]) << 8) +
+         priv->status.freq[4]) * 10;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: freq = %"PRIfreq" Hz\n", __func__, f);
 
@@ -551,7 +551,7 @@ static int ft600_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         return ret;
     }
 
-    switch (priv->status.freq[6])
+    switch (priv->status.freq[7])
     {
     case 0x00:
         *mode = RIG_MODE_LSB;
