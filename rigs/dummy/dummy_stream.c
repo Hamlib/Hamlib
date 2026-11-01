@@ -579,6 +579,104 @@ static struct rig_stream *find_loopback_peer_locked(struct dummy_priv_data
 /* TX scheduler thread                                                 */
 /* ------------------------------------------------------------------ */
 
+/* Act on every burst target play-out has reached, in sample order, and return
+ * how many of the next max_samples may be consumed before the following one:
+ * SOB keys before its first sample is consumed, EOB unkeys only after the
+ * last sample ahead of it has been. next holds a target popped ahead so a
+ * frame can stop at it. Returns 0 when the stream is stopping. */
+static size_t dummy_tx_service_targets(struct dummy_stream_state *ds,
+                                       struct rig_stream *stream,
+                                       size_t max_samples,
+                                       struct rig_stream_tx_target *next,
+                                       int *have_next)
+{
+    for (;;)
+    {
+        if (!*have_next)
+        {
+            if (!rig_stream_pop_tx_target(stream,
+                                          ds->tx_consumed + max_samples,
+                                          next))
+            {
+                return max_samples;
+            }
+
+            *have_next = 1;
+        }
+
+        if (next->sample_index > ds->tx_consumed)
+        {
+            return (size_t)(next->sample_index - ds->tx_consumed);
+        }
+
+        if (next->flags & RIG_STREAM_TIME_FLAG_TX_TIMED)
+        {
+            int64_t now_s;
+            uint64_t now_ps;
+            stream_time_now(&now_s, &now_ps);
+
+            int64_t wait_ms = stream_time_diff_ms(next->seconds,
+                                                  next->picoseconds,
+                                                  now_s, now_ps);
+
+            if (wait_ms < -DUMMY_TX_LATE_TOLERANCE_MS)
+            {
+                struct rig_stream_write_status ev;
+                memset(&ev, 0, sizeof(ev));
+                ev.event = RIG_STREAM_WRITE_EVENT_LATE;
+                ev.sample_index = ds->tx_consumed;
+                ev.lateness = (int64_t)(-wait_ms)
+                              * (int64_t)stream->backend_config.sample_rate
+                              / 1000;
+                ev.time_valid = 1;
+                ev.seconds = next->seconds;
+                ev.picoseconds = next->picoseconds;
+                ev.time_source = RIG_STREAM_TIME_SRC_HOST;
+                ev.time_accuracy = RIG_STREAM_TIME_ACC_MS;
+                stream_record_write_status(stream, &ev, 0);
+            }
+
+            /* Timed gate: hold play-out until the target instant */
+            while (wait_ms > 0 && ds->running)
+            {
+                /* The time left, in steps short enough to notice a close */
+                struct timespec gate;
+                gate.tv_sec = 0;
+                gate.tv_nsec = (wait_ms > 10 ? 10 : wait_ms) * 1000000L;
+                nanosleep(&gate, NULL);
+                stream_time_now(&now_s, &now_ps);
+                wait_ms = stream_time_diff_ms(next->seconds,
+                                              next->picoseconds,
+                                              now_s, now_ps);
+            }
+
+            /* Closed while waiting: the burst was cancelled before it
+             * started, so it must not key. */
+            if (!ds->running)
+            {
+                return 0;
+            }
+        }
+
+        if (ds->burst_ptt && (next->flags & RIG_STREAM_TIME_FLAG_SOB))
+        {
+            if (rig_set_ptt(ds->rig, RIG_VFO_CURR, RIG_PTT_ON) == RIG_OK)
+            {
+                ds->tx_ptt_keyed = 1;
+            }
+        }
+
+        if (ds->burst_ptt && (next->flags & RIG_STREAM_TIME_FLAG_EOB))
+        {
+            rig_set_ptt(ds->rig, RIG_VFO_CURR, RIG_PTT_OFF);
+            ds->tx_ptt_keyed = 0;
+        }
+
+        *have_next = 0;
+    }
+}
+
+
 /* Consumes the TX ring buffer at the stream's real-time rate, honoring
  * queued burst targets: a timed SOB gates play-out until its UTC instant
  * (counting tx_late when past due), and with BURST_PTT declared, SOB keys
@@ -660,6 +758,17 @@ static void *dummy_stream_tx_scheduler(void *arg)
     struct rig_stream_tx_target next;
     int have_next = 0;
 
+    /* Play-out clock: the samples consumed since clock_start_ns are due to
+     * have played by clock_start_ns plus their duration. Sleeping to that,
+     * rather than for each frame in turn, keeps oversleeps from adding up to
+     * a play-out slower than real time, which fills the ring until it drops
+     * audio. */
+    int64_t clock_start_ns = 0;
+    uint64_t clock_samples = 0;
+    int clock_running = 0;
+    const int64_t frame_ns = (int64_t)frame_samples * 1000000000LL
+                             / cfg->sample_rate;
+
     while (ds->running)
     {
         if (stream->paused)
@@ -668,138 +777,90 @@ static void *dummy_stream_tx_scheduler(void *arg)
             continue;
         }
 
-        /* Act on every burst target play-out has reached, in sample order,
-         * and cut this frame at the next one: SOB keys before its first
-         * sample is consumed, EOB unkeys only after the last sample ahead of
-         * it has been. */
-        size_t send_samples = frame_samples;
-        int stopping = 0;
-
-        for (;;)
-        {
-            if (!have_next)
-            {
-                if (!rig_stream_pop_tx_target(stream,
-                                              ds->tx_consumed + frame_samples,
-                                              &next))
-                {
-                    break;
-                }
-
-                have_next = 1;
-            }
-
-            if (next.sample_index > ds->tx_consumed)
-            {
-                send_samples = (size_t)(next.sample_index - ds->tx_consumed);
-                break;
-            }
-
-            if (next.flags & RIG_STREAM_TIME_FLAG_TX_TIMED)
-            {
-                int64_t now_s;
-                uint64_t now_ps;
-                stream_time_now(&now_s, &now_ps);
-
-                int64_t wait_ms = stream_time_diff_ms(next.seconds,
-                                                      next.picoseconds,
-                                                      now_s, now_ps);
-
-                if (wait_ms < -DUMMY_TX_LATE_TOLERANCE_MS)
-                {
-                    struct rig_stream_write_status ev;
-                    memset(&ev, 0, sizeof(ev));
-                    ev.event = RIG_STREAM_WRITE_EVENT_LATE;
-                    ev.sample_index = ds->tx_consumed;
-                    ev.lateness = (int64_t)(-wait_ms)
-                                  * (int64_t)cfg->sample_rate / 1000;
-                    ev.time_valid = 1;
-                    ev.seconds = next.seconds;
-                    ev.picoseconds = next.picoseconds;
-                    ev.time_source = RIG_STREAM_TIME_SRC_HOST;
-                    ev.time_accuracy = RIG_STREAM_TIME_ACC_MS;
-                    stream_record_write_status(stream, &ev, 0);
-                }
-
-                /* Timed gate: hold play-out until the target instant */
-                while (wait_ms > 0 && ds->running)
-                {
-                    struct timespec gate = { 0, 10000000L };  /* 10 ms */
-                    nanosleep(&gate, NULL);
-                    stream_time_now(&now_s, &now_ps);
-                    wait_ms = stream_time_diff_ms(next.seconds,
-                                                  next.picoseconds,
-                                                  now_s, now_ps);
-                }
-
-                /* Closed while waiting: the burst was cancelled before it
-                 * started, so it must not key. */
-                if (!ds->running)
-                {
-                    stopping = 1;
-                    break;
-                }
-            }
-
-            if (ds->burst_ptt && (next.flags & RIG_STREAM_TIME_FLAG_SOB))
-            {
-                if (rig_set_ptt(ds->rig, RIG_VFO_CURR, RIG_PTT_ON) == RIG_OK)
-                {
-                    ds->tx_ptt_keyed = 1;
-                }
-            }
-
-            if (ds->burst_ptt && (next.flags & RIG_STREAM_TIME_FLAG_EOB))
-            {
-                rig_set_ptt(ds->rig, RIG_VFO_CURR, RIG_PTT_OFF);
-                ds->tx_ptt_keyed = 0;
-            }
-
-            have_next = 0;
-        }
-
-        if (stopping)
+        /* An EOB whose samples have all been consumed unkeys now, not after
+         * the wait for audio below. */
+        if (dummy_tx_service_targets(ds, stream, frame_samples,
+                                     &next, &have_next) == 0)
         {
             break;
         }
 
-        size_t got = stream_ringbuf_read(&stream->ringbuf, buf,
-                                         send_samples * (size_t)sample_size
-                                         * channels, 100);
+        /* Wait for audio before acting on the targets bound to it, and read
+         * only what was there: a write queues its targets before its samples,
+         * so audio that can be seen has all its targets queued. Reading
+         * straight from a wait would play the start of a burst that arrived
+         * during it before its SOB keyed. */
+        size_t frame_size = (size_t)sample_size * channels;
+        size_t avail = stream_ringbuf_wait_available(&stream->ringbuf, 100);
+        size_t send_samples = dummy_tx_service_targets(ds, stream,
+            frame_samples, &next, &have_next);
+
+        if (send_samples == 0)
+        {
+            break;
+        }
+
+        size_t want = send_samples * frame_size;
+        size_t got = avail > 0
+                     ? stream_ringbuf_read(&stream->ringbuf, buf,
+                                           want < avail ? want : avail, 0)
+                     : 0;
 
         if (got > 0)
         {
-            size_t got_samples = got / ((size_t)sample_size * channels);
+            size_t got_samples = got / frame_size;
+            struct timespec now;
+            int64_t now_ns;
+            int64_t wait_ns;
 
             had_data = 1;
             ds->tx_consumed += got_samples;
 
-            /* Real-time pacing; a frame cut short at a burst target paces
-             * only the samples it carried. */
-            if (got_samples >= frame_samples)
-            {
-                nanosleep(&sleep_ts, NULL);
-            }
-            else
-            {
-                long part_ns = (long)((double)got_samples
-                                      / (double)cfg->sample_rate * 1e9);
-                struct timespec part_ts;
+            clock_gettime(CLOCK_MONOTONIC, &now);
+            now_ns = (int64_t)now.tv_sec * 1000000000LL + now.tv_nsec;
 
-                part_ts.tv_sec = part_ns / 1000000000L;
-                part_ts.tv_nsec = part_ns % 1000000000L;
-                nanosleep(&part_ts, NULL);
+            /* Restart the clock after idling, or when more than a frame
+             * behind it: a gap or a timed start is not time to make up. */
+            if (!clock_running
+                    || now_ns > clock_start_ns + frame_ns
+                    + (int64_t)(clock_samples * 1000000000ULL
+                                / (uint64_t)cfg->sample_rate))
+            {
+                clock_start_ns = now_ns;
+                clock_samples = 0;
+                clock_running = 1;
+            }
+
+            clock_samples += got_samples;
+            wait_ns = clock_start_ns
+                      + (int64_t)(clock_samples * 1000000000ULL
+                                  / (uint64_t)cfg->sample_rate)
+                      - now_ns;
+
+            if (wait_ns > 0)
+            {
+                struct timespec pace;
+
+                pace.tv_sec = (time_t)(wait_ns / 1000000000LL);
+                pace.tv_nsec = (long)(wait_ns % 1000000000LL);
+                nanosleep(&pace, NULL);
             }
         }
-        else if (had_data)
+        else
         {
-            /* Ring starved mid-transmission: one underrun event per episode. */
-            had_data = 0;
-            struct rig_stream_write_status ev;
-            memset(&ev, 0, sizeof(ev));
-            ev.event = RIG_STREAM_WRITE_EVENT_UNDERRUN;
-            ev.sample_index = ds->tx_consumed;
-            stream_record_write_status(stream, &ev, 0);
+            clock_running = 0;
+
+            if (had_data)
+            {
+                /* Ring starved mid-transmission: one underrun event per
+                 * episode. */
+                had_data = 0;
+                struct rig_stream_write_status ev;
+                memset(&ev, 0, sizeof(ev));
+                ev.event = RIG_STREAM_WRITE_EVENT_UNDERRUN;
+                ev.sample_index = ds->tx_consumed;
+                stream_record_write_status(stream, &ev, 0);
+            }
         }
     }
 

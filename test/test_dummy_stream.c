@@ -2978,6 +2978,8 @@ void test_single_write_burst_stays_keyed(void)
 
     static int16_t buf[9600];       /* 200 ms */
     size_t written = 0;
+    struct timespec start;
+    clock_gettime(CLOCK_MONOTONIC, &start);
     TEST_ASSERT(rig_stream_write(rig, stream, buf, sizeof(buf), &written,
                                  100, &winfo) == RIG_OK);
 
@@ -3006,6 +3008,15 @@ void test_single_write_burst_stays_keyed(void)
 
     TEST_CHECK_(unkeyed, "PTT never released after the burst");
 
+    /* The dummy plays out in real time, so the release cannot come before
+     * the burst's 200 ms have been consumed. */
+    struct timespec end;
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    long played_ms = (end.tv_sec - start.tv_sec) * 1000
+                     + (end.tv_nsec - start.tv_nsec) / 1000000;
+    TEST_CHECK_(played_ms >= 180, "released %ld ms into a 200 ms burst",
+                played_ms);
+
     rig_stream_close(rig, stream);
     close_dummy(rig);
 }
@@ -3032,11 +3043,24 @@ void test_cancelled_timed_burst_never_keys(void)
     TEST_ASSERT(rig_stream_write(rig, stream, buf, sizeof(buf), &written,
                                  100, &winfo) == RIG_OK);
 
-    struct timespec ts = { 0, 200000000L };     /* 200 ms */
-    nanosleep(&ts, NULL);
+    /* Watched before the close as well as after: close releases a keyed
+     * PTT, so a burst that keyed at once would read off afterwards. */
+    ptt_t ptt = RIG_PTT_OFF;
+    int keyed = 0;
+
+    for (int i = 0; i < 20 && !keyed; i++)
+    {
+        struct timespec ts = { 0, 10000000L };  /* 10 ms */
+        nanosleep(&ts, NULL);
+        rig_get_ptt(rig, RIG_VFO_CURR, &ptt);
+        keyed = ptt != RIG_PTT_OFF;
+    }
+
+    TEST_CHECK_(!keyed, "a burst scheduled 2 s ahead keyed at once");
+
     rig_stream_close(rig, stream);
 
-    ptt_t ptt = RIG_PTT_ON;
+    ptt = RIG_PTT_ON;
     rig_get_ptt(rig, RIG_VFO_CURR, &ptt);
     TEST_CHECK_(ptt == RIG_PTT_OFF, "a cancelled burst keyed PTT");
 

@@ -94,6 +94,12 @@ size_t stream_ringbuf_peek_locked(struct rig_stream_ringbuf *rb,
 /* Query bytes available for reading without blocking. */
 size_t stream_ringbuf_available(struct rig_stream_ringbuf *rb);
 
+/* Wait up to timeout_ms for readable data, as stream_ringbuf_read() does, and
+ * return how many bytes are readable without consuming any. Returns 0 on
+ * timeout, close or failure. */
+size_t stream_ringbuf_wait_available(struct rig_stream_ringbuf *rb,
+                                     int timeout_ms);
+
 /* Reset ring buffer to empty state. */
 void stream_ringbuf_reset(struct rig_stream_ringbuf *rb);
 

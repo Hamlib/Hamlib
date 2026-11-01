@@ -679,7 +679,7 @@ void test_vita_build_tx_header_and_length(void)
                          0.125f, -0.125f, 1.0f, -1.0f
                        };
     uint8_t pkt[256];
-    uint64_t class_id = ((uint64_t)0x00001C2Du << 16) | VITA49_PCC_AUDIO_F32;
+    uint64_t class_id = SMARTSDR_VITA_CLASS_ID(VITA49_PCC_AUDIO_F32);
     struct vita49_header hdr;
     int len = vita49_build_tx_packet(pkt, sizeof(pkt), 0xCAFEBABEu, class_id,
                                      6, samples, 8);
@@ -698,12 +698,24 @@ void test_vita_build_tx_header_and_length(void)
     TEST_CHECK(hdr.class_id == class_id);
     TEST_CHECK(hdr.pcc == VITA49_PCC_AUDIO_F32);
 
-    /* TX timestamps are not sent; the radio plays the samples out as they
-     * arrive. */
-    TEST_CHECK(hdr.tsi == 0);
-    TEST_CHECK(hdr.tsf == 0);
+    /* The radio plays TX samples out as they arrive, so the three timestamp
+     * words are zero -- but the header has to declare them, or the radio
+     * takes them for samples. */
+    TEST_CHECK(hdr.tsi == VITA49_TSI_OTHER);
+    TEST_CHECK(hdr.tsf == VITA49_TSF_SAMPLE_COUNT);
     TEST_CHECK(hdr.timestamp_int == 0);
     TEST_CHECK(hdr.timestamp_frac == 0);
+
+    /* The class ID words exactly as a FLEX-8400M writes them on its own DAX
+     * audio: OUI in word 2, "SL" and the packet class in word 3. The backend
+     * sent 0x00000000 and 0x1C2D03E3, and the radio keyed without ever
+     * modulating the audio. */
+    TEST_CHECK(pkt[8] == 0x00 && pkt[9] == 0x00 && pkt[10] == 0x1C
+               && pkt[11] == 0x2D);
+    TEST_CHECK(pkt[12] == 0x53 && pkt[13] == 0x4C && pkt[14] == 0x03
+               && pkt[15] == 0xE3);
+    TEST_MSG("class words %02x%02x%02x%02x %02x%02x%02x%02x", pkt[8], pkt[9],
+             pkt[10], pkt[11], pkt[12], pkt[13], pkt[14], pkt[15]);
 }
 
 
@@ -715,7 +727,7 @@ void test_vita_build_tx_roundtrips(void)
                         };
     float result[8];
     uint8_t pkt[256];
-    uint64_t class_id = ((uint64_t)0x00001C2Du << 16) | VITA49_PCC_AUDIO_F32;
+    uint64_t class_id = SMARTSDR_VITA_CLASS_ID(VITA49_PCC_AUDIO_F32);
     struct vita49_header hdr;
     int len = vita49_build_tx_packet(pkt, sizeof(pkt), 0x04000001u, class_id,
                                      0, original, 8);

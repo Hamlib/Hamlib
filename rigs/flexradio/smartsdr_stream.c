@@ -43,17 +43,9 @@
 #include "stream_time.h"
 #include "smartsdr_props.h"
 #include "smartsdr_session.h"
+#include "smartsdr_rig.h"
 #include "smartsdr_slice.h"
 #include "smartsdr_stream.h"
-
-/* VITA-49 TSI codes (timestamp-integer type) */
-#define VITA49_TSI_NONE  0
-#define VITA49_TSI_UTC   1
-#define VITA49_TSI_GPS   2
-#define VITA49_TSI_OTHER 3
-
-/* VITA-49 TSF codes (timestamp-fractional type) */
-#define VITA49_TSF_REAL_TIME_PS 2
 
 /* RX: host-clock anchor cadence in packets when the radio provides no
  * absolute time (default DAX: TSI=OTHER, sample-count fractional) */
@@ -64,9 +56,6 @@
 
 /* Radio UDP port for the source-IP discovery nudge and client udpport. */
 #define SMARTSDR_DISCOVERY_PORT 4992
-
-/* FlexRadio OUI, upper 32 bits of every VITA-49 class ID. */
-#define SMARTSDR_FLEX_OUI 0x00001C2D
 
 
 /* Act on one burst target the transmit position has reached.
@@ -83,6 +72,15 @@ static int smartsdr_tx_apply_target(struct smartsdr_stream_state *ss,
                                     struct rig_stream *stream,
                                     const struct rig_stream_tx_target *tgt)
 {
+    /* A scheduled burst readies the transmitter while it waits, so that at
+     * its start keying is only xmit 1. A failure here is left for the keying
+     * to report. */
+    if (ss->burst_ptt && (tgt->flags & RIG_STREAM_TIME_FLAG_SOB)
+            && (tgt->flags & RIG_STREAM_TIME_FLAG_TX_TIMED))
+    {
+        (void)smartsdr_tx_prepare(ss->rig);
+    }
+
     if (tgt->flags & RIG_STREAM_TIME_FLAG_TX_TIMED)
     {
         int64_t now_s;
@@ -110,9 +108,11 @@ static int smartsdr_tx_apply_target(struct smartsdr_stream_state *ss,
             stream_record_write_status(stream, &ev, 0);
         }
 
+        /* Sleep the time left, in steps short enough to notice a close, so
+         * the start is kept to the millisecond rather than to the step. */
         while (wait_ms > 0 && ss->running)
         {
-            hl_usleep(10 * 1000);
+            hl_usleep((wait_ms > 10 ? 10 : wait_ms) * 1000);
             stream_time_now(&now_s, &now_ps);
             wait_ms = stream_time_diff_ms(tgt->seconds, tgt->picoseconds,
                                           now_s, now_ps);
@@ -176,6 +176,42 @@ static size_t smartsdr_tx_service_targets(struct smartsdr_stream_state *ss,
 
         ss->tx_next_valid = 0;
     }
+}
+
+
+/* Audio that arrived while a frame was being filled may carry a burst target
+ * inside the frame: return how many of its send_pairs come before it. */
+static size_t smartsdr_tx_recut(struct smartsdr_stream_state *ss,
+                                struct rig_stream *stream, size_t send_pairs)
+{
+    if (!ss->tx_next_valid
+            && rig_stream_pop_tx_target(stream, ss->tx_consumed + send_pairs,
+                                        &ss->tx_next))
+    {
+        ss->tx_next_valid = 1;
+    }
+
+    if (ss->tx_next_valid
+            && ss->tx_next.sample_index < ss->tx_consumed + send_pairs)
+    {
+        return ss->tx_next.sample_index > ss->tx_consumed
+               ? (size_t)(ss->tx_next.sample_index - ss->tx_consumed) : 0;
+    }
+
+    return send_pairs;
+}
+
+
+/* Bytes still to read for a frame of send_pairs, counting the bytes of a
+ * pair already read towards it. */
+static size_t smartsdr_tx_send_bytes(size_t send_pairs, int pair_bytes,
+                                     size_t partial_bytes, int frame_bytes)
+{
+    size_t send_bytes = send_pairs * (size_t)pair_bytes;
+
+    send_bytes = send_bytes > partial_bytes ? send_bytes - partial_bytes : 0;
+
+    return send_bytes > (size_t)frame_bytes ? (size_t)frame_bytes : send_bytes;
 }
 
 
@@ -2175,12 +2211,12 @@ static void *smartsdr_tx_thread(void *arg)
     if (is_iq)
     {
         /* DAXIQ: use same class ID pattern */
-        class_id = ((uint64_t)SMARTSDR_FLEX_OUI << 16) | VITA49_PCC_AUDIO_F32;
+        class_id = SMARTSDR_VITA_CLASS_ID(VITA49_PCC_AUDIO_F32);
     }
     else
     {
         /* DAX audio: PCC 0x03E3 (float32 stereo) */
-        class_id = ((uint64_t)SMARTSDR_FLEX_OUI << 16) | VITA49_PCC_AUDIO_F32;
+        class_id = SMARTSDR_VITA_CLASS_ID(VITA49_PCC_AUDIO_F32);
     }
 
     if (stream->backend_config.sample_rate <= 0)
@@ -2226,22 +2262,12 @@ static void *smartsdr_tx_thread(void *arg)
             continue;
         }
 
-        size_t send_pairs = smartsdr_tx_service_targets(
-                                ss, stream, SMARTSDR_TX_STEREO_PAIRS);
-
-        if (send_pairs == 0)
+        /* An EOB whose samples have all been sent unkeys now, not after the
+         * wait for audio below. */
+        if (smartsdr_tx_service_targets(ss, stream,
+                                        SMARTSDR_TX_STEREO_PAIRS) == 0)
         {
             break;
-        }
-
-        /* Bytes of a pair already read count towards this frame's limit. */
-        size_t send_bytes = send_pairs * (size_t)pair_bytes;
-        send_bytes = send_bytes > tx_partial_bytes
-                     ? send_bytes - tx_partial_bytes : 0;
-
-        if (send_bytes > (size_t)frame_bytes)
-        {
-            send_bytes = (size_t)frame_bytes;
         }
 
         /* Wait for a whole frame rather than running a clock of our own.
@@ -2262,18 +2288,54 @@ static void *smartsdr_tx_thread(void *arg)
          * "not yet" from "not coming". */
         const int wait_ms = SMARTSDR_TX_FRAME_WAIT_MS;
 
-        while (got < send_bytes && ss->running)
+        /* Wait for audio before acting on the targets bound to it, and read
+         * only what was there: a write queues its targets before its samples,
+         * so audio that can be seen has all its targets queued. Reading
+         * straight from a wait would send the first frame of a burst that
+         * arrived during it before its SOB keyed the radio. */
+        size_t avail = stream_ringbuf_wait_available(&stream->ringbuf,
+            wait_ms);
+        size_t send_pairs = smartsdr_tx_service_targets(
+                                ss, stream, SMARTSDR_TX_STEREO_PAIRS);
+
+        if (send_pairs == 0)
         {
+            break;
+        }
+
+        size_t send_bytes = smartsdr_tx_send_bytes(send_pairs, pair_bytes,
+            tx_partial_bytes, frame_bytes);
+
+        while (got < send_bytes && avail > 0 && ss->running)
+        {
+            size_t want = send_bytes - got;
             size_t n = stream_ringbuf_read(&stream->ringbuf,
                                            (uint8_t *)sample_buf + got,
-                                           send_bytes - got, wait_ms);
+                                           want < avail ? want : avail, 0);
 
             if (n == 0)
             {
-                break;      /* nothing came: send what there is, plus silence */
+                break;
             }
 
             got += n;
+            avail = avail > n ? avail - n : 0;
+
+            if (avail == 0 && got < send_bytes)
+            {
+                avail = stream_ringbuf_wait_available(&stream->ringbuf,
+                                                      wait_ms);
+
+                if (avail > 0)
+                {
+                    size_t cut = smartsdr_tx_send_bytes(
+                                     smartsdr_tx_recut(ss, stream, send_pairs),
+                                     pair_bytes, tx_partial_bytes,
+                                     frame_bytes);
+
+                    send_bytes = cut > got ? cut : got;
+                }
+            }
         }
 
         /* Count whole stereo pairs exactly, carrying any leftover bytes

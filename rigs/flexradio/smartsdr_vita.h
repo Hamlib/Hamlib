@@ -38,6 +38,26 @@
 #define VITA49_PKT_TYPE_IF_DATA   0x1   /* IF Data with Stream ID */
 #define VITA49_PKT_TYPE_EXT_DATA  0x3   /* Extension Data with Stream ID */
 
+/* Class ID as the radio writes it on its own packets and expects it on ours:
+ * the FlexRadio OUI in word 2, then information class 0x534C ("SL") and the
+ * packet class code in word 3. A TX packet with any other class ID is not
+ * modulated. */
+#define SMARTSDR_VITA_OUI          0x00001C2Du
+#define SMARTSDR_VITA_INFO_CLASS   0x534Cu
+#define SMARTSDR_VITA_CLASS_ID(pcc) \
+    (((uint64_t)SMARTSDR_VITA_OUI << 32) \
+     | ((uint64_t)SMARTSDR_VITA_INFO_CLASS << 16) | (uint64_t)(pcc))
+
+/* VITA-49 timestamp kinds: TSI (integer) and TSF (fractional). A TX packet
+ * declares TSI_OTHER and TSF_SAMPLE_COUNT for its three timestamp words,
+ * which it sends as zero. */
+#define VITA49_TSI_NONE           0
+#define VITA49_TSI_UTC            1
+#define VITA49_TSI_GPS            2
+#define VITA49_TSI_OTHER          3
+#define VITA49_TSF_SAMPLE_COUNT   1
+#define VITA49_TSF_REAL_TIME_PS   2
+
 /* SmartSDR Packet Class Codes (lower 16 bits of class_id). */
 #define VITA49_PCC_AUDIO_F32   0x03E3   /* Float32 stereo, big-endian */
 #define VITA49_PCC_AUDIO_S16   0x0123   /* Int16 mono, big-endian (reduced BW) */

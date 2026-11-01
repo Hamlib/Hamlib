@@ -391,6 +391,23 @@ size_t stream_ringbuf_available(struct rig_stream_ringbuf *rb)
 }
 
 
+size_t stream_ringbuf_wait_available(struct rig_stream_ringbuf *rb,
+                                     int timeout_ms)
+{
+    size_t count = 0;
+
+    pthread_mutex_lock(&rb->lock);
+
+    if (stream_ringbuf_wait_data_locked(rb, timeout_ms) == 0)
+    {
+        count = rb->count;
+    }
+
+    pthread_mutex_unlock(&rb->lock);
+    return count;
+}
+
+
 void stream_ringbuf_reset(struct rig_stream_ringbuf *rb)
 {
     pthread_mutex_lock(&rb->lock);

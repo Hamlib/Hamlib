@@ -206,9 +206,13 @@ int vita49_build_tx_packet(uint8_t *buf, int buf_len,
 
     uint32_t *words = (uint32_t *)buf;
 
-    /* Word 0: type=0x1, C=1, T=0, TSI=0, TSF=0 */
+    /* Word 0: type=0x1, C=1, T=0. TSI and TSF declare the three timestamp
+     * words below; with them left 0 the header claimed none, and the radio
+     * would take those words for samples. */
     uint32_t word0 = ((uint32_t)VITA49_PKT_TYPE_IF_DATA << 28)
                      | (1u << 27)                            /* C = 1 */
+                     | ((uint32_t)VITA49_TSI_OTHER << 22)
+                     | ((uint32_t)VITA49_TSF_SAMPLE_COUNT << 20)
                      | ((uint32_t)(packet_count & 0x0F) << 16)
                      | ((uint32_t)packet_words & 0xFFFF);
     words[0] = htonl(word0);

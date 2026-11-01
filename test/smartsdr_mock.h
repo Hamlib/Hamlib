@@ -108,6 +108,9 @@ struct smartsdr_mock
      * not tx_capture is set. Silence never matches, so this counts exactly
      * the samples of a burst written with the mark. */
     int tx_marked;
+    /* TX audio datagrams whose header is not what the radio itself writes
+     * on DAX audio (type, class ID, timestamp kinds). */
+    int tx_bad_header;
 };
 
 /* A sample value a test writes so the mock can count it in what arrives. */
@@ -213,8 +216,12 @@ int smartsdr_mock_tx_count(struct smartsdr_mock *m);
 int64_t smartsdr_mock_tx_mean_interval_us(struct smartsdr_mock *m);
 
 /* Samples equal to SMARTSDR_MOCK_TX_MARK transmitted so far, and how many had
- * arrived when the first command containing needle did (-1 if none has). */
+ * arrived when the first (or nth, from 1) command containing needle did (-1 if
+ * none has). */
 int smartsdr_mock_tx_marked(struct smartsdr_mock *m);
+int smartsdr_mock_tx_bad_header(struct smartsdr_mock *m);
 int smartsdr_mock_tx_marked_at(struct smartsdr_mock *m, const char *needle);
+int smartsdr_mock_tx_marked_at_nth(struct smartsdr_mock *m, const char *needle,
+                                   int nth);
 
 #endif /* _SMARTSDR_MOCK_H */

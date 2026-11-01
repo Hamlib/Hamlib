@@ -342,6 +342,55 @@ void test_ptt_on_claims_this_slice_when_not_split(void)
 }
 
 
+/* A slice that already holds the transmitter is keyed with xmit 1 alone.
+ * Claiming it again takes the radio some 80 ms, and doing so on every key made
+ * every burst start that late. */
+void test_ptt_on_leaves_a_held_transmitter_alone(void)
+{
+    struct smartsdr_mock m;
+    RIG *rig;
+
+    smartsdr_mock_start(&m);
+    TEST_ASSERT(m.started);
+
+    rig = open_on_mock(&m);
+    smartsdr_mock_forget(&m);
+
+    TEST_CHECK(rig_set_ptt(rig, RIG_VFO_CURR, RIG_PTT_ON) == RIG_OK);
+    TEST_CHECK(smartsdr_mock_saw(&m, "xmit 1"));
+    TEST_CHECK(!smartsdr_mock_saw(&m, "slice set 0 tx=1"));
+    TEST_MSG("keying claimed a transmitter this slice already holds");
+
+    close_on_mock(rig, &m);
+}
+
+
+/* DAX routing holds for the session, so only the first key sends it. */
+void test_ptt_routes_dax_once_per_session(void)
+{
+    struct smartsdr_mock m;
+    RIG *rig;
+
+    smartsdr_mock_start(&m);
+    TEST_ASSERT(m.started);
+
+    rig = open_on_mock(&m);
+    smartsdr_mock_forget(&m);
+
+    TEST_CHECK(rig_set_ptt(rig, RIG_VFO_CURR, RIG_PTT_ON) == RIG_OK);
+    TEST_CHECK(rig_set_ptt(rig, RIG_VFO_CURR, RIG_PTT_OFF) == RIG_OK);
+    TEST_CHECK(rig_set_ptt(rig, RIG_VFO_CURR, RIG_PTT_ON) == RIG_OK);
+    TEST_CHECK(rig_set_ptt(rig, RIG_VFO_CURR, RIG_PTT_OFF) == RIG_OK);
+
+    TEST_CHECK(smartsdr_mock_count(&m, "xmit 1") == 2);
+    TEST_CHECK(smartsdr_mock_count(&m, "dax audio set 1 slice=0 tx=1") == 1);
+    TEST_MSG("DAX routed %d times over two keys",
+             smartsdr_mock_count(&m, "dax audio set 1 slice=0 tx=1"));
+
+    close_on_mock(rig, &m);
+}
+
+
 /* Split puts the transmitter on the slice set_split_vfo created. Keying must
  * transmit there: claiming tx= for the receive slice would undo the split. */
 void test_ptt_in_split_keys_the_split_slice(void)
@@ -356,10 +405,12 @@ void test_ptt_in_split_keys_the_split_slice(void)
     rig = open_on_mock(&m);
     TEST_CHECK(rig_set_split_vfo(rig, RIG_VFO_CURR, RIG_SPLIT_ON, RIG_VFO_SUB)
                == RIG_OK);
+    TEST_CHECK(smartsdr_mock_saw(&m, "slice set 1 tx=1"));
     smartsdr_mock_forget(&m);
 
+    /* Split already moved the transmitter, so keying leaves it there. */
     TEST_CHECK(rig_set_ptt(rig, RIG_VFO_CURR, RIG_PTT_ON) == RIG_OK);
-    TEST_CHECK(smartsdr_mock_saw_before(&m, "slice set 1 tx=1", "xmit 1"));
+    TEST_CHECK(smartsdr_mock_saw(&m, "xmit 1"));
     TEST_CHECK(!smartsdr_mock_saw(&m, "slice set 0 tx=1"));
     TEST_MSG("keying in split must not take the transmitter back");
 
@@ -597,6 +648,8 @@ TEST_LIST =
     { "func_mon_does_not_write_sb_monitor",     test_func_mon_does_not_write_sb_monitor },
     { "func_off_writes_zero",                   test_func_off_writes_zero },
     { "ptt_on_claims_this_slice_when_not_split", test_ptt_on_claims_this_slice_when_not_split },
+    { "ptt_on_leaves_a_held_transmitter_alone", test_ptt_on_leaves_a_held_transmitter_alone },
+    { "ptt_routes_dax_once_per_session", test_ptt_routes_dax_once_per_session },
     { "ptt_in_split_keys_the_split_slice",      test_ptt_in_split_keys_the_split_slice },
     { "ptt_keys_the_configured_split_slice",    test_ptt_keys_the_configured_split_slice },
     { "ptt_reads_on_while_transmitting_in_split", test_ptt_reads_on_while_transmitting_in_split },

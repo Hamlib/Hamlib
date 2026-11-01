@@ -446,7 +446,50 @@ int smartsdr_mock_tx_marked(struct smartsdr_mock *m)
 }
 
 
+/* A TX audio header as the radio writes its own DAX audio: IF data with a
+ * class ID, timestamp kinds declared for the three timestamp words, the
+ * FlexRadio OUI and "SL" class with the float32 stereo packet class. */
+static int mock_tx_header_ok(const uint8_t *d, size_t n)
+{
+    uint32_t w0, w2, w3;
+
+    if (n < 28)
+    {
+        return 1;           /* not audio: the discovery nudge */
+    }
+
+    w0 = ((uint32_t)d[0] << 24) | ((uint32_t)d[1] << 16)
+         | ((uint32_t)d[2] << 8) | d[3];
+    w2 = ((uint32_t)d[8] << 24) | ((uint32_t)d[9] << 16)
+         | ((uint32_t)d[10] << 8) | d[11];
+    w3 = ((uint32_t)d[12] << 24) | ((uint32_t)d[13] << 16)
+         | ((uint32_t)d[14] << 8) | d[15];
+
+    return (w0 >> 28) == 0x1 && ((w0 >> 27) & 1) == 1
+           && ((w0 >> 22) & 3) == 3 && ((w0 >> 20) & 3) == 1
+           && w2 == 0x00001C2Du && w3 == 0x534C03E3u;
+}
+
+
+int smartsdr_mock_tx_bad_header(struct smartsdr_mock *m)
+{
+    int n;
+
+    pthread_mutex_lock(&m->lock);
+    n = m->tx_bad_header;
+    pthread_mutex_unlock(&m->lock);
+    return n;
+}
+
+
 int smartsdr_mock_tx_marked_at(struct smartsdr_mock *m, const char *needle)
+{
+    return smartsdr_mock_tx_marked_at_nth(m, needle, 1);
+}
+
+
+int smartsdr_mock_tx_marked_at_nth(struct smartsdr_mock *m, const char *needle,
+                                   int nth)
 {
     int marked = -1;
     int i;
@@ -458,7 +501,7 @@ int smartsdr_mock_tx_marked_at(struct smartsdr_mock *m, const char *needle)
 
     for (i = 0; i < n; i++)
     {
-        if (strstr(m->commands[i], needle) != NULL)
+        if (strstr(m->commands[i], needle) != NULL && --nth == 0)
         {
             marked = m->command_tx_marked[i];
             break;
@@ -809,6 +852,11 @@ static void *mock_run(void *arg)
                 pthread_mutex_lock(&m->lock);
 
                 m->tx_marked += marked;
+
+                if (!mock_tx_header_ok(datagram, (size_t)n))
+                {
+                    m->tx_bad_header++;
+                }
 
                 if (m->tx_capture)
                 {

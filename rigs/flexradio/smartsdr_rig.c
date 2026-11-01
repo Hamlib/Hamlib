@@ -299,11 +299,72 @@ int smartsdr_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     RETURNFUNC(RIG_OK);
 }
 
-int smartsdr_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
+/* Puts in place what keying needs, so that keying itself is only xmit 1:
+ * this slice's DAX audio routed to the transmitter, and the transmitter on
+ * the slice this rig means. Each is skipped when already so. Moving the
+ * transmitter to the slice that holds it still takes the radio some 80 ms,
+ * and asking for it on every key started every burst that late. A scheduled
+ * burst calls this ahead of its start. */
+int smartsdr_tx_prepare(RIG *rig)
 {
     struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
     char cmd[64];
     int tx_slice;
+    int holds_tx;
+    int retval;
+
+    /* The transmit slice of a split this rig set up, otherwise its own
+     * slice -- so each program running on its own slice transmits there. A
+     * transmit slice set up by someone else is not followed; split_slice
+     * pins one. */
+    smartsdr_state_lock(priv);
+    tx_slice = smartsdr_own_split_slice(priv);
+
+    if (tx_slice < 0)
+    {
+        tx_slice = priv->slicenum;
+    }
+
+    holds_tx = smartsdr_slice_holds_tx(priv, tx_slice);
+    smartsdr_state_unlock(priv);
+
+    /* slice= is not optional: the radio rejects the command outright unless
+     * it accompanies tx=, so both operands are needed to route this slice's
+     * DAX audio to the transmitter. DAX channels are 1-based, matching the
+     * channel the TX stream binds. The routing holds for the session. */
+    if (!priv->dax_tx_routed)
+    {
+        SNPRINTF(cmd, sizeof(cmd), "dax audio set %d slice=%d tx=1",
+                 priv->slicenum + 1, priv->slicenum);
+        retval = smartsdr_transaction(rig, cmd);
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        priv->dax_tx_routed = 1;
+    }
+
+    /* Claimed only when the status says another slice has it, which also
+     * takes it back if another client moved it. */
+    if (!holds_tx)
+    {
+        SNPRINTF(cmd, sizeof(cmd), "slice set %d tx=1", tx_slice);
+        retval = smartsdr_transaction(rig, cmd);
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+    }
+
+    return RIG_OK;
+}
+
+
+int smartsdr_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
+{
     int retval;
     ENTERFUNC;
 
@@ -315,36 +376,7 @@ int smartsdr_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         RETURNFUNC(smartsdr_transaction(rig, "xmit 0"));
     }
 
-    /* Keying transmits on the slice this rig means: the transmit slice of a
-     * split it set up, otherwise its own slice -- so each program running on
-     * its own slice transmits there. A transmit slice set up by someone else
-     * is not followed; split_slice pins one. */
-    smartsdr_state_lock(priv);
-    tx_slice = smartsdr_own_split_slice(priv);
-    smartsdr_state_unlock(priv);
-
-    if (tx_slice < 0)
-    {
-        tx_slice = priv->slicenum;
-    }
-
-    /* slice= is not optional: the radio rejects the command outright unless
-     * it accompanies tx=, so both operands are needed to route this slice's
-     * DAX audio to the transmitter. DAX channels are 1-based, matching the
-     * channel the TX stream binds. */
-    SNPRINTF(cmd, sizeof(cmd), "dax audio set %d slice=%d tx=1",
-             priv->slicenum + 1, priv->slicenum);
-    retval = smartsdr_transaction(rig, cmd);
-
-    if (retval != RIG_OK)
-    {
-        RETURNFUNC(retval);
-    }
-
-    /* Setting tx=1 on the slice that already holds it is harmless, and puts
-     * it back if another client moved it. */
-    SNPRINTF(cmd, sizeof(cmd), "slice set %d tx=1", tx_slice);
-    retval = smartsdr_transaction(rig, cmd);
+    retval = smartsdr_tx_prepare(rig);
 
     if (retval != RIG_OK)
     {

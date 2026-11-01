@@ -212,6 +212,8 @@ struct smartsdr_priv_data
     uint8_t slice_explicit;             /* the slice was named, not defaulted */
     uint8_t slice_missing_fails;        /* config: fail open instead of creating */
     uint8_t tx_dax_enabled;             /* we switched the TX source to DAX */
+    uint8_t dax_tx_routed;              /* this slice's DAX audio is routed to
+                                         * the transmitter this session */
     char tx_audio_source[8];            /* config: mic, acc, pc or dax */
 
     /* What the radio's clock is worth. A GPSDO makes its timestamps traceable

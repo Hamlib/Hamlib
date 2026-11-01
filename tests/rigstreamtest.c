@@ -943,6 +943,97 @@ static int64_t wait_ptt(RIG *rig, int want, int timeout_ms)
 }
 
 
+/* RF output read from the rig's power meter while a burst runs: the key line
+ * says when the radio was asked to transmit, the meter when RF left it. */
+#define RF_TRACE_MAX 2048
+
+struct rf_trace
+{
+    setting_t level;    /* meter to read, or 0 when the rig has none */
+    int n;
+    int64_t t[RF_TRACE_MAX];
+    float v[RF_TRACE_MAX];
+};
+
+
+static void rf_trace_init(RIG *rig, struct rf_trace *rf)
+{
+    rf->n = 0;
+    rf->level = rig_has_get_level(rig, RIG_LEVEL_RFPOWER_METER_WATTS)
+                ? RIG_LEVEL_RFPOWER_METER_WATTS
+                : rig_has_get_level(rig, RIG_LEVEL_RFPOWER_METER)
+                ? RIG_LEVEL_RFPOWER_METER : 0;
+}
+
+
+static void rf_sample(RIG *rig, struct rf_trace *rf)
+{
+    value_t val;
+
+    if (!rf->level || rf->n >= RF_TRACE_MAX
+            || rig_get_level(rig, RIG_VFO_CURR, rf->level, &val) != RIG_OK)
+    {
+        return;
+    }
+
+    rf->t[rf->n] = mono_ms();
+    rf->v[rf->n] = val.f;
+    rf->n++;
+}
+
+
+/* When the meter read above half its peak, against the burst's start and end.
+ * The meter's own update rate and averaging blur both edges, so this is a
+ * measurement to read, not a pass/fail. */
+static void rf_report(const struct rf_trace *rf, int64_t start_ms,
+                      int64_t end_ms)
+{
+    float peak = 0;
+    int first = -1;
+    int last = -1;
+
+    if (!rf->level)
+    {
+        return;
+    }
+
+    for (int i = 0; i < rf->n; i++)
+    {
+        if (rf->v[i] > peak)
+        {
+            peak = rf->v[i];
+        }
+    }
+
+    for (int i = 0; i < rf->n && peak > 0; i++)
+    {
+        if (rf->v[i] > peak / 2)
+        {
+            last = i;
+
+            if (first < 0)
+            {
+                first = i;
+            }
+        }
+    }
+
+    if (first < 0)
+    {
+        printf("    RF meter read nothing (%d reads)\n", rf->n);
+        return;
+    }
+
+    printf("    RF meter (peak %.2f%s, %d reads) above half from %lld ms "
+           "after the start to %lld ms after the end: %lld ms of %lld\n",
+           peak, rf->level == RIG_LEVEL_RFPOWER_METER_WATTS ? " W" : "",
+           rf->n, (long long)(rf->t[first] - start_ms),
+           (long long)(rf->t[last] - end_ms),
+           (long long)(rf->t[last] - rf->t[first]),
+           (long long)(end_ms - start_ms));
+}
+
+
 struct burst_opts
 {
     int use_iq;
@@ -959,10 +1050,12 @@ struct burst_opts
 
 /* Burst mode (-t burst): the backend keys PTT from the SOB/EOB markers on the
  * writes (RIG_STREAM_CAP_BURST_PTT), so no -P. Each burst is written in
- * real time with SOB on its first write and EOB on its last; PTT must read
- * keyed while it plays and released once it has. With --burst-cancel, one
- * timed burst is scheduled and the stream closed before it starts; PTT must
- * never key. */
+ * real time with SOB on its first write and EOB on its last. PTT must read
+ * released until a scheduled burst's start, keyed from then until its last
+ * write without dropping, and released once it has played; the stream must
+ * not overrun, underrun or miss the start while it plays. With
+ * --burst-cancel, one timed burst is scheduled and the stream closed before
+ * it starts; PTT must never key, before the close or after it. */
 static int run_burst(RIG *rig, const struct burst_opts *o)
 {
     rig_stream_type_t type = o->use_iq ? RIG_STREAM_TYPE_IQ_TX
@@ -1056,9 +1149,17 @@ static int run_burst(RIG *rig, const struct burst_opts *o)
         int64_t burst_pairs = (int64_t)o->sample_rate * o->burst_ms / 1000;
         int64_t written_pairs = 0;
         int64_t next_poll = 0;
-        int keyed_seen = 0;
+        int64_t start_ms;           /* when the burst is due on the air */
+        int64_t keyed_ms = -1;      /* when PTT first read keyed */
+        int64_t early_ms = -1;      /* when it read keyed before the start */
+        int64_t dropped_ms = -1;    /* when it read released mid-burst */
+        struct rig_stream_stats st_first, st_last, st_end;
+        int have_stats = 1;
         struct rig_stream_write_info winfo;
         struct timespec pace_start;
+        static struct rf_trace rf;
+
+        rf_trace_init(rig, &rf);
 
         printf("burst %d/%d: %d ms%s\n", b + 1, bursts, o->burst_ms,
                lead_ms > 0 ? ", scheduled" : "");
@@ -1077,6 +1178,9 @@ static int run_burst(RIG *rig, const struct burst_opts *o)
                 pace_start.tv_nsec -= 1000000000L;
             }
         }
+
+        start_ms = (int64_t)pace_start.tv_sec * 1000
+                   + pace_start.tv_nsec / 1000000;
 
         while (written_pairs < burst_pairs && running)
         {
@@ -1139,28 +1243,92 @@ static int run_burst(RIG *rig, const struct burst_opts *o)
             total_bytes += wrote;
             written_pairs += n;
 
+            /* Losses counted from the first write on are this burst's. */
+            if (written_pairs == n)
+            {
+                have_stats &= rig_stream_get_stats(rig, stream, &st_first)
+                              == RIG_OK;
+            }
+
+            if (written_pairs == burst_pairs)
+            {
+                have_stats &= rig_stream_get_stats(rig, stream, &st_last)
+                              == RIG_OK;
+            }
+
             if (o->cancel)
             {
                 break;          /* one write is the whole of it */
             }
 
+            /* A scheduled burst must stay off the air until its start. */
+            if (written_pairs == n && lead_ms > 0)
+            {
+                while (mono_ms() < start_ms - 20 && running)
+                {
+                    if (ptt_is_on(rig))
+                    {
+                        early_ms = mono_ms();
+                        break;
+                    }
+
+                    rf_sample(rig, &rf);
+                    hl_usleep(10 * 1000);
+                }
+            }
+
             /* A scheduled burst is held back by the backend until its start,
              * so the rest is paced from that instant rather than from now. */
             pace_to_frame(&pace_start, (uint64_t)written_pairs, o->sample_rate);
+            rf_sample(rig, &rf);
 
-            if (mono_ms() >= next_poll)
+            /* Every write until PTT reads keyed, to time the keying; then
+             * every 100 ms, watching for it dropping. Not after the last
+             * write: its EOB may already have released, as it should. */
+            if (written_pairs < burst_pairs
+                    && (keyed_ms < 0 || mono_ms() >= next_poll))
             {
-                keyed_seen |= ptt_is_on(rig);
+                int on = ptt_is_on(rig);
+
+                if (on && keyed_ms < 0)
+                {
+                    keyed_ms = mono_ms();
+                }
+                else if (!on && keyed_ms >= 0 && dropped_ms < 0)
+                {
+                    dropped_ms = mono_ms();
+                }
+
                 next_poll = mono_ms() + 100;
             }
         }
 
         if (o->cancel)
         {
-            /* Close well before the start, then watch past it. */
-            hl_usleep((unsigned long)lead_ms * 1000 / 4);
-            printf("closing the stream %d ms before the burst would start\n",
-                   lead_ms - lead_ms / 4);
+            /* Close well before the start, then watch past it. PTT is read
+             * before the close too: close releases a keyed PTT, so a burst
+             * that keyed at once would read released afterwards. */
+            int64_t close_at = mono_ms() + lead_ms / 4;
+
+            while (mono_ms() < close_at && early_ms < 0)
+            {
+                if (ptt_is_on(rig))
+                {
+                    early_ms = mono_ms();
+                }
+
+                hl_usleep(20 * 1000);
+            }
+
+            if (early_ms >= 0)
+            {
+                printf("burst cancel: FAIL, PTT keyed %lld ms before the "
+                       "burst's start\n", (long long)(start_ms - early_ms));
+                failures++;
+            }
+
+            printf("closing the stream %lld ms before the burst would "
+                   "start\n", (long long)(start_ms - mono_ms()));
             rig_stream_close(rig, stream);
             stream = NULL;
 
@@ -1170,7 +1338,7 @@ static int run_burst(RIG *rig, const struct burst_opts *o)
                        "closed\n");
                 failures++;
             }
-            else
+            else if (early_ms < 0)
             {
                 printf("burst cancel: ok, PTT never keyed\n");
             }
@@ -1179,21 +1347,96 @@ static int run_burst(RIG *rig, const struct burst_opts *o)
         }
 
         /* The ring may still hold up to a buffer's worth when the last write
-         * returns, so allow for it before calling the release missing. */
-        int64_t unkey_ms = wait_ptt(rig, 0, 3000);
-        keyed_seen |= unkey_ms > 0;
+         * returns, so allow for it before calling the release missing. The
+         * times printed are when PTT was read, so they include how long the
+         * rig takes to answer a PTT read. */
+        int64_t wait_start = mono_ms();
+        int64_t unkey_ms = -1;
+
+        while (mono_ms() - wait_start <= 3000)
+        {
+            rf_sample(rig, &rf);
+
+            if (!ptt_is_on(rig))
+            {
+                unkey_ms = mono_ms() - wait_start;
+                break;
+            }
+
+            hl_usleep(10 * 1000);
+        }
+
+        int64_t released_ms = mono_ms();
+        int64_t end_ms = start_ms + o->burst_ms;
+
+        /* The meter trails the key line; follow it down. */
+        while (rf.level && mono_ms() < released_ms + 300)
+        {
+            rf_sample(rig, &rf);
+            hl_usleep(10 * 1000);
+        }
+
+        if (keyed_ms < 0 && unkey_ms > 0)
+        {
+            keyed_ms = released_ms - unkey_ms;      /* first seen here */
+        }
+
+        have_stats &= rig_stream_get_stats(rig, stream, &st_end) == RIG_OK;
 
         printf("burst %d/%d: keyed while playing: %s, released %s\n",
-               b + 1, bursts, keyed_seen ? "yes" : "NO",
+               b + 1, bursts, keyed_ms >= 0 ? "yes" : "NO",
                unkey_ms < 0 ? "NEVER" : "yes");
+
+        if (early_ms >= 0)
+        {
+            printf("    FAIL: keyed %lld ms before its scheduled start\n",
+                   (long long)(start_ms - early_ms));
+            failures++;
+        }
+
+        if (keyed_ms >= 0)
+        {
+            printf("    PTT read keyed %lld ms after its start\n",
+                   (long long)(keyed_ms - start_ms));
+        }
+
+        if (dropped_ms >= 0)
+        {
+            printf("    FAIL: PTT dropped %lld ms into the burst\n",
+                   (long long)(dropped_ms - start_ms));
+            failures++;
+        }
 
         if (unkey_ms >= 0)
         {
-            printf("    released %lld ms after the last write\n",
-                   (long long)unkey_ms);
+            printf("    PTT read released %lld ms after the burst's end\n",
+                   (long long)(released_ms - end_ms));
         }
 
-        if (!keyed_seen || unkey_ms < 0)
+        rf_report(&rf, start_ms, end_ms);
+
+        if (have_stats)
+        {
+            unsigned overruns = st_end.overruns - st_first.overruns;
+            unsigned late = st_end.tx_late - st_first.tx_late;
+            unsigned underruns = st_last.underruns - st_first.underruns;
+
+            printf("    overruns=%u late=%u underruns while playing=%u\n",
+                   overruns, late, underruns);
+
+            if (overruns || late || underruns)
+            {
+                printf("    FAIL: the burst lost audio or missed its start\n");
+                failures++;
+            }
+        }
+        else
+        {
+            printf("    FAIL: stream statistics unavailable\n");
+            failures++;
+        }
+
+        if (keyed_ms < 0 || unkey_ms < 0)
         {
             failures++;
         }

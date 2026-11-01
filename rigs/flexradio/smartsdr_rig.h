@@ -33,6 +33,7 @@ extern int smartsdr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 extern int smartsdr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
                              pbwidth_t *width);
 extern int smartsdr_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+extern int smartsdr_tx_prepare(RIG *rig);
 extern int smartsdr_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 extern int smartsdr_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
 extern int smartsdr_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);

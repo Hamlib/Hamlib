@@ -47,6 +47,11 @@ extern rmode_t smartsdr_slice_mode(const struct smartsdr_priv_data *priv);
 extern pbwidth_t smartsdr_slice_width(const struct smartsdr_priv_data *priv);
 extern int smartsdr_slice_ptt(const struct smartsdr_priv_data *priv);
 
+/* Whether the radio's status puts the transmitter on this slice. Caller holds
+ * the state lock. */
+extern int smartsdr_slice_holds_tx(const struct smartsdr_priv_data *priv,
+                                   int slice);
+
 /* Main is this rig's slice, Sub is the transmit slice; A/B are accepted as
  * aliases. Returns 1 for Sub, 0 for Main, -1 if the VFO is not one of them. */
 extern int smartsdr_vfo_is_sub(vfo_t vfo);

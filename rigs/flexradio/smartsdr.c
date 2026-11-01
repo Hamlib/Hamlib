@@ -325,6 +325,9 @@ static int smartsdr_open_session(RIG *rig)
     char resp[SMARTSDR_RESP_LEN];
     int saved_timeout = rp->timeout;
 
+    /* A new session starts with no DAX routing of its own. */
+    priv->dax_tx_routed = 0;
+
     rp->timeout = (saved_timeout > 8000) ? saved_timeout : 8000;
 
     {

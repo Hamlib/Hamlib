@@ -569,19 +569,28 @@ void test_transmit_loses_nothing_at_real_time(void)
 
 
 /* Opens an audio TX stream on the mock and forgets the commands that took,
- * so a test sees only what its burst caused. */
+ * so a test sees only what its burst caused. Returns once the transmit thread
+ * is sending idle frames: a burst written before it starts finds its targets
+ * already queued and hides any race with a thread waiting for audio. */
 static rig_stream_t *open_tx_on_mock(struct smartsdr_mock *m, RIG **rig)
 {
     rig_stream_t *st;
+    int waited;
 
     smartsdr_mock_reply(m, "stream create", "0x84000000");
+    smartsdr_mock_capture_tx(m);
     *rig = open_on_mock(m);
     st = open_stream(*rig, RIG_STREAM_TYPE_AUDIO_TX, AUDIO_RATE, 2,
                      RIG_STREAM_FORMAT_PCM_F32);
 
     if (st != NULL)
     {
-        smartsdr_mock_wait_udp(m, 2000);
+        for (waited = 0; waited < 2000 && smartsdr_mock_tx_count(m) < 2;
+                waited += 10)
+        {
+            usleep(10 * 1000);
+        }
+
         smartsdr_mock_forget(m);
     }
 
@@ -645,6 +654,12 @@ void test_burst_unkeys_after_its_last_sample(void)
              smartsdr_mock_tx_marked_at(&m, "xmit 0"),
              (int)(sizeof(burst) / sizeof(burst[0])));
 
+    /* The radio keys regardless, but modulates only audio whose header it
+     * recognises: with the wrong class ID it transmitted nothing at all. */
+    TEST_CHECK(smartsdr_mock_tx_bad_header(&m) == 0);
+    TEST_MSG("%d TX datagrams did not carry the radio's DAX audio header",
+             smartsdr_mock_tx_bad_header(&m));
+
     close_tx_on_mock(rig, st, &m);
 }
 
@@ -661,11 +676,17 @@ void test_cancelled_timed_burst_never_keys(void)
     static float burst[128 * 2];
     struct timeval now;
     size_t wrote = 0;
+    size_t i;
 
     smartsdr_mock_start(&m);
     TEST_ASSERT(m.started);
     st = open_tx_on_mock(&m, &rig);
     TEST_ASSERT(st != NULL);
+
+    for (i = 0; i < sizeof(burst) / sizeof(burst[0]); i++)
+    {
+        burst[i] = SMARTSDR_MOCK_TX_MARK;
+    }
 
     gettimeofday(&now, NULL);
     memset(&winfo, 0, sizeof(winfo));
@@ -683,7 +704,245 @@ void test_cancelled_timed_burst_never_keys(void)
     TEST_CHECK(!smartsdr_mock_saw(&m, "xmit 1"));
     TEST_MSG("a burst cancelled before its start keyed the radio");
 
+    TEST_CHECK(smartsdr_mock_tx_marked(&m) == 0);
+    TEST_MSG("%d samples of a cancelled burst were sent",
+             smartsdr_mock_tx_marked(&m));
+
     close_tx_on_mock(rig, NULL, &m);
+}
+
+
+static int64_t elapsed_ms(const struct timeval *from)
+{
+    struct timeval now;
+
+    gettimeofday(&now, NULL);
+    return (int64_t)(now.tv_sec - from->tv_sec) * 1000
+           + (now.tv_usec - from->tv_usec) / 1000;
+}
+
+
+/* A timed burst stays off the air until its start: nothing keys and none of
+ * its audio is sent before then, and it keys once the start comes. */
+void test_timed_burst_keys_at_its_start(void)
+{
+    struct smartsdr_mock m;
+    RIG *rig;
+    rig_stream_t *st;
+    struct rig_stream_write_info winfo;
+    static float burst[1000 * 2];
+    struct timeval start;
+    const int lead_ms = 400;
+    int64_t keyed_ms;
+    size_t wrote = 0;
+    size_t i;
+
+    smartsdr_mock_start(&m);
+    TEST_ASSERT(m.started);
+    st = open_tx_on_mock(&m, &rig);
+    TEST_ASSERT(st != NULL);
+
+    for (i = 0; i < sizeof(burst) / sizeof(burst[0]); i++)
+    {
+        burst[i] = SMARTSDR_MOCK_TX_MARK;
+    }
+
+    gettimeofday(&start, NULL);
+    memset(&winfo, 0, sizeof(winfo));
+    winfo.time_valid = 1;
+    winfo.seconds = (int64_t)start.tv_sec + (start.tv_usec / 1000 + lead_ms)
+                    / 1000;
+    winfo.picoseconds = (uint64_t)((start.tv_usec / 1000 + lead_ms) % 1000)
+                        * 1000000000ULL + (uint64_t)(start.tv_usec % 1000)
+                        * 1000000ULL;
+    winfo.flags = RIG_STREAM_TIME_FLAG_SOB | RIG_STREAM_TIME_FLAG_EOB;
+    TEST_CHECK(rig_stream_write(rig, st, burst, sizeof(burst), &wrote, 500,
+                                &winfo) == RIG_OK);
+
+    while (elapsed_ms(&start) < lead_ms - 50)
+    {
+        if (smartsdr_mock_saw(&m, "xmit 1") || smartsdr_mock_tx_marked(&m))
+        {
+            break;
+        }
+
+        usleep(5 * 1000);
+    }
+
+    TEST_CHECK(!smartsdr_mock_saw(&m, "xmit 1"));
+    TEST_MSG("keyed %lld ms into a %d ms lead",
+             (long long)elapsed_ms(&start), lead_ms);
+    TEST_CHECK(smartsdr_mock_tx_marked(&m) == 0);
+    TEST_MSG("%d burst samples were sent before its start",
+             smartsdr_mock_tx_marked(&m));
+
+    TEST_CHECK(smartsdr_mock_wait_for(&m, "xmit 1", 1, 2000) == 1);
+    keyed_ms = elapsed_ms(&start);
+    TEST_CHECK(keyed_ms >= lead_ms - 50 && keyed_ms <= lead_ms + 300);
+    TEST_MSG("keyed %lld ms after a write scheduled %d ms ahead",
+             (long long)keyed_ms, lead_ms);
+
+    TEST_CHECK(smartsdr_mock_wait_for(&m, "xmit 0", 1, 3000) == 1);
+    TEST_CHECK(smartsdr_mock_tx_marked_at(&m, "xmit 1") == 0);
+    TEST_CHECK(smartsdr_mock_tx_marked_at(&m, "xmit 0")
+               == (int)(sizeof(burst) / sizeof(burst[0])));
+    TEST_MSG("unkeyed after %d of %d burst samples",
+             smartsdr_mock_tx_marked_at(&m, "xmit 0"),
+             (int)(sizeof(burst) / sizeof(burst[0])));
+
+    close_tx_on_mock(rig, st, &m);
+}
+
+
+/* A scheduled burst gets the transmitter ready while it waits -- DAX routed
+ * and the transmitter moved to this slice -- so that at its start keying is
+ * only xmit 1. Done at the start, the two cost the radio some 100 ms of the
+ * burst. */
+void test_timed_burst_is_prepared_before_its_start(void)
+{
+    struct smartsdr_mock m;
+    RIG *rig;
+    rig_stream_t *st;
+    struct rig_stream_write_info winfo;
+    static float burst[480 * 2];
+    struct timeval start;
+    const int lead_ms = 400;
+    size_t wrote = 0;
+    char *p;
+
+    smartsdr_mock_start(&m);
+    TEST_ASSERT(m.started);
+
+    /* This slice starts without the transmitter. The leading space keeps
+     * this off txant=. */
+    p = strstr(m.slice_status, " tx=1");
+    TEST_ASSERT(p != NULL);
+    p[4] = '0';
+
+    st = open_tx_on_mock(&m, &rig);
+    TEST_ASSERT(st != NULL);
+
+    gettimeofday(&start, NULL);
+    memset(&winfo, 0, sizeof(winfo));
+    winfo.time_valid = 1;
+    winfo.seconds = (int64_t)start.tv_sec + (start.tv_usec / 1000 + lead_ms)
+                    / 1000;
+    winfo.picoseconds = (uint64_t)((start.tv_usec / 1000 + lead_ms) % 1000)
+                        * 1000000000ULL + (uint64_t)(start.tv_usec % 1000)
+                        * 1000000ULL;
+    winfo.flags = RIG_STREAM_TIME_FLAG_SOB | RIG_STREAM_TIME_FLAG_EOB;
+    TEST_CHECK(rig_stream_write(rig, st, burst, sizeof(burst), &wrote, 500,
+                                &winfo) == RIG_OK);
+
+    while (elapsed_ms(&start) < lead_ms - 100
+            && !smartsdr_mock_saw(&m, "slice set 0 tx=1"))
+    {
+        usleep(5 * 1000);
+    }
+
+    TEST_CHECK(smartsdr_mock_saw(&m, "dax audio set 1 slice=0 tx=1"));
+    TEST_CHECK(smartsdr_mock_saw(&m, "slice set 0 tx=1"));
+    TEST_MSG("not ready %lld ms into a %d ms lead",
+             (long long)elapsed_ms(&start), lead_ms);
+    TEST_CHECK(!smartsdr_mock_saw(&m, "xmit 1"));
+
+    TEST_CHECK(smartsdr_mock_wait_for(&m, "xmit 1", 1, 2000) == 1);
+    TEST_CHECK(smartsdr_mock_wait_for(&m, "xmit 0", 1, 2000) == 1);
+
+    close_tx_on_mock(rig, st, &m);
+}
+
+
+/* Writes one burst in pieces of up to 100 pairs, smaller than a frame, paced
+ * like real time with SOB on the first and EOB on the last. */
+static void write_burst_in_pieces(RIG *rig, rig_stream_t *st, float value,
+                                  int pairs)
+{
+    static float piece[100 * 2];
+    struct rig_stream_write_info winfo;
+    size_t i;
+    int done;
+
+    for (i = 0; i < sizeof(piece) / sizeof(piece[0]); i++)
+    {
+        piece[i] = value;
+    }
+
+    for (done = 0; done < pairs; done += 100)
+    {
+        int n = pairs - done < 100 ? pairs - done : 100;
+        size_t wrote = 0;
+
+        memset(&winfo, 0, sizeof(winfo));
+        winfo.flags = (done == 0 ? RIG_STREAM_TIME_FLAG_SOB : 0)
+                      | (done + n >= pairs ? RIG_STREAM_TIME_FLAG_EOB : 0);
+        TEST_CHECK(rig_stream_write(rig, st, piece,
+                                    (size_t)n * 2 * sizeof(float), &wrote,
+                                    500, &winfo) == RIG_OK);
+        usleep((useconds_t)(n * 1000000 / AUDIO_RATE));
+    }
+}
+
+
+/* Two bursts back to back, each written in pieces: the second's SOB lands on
+ * the first's EOB, partway through a frame. Each burst is keyed and released
+ * around exactly its own samples. The first ends in a short piece after its
+ * last frame has started, so the EOB is not yet queued when that frame begins
+ * and the frame has to be cut when the audio after it arrives. Each burst
+ * lasts long enough for the TX thread to catch up with the writer after
+ * keying. Run twice, marking one burst at a time. */
+static void check_back_to_back(int mark_second)
+{
+    struct smartsdr_mock m;
+    RIG *rig;
+    rig_stream_t *st;
+    const int pairs = 2420;         /* 18 frames and 116 pairs; 24 pieces
+                                     * and one of 20 */
+
+    smartsdr_mock_start(&m);
+    TEST_ASSERT(m.started);
+    st = open_tx_on_mock(&m, &rig);
+    TEST_ASSERT(st != NULL);
+
+    write_burst_in_pieces(rig, st, mark_second ? 0.25f : SMARTSDR_MOCK_TX_MARK,
+                          pairs);
+    write_burst_in_pieces(rig, st, mark_second ? SMARTSDR_MOCK_TX_MARK : 0.25f,
+                          pairs);
+
+    TEST_CHECK(smartsdr_mock_wait_for(&m, "xmit 0", 2, 3000) == 2);
+    TEST_CHECK(smartsdr_mock_count(&m, "xmit 1") == 2);
+
+    if (mark_second)
+    {
+        TEST_CHECK(smartsdr_mock_tx_marked_at_nth(&m, "xmit 0", 1) == 0);
+        TEST_MSG("%d samples of the second burst went out before the first "
+                 "was released", smartsdr_mock_tx_marked_at_nth(&m, "xmit 0",
+                         1));
+        TEST_CHECK(smartsdr_mock_tx_marked_at_nth(&m, "xmit 1", 2) == 0);
+        TEST_MSG("%d samples of the second burst went out before it keyed",
+                 smartsdr_mock_tx_marked_at_nth(&m, "xmit 1", 2));
+        TEST_CHECK(smartsdr_mock_tx_marked_at_nth(&m, "xmit 0", 2)
+                   == pairs * 2);
+        TEST_MSG("second burst released after %d of %d samples",
+                 smartsdr_mock_tx_marked_at_nth(&m, "xmit 0", 2), pairs * 2);
+    }
+    else
+    {
+        TEST_CHECK(smartsdr_mock_tx_marked_at_nth(&m, "xmit 1", 1) == 0);
+        TEST_CHECK(smartsdr_mock_tx_marked_at_nth(&m, "xmit 0", 1)
+                   == pairs * 2);
+        TEST_MSG("first burst released after %d of %d samples",
+                 smartsdr_mock_tx_marked_at_nth(&m, "xmit 0", 1), pairs * 2);
+    }
+
+    close_tx_on_mock(rig, st, &m);
+}
+
+
+void test_back_to_back_bursts_split_over_writes(void)
+{
+    check_back_to_back(0);
+    check_back_to_back(1);
 }
 
 
@@ -1206,6 +1465,9 @@ TEST_LIST =
     { "transmit_loses_nothing_at_real_time", test_transmit_loses_nothing_at_real_time },
     { "burst_unkeys_after_its_last_sample",  test_burst_unkeys_after_its_last_sample },
     { "cancelled_timed_burst_never_keys",    test_cancelled_timed_burst_never_keys },
+    { "timed_burst_keys_at_its_start",       test_timed_burst_keys_at_its_start },
+    { "timed_burst_is_prepared_before_its_start", test_timed_burst_is_prepared_before_its_start },
+    { "back_to_back_bursts_split_over_writes", test_back_to_back_bursts_split_over_writes },
     { "closing_mid_burst_unkeys",            test_closing_mid_burst_unkeys },
     { "meters_resolve_and_scale",           test_meters_resolve_and_scale },
     { "a_split_fft_frame_reassembles",      test_a_split_fft_frame_reassembles },

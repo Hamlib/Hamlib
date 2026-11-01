@@ -288,6 +288,20 @@ int smartsdr_slice_ptt(const struct smartsdr_priv_data *priv)
 }
 
 
+int smartsdr_slice_holds_tx(const struct smartsdr_priv_data *priv, int slice)
+{
+    /* This rig's own slice is tracked in its properties; the others only in
+     * the slice table. */
+    if (slice == priv->slicenum && priv->props[SMARTSDR_P_TX].seen)
+    {
+        return priv->props[SMARTSDR_P_TX].ival != 0;
+    }
+
+    return slice >= 0 && slice < SMARTSDR_MAX_SLICES
+           && priv->slices[slice].tx;
+}
+
+
 /* ------------------------------------------------------------------ */
 /* Split                                                               */
 /* ------------------------------------------------------------------ */
