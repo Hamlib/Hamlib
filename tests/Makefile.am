@@ -26,6 +26,7 @@ DIRECT_TESTS = \
 	testdummyparm \
 	testid5100 \
 	testicomfallback \
+	testft600cat \
 	testft991idmeter \
 	testelecraft \
 	testftx1parsers \
@@ -133,6 +134,7 @@ testgeministatus_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testgs100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testnewcatset_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testnewcatwidth_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testft600cat_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testelecraft_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testts990s_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testicomts_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
@@ -180,6 +182,8 @@ testgs100_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/gomspace/libhamlib-gomspa
 testelecraft_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/kenwood/libhamlib-kenwood.la $(LDADD)
 testts990s_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/kenwood/libhamlib-kenwood.la $(LDADD)
 testftx1parsers_LDADD = $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
+testft600cat_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
 testft991idmeter_LDADD = $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
 testnewcatset_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
 testnewcatwidth_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) \

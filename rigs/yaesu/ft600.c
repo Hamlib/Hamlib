@@ -35,6 +35,11 @@
 #include "misc.h"
 #include "bandplan.h"
 
+#define FT600_FLAG_CW_NARROW  0x10
+#define FT600_FLAG_J2B_NARROW 0x08
+#define FT600_FLAG_J2B_USB    0x20
+#define FT600_NARROW_WIDTH   Hz(500)
+
 enum ft600_native_cmd_e
 {
 
@@ -76,7 +81,12 @@ enum ft600_native_cmd_e
     FT600_NATIVE_CAT_PWR_OFF,
     FT600_NATIVE_CAT_READ_STATUS,
     FT600_NATIVE_CAT_READ_METERS,
-    FT600_NATIVE_CAT_READ_FLAGS
+    FT600_NATIVE_CAT_READ_FLAGS,
+    FT600_NATIVE_CAT_SET_MODE_CW_N,
+    FT600_NATIVE_CAT_SET_MODE_DIG_N,
+    FT600_NATIVE_CAT_SET_MODE_DIG_LSB,
+    FT600_NATIVE_CAT_SET_MODE_DIG_LSB_N,
+    FT600_NATIVE_SIZE   /* must be last */
 };
 
 
@@ -131,6 +141,7 @@ struct ft600_priv_data
 
 /* prototypes */
 static int ft600_send_priv_cmd(RIG *rig, unsigned char cmd_index);
+static int ft600_read_flag2(RIG *rig, unsigned char *flag2);
 
 static const yaesu_cmd_set_t ncmd[] =
 {
@@ -145,7 +156,7 @@ static const yaesu_cmd_set_t ncmd[] =
     { 1, { 0x00, 0x00, 0x00, 0x00, 0x0c } }, /* mode set main LSB */
     { 1, { 0x00, 0x00, 0x00, 0x01, 0x0c } }, /* mode set main USB */
     { 1, { 0x00, 0x00, 0x00, 0x09, 0x0c } }, /* mode set main DIG */
-    { 1, { 0x00, 0x00, 0x00, 0x03, 0x0c } }, /* mode set main CW */
+    { 1, { 0x00, 0x00, 0x00, 0x02, 0x0c } }, /* mode set main CW (A1A-W) */
     { 1, { 0x00, 0x00, 0x00, 0x04, 0x0c } }, /* mode set main AM */
 
     { 0, { 0x00, 0x00, 0x00, 0x00, 0x00 } }, /* clar on */
@@ -185,14 +196,22 @@ static const yaesu_cmd_set_t ncmd[] =
 
     { 1, { 0x00, 0x00, 0x00, 0x02, 0x10 } }, /* read status block */
     { 1, { 0x00, 0x00, 0x00, 0x00, 0xf7 } }, /* read meter block */
-    { 1, { 0x00, 0x00, 0x00, 0x01, 0xfa } }  /* read flags block */
+    { 1, { 0x00, 0x00, 0x00, 0x00, 0xfa } }, /* read flags block */
+    { 1, { 0x00, 0x00, 0x00, 0x03, 0x0c } }, /* mode set main CW narrow (A1A-N) */
+    { 1, { 0x00, 0x00, 0x00, 0x0f, 0x0c } }, /* mode set main DIG narrow (J2B-USB-N) */
+    { 1, { 0x00, 0x00, 0x00, 0x08, 0x0c } }, /* mode set main DIG LSB (J2B-LSB-W) */
+    { 1, { 0x00, 0x00, 0x00, 0x0e, 0x0c } }  /* mode set main DIG LSB narrow (J2B-LSB-N) */
 };
 
+typedef char ft600_native_command_count_check[
+    sizeof(ncmd) / sizeof(ncmd[0]) == FT600_NATIVE_SIZE ? 1 : -1];
+
 #define FT600_GET_RIG_LEVELS (RIG_LEVEL_RAWSTR)
-#define FT600_ALL_RX_MODES (RIG_MODE_LSB|RIG_MODE_USB|RIG_MODE_PKTUSB|RIG_MODE_CW|RIG_MODE_AM)
-#define FT600_SSB_CW_RX_MODES (RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB)
-#define FT600_OTHER_TX_MODES (RIG_MODE_LSB|RIG_MODE_USB|RIG_MODE_PKTUSB|RIG_MODE_CW)
+#define FT600_PACKET_MODES (RIG_MODE_PKTUSB|RIG_MODE_PKTLSB)
+#define FT600_NARROW_MODES (RIG_MODE_CW|FT600_PACKET_MODES)
+#define FT600_OTHER_TX_MODES (RIG_MODE_LSB|RIG_MODE_USB|FT600_NARROW_MODES)
 #define FT600_AM_TX_MODES (RIG_MODE_AM)
+#define FT600_ALL_RX_MODES (FT600_OTHER_TX_MODES|FT600_AM_TX_MODES)
 
 #define FT600_VFO_ALL (RIG_VFO_A)
 #define FT600_ANT (RIG_ANT_1)
@@ -279,7 +298,9 @@ struct rig_caps ft600_caps =
         RIG_TS_END,
     },
     .filters =  {
-        {RIG_MODE_ALL, RIG_FLT_ANY},
+        {FT600_OTHER_TX_MODES, Hz(2200)},
+        {FT600_NARROW_MODES, FT600_NARROW_WIDTH},
+        {RIG_MODE_AM, Hz(6000)},
         RIG_FLT_END
     },
 
@@ -532,16 +553,14 @@ static int ft600_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
 static int ft600_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-
     struct ft600_priv_data *priv = (struct ft600_priv_data *)STATE(rig)->priv;
+    unsigned char flag2;
     int ret;
 
-    if (!mode)
+    if (!mode || !width)
     {
         return -RIG_EINVAL;
     }
-
-    *width = RIG_PASSBAND_NORMAL;
 
     ret = ft600_read_status(rig);
 
@@ -550,48 +569,94 @@ static int ft600_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         return ret;
     }
 
+    *width = RIG_PASSBAND_NORMAL;
+
     switch (priv->status.freq[7])
     {
     case 0x00:
         *mode = RIG_MODE_LSB;
-        *width = Hz(5000);
         break;
 
     case 0x01:
         *mode = RIG_MODE_USB;
-        *width = Hz(5000);
         break;
 
     case 0x02:
+    case 0x03:
+        ret = ft600_read_flag2(rig, &flag2);
+
+        if (ret != RIG_OK) { return ret; }
+
         *mode = RIG_MODE_CW;
-        *width = Hz(1200);
+        *width = (flag2 & FT600_FLAG_CW_NARROW) ? FT600_NARROW_WIDTH
+                 : RIG_PASSBAND_NORMAL;
         break;
 
     case 0x04:
         *mode = RIG_MODE_AM;
-        *width = Hz(6000);
         break;
 
     case 0x05:
-        *mode = RIG_MODE_PKTUSB;
-        *width = Hz(5000);
+        ret = ft600_read_flag2(rig, &flag2);
+
+        if (ret != RIG_OK) { return ret; }
+
+        *mode = (flag2 & FT600_FLAG_J2B_USB) ? RIG_MODE_PKTUSB : RIG_MODE_PKTLSB;
+        *width = (flag2 & FT600_FLAG_J2B_NARROW) ? FT600_NARROW_WIDTH
+                 : RIG_PASSBAND_NORMAL;
         break;
 
     default:
         *mode = RIG_MODE_NONE;
-        *width = RIG_PASSBAND_NORMAL;
-    };
+    }
 
+    return RIG_OK;
+}
+
+static int ft600_read_flag2(RIG *rig, unsigned char *flag2)
+{
+    hamlib_port_t *rp = RIGPORT(rig);
+    unsigned char flags[5];
+    int ret;
+
+    rig_flush(rp);
+
+    ret = ft600_send_priv_cmd(rig, FT600_NATIVE_CAT_READ_FLAGS);
+
+    if (ret != RIG_OK) { return ret; }
+
+    ret = read_block(rp, flags, sizeof(flags));
+
+    if (ret < 0) { return ret; }
+
+    if (ret != sizeof(flags) || flags[3] != 0x06 || flags[4] != 0x04)
+    {
+        return -RIG_EPROTO;
+    }
+
+    *flag2 = flags[1];
     return RIG_OK;
 }
 
 static int ft600_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    unsigned char cmd_index;  /* index of sequence to send */
-    int ret;
+    unsigned char cmd_index;
+    unsigned char flag2;
+    int narrow = width > 0 && width <= FT600_NARROW_WIDTH;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: generic mode = %s, width %d\n", __func__,
               rig_strrmode(mode), (int)width);
+
+    if (width == RIG_PASSBAND_NOCHANGE
+            && (mode == RIG_MODE_CW || mode == RIG_MODE_PKTUSB || mode == RIG_MODE_PKTLSB))
+    {
+        int ret = ft600_read_flag2(rig, &flag2);
+
+        if (ret != RIG_OK) { return ret; }
+
+        narrow = flag2 & (mode == RIG_MODE_CW ? FT600_FLAG_CW_NARROW
+                          : FT600_FLAG_J2B_NARROW);
+    }
 
     switch (mode)
     {
@@ -603,58 +668,30 @@ static int ft600_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         cmd_index = FT600_NATIVE_CAT_SET_MODE_USB;
         break;
 
-    case RIG_MODE_PKTUSB:
-        cmd_index = FT600_NATIVE_CAT_SET_MODE_DIG;
-        break;
-
     case RIG_MODE_CW:
-        cmd_index = FT600_NATIVE_CAT_SET_MODE_CW;
+        cmd_index = narrow ? FT600_NATIVE_CAT_SET_MODE_CW_N
+                    : FT600_NATIVE_CAT_SET_MODE_CW;
         break;
 
     case RIG_MODE_AM:
         cmd_index = FT600_NATIVE_CAT_SET_MODE_AM;
         break;
 
+    case RIG_MODE_PKTUSB:
+        cmd_index = narrow ? FT600_NATIVE_CAT_SET_MODE_DIG_N
+                    : FT600_NATIVE_CAT_SET_MODE_DIG;
+        break;
+
+    case RIG_MODE_PKTLSB:
+        cmd_index = narrow ? FT600_NATIVE_CAT_SET_MODE_DIG_LSB_N
+                    : FT600_NATIVE_CAT_SET_MODE_DIG_LSB;
+        break;
+
     default:
         return -RIG_EINVAL;
     }
 
-    ret = ft600_send_priv_cmd(rig, cmd_index);
-
-    if (ret != RIG_OK)
-    {
-        return ret;
-    }
-
-    if (RIG_PASSBAND_NOCHANGE == width) { return ret; }
-
-#if 1
-
-    if (mode != RIG_MODE_FM && mode != RIG_MODE_WFM && width <= kHz(6))
-    {
-        unsigned char p_cmd[YAESU_CMD_LENGTH];
-        p_cmd[0] = 0x00;
-        p_cmd[1] = 0x00;
-        p_cmd[2] = 0x00;
-        p_cmd[3] = 0x00; /* to be filled in */
-        p_cmd[4] = 0x8C; /* Op: filter selection */
-
-        if (width <= 300) { p_cmd[3] = 0x03; }
-        else if (width <= 500) { p_cmd[3] = 0x02; }
-        else if (width <= 2400) { p_cmd[3] = 0x00; }
-        else { p_cmd[3] = 0x01; }
-
-        ret = write_block(RIGPORT(rig), p_cmd, YAESU_CMD_LENGTH);
-
-        if (ret != RIG_OK)
-        {
-            return ret;
-        }
-    }
-
-#endif
-
-    return RIG_OK;
+    return ft600_send_priv_cmd(rig, cmd_index);
 }
 
 static int ft600_get_vfo(RIG *rig, vfo_t *vfo)
