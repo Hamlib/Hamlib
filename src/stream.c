@@ -2466,12 +2466,13 @@ int stream_fill_gap(struct rig_stream *stream, uint64_t native_samples,
     uint8_t skip_flag = (cause == RIG_STREAM_DROP_GAP)
                         ? RIG_STREAM_DROP_GAP : STREAM_DROP_LOCAL_OVERRUN;
 
-    bpf = stream_format_bytes_per_frame(stream->backend_config.format,
-                                        stream->backend_config.channels);
+    int is_codec;
+    int geometry_ret = stream_frame_geometry(stream->backend_config.format,
+        stream->backend_config.channels, &bpf, &is_codec);
 
     /* Nothing to size the fill by: report the loss without inventing
      * anything. */
-    if (native_samples == 0 || bpf <= 0)
+    if (native_samples == 0 || geometry_ret != RIG_OK || bpf <= 0)
     {
         stream_skip_samples(stream, native_samples, skip_flag);
         return RIG_OK;
