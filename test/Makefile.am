@@ -32,6 +32,11 @@ check_PROGRAMS = test_stream_ringbuf test_stream_convert test_stream_codec test_
 check_PROGRAMS += test_conf
 test_conf_SOURCES = test_conf.c
 
+check_PROGRAMS += test_asyncio
+test_asyncio_SOURCES = test_asyncio.c
+test_asyncio_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+test_asyncio_LDADD = $(LDADD) $(PTHREAD_LIBS)
+
 test_stream_codec_SOURCES = test_stream_codec.c
 test_stream_codec_LDADD = $(LDADD)
 
