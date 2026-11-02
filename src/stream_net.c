@@ -660,6 +660,14 @@ static int handle_data_frame(struct rig_stream_net_session *sess,
         return -1;
     }
 
+    /* The server has reported this stream's source dead: a datagram still in
+     * flight is neither data nor loss, and must not let a later read succeed
+     * after the application has seen -RIG_EIO. */
+    if (stream_is_failed(stream))
+    {
+        return 0;
+    }
+
     const unsigned char *data = pkt + RIG_STREAM_HEADER_SIZE;
     size_t data_len = hdr->payload_len;
     struct rig_stream_time_anchor blk;
@@ -703,7 +711,7 @@ static int handle_data_frame(struct rig_stream_net_session *sess,
         }
         else
         {
-            stream_ringbuf_write(&stream->ringbuf, data, data_len);
+            (void)stream_backend_write(stream, data, data_len);
         }
     }
 
@@ -776,12 +784,34 @@ int rig_stream_net_process_packet(struct rig_stream_net_session *sess,
         return 0;
     }
 
-    /* ERROR frames are reserved (not emitted yet). Drop defensively so an
-     * error payload is never misinterpreted as sample data. */
+    /* The server's source for this stream died. Mark the local stream failed
+     * so the application's reads drain what arrived and then return -RIG_EIO
+     * (and writes return it at once), carrying the server's reason. Never
+     * ingested as data. Repeats are harmless: the first reason wins. */
     if (hdr.control & RIG_STREAM_CTRL_ERROR)
     {
-        rig_debug(RIG_DEBUG_WARN, "%s: received ERROR frame on stream %d\n",
-                  __func__, hdr.stream_id);
+        int32_t rig_error;
+        uint32_t reason;
+
+        if (stream_error_block_unpack(pkt + RIG_STREAM_HEADER_SIZE,
+                                      hdr.payload_len, &rig_error,
+                                      &reason) != 0)
+        {
+            rig_debug(RIG_DEBUG_WARN,
+                      "%s: unrecognised ERROR frame on stream %d dropped\n",
+                      __func__, hdr.stream_id);
+            return 0;
+        }
+
+        if (!stream_is_failed(stream))
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: server reports stream %d failed: %s (%s)\n",
+                      __func__, hdr.stream_id, rigerror2(rig_error),
+                      rig_strcommreason(reason));
+        }
+
+        stream_mark_failed(stream, reason);
         return 0;
     }
 

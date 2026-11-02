@@ -59,13 +59,39 @@ static struct sockaddr_in dest_addr = {0};
 #endif
 
 
+/* Winsock counts references: every successful WSAStartup() needs its own
+ * WSACleanup(), and releasing the last one stops every socket in the process.
+ * multicast_init() takes one; this gives it back when multicast_stop() ends
+ * what that init started, so no other user of the process loses its sockets.
+ * (It used to be released when the publisher thread exited, which no longer
+ * runs, so the reference was never returned.) */
+#ifdef _WIN32
+static int multicast_wsa_refs;
+#endif
+
+static void multicast_wsa_release(void)
+{
+#ifdef _WIN32
+
+    if (multicast_wsa_refs > 0)
+    {
+        multicast_wsa_refs--;
+        WSACleanup();
+    }
+
+#endif
+}
+
 int multicast_stop(RIG *rig)
 {
     struct rig_state *rs = STATE(rig);
 
-    if (rs->multicast) { rs->multicast->runflag = 0; }
+    if (rs->multicast == NULL) { return RIG_OK; }
+
+    rs->multicast->runflag = 0;
 
     pthread_join(rs->multicast->threadid, NULL);
+    multicast_wsa_release();
     return RIG_OK;
 }
 
@@ -484,11 +510,6 @@ void *multicast_thread(void *vrig)
 
     }
 
-#ifdef _WIN32
-    WSACleanup();
-#endif
-
-
     return NULL;
 }
 
@@ -527,6 +548,7 @@ int multicast_init(RIG *rig, char *addr, int port)
         return 1;
     }
 
+    multicast_wsa_refs++;
 #endif
 
     if (rs->multicast == NULL)

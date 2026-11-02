@@ -62,25 +62,6 @@ static void __attribute__((constructor)) stream_socket_sys_init(void)
 }
 #endif
 
-/* Thread-local client ID storage. */
-static pthread_key_t client_id_key;
-
-void rigctld_client_id_init(void)
-{
-    pthread_key_create(&client_id_key, NULL);
-}
-
-void rigctld_client_id_set(int client_id)
-{
-    pthread_setspecific(client_id_key, (void *)(intptr_t)client_id);
-}
-
-int rigctld_client_id_get(void)
-{
-    return (int)(intptr_t)pthread_getspecific(client_id_key);
-}
-
-
 /* Extract the family and raw IP bytes from a sockaddr_storage, folding
  * IPv4-mapped IPv6 (::ffff:A.B.C.D) to plain IPv4 so dual-stack sockets
  * compare correctly across TCP/UDP boundaries. Returns the address length
@@ -967,14 +948,19 @@ static int wait_for_subscribe(struct rigctld_stream *stream)
     socklen_t addr_len;
     unsigned char buf[RIG_STREAM_MAX_DATAGRAM];
     struct rig_stream_packet_header hdr;
-    time_t start_time = time(NULL);
+    struct timespec start_time, now;
+
+    clock_gettime(CLOCK_MONOTONIC, &start_time);
 
     while (stream->running)
     {
         fd_set fds;
         struct timeval tv;
 
-        if (time(NULL) - start_time >= stream->subscribe_timeout_s)
+        clock_gettime(CLOCK_MONOTONIC, &now);
+
+        if (rigctld_stream_timed_out(&start_time, &now,
+                                     stream->subscribe_timeout_s))
         {
             rig_debug(RIG_DEBUG_WARN,
                       "%s: subscribe timeout for stream %d\n",
@@ -1047,7 +1033,7 @@ static int wait_for_subscribe(struct rigctld_stream *stream)
 
         /* SUBSCRIBE received — finalize client address and send ACK */
         stream->client_addr_known = 1;
-        stream->last_subscribe = time(NULL);
+        clock_gettime(CLOCK_MONOTONIC, &stream->last_subscribe);
         rigctld_stream_send_control_reply(stream, RIG_STREAM_CTRL_SUBSCRIBE_ACK);
 
         return 0;
@@ -1078,6 +1064,61 @@ int rigctld_stream_send_control_reply(struct rigctld_stream *stream,
                           stream->client_addr_len);
 
     return (sent == RIG_STREAM_HEADER_SIZE) ? 0 : -1;
+}
+
+
+int rigctld_stream_send_error(struct rigctld_stream *stream)
+{
+    unsigned char pkt[RIG_STREAM_HEADER_SIZE + RIG_STREAM_ERROR_WIRE_SIZE];
+    struct rig_stream_packet_header hdr;
+
+    stream_control_header_init(&hdr, (uint8_t)stream->type,
+                               (uint16_t)stream->stream_id,
+                               stream->subscribe_token, RIG_STREAM_CTRL_ERROR);
+    hdr.source_id = stream->source_id;
+    hdr.payload_len = RIG_STREAM_ERROR_WIRE_SIZE;
+
+    stream_packet_header_pack(&hdr, pkt);
+    stream_error_block_pack(stream->fail_error, stream->fail_reason,
+                            pkt + RIG_STREAM_HEADER_SIZE);
+    clock_gettime(CLOCK_MONOTONIC, &stream->last_error_sent);
+
+    ssize_t sent = sendto(stream->udp_sock, (const char *)pkt, sizeof(pkt), 0,
+                          (struct sockaddr *)&stream->client_addr,
+                          stream->client_addr_len);
+
+    return (sent == (ssize_t)sizeof(pkt)) ? 0 : -1;
+}
+
+
+/* The backend stream reported its source dead: remember why and tell the
+ * client once now. Later reminders are sent in answer to the client's own
+ * packets, since a single datagram may be lost. */
+static void rigctld_stream_backend_failed(struct rigctld_stream *stream,
+        int rig_error)
+{
+    struct rig_stream_stats st;
+
+    if (stream->backend_failed)
+    {
+        return;
+    }
+
+    memset(&st, 0, sizeof(st));
+    rig_stream_get_stats(stream->rig, stream->backend_stream, &st);
+    stream->fail_error = rig_error;
+    stream->fail_reason = st.fail_reason;
+    stream->backend_failed = 1;
+
+    rig_debug(RIG_DEBUG_ERR,
+              "%s: stream %d: backend source failed (%s, %s); reporting to the "
+              "client\n", __func__, stream->stream_id, rigerror2(rig_error),
+              rig_strcommreason(st.fail_reason));
+
+    if (stream->client_addr_known)
+    {
+        rigctld_stream_send_error(stream);
+    }
 }
 
 
@@ -1277,6 +1318,13 @@ static long elapsed_ms(const struct timespec *start, const struct timespec *end)
 }
 
 
+int rigctld_stream_timed_out(const struct timespec *since,
+                             const struct timespec *now, int timeout_s)
+{
+    return elapsed_ms(since, now) >= (long) timeout_s * 1000;
+}
+
+
 int rigctld_stream_metadata_refresh_due(int refresh_ms, int sample_rate,
                                         uint64_t samples_since)
 {
@@ -1314,7 +1362,7 @@ static void *rigctld_stream_feeder_tx(void *arg)
     int first_data = 1;  /* Skip gap detection on first data packet */
     struct timespec ts_now;
     clock_gettime(CLOCK_MONOTONIC, &ts_now);
-    time_t last_activity = ts_now.tv_sec;
+    struct timespec last_activity = ts_now;
 
     /* Cache per-stream invariants */
     stream->format_id = stream_format_to_id(stream->config.format);
@@ -1365,7 +1413,8 @@ static void *rigctld_stream_feeder_tx(void *arg)
             /* Check inactivity timeout */
             clock_gettime(CLOCK_MONOTONIC, &ts_now);
 
-            if (ts_now.tv_sec - last_activity >= stream->subscribe_timeout_s)
+            if (rigctld_stream_timed_out(&last_activity, &ts_now,
+                                         stream->subscribe_timeout_s))
             {
                 rig_debug(RIG_DEBUG_WARN,
                           "%s: inactivity timeout for TX stream %d\n",
@@ -1379,7 +1428,7 @@ static void *rigctld_stream_feeder_tx(void *arg)
         }
 
         clock_gettime(CLOCK_MONOTONIC, &ts_now);
-        last_activity = ts_now.tv_sec;
+        last_activity = ts_now;
 
         struct sockaddr_storage from_addr;
         socklen_t from_len = sizeof(from_addr);
@@ -1430,6 +1479,12 @@ static void *rigctld_stream_feeder_tx(void *arg)
                 && hdr.stream_id == stream->stream_id)
         {
             rigctld_stream_send_control_reply(stream, RIG_STREAM_CTRL_PONG);
+
+            if (stream->backend_failed)
+            {
+                rigctld_stream_send_error(stream);
+            }
+
             continue;
         }
 
@@ -1524,9 +1579,24 @@ static void *rigctld_stream_feeder_tx(void *arg)
             if (data_len > 0 || winfo_ptr)
             {
                 size_t bytes_written;
-                rig_stream_write(stream->rig, stream->backend_stream,
-                                 data, data_len, &bytes_written, 0,
-                                 winfo_ptr);
+                int wret = rig_stream_write(stream->rig, stream->backend_stream,
+                                            data, data_len, &bytes_written, 0,
+                                            winfo_ptr);
+
+                if (wret == -RIG_EIO)
+                {
+                    struct timespec now;
+
+                    rigctld_stream_backend_failed(stream, wret);
+                    clock_gettime(CLOCK_MONOTONIC, &now);
+
+                    /* A sender keeps sending: remind it, but at most a few
+                     * times a second rather than once per packet. */
+                    if (elapsed_ms(&stream->last_error_sent, &now) >= 250)
+                    {
+                        rigctld_stream_send_error(stream);
+                    }
+                }
 
                 /* Advance the sample counter by whole frames (all
                  * channels); codec frame durations are not on the wire,
@@ -1601,16 +1671,71 @@ static void poll_incoming_control(struct rigctld_stream *stream,
             && ctrl_hdr.stream_id == stream->stream_id)
     {
         rigctld_stream_send_control_reply(stream, RIG_STREAM_CTRL_PONG);
-        stream->last_subscribe = now->tv_sec;
+        stream->last_subscribe = *now;
     }
     else if (ctrl_hdr.control & RIG_STREAM_CTRL_SUBSCRIBE)
     {
         /* Re-subscribe: update client address, send ACK */
         memcpy(&stream->client_addr, &from_addr, from_len);
         stream->client_addr_len = from_len;
-        stream->last_subscribe = now->tv_sec;
+        stream->client_addr_known = 1;
+        stream->last_subscribe = *now;
         rigctld_stream_send_control_reply(stream, RIG_STREAM_CTRL_SUBSCRIBE_ACK);
     }
+    else
+    {
+        return;
+    }
+
+    /* A client of a failed stream is reminded every time it speaks, so a lost
+     * ERROR frame cannot leave it waiting on an idle stream. */
+    if (stream->backend_failed)
+    {
+        rigctld_stream_send_error(stream);
+    }
+}
+
+
+/* A failed RX stream: nothing more will come from the backend. Keep serving
+ * the client's PINGs and re-SUBSCRIBEs (each answered with an ERROR reminder)
+ * until the stream is closed, or auto-close when the client goes quiet.
+ * Sleeps between polls rather than spinning. Returns 1 if it auto-closed. */
+static int rigctld_stream_hold_failed(struct rigctld_stream *stream)
+{
+    while (stream->running)
+    {
+        struct timespec pause = { 0, 20 * 1000 * 1000L };
+        struct timespec now;
+
+        nanosleep(&pause, NULL);
+        clock_gettime(CLOCK_MONOTONIC, &now);
+
+        if (stream->multicast)
+        {
+            /* No return channel: announce it to the group once a second. */
+            if (elapsed_ms(&stream->last_error_sent, &now) >= 1000)
+            {
+                rigctld_stream_send_error(stream);
+            }
+
+            continue;
+        }
+
+        poll_incoming_control(stream, &now);
+
+        if (rigctld_stream_timed_out(&stream->last_subscribe, &now,
+                                     stream->subscribe_timeout_s))
+        {
+            rig_debug(RIG_DEBUG_WARN,
+                      "%s: keepalive timeout for failed stream %d\n",
+                      __func__, stream->stream_id);
+            stream->running = 0;
+            rigctld_stream_auto_close(&g_stream_registry, stream);
+            return 1;
+        }
+    }
+
+    return 0;
 }
 
 
@@ -1698,7 +1823,7 @@ static void *rigctld_stream_feeder_rx(void *arg)
     clock_gettime(CLOCK_MONOTONIC, &last_meta_time);
     last_ctrl_check = last_meta_time;
     last_data_time = last_meta_time;
-    stream->last_subscribe = last_meta_time.tv_sec;
+    stream->last_subscribe = last_meta_time;
 
     /* Producer sample index at the last metadata frame — drives the
      * unconditional refresh cadence. */
@@ -1724,6 +1849,31 @@ static void *rigctld_stream_feeder_rx(void *arg)
         int ret = rig_stream_read(stream->rig, stream->backend_stream,
                                   payload, max_payload, &bytes_read, 100,
                                   &rinfo);
+
+        if (ret == -RIG_EIO)
+        {
+            /* The source is gone for good: report it instead of polling a
+             * dead stream, which returns at once and would spin. */
+            rigctld_stream_backend_failed(stream, ret);
+
+            if (rigctld_stream_hold_failed(stream))
+            {
+                free(pkt_buf);
+                return NULL;
+            }
+
+            break;
+        }
+
+        if (ret != RIG_OK && ret != -RIG_ETIMEOUT)
+        {
+            /* Closing (-RIG_ENAVAIL) or a handle already gone: nothing will
+             * come, and the call returns immediately, so do not spin while
+             * the stream finishes shutting down. */
+            struct timespec pause = { 0, 20 * 1000 * 1000L };
+
+            nanosleep(&pause, NULL);
+        }
 
         if (ret == RIG_OK && bytes_read > 0)
         {
@@ -1819,8 +1969,8 @@ static void *rigctld_stream_feeder_rx(void *arg)
 
         /* Keepalive timeout check — unicast only */
         if (!stream->multicast
-                && now.tv_sec - stream->last_subscribe
-                >= stream->subscribe_timeout_s)
+                && rigctld_stream_timed_out(&stream->last_subscribe, &now,
+                                            stream->subscribe_timeout_s))
         {
             rig_debug(RIG_DEBUG_WARN,
                       "%s: keepalive timeout for stream %d\n",

@@ -45,6 +45,7 @@ testgeministatus
 testgrid
 testgrid.sh
 testgs100
+testicomgetvfo
 testicomts
 testlibusb
 testloc
@@ -58,4 +59,7 @@ testrigcaps
 testrigcaps.sh
 testrigopen
 testtrn
+testtunercontrol
+testtunercontrol_marker
+testtunercontrol_stub.sh
 tuner_control.log

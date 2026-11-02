@@ -87,8 +87,9 @@ struct meade_priv_data
  * cmdstr - Command to be sent to the rig.
  * data - Buffer for reply string.  Can be NULL, indicating that no reply is
  *        is needed, but answer will still be read.
- * data_len - in: Size of buffer. It is the caller's responsibility to provide
- *            a large enough buffer for all possible replies for a command.
+ * data_len - out: Number of reply bytes received.
+ * reply_content_len - Maximum reply content length, excluding the terminating
+ *                     NUL byte.
  *
  * returns:
  *   RIG_OK  -  if no error occurred.
@@ -96,7 +97,7 @@ struct meade_priv_data
  *   RIG_ETIMEOUT  -  if timeout expires without any characters received.
  */
 static int meade_transaction(ROT *rot, const char *cmdstr,
-                             char *data, size_t *data_len, size_t expected_return_length)
+                             char *data, size_t *data_len, size_t reply_content_len)
 {
     hamlib_port_t *rotp = ROTPORT(rot);
     int return_value;
@@ -124,7 +125,7 @@ transaction:
         if (data != NULL)
         {
             return_value = read_string(rotp, (unsigned char *) data,
-                                       expected_return_length + 1,
+                                       reply_content_len + 1,
                                        "\r\n", strlen("\r\n"), 0, 1);
 
             if (return_value > 0)
@@ -214,13 +215,14 @@ static int meade_open(ROT *rot)
     // Get our product name for any custom things we need to do
     // The LX200 does not have :GVP# so no response will default to LX200
     retval = meade_transaction(rot, ":GVP#", return_str, &return_str_size,
-                               sizeof(return_str));
+                               sizeof(return_str) - 1);
 
     if (retval != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s: meade_transaction %s\n", __func__, rigerror(retval)); }
 
     if (return_str_size > 0) { strtok(return_str, "#"); }
 
-    strcpy(priv->product_name, return_str_size > 0 ? return_str : "LX200 Assumed");
+    SNPRINTF(priv->product_name, sizeof(priv->product_name), "%s",
+             return_str_size > 0 ? return_str : "LX200 Assumed");
     rig_debug(RIG_DEBUG_VERBOSE, "%s product_name=%s\n", __func__,
               priv->product_name);
 
@@ -285,7 +287,8 @@ static int meade_set_position(ROT *rot, azimuth_t az, elevation_t el)
     /* Undesirable behavior if stopped can happen */
     /* So we just ignore commands while moving */
     /* Should we return RIG_OK or an error though? */
-    meade_transaction(rot, ":D#", return_str, &return_str_size, sizeof(return_str));
+    meade_transaction(rot, ":D#", return_str, &return_str_size,
+                      sizeof(return_str) - 1);
 
     // LX200 return 0xff bytes and Autostart returns 0x7f
     if (return_str_size > 0 && ((return_str[0] & 0x7f) == 0x7f))
@@ -329,7 +332,8 @@ static int meade_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    meade_transaction(rot, ":GZ#:GA#", return_str, &return_str_size, BUFSIZE);
+    meade_transaction(rot, ":GZ#:GA#", return_str, &return_str_size,
+                      sizeof(return_str) - 1);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: returned '%s'\n", __func__, return_str);
     // GZ returns DDD*MM# or DDD*MM'SS#
     // GA returns sDD*MM# or sDD*MM'SS#

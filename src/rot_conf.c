@@ -151,7 +151,7 @@ int frontrot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
     switch (token)
     {
     case TOK_PATHNAME:
-        strncpy(rotp->pathname, val, HAMLIB_FILPATHLEN - 1);
+        SNPRINTF(rotp->pathname, sizeof(rotp->pathname), "%s", val);
         break;
 
     case TOK_WRITE_DELAY:
@@ -407,7 +407,7 @@ int frontrot_get_conf(ROT *rot, hamlib_token_t token, char *val, int val_len)
     switch (token)
     {
     case TOK_PATHNAME:
-        strncpy(val, rotp->pathname, val_len - 1);
+        SNPRINTF(val, val_len, "%s", rotp->pathname);
         break;
 
     case TOK_WRITE_DELAY:
@@ -485,7 +485,7 @@ int frontrot_get_conf(ROT *rot, hamlib_token_t token, char *val, int val_len)
             return -RIG_EINVAL;
         }
 
-        strncpy(val, s, val_len);
+        SNPRINTF(val, val_len, "%s", s);
         break;
 
     case TOK_HANDSHAKE:
@@ -512,7 +512,7 @@ int frontrot_get_conf(ROT *rot, hamlib_token_t token, char *val, int val_len)
             return -RIG_EINVAL;
         }
 
-        strcpy(val, s);
+        SNPRINTF(val, val_len, "%s", s);
         break;
 
     case TOK_MIN_AZ:

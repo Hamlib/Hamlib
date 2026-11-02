@@ -648,6 +648,27 @@ void test_format_name_roundtrip(void)
 }
 
 
+/* The ERROR payload round-trips, and a short or unknown-version block is
+ * refused rather than misread. */
+void test_error_block_roundtrip(void)
+{
+    unsigned char buf[RIG_STREAM_ERROR_WIRE_SIZE];
+    int32_t err = 0;
+    uint32_t reason = 0;
+
+    stream_error_block_pack(-RIG_EIO, RIG_COMM_REASON_LINK_TIMEOUT, buf);
+    TEST_CHECK(buf[0] == 0 && buf[1] == RIG_STREAM_ERROR_BLOCK_VERSION);
+    TEST_CHECK(stream_error_block_unpack(buf, sizeof(buf), &err, &reason) == 0);
+    TEST_CHECK_(err == -RIG_EIO, "rig_error=%d", err);
+    TEST_CHECK(reason == RIG_COMM_REASON_LINK_TIMEOUT);
+
+    TEST_CHECK(stream_error_block_unpack(buf, sizeof(buf) - 1, &err,
+                                         &reason) == -1);
+    buf[1] = 2;
+    TEST_CHECK(stream_error_block_unpack(buf, sizeof(buf), &err, &reason) == -1);
+}
+
+
 void test_format_bitmask_str(void)
 {
     char buf[256];
@@ -2598,6 +2619,24 @@ void test_metadata_refresh_due(void)
 }
 
 
+/* The stream timeouts count from the instant of the last packet, not from the
+ * start of its second. */
+void test_timed_out(void)
+{
+    struct timespec since = { 10, 999000000L };
+    struct timespec now = { 12, 0 };
+
+    /* 1.001 s after a packet late in second 10: whole seconds said 2 */
+    TEST_CHECK(rigctld_stream_timed_out(&since, &now, 2) == 0);
+
+    now.tv_nsec = 998000000L;
+    TEST_CHECK(rigctld_stream_timed_out(&since, &now, 2) == 0);
+
+    now.tv_nsec = 999000000L;
+    TEST_CHECK(rigctld_stream_timed_out(&since, &now, 2) == 1);
+}
+
+
 /* Rate-derived socket buffer sizing with floor/ceiling clamps. */
 void test_transport_buffer_bytes(void)
 {
@@ -2946,10 +2985,14 @@ TEST_LIST =
     { "metadata_unpack_too_short",      test_metadata_unpack_too_short },
     { "metadata_freq_only",             test_metadata_freq_only },
 
+    /* Stream timeouts */
+    { "rigctld_stream_timed_out",       test_timed_out },
+
     /* Type and format name mapping */
     { "type_name_roundtrip",   test_type_name_roundtrip },
     { "format_name_roundtrip", test_format_name_roundtrip },
     { "format_bitmask_str",    test_format_bitmask_str },
+    { "error_block_roundtrip", test_error_block_roundtrip },
 
     /* Stream registry */
     { "registry_init_destroy",    test_registry_init_destroy },

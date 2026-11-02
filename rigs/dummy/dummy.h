@@ -103,5 +103,11 @@ extern struct rig_caps quisk_caps;
 extern struct rig_caps gqrx_caps;
 
 int netrigctl_get_vfo_mode(RIG *);
+int netrigctl_format_parm_command(char *cmd, size_t cmd_size,
+                                  setting_t parm, value_t val);
+int netrigctl_decode_parm_response(setting_t parm, value_t *val,
+                                   const char *response, size_t response_len,
+                                   char *string_value,
+                                   size_t string_value_size);
 
 #endif /* _DUMMY_H */

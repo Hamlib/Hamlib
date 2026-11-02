@@ -486,7 +486,6 @@ ft991_get_tx_split(RIG *rig, split_t *in_split)
 int
 ft991_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
-    freq_t cached_tx_freq;
     int rval;
     split_t is_split;
 
@@ -497,14 +496,6 @@ ft991_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     if (rval != RIG_OK)
     {
         return (rval);
-    }
-
-    if (rig_get_cache_freq(rig, RIG_VFO_B, &cached_tx_freq, NULL) == RIG_OK
-            && cached_tx_freq == tx_freq)
-    {
-        rig_debug(RIG_DEBUG_TRACE, "%s: freq %.0f already set on VFOB\n", __func__,
-                  tx_freq);
-        return RIG_OK;
     }
 
     if (is_split == RIG_SPLIT_OFF)

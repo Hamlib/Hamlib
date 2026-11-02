@@ -496,6 +496,31 @@ int stream_time_block_unpack(const unsigned char *buf, size_t len,
 }
 
 
+void stream_error_block_pack(int32_t rig_error, uint32_t comm_reason,
+                             unsigned char *buf)
+{
+    put_be16(buf, RIG_STREAM_ERROR_BLOCK_VERSION);
+    put_be16(buf + 2, 0);
+    put_be32(buf + 4, (uint32_t)rig_error);
+    put_be32(buf + 8, comm_reason);
+}
+
+
+int stream_error_block_unpack(const unsigned char *buf, size_t len,
+                              int32_t *rig_error, uint32_t *comm_reason)
+{
+    if (len < RIG_STREAM_ERROR_WIRE_SIZE
+            || get_be16(buf) != RIG_STREAM_ERROR_BLOCK_VERSION)
+    {
+        return -1;
+    }
+
+    *rig_error = (int32_t)get_be32(buf + 4);
+    *comm_reason = get_be32(buf + 8);
+    return 0;
+}
+
+
 void stream_write_status_pack(const struct rig_stream_write_status *st,
                               unsigned char *buf)
 {
