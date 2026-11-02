@@ -9,11 +9,14 @@
  */
 
 /*
- * When a rig refuses 07 D2, rig_get_vfo() must remember that on the
- * handle that got the refusal.  rig_caps is one static structure per
- * model, shared by every handle in the process, so writing there costs
- * every other rig its get_vfo as well.  Driven here through two
- * IC-7600s, one refusing and one answering.
+ * When a rig turns out to lack 07 D2, rig_get_vfo() must remember that
+ * on that rig's handle.  rig_caps is one static structure per model,
+ * shared by every handle in the process, so writing there costs every
+ * other rig its get_vfo as well.  Driven here through two IC-7600s, one
+ * refusing and one answering.  A rig in standby can refuse every
+ * command, as an IC-7760 does, so a refusal counts only from a rig that
+ * still answers 03; one that does not answer at all has not refused.
+ * Both are reported and asked again.
  */
 
 #include <pthread.h>
@@ -46,11 +49,21 @@ struct peer_case
     atomic_size_t frame_count;
     /* the band 07 D2 answers with, or -1 to refuse it like the rest */
     int band_sel_answer;
+    /* how many 07 D2 frames go unanswered before that */
+    int band_sel_silent;
+    /* frames refused before 03 and 07 D2 are answered again, as by an
+       IC-7760 in standby */
+    atomic_int standby_frames;
 };
 
 static const unsigned char nak[] = { 0xfe, 0xfe, 0xe0, 0x7a, 0xfa, 0xfd };
+/* 14.070 MHz */
+static const unsigned char freq[] =
+{
+    0xfe, 0xfe, 0xe0, 0x7a, 0x03, 0x00, 0x00, 0x07, 0x14, 0x00, 0xfd
+};
 
-/* Records every frame; answers 07 D2 with a band, refuses the rest */
+/* Records every frame; answers 03 and 07 D2, refuses the rest */
 static void *run_peer(void *arg)
 {
     struct peer_case *test = arg;
@@ -65,6 +78,28 @@ static void *run_peer(void *arg)
             memcpy(test->frames[test->frame_count], frame, length);
             test->frame_len[test->frame_count] = length;
             test->frame_count++;
+        }
+
+        if (atomic_load(&test->standby_frames) > 0)
+        {
+            atomic_fetch_sub(&test->standby_frames, 1);
+            if (write_all(test->fd, nak, sizeof(nak)) != 0) { break; }
+
+            continue;
+        }
+
+        if (length == 6 && frame[4] == C_RD_FREQ)
+        {
+            if (write_all(test->fd, freq, sizeof(freq)) != 0) { break; }
+
+            continue;
+        }
+
+        if (length == 7 && frame[4] == C_SET_VFO && frame[5] == S_BAND_SEL
+                && test->band_sel_silent > 0)
+        {
+            test->band_sel_silent--;
+            continue;
         }
 
         if (length == 7 && frame[4] == C_SET_VFO && frame[5] == S_BAND_SEL
@@ -94,7 +129,8 @@ struct handle
     struct peer_case test;
 };
 
-static int open_handle(struct handle *h, int band_sel_answer)
+static int open_handle(struct handle *h, int band_sel_answer,
+                       int band_sel_silent)
 {
     struct icom_priv_data *priv;
 
@@ -111,6 +147,8 @@ static int open_handle(struct handle *h, int band_sel_answer)
     h->test.fd = h->sockets[1];
     h->test.frame_count = 0;
     h->test.band_sel_answer = band_sel_answer;
+    h->test.band_sel_silent = band_sel_silent;
+    atomic_init(&h->test.standby_frames, 0);
 
     if (pthread_create(&h->thread, NULL, run_peer, &h->test) != 0)
     {
@@ -220,7 +258,7 @@ static int check_queued_caller(void)
     size_t asked;
     int i;
 
-    if (open_handle(&raced, -1) != 0)
+    if (open_handle(&raced, -1, 0) != 0)
     {
         fprintf(stderr, "test setup failed\n");
         return 1;
@@ -284,11 +322,110 @@ static int check_queued_caller(void)
         return 1;
     }
 
-    if (asked != 1 || refused_ok != 1 || enavail != 1)
+    /* the first asks 07 D2 twice, around 03; the second not at all */
+    if (asked != 2 || refused_ok != 1 || enavail != 1)
     {
         fprintf(stderr, "two queued callers sent 07 D2 %d time(s) and got"
-                " %d RIG_OK, %d ENAVAIL, expected 1, 1 and 1\n",
+                " %d RIG_OK, %d ENAVAIL, expected 2, 1 and 1\n",
                 (int) asked, refused_ok, enavail);
+        return 1;
+    }
+
+    return 0;
+}
+
+/* A timeout is no refusal: report it and ask the rig again next time */
+static int check_unanswered_band_sel(void)
+{
+    struct handle quiet = { .rig = NULL };
+    vfo_t vfo = RIG_VFO_NONE;
+    int first_retval, second_retval;
+    size_t asked;
+
+    if (open_handle(&quiet, 0x01, 1) != 0)
+    {
+        fprintf(stderr, "test setup failed\n");
+        return 1;
+    }
+
+    first_retval = rig_get_vfo(quiet.rig, &vfo);
+    second_retval = rig_get_vfo(quiet.rig, &vfo);
+    asked = count_band_sel(&quiet.test);
+    close_handle(&quiet);
+
+    if (first_retval != -RIG_ETIMEOUT || second_retval != RIG_OK
+            || vfo != RIG_VFO_SUB || asked != 2)
+    {
+        fprintf(stderr, "with the first 07 D2 unanswered get_vfo returned %s,"
+                " then %s with %s, after %d 07 D2 frame(s); expected the"
+                " timeout, then Sub from a second 07 D2\n",
+                rigerror(first_retval), rigerror(second_retval),
+                rig_strvfo(vfo), (int) asked);
+        return 1;
+    }
+
+    return 0;
+}
+
+/* A rig in standby has 07 D2, so its refusal is reported and asked again */
+static int check_refusal_in_standby(void)
+{
+    struct handle off = { .rig = NULL };
+    vfo_t vfo = RIG_VFO_NONE;
+    int standby_retval, on_retval;
+    size_t asked;
+
+    if (open_handle(&off, 0x01, 0) != 0)
+    {
+        fprintf(stderr, "test setup failed\n");
+        return 1;
+    }
+
+    /* 07 D2 and 03 */
+    atomic_store(&off.test.standby_frames, 2);
+    standby_retval = rig_get_vfo(off.rig, &vfo);
+    on_retval = rig_get_vfo(off.rig, &vfo);
+    asked = count_band_sel(&off.test);
+    close_handle(&off);
+
+    if (standby_retval != -RIG_ERJCTED || on_retval != RIG_OK
+            || vfo != RIG_VFO_SUB || asked != 2)
+    {
+        fprintf(stderr, "in standby get_vfo returned %s, then once on %s with"
+                " %s, after %d 07 D2 frame(s); expected the refusal, then Sub"
+                " from a second 07 D2\n", rigerror(standby_retval),
+                rigerror(on_retval), rig_strvfo(vfo), (int) asked);
+        return 1;
+    }
+
+    return 0;
+}
+
+/* A rig that wakes up between the refusal and 03 has 07 D2 all the same */
+static int check_waking_rig(void)
+{
+    struct handle waking = { .rig = NULL };
+    vfo_t vfo = RIG_VFO_NONE;
+    int retval;
+    size_t asked;
+
+    if (open_handle(&waking, 0x01, 0) != 0)
+    {
+        fprintf(stderr, "test setup failed\n");
+        return 1;
+    }
+
+    atomic_store(&waking.test.standby_frames, 1);
+    retval = rig_get_vfo(waking.rig, &vfo);
+    asked = count_band_sel(&waking.test);
+    close_handle(&waking);
+
+    if (retval != RIG_OK || vfo != RIG_VFO_SUB || asked != 2)
+    {
+        fprintf(stderr, "a rig refusing 07 D2 in standby and answering 03"
+                " once on gave %s with %s after %d 07 D2 frame(s);"
+                " expected Sub from a second 07 D2\n", rigerror(retval),
+                rig_strvfo(vfo), (int) asked);
         return 1;
     }
 
@@ -361,7 +498,7 @@ int main(void)
 
     rig_register(&ic7600_caps);
 
-    if (open_handle(&refused, -1) != 0)
+    if (open_handle(&refused, -1, 0) != 0)
     {
         fprintf(stderr, "test setup failed\n");
 #ifdef _WIN32
@@ -370,7 +507,7 @@ int main(void)
         return 1;
     }
 
-    if (open_handle(&answered, 0x01) != 0)
+    if (open_handle(&answered, 0x01, 0) != 0)
     {
         fprintf(stderr, "test setup failed\n");
         close_handle(&refused);
@@ -444,6 +581,12 @@ int main(void)
     close_handle(&refused);
 
     if (check_queued_caller() != 0) { failed = 1; }
+
+    if (check_unanswered_band_sel() != 0) { failed = 1; }
+
+    if (check_refusal_in_standby() != 0) { failed = 1; }
+
+    if (check_waking_rig() != 0) { failed = 1; }
 
 #ifdef _WIN32
     WSACleanup();
