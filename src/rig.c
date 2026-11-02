@@ -204,7 +204,7 @@ static void morse_busy_store(struct rig_state *rs, bool busy)
 /* Per-rig bookkeeping of the core, kept out of the installed headers */
 struct rig_private
 {
-    int no_get_vfo;     /* this rig answered get_vfo with an error */
+    int no_get_vfo;     /* the backend found that this rig lacks get_vfo */
 };
 
 static void no_get_vfo_set(RIG *rig)
@@ -3706,17 +3706,17 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
             rig_observe_current_vfo(rig, result_vfo);
             *vfo = result_vfo;
         }
-        else
+        else if (retcode == -RIG_ENAVAIL
+                 && RIG_ICOM == RIG_BACKEND_NUM(rig->caps->rig_model))
         {
-            if (RIG_ICOM == RIG_BACKEND_NUM(rig->caps->rig_model))
-            {
-                /* rig_caps is one static per model, shared by every rig
-                   opened from it, so remember this on the handle */
-                no_get_vfo_set(rig);
-                *vfo = RIG_VFO_A;
-                LOCK(0);
-                RETURNFUNC(RIG_OK);
-            }
+            /* icom_get_vfo() found the rig lacks 07 D2; a refusal in standby
+               or a timeout goes to the caller.  rig_caps is one static per
+               model, shared by every rig opened from it, so remember this
+               on the handle */
+            no_get_vfo_set(rig);
+            *vfo = RIG_VFO_A;
+            LOCK(0);
+            RETURNFUNC(RIG_OK);
         }
     }
 

@@ -3021,11 +3021,30 @@ int icom_get_vfo(RIG *rig, vfo_t *vfo)
 
     ENTERFUNC;
 
-    // TODO: Detect if the command is available for IC-7600 and IC-7800
-    // -> If not, return cached or -RIG_ENAVAIL?
-
     retval = icom_transaction(rig, C_SET_VFO, S_BAND_SEL, NULL, 0, ackbuf,
                               &ack_len);
+
+    /* A rig in standby may refuse everything (IC-7760) and wake up meanwhile;
+       one answering 03 and refusing 07 D2 again lacks it (IC-7800 < 3.10) */
+    if (retval == -RIG_ERJCTED)
+    {
+        ack_len = sizeof(ackbuf);
+
+        if (icom_transaction(rig, C_RD_FREQ, -1, NULL, 0, ackbuf,
+                             &ack_len) == RIG_OK)
+        {
+            ack_len = sizeof(ackbuf);
+            retval = icom_transaction(rig, C_SET_VFO, S_BAND_SEL, NULL, 0,
+                                      ackbuf, &ack_len);
+
+            if (retval == -RIG_ERJCTED)
+            {
+                rig_debug(RIG_DEBUG_WARN,
+                          "%s: rig answers 03 but refuses 07 D2\n", __func__);
+                RETURNFUNC(-RIG_ENAVAIL);
+            }
+        }
+    }
 
     if (retval != RIG_OK)
     {
