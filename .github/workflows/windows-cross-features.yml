@@ -44,7 +44,7 @@ jobs:
         make -C tests rigstreamtest.exe V=0 --no-print-directory
         # checkprogs builds every acutest suite listed in test/Makefile.am,
         # so new suites are covered here without workflow changes.
-        make -C test checkprogs V=0 --no-print-directory
+        make -j4 -C test checkprogs V=0 --no-print-directory
     - name: Run test suites under Wine
       run: |
         export WINEPREFIX=$HOME/.wineprefix WINEDEBUG=-all
