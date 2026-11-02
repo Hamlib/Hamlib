@@ -498,7 +498,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    if (listen(sock_listen, 4) < 0)
+    if (listen(sock_listen, SOMAXCONN) < 0)
     {
         handle_error(RIG_DEBUG_ERR, "listening");
         exit(1);
@@ -669,7 +669,7 @@ void *handle_socket(void *arg)
 
     fsockin = _fdopen(sock_osfhandle,  "rb");
 #else
-    fsockin = fdopen(handle_data_arg->sock, "rb");
+    fsockin = daemon_client_fdopen_dup(handle_data_arg->sock, "rb");
 #endif
 
     if (!fsockin)
@@ -681,7 +681,7 @@ void *handle_socket(void *arg)
 #ifdef __MINGW32__
     fsockout = _fdopen(sock_osfhandle, "wb");
 #else
-    fsockout = fdopen(handle_data_arg->sock, "wb");
+    fsockout = daemon_client_fdopen_dup(handle_data_arg->sock, "wb");
 #endif
 
     if (!fsockout)
@@ -736,7 +736,11 @@ handle_exit:
     daemon_client_tracker_release(&client_tracker);
     free(arg);
 
-    pthread_exit(NULL);
+    /* Returning ends the thread just as pthread_exit() would, without
+     * glibc's unwinder: pthread_exit() has to dlopen libgcc_s.so.1, and when
+     * it cannot -- under descriptor or memory pressure, or where the library
+     * is unavailable -- glibc calls abort(), taking the whole daemon and every
+     * other client down because one client's thread finished. */
     return NULL;
 }
 
