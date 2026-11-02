@@ -570,10 +570,11 @@ Semantics:
   (§3.3), resolves the native source the backend will run at, and installs
   any conversion pipeline. It additionally rejects a non-positive
   `sample_rate` or `channels`, an unknown stream type, a `struct_size` of 0,
-  a rate conversion outside libsamplerate's supported ratio, and exhaustion
-  of either the caps `max_streams` limit or the `HAMLIB_MAX_STREAMS` slots for
-  that type — all with `-RIG_EINVAL`. A request whose conversion stages
-  intersect `require_native` fails with `-RIG_ENAVAIL`.
+  a rate conversion outside libsamplerate's supported ratio, unrepresentable
+  frame or buffer geometry (including power-of-two ring capacity), and
+  exhaustion of either the caps `max_streams` limit or the
+  `HAMLIB_MAX_STREAMS` slots for that type — all with `-RIG_EINVAL`. A request
+  whose conversion stages intersect `require_native` fails with `-RIG_ENAVAIL`.
 - **close** unregisters the stream, wakes any blocked reader or
   write-status waiter, then waits for every `rig_stream_*` call already in
   flight on that stream to return before the handle is torn down. A
