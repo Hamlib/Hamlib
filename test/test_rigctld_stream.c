@@ -2619,6 +2619,24 @@ void test_metadata_refresh_due(void)
 }
 
 
+/* The stream timeouts count from the instant of the last packet, not from the
+ * start of its second. */
+void test_timed_out(void)
+{
+    struct timespec since = { 10, 999000000L };
+    struct timespec now = { 12, 0 };
+
+    /* 1.001 s after a packet late in second 10: whole seconds said 2 */
+    TEST_CHECK(rigctld_stream_timed_out(&since, &now, 2) == 0);
+
+    now.tv_nsec = 998000000L;
+    TEST_CHECK(rigctld_stream_timed_out(&since, &now, 2) == 0);
+
+    now.tv_nsec = 999000000L;
+    TEST_CHECK(rigctld_stream_timed_out(&since, &now, 2) == 1);
+}
+
+
 /* Rate-derived socket buffer sizing with floor/ceiling clamps. */
 void test_transport_buffer_bytes(void)
 {
@@ -2966,6 +2984,9 @@ TEST_LIST =
     { "metadata_big_endian_byte_order", test_metadata_big_endian_byte_order },
     { "metadata_unpack_too_short",      test_metadata_unpack_too_short },
     { "metadata_freq_only",             test_metadata_freq_only },
+
+    /* Stream timeouts */
+    { "rigctld_stream_timed_out",       test_timed_out },
 
     /* Type and format name mapping */
     { "type_name_roundtrip",   test_type_name_roundtrip },

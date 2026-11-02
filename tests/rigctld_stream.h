@@ -125,7 +125,7 @@ struct rigctld_stream
     int multicast_ttl;
 
     /* Subscribe tracking (unicast RX only) */
-    time_t last_subscribe;
+    struct timespec last_subscribe;     /* CLOCK_MONOTONIC */
     int subscribe_timeout_s;
 
     /* Pump thread */
@@ -271,6 +271,12 @@ int rigctld_stream_registry_next_id(struct rigctld_stream_registry *reg);
  * samples_since is in frames (per-channel sample instants). */
 int rigctld_stream_metadata_refresh_due(int refresh_ms, int sample_rate,
                                         uint64_t samples_since);
+
+/* Whether timeout_s seconds have passed from since to now, both read from
+ * CLOCK_MONOTONIC.  Counted in milliseconds: in whole seconds the timeout
+ * would lapse up to a second early. */
+int rigctld_stream_timed_out(const struct timespec *since,
+                             const struct timespec *now, int timeout_s);
 
 /* Generate an unpredictable, non-zero subscribe token from the platform
  * cryptographic RNG. Token 0 is reserved as the "unset" sentinel. */

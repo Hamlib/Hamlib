@@ -645,12 +645,14 @@ static void stream_diag(uint8_t stream_type, int stream_id)
 
     TEST_MSG("diag: pid %d stream %d udp_port %d running=%d feeder_started=%d "
              "auto_closed=%d client_addr_known=%d packets=%d send_drops=%d "
-             "last_subscribe=%lld (mono now %lld, wall now %lld) "
+             "last_subscribe=%lld.%03ld (mono now %lld.%03ld, wall now %lld) "
              "ring_bytes=%zu overruns=%u underruns=%u",
              (int)getpid(), stream_id, s->udp_port, (int)s->running,
              s->feeder_started, (int)s->auto_closed, s->client_addr_known,
              (int)s->packet_count, (int)s->send_drops,
-             (long long)s->last_subscribe, (long long)mono.tv_sec,
+             (long long)s->last_subscribe.tv_sec,
+             s->last_subscribe.tv_nsec / 1000000L, (long long)mono.tv_sec,
+             mono.tv_nsec / 1000000L,
              (long long)time(NULL), ring, st.overruns, st.underruns);
 }
 
