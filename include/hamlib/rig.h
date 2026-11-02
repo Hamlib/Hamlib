@@ -2173,8 +2173,12 @@ enum rig_stream_time_accuracy {
 #define RIG_STREAM_TIME_FLAG_LOCKED            (1<<0)
 #define RIG_STREAM_TIME_FLAG_HOLDOVER          (1<<1)  /* lost lock, coasting */
 #define RIG_STREAM_TIME_FLAG_DISCONTINUITY     (1<<2)  /* gap/overrun precedes */
-#define RIG_STREAM_TIME_FLAG_SOB               (1<<3)  /* TX: start of burst */
-#define RIG_STREAM_TIME_FLAG_EOB               (1<<4)  /* TX: end of burst */
+#define RIG_STREAM_TIME_FLAG_SOB               (1<<3)  /* TX: start of burst,
+                                                     before the write's
+                                                     first sample */
+#define RIG_STREAM_TIME_FLAG_EOB               (1<<4)  /* TX: end of burst,
+                                                     after the write's last
+                                                     sample */
 #define RIG_STREAM_TIME_FLAG_TX_TIMED          (1<<0)  /* TX: seconds/picoseconds
                                                      hold a scheduled UTC
                                                      instant (shares the bit
@@ -3765,7 +3769,10 @@ rig_stream_read(RIG *rig,
  * \a timeout_ms follows the same < 0 / 0 / > 0 convention as
  * rig_stream_read(). \a *bytes_written is set to the accepted byte count. \a
  * info, when non-NULL, carries a timed-burst target (seconds/picoseconds) and
- * SOB/EOB flags. A muted stream accepts the write for pacing but discards the
+ * SOB/EOB flags. The scheduled time and SOB apply before the first sample of
+ * this write, EOB after its last, so one write carrying both is a whole burst;
+ * a write of no samples with EOB ends the burst after everything already
+ * written. A muted stream accepts the write for pacing but discards the
  * samples (nothing is transmitted).
  *
  * \return RIG_OK, or a negative error (-RIG_EINVAL on bad args, -RIG_ENAVAIL

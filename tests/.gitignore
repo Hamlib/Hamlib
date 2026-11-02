@@ -58,6 +58,7 @@ testrig.sh
 testrigcaps
 testrigcaps.sh
 testrigopen
+testsecurity
 testtrn
 testtunercontrol
 testtunercontrol_marker

@@ -779,39 +779,80 @@ thread:
 .caps_flags = RIG_STREAM_CAP_TIMED_TX_COARSE | RIG_STREAM_CAP_BURST_PTT,
 .tx_schedule_horizon_ms = 30000,
 
-/* TX thread, before consuming each frame. The second argument is a
- * sample-position watermark: pop every target due at or before the
- * frame you are about to emit (consumed = samples already sent). */
-struct rig_stream_time_anchor tgt;
+/* TX thread, before consuming each frame. Keep the next target across
+ * frames: pop it once its position falls within the frame you are about to
+ * emit (consumed = samples already sent), act on it only when consumed has
+ * reached it, and cut the frame there. SOB then keys before the burst's first
+ * sample goes out, and EOB -- bound after the last sample of the write that
+ * carried it -- unkeys only once everything ahead of it has been sent. */
+struct rig_stream_tx_target next;   /* persists across frames */
+int have_next = 0;
+size_t send = frame_samples;
 
-while (rig_stream_pop_tx_target(stream, consumed + frame_samples, &tgt))
+for (;;)
 {
-    if (tgt.flags & RIG_STREAM_TIME_FLAG_TX_TIMED)
+    if (!have_next)
     {
-        /* wait until the target instant; if past due beyond your
-         * tolerance, transmit immediately and report it late */
+        if (!rig_stream_pop_tx_target(stream, consumed + frame_samples, &next))
+        {
+            break;                          /* none due in this frame */
+        }
+
+        have_next = 1;
+    }
+
+    if (next.sample_index > consumed)
+    {
+        send = next.sample_index - consumed;    /* stop the frame here */
+        break;
+    }
+
+    if (next.flags & RIG_STREAM_TIME_FLAG_TX_TIMED)
+    {
+        /* wait until the target instant, checking your stop flag; if past
+         * due beyond your tolerance, transmit immediately and report it */
         ... gate ...;
+
+        if (stopping)
+        {
+            return;     /* a burst cancelled before its start never keys */
+        }
+
         struct rig_stream_write_status ev;
         memset(&ev, 0, sizeof(ev));
         ev.event = RIG_STREAM_WRITE_EVENT_LATE;
         ev.sample_index = consumed;
         ev.lateness = late_samples;          /* how late, in samples */
         ev.time_valid = 1;
-        ev.seconds = tgt.seconds;
-        ev.picoseconds = tgt.picoseconds;
+        ev.seconds = next.seconds;
+        ev.picoseconds = next.picoseconds;
         stream_record_write_status(stream, &ev, 0 /* local */);
     }
 
-    if (burst_ptt && (tgt.flags & RIG_STREAM_TIME_FLAG_SOB)) { /* key PTT */ }
-    if (burst_ptt && (tgt.flags & RIG_STREAM_TIME_FLAG_EOB)) { /* unkey */ }
+    if (burst_ptt && (next.flags & RIG_STREAM_TIME_FLAG_SOB))
+    {
+        /* key PTT; remember the stream keyed it */
+    }
+
+    if (burst_ptt && (next.flags & RIG_STREAM_TIME_FLAG_EOB))
+    {
+        /* unkey; forget it */
+    }
+
+    have_next = 0;
 }
+
+/* consume and emit up to `send` samples, padding the frame if needed */
 ```
 
 The frontend validates timed writes against your `caps_flags` and
 `tx_schedule_horizon_ms` before they reach the target channel. Declare
 `RIG_STREAM_CAP_BURST_PTT` only when SOB/EOB should drive PTT; otherwise
-the application manages PTT itself. See `dummy_stream_tx_scheduler()` in
-`rigs/dummy/dummy_stream.c` for the reference implementation.
+the application manages PTT itself. A stream closed mid-burst must not
+leave the radio keyed: after joining the TX thread, `stream_close` unkeys
+if an SOB keyed PTT that no EOB released. See
+`dummy_stream_tx_scheduler()` in `rigs/dummy/dummy_stream.c` for the
+reference implementation.
 
 
 ### 6.2 Reporting async TX problems

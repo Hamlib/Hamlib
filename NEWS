@@ -29,6 +29,9 @@ Version 5.x -- future
           IC-9700, IC-705, IC-905, IC-7760 and IC-7300MK2 (Network), numbered
           3095-3100.  Configured with the net_* parameters; see
           rigs/icom/ICOM.md.
+        * FlexRadio SmartSDR: DAX audio and DAX-IQ streaming (RX and TX) via
+          the streaming subsystem, plus levels, functions and antenna
+          selection. See rigs/flexradio/FLEXRADIO.md.
         * rig_get_conf deprecated and replaced by rig_get_conf2
         * rot_get_conf deprecated and replaced by rot_get_conf2
         * Change FT1000MP Mark V model names to align with FT1000MP

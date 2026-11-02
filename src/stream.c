@@ -2047,9 +2047,11 @@ out:
 /* rig_stream_write                                                    */
 /* ------------------------------------------------------------------ */
 
-/* Bind a burst target (scheduled time and/or SOB/EOB) to the producer index of
- * the next sample to be written. Returns RIG_OK, or an error if a timed target
- * is requested on a backend that lacks timed TX or lands beyond the horizon. */
+/* Bind the start of a burst (scheduled time and/or SOB) to the producer index
+ * of the next sample to be written. EOB is left out: it ends the burst after
+ * this write's samples, so stream_bind_eob_target() places it once the write
+ * has run. Returns RIG_OK, or an error if a timed target is requested on a
+ * backend that lacks timed TX or lands beyond the horizon. */
 static int stream_bind_tx_target(rig_stream_t *stream,
                                  const struct rig_stream_write_info *info)
 {
@@ -2085,10 +2087,16 @@ static int stream_bind_tx_target(rig_stream_t *stream,
     }
 
     struct rig_stream_tx_target target;
+    uint8_t flags = info->flags & ~RIG_STREAM_TIME_FLAG_EOB;
+
+    if (!info->time_valid && flags == 0)
+    {
+        return RIG_OK;
+    }
 
     memset(&target, 0, sizeof(target));
     target.sample_index = rig_stream_get_samples_written(stream);
-    target.flags = info->flags;
+    target.flags = flags;
 
     if (info->time_valid)
     {
@@ -2099,6 +2107,20 @@ static int stream_bind_tx_target(rig_stream_t *stream,
 
     stream_push_tx_target(stream, &target);
     return RIG_OK;
+}
+
+
+/* Bind EOB to the producer index after the last sample the write accepted, so
+ * the backend unkeys only once everything ahead of it has been sent. */
+static void stream_bind_eob_target(rig_stream_t *stream)
+{
+    struct rig_stream_tx_target target;
+
+    memset(&target, 0, sizeof(target));
+    target.sample_index = rig_stream_get_samples_written(stream);
+    target.flags = RIG_STREAM_TIME_FLAG_EOB;
+
+    stream_push_tx_target(stream, &target);
 }
 
 
@@ -2125,6 +2147,7 @@ int HAMLIB_API rig_stream_write(RIG *rig,
     }
 
     int ret = RIG_OK;
+    int bind_eob = 0;
 
     /* The source is gone: nothing written now can ever reach the radio, and
      * accepting it would only fill the ring and report overruns for a dead
@@ -2152,8 +2175,9 @@ int HAMLIB_API rig_stream_write(RIG *rig,
         goto out;
     }
 
-    /* A burst target (scheduled time and/or SOB/EOB) binds to the producer
-     * index of the first sample of this write. */
+    /* A burst binds to producer indices: the scheduled time and SOB to the
+     * first sample of this write, EOB to the sample after its last. One write
+     * carrying both keys before its first sample and unkeys after its last. */
     if (info && (info->time_valid || info->flags))
     {
         ret = stream_bind_tx_target(stream, info);
@@ -2162,6 +2186,8 @@ int HAMLIB_API rig_stream_write(RIG *rig,
         {
             goto out;
         }
+
+        bind_eob = (info->flags & RIG_STREAM_TIME_FLAG_EOB) != 0;
     }
 
     if (stream->is_codec)
@@ -2253,6 +2279,13 @@ int HAMLIB_API rig_stream_write(RIG *rig,
     }
 
 out:
+    /* Placed even when the write failed or fell short: the burst then ends
+     * where the accepted data ends, rather than leaving the radio keyed. */
+    if (bind_eob)
+    {
+        stream_bind_eob_target(stream);
+    }
+
     stream_guard_leave(rig, stream);
     return ret;
 }
@@ -2964,6 +2997,14 @@ int HAMLIB_API rig_stream_pause(RIG *rig, rig_stream_t *stream)
     if (ret == RIG_OK)
     {
         stream->paused = 1;
+
+        /* A reader already inside the timed wait would otherwise sit there
+         * until it expired and then charge the timeout as an underrun, which
+         * would describe the pause rather than any loss of data. */
+        pthread_mutex_lock(&stream->ringbuf.lock);
+        stream->ringbuf.paused = 1;
+        pthread_cond_broadcast(&stream->ringbuf.data_available);
+        pthread_mutex_unlock(&stream->ringbuf.lock);
     }
 
     stream_guard_leave(rig, stream);
@@ -2994,6 +3035,10 @@ int HAMLIB_API rig_stream_resume(RIG *rig, rig_stream_t *stream)
     if (ret == RIG_OK)
     {
         stream->paused = 0;
+
+        pthread_mutex_lock(&stream->ringbuf.lock);
+        stream->ringbuf.paused = 0;
+        pthread_mutex_unlock(&stream->ringbuf.lock);
     }
 
     stream_guard_leave(rig, stream);

@@ -301,8 +301,9 @@ int stream_ringbuf_wait_data_locked(struct rig_stream_ringbuf *rb,
     {
         /* A closing or failed ring is not a starved one: return at once, and
          * do not book an underrun against a stream that is shutting down or
-         * whose source is gone. */
-        if (rb->closing || rb->failed)
+         * whose source is gone. A paused stream is empty because the producer
+         * was told to stop, so the emptiness is not an underrun either. */
+        if (rb->closing || rb->failed || rb->paused)
         {
             return -1;
         }
@@ -317,7 +318,7 @@ int stream_ringbuf_wait_data_locked(struct rig_stream_ringbuf *rb,
                 return 0;
             }
 
-            if (rb->closing || rb->failed)
+            if (rb->closing || rb->failed || rb->paused)
             {
                 return -1;
             }
@@ -393,6 +394,23 @@ size_t stream_ringbuf_available(struct rig_stream_ringbuf *rb)
 {
     pthread_mutex_lock(&rb->lock);
     size_t count = rb->count;
+    pthread_mutex_unlock(&rb->lock);
+    return count;
+}
+
+
+size_t stream_ringbuf_wait_available(struct rig_stream_ringbuf *rb,
+                                     int timeout_ms)
+{
+    size_t count = 0;
+
+    pthread_mutex_lock(&rb->lock);
+
+    if (stream_ringbuf_wait_data_locked(rb, timeout_ms) == 0)
+    {
+        count = rb->count;
+    }
+
     pthread_mutex_unlock(&rb->lock);
     return count;
 }

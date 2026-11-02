@@ -41,6 +41,7 @@
 #include "stream_proto.h"
 #include "token.h"
 #include "misc.h"
+#include "stream_convert.h"
 #include "rigstreamtest_util.h"
 #include "stream_proto.h"
 
@@ -131,7 +132,7 @@ static void usage(const char *prog)
             "  -m, --model <id>       Rig model number (required)\n"
             "  -r, --rig-file <host>  IP address or hostname[:port] of radio\n"
             "  -t, --type <type>      Stream type: audio_rx (default), audio_tx,\n"
-            "                         iq_rx, iq_tx, loopback\n"
+            "                         iq_rx, iq_tx, loopback, reconnect, burst\n"
             "  -s, --sample-rate <hz> Sample rate in Hz (default: 24000)\n"
             "  -c, --channels <n>     Number of channels, 1 or 2 (default: 2)\n"
             "  -C, --set-conf <k=v,.> Set backend config tokens (comma-separated)\n"
@@ -166,6 +167,7 @@ static void usage(const char *prog)
             "  --iq                   Use I/Q streams for the phases (default: audio)\n"
             "  --stats-secs <sec>     Interim stats interval (default 5)\n"
             "  --buffer-ms <ms>       Ring buffer size as ms of stream data\n"
+            "                         (0 = backend default)\n"
             "  --require-native[=LIST] Conversion stages the stream must NOT\n"
             "                         use: comma-separated FORMAT, RATE,\n"
             "                         CHANNELS, or ALL (the default when the\n"
@@ -176,10 +178,21 @@ static void usage(const char *prog)
             "                         sample rate but accepts a format change\n"
             "  --format <fmt>         Sample format to request, instead of float:\n"
             "                         u8, s8, s16, f32 (audio) or cs8, cu8, cs16,\n"
-            "                         cf32 (I/Q). Receive only. Pair with\n"
-            "                         --require-native to prove a stream is served\n"
-            "                         with no conversion at all.\n"
-            "                         (0 = backend default)\n"
+            "                         cf32 (I/Q). Receive only. Pair with bare\n"
+            "                         --require-native to prove nothing is\n"
+            "                         converted, or --require-native=RATE to\n"
+            "                         allow only a format change.\n"
+            "\n"
+            "Burst transmit (-t burst; TRANSMITS RF, keyed by the backend from\n"
+            "SOB/EOB, so no -P; --iq for I/Q bursts; --power sets RF power):\n"
+            "  --bursts <n>           Bursts to send (default 3)\n"
+            "  --burst-ms <ms>        Length of each burst (default 1000)\n"
+            "  --burst-gap-ms <ms>    Pause between bursts (default 1000)\n"
+            "  --burst-lead-ms <ms>   Schedule each burst this far ahead\n"
+            "                         (default 0 = start at once)\n"
+            "  --burst-cancel         Schedule one burst, close the stream before\n"
+            "                         it starts, and check PTT never keys\n"
+            "                         (lead defaults to 2000 ms)\n"
             "\n"
             "Full-duplex soak (--full-duplex): RX and TX streams run concurrently\n"
             "the whole run; PTT is cycled ON for --tx-secs / OFF for --rx-secs\n"
@@ -283,6 +296,18 @@ static unsigned stream_underruns(RIG *rig, rig_stream_t *stream)
     memset(&st, 0, sizeof(st));
     rig_stream_get_stats(rig, stream, &st);
     return st.underruns;
+}
+
+
+/* On a transmit stream an overrun means the ring filled and the oldest audio
+ * was discarded before it could be sent -- real loss, and the symptom of a
+ * backend consuming slower than real time. Reporting only underruns hides it. */
+static unsigned stream_overruns(RIG *rig, rig_stream_t *stream)
+{
+    struct rig_stream_stats st;
+    memset(&st, 0, sizeof(st));
+    rig_stream_get_stats(rig, stream, &st);
+    return st.overruns;
 }
 
 
@@ -451,8 +476,35 @@ static int run_rx_single(RIG *rig, rig_stream_type_t type,
 
                 if (bytes_read > 0)
                 {
-                    int num_samples = bytes_read / sizeof(float);
-                    print_audio_level(buf, num_samples);
+                    /* The ring carries whatever --format asked for. Reading it
+                     * as float would print peak/rms computed from reinterpreted
+                     * bit patterns, so anything else is converted first. */
+                    rig_stream_format_t fmt = g_format ? g_format
+                                              : RIG_STREAM_FORMAT_PCM_F32;
+                    int bps = rig_stream_format_sample_size(fmt);
+                    int num_samples = bps > 0 ? (int)(bytes_read / bps) : 0;
+
+                    if (fmt == RIG_STREAM_FORMAT_PCM_F32)
+                    {
+                        print_audio_level((const float *)buf, num_samples);
+                    }
+                    else if (num_samples > 0)
+                    {
+                        float *lvl = malloc((size_t)num_samples * sizeof(float));
+
+                        if (lvl != NULL)
+                        {
+                            if (rig_stream_convert(buf, fmt, lvl,
+                                                   RIG_STREAM_FORMAT_PCM_F32,
+                                                   (size_t)num_samples / channels,
+                                                   channels) == 0)
+                            {
+                                print_audio_level(lvl, num_samples);
+                            }
+
+                            free(lvl);
+                        }
+                    }
                 }
             }
         }
@@ -773,10 +825,11 @@ static int run_tx_single(RIG *rig, int use_iq, int sample_rate, int channels,
         {
             elapsed += (int)(now - last_sec);
             last_sec = now;
-            printf("[%4ds] %s bytes=%llu  underruns=%u\n",
+            printf("[%4ds] %s bytes=%llu  underruns=%u  overruns=%u\n",
                    elapsed, type_name(type),
                    (unsigned long long)total_bytes,
-                   stream_underruns(rig, stream));
+                   stream_underruns(rig, stream),
+                   stream_overruns(rig, stream));
             fflush(stdout);
         }
     }
@@ -797,6 +850,624 @@ static int run_tx_single(RIG *rig, int use_iq, int sample_rate, int channels,
     /* A transmit that stopped on an error did not do its job, whatever it
      * managed before: report it as the run's result. */
     return write_error;
+}
+
+
+/* Set RF power before a transmit that has no per-phase setup of its own, and
+ * refuse to transmit when the rig does not take it: --power is what keeps a
+ * test at a dummy-load level. */
+static int apply_tx_power(RIG *rig, float power)
+{
+    value_t v;
+    int ret;
+
+    v.f = power;
+    ret = rig_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_RFPOWER, v);
+
+    if (ret != RIG_OK)
+    {
+        fprintf(stderr, "Error: setting RF power %.2f failed (%s); not "
+                        "transmitting\n", power, rigerror(ret));
+        return ret;
+    }
+
+    if (rig_get_level(rig, RIG_VFO_CURR, RIG_LEVEL_RFPOWER, &v) == RIG_OK)
+    {
+        printf("RF power set to %.2f (reads back %.2f)\n", power, v.f);
+    }
+    else
+    {
+        printf("RF power set to %.2f\n", power);
+    }
+
+    fflush(stdout);
+    return RIG_OK;
+}
+
+
+/* The caps entry the rig advertises for a stream type, or NULL. */
+static const struct rig_stream_caps *find_stream_caps(RIG *rig,
+        rig_stream_type_t type)
+{
+    int n = rig_stream_caps_count(rig);
+
+    for (int i = 0; i < n; i++)
+    {
+        const struct rig_stream_caps *c = rig_stream_caps_at(rig, i);
+
+        if (c && c->type == type)
+        {
+            return c;
+        }
+    }
+
+    return NULL;
+}
+
+
+static int ptt_is_on(RIG *rig)
+{
+    ptt_t ptt = RIG_PTT_OFF;
+
+    return rig_get_ptt(rig, RIG_VFO_CURR, &ptt) == RIG_OK
+           && ptt != RIG_PTT_OFF;
+}
+
+
+static int64_t mono_ms(void)
+{
+    struct timespec ts;
+
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (int64_t)ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
+}
+
+
+/* Poll PTT until it reads want or timeout_ms passes. Returns the milliseconds
+ * it took, or -1 on timeout. */
+static int64_t wait_ptt(RIG *rig, int want, int timeout_ms)
+{
+    int64_t start = mono_ms();
+
+    while (mono_ms() - start <= timeout_ms)
+    {
+        if (ptt_is_on(rig) == want)
+        {
+            return mono_ms() - start;
+        }
+
+        hl_usleep(20 * 1000);
+    }
+
+    return -1;
+}
+
+
+/* RF output read from the rig's power meter while a burst runs: the key line
+ * says when the radio was asked to transmit, the meter when RF left it. */
+#define RF_TRACE_MAX 2048
+
+struct rf_trace
+{
+    setting_t level;    /* meter to read, or 0 when the rig has none */
+    int n;
+    int64_t t[RF_TRACE_MAX];
+    float v[RF_TRACE_MAX];
+};
+
+
+static void rf_trace_init(RIG *rig, struct rf_trace *rf)
+{
+    rf->n = 0;
+    rf->level = rig_has_get_level(rig, RIG_LEVEL_RFPOWER_METER_WATTS)
+                ? RIG_LEVEL_RFPOWER_METER_WATTS
+                : rig_has_get_level(rig, RIG_LEVEL_RFPOWER_METER)
+                ? RIG_LEVEL_RFPOWER_METER : 0;
+}
+
+
+static void rf_sample(RIG *rig, struct rf_trace *rf)
+{
+    value_t val;
+
+    if (!rf->level || rf->n >= RF_TRACE_MAX
+            || rig_get_level(rig, RIG_VFO_CURR, rf->level, &val) != RIG_OK)
+    {
+        return;
+    }
+
+    rf->t[rf->n] = mono_ms();
+    rf->v[rf->n] = val.f;
+    rf->n++;
+}
+
+
+/* When the meter read above half its peak, against the burst's start and end.
+ * The meter's own update rate and averaging blur both edges, so this is a
+ * measurement to read, not a pass/fail. */
+static void rf_report(const struct rf_trace *rf, int64_t start_ms,
+                      int64_t end_ms)
+{
+    float peak = 0;
+    int first = -1;
+    int last = -1;
+
+    if (!rf->level)
+    {
+        return;
+    }
+
+    for (int i = 0; i < rf->n; i++)
+    {
+        if (rf->v[i] > peak)
+        {
+            peak = rf->v[i];
+        }
+    }
+
+    for (int i = 0; i < rf->n && peak > 0; i++)
+    {
+        if (rf->v[i] > peak / 2)
+        {
+            last = i;
+
+            if (first < 0)
+            {
+                first = i;
+            }
+        }
+    }
+
+    if (first < 0)
+    {
+        printf("    RF meter read nothing (%d reads)\n", rf->n);
+        return;
+    }
+
+    printf("    RF meter (peak %.2f%s, %d reads) above half from %lld ms "
+           "after the start to %lld ms after the end: %lld ms of %lld\n",
+           peak, rf->level == RIG_LEVEL_RFPOWER_METER_WATTS ? " W" : "",
+           rf->n, (long long)(rf->t[first] - start_ms),
+           (long long)(rf->t[last] - end_ms),
+           (long long)(rf->t[last] - rf->t[first]),
+           (long long)(end_ms - start_ms));
+}
+
+
+struct burst_opts
+{
+    int use_iq;
+    int sample_rate;
+    int channels;
+    int frame_ms;
+    int count;          /* bursts to send */
+    int burst_ms;       /* length of each */
+    int gap_ms;         /* silence between them */
+    int lead_ms;        /* > 0: schedule each this far ahead */
+    int cancel;         /* schedule one and close the stream before it */
+};
+
+
+/* Burst mode (-t burst): the backend keys PTT from the SOB/EOB markers on the
+ * writes (RIG_STREAM_CAP_BURST_PTT), so no -P. Each burst is written in
+ * real time with SOB on its first write and EOB on its last. PTT must read
+ * released until a scheduled burst's start, keyed from then until its last
+ * write without dropping, and released once it has played; the stream must
+ * not overrun, underrun or miss the start while it plays. With
+ * --burst-cancel, one timed burst is scheduled and the stream closed before
+ * it starts; PTT must never key, before the close or after it. */
+static int run_burst(RIG *rig, const struct burst_opts *o)
+{
+    rig_stream_type_t type = o->use_iq ? RIG_STREAM_TYPE_IQ_TX
+                             : RIG_STREAM_TYPE_AUDIO_TX;
+    const struct rig_stream_caps *caps = find_stream_caps(rig, type);
+    int chans = o->use_iq ? 1 : o->channels;
+    int floats_per_frame = o->use_iq ? 2 : chans;
+    int lead_ms = o->lead_ms;
+    int failures = 0;
+    int retval;
+
+    if (!caps)
+    {
+        fprintf(stderr, "no caps found for stream type %s\n", type_name(type));
+        return -RIG_ENAVAIL;
+    }
+
+    if (!(caps->caps_flags & RIG_STREAM_CAP_BURST_PTT))
+    {
+        fprintf(stderr, "%s does not key PTT from bursts (no BURST_PTT)\n",
+                type_name(type));
+        return -RIG_ENAVAIL;
+    }
+
+    if (o->cancel && lead_ms <= 0)
+    {
+        lead_ms = 2000;
+    }
+
+    /* The backend keys and unkeys from its own TX thread while this one
+     * polls. A cached read would answer from whatever the last poll saw --
+     * and a poll that raced the keying caches OFF for the whole burst -- so
+     * every read here has to ask the backend. */
+    rig_set_cache_timeout_ms(rig, HAMLIB_CACHE_PTT, 0);
+
+    if (lead_ms > 0 && (caps->tx_schedule_horizon_ms <= 0
+                        || lead_ms > caps->tx_schedule_horizon_ms))
+    {
+        fprintf(stderr, "a %d ms lead is beyond what %s schedules (%d ms)\n",
+                lead_ms, type_name(type), caps->tx_schedule_horizon_ms);
+        return -RIG_EINVAL;
+    }
+
+    struct rig_stream_config *config = rig_stream_config_alloc();
+    rig_stream_t *stream = NULL;
+
+    if (!config)
+    {
+        return -RIG_ENOMEM;
+    }
+
+    config->type = type;
+    config->format = o->use_iq ? RIG_STREAM_FORMAT_IQ_CF32
+                     : RIG_STREAM_FORMAT_PCM_F32;
+    config->sample_rate = o->sample_rate;
+    config->channels = chans;
+    config->require_native = g_require_native;
+
+    retval = open_stream_or_report(rig, config, &stream);
+    rig_stream_config_free(config);
+
+    if (retval != RIG_OK)
+    {
+        fprintf(stderr, "rig_stream_open(%s) failed: %s\n", type_name(type),
+                rigerror(retval));
+        return retval;
+    }
+
+    int frame_pairs = o->sample_rate * o->frame_ms / 1000;
+
+    if (frame_pairs < 1)
+    {
+        frame_pairs = 1;
+    }
+
+    size_t frame_bytes = (size_t)frame_pairs * floats_per_frame * sizeof(float);
+    float *buf = malloc(frame_bytes);
+
+    if (!buf)
+    {
+        rig_stream_close(rig, stream);
+        return -RIG_ENOMEM;
+    }
+
+    uint64_t phase = 0;
+    uint64_t total_bytes = 0;
+    int bursts = o->cancel ? 1 : o->count;
+
+    for (int b = 0; b < bursts && running; b++)
+    {
+        int64_t burst_pairs = (int64_t)o->sample_rate * o->burst_ms / 1000;
+        int64_t written_pairs = 0;
+        int64_t next_poll = 0;
+        int64_t start_ms;           /* when the burst is due on the air */
+        int64_t keyed_ms = -1;      /* when PTT first read keyed */
+        int64_t early_ms = -1;      /* when it read keyed before the start */
+        int64_t dropped_ms = -1;    /* when it read released mid-burst */
+        struct rig_stream_stats st_first, st_last, st_end;
+        int have_stats = 1;
+        struct rig_stream_write_info winfo;
+        struct timespec pace_start;
+        static struct rf_trace rf;
+
+        rf_trace_init(rig, &rf);
+
+        printf("burst %d/%d: %d ms%s\n", b + 1, bursts, o->burst_ms,
+               lead_ms > 0 ? ", scheduled" : "");
+        fflush(stdout);
+
+        clock_gettime(CLOCK_MONOTONIC, &pace_start);
+
+        if (lead_ms > 0)
+        {
+            pace_start.tv_sec += lead_ms / 1000;
+            pace_start.tv_nsec += (long)(lead_ms % 1000) * 1000000L;
+
+            if (pace_start.tv_nsec >= 1000000000L)
+            {
+                pace_start.tv_sec++;
+                pace_start.tv_nsec -= 1000000000L;
+            }
+        }
+
+        start_ms = (int64_t)pace_start.tv_sec * 1000
+                   + pace_start.tv_nsec / 1000000;
+
+        while (written_pairs < burst_pairs && running)
+        {
+            int64_t left = burst_pairs - written_pairs;
+            int n = left < frame_pairs ? (int)left : frame_pairs;
+            size_t bytes = (size_t)n * floats_per_frame * sizeof(float);
+            size_t wrote = 0;
+
+            if (o->use_iq)
+            {
+                generate_iq_tone(buf, n, o->sample_rate, &phase);
+            }
+            else
+            {
+                generate_tone(buf, n, o->sample_rate, chans, &phase);
+            }
+
+            memset(&winfo, 0, sizeof(winfo));
+
+            if (written_pairs == 0)
+            {
+                winfo.flags |= RIG_STREAM_TIME_FLAG_SOB;
+
+                if (lead_ms > 0)
+                {
+                    struct timespec utc;
+
+                    clock_gettime(CLOCK_REALTIME, &utc);
+                    utc.tv_sec += lead_ms / 1000;
+                    utc.tv_nsec += (long)(lead_ms % 1000) * 1000000L;
+
+                    if (utc.tv_nsec >= 1000000000L)
+                    {
+                        utc.tv_sec++;
+                        utc.tv_nsec -= 1000000000L;
+                    }
+
+                    winfo.time_valid = 1;
+                    winfo.seconds = (int64_t)utc.tv_sec;
+                    winfo.picoseconds = (uint64_t)utc.tv_nsec * 1000ULL;
+                }
+            }
+
+            if (n == left)
+            {
+                winfo.flags |= RIG_STREAM_TIME_FLAG_EOB;
+            }
+
+            retval = rig_stream_write(rig, stream, buf, bytes, &wrote, 500,
+                                      &winfo);
+
+            if (retval != RIG_OK && retval != -RIG_ETIMEOUT)
+            {
+                fprintf(stderr, "rig_stream_write error: %s\n",
+                        rigerror(retval));
+                failures++;
+                break;
+            }
+
+            total_bytes += wrote;
+            written_pairs += n;
+
+            /* Losses counted from the first write on are this burst's. */
+            if (written_pairs == n)
+            {
+                have_stats &= rig_stream_get_stats(rig, stream, &st_first)
+                              == RIG_OK;
+            }
+
+            if (written_pairs == burst_pairs)
+            {
+                have_stats &= rig_stream_get_stats(rig, stream, &st_last)
+                              == RIG_OK;
+            }
+
+            if (o->cancel)
+            {
+                break;          /* one write is the whole of it */
+            }
+
+            /* A scheduled burst must stay off the air until its start. */
+            if (written_pairs == n && lead_ms > 0)
+            {
+                while (mono_ms() < start_ms - 20 && running)
+                {
+                    if (ptt_is_on(rig))
+                    {
+                        early_ms = mono_ms();
+                        break;
+                    }
+
+                    rf_sample(rig, &rf);
+                    hl_usleep(10 * 1000);
+                }
+            }
+
+            /* A scheduled burst is held back by the backend until its start,
+             * so the rest is paced from that instant rather than from now. */
+            pace_to_frame(&pace_start, (uint64_t)written_pairs, o->sample_rate);
+            rf_sample(rig, &rf);
+
+            /* Every write until PTT reads keyed, to time the keying; then
+             * every 100 ms, watching for it dropping. Not after the last
+             * write: its EOB may already have released, as it should. */
+            if (written_pairs < burst_pairs
+                    && (keyed_ms < 0 || mono_ms() >= next_poll))
+            {
+                int on = ptt_is_on(rig);
+
+                if (on && keyed_ms < 0)
+                {
+                    keyed_ms = mono_ms();
+                }
+                else if (!on && keyed_ms >= 0 && dropped_ms < 0)
+                {
+                    dropped_ms = mono_ms();
+                }
+
+                next_poll = mono_ms() + 100;
+            }
+        }
+
+        if (o->cancel)
+        {
+            /* Close well before the start, then watch past it. PTT is read
+             * before the close too: close releases a keyed PTT, so a burst
+             * that keyed at once would read released afterwards. */
+            int64_t close_at = mono_ms() + lead_ms / 4;
+
+            while (mono_ms() < close_at && early_ms < 0)
+            {
+                if (ptt_is_on(rig))
+                {
+                    early_ms = mono_ms();
+                }
+
+                hl_usleep(20 * 1000);
+            }
+
+            if (early_ms >= 0)
+            {
+                printf("burst cancel: FAIL, PTT keyed %lld ms before the "
+                       "burst's start\n", (long long)(start_ms - early_ms));
+                failures++;
+            }
+
+            printf("closing the stream %lld ms before the burst would "
+                   "start\n", (long long)(start_ms - mono_ms()));
+            rig_stream_close(rig, stream);
+            stream = NULL;
+
+            if (wait_ptt(rig, 1, lead_ms) >= 0)
+            {
+                printf("burst cancel: FAIL, PTT keyed after the stream "
+                       "closed\n");
+                failures++;
+            }
+            else if (early_ms < 0)
+            {
+                printf("burst cancel: ok, PTT never keyed\n");
+            }
+
+            break;
+        }
+
+        /* The ring may still hold up to a buffer's worth when the last write
+         * returns, so allow for it before calling the release missing. The
+         * times printed are when PTT was read, so they include how long the
+         * rig takes to answer a PTT read. */
+        int64_t wait_start = mono_ms();
+        int64_t unkey_ms = -1;
+
+        while (mono_ms() - wait_start <= 3000)
+        {
+            rf_sample(rig, &rf);
+
+            if (!ptt_is_on(rig))
+            {
+                unkey_ms = mono_ms() - wait_start;
+                break;
+            }
+
+            hl_usleep(10 * 1000);
+        }
+
+        int64_t released_ms = mono_ms();
+        int64_t end_ms = start_ms + o->burst_ms;
+
+        /* The meter trails the key line; follow it down. */
+        while (rf.level && mono_ms() < released_ms + 300)
+        {
+            rf_sample(rig, &rf);
+            hl_usleep(10 * 1000);
+        }
+
+        if (keyed_ms < 0 && unkey_ms > 0)
+        {
+            keyed_ms = released_ms - unkey_ms;      /* first seen here */
+        }
+
+        have_stats &= rig_stream_get_stats(rig, stream, &st_end) == RIG_OK;
+
+        printf("burst %d/%d: keyed while playing: %s, released %s\n",
+               b + 1, bursts, keyed_ms >= 0 ? "yes" : "NO",
+               unkey_ms < 0 ? "NEVER" : "yes");
+
+        if (early_ms >= 0)
+        {
+            printf("    FAIL: keyed %lld ms before its scheduled start\n",
+                   (long long)(start_ms - early_ms));
+            failures++;
+        }
+
+        if (keyed_ms >= 0)
+        {
+            printf("    PTT read keyed %lld ms after its start\n",
+                   (long long)(keyed_ms - start_ms));
+        }
+
+        if (dropped_ms >= 0)
+        {
+            printf("    FAIL: PTT dropped %lld ms into the burst\n",
+                   (long long)(dropped_ms - start_ms));
+            failures++;
+        }
+
+        if (unkey_ms >= 0)
+        {
+            printf("    PTT read released %lld ms after the burst's end\n",
+                   (long long)(released_ms - end_ms));
+        }
+
+        rf_report(&rf, start_ms, end_ms);
+
+        if (have_stats)
+        {
+            unsigned overruns = st_end.overruns - st_first.overruns;
+            unsigned late = st_end.tx_late - st_first.tx_late;
+            unsigned underruns = st_last.underruns - st_first.underruns;
+
+            printf("    overruns=%u late=%u underruns while playing=%u\n",
+                   overruns, late, underruns);
+
+            if (overruns || late || underruns)
+            {
+                printf("    FAIL: the burst lost audio or missed its start\n");
+                failures++;
+            }
+        }
+        else
+        {
+            printf("    FAIL: stream statistics unavailable\n");
+            failures++;
+        }
+
+        if (keyed_ms < 0 || unkey_ms < 0)
+        {
+            failures++;
+        }
+
+        fflush(stdout);
+
+        if (b + 1 < bursts)
+        {
+            hl_usleep((unsigned long)o->gap_ms * 1000);
+        }
+    }
+
+    printf("[burst] %s bytes=%llu  failures=%d\n", type_name(type),
+           (unsigned long long)total_bytes, failures);
+
+    free(buf);
+
+    if (stream)
+    {
+        rig_stream_close(rig, stream);
+    }
+
+    /* Whatever happened, the radio must not be left on the air. */
+    if (ptt_is_on(rig))
+    {
+        printf("PTT still on after the run: forcing it off\n");
+        rig_set_ptt(rig, RIG_VFO_CURR, RIG_PTT_OFF);
+        failures++;
+    }
+
+    return failures ? -RIG_EIO : RIG_OK;
 }
 
 
@@ -1784,6 +2455,12 @@ static int run_full_duplex(RIG *rig, const struct duplex_opts *o)
     pthread_join(rxth, NULL);
     pthread_join(txth, NULL);
 
+    /* Nothing feeds the TX ring from here on, so leaving the stream running
+     * would let the backend starve on it and count an underrun that says
+     * only that the run ended. Unkeying below is a round-trip to the radio,
+     * which is long enough for that to happen. */
+    rig_stream_pause(rig, tx);
+
     if (o->do_ptt && keyed)
     {
         rig_set_ptt(rig, RIG_VFO_CURR, RIG_PTT_OFF);
@@ -2131,6 +2808,13 @@ int main(int argc, char *argv[])
     int full_duplex = 0, tone_on_ms = 0, tone_off_ms = 0;
     float power = 0.0f;
 
+    struct burst_opts burst;
+
+    memset(&burst, 0, sizeof(burst));
+    burst.count = 3;
+    burst.burst_ms = 1000;
+    burst.gap_ms = 1000;
+
     memset(&setup, 0, sizeof(setup));
     setup.dual_watch = -1;    /* leave alone unless asked */
     setup.restore = 1;        /* put the rig back by default */
@@ -2141,7 +2825,9 @@ int main(int argc, char *argv[])
         OPT_FULL_DUPLEX, OPT_TONE_ON, OPT_TONE_OFF,
         OPT_VFO, OPT_FREQ, OPT_MODE, OPT_DUAL_WATCH, OPT_LIST_STREAMS,
         OPT_NO_RESTORE, OPT_REQUIRE_NATIVE, OPT_FORMAT,
-        OPT_RECONNECT_CYCLES, OPT_RECONNECT_GAP, OPT_DIRTY_CLOSE
+        OPT_RECONNECT_CYCLES, OPT_RECONNECT_GAP, OPT_DIRTY_CLOSE,
+        OPT_BURSTS, OPT_BURST_MS, OPT_BURST_GAP, OPT_BURST_LEAD,
+        OPT_BURST_CANCEL
     };
 
     static struct option long_opts[] =
@@ -2171,6 +2857,11 @@ int main(int argc, char *argv[])
         { "reconnect-cycles", required_argument, NULL, OPT_RECONNECT_CYCLES },
         { "reconnect-gap", required_argument, NULL, OPT_RECONNECT_GAP },
         { "dirty-close", no_argument,       NULL, OPT_DIRTY_CLOSE },
+        { "bursts",      required_argument, NULL, OPT_BURSTS },
+        { "burst-ms",    required_argument, NULL, OPT_BURST_MS },
+        { "burst-gap-ms", required_argument, NULL, OPT_BURST_GAP },
+        { "burst-lead-ms", required_argument, NULL, OPT_BURST_LEAD },
+        { "burst-cancel", no_argument,      NULL, OPT_BURST_CANCEL },
         { "full-duplex", no_argument,       NULL, OPT_FULL_DUPLEX },
         { "tone-on-ms",     required_argument, NULL, OPT_TONE_ON },
         { "tone-off-ms",    required_argument, NULL, OPT_TONE_OFF },
@@ -2408,6 +3099,26 @@ int main(int argc, char *argv[])
             dirty_close = 1;
             break;
 
+        case OPT_BURSTS:
+            burst.count = atoi(optarg);
+            break;
+
+        case OPT_BURST_MS:
+            burst.burst_ms = atoi(optarg);
+            break;
+
+        case OPT_BURST_GAP:
+            burst.gap_ms = atoi(optarg);
+            break;
+
+        case OPT_BURST_LEAD:
+            burst.lead_ms = atoi(optarg);
+            break;
+
+        case OPT_BURST_CANCEL:
+            burst.cancel = 1;
+            break;
+
         case OPT_FULL_DUPLEX:
             full_duplex = 1;
             break;
@@ -2455,6 +3166,18 @@ int main(int argc, char *argv[])
         {
             fprintf(stderr, "--format is receive-only: the transmit paths "
                     "synthesise float samples\n");
+            return 1;
+        }
+
+        /* These modes open their streams as float and never consult g_format.
+         * Left unguarded, --format --require-native would report a pass for a
+         * native format it had not asked for. */
+        if (full_duplex || rx_secs > 0 || tx_secs > 0
+                || strcmp(stream_type, "loopback") == 0)
+        {
+            fprintf(stderr, "--format works only with a single receive stream: "
+                    "loopback, --full-duplex and the alternating rx/tx mode "
+                    "open float streams\n");
             return 1;
         }
     }
@@ -2600,8 +3323,13 @@ int main(int argc, char *argv[])
     }
     else if (strcmp(stream_type, "audio_tx") == 0)
     {
-        retval = run_tx_single(rig, 0, sample_rate, channels, duration,
-                               do_ptt, frame_ms);
+        retval = set_power ? apply_tx_power(rig, power) : RIG_OK;
+
+        if (retval == RIG_OK)
+        {
+            retval = run_tx_single(rig, 0, sample_rate, channels, duration,
+                                   do_ptt, frame_ms);
+        }
     }
     else if (strcmp(stream_type, "iq_rx") == 0)
     {
@@ -2611,8 +3339,26 @@ int main(int argc, char *argv[])
     }
     else if (strcmp(stream_type, "iq_tx") == 0)
     {
-        retval = run_tx_single(rig, 1, sample_rate, channels, duration,
-                               do_ptt, frame_ms);
+        retval = set_power ? apply_tx_power(rig, power) : RIG_OK;
+
+        if (retval == RIG_OK)
+        {
+            retval = run_tx_single(rig, 1, sample_rate, channels, duration,
+                                   do_ptt, frame_ms);
+        }
+    }
+    else if (strcmp(stream_type, "burst") == 0)
+    {
+        burst.use_iq = use_iq;
+        burst.sample_rate = sample_rate;
+        burst.channels = channels;
+        burst.frame_ms = frame_ms;
+        retval = set_power ? apply_tx_power(rig, power) : RIG_OK;
+
+        if (retval == RIG_OK)
+        {
+            retval = run_burst(rig, &burst);
+        }
     }
     else if (strcmp(stream_type, "loopback") == 0)
     {
@@ -2628,7 +3374,7 @@ int main(int argc, char *argv[])
     {
         fprintf(stderr, "Unknown stream type: %s\n", stream_type);
         fprintf(stderr, "Valid types: audio_rx, audio_tx, iq_rx, iq_tx, "
-                "loopback, reconnect\n");
+                        "loopback, reconnect, burst\n");
         retval = -RIG_EINVAL;
     }
 

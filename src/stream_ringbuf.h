@@ -45,6 +45,8 @@ struct rig_stream_ringbuf
     pthread_mutex_t lock;
     pthread_cond_t data_available;  /* Signal when data written */
     int closing;                    /* 1 = shutting down; wakes blocked reader */
+    int paused;                     /* 1 = producer stopped on purpose; an
+                                       empty buffer is not a fault */
     int failed;                     /* 1 = source died; read reports -RIG_EIO
                                        rather than the -RIG_ENAVAIL of a
                                        deliberate close */
@@ -98,6 +100,12 @@ size_t stream_ringbuf_peek_locked(struct rig_stream_ringbuf *rb,
 
 /* Query bytes available for reading without blocking. */
 size_t stream_ringbuf_available(struct rig_stream_ringbuf *rb);
+
+/* Wait up to timeout_ms for readable data, as stream_ringbuf_read() does, and
+ * return how many bytes are readable without consuming any. Returns 0 on
+ * timeout, close or failure. */
+size_t stream_ringbuf_wait_available(struct rig_stream_ringbuf *rb,
+                                     int timeout_ms);
 
 /* Reset ring buffer to empty state. */
 void stream_ringbuf_reset(struct rig_stream_ringbuf *rb);

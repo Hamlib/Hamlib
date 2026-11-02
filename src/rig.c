@@ -8756,6 +8756,11 @@ static int morse_data_handler_stop(RIG *rig)
         rs->morse_data_handler_priv_data = NULL;
     }
 
+    /* Safe only now that the thread is gone: both it and the wait above read
+     * this queue. */
+    free(rs->fifo_morse);
+    rs->fifo_morse = NULL;
+
     RETURNFUNC(RIG_OK);
 }
 
@@ -8988,8 +8993,10 @@ static void *morse_data_handler(void *arg)
         hl_usleep(100 * 1000);
     }
 
-    free(rs->fifo_morse);
-    rs->fifo_morse = NULL;
+    /* fifo_morse is not freed here. morse_data_handler_stop polls it while it
+     * waits for the queue to drain, so freeing it from this thread leaves that
+     * wait reading memory that has gone. It frees the queue once this thread
+     * has been joined. */
     free(c);
 
     pthread_exit(NULL);

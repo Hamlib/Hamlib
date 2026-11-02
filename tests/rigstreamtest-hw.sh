@@ -1,5 +1,6 @@
 #!/bin/sh
-# Streaming system test for a real radio.
+# Streaming system test for a real radio. Backend-agnostic: it drives
+# whatever streams the model advertises.
 #
 # Runs every streaming mode the model advertises, records all received audio to
 # WAV files for listening, and prints a pass/fail line per mode plus a summary.
@@ -54,7 +55,25 @@
 #       --vfo MainA,SubA --freq 144300000,432200000 --mode USB,USB \
 #       --tx --power 0.01
 #
-# See HAMLIB_STREAMING.md for the full Icom network model list and notes.
+#   # FlexRadio SmartSDR: receive-only sweep. Model 23013 controls any slice;
+#   # slice=A is the default, so it can be left out.
+#   rigstreamtest-hw.sh -m 23013 -r IP_ADDRESS:4992
+#
+#   # SmartSDR: a different slice, created on demand if the radio does not
+#   # have it and removed again afterwards
+#   rigstreamtest-hw.sh -m 23013 -r IP_ADDRESS:4992 -C slice=B
+#
+#   # SmartSDR: transmit at 1% into a dummy load. The backend reports
+#   # RFPOWER_METER and SWR from the radio's meter stream while it runs.
+#   rigstreamtest-hw.sh -m 23013 -r IP_ADDRESS:4992 \
+#       --tx --freq 14200000 --mode USB --power 0.01
+#
+#   # SmartSDR: I/Q needs one channel -- I and Q are the two components of a
+#   # single complex sample, not two channels
+#   rigstreamtest-hw.sh -m 23013 -r IP_ADDRESS:4992 --sample-rate 48000
+#
+# See HAMLIB_STREAMING.md for the streaming model lists, ICOM.md for the Icom
+# network backend and FLEXRADIO.md for SmartSDR.
 #
 # The binary is looked up as $RIGSTREAMTEST -> ./rigstreamtest ->
 # <script dir>/rigstreamtest -> $PATH, so the script runs from any directory.
@@ -90,8 +109,8 @@ Usage: rigstreamtest-hw.sh -m MODEL [-r HOST] [options]
   -o, --outdir DIR       output directory (default streamtest-<model>-<stamp>)
       --tests LIST       comma-separated subset of:
                          audio_rx,iq_rx,audio_tx,iq_tx,loopback,full_duplex,
-                         reconnect, native (opt-in: never part of the
-                         default sweep)
+                         burst, burst_cancel, reconnect, native (opt-in:
+                         never part of the default sweep)
                          (default: everything the model advertises)
       --mono             force mono even when the model advertises stereo
       --vfo V[,V]        VFO(s) to set up, e.g. MainA or MainA,SubA
@@ -210,6 +229,38 @@ AUDIO_RX_CHANS=`echo "$CAPS" | sed -n 's/.*type=audio_rx channels=\([0-9,]*\).*/
 AUDIO_RX_MAX_CH=`echo "$AUDIO_RX_CHANS" | awk -F, '{print $NF}'`
 [ -n "$AUDIO_RX_MAX_CH" ] || AUDIO_RX_MAX_CH=1
 
+# Sample rates differ by backend and by stream type -- SmartSDR audio is 24 kHz
+# only, while its I/Q goes to 192 kHz -- so take the rate from what the stream
+# advertises rather than assuming one. The requested rate wins when the stream
+# supports it; otherwise the highest it offers, which is never a silent failure
+# the way an unsupported rate is.
+rate_for() {
+    _rates=`echo "$CAPS" | sed -n "s/.*type=$1 .*rates=\\([0-9,]*\\).*/\\1/p"`
+
+    if [ -z "$_rates" ]; then
+        echo "$RATE"
+        return
+    fi
+
+    for _r in `echo "$_rates" | tr ',' ' '`; do
+        if [ "$_r" = "$RATE" ]; then
+            echo "$_r"
+            return
+        fi
+    done
+
+    _best=0
+
+    for _r in `echo "$_rates" | tr ',' ' '`; do
+        [ "$_r" -gt "$_best" ] && _best=$_r
+    done
+
+    echo "$_best"
+}
+
+AUDIO_RATE=`rate_for audio_rx`
+IQ_RATE=`rate_for iq_rx`
+
 if [ "$FORCE_MONO" = 1 ] || [ "$AUDIO_RX_MAX_CH" -lt 2 ]; then
     CHANNELS=1
 else
@@ -306,6 +357,14 @@ run_test()
         SKIP=`expr $SKIP + 1`
         return 0
         ;;
+    # A transmit stream that leaves PTT to the application cannot be tested
+    # for burst keying, which is a property of the model, not a defect.
+    *"does not key PTT from bursts"*)
+        echo "SKIP  this model does not key PTT from bursts"
+        record "SKIP  $name (no BURST_PTT)"
+        SKIP=`expr $SKIP + 1`
+        return 0
+        ;;
     # Same reasoning one level down: the model declares every format it can
     # serve natively in some configuration, but a session serves only what its
     # own negotiated codec and rate give it. A refusal here says this session
@@ -324,6 +383,12 @@ run_test()
 
     echo "FAIL"
     echo "$out" | sed 's/^/               | /' | tail -12
+
+    # The tail is for reading; the file is for diagnosing. An intermittent
+    # failure gets one chance to explain itself, and twelve lines is not it.
+    echo "$out" > "$OUTDIR/$name-FAILED.log"
+    echo "               | (full output in $OUTDIR/$name-FAILED.log)"
+
     record "FAIL  $name"
     FAIL=`expr $FAIL + 1`
     return 1
@@ -351,7 +416,7 @@ echo "=============================================================="
 echo " Hamlib streaming system test"
 echo "   model      : $MODEL${MODEL_NAME:+ ($MODEL_NAME)}"
 [ -n "$RIG_FILE" ] && echo "   rig         : $RIG_FILE"
-echo "   rate        : $RATE Hz"
+echo "   rate        : audio $AUDIO_RATE Hz, I/Q $IQ_RATE Hz"
 echo "   channels    : $CHANNELS (audio_rx advertises up to $AUDIO_RX_MAX_CH)"
 echo "   duration    : ${DURATION}s per test"
 [ -n "$VFOS" ]  && echo "   vfo         : $VFOS"
@@ -377,14 +442,14 @@ fi
 # ------------------------------- receive -----------------------------------
 if wanted audio_rx && advertises audio_rx; then
     run_test "audio_rx" "$MODEL_SLUG-audio_rx-$STAMP.wav" \
-        -t audio_rx -s "$RATE" -c "$CHANNELS" -d "$DURATION"
+        -t audio_rx -s "$AUDIO_RATE" -c "$CHANNELS" -d "$DURATION"
 elif wanted audio_rx; then
     skip_test "audio_rx" "not advertised by this model"
 fi
 
 if wanted iq_rx && advertises iq_rx; then
     # I/Q formats are complex: one sample carries I and Q, so it is one channel
-    run_test "iq_rx" "" -t iq_rx -s "$RATE" -c 1 -d "$DURATION" \
+    run_test "iq_rx" "" -t iq_rx -s "$IQ_RATE" -c 1 -d "$DURATION" \
         -o "$OUTDIR/$MODEL_SLUG-iq_rx-$STAMP.f32"
 elif wanted iq_rx; then
     skip_test "iq_rx" "not advertised by this model"
@@ -392,7 +457,7 @@ fi
 
 if wanted loopback && advertises audio_rx && advertises audio_tx; then
     run_test "loopback" "$MODEL_SLUG-loopback-$STAMP.wav" \
-        -t loopback -s "$RATE" -c "$CHANNELS" -d "$DURATION"
+        -t loopback -s "$AUDIO_RATE" -c "$CHANNELS" -d "$DURATION"
 elif wanted loopback; then
     skip_test "loopback" "needs both audio_rx and audio_tx"
 fi
@@ -400,14 +465,14 @@ fi
 # ------------------------------- transmit ----------------------------------
 if [ "$DO_TX" = 1 ]; then
     if wanted audio_tx && advertises audio_tx; then
-        run_test "audio_tx" "" -t audio_tx -s "$RATE" -c "$CHANNELS" \
+        run_test "audio_tx" "" -t audio_tx -s "$AUDIO_RATE" -c "$CHANNELS" \
             -d "$DURATION" -P --power "$POWER"
     elif wanted audio_tx; then
         skip_test "audio_tx" "not advertised by this model"
     fi
 
     if wanted iq_tx && advertises iq_tx; then
-        run_test "iq_tx" "" -t iq_tx -s "$RATE" -d "$DURATION" \
+        run_test "iq_tx" "" -t iq_tx -s "$IQ_RATE" -d "$DURATION" \
             -P --power "$POWER"
     elif wanted iq_tx; then
         skip_test "iq_tx" "not advertised by this model"
@@ -417,16 +482,37 @@ if [ "$DO_TX" = 1 ]; then
         # RX runs throughout while PTT is keyed, so the recording shows what the
         # receiver did during transmit
         run_test "full_duplex" "$MODEL_SLUG-full_duplex-$STAMP.wav" \
-            --full-duplex -s "$RATE" -c "$CHANNELS" \
+            --full-duplex -s "$AUDIO_RATE" -c "$CHANNELS" \
             --tx-secs "$DURATION" --rx-secs 5 -d `expr "$DURATION" + 5` \
             -P --power "$POWER"
     elif wanted full_duplex; then
         skip_test "full_duplex" "needs both audio_rx and audio_tx"
     fi
+
+    # Bursts the backend keys itself from SOB/EOB: a scheduled burst must key
+    # while it plays and release once its last sample has gone, and one whose
+    # stream is closed before its start must never key at all. A model whose
+    # transmit stream does not key from bursts is skipped.
+    if wanted burst && advertises audio_tx; then
+        run_test "burst" "" -t burst -s "$AUDIO_RATE" -c "$CHANNELS" \
+            --bursts 3 --burst-ms 1000 --burst-gap-ms 1000 \
+            --burst-lead-ms 500 --power "$POWER"
+    elif wanted burst; then
+        skip_test "burst" "not advertised by this model"
+    fi
+
+    if wanted burst_cancel && advertises audio_tx; then
+        run_test "burst_cancel" "" -t burst -s "$AUDIO_RATE" -c "$CHANNELS" \
+            --burst-cancel --burst-lead-ms 2000 --power "$POWER"
+    elif wanted burst_cancel; then
+        skip_test "burst_cancel" "not advertised by this model"
+    fi
 else
-    wanted audio_tx    && skip_test "audio_tx"    "transmit not enabled (--tx)"
-    wanted iq_tx       && skip_test "iq_tx"       "transmit not enabled (--tx)"
-    wanted full_duplex && skip_test "full_duplex" "transmit not enabled (--tx)"
+    wanted audio_tx     && skip_test "audio_tx"     "transmit not enabled (--tx)"
+    wanted iq_tx        && skip_test "iq_tx"        "transmit not enabled (--tx)"
+    wanted full_duplex  && skip_test "full_duplex"  "transmit not enabled (--tx)"
+    wanted burst        && skip_test "burst"        "transmit not enabled (--tx)"
+    wanted burst_cancel && skip_test "burst_cancel" "transmit not enabled (--tx)"
 fi
 
 # Reconnect deliberately drops the link, and a radio that holds its session slot
@@ -437,7 +523,7 @@ if [ -n "$TESTS" ] && wanted reconnect; then
     if advertises audio_rx; then
         # --dirty-close alternates: odd cycles close tidily, even ones close
         # the rig with the stream still running, so one run covers both.
-        run_test "reconnect" "" -t reconnect -s "$RATE" -c "$CHANNELS" \
+        run_test "reconnect" "" -t reconnect -s "$AUDIO_RATE" -c "$CHANNELS" \
             -d "$DURATION" --reconnect-cycles "$RECONNECT_CYCLES" \
             --reconnect-gap "$RECONNECT_GAP" --dirty-close
     else
@@ -449,13 +535,17 @@ fi
 # the conversion pipeline rather than the backend's own path. This one asks for
 # each format the model declares and demands it arrive untouched, so a backend
 # that claims to serve a format natively has to prove it against real hardware.
-# It also measures the claim: a native 8-bit stream must carry exactly half the
-# bytes of the same audio at 16 bits. Opt-in, because most of its cases are
-# expected to skip on any one session.
+# Opt-in, because most of its cases are expected to skip on any one session.
 if [ -n "$TESTS" ] && wanted native; then
     if advertises audio_rx; then
         AUDIO_RX_FORMATS=`echo "$CAPS" \
             | sed -n 's/.*type=audio_rx .*formats=\([A-Za-z0-9_,]*\).*/\1/p'`
+
+        # The point of this sweep is that nothing converts, so it has to ask
+        # for the rate the stream advertises. Asking for $RATE would make every
+        # case skip on a rate conversion and the sweep would prove nothing.
+        AUDIO_RATE=`rate_for audio_rx`
+        NATIVE_RAN=0
 
         for fmt in `echo "$AUDIO_RX_FORMATS" | tr ',' ' '`; do
             case $fmt in
@@ -466,9 +556,19 @@ if [ -n "$TESTS" ] && wanted native; then
             *)       continue  ;;   # I/Q formats are not audio_rx's to serve
             esac
 
+            NATIVE_RAN=`expr $NATIVE_RAN + 1`
             run_test "native:$short" "" -t audio_rx --format "$short" \
-                --require-native -s "$RATE" -c "$CHANNELS" -d "$DURATION"
+                --require-native -s "$AUDIO_RATE" -c "$CHANNELS" -d "$DURATION"
         done
+
+        # A sweep where every case skipped looks identical to a clean one in the
+        # summary, which is how the wrong-rate bug above went unnoticed. Say so.
+        if [ "$NATIVE_RAN" -eq 0 ]; then
+            printf '%-14s FAIL  %s\n' "native" \
+                "no audio_rx format was testable"
+            record "FAIL  native (no audio_rx format was testable)"
+            FAIL=`expr $FAIL + 1`
+        fi
     else
         skip_test "native" "needs audio_rx"
     fi

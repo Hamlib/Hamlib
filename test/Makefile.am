@@ -27,7 +27,7 @@ AM_CPPFLAGS = -DIN_HAMLIB -D__USE_MINGW_ANSI_STDIO=1 -DWIN32_LEAN_AND_MEAN -I$(t
 
 LDADD = $(top_builddir)/src/libhamlib.la $(top_builddir)/lib/libmisc.la $(DL_LIBS) -lm
 
-check_PROGRAMS = test_stream_ringbuf test_stream_convert test_stream_codec test_stream_time test_stream_account test_stream_reorder test_stream_api test_dummy_stream test_rigctld_stream test_rigstreamtest test_rigctld_commands test_netrigctl_stream test_icom_frame test_icom_network_proto test_icom_network_seqbuf test_icom_network_session test_icom_network_conf test_icom_network_stream test_icom_network_reconnect
+check_PROGRAMS = test_stream_ringbuf test_stream_convert test_stream_codec test_stream_time test_stream_account test_stream_reorder test_stream_api test_dummy_stream test_rigctld_stream test_rigstreamtest test_rigctld_commands test_netrigctl_stream test_icom_frame test_icom_network_proto test_icom_network_seqbuf test_icom_network_session test_icom_network_conf test_icom_network_stream test_icom_network_reconnect test_smartsdr_stream test_vita49 test_smartsdr_vita test_smartsdr_conf test_smartsdr_props test_smartsdr_session test_smartsdr_level test_smartsdr_udp test_smartsdr_slice
 
 check_PROGRAMS += test_conf
 test_conf_SOURCES = test_conf.c
@@ -78,6 +78,12 @@ test_netrigctl_stream_SOURCES = test_netrigctl_stream.c
 test_netrigctl_stream_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 test_netrigctl_stream_LDADD = $(LDADD) $(PTHREAD_LIBS) $(NET_LIBS)
 
+test_smartsdr_stream_SOURCES = test_smartsdr_stream.c
+test_smartsdr_stream_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/flexradio
+test_smartsdr_stream_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+test_smartsdr_stream_LDADD = $(LDADD) $(PTHREAD_LIBS) $(NET_LIBS)
+test_smartsdr_stream_DEPENDENCIES = $(top_builddir)/simulators/simflex$(EXEEXT)
+
 test_rigctld_commands_SOURCES = test_rigctld_commands.c \
     $(top_srcdir)/tests/rigctl_parse.c \
     $(top_srcdir)/tests/rigctld_client.c \
@@ -89,6 +95,40 @@ test_rigctld_commands_SOURCES = test_rigctld_commands.c \
 test_rigctld_commands_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/tests -I$(top_builddir)/src -I$(top_builddir)/security
 test_rigctld_commands_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 test_rigctld_commands_LDADD = $(LDADD) $(PTHREAD_LIBS) $(READLINE_LIBS) $(NET_LIBS)
+
+test_vita49_SOURCES = test_vita49.c
+test_vita49_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/flexradio
+test_vita49_LDADD = $(LDADD)
+
+test_smartsdr_vita_SOURCES = test_smartsdr_vita.c
+test_smartsdr_vita_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/flexradio
+test_smartsdr_vita_LDADD = $(LDADD)
+
+test_smartsdr_conf_SOURCES = test_smartsdr_conf.c
+test_smartsdr_conf_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/flexradio
+test_smartsdr_conf_LDADD = $(LDADD)
+
+test_smartsdr_props_SOURCES = test_smartsdr_props.c
+test_smartsdr_props_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/flexradio
+test_smartsdr_props_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+test_smartsdr_props_LDADD = $(LDADD) $(PTHREAD_LIBS)
+
+test_smartsdr_session_SOURCES = test_smartsdr_session.c smartsdr_mock.c
+test_smartsdr_session_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/flexradio
+test_smartsdr_session_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+test_smartsdr_session_LDADD = $(LDADD) $(PTHREAD_LIBS) $(NET_LIBS)
+test_smartsdr_level_SOURCES = test_smartsdr_level.c smartsdr_mock.c
+test_smartsdr_level_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/flexradio
+test_smartsdr_level_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+test_smartsdr_level_LDADD = $(LDADD) $(PTHREAD_LIBS) $(NET_LIBS)
+test_smartsdr_udp_SOURCES = test_smartsdr_udp.c smartsdr_mock.c
+test_smartsdr_udp_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/flexradio
+test_smartsdr_udp_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+test_smartsdr_udp_LDADD = $(LDADD) $(PTHREAD_LIBS) $(NET_LIBS)
+test_smartsdr_slice_SOURCES = test_smartsdr_slice.c smartsdr_mock.c
+test_smartsdr_slice_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/flexradio
+test_smartsdr_slice_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+test_smartsdr_slice_LDADD = $(LDADD) $(PTHREAD_LIBS) $(NET_LIBS)
 
 test_icom_frame_SOURCES = test_icom_frame.c
 test_icom_frame_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
@@ -126,7 +166,7 @@ test_icom_network_reconnect_LDADD = $(LDADD) $(PTHREAD_LIBS) $(NET_LIBS)
 
 TESTS = $(check_PROGRAMS)
 
-EXTRA_DIST = acutest.h test_debug.h
+EXTRA_DIST = acutest.h test_debug.h smartsdr_mock.h README.md
 
 # Convenience target for CI cross builds: compile every suite without
 # running it (the .exe files are executed under Wine in a separate step).
@@ -141,3 +181,7 @@ $(top_builddir)/lib/libmisc.la:
 
 $(top_builddir)/simulators/simflex$(EXEEXT):
 	$(MAKE) -C $(top_builddir)/simulators simflex$(EXEEXT)
+
+# simflex writes one capture file per test port; a test that aborts before its
+# teardown would otherwise leave it behind and fail distcleancheck.
+CLEANFILES = simflex-*.log
