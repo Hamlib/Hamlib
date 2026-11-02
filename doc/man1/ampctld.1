@@ -22,6 +22,7 @@ ampctld \- TCP amplifier control daemon
 .OP \-s baud
 .OP \-T IPADDR
 .OP \-t number
+.OP \-N number
 .OP \-C parm=val
 .RB [ \-v [ \-Z ]]
 .YS
@@ -155,6 +156,14 @@ default port is 4533, it is recommended to use DESCENDING odd numbered ports
 for multiple
 .BR ampctld
 instances, e.g. 4529, 4527, 4525, etc.
+.
+.TP
+.BR \-N ", " \-\-max\-clients = \fInumber\fP
+Limit the number of concurrent TCP clients to
+.IR number .
+.IP
+The value must be a positive integer. The default is 32. Connections accepted
+while the limit is reached are closed immediately.
 .
 .TP
 .BR \-T ", " \-\-listen\-addr = \fIIPADDR\fP

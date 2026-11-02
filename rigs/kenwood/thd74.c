@@ -2515,7 +2515,7 @@ int thd74_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     return -RIG_EPROTO;
 }
 
-#ifdef false    /* not working */
+#if 0    /* not working */
 #define CMD_SZ 5
 #define BLOCK_SZ 256
 #define BLOCK_COUNT 256

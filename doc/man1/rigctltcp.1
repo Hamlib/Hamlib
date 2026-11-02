@@ -29,6 +29,7 @@ rigctltcp \- TCP multicast control of radio transceivers and receivers
 .OP \-C parm=val
 .OP \-T ipaddr
 .OP \-t num
+.OP \-N num
 .OP \-M addr
 .OP \-n port
 .OP \-W secs
@@ -395,6 +396,15 @@ Use
 as the TCP listening port.
 .IP
 The default is 4531.
+.
+.
+.TP
+.BR \-N ", " \-\-max\-clients = \fINUM\fP
+Limit the number of concurrent TCP clients to
+.IR NUM .
+.IP
+The value must be a positive integer. The default is 32. Connections accepted
+while the limit is reached are closed immediately.
 .
 .
 .TP

@@ -28,6 +28,7 @@
 #include "misc.h"
 #include "bandplan.h"
 #include "cache.h"
+#include "flexradio.h"
 #include "network.h"
 
 static int smartsdr_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
@@ -75,6 +76,29 @@ struct smartsdr_priv_data
 #define SMARTSDR_ANTS 3
 
 static int smartsdr_parse_S(RIG *rig, char *s);
+
+int smartsdr_parse_status_value(const char *token, const char *prefix,
+                                char *value, size_t value_size)
+{
+    size_t prefix_len = strlen(prefix);
+    size_t value_len;
+
+    if (strncmp(token, prefix, prefix_len) != 0)
+    {
+        return 0;
+    }
+
+    token += prefix_len;
+    value_len = strlen(token);
+
+    if (value_len == 0 || value_len >= value_size)
+    {
+        return -RIG_EPROTO;
+    }
+
+    memcpy(value, token, value_len + 1);
+    return 1;
+}
 
 struct rig_caps smartsdr_a_rig_caps =
 {
@@ -411,6 +435,8 @@ static int smartsdr_parse_S(RIG *rig, char *s)
     char *sep = "| \n";
     char *p = strtok(s2, sep);
     int gotFreq = 0, gotMode = 0;
+    int parsed;
+    int retval = RIG_OK;
 
     do
     {
@@ -428,8 +454,15 @@ static int smartsdr_parse_S(RIG *rig, char *s)
             rig_debug(RIG_DEBUG_VERBOSE, "%s: got width=%d\n", __func__, priv->widthA);
             rig_set_cache_mode(rig, RIG_VFO_A, priv->modeA, priv->widthA);
         }
-        else if (sscanf(p, "mode=%s\n", mode) == 1)
+        else if ((parsed = smartsdr_parse_status_value(p, "mode=", mode,
+            sizeof(mode))) != 0)
         {
+            if (parsed < 0)
+            {
+                retval = parsed;
+                break;
+            }
+
             if (strcmp(mode, "USB") == 0) { priv->modeA = RIG_MODE_USB; }
             else if (strcmp(mode, "LSB") == 0) { priv->modeA = RIG_MODE_LSB; }
             else if (strcmp(mode, "DIGU") == 0) { priv->modeA = RIG_MODE_PKTUSB; }
@@ -444,7 +477,8 @@ static int smartsdr_parse_S(RIG *rig, char *s)
             {
                 priv->modeA = RIG_MODE_NONE;
                 rig_debug(RIG_DEBUG_ERR, "%s: unknown mode=%s\n", __func__, mode);
-                return -RIG_EPROTO;
+                retval = -RIG_EPROTO;
+                break;
             }
 
             rig_set_cache_mode(rig, RIG_VFO_A, priv->modeA, priv->widthA);
@@ -452,8 +486,15 @@ static int smartsdr_parse_S(RIG *rig, char *s)
             rig_debug(RIG_DEBUG_VERBOSE, "%s: got mode=%s\n", __func__,
                       rig_strrmode(priv->modeA));
         }
-        else if (sscanf(p, "state=%s\n", state) == 1)
+        else if ((parsed = smartsdr_parse_status_value(p, "state=", state,
+            sizeof(state))) != 0)
         {
+            if (parsed < 0)
+            {
+                retval = parsed;
+                break;
+            }
+
             if (strcmp(state, "TRANSMITTING") == 0) { priv->ptt = 1; }
             else { priv->ptt = 0; }
 
@@ -471,7 +512,7 @@ static int smartsdr_parse_S(RIG *rig, char *s)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s gotFreq=%d, gotMode=%d\n", __func__, gotFreq,
               gotMode);
-    return RIG_OK;
+    return retval;
 }
 
 int smartsdr_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)

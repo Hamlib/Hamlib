@@ -20,6 +20,8 @@
  */
 
 #include "hamlib/config.h"
+#include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
@@ -31,6 +33,7 @@
 #include "num_stdio.h"
 
 #include "dummy.h"
+#include "dummy_common.h"
 
 #define CMD_MAX 64
 #define BUF_MAX 1024
@@ -43,7 +46,31 @@ struct netrigctl_priv_data
     int rigctld_vfo_mode;
     vfo_t rx_vfo;
     vfo_t tx_vfo;
+    char parm_value[BUF_MAX];
 };
+
+static int parse_rprt_status(const char *response)
+{
+    const char *token = response + strlen(NETRIGCTL_RET);
+    char *end;
+    long status;
+
+    errno = 0;
+    status = strtol(token, &end, 10);
+
+    while (*end == ' ' || *end == '\t' || *end == '\r' || *end == '\n')
+    {
+        ++end;
+    }
+
+    if (errno == ERANGE || end == token || *end != '\0'
+            || status > 0 || status < INT_MIN || status > INT_MAX)
+    {
+        return -RIG_EPROTO;
+    }
+
+    return (int)status;
+}
 
 int netrigctl_get_vfo_mode(RIG *rig)
 {
@@ -81,7 +108,7 @@ static int netrigctl_transaction(RIG *rig, char *cmd, int len, char *buf)
 
     if (strncmp(buf, NETRIGCTL_RET, strlen(NETRIGCTL_RET)) == 0)
     {
-        return atoi(buf + strlen(NETRIGCTL_RET));
+        return parse_rprt_status(buf);
     }
 
     return ret;
@@ -623,6 +650,10 @@ static int netrigctl_open(RIG *rig)
         rs->vfo_list = RIG_VFO_A | RIG_VFO_B;
     }
 
+    dummy_reset_agc_levels(rig->caps->agc_levels,
+                           &rig->caps->agc_level_count);
+    dummy_reset_agc_levels(rs->agc_levels, &rs->agc_level_count);
+
     if (prot_ver == 0) { RETURNFUNC(RIG_OK); }
 
     // otherwise we continue reading protocol 1 fields
@@ -800,31 +831,26 @@ static int netrigctl_open(RIG *rig)
             }
             else if (strcmp(setting, "agc_levels") == 0)
             {
-                char *p = strtok(value, " ");
-                rig->caps->agc_levels[0] = RIG_AGC_NONE; // default value gets overwritten
-                rig->caps->agc_level_count = 0;
+                enum agc_level_e agc_levels[HAMLIB_MAX_AGC_LEVELS];
+                int agc_level_count;
 
-                while (p)
+                ret = dummy_parse_agc_levels(value, agc_levels, &agc_level_count);
+
+                if (ret != RIG_OK)
                 {
-                    int agc_code;
-                    char agc_string[32];
-                    int n = sscanf(p, "%d=%31s\n", &agc_code, agc_string);
-
-                    if (n == 2)
-                    {
-                        rig->caps->agc_levels[i++] = agc_code;
-                        rig->caps->agc_level_count++;
-                        rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has agc code=%d, level=%s\n", __func__,
-                                  agc_code, agc_string);
-                    }
-                    else
-                    {
-                        rig_debug(RIG_DEBUG_ERR, "%s did not parse code=agc from '%s'\n", __func__, p);
-                    }
-
-                    rig_debug(RIG_DEBUG_VERBOSE, "%d=%s\n", agc_code, agc_string);
-                    p = strtok(NULL, " ");
+                    rig_debug(RIG_DEBUG_ERR,
+                              "%s: ignoring invalid agc_levels field '%s'\n",
+                              __func__, buf);
+                    dummy_reset_agc_levels(rig->caps->agc_levels,
+                                           &rig->caps->agc_level_count);
+                    dummy_reset_agc_levels(rs->agc_levels,
+                                           &rs->agc_level_count);
+                    continue;
                 }
+
+                memcpy(rig->caps->agc_levels, agc_levels, sizeof(agc_levels));
+                memcpy(rs->agc_levels, agc_levels, sizeof(agc_levels));
+                rig->caps->agc_level_count = rs->agc_level_count = agc_level_count;
             }
             else if (strcmp(setting, "level_gran") == 0)
             {
@@ -2156,27 +2182,76 @@ static int netrigctl_get_powerstat(RIG *rig, powerstat_t *status)
 }
 
 
+int netrigctl_format_parm_command(char *cmd, size_t cmd_size,
+                                  setting_t parm, value_t val)
+{
+    const char *parm_name;
+    int len;
+
+    if (cmd == NULL || cmd_size == 0)
+    {
+        return -RIG_EINVAL;
+    }
+
+    cmd[0] = '\0';
+    parm_name = rig_strparm(parm);
+
+    if (parm_name[0] == '\0')
+    {
+        return -RIG_EINVAL;
+    }
+
+    if (RIG_PARM_IS_FLOAT(parm))
+    {
+        len = snprintf(cmd, cmd_size, "P %s %f\n", parm_name, val.f);
+    }
+    else if (RIG_PARM_IS_STRING(parm))
+    {
+        if (val.cs == NULL || val.cs[0] == '\0'
+                || strpbrk(val.cs, "\r\n") != NULL)
+        {
+            return -RIG_EINVAL;
+        }
+
+        len = snprintf(cmd, cmd_size, "P %s %s\n", parm_name, val.cs);
+    }
+    else
+    {
+        len = snprintf(cmd, cmd_size, "P %s %d\n", parm_name, val.i);
+    }
+
+    if (len < 0)
+    {
+        cmd[0] = '\0';
+        return -RIG_EINVAL;
+    }
+
+    if ((size_t)len >= cmd_size)
+    {
+        cmd[0] = '\0';
+        return -RIG_ETRUNC;
+    }
+
+    return len;
+}
+
+
 static int netrigctl_set_parm(RIG *rig, setting_t parm, value_t val)
 {
     int ret;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
-    char pstr[32];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (RIG_PARM_IS_FLOAT(parm))
+    ret = netrigctl_format_parm_command(cmd, sizeof(cmd), parm, val);
+
+    if (ret < 0)
     {
-        SNPRINTF(pstr, sizeof(pstr), "%f", val.f);
-    }
-    else
-    {
-        SNPRINTF(pstr, sizeof(pstr), "%d", val.i);
+        return ret;
     }
 
-    SNPRINTF(cmd, sizeof(cmd), "P %s %s\n", rig_strparm(parm), pstr);
-
-    ret = netrigctl_transaction(rig, cmd, strlen(cmd), buf);
+    ret = netrigctl_transaction(rig, cmd, ret, buf);
 
     if (ret > 0)
     {
@@ -2189,11 +2264,97 @@ static int netrigctl_set_parm(RIG *rig, setting_t parm, value_t val)
 }
 
 
+int netrigctl_decode_parm_response(setting_t parm, value_t *val,
+                                   const char *response, size_t response_len,
+                                   char *string_value,
+                                   size_t string_value_size)
+{
+    const char *source = response;
+    size_t source_len;
+
+    if (val == NULL || response == NULL || response_len == 0
+            || response[response_len - 1] != '\n')
+    {
+        return -RIG_EPROTO;
+    }
+
+    source_len = response_len - 1;
+
+    if (source_len > 0 && response[source_len - 1] == '\r')
+    {
+        source_len--;
+    }
+
+    if (source_len == 0 || memchr(response, '\0', source_len) != NULL
+            || memchr(response, '\r', source_len) != NULL
+            || memchr(response, '\n', source_len) != NULL)
+    {
+        return -RIG_EPROTO;
+    }
+
+    if (RIG_PARM_IS_FLOAT(parm))
+    {
+        val->f = atoi(response);
+        return RIG_OK;
+    }
+
+    if (!RIG_PARM_IS_STRING(parm))
+    {
+        val->i = atoi(response);
+        return RIG_OK;
+    }
+
+    if (string_value == NULL || string_value_size == 0)
+    {
+        return -RIG_EINVAL;
+    }
+
+    if (parm == RIG_PARM_KEYERTYPE)
+    {
+        static const struct
+        {
+            const char *name;
+            const char *value;
+        } keyertype_values[] = {
+            { "STRAIGHT", "0" },
+            { "BUG", "1" },
+            { "PADDLE", "2" },
+            { "UNKNOWN", "4" },
+        };
+
+        for (size_t i = 0;
+                i < sizeof(keyertype_values) / sizeof(keyertype_values[0]); i++)
+        {
+            if (strlen(keyertype_values[i].name) == source_len
+                    && memcmp(source, keyertype_values[i].name, source_len) == 0)
+            {
+                source = keyertype_values[i].value;
+                source_len = strlen(source);
+                break;
+            }
+        }
+    }
+
+    if (source_len >= string_value_size)
+    {
+        return -RIG_ETRUNC;
+    }
+
+    memcpy(string_value, source, source_len);
+    string_value[source_len] = '\0';
+    val->cs = string_value;
+
+    return RIG_OK;
+}
+
+
 static int netrigctl_get_parm(RIG *rig, setting_t parm, value_t *val)
 {
     int ret;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
+    struct netrigctl_priv_data *priv =
+        (struct netrigctl_priv_data *)STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -2206,16 +2367,14 @@ static int netrigctl_get_parm(RIG *rig, setting_t parm, value_t *val)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    if (RIG_PARM_IS_FLOAT(parm))
+    if (ret == sizeof(buf) - 1 && buf[ret - 1] != '\n')
     {
-        val->f = atoi(buf);
-    }
-    else
-    {
-        val->i = atoi(buf);
+        return -RIG_ETRUNC;
     }
 
-    return RIG_OK;
+    return netrigctl_decode_parm_response(parm, val, buf, ret,
+                                          priv->parm_value,
+                                          sizeof(priv->parm_value));
 }
 
 

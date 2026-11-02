@@ -20,6 +20,8 @@
  */
 
 #include "hamlib/config.h"
+#include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
@@ -31,6 +33,7 @@
 #include "num_stdio.h"
 
 #include "dummy.h"
+#include "dummy_common.h"
 
 #define CMD_MAX 64
 #define BUF_MAX 1024
@@ -44,6 +47,29 @@ struct quisk_priv_data
     vfo_t rx_vfo;
     vfo_t tx_vfo;
 };
+
+static int parse_rprt_status(const char *response)
+{
+    const char *token = response + strlen(NETRIGCTL_RET);
+    char *end;
+    long status;
+
+    errno = 0;
+    status = strtol(token, &end, 10);
+
+    while (*end == ' ' || *end == '\t' || *end == '\r' || *end == '\n')
+    {
+        ++end;
+    }
+
+    if (errno == ERANGE || end == token || *end != '\0'
+            || status > 0 || status < INT_MIN || status > INT_MAX)
+    {
+        return -RIG_EPROTO;
+    }
+
+    return (int)status;
+}
 
 
 #if 0
@@ -85,7 +111,7 @@ static int quisk_transaction(RIG *rig, char *cmd, int len, char *buf)
 
     if (strncmp(buf, NETRIGCTL_RET, strlen(NETRIGCTL_RET)) == 0)
     {
-        return atoi(buf + strlen(NETRIGCTL_RET));
+        return parse_rprt_status(buf);
     }
 
     return ret;
@@ -573,6 +599,10 @@ static int quisk_open(RIG *rig)
     HAMLIB_TRACE;
 #endif
 
+    dummy_reset_agc_levels(rig->caps->agc_levels,
+                           &rig->caps->agc_level_count);
+    dummy_reset_agc_levels(rs->agc_levels, &rs->agc_level_count);
+
     if (prot_ver == 0) { RETURNFUNC(RIG_OK); }
 
     HAMLIB_TRACE;
@@ -738,31 +768,26 @@ static int quisk_open(RIG *rig)
             }
             else if (strcmp(setting, "agc_levels") == 0)
             {
-                char *p = strtok(value, " ");
-                rig->caps->agc_levels[0] = RIG_AGC_NONE; // default value gets overwritten
-                rig->caps->agc_level_count = 0;
+                enum agc_level_e agc_levels[HAMLIB_MAX_AGC_LEVELS];
+                int agc_level_count;
 
-                while (p)
+                ret = dummy_parse_agc_levels(value, agc_levels, &agc_level_count);
+
+                if (ret != RIG_OK)
                 {
-                    int agc_code;
-                    char agc_string[32];
-                    int n = sscanf(p, "%d=%31s\n", &agc_code, agc_string);
-
-                    if (n == 2)
-                    {
-                        rig->caps->agc_levels[i++] = agc_code;
-                        rig->caps->agc_level_count++;
-                        rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has agc code=%d, level=%s\n", __func__,
-                                  agc_code, agc_string);
-                    }
-                    else
-                    {
-                        rig_debug(RIG_DEBUG_ERR, "%s did not parse code=agc from '%s'\n", __func__, p);
-                    }
-
-                    rig_debug(RIG_DEBUG_VERBOSE, "%d=%s\n", agc_code, agc_string);
-                    p = strtok(NULL, " ");
+                    rig_debug(RIG_DEBUG_ERR,
+                              "%s: ignoring invalid agc_levels field '%s'\n",
+                              __func__, buf);
+                    dummy_reset_agc_levels(rig->caps->agc_levels,
+                                           &rig->caps->agc_level_count);
+                    dummy_reset_agc_levels(rs->agc_levels,
+                                           &rs->agc_level_count);
+                    continue;
                 }
+
+                memcpy(rig->caps->agc_levels, agc_levels, sizeof(agc_levels));
+                memcpy(rs->agc_levels, agc_levels, sizeof(agc_levels));
+                rig->caps->agc_level_count = rs->agc_level_count = agc_level_count;
             }
             else if (strcmp(setting, "level_gran") == 0)
             {

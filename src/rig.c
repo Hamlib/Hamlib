@@ -201,21 +201,16 @@ const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
 #define LOCK(n) if (STATE(rig)->depth == 1) { rig_debug(RIG_DEBUG_CACHE, "%s: %s\n", n?"lock":"unlock", __func__);  rig_lock(rig,n); }
 #endif
 
-MUTEX(morse_mutex);
-
-// returns true if mutex is busy
-int MUTEX_CHECK(pthread_mutex_t *m)
+static bool morse_busy_load(const struct rig_state *rs)
 {
-    int trylock = pthread_mutex_trylock(m);
-
-    if (trylock != EBUSY)
-    {
-        pthread_mutex_unlock(m);
-    }
-
-    return trylock == EBUSY;
+    return __atomic_load_n(&rs->morse_busy, __ATOMIC_RELAXED);
 }
 
+static void morse_busy_store(struct rig_state *rs, bool busy)
+{
+    // The busy hint does not publish any other state, so relaxed ordering is sufficient.
+    __atomic_store_n(&rs->morse_busy, busy, __ATOMIC_RELAXED);
+}
 
 /*
  * Data structure to track the opened rig (by rig_open)
@@ -1760,7 +1755,6 @@ int HAMLIB_API rig_close(RIG *rig)
 
     ENTERFUNC;
 
-
     caps = rig->caps;
     rs = STATE(rig);
     rp = RIGPORT(rig);
@@ -2557,10 +2551,13 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d) vfo=%s, curr_vfo=%s\n", __FILE__, __LINE__,
               rig_strvfo(vfo), rig_strvfo(curr_vfo));
 
-    if (MUTEX_CHECK(&morse_mutex))
-    {
-        use_cache = 1;
-    }
+    /* morse_busy is a hint that the port may be busy - this reduces
+     *   the chance that we get stalled on the api_mutex.
+     *   But it still may happen(just not very often.)
+     * It is copied to use_cache so the value is consistent throughout, and
+     *   in case we ever need to add other conditions.
+     */
+    use_cache = morse_busy_load(rs);
 
     if (vfo == RIG_VFO_CURR) { vfo = curr_vfo; }
 
@@ -2821,6 +2818,28 @@ int HAMLIB_API rig_get_freqs(RIG *rig, freq_t *freqA, freq_t freqB)
     return (-RIG_ENIMPL);
 }
 
+static int mode_satisfies_request(rmode_t requested, rmode_t current)
+{
+    if (requested == current)
+    {
+        return 1;
+    }
+
+    if (requested == RIG_MODE_PKTUSB)
+    {
+        return current == RIG_MODE_USBD1 || current == RIG_MODE_USBD2
+               || current == RIG_MODE_USBD3;
+    }
+
+    if (requested == RIG_MODE_PKTLSB)
+    {
+        return current == RIG_MODE_LSBD1 || current == RIG_MODE_LSBD2
+               || current == RIG_MODE_LSBD3;
+    }
+
+    return 0;
+}
+
 
 /**
  * \brief set the mode of the target VFO
@@ -2908,30 +2927,30 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     vfo = vfo_fixup(rig, vfo, cachep->split);
 
-    // if we're not asking for bandwidth and the mode is already set we don't need to do it
-    // this will prevent flashing on some rigs like the TS-870
-    if (caps->get_mode && width == RIG_PASSBAND_NOCHANGE)
+    // Resolve a generic packet request against a specific DATA profile before setting it.
+    if (caps->get_mode && (width == RIG_PASSBAND_NOCHANGE
+                           || mode == RIG_MODE_PKTUSB || mode == RIG_MODE_PKTLSB)
+            && ((caps->targetable_vfo & RIG_TARGETABLE_MODE)
+                || vfo == rs->current_vfo))
     {
         rmode_t mode_curr;
         pbwidth_t width_curr;
         retcode = caps->get_mode(rig, vfo, &mode_curr, &width_curr);
 
-        // For Icom rigs we may need to force the filter so we always set mode
-#if 0
-        // This should not be necessary anymore with the new filter method for Icom rigs
-        // Hopefully fixes issue https://github.com/Hamlib/Hamlib/issues/1580
-        if (retcode == RIG_OK && mode == mode_curr
-                && RIG_ICOM != RIG_BACKEND_NUM(rig->caps->rig_model))
-#else
-        if (retcode == RIG_OK && mode == mode_curr)
-#endif
+        if (retcode == RIG_OK && mode_satisfies_request(mode, mode_curr))
         {
-            rig_debug(RIG_DEBUG_VERBOSE,
-                      "%s: mode already %s and bw change not requested\n", __func__,
-                      rig_strrmode(mode));
-            ELAPSED2;
-            LOCK(0);
-            RETURNFUNC(RIG_OK);
+            mode = mode_curr;
+
+            if (width == RIG_PASSBAND_NOCHANGE)
+            {
+                rig_set_cache_mode(rig, vfo, mode_curr, width_curr);
+                rig_debug(RIG_DEBUG_VERBOSE,
+                          "%s: mode already %s and bw change not requested\n", __func__,
+                          rig_strrmode(mode_curr));
+                ELAPSED2;
+                LOCK(0);
+                RETURNFUNC(RIG_OK);
+            }
         }
     }
 
@@ -2960,7 +2979,7 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             rig_get_cache(rig, vfo, &cache_freq, &cache_ms_freq, &cache_mode,
                           &cache_ms_mode, &cache_width, &cache_ms_width);
 
-            if (cache_mode == mode)
+            if (cache_mode == mode && width == RIG_PASSBAND_NOCHANGE)
             {
                 rig_debug(RIG_DEBUG_TRACE, "%s: mode not changing, so ignoring\n",
                           __func__);
@@ -2993,7 +3012,37 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             RETURNFUNC(retcode);
         }
 
-        retcode = caps->set_mode(rig, vfo, mode, width);
+        int skip_set_mode = 0;
+
+        if (caps->get_mode && (width == RIG_PASSBAND_NOCHANGE
+                               || mode == RIG_MODE_PKTUSB || mode == RIG_MODE_PKTLSB))
+        {
+            rmode_t mode_curr;
+            pbwidth_t width_curr;
+
+            retcode = caps->get_mode(rig, vfo, &mode_curr, &width_curr);
+
+            if (retcode == RIG_OK && mode_satisfies_request(mode, mode_curr))
+            {
+                mode = mode_curr;
+
+                if (width == RIG_PASSBAND_NOCHANGE)
+                {
+                    width = width_curr;
+                    skip_set_mode = 1;
+                }
+            }
+            else
+            {
+                retcode = RIG_OK;
+            }
+        }
+
+        if (retcode == RIG_OK && !skip_set_mode)
+        {
+            retcode = caps->set_mode(rig, vfo, mode, width);
+        }
+
         /* try and revert even if we had an error above */
         rc2 = caps->set_vfo(rig, curr_vfo);
 
@@ -3095,10 +3144,8 @@ int HAMLIB_API rig_get_mode(RIG *rig,
 
     rig_cache_show(rig, __func__, __LINE__);
 
-    if (MUTEX_CHECK(&morse_mutex))
-    {
-        use_cache = 1;
-    }
+    // See comments in rig_get_freq
+    use_cache = morse_busy_load(rs);
 
     if (cachep->timeout_ms == HAMLIB_CACHE_ALWAYS
             || rs->use_cached_mode || use_cache)
@@ -3553,10 +3600,8 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
     cache_ms = elapsed_ms(&cachep->time_vfo, HAMLIB_ELAPSED_GET);
     //rig_debug(RIG_DEBUG_TRACE, "%s: cache check age=%dms\n", __func__, cache_ms);
 
-    if (MUTEX_CHECK(&morse_mutex))
-    {
-        use_cache = 1;
-    }
+    // See comments in rig_get_freq
+    use_cache = morse_busy_load(rs);
 
     if (cache_ms < cachep->timeout_ms || use_cache)
     {
@@ -5210,14 +5255,8 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
                            || (rig->caps->rig_model == RIG_MODEL_NETRIGCTL)))
     {
         HAMLIB_TRACE;
-        retcode = caps->set_mode(rig, tx_vfo, tx_mode, tx_width);
+        retcode = rig_set_mode(rig, tx_vfo, tx_mode, tx_width);
         ELAPSED2;
-
-        if (retcode == RIG_OK)
-        {
-            rig_set_cache_mode(rig, tx_vfo, tx_mode, tx_width);
-        }
-
         RETURNFUNC(retcode);
     }
 
@@ -6035,10 +6074,8 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
     rs = STATE(rig);
     cachep = CACHE(rig);
 
-    if (MUTEX_CHECK(&morse_mutex))
-    {
-        use_cache = 1;
-    }
+    // See comments in rig_get_freq
+    use_cache = morse_busy_load(rs);
 
     if (caps->get_split_vfo == NULL || use_cache)
     {
@@ -8759,7 +8796,7 @@ static void *morse_data_handler(void *arg)
     struct morse_data_handler_args_s *args =
         (struct morse_data_handler_args_s *) arg;
     RIG *rig = args->rig;
-    const struct rig_state *rs = STATE(rig);
+    struct rig_state *rs = STATE(rig);
     int result;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: Starting morse data handler thread\n",
@@ -8849,9 +8886,9 @@ static void *morse_data_handler(void *arg)
             if (strlen(c) > 0)
             {
                 int nloops = 10;
-                MUTEX_LOCK(morse_mutex); // wait until the write is idle
+                morse_busy_store(rs, true);
+                rig_lock(rig, 1);        // Do the actual lockout
 
-		        rig_lock(rig, 1);
                 do
                 {
                     result = rig->caps->send_morse(rig, RIG_VFO_CURR, c);
@@ -8875,9 +8912,8 @@ static void *morse_data_handler(void *arg)
 
                 }
                 while (result != RIG_OK && STATE(rig)->fifo_morse->flush == 0 && --nloops > 0);
-		rig_lock(rig,0);
-
-                MUTEX_UNLOCK(morse_mutex);
+                rig_lock(rig, 0);
+                morse_busy_store(rs, false);
 
                 if (nloops == 0)
                 {
@@ -8946,6 +8982,11 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
 
     ELAPSED1;
 
+    if (reply != NULL && reply_len < 1)
+    {
+        RETURNFUNC(-RIG_EINVAL);
+    }
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s: writing %d bytes\n", __func__, send_len);
 
     set_transaction_active(rig);
@@ -8970,7 +9011,26 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
 
     if (reply)
     {
-        unsigned char buf[200];
+        unsigned char stack_buf[200];
+        unsigned char *buf = stack_buf;
+        /* Detect terminated replies that fill the caller's buffer. */
+        size_t buf_len = (size_t)reply_len + 1;
+        int buffer_allocated = 0;
+
+        if (buf_len > sizeof(stack_buf))
+        {
+            buf = malloc(buf_len);
+
+            if (buf == NULL)
+            {
+                rig_flush_force(rp, 1);
+                set_transaction_inactive(rig);
+                ELAPSED2;
+                RETURNFUNC(-RIG_ENOMEM);
+            }
+
+            buffer_allocated = 1;
+        }
 
         if (simulate)
         {
@@ -8998,13 +9058,13 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
             else if (*term == 0xfd) // then we want an Icom frame
             {
                 rig_debug(RIG_DEBUG_VERBOSE, "%s: reading icom frame\n", __func__);
-                retval = read_icom_frame(rp, buf, sizeof(buf));
+                retval = read_icom_frame(rp, buf, reply_len);
             }
             else // we'll assume the provided terminator works
             {
                 rig_debug(RIG_DEBUG_VERBOSE, "%s: reading frame terminated by 0x%x\n", __func__,
                           *term);
-                retval = read_string(rp, buf, sizeof(buf), (const char *)term,
+                retval = read_string(rp, buf, buf_len, (const char *)term,
                                      1, 0, 1);
             }
 
@@ -9013,6 +9073,8 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
                 rig_debug(RIG_DEBUG_ERR, "%s: read_string, result=%d\n", __func__, retval);
                 rig_flush_force(rp, 1);
                 set_transaction_inactive(rig);
+
+                if (buffer_allocated) { free(buf); }
                 ELAPSED2;
                 RETURNFUNC(retval);
             }
@@ -9025,12 +9087,16 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
                           __func__, reply_len, nbytes);
                 rig_flush_force(rp, 1);
                 set_transaction_inactive(rig);
+
+                if (buffer_allocated) { free(buf); }
                 ELAPSED2;
                 RETURNFUNC(-RIG_EINVAL);
             }
         }
 
         memcpy(reply, buf, nbytes);
+
+        if (buffer_allocated) { free(buf); }
     }
     else
     {

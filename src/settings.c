@@ -97,8 +97,14 @@ int HAMLIB_API rig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             || vfo == STATE(rig)->current_vfo)
     {
 
-        if (level == RIG_LEVEL_KEYSPD)
+        if (level == RIG_LEVEL_KEYSPD && STATE(rig)->morse_data_handler_priv_data != NULL)
         {
+            /* morse_data_handler_priv_data is only ever allocated by
+               morse_data_handler_start() (send_morse()/morse-over-data
+               path) - calling into it unconditionally here null-derefs
+               and crashes for any backend/session that supports
+               RIG_LEVEL_KEYSPD but never started that subsystem, which is
+               the common case for a plain rig_set_level() call. */
             extern int morse_data_handler_set_keyspd(RIG * rig, int keyspd);
             morse_data_handler_set_keyspd(rig, val.i);
         }

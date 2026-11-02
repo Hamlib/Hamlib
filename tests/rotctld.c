@@ -55,6 +55,7 @@
 
 #include "hamlib/rotator.h"
 
+#include "daemon_client.h"
 #include "rig.h"
 #include "rotctl_parse.h"
 #include "rotlist.h"
@@ -82,7 +83,7 @@ static void short_usage(FILE *fout);
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:R:s:C:o:O:t:T:LuvhVlZ"
+#define SHORT_OPTIONS "m:r:R:s:C:o:O:t:T:N:LuvhVlZ"
 static struct option long_options[] =
 {
     {"model",           1, 0, 'm'},
@@ -91,6 +92,7 @@ static struct option long_options[] =
     {"serial-speed",    1, 0, 's'},
     {"port",            1, 0, 't'},
     {"listen-addr",     1, 0, 'T'},
+    {"max-clients",     1, 0, 'N'},
     {"list",            0, 0, 'l'},
     {"set-conf",        1, 0, 'C'},
     {"set-azoffset",    1, 0, 'o'},
@@ -106,6 +108,8 @@ static struct option long_options[] =
 
 const char *portno = "4533";
 const char *src_addr = NULL;    /* INADDR_ANY */
+static struct daemon_client_tracker client_tracker =
+    DAEMON_CLIENT_TRACKER_INITIALIZER;
 azimuth_t az_offset;
 elevation_t el_offset;
 
@@ -240,6 +244,15 @@ int main(int argc, char *argv[])
 
         case 'T':
             src_addr = optarg;
+            break;
+
+        case 'N':
+            if (daemon_client_limit_parse(optarg, &client_tracker.limit) != 0)
+            {
+                fprintf(stderr, "Invalid maximum client count: %s\n", optarg);
+                exit(1);
+            }
+
             break;
 
         case 'o':
@@ -532,33 +545,77 @@ int main(int argc, char *argv[])
 #endif
 #endif
 
+    retcode = pthread_attr_init(&attr);
+
+    if (retcode != 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "pthread_attr_init: %s\n", strerror(retcode));
+        exit(1);
+    }
+
+    retcode = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+    if (retcode != 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "pthread_attr_setdetachstate: %s\n",
+                  strerror(retcode));
+        pthread_attr_destroy(&attr);
+        exit(1);
+    }
+
     /*
      * main loop accepting connections
      */
-    do
+    while (1)
     {
-        arg = calloc(1, sizeof(struct handle_data));
+        struct sockaddr_storage cli_addr;
+        socklen_t clilen = sizeof(cli_addr);
+        int client_sock;
 
-        if (!arg)
-        {
-            rig_debug(RIG_DEBUG_ERR, "calloc: %s\n", strerror(errno));
-            exit(1);
-        }
+        client_sock = accept(sock_listen,
+                             (struct sockaddr *)&cli_addr,
+                             &clilen);
 
-        arg->rot = my_rot;
-        arg->clilen = sizeof(arg->cli_addr);
-        arg->sock = accept(sock_listen,
-                           (struct sockaddr *) &arg->cli_addr,
-                           &arg->clilen);
-
-        if (arg->sock < 0)
+        if (client_sock < 0)
         {
             handle_error(RIG_DEBUG_ERR, "accept");
             break;
         }
 
-        if ((retcode = getnameinfo((struct sockaddr const *)&arg->cli_addr,
-                                   arg->clilen,
+        if (!daemon_client_tracker_acquire(&client_tracker))
+        {
+            rig_debug(RIG_DEBUG_WARN,
+                      "Client limit of %u reached; closing connection\n",
+                      client_tracker.limit);
+#ifdef __MINGW32__
+            closesocket(client_sock);
+#else
+            close(client_sock);
+#endif
+            continue;
+        }
+
+        arg = calloc(1, sizeof(struct handle_data));
+
+        if (!arg)
+        {
+            rig_debug(RIG_DEBUG_ERR, "calloc: %s\n", strerror(errno));
+#ifdef __MINGW32__
+            closesocket(client_sock);
+#else
+            close(client_sock);
+#endif
+            daemon_client_tracker_release(&client_tracker);
+            continue;
+        }
+
+        arg->rot = my_rot;
+        arg->sock = client_sock;
+        arg->cli_addr = cli_addr;
+        arg->clilen = clilen;
+
+        if ((retcode = getnameinfo((struct sockaddr const *)&cli_addr,
+                                   clilen,
                                    host,
                                    sizeof(host),
                                    serv,
@@ -577,19 +634,23 @@ int main(int argc, char *argv[])
                   host,
                   serv);
 
-        pthread_attr_init(&attr);
-        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-
         retcode = pthread_create(&thread, &attr, handle_socket, arg);
 
         if (retcode != 0)
         {
             rig_debug(RIG_DEBUG_ERR, "pthread_create: %s\n", strerror(retcode));
-            break;
+#ifdef __MINGW32__
+            closesocket(client_sock);
+#else
+            close(client_sock);
+#endif
+            free(arg);
+            daemon_client_tracker_release(&client_tracker);
+            continue;
         }
-
     }
-    while (retcode == 0);
+
+    pthread_attr_destroy(&attr);
 
     rot_close(my_rot); /* close port */
     rot_cleanup(my_rot); /* if you care about memory */
@@ -696,6 +757,7 @@ handle_exit:
 #else
     close(handle_data_arg->sock);
 #endif
+    daemon_client_tracker_release(&client_tracker);
     free(arg);
 
     pthread_exit(NULL);
@@ -714,6 +776,7 @@ static void usage(FILE *fout)
         "  -R, --rot-file2=DEVICE        set device of the 2nd rotator controller to operate on\n"
         "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
         "  -t, --port=NUM                set TCP listening port, default %s\n"
+        "  -N, --max-clients=NUM         set maximum concurrent clients, default %u\n"
         "  -T, --listen-addr=IPADDR      set listening IP address, default ANY\n"
         "  -C, --set-conf=PARM=VAL[,...] set config parameters\n"
         "  -o, --set-azoffset=VAL        set offset for azimuth\n"
@@ -725,7 +788,8 @@ static void usage(FILE *fout)
         "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
         "  -h, --help                    display this help and exit\n"
         "  -V, --version                 output version information and exit\n\n",
-        portno);
+        portno,
+        DAEMON_DEFAULT_MAX_CLIENTS);
 
     usage_rot(fout);
 }

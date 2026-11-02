@@ -19,15 +19,26 @@ bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld rigctlcom rig
 DIRECT_TESTS = \
 	testbandmetadata \
 	testctlparser \
+	testdaemonclient \
+	testdaemonclients \
 	testdebug \
+	testdummyparm \
 	testid5100 \
 	testicomfallback \
+	testft991idmeter \
+	testelecraftvfo \
 	testftx1parsers \
 	testgeministatus \
 	testgs100 \
 	testicomts \
+	testnewcatset \
+	testsendraw \
+	testmodecompat \
+	testsmartsdrstatus \
 	testthd7x \
-	testthd75emu
+	testthd75emu \
+	testts990s \
+	testtrusdx
 
 GENERATED_TEST_WRAPPERS = \
 	test2038.sh \
@@ -37,6 +48,7 @@ GENERATED_TEST_WRAPPERS = \
 	testfreq.sh \
 	testgrid.sh \
 	testloc.sh \
+	testnetrigctl.sh \
 	testrig.sh \
 	testrigcaps.sh
 
@@ -55,6 +67,7 @@ check_PROGRAMS = \
 	testgrid \
 	testloc \
 	testmW2power \
+	testnetrigctl \
 	testrig \
 	testrigcaps \
 	testrigopen \
@@ -65,16 +78,17 @@ check_PROGRAMS = \
 RIGCOMMONSRC = rigctl_parse.c rigctl_parse.h dumpcaps.c dumpstate.c uthash.h rig_tests.c rig_tests.h dumpcaps.h
 ROTCOMMONSRC = rotctl_parse.c rotctl_parse.h dumpcaps_rot.c uthash.h dumpcaps_rot.h
 AMPCOMMONSRC = ampctl_parse.c ampctl_parse.h dumpcaps_amp.c uthash.h 
+DAEMONCLIENTSRC = daemon_client.c daemon_client.h
 
 rigctl_SOURCES = rigctl.c $(RIGCOMMONSRC)
-rigctld_SOURCES = rigctld.c $(RIGCOMMONSRC)
+rigctld_SOURCES = rigctld.c $(RIGCOMMONSRC) $(DAEMONCLIENTSRC)
 rigctlcom_SOURCES = rigctlcom.c $(RIGCOMMONSRC)
-rigctltcp_SOURCES = rigctltcp.c $(RIGCOMMONSRC)
+rigctltcp_SOURCES = rigctltcp.c $(RIGCOMMONSRC) $(DAEMONCLIENTSRC)
 rigctlsync_SOURCES = rigctlsync.c $(RIGCOMMONSRC)
 rotctl_SOURCES = rotctl.c $(ROTCOMMONSRC)
-rotctld_SOURCES = rotctld.c $(ROTCOMMONSRC)
+rotctld_SOURCES = rotctld.c $(ROTCOMMONSRC) $(DAEMONCLIENTSRC)
 ampctl_SOURCES = ampctl.c $(AMPCOMMONSRC)
-ampctld_SOURCES = ampctld.c $(AMPCOMMONSRC)
+ampctld_SOURCES = ampctld.c $(AMPCOMMONSRC) $(DAEMONCLIENTSRC)
 rigmem_SOURCES = rigmem.c memsave.c memload.c memcsv.c
 if TESTS_HAVE_LIBUSB
     rigtestlibusb_SOURCES = rigtestlibusb.c
@@ -100,15 +114,23 @@ rigctlcom_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/security
 rigctltcp_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/security
 rigctlsync_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/security
 testdebug_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testnetrigctl_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testsendraw_CFLAGS = $(AM_CFLAGS)
+testdaemonclient_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testid5100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testid5100_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testicomfallback_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testctlparser_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testgeministatus_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testgs100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testnewcatset_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testelecraftvfo_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testts990s_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testicomts_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testgeministatus_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/amplifiers/gemini
 testftx1parsers_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/yaesu/ftx1
+testft991idmeter_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/yaesu
+testsmartsdrstatus_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/flexradio
 if TESTS_HAVE_LIBUSB
     rigtestlibusb_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) $(LIBUSB_CFLAGS)
 endif
@@ -129,12 +151,24 @@ rigctlsync_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 testdebug_LDADD = $(PTHREAD_LIBS) $(LDADD)
 testid5100_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testicomfallback_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+testsendraw_SOURCES = testsendraw.c
+testsendraw_LDADD = $(NET_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
+testdaemonclient_SOURCES = testdaemonclient.c $(DAEMONCLIENTSRC)
+testdaemonclient_LDADD = $(PTHREAD_LIBS) $(LDADD)
 testctlparser_SOURCES = testctlparser.c $(RIGCOMMONSRC)
 testctlparser_LDADD = $(PTHREAD_LIBS) $(READLINE_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
+testmodecompat_LDADD = $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
 testicomts_LDADD = $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testgeministatus_LDADD = $(PTHREAD_LIBS) $(top_builddir)/amplifiers/gemini/libhamlib-gemini.la $(LDADD)
 testgs100_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/gomspace/libhamlib-gomspace.la $(LDADD)
+testelecraftvfo_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/kenwood/libhamlib-kenwood.la $(LDADD)
+testts990s_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/kenwood/libhamlib-kenwood.la $(LDADD)
 testftx1parsers_LDADD = $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
+testft991idmeter_LDADD = $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
+testnewcatset_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
+testnetrigctl_SOURCES = testnetrigctl.c $(top_srcdir)/rigs/dummy/dummy_common.c
+testnetrigctl_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/dummy/libhamlib-dummy.la $(LDADD)
+testsmartsdrstatus_LDADD = $(top_builddir)/rigs/flexradio/libhamlib-flexradio.la $(LDADD)
 if TESTS_HAVE_LIBUSB
     rigtestlibusb_LDADD = $(LIBUSB_LIBS)
 endif
@@ -166,7 +200,7 @@ if HTML_MATRIX
 EXTRA_PROGRAMS = rigmatrix
 # rigmatrix needs libgd
 rigmatrix_LDFLAGS = -lgd -lz
-rigmatrix.html: rigmatrix_head.html rigmatrix listrigs
+rigmatrix.html: rigmatrix_head.html rigmatrix listrigs rigctl
 	mkdir -p sup-info/support
 	( cat $(srcdir)/rigmatrix_head.html && cd sup-info && ../rigmatrix ) > sup-info/rigmatrix.html
 	for f in $$(./listrigs | tail -n +2 | cut -f1) ; do ( ./rigctl -m $$f -u > sup-info/support/model$$f.txt || exit 0 ) ; done
@@ -195,6 +229,13 @@ check_SCRIPTS = \
 
 TESTS = $(check_SCRIPTS) $(DIRECT_TESTS)
 
+if HAVE_USRP
+check_PROGRAMS += testusrp
+TESTS += testusrp
+testusrp_SOURCES = testusrp.cc
+testusrp_LDADD = $(top_builddir)/rigs/kit/libhamlib-kit.la $(LDADD)
+endif
+
 $(top_builddir)/src/libhamlib.la:
 	$(MAKE) -C $(top_builddir)/src/ libhamlib.la
 
@@ -213,12 +254,22 @@ $(top_builddir)/amplifiers/gemini/libhamlib-gemini.la:
 $(top_builddir)/rigs/gomspace/libhamlib-gomspace.la:
 	$(MAKE) -C $(top_builddir)/rigs/gomspace/ libhamlib-gomspace.la
 
+$(top_builddir)/rigs/kenwood/libhamlib-kenwood.la:
+	$(MAKE) -C $(top_builddir)/rigs/kenwood/ libhamlib-kenwood.la
+
 $(top_builddir)/rigs/yaesu/libhamlib-yaesu.la:
 	$(MAKE) -C $(top_builddir)/rigs/yaesu/ libhamlib-yaesu.la
+
+$(top_builddir)/rigs/flexradio/libhamlib-flexradio.la:
+	$(MAKE) -C $(top_builddir)/rigs/flexradio/ libhamlib-flexradio.la
 
 testrig.sh:
 	echo 'LD_LIBRARY_PATH=$(top_builddir)/src/.libs:$(top_builddir)/dummy/.libs ./testrig 1' > testrig.sh
 	chmod +x ./testrig.sh
+
+testnetrigctl.sh:
+	echo './testnetrigctl' > testnetrigctl.sh
+	chmod +x ./testnetrigctl.sh
 
 testfreq.sh:
 	echo './testfreq' > testfreq.sh

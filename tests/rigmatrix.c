@@ -23,7 +23,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <time.h>
 
 #include <gd.h>
 #include <gdfontg.h>
@@ -666,7 +665,6 @@ static int create_png_range(const freq_range_t rx_range_list[],
 
 int main(int argc, char *argv[])
 {
-    time_t gentime;
     int set_or_get;
     int i, nbytes, nbytes_total = 0;
     char *pbuf, prntbuf[4096];
@@ -732,6 +730,7 @@ int main(int argc, char *argv[])
 
     bitmap_func = 0;
     prntbuf[0] = '\0';
+    nbytes_total = 0;
     pbuf = prntbuf;
 
     for (i = 0; i < RIG_SETTING_MAX; i++)
@@ -747,9 +746,9 @@ int main(int argc, char *argv[])
         bitmap_func |= func;
         nbytes = strlen("<TD></TD>") + strlen(s) + 1;
         nbytes_total += nbytes;
-        pbuf += snprintf(pbuf, sizeof(pbuf) - nbytes_total, "<TD>%s</TD>", s);
+        pbuf += snprintf(pbuf, sizeof(prntbuf) - nbytes_total, "<TD>%s</TD>", s);
 
-        if (strlen(pbuf) > sizeof(pbuf) + nbytes)
+        if (strlen(pbuf) > sizeof(prntbuf) + nbytes)
         {
             printf("Buffer overflow in %s\n", __func__);
         }
@@ -775,6 +774,7 @@ int main(int argc, char *argv[])
 
     bitmap_level = 0;
     prntbuf[0] = '\0';
+    nbytes_total = 0;
     pbuf = prntbuf;
 
     for (i = 0; i < RIG_SETTING_MAX; i++)
@@ -790,9 +790,9 @@ int main(int argc, char *argv[])
         bitmap_level |= level;
         nbytes = strlen("<TD></TD>") + strlen(s) + 1;
         nbytes_total += nbytes;
-        pbuf += snprintf(pbuf, sizeof(pbuf) - nbytes_total, "<TD>%s</TD>", s);
+        pbuf += snprintf(pbuf, sizeof(prntbuf) - nbytes_total, "<TD>%s</TD>", s);
 
-        if (strlen(pbuf) > sizeof(pbuf) + nbytes)
+        if (strlen(pbuf) > sizeof(prntbuf) + nbytes)
         {
             printf("Buffer overflow in %s\n", __func__);
         }
@@ -818,6 +818,7 @@ int main(int argc, char *argv[])
 
     bitmap_parm = 0;
     prntbuf[0] = '\0';
+    nbytes_total = 0;
     pbuf = prntbuf;
 
     for (i = 0; i < RIG_SETTING_MAX; i++)
@@ -833,9 +834,10 @@ int main(int argc, char *argv[])
         bitmap_parm |= parm;
         nbytes = strlen("<TD></TD>") + strlen(s) + 1;
         nbytes_total += nbytes;
-        pbuf += snprintf(pbuf, sizeof(pbuf) - nbytes_total, "<TD>%s</TD>", s);
 
-        if (strlen(pbuf) > sizeof(pbuf) + nbytes)
+        pbuf += snprintf(pbuf, sizeof(prntbuf) - nbytes_total, "<TD>%s</TD>", s);
+
+        if (strlen(pbuf) > sizeof(prntbuf) + nbytes)
         {
             printf("Buffer overflow in %s\n", __func__);
         }
@@ -861,6 +863,7 @@ int main(int argc, char *argv[])
 
     bitmap_vfo_ops = 0;
     prntbuf[0] = '\0';
+    nbytes_total = 0;
     pbuf = prntbuf;
 
     for (i = 0; i < RIG_SETTING_MAX; i++)
@@ -876,9 +879,9 @@ int main(int argc, char *argv[])
         bitmap_vfo_ops |= op;
         nbytes = strlen("<TD></TD>") + strlen(s) + 1;
         nbytes_total += nbytes;
-        pbuf += snprintf(pbuf, sizeof(pbuf) - nbytes_total, "<TD>%s</TD>", s);
+        pbuf += snprintf(pbuf, sizeof(prntbuf) - nbytes_total, "<TD>%s</TD>", s);
 
-        if (strlen(pbuf) > sizeof(pbuf) + nbytes)
+        if (strlen(pbuf) > sizeof(prntbuf) + nbytes)
         {
             printf("Buffer overflow in %s\n", __func__);
         }
@@ -893,8 +896,7 @@ int main(int argc, char *argv[])
 
     printf("<P>");
 
-    time(&gentime);
-    printf("Rigmatrix generated %s\n", ctime(&gentime));
+    printf("Rigmatrix generated for %s\n", hamlib_version2);
 
     printf("</body></html>\n");
 

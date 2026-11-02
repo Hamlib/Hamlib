@@ -20,10 +20,12 @@
  *
  */
 
-// cppcheck-suppress *
+#include <errno.h>
+#include <limits.h>
 #include <stdlib.h>
+#include <string.h>
 
-#include "hamlib/rig.h"
+#include "dummy_common.h"
 
 struct ext_list *alloc_init_ext(const struct confparams *cfp)
 {
@@ -74,4 +76,80 @@ struct ext_list *find_ext(struct ext_list *elp, hamlib_token_t token)
     }
 
     return NULL;
+}
+
+void dummy_reset_agc_levels(
+    enum agc_level_e agc_levels[HAMLIB_MAX_AGC_LEVELS],
+    int *agc_level_count)
+{
+    for (int i = 0; i < HAMLIB_MAX_AGC_LEVELS; i++)
+    {
+        agc_levels[i] = RIG_AGC_NONE;
+    }
+
+    *agc_level_count = 0;
+}
+
+int dummy_parse_agc_levels(char *value,
+                           enum agc_level_e agc_levels[HAMLIB_MAX_AGC_LEVELS],
+                           int *agc_level_count)
+{
+    enum agc_level_e parsed_levels[HAMLIB_MAX_AGC_LEVELS];
+    char *saveptr = NULL;
+    char *token;
+    int count = 0;
+
+    if (value == NULL || value[0] == '\0' || agc_levels == NULL
+            || agc_level_count == NULL)
+    {
+        return -RIG_EPROTO;
+    }
+
+    for (int i = 0; i < HAMLIB_MAX_AGC_LEVELS; i++)
+    {
+        parsed_levels[i] = RIG_AGC_NONE;
+    }
+
+    for (token = strtok_r(value, " ", &saveptr); token != NULL;
+            token = strtok_r(NULL, " ", &saveptr))
+    {
+        char *separator;
+        char *endptr;
+        long code;
+
+        if (count == HAMLIB_MAX_AGC_LEVELS)
+        {
+            // Truncate a longer peer list to the array capacity
+            break;
+        }
+
+        separator = strchr(token, '=');
+
+        if (separator == NULL || separator == token || separator[1] == '\0'
+                || strchr(separator + 1, '=') != NULL)
+        {
+            return -RIG_EPROTO;
+        }
+
+        errno = 0;
+        code = strtol(token, &endptr, 10);
+
+        if (errno == ERANGE || code < INT_MIN || code > INT_MAX
+                || endptr != separator)
+        {
+            return -RIG_EPROTO;
+        }
+
+        parsed_levels[count++] = (enum agc_level_e)code;
+    }
+
+    if (count == 0)
+    {
+        return -RIG_EPROTO;
+    }
+
+    memcpy(agc_levels, parsed_levels, sizeof(parsed_levels));
+    *agc_level_count = count;
+
+    return RIG_OK;
 }

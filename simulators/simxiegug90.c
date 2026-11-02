@@ -202,7 +202,17 @@ void frameParse(int fd, unsigned char *frame, int len)
 
             if (power_level > 250) { power_level = 0; }
 
-            to_bcd(&frame[6], (long long)power_level, 2);
+            if (power_level >= 250)
+            {
+                // Malformed BCD (0x5f) at max power -- see g90_get_level()
+                frame[6] = 0x02;
+                frame[7] = 0x5f;
+            }
+            else
+            {
+                to_bcd(&frame[6], (long long)power_level, 2);
+            }
+
             frame[8] = 0xfd;
             write(fd, frame, 9);
             break;

@@ -22,6 +22,7 @@ rotctld \- TCP rotator control daemon
 .OP \-s baud
 .OP \-T IPADDR
 .OP \-t number
+.OP \-N number
 .OP \-C parm=val
 .RB [ \-v [ \-Z ]]
 .YS
@@ -175,6 +176,14 @@ As
 default port is 4533, it is advisable to use odd numbered ports for
 .BR rotctld ,
 e.g. 4533, 4535, 4537, etc.
+.
+.TP
+.BR \-N ", " \-\-max\-clients = \fInumber\fP
+Limit the number of concurrent TCP clients to
+.IR number .
+.IP
+The value must be a positive integer. The default is 32. Connections accepted
+while the limit is reached are closed immediately.
 .
 .TP
 .BR \-L ", " \-\-show\-conf
