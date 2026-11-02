@@ -34,11 +34,14 @@
 #include <time.h>
 
 #include "hamlib/rig.h"
+#include "icom_defs.h"
 #include "network_proto.h"
 #include "network_seqbuf.h"
 
 const uint8_t mock_freq_resp[] =
 { 0xfe, 0xfe, 0xe0, 0x98, 0x03, 0x00, 0x60, 0x06, 0x14, 0x00, 0xfd };
+
+static const uint8_t mock_nak[] = { 0xfe, 0xfe, 0xe0, 0x98, 0xfa, 0xfd };
 
 /* canned spectrum-scope (async) frame: cmd 0x27 subcmd 0x00 */
 const uint8_t mock_spectrum[] =
@@ -390,7 +393,6 @@ static void mock_reply_conninfo(struct mock_server *m, const uint8_t *buf, int n
 static void mock_civ_stream_open(struct mock_server *m, struct sockaddr_in *from,
                                  socklen_t from_length, uint32_t cli)
 {
-    static const uint8_t nak[] = { 0xfe, 0xfe, 0xe0, 0x98, 0xfa, 0xfd };
     uint8_t packet[64];
     int pl;
 
@@ -400,8 +402,9 @@ static void mock_civ_stream_open(struct mock_server *m, struct sockaddr_in *from
 
     if (!m->stale_nak) { return; }
 
-    pl = icom_network_packet_build_civ(packet, sizeof(packet), nak, sizeof(nak),
-                                       0xc0, 0, m->civ_sequence++,
+    pl = icom_network_packet_build_civ(packet, sizeof(packet), mock_nak,
+                                       sizeof(mock_nak), 0xc0, 0,
+                                       m->civ_sequence++,
                                        MOCK_SERVER_ID, cli);
 
     if (pl > 0)
@@ -412,15 +415,27 @@ static void mock_civ_stream_open(struct mock_server *m, struct sockaddr_in *from
 }
 
 /* Answer a CI-V command, optionally preceded by an unsolicited spectrum frame
- * and/or a sequence jump, both of which a test can ask for. */
-static void mock_reply_civ(struct mock_server *m, struct sockaddr_in *from,
-                           socklen_t from_length, uint32_t cli)
+ * and/or a sequence jump, both of which a test can ask for. Only a frequency
+ * read gets data; anything else gets a NAK, as from a radio that refuses it,
+ * so the backend does not wait out its timeout on each command it sends. */
+static void mock_reply_civ(struct mock_server *m, const uint8_t *buf, int n,
+                           struct sockaddr_in *from, socklen_t from_length,
+                           uint32_t cli)
 {
     uint8_t packet[600];
     uint8_t frame[512];
-    const uint8_t *reply = mock_freq_resp;
-    size_t reply_length = sizeof(mock_freq_resp);
+    struct icom_network_packet_civ civ;
+    const uint8_t *reply = mock_nak;
+    size_t reply_length = sizeof(mock_nak);
     int pl;
+
+    /* FE FE <to> <from> <cmd> ... FD */
+    if (icom_network_packet_parse_civ(buf, (size_t)n, &civ) == RIG_OK
+            && civ.payload_length > 5 && civ.data[4] == C_RD_FREQ)
+    {
+        reply = mock_freq_resp;
+        reply_length = sizeof(mock_freq_resp);
+    }
 
     if (m->civ_reply_length >= 6 && m->civ_reply_length <= (int)sizeof(frame))
     {
@@ -653,7 +668,7 @@ static void mock_service_civ(struct mock_server *m, uint8_t *buf, int n,
             break;
 
         case ICOM_NETWORK_PACKET_KIND_CIV:
-            mock_reply_civ(m, from, from_length, cli);
+            mock_reply_civ(m, buf, n, from, from_length, cli);
             break;
 
         case ICOM_NETWORK_PACKET_KIND_PING:
