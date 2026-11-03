@@ -44,11 +44,13 @@ void resetFIFO(FIFO_RIG *fifo)
 }
 
 // returns RIG_OK if added
-// return -RIG error if overflow
+// returns -RIG_EDOM, adding nothing, if the text does not fit
 int hl_push(FIFO_RIG *fifo, const char *msg)
 {
     pthread_mutex_lock(&fifo->mutex);
     int len = strlen(msg);
+    // Readers see the text only once fifo->tail is stored
+    int tail = fifo->tail;
 
     for (int i = 0; i < len; ++i)
     {
@@ -63,20 +65,27 @@ int hl_push(FIFO_RIG *fifo, const char *msg)
             continue;
         }
 
-        fifo->data[fifo->tail] = msg[i];
+        int next = (tail + 1) % HAMLIB_FIFO_SIZE;
+
+        if (next == fifo->head)
+        {
+            pthread_mutex_unlock(&fifo->mutex);
+            return -RIG_EDOM;
+        }
+
+        fifo->data[tail] = msg[i];
 
         if (isalnum(msg[i]))
             rig_debug(RIG_DEBUG_VERBOSE, "%s: push %c (%d,%d)\n", __func__, msg[i],
-                      fifo->head, fifo->tail);
+                      fifo->head, tail);
         else
             rig_debug(RIG_DEBUG_VERBOSE, "%s: push 0x%02x (%d,%d)\n", __func__, msg[i],
-                      fifo->head, fifo->tail);
+                      fifo->head, tail);
 
-        if (fifo->tail + 1 == fifo->head) { return -RIG_EDOM; }
-
-        fifo->tail = (fifo->tail + 1) % HAMLIB_FIFO_SIZE;
+        tail = next;
     }
 
+    fifo->tail = tail;
     pthread_mutex_unlock(&fifo->mutex);
     return RIG_OK;
 }

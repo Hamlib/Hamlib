@@ -155,6 +155,8 @@ rigctlsync_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 testdebug_LDADD = $(PTHREAD_LIBS) $(LDADD)
 testasyncio_LDADD = $(PTHREAD_LIBS) $(LDADD)
 testmorse_LDADD = $(PTHREAD_LIBS) $(LDADD)
+# Exercise internal FIFO helpers without adding them to the DLL exports.
+testmorse_SOURCES = testmorse.c $(top_srcdir)/src/fifo.c
 testid5100_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testicomfallback_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testsendraw_SOURCES = testsendraw.c

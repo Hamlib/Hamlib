@@ -246,11 +246,115 @@ static void test_queue_ready_before_worker(void)
     CHECK(rig_cleanup(rig) == RIG_OK);
 }
 
+static void check_fifo_text(FIFO_RIG *fifo, const char *text)
+{
+    for (size_t i = 0; text[i] != '\0'; ++i)
+    {
+        CHECK(hl_peek(fifo) == (unsigned char)text[i]);
+        CHECK(hl_pop(fifo) == (unsigned char)text[i]);
+    }
+
+    CHECK(hl_peek(fifo) == -1);
+    CHECK(hl_pop(fifo) == -1);
+}
+
+static void test_exact_capacity(void)
+{
+    FIFO_RIG fifo = { 0 };
+    char full[HAMLIB_FIFO_SIZE];
+
+    memset(full, 'E', sizeof(full) - 1);
+    full[sizeof(full) - 1] = '\0';
+    initFIFO(&fifo);
+    CHECK(hl_push(&fifo, full) == RIG_OK);
+    CHECK(hl_push(&fifo, "T") == -RIG_EDOM);
+    check_fifo_text(&fifo, full);
+    CHECK(hl_push(&fifo, "T") == RIG_OK);
+    check_fifo_text(&fifo, "T");
+    CHECK(pthread_mutex_destroy(&fifo.mutex) == 0);
+}
+
+static void test_filtered_capacity(void)
+{
+    FIFO_RIG fifo = { 0 };
+    char full[HAMLIB_FIFO_SIZE];
+
+    memset(full, 'E', sizeof(full) - 1);
+    full[sizeof(full) - 1] = '\0';
+    initFIFO(&fifo);
+    CHECK(hl_push(&fifo, "\rE\n\x80\xffT\r\n") == RIG_OK);
+    check_fifo_text(&fifo, "ET");
+    CHECK(hl_push(&fifo, full) == RIG_OK);
+    CHECK(hl_push(&fifo, "\r\n\x80\xff") == RIG_OK);
+    CHECK(hl_push(&fifo, "\r\nT\x80") == -RIG_EDOM);
+    check_fifo_text(&fifo, full);
+    CHECK(pthread_mutex_destroy(&fifo.mutex) == 0);
+}
+
+static void test_wraparound_rejection_preserves_text(void)
+{
+    FIFO_RIG fifo = { 0 };
+    char padding[HAMLIB_FIFO_SIZE - 3];
+    char too_long[HAMLIB_FIFO_SIZE];
+
+    memset(padding, 'E', sizeof(padding) - 1);
+    padding[sizeof(padding) - 1] = '\0';
+    memset(too_long, 'T', sizeof(too_long) - 1);
+    too_long[sizeof(too_long) - 1] = '\0';
+    initFIFO(&fifo);
+    CHECK(hl_push(&fifo, padding) == RIG_OK);
+    check_fifo_text(&fifo, padding);
+    CHECK(hl_push(&fifo, "ABCDEF") == RIG_OK);
+    CHECK(fifo.tail < fifo.head);
+    CHECK(hl_push(&fifo, too_long) == -RIG_EDOM);
+    CHECK(hl_push(&fifo, "G") == RIG_OK);
+    check_fifo_text(&fifo, "ABCDEFG");
+    CHECK(pthread_mutex_destroy(&fifo.mutex) == 0);
+}
+
+static void test_oversized_fresh_queue(void)
+{
+    char too_long[HAMLIB_FIFO_SIZE + 1];
+    RIG *rig = open_held_rig();
+
+    memset(too_long, 'E', sizeof(too_long) - 1);
+    too_long[sizeof(too_long) - 1] = '\0';
+    CHECK(rig_send_morse(rig, RIG_VFO_CURR, too_long) == -RIG_EDOM);
+    CHECK(hl_peek(STATE(rig)->fifo_morse) == -1);
+    release_worker();
+    CHECK(rig_close(rig) == RIG_OK);
+    CHECK(sent_equals(""));
+    CHECK(rig_cleanup(rig) == RIG_OK);
+}
+
+static void test_queue_recovers_after_overflow(void)
+{
+    char too_long[HAMLIB_FIFO_SIZE + 1];
+    RIG *rig = open_test_rig();
+
+    CHECK(rig_send_morse(rig, RIG_VFO_CURR, "E") == RIG_OK);
+    wait_until_sent("E");
+    memset(too_long, 'E', sizeof(too_long) - 1);
+    too_long[sizeof(too_long) - 1] = '\0';
+    CHECK(rig_send_morse(rig, RIG_VFO_CURR, too_long) == -RIG_EDOM);
+    CHECK(rig_send_morse(rig, RIG_VFO_CURR, "T") == RIG_OK);
+    wait_until_sent("ET");
+    CHECK(rig_close(rig) == RIG_OK);
+    CHECK(sent_equals("ET"));
+    CHECK(rig_cleanup(rig) == RIG_OK);
+}
+
 int main(void)
 {
     rig_set_debug(RIG_DEBUG_NONE);
     CHECK(rig_register(&morse_caps) == RIG_OK);
     run_test("queue ready before worker", test_queue_ready_before_worker);
+    run_test("exact usable capacity", test_exact_capacity);
+    run_test("filtered capacity", test_filtered_capacity);
+    run_test("wraparound rejection preserves text",
+             test_wraparound_rejection_preserves_text);
+    run_test("oversized fresh queue", test_oversized_fresh_queue);
+    run_test("queue recovers after overflow", test_queue_recovers_after_overflow);
     CHECK(rig_unregister(TEST_MORSE_MODEL) == RIG_OK);
     puts("Morse queue tests passed");
     return EXIT_SUCCESS;
