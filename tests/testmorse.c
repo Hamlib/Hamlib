@@ -69,6 +69,7 @@ static void run_test(const char *name, void (*test)(void))
 
 static pthread_mutex_t sent_lock = PTHREAD_MUTEX_INITIALIZER;
 static char sent[2 * HAMLIB_FIFO_SIZE + 1];
+static int sent_invalid;
 
 static int stub_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
@@ -90,6 +91,7 @@ static int stub_send_morse(RIG *rig, vfo_t vfo, const char *msg)
     used = strlen(sent);
     CHECK(length < sizeof(sent) - used);
     memcpy(sent + used, msg, length + 1);
+    sent_invalid |= memchr(msg, 0xff, length) != NULL;
     CHECK(pthread_mutex_unlock(&sent_lock) == 0);
     return RIG_OK;
 }
@@ -125,6 +127,7 @@ static RIG *open_test_rig(void)
 
     CHECK(pthread_mutex_lock(&sent_lock) == 0);
     sent[0] = '\0';
+    sent_invalid = 0;
     CHECK(pthread_mutex_unlock(&sent_lock) == 0);
     rig = rig_init(TEST_MORSE_MODEL);
     CHECK(rig != NULL);
@@ -138,7 +141,7 @@ static int sent_equals(const char *text)
     int equal;
 
     CHECK(pthread_mutex_lock(&sent_lock) == 0);
-    equal = strcmp(sent, text) == 0;
+    equal = !sent_invalid && strcmp(sent, text) == 0;
     CHECK(pthread_mutex_unlock(&sent_lock) == 0);
     return equal;
 }
@@ -344,6 +347,92 @@ static void test_queue_recovers_after_overflow(void)
     CHECK(rig_cleanup(rig) == RIG_OK);
 }
 
+static void test_reset_keeps_empty_sentinels(void)
+{
+    FIFO_RIG fifo = { 0 };
+
+    initFIFO(&fifo);
+    CHECK(hl_push(&fifo, "ET") == RIG_OK);
+    resetFIFO(&fifo);
+    CHECK(fifo.flush == 1);
+    CHECK(hl_peek(&fifo) == -1);
+    CHECK(hl_pop(&fifo) == -1);
+    CHECK(hl_pop(&fifo) == -1);
+    CHECK(fifo.head == fifo.tail);
+    CHECK(hl_push(&fifo, "A") == RIG_OK);
+    check_fifo_text(&fifo, "A");
+    CHECK(pthread_mutex_destroy(&fifo.mutex) == 0);
+}
+
+static void test_reset_before_dequeue_sends_nothing(void)
+{
+    RIG *rig = open_test_rig();
+    FIFO_RIG *fifo = STATE(rig)->fifo_morse;
+
+    CHECK(pthread_mutex_lock(&fifo->mutex) == 0);
+    fifo->data[fifo->tail] = 'E';
+    fifo->tail = (fifo->tail + 1) % HAMLIB_FIFO_SIZE;
+    /* Give the worker a chance to wait on the queue; this does not force
+     * every possible interleaving between its peek and pop. */
+    hl_usleep(300 * 1000);
+    fifo->head = fifo->tail;
+    CHECK(pthread_mutex_unlock(&fifo->mutex) == 0);
+    CHECK(rig_close(rig) == RIG_OK);
+    CHECK(sent_equals(""));
+    CHECK(rig_cleanup(rig) == RIG_OK);
+}
+
+struct stop_request
+{
+    RIG *rig;
+    int entered;
+    int done;
+    int result;
+};
+
+static void *stop_morse(void *arg)
+{
+    struct stop_request *request = arg;
+
+    __atomic_store_n(&request->entered, 1, __ATOMIC_RELEASE);
+    request->result = rig_stop_morse(request->rig, RIG_VFO_CURR);
+    __atomic_store_n(&request->done, 1, __ATOMIC_RELEASE);
+    return NULL;
+}
+
+static void test_stop_waits_for_queue_mutex(void)
+{
+    RIG *rig = open_held_rig();
+    FIFO_RIG *fifo = STATE(rig)->fifo_morse;
+    struct stop_request request = { rig, 0, 0, -RIG_EINTERNAL };
+    pthread_t thread;
+
+    CHECK(rig_send_morse(rig, RIG_VFO_CURR, "E") == RIG_OK);
+    CHECK(pthread_mutex_lock(&fifo->mutex) == 0);
+    CHECK(pthread_create(&thread, NULL, stop_morse, &request) == 0);
+
+    for (int i = 0;
+            i < 300 && !__atomic_load_n(&request.entered, __ATOMIC_ACQUIRE);
+            ++i)
+    {
+        hl_usleep(10 * 1000);
+    }
+
+    CHECK(__atomic_load_n(&request.entered, __ATOMIC_ACQUIRE));
+    hl_usleep(300 * 1000);
+    CHECK(!__atomic_load_n(&request.done, __ATOMIC_ACQUIRE));
+    CHECK(fifo->head != fifo->tail);
+    CHECK(pthread_mutex_unlock(&fifo->mutex) == 0);
+    CHECK(pthread_join(thread, NULL) == 0);
+    CHECK(request.result == RIG_OK);
+    CHECK(hl_peek(fifo) == -1);
+    CHECK(hl_pop(fifo) == -1);
+    release_worker();
+    CHECK(rig_close(rig) == RIG_OK);
+    CHECK(sent_equals(""));
+    CHECK(rig_cleanup(rig) == RIG_OK);
+}
+
 int main(void)
 {
     rig_set_debug(RIG_DEBUG_NONE);
@@ -355,6 +444,10 @@ int main(void)
              test_wraparound_rejection_preserves_text);
     run_test("oversized fresh queue", test_oversized_fresh_queue);
     run_test("queue recovers after overflow", test_queue_recovers_after_overflow);
+    run_test("reset keeps empty sentinels", test_reset_keeps_empty_sentinels);
+    run_test("reset before dequeue sends nothing",
+             test_reset_before_dequeue_sends_nothing);
+    run_test("stop waits for queue mutex", test_stop_waits_for_queue_mutex);
     CHECK(rig_unregister(TEST_MORSE_MODEL) == RIG_OK);
     puts("Morse queue tests passed");
     return EXIT_SUCCESS;
