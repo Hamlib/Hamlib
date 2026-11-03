@@ -141,6 +141,11 @@ struct mock_server
     HAMLIB_ATOMIC int civ_reply_length;
     /* Send each CI-V reply twice with the same sequence number. */
     HAMLIB_ATOMIC int civ_duplicate_reply;
+    /* Act as a radio still holding the previous client's CI-V stream (0 =
+     * off): answer each probe on the CI-V socket with that stream's packet
+     * numbered civ_left_over first, and a retransmit request for a lower
+     * number with that stream's packet, addressed to the previous client. */
+    HAMLIB_ATOMIC int civ_left_over;
     /* Stop sending anything on the CI-V socket (idles, replies, ping replies)
      * while the control socket carries on, as a radio that stopped serving
      * the CI-V stream does. */

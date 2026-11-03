@@ -353,7 +353,8 @@ static int icom_network_session_socket_open(struct icom_network_session_socket
     icom_network_txbuf_init(&s->txbuf);
     icom_network_rxtrack_init(&s->rxtrack);
     /* The radio numbers a stream's tracked packets from 0 (the login response
-     * on the control socket, the first CI-V frame on the CI-V socket). */
+     * is 0). A data socket is tracked afresh once it is pointed at the
+     * radio's port. */
     icom_network_rxtrack_expect(&s->rxtrack, 0);
     s->thread_running = 0;
     s->last_heard_ms = icom_network_now_ms();
@@ -2123,8 +2124,9 @@ static int icom_network_session_stage_reconnect_data_socket(
 
     sock->local_id = icom_network_session_local_id(sock->fd);
     sock->remote_id = 0;
-    /* A new port is a new stream with its own sequence numbers. */
-    icom_network_rxtrack_expect(&sock->rxtrack, 0);
+    /* A new port is a new stream, tracked from whatever arrives first: a radio
+     * may first send a packet of the previous client's stream, numbered past 0. */
+    icom_network_rxtrack_reset(&sock->rxtrack);
 
     return RIG_OK;
 }

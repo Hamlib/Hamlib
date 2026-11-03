@@ -622,6 +622,31 @@ void test_session_civ_duplicate_dropped(void)
     mock_stop(&mock);
 }
 
+/* A radio still holding the previous client's CI-V stream first sends one
+ * packet of it, numbered past 0, then numbers the new stream from 0. Asked for
+ * the numbers below that packet, it sends the previous stream's packets. The
+ * new stream's packets with those numbers, the reply to the first command
+ * among them, must not be taken for copies. */
+void test_session_civ_reply_after_left_over_packet(void)
+{
+    struct mock_server mock;
+    struct icom_network_session *s;
+    uint8_t cmd[] = { 0xfe, 0xfe, 0x98, 0xe0, 0x03, 0xfd };
+    uint8_t rx[256];
+    int n;
+
+    mock_start(&mock);
+    mock.civ_left_over = 40;
+    s = civ_session(&mock);
+
+    TEST_ASSERT(icom_network_civ_send(s, cmd, sizeof(cmd)) == (int)sizeof(cmd));
+    n = icom_network_civ_recv(s, rx, sizeof(rx), 1000);
+    TEST_CHECK_(n == (int)sizeof(mock_freq_resp), "first reply: %d", n);
+
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
 /* A socket error the system would pass on as momentary, and one it would not.
  * The session must tell them apart, and the codes differ per platform. */
 #ifdef __MINGW32__
@@ -2134,6 +2159,7 @@ TEST_LIST =
     { "civ_reply_with_management_length", test_session_civ_reply_with_management_length },
     { "civ_idles_not_requested",     test_session_civ_idles_not_requested },
     { "civ_duplicate_dropped",       test_session_civ_duplicate_dropped },
+    { "civ_reply_after_left_over_packet", test_session_civ_reply_after_left_over_packet },
     { "civ_silence_is_link_timeout", test_session_civ_silence_is_link_timeout },
     { "civ_port_refusing_is_socket_error", test_session_civ_port_refusing_is_socket_error },
     { "injected_socket_error_is_socket_error", test_session_injected_socket_error_is_socket_error },
