@@ -331,8 +331,8 @@ on the way (login, capabilities, connection info) is noticed from the gap in
 the radio's sequence numbers and requested again; resending the request would
 not help, because the radio has already received it and does not answer it
 twice. The radio numbers a stream's tracked packets from 0 (the login response
-is 0, the capabilities reply 1), and tracking expects that, so even the very
-first reply is recovered when it is lost. A connect that fails part-way hands its token back and disconnects
+is 0, the capabilities reply 1), and tracking on the control socket expects
+that, so even the very first reply is recovered when it is lost. A connect that fails part-way hands its token back and disconnects
 before returning. Otherwise the radio would keep the half-open session's slot
 and refuse the next attempts for tens of seconds.
 

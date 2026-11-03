@@ -43,6 +43,8 @@ const uint8_t mock_freq_resp[] =
 
 static const uint8_t mock_nak[] = { 0xfe, 0xfe, 0xe0, 0x98, 0xfa, 0xfd };
 
+#define MOCK_PREVIOUS_CLIENT_ID 0x0a0b0c0du
+
 /* canned spectrum-scope (async) frame: cmd 0x27 subcmd 0x00 */
 const uint8_t mock_spectrum[] =
 { 0xfe, 0xfe, 0xe0, 0x98, 0x27, 0x00, 0x01, 0x02, 0x03, 0x04, 0xfd };
@@ -414,6 +416,46 @@ static void mock_civ_stream_open(struct mock_server *m, struct sockaddr_in *from
     }
 }
 
+/* A packet of the previous client's CI-V stream (see civ_left_over). */
+static void mock_civ_send_previous(struct mock_server *m,
+                                   struct sockaddr_in *from,
+                                   socklen_t from_length, uint16_t sequence,
+                                   uint32_t to_id)
+{
+    uint8_t packet[64];
+    int pl = icom_network_packet_build_civ(packet, sizeof(packet), mock_nak,
+                                           sizeof(mock_nak), 0xc1, 0, sequence,
+                                           MOCK_SERVER_ID, to_id);
+
+    if (pl > 0)
+    {
+        mock_sendto(m->civ_fd, packet, pl, 0, (struct sockaddr *)from,
+                    from_length);
+    }
+}
+
+static void mock_civ_retransmit(struct mock_server *m, const uint8_t *buf,
+                                int n, struct sockaddr_in *from,
+                                socklen_t from_length)
+{
+    int i, count = (n - ICOM_NETWORK_HEADER_LEN) / 4;
+
+    m->civ_retransmit_requests++;
+
+    for (i = 0; i < (count > 0 ? count : 1); i++)
+    {
+        uint16_t want = count > 0
+                        ? icom_network_get_le16(buf + ICOM_NETWORK_HEADER_LEN + i * 4)
+                        : icom_network_get_le16(buf + ICOM_NETWORK_OFF_SEQUENCE);
+
+        if (want < m->civ_left_over)
+        {
+            mock_civ_send_previous(m, from, from_length, want,
+                                   MOCK_PREVIOUS_CLIENT_ID);
+        }
+    }
+}
+
 /* Answer a CI-V command, optionally preceded by an unsolicited spectrum frame
  * and/or a sequence jump, both of which a test can ask for. Only a frequency
  * read gets data; anything else gets a NAK, as from a radio that refuses it,
@@ -655,12 +697,19 @@ static void mock_service_civ(struct mock_server *m, uint8_t *buf, int n,
                                       ICOM_NETWORK_ROLE_CIV);
     uint16_t type = icom_network_get_le16(buf + ICOM_NETWORK_OFF_TYPE);
 
+    if (m->civ_left_over > 0 && k == ICOM_NETWORK_PACKET_KIND_CONTROL
+            && type == ICOM_NETWORK_CTL_PROBE)
+    {
+        mock_civ_send_previous(m, from, from_length,
+                               (uint16_t)m->civ_left_over, cli);
+    }
+
     if (!mock_reply_common_control(m->civ_fd, from, k, type, cli))
     {
         switch (k)
         {
         case ICOM_NETWORK_PACKET_KIND_RETRANSMIT:
-            m->civ_retransmit_requests++;
+            mock_civ_retransmit(m, buf, n, from, from_length);
             break;
 
         case ICOM_NETWORK_PACKET_KIND_OPENCLOSE:
