@@ -139,6 +139,29 @@ void test_stream_rig_open_close(void)
     mock_stop(&mock);
 }
 
+/* async=1 asks for the frontend's reader thread, which waits on the rig port.
+ * A network rig's port has no descriptor: its CI-V comes through the session,
+ * which routes transceive and scope frames itself. The rig must still open
+ * and close. */
+void test_stream_async_conf_is_harmless(void)
+{
+    struct mock_server mock;
+    RIG *rig;
+
+    mock_start(&mock);
+    rig = open_against_mock(&mock, "async=1");
+    TEST_ASSERT(rig != NULL);
+    TEST_CHECK_(STATE(rig)->async_data_handler_priv_data == NULL,
+                "no async reader thread on the rig port");
+
+    /* Long enough for a reader thread to be waiting on the port. */
+    usleep(200 * 1000);
+
+    TEST_CHECK(rig_close(rig) == RIG_OK);
+    rig_cleanup(rig);
+    mock_stop(&mock);
+}
+
 /* Open and close every advertised stream type. Exercises the buffer
  * allocation, codec setup and thread start/stop in stream_open/stream_close. */
 void test_stream_open_close_each_type(void)
@@ -1452,6 +1475,7 @@ void test_second_rx_stream_refused(void)
 TEST_LIST =
 {
     { "rig_open_close",            test_stream_rig_open_close },
+    { "async_conf_is_harmless",    test_stream_async_conf_is_harmless },
     { "open_close_each_type",      test_stream_open_close_each_type },
     { "reopen",                    test_stream_reopen },
     { "open_rejects_bad_config",   test_stream_open_rejects_bad_config },
