@@ -133,6 +133,7 @@ int main(void)
     size_t set_mark[4], read_mark[4];
     static const unsigned char select_vfo_b[] = { 0x07, 0x01 };
     static const unsigned char read_band[] = { 0x07, 0xd2 };
+    static const unsigned char read_frequency[] = { 0x03 };
     size_t vfo_b_mark, split_set_mark, split_read_mark;
     size_t sub_split_set_mark, sub_split_read_mark;
     static const struct
@@ -336,27 +337,36 @@ int main(void)
 
     for (i = 0; i < 2; i++)
     {
+        size_t expected_frames = lookups[i].reply == BAND_REFUSE ? 2 : 1;
+        const char *sequence = expected_frames == 2 ? "07 D2, 03" : "07 D2";
+
         if (lookup_set_ret[i] != lookups[i].error
-                || lookup_read_mark[i] != lookup_set_mark[i] + 1
-                || !frame_is(&test, lookup_set_mark[i], read_band, sizeof(read_band)))
+                || lookup_read_mark[i] != lookup_set_mark[i] + expected_frames
+                || !frame_is(&test, lookup_set_mark[i], read_band, sizeof(read_band))
+                || (expected_frames == 2
+                    && !frame_is(&test, lookup_set_mark[i] + 1,
+                                 read_frequency, sizeof(read_frequency))))
         {
             fprintf(stderr, "set_level SPECTRUM_SPAN CURR with VFOB on Sub and"
-                    " 07 D2 %s returned %d after %d frames, not %d after 07 D2"
-                    " alone\n", lookups[i].name, lookup_set_ret[i],
+                            " 07 D2 %s returned %d after %d frames, expected %d after"
+                            " %s\n", lookups[i].name, lookup_set_ret[i],
                     (int)(lookup_read_mark[i] - lookup_set_mark[i]),
-                    lookups[i].error);
+                    lookups[i].error, sequence);
             failed = 1;
         }
 
         if (lookup_read_ret[i] != lookups[i].error
-                || lookup_end_mark[i] != lookup_read_mark[i] + 1
-                || !frame_is(&test, lookup_read_mark[i], read_band, sizeof(read_band)))
+                || lookup_end_mark[i] != lookup_read_mark[i] + expected_frames
+                || !frame_is(&test, lookup_read_mark[i], read_band, sizeof(read_band))
+                || (expected_frames == 2
+                    && !frame_is(&test, lookup_read_mark[i] + 1,
+                                 read_frequency, sizeof(read_frequency))))
         {
             fprintf(stderr, "get_level SPECTRUM_SPAN CURR with VFOB on Sub and"
-                    " 07 D2 %s returned %d after %d frames, not %d after 07 D2"
-                    " alone\n", lookups[i].name, lookup_read_ret[i],
+                            " 07 D2 %s returned %d after %d frames, expected %d after"
+                            " %s\n", lookups[i].name, lookup_read_ret[i],
                     (int)(lookup_end_mark[i] - lookup_read_mark[i]),
-                    lookups[i].error);
+                    lookups[i].error, sequence);
             failed = 1;
         }
     }
