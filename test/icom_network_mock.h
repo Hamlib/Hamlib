@@ -52,6 +52,9 @@ struct mock_server
     HAMLIB_ATOMIC int saw_civ_cmd;
     /* emit a spectrum frame before each response */
     HAMLIB_ATOMIC int send_spectrum;
+    /* Make that frame this many bytes long instead of the canned one (0 =
+     * canned), as a radio sends a whole scope line over the network. */
+    HAMLIB_ATOMIC int spectrum_length;
     HAMLIB_ATOMIC int stale_nak;      /* flush a stale NAK at CI-V stream-open */
     /* Advance the CI-V sequence by this much before the next response, to
      * simulate a burst of loss larger than the replay window. */
