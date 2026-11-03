@@ -39,8 +39,10 @@ void initFIFO(FIFO_RIG *fifo)
 void resetFIFO(FIFO_RIG *fifo)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s: fifo flushed\n", __func__);
+    pthread_mutex_lock(&fifo->mutex);
     fifo->head = fifo->tail;
     fifo->flush = 1;
+    pthread_mutex_unlock(&fifo->mutex);
 }
 
 // returns RIG_OK if added
@@ -98,9 +100,14 @@ int hl_peek(FIFO_RIG *fifo)
 
     if (fifo->tail > 1023 || fifo->head > 1023) { return -1; }
 
-    if (fifo->tail == fifo->head) { return -1; }
-
     pthread_mutex_lock(&fifo->mutex);
+
+    if (fifo->tail == fifo->head)
+    {
+        pthread_mutex_unlock(&fifo->mutex);
+        return -1;
+    }
+
     char c = fifo->data[fifo->head];
 
 #if 0
@@ -120,9 +127,14 @@ int hl_peek(FIFO_RIG *fifo)
 
 int hl_pop(FIFO_RIG *fifo)
 {
-    if (fifo->tail == fifo->head) { return -1; }
-
     pthread_mutex_lock(&fifo->mutex);
+
+    if (fifo->tail == fifo->head)
+    {
+        pthread_mutex_unlock(&fifo->mutex);
+        return -1;
+    }
+
     char c = fifo->data[fifo->head];
 #if 0
 
