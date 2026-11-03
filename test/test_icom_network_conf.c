@@ -232,14 +232,16 @@ static const struct
 {
     rig_model_t model;
     const char *name;
+    int iq_rx;          /* offers IQ_RX over the network */
 } net_models[] =
 {
-    { RIG_MODEL_IC7610NET,     "IC-7610 (Network)"    },
-    { RIG_MODEL_IC9700NET,     "IC-9700 (Network)"    },
-    { RIG_MODEL_IC705NET,      "IC-705 (Network)"     },
-    { RIG_MODEL_IC905NET,      "IC-905 (Network)"     },
-    { RIG_MODEL_IC7760NET,     "IC-7760 (Network)"    },
-    { RIG_MODEL_IC7300MK2NET,  "IC-7300MK2 (Network)" },
+    { RIG_MODEL_IC7610NET,     "IC-7610 (Network)",    1 },
+    { RIG_MODEL_IC9700NET,     "IC-9700 (Network)",    1 },
+    { RIG_MODEL_IC705NET,      "IC-705 (Network)",     1 },
+    { RIG_MODEL_IC905NET,      "IC-905 (Network)",     1 },
+    /* Its I/Q leaves only through the RF deck's USB port. */
+    { RIG_MODEL_IC7760NET,     "IC-7760 (Network)",    0 },
+    { RIG_MODEL_IC7300MK2NET,  "IC-7300MK2 (Network)", 1 },
 };
 
 #define NET_MODEL_COUNT (sizeof(net_models) / sizeof(net_models[0]))
@@ -277,8 +279,8 @@ void test_all_net_models_registered(void)
     }
 }
 
-/* Every model streams RX audio, TX audio and I/Q; all of them expose the
- * radio's 48 kHz IF over the same audio path. */
+/* Every model streams RX and TX audio; those that offer I/Q carry it on the
+ * same 48 kHz audio path. */
 void test_all_net_models_stream_caps(void)
 {
     size_t i;
@@ -293,7 +295,7 @@ void test_all_net_models_stream_caps(void)
         TEST_MSG("model %s", net_models[i].name);
 
         n = rig_stream_caps_count(rig);
-        TEST_CHECK(n == 3);
+        TEST_CHECK(n == 2 + net_models[i].iq_rx);
         TEST_MSG("%s: %d stream caps", net_models[i].name, n);
 
         for (j = 0; j < n; j++)
@@ -314,7 +316,8 @@ void test_all_net_models_stream_caps(void)
             }
         }
 
-        TEST_CHECK(found_audio_rx && found_audio_tx && found_iq_rx);
+        TEST_CHECK(found_audio_rx && found_audio_tx
+                   && found_iq_rx == net_models[i].iq_rx);
         TEST_MSG("%s: rx=%d tx=%d iq=%d", net_models[i].name,
                  found_audio_rx, found_audio_tx, found_iq_rx);
 
