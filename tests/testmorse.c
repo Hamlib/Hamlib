@@ -1,0 +1,257 @@
+/*
+ * Hamlib Morse queue tests, run without a radio.
+ *
+ * SPDX-License-Identifier: LGPL-2.1-or-later
+ */
+
+#include "hamlib/config.h"
+
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "hamlib/rig.h"
+#include "hamlib/rig_state.h"
+#include "fifo.h"
+#include "misc.h"
+#include "rig_internal.h"
+
+#define TEST_MORSE_MODEL RIG_MAKE_MODEL(RIG_DUMMY, 998)
+
+#define CHECK(condition) \
+    do \
+    { \
+        if (!(condition)) \
+        { \
+            fprintf(stderr, "FAIL: %s:%d: %s\n", __FILE__, __LINE__, \
+                    #condition); \
+            exit(EXIT_FAILURE); \
+        } \
+    } while (0)
+
+struct test_deadline
+{
+    const char *name;
+    int done;
+};
+
+static void *watchdog(void *arg)
+{
+    struct test_deadline *deadline = arg;
+
+    for (int i = 0; i < 150; ++i)
+    {
+        if (__atomic_load_n(&deadline->done, __ATOMIC_ACQUIRE))
+        {
+            return NULL;
+        }
+
+        hl_usleep(100 * 1000);
+    }
+
+    fprintf(stderr, "FAIL: %s exceeded its 15 s deadline\n", deadline->name);
+    exit(EXIT_FAILURE);
+}
+
+static void run_test(const char *name, void (*test)(void))
+{
+    struct test_deadline deadline = { name, 0 };
+    pthread_t thread;
+
+    printf("%s\n", name);
+    fflush(stdout);
+    CHECK(pthread_create(&thread, NULL, watchdog, &deadline) == 0);
+    test();
+    __atomic_store_n(&deadline.done, 1, __ATOMIC_RELEASE);
+    CHECK(pthread_join(thread, NULL) == 0);
+}
+
+static pthread_mutex_t sent_lock = PTHREAD_MUTEX_INITIALIZER;
+static char sent[2 * HAMLIB_FIFO_SIZE + 1];
+
+static int stub_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+{
+    (void)rig;
+    (void)vfo;
+    *mode = RIG_MODE_CW;
+    *width = 500;
+    return RIG_OK;
+}
+
+static int stub_send_morse(RIG *rig, vfo_t vfo, const char *msg)
+{
+    size_t length = strlen(msg);
+    size_t used;
+
+    (void)rig;
+    (void)vfo;
+    CHECK(pthread_mutex_lock(&sent_lock) == 0);
+    used = strlen(sent);
+    CHECK(length < sizeof(sent) - used);
+    memcpy(sent + used, msg, length + 1);
+    CHECK(pthread_mutex_unlock(&sent_lock) == 0);
+    return RIG_OK;
+}
+
+static int stub_stop_morse(RIG *rig, vfo_t vfo)
+{
+    (void)rig;
+    (void)vfo;
+    return RIG_OK;
+}
+
+static struct rig_caps morse_caps =
+{
+    .rig_model = TEST_MORSE_MODEL,
+    .model_name = "Morse queue test",
+    .mfg_name = "Hamlib",
+    .version = "1",
+    .copyright = "LGPL",
+    .status = RIG_STATUS_STABLE,
+    .rig_type = RIG_TYPE_TRANSCEIVER,
+    .port_type = RIG_PORT_NONE,
+    .timeout = 200,
+    .retry = 0,
+    .get_mode = stub_get_mode,
+    .send_morse = stub_send_morse,
+    .stop_morse = stub_stop_morse,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS,
+};
+
+static RIG *open_test_rig(void)
+{
+    RIG *rig;
+
+    CHECK(pthread_mutex_lock(&sent_lock) == 0);
+    sent[0] = '\0';
+    CHECK(pthread_mutex_unlock(&sent_lock) == 0);
+    rig = rig_init(TEST_MORSE_MODEL);
+    CHECK(rig != NULL);
+    STATE(rig)->poll_interval = 0;
+    CHECK(rig_open(rig) == RIG_OK);
+    return rig;
+}
+
+static int sent_equals(const char *text)
+{
+    int equal;
+
+    CHECK(pthread_mutex_lock(&sent_lock) == 0);
+    equal = strcmp(sent, text) == 0;
+    CHECK(pthread_mutex_unlock(&sent_lock) == 0);
+    return equal;
+}
+
+static void wait_until_sent(const char *text)
+{
+    for (int i = 0; i < 300 && !sent_equals(text); ++i)
+    {
+        hl_usleep(10 * 1000);
+    }
+
+    CHECK(sent_equals(text));
+}
+
+static struct
+{
+    pthread_mutex_t mutex;
+    pthread_cond_t condition;
+    void *(*routine)(void *);
+    void *arg;
+    int entered;
+    int released;
+} worker_gate =
+{
+    PTHREAD_MUTEX_INITIALIZER,
+    PTHREAD_COND_INITIALIZER,
+    NULL,
+    NULL,
+    0,
+    0
+};
+
+static void *held_trampoline(void *arg)
+{
+    void *(*routine)(void *);
+    void *routine_arg;
+
+    (void)arg;
+    CHECK(pthread_mutex_lock(&worker_gate.mutex) == 0);
+    worker_gate.entered = 1;
+    CHECK(pthread_cond_broadcast(&worker_gate.condition) == 0);
+
+    while (!worker_gate.released)
+    {
+        CHECK(pthread_cond_wait(&worker_gate.condition,
+                                &worker_gate.mutex) == 0);
+    }
+
+    routine = worker_gate.routine;
+    routine_arg = worker_gate.arg;
+    CHECK(pthread_mutex_unlock(&worker_gate.mutex) == 0);
+    return routine(routine_arg);
+}
+
+static int held_thread_start(pthread_t *thread, void *(*routine)(void *),
+                             void *arg)
+{
+    CHECK(pthread_mutex_lock(&worker_gate.mutex) == 0);
+    worker_gate.routine = routine;
+    worker_gate.arg = arg;
+    worker_gate.entered = 0;
+    worker_gate.released = 0;
+    CHECK(pthread_mutex_unlock(&worker_gate.mutex) == 0);
+    return pthread_create(thread, NULL, held_trampoline, NULL);
+}
+
+static RIG *open_held_rig(void)
+{
+    RIG *rig;
+
+    skip_init = 1;
+    rig = open_test_rig();
+    skip_init = 0;
+    CHECK(rig_morse_data_handler_start(rig, held_thread_start) == RIG_OK);
+    CHECK(pthread_mutex_lock(&worker_gate.mutex) == 0);
+
+    while (!worker_gate.entered)
+    {
+        CHECK(pthread_cond_wait(&worker_gate.condition,
+                                &worker_gate.mutex) == 0);
+    }
+
+    CHECK(pthread_mutex_unlock(&worker_gate.mutex) == 0);
+    CHECK(STATE(rig)->fifo_morse != NULL);
+    return rig;
+}
+
+static void release_worker(void)
+{
+    CHECK(pthread_mutex_lock(&worker_gate.mutex) == 0);
+    worker_gate.released = 1;
+    CHECK(pthread_cond_broadcast(&worker_gate.condition) == 0);
+    CHECK(pthread_mutex_unlock(&worker_gate.mutex) == 0);
+}
+
+static void test_queue_ready_before_worker(void)
+{
+    RIG *rig = open_held_rig();
+
+    CHECK(rig_send_morse(rig, RIG_VFO_CURR, "E") == RIG_OK);
+    CHECK(sent_equals(""));
+    release_worker();
+    wait_until_sent("E");
+    CHECK(rig_close(rig) == RIG_OK);
+    CHECK(rig_cleanup(rig) == RIG_OK);
+}
+
+int main(void)
+{
+    rig_set_debug(RIG_DEBUG_NONE);
+    CHECK(rig_register(&morse_caps) == RIG_OK);
+    run_test("queue ready before worker", test_queue_ready_before_worker);
+    CHECK(rig_unregister(TEST_MORSE_MODEL) == RIG_OK);
+    puts("Morse queue tests passed");
+    return EXIT_SUCCESS;
+}

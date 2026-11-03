@@ -8605,6 +8605,21 @@ int rig_morse_data_handler_start(RIG *rig,
         RETURNFUNC(-RIG_ENOMEM);
     }
 
+    // The queue must be ready even if rig_open() returns before the worker runs.
+    if (rs->fifo_morse == NULL)
+    {
+        rs->fifo_morse = calloc(1, sizeof(FIFO_RIG));
+
+        if (rs->fifo_morse == NULL)
+        {
+            free(rs->morse_data_handler_priv_data);
+            rs->morse_data_handler_priv_data = NULL;
+            RETURNFUNC(-RIG_ENOMEM);
+        }
+    }
+
+    initFIFO(rs->fifo_morse);
+
     morse_data_handler_priv = (morse_data_handler_priv_data *)
                               rs->morse_data_handler_priv_data;
     morse_data_handler_priv->args.rig = rig;
@@ -8623,6 +8638,8 @@ int rig_morse_data_handler_start(RIG *rig,
         rs->morse_data_handler_thread_run = 0;
         free(rs->morse_data_handler_priv_data);
         rs->morse_data_handler_priv_data = NULL;
+        free(rs->fifo_morse);
+        rs->fifo_morse = NULL;
         rig_debug(RIG_DEBUG_ERR, "%s: pthread_create error: %s\n", __func__,
                   strerror(err));
         RETURNFUNC(-RIG_EINTERNAL);
@@ -8829,14 +8846,6 @@ static void *morse_data_handler(void *arg)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: Starting morse data handler thread\n",
               __func__);
-
-    if (STATE(rig)->fifo_morse == NULL)
-    {
-        // Can't use rs-> 'cuz it's const
-        STATE(rig)->fifo_morse = calloc(1, sizeof(FIFO_RIG));
-    }
-
-    initFIFO(rs->fifo_morse);
 
     char *c;
     int qsize = rig->caps->morse_qsize; // if backend overrides qsize

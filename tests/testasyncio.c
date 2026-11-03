@@ -437,6 +437,7 @@ static void test_failed_morse_start_rolls_back_state(void)
         check_thread_error();
         REQUIRE(!STATE(rig)->morse_data_handler_thread_run);
         REQUIRE(STATE(rig)->morse_data_handler_priv_data == NULL);
+        REQUIRE(STATE(rig)->fifo_morse == NULL);
     }
 
     REQUIRE(rig_open(rig) == RIG_OK);

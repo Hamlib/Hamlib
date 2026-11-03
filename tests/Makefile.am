@@ -35,6 +35,7 @@ DIRECT_TESTS = \
 	testnewcatset \
 	testsendraw \
 	testmodecompat \
+	testmorse \
 	testsmartsdrstatus \
 	testthd7x \
 	testthd75emu \
@@ -116,6 +117,7 @@ rigctltcp_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/security
 rigctlsync_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/security
 testdebug_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testasyncio_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testmorse_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testnetrigctl_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testsendraw_CFLAGS = $(AM_CFLAGS)
 testdaemonclient_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
@@ -152,6 +154,7 @@ rigctltcp_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rigctlsync_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 testdebug_LDADD = $(PTHREAD_LIBS) $(LDADD)
 testasyncio_LDADD = $(PTHREAD_LIBS) $(LDADD)
+testmorse_LDADD = $(PTHREAD_LIBS) $(LDADD)
 testid5100_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testicomfallback_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testsendraw_SOURCES = testsendraw.c
