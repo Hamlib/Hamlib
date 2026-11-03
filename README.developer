@@ -615,19 +615,23 @@ are available and will be used to assist in improving Hamlib.
     Version numbers used are in the form YYYYMMDD.N where the .N is
     intended for multiple versions in one day....so typically would be .0
 
-    2.1. mkdir mybackend
-         Create a new subdir, of the name of the protocol backend.
-         NB: the directory MUST be the same as the backend name.
+    2.1. Create rigs/mybackend, rotators/mybackend, or amplifiers/mybackend
+         for the new protocol family. The directory must have the backend's
+         name.
 
-    2.2. Add <mybackend> to the DIST_SUBDIRS variable in the topdir
-         Makefile.am (not needed for rotators)
+    2.2. Create a local.mk build fragment in the backend directory and include
+         it from the top-level Makefile.am. Use another backend's fragment as
+         a template. Keep source, header, and documentation paths relative to
+         the source root, and give helper variables backend-specific names.
 
-    2.3. Add the backend name to the BACKEND_LIST variable (add to
+    2.3. Add the backend directory to RIG_BACKEND_LIST (add to
          ROT_BACKEND_LIST for a new rotor backend or to AMP_BACKEND_LIST for
          a new amplifier) in configure.ac.
 
-    2.4. Add "mybackend/Makefile" in the AC_CONFIG_FILES macro at the bottom
-         of configure.ac.
+    2.4. Append the backend library to noinst_LTLIBRARIES in its fragment.
+         Optional backends must condition library membership while retaining
+         source and distribution metadata when disabled. The fragment replaces
+         a separate backend Makefile; do not add an AC_CONFIG_FILES entry.
 
     2.5. Add DEFINE_INITRIG_BACKEND(mybackend); to the end of the existing list
          in src/register.c or, for a new rotor backend, add
@@ -643,14 +647,16 @@ are available and will be used to assist in improving Hamlib.
     2.7. Add the new backend to include/hamlib/riglist.h or include/hamlib/rotlist.h or include/hamlib/amplist.h
          by selecting the next higher backend ID number.
 
-    2.8. Create mybackend/Makefile.am, mybackend.c mybackend.h
-         Use 'dummy' backend as a template.
-         Here are commands for the bourne shell:
+    2.8. Create mybackend.c and mybackend.h. Run ./bootstrap after changing
+         build metadata, then configure an out-of-tree build as usual.
 
-            $ automake mybackend/Makefile
-            $ CONFIG_HEADERS= CONFIG_LINKS= CONFIG_FILES=mybackend/Makefile ./config.status
+         All backend fragments feed one Make scheduler, so make -j4 can
+         compile files from different backends concurrently. Build one backend
+         from the build root using its library path, for example:
 
-         make in topdir to rebuild all
+            $ make -j4 rigs/dummy/libhamlib-dummy.la
+
+         Per-backend Makefiles and make -C rigs/dummy are not supported.
 
     2.9. Commit your work to your local repository. (developer access to
          Hamlib Git required for pushing to the canonical Hamlib repository
@@ -661,7 +667,7 @@ are available and will be used to assist in improving Hamlib.
          $ git add mybackend
          $ cd mybackend
          (The following command might not be necessary)
-         $ git add Makefile.am mybackend.c mybackend.h
+         $ git add local.mk mybackend.c mybackend.h
 
          While specifying each file individually as above allows for fine-
          grained control, git offers a wildcard shortcut to add all new files:
@@ -672,7 +678,8 @@ are available and will be used to assist in improving Hamlib.
          build process, this command will add them too unless they match a
          pattern in .gitignore.  Always check with 'git status' first!
 
-         $ git commit -m "Initial release" Makefile.am mybackend.c mybackend.h
+         $ git commit -m "feat(backend): add mybackend support" \
+             local.mk mybackend.c mybackend.h
 
          Note: The '-m' switch passes a short message to the Git repository
          upon a commit.  If a longer message is desired, do not use the '-m'
@@ -695,7 +702,7 @@ are available and will be used to assist in improving Hamlib.
     3.2. Locate the existing backend
     3.3. Clone the most similar model in the backend
     3.4. Add the new C file to the _SOURCES variable
-         of the backend's Makefile.am
+         of the backend's local.mk fragment
 
     3.5. Add "extern const struct rig_caps <mymodel>_caps;" to mybackend.h
     3.6. In initrigs_<mybackend> of mybackend.c,
@@ -704,12 +711,9 @@ are available and will be used to assist in improving Hamlib.
     3.6a Add RIG_NODEL_XXXXXX to bindings/python/test_Hamlib_class.py (do observe
          this file is maintained in ASCII alphabetical order)
 
-    3.7. Run 'make' if you have dependencies, or the following to regenerate
-         the makefile:
-            $ automake mybackend/Makefile
-            $ CONFIG_HEADERS= CONFIG_LINKS= CONFIG_FILES=mybackend/Makefile ./config.status
-
-            Run 'make' in topdir to rebuild all.
+    3.7. Run ./bootstrap after changing the fragment, then rebuild from the
+         configured build root with make -j4. To build only the backend, use
+         its library path as shown in Section 2.8.
 
     3.8. Commit your work (once tests are satisfactory):
          $ git add .

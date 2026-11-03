@@ -43,8 +43,17 @@ libhamlib_la_DEPENDENCIES = $(top_builddir)/lib/libmisc.la $(top_builddir)/secur
 
 EXTRA_DIST = hamlibdatetime.h.in band_changed.c
 
-# Rule to build the dependencies of libhamlib.la that are in other directories
-$(libhamlib_la_DEPENDENCIES):
+BACKEND_ARCHIVES = $(BACKENDEPS) $(RIG_BACKENDEPS) $(ROT_BACKENDEPS) $(AMP_BACKENDEPS)
+
+.PHONY: update-backend-libraries
+update-backend-libraries:
+	$(MAKE) -C $(top_builddir) backend-libraries
+
+# Normal prerequisites refresh archive timestamps before the link decision.
+$(BACKEND_ARCHIVES): update-backend-libraries
+	@test -f "$@"
+
+$(top_builddir)/lib/libmisc.la $(top_builddir)/security/libsecurity.la:
 	$(MAKE) -C $(@D) $(@F)
 
 # If we have  a .git directory then we will  generate the hamlibdate.h

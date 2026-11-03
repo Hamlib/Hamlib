@@ -28,12 +28,3 @@ TESTS += testusrp
 testusrp_SOURCES = testusrp.cc
 testusrp_LDADD = $(top_builddir)/rigs/kit/libhamlib-kit.la $(LDADD)
 endif
-
-$(top_builddir)/amplifiers/gemini/libhamlib-gemini.la:
-	$(MAKE) -C $(top_builddir)/amplifiers/gemini/ libhamlib-gemini.la
-
-$(top_builddir)/rigs/gomspace/libhamlib-gomspace.la:
-	$(MAKE) -C $(top_builddir)/rigs/gomspace/ libhamlib-gomspace.la
-
-$(top_builddir)/rigs/flexradio/libhamlib-flexradio.la:
-	$(MAKE) -C $(top_builddir)/rigs/flexradio/ libhamlib-flexradio.la

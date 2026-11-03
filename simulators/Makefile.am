@@ -98,8 +98,4 @@ EXTRA_DIST = sim.h simft990.dat
 
 #TESTS = $(check_SCRIPTS)
 
-$(top_builddir)/src/libhamlib.la:
-	$(MAKE) -C $(top_builddir)/src/ libhamlib.la
-
-$(top_builddir)/lib/libmisc.la:
-	$(MAKE) -C $(top_builddir)/lib/ libmisc.la
+include $(top_srcdir)/src/hamlib-library.am

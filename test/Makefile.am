@@ -133,11 +133,7 @@ EXTRA_DIST = acutest.h test_debug.h
 checkprogs: $(check_PROGRAMS)
 .PHONY: checkprogs
 
-$(top_builddir)/src/libhamlib.la:
-	$(MAKE) -C $(top_builddir)/src/ libhamlib.la
+include $(top_srcdir)/src/hamlib-library.am
 
-$(top_builddir)/lib/libmisc.la:
-	$(MAKE) -C $(top_builddir)/lib/ libmisc.la
-
-$(top_builddir)/simulators/simflex$(EXEEXT):
+$(top_builddir)/simulators/simflex$(EXEEXT): update-hamlib-library
 	$(MAKE) -C $(top_builddir)/simulators simflex$(EXEEXT)
