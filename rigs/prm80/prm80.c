@@ -296,7 +296,8 @@ static int prm80_transaction(RIG *rig, const char *cmd,
 
     if (wait_prompt)
     {
-        prm80_wait_for_prompt(rp);
+        // e.g. [N]: without the prompt the command may not have completed
+        return prm80_wait_for_prompt(rp);
     }
 
     return RIG_OK;
