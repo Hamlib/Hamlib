@@ -5,6 +5,8 @@
  * and hands it to the backend.  The queue exists before the thread runs, so
  * text queued right after rig_open() reaches the backend too.  A text that
  * does not fit in the queue is refused whole, and the queue keeps working.
+ * Text emptied from the queue before the thread takes it is never sent, and
+ * rig_stop_morse() empties the queue only while the thread is not using it.
  *
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
@@ -17,6 +19,7 @@
 #include "test_debug.h"
 
 #include <pthread.h>
+#include <stdint.h>
 #include <string.h>
 
 #include "hamlib/rig.h"
@@ -51,6 +54,13 @@ static int stub_send_morse(RIG *rig, vfo_t vfo, const char *msg)
     return RIG_OK;
 }
 
+static int stub_stop_morse(RIG *rig, vfo_t vfo)
+{
+    (void) rig;
+    (void) vfo;
+    return RIG_OK;
+}
+
 static struct rig_caps morse_caps =
 {
     .rig_model = TEST_MORSE_MODEL,
@@ -65,6 +75,7 @@ static struct rig_caps morse_caps =
     .retry = 0,
     .get_mode = stub_get_mode,
     .send_morse = stub_send_morse,
+    .stop_morse = stub_stop_morse,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS,
 };
 
@@ -234,6 +245,69 @@ static void test_queue_works_after_a_refused_text(void)
     rig_cleanup(rig);
 }
 
+static void test_text_emptied_before_it_is_taken_is_not_sent(void)
+{
+    RIG *rig = open_test_rig();
+    FIFO_RIG *fifo;
+
+    TEST_ASSERT(rig != NULL);
+    fifo = STATE(rig)->fifo_morse;
+
+    /* Holding the queue's mutex stops the thread at its next look at the
+     * queue (every 100 ms), after it may already have seen the text. */
+    pthread_mutex_lock(&fifo->mutex);
+    fifo->data[fifo->tail] = 'E';
+    fifo->tail = (fifo->tail + 1) % HAMLIB_FIFO_SIZE;
+    hl_usleep(300 * 1000);
+    /* Empty the queue as resetFIFO() does for rig_stop_morse(). */
+    fifo->head = fifo->tail;
+    pthread_mutex_unlock(&fifo->mutex);
+
+    TEST_CHECK(rig_close(rig) == RIG_OK);
+    TEST_CHECK(sent_equals(""));
+    TEST_MSG("sent %d bytes, first 0x%02x", (int) strlen(sent),
+             (unsigned char) sent[0]);
+    rig_cleanup(rig);
+}
+
+static void *stop_morse(void *arg)
+{
+    return (void *)(intptr_t) rig_stop_morse(arg, RIG_VFO_CURR);
+}
+
+static void test_stop_waits_until_the_queue_is_free(void)
+{
+    RIG *rig = open_test_rig();
+    FIFO_RIG *fifo;
+    pthread_t thread;
+    void *stop_rc;
+    int emptied_while_held;
+
+    TEST_ASSERT(rig != NULL);
+    fifo = STATE(rig)->fifo_morse;
+
+    /* The test holds the queue's mutex as the thread does while it takes a
+     * character; a stop must not empty the queue meanwhile. */
+    pthread_mutex_lock(&fifo->mutex);
+    fifo->data[fifo->tail] = 'E';
+    fifo->tail = (fifo->tail + 1) % HAMLIB_FIFO_SIZE;
+    TEST_ASSERT(pthread_create(&thread, NULL, stop_morse, rig) == 0);
+    hl_usleep(300 * 1000);
+    emptied_while_held = fifo->head == fifo->tail;
+    pthread_mutex_unlock(&fifo->mutex);
+    pthread_join(thread, &stop_rc);
+
+    TEST_CHECK_(!emptied_while_held,
+                "rig_stop_morse() leaves the queue alone while it is in use");
+    TEST_CHECK((intptr_t) stop_rc == RIG_OK);
+    pthread_mutex_lock(&fifo->mutex);
+    TEST_CHECK_(fifo->head == fifo->tail,
+                "the queue is empty once rig_stop_morse() returns");
+    pthread_mutex_unlock(&fifo->mutex);
+    TEST_CHECK(rig_close(rig) == RIG_OK);
+    rig_cleanup(rig);
+}
+
 TEST_LIST =
 {
     { "text_queued_before_the_thread_runs_is_sent",
@@ -241,5 +315,9 @@ TEST_LIST =
     { "text_longer_than_the_queue_is_refused",
       test_text_longer_than_the_queue_is_refused },
     { "queue_works_after_a_refused_text", test_queue_works_after_a_refused_text },
+    { "text_emptied_before_it_is_taken_is_not_sent",
+      test_text_emptied_before_it_is_taken_is_not_sent },
+    { "stop_waits_until_the_queue_is_free",
+      test_stop_waits_until_the_queue_is_free },
     { NULL, NULL }
 };

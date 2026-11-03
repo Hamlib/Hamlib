@@ -8907,6 +8907,13 @@ static void *morse_data_handler(void *arg)
             }
 
             d = hl_pop(rs->fifo_morse);
+
+            // rig_stop_morse() may have emptied the queue since the peek
+            if (d < 0)
+            {
+                break;
+            }
+
             c[n] = (char) d;
         }
 
