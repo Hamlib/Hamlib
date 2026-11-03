@@ -993,8 +993,9 @@ static int wait_for_subscribe(struct rigctld_stream *stream)
 
         FD_ZERO(&fds);
         FD_SET(stream->udp_sock, &fds);
-        tv.tv_sec = 1;
-        tv.tv_usec = 0;
+        /* Closing the stream waits until this loop sees running == 0. */
+        tv.tv_sec = 0;
+        tv.tv_usec = 100000;
 
         int ready = select(stream->udp_sock + 1, &fds, NULL, NULL, &tv);
 
