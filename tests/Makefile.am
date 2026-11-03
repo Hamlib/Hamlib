@@ -180,11 +180,12 @@ check_SCRIPTS = \
 
 TESTS = $(check_SCRIPTS)
 
-$(top_builddir)/src/libhamlib.la:
-	$(MAKE) -C $(top_builddir)/src/ libhamlib.la
+BACKEND_ARCHIVES = $(BACKENDEPS) $(RIG_BACKENDEPS) $(ROT_BACKENDEPS) $(AMP_BACKENDEPS)
 
-$(top_builddir)/lib/libmisc.la:
-	$(MAKE) -C $(top_builddir)/lib/ libmisc.la
+include $(top_srcdir)/src/hamlib-library.am
+
+$(BACKEND_ARCHIVES): update-hamlib-library
+	@test -f "$@"
 
 testrig.sh:
 	echo 'LD_LIBRARY_PATH=$(top_builddir)/src/.libs:$(top_builddir)/dummy/.libs ./testrig 1' > testrig.sh
@@ -232,7 +233,7 @@ CLEANFILES = \
 	$(GENERATED_TEST_WRAPPERS)
 
 # Keep each subsystem's test registration, flags, sources, libraries, and
-# backend prerequisites together. See make/README.md for the layout rules.
+# dependencies together. See make/README.md for the layout rules.
 include $(srcdir)/make/tests-core.am
 include $(srcdir)/make/tests-network.am
 include $(srcdir)/make/tests-dummy.am

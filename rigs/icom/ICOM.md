@@ -468,7 +468,7 @@ Then:
 1. A model number in `include/hamlib/riglist.h`.
 2. `<model>net_init_caps(); rig_register(&<model>net_caps);` in `icom.c`,
    next to the serial model.
-3. The file in `rigs/icom/Makefile.am`.
+3. The file in `rigs/icom/local.mk`.
 4. Declarations in `icom.h`.
 5. The model in `bindings/python/test_Hamlib_class.py`, alphabetically.
 

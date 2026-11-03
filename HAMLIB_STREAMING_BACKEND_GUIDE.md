@@ -1183,12 +1183,14 @@ See also: `struct dummy_stream_state` in `rigs/dummy/dummy_stream.h`.
 
 ## 12. Build System Integration
 
-### Makefile.am
+### Backend build fragment
 
-Add your streaming source files to the backend's `_SOURCES`:
+Add your streaming source files to the backend's `_SOURCES` list in its
+`local.mk` fragment. Use paths relative to the source root:
 
 ```makefile
-libhamlib_myrig_la_SOURCES = myrig.c myrig.h myrig_stream.c myrig_stream.h
+rigs_myrig_libhamlib_myrig_la_SOURCES += \
+    rigs/myrig/myrig_stream.c rigs/myrig/myrig_stream.h
 ```
 
 ### Headers to include
@@ -1311,7 +1313,7 @@ test suite.
       [ ] 7c. Close radio-side resources
       [ ] 7d. Free per-stream state, set backend_priv = NULL
 [ ] 8. Register callbacks in rig_caps (Section 8)
-[ ] 9. Add source files to Makefile.am (Section 12)
+[ ] 9. Add source files to the backend local.mk (Section 12)
 [ ] 10. Wire a device codec if the link is companded/compressed (Section 9.1)
         — app-facing format conversion is the frontend's job, not yours
 [ ] 10b. Radio emits/accepts encoded codec frames (e.g. Opus)? Declare the
