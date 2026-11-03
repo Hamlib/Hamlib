@@ -1258,11 +1258,20 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 
         // the channel memory has changed
         priv->list_valid = 0;
-        priv->default_offs[chan->channel_num] = 0;
 
         if (ret != RIG_OK)
         {
+            priv->default_offs[chan->channel_num] = 0;
             return ret;
+        }
+
+        // Written with the default shift kept: the next write of the same
+        // channel_t must keep it as well (an application may save a channel
+        // several times without reading it again). Otherwise the channel
+        // has its own shift (or none) now.
+        if (shift != 0 || offs == 0)
+        {
+            priv->default_offs[chan->channel_num] = 0;
         }
     }
     else
