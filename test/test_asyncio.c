@@ -295,6 +295,7 @@ static void test_failed_morse_thread_start_rolls_back_state(void)
                == -RIG_EINTERNAL);
     TEST_CHECK(!STATE(rig)->morse_data_handler_thread_run);
     TEST_CHECK(STATE(rig)->morse_data_handler_priv_data == NULL);
+    TEST_CHECK(STATE(rig)->fifo_morse == NULL);
 
     TEST_CHECK(rig_cleanup(rig) == RIG_OK);
 }

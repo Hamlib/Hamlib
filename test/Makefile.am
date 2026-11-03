@@ -37,6 +37,11 @@ test_asyncio_SOURCES = test_asyncio.c
 test_asyncio_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 test_asyncio_LDADD = $(LDADD) $(PTHREAD_LIBS)
 
+check_PROGRAMS += test_morse
+test_morse_SOURCES = test_morse.c
+test_morse_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+test_morse_LDADD = $(LDADD) $(PTHREAD_LIBS)
+
 test_stream_codec_SOURCES = test_stream_codec.c
 test_stream_codec_LDADD = $(LDADD)
 
