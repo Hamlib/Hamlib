@@ -678,6 +678,35 @@ void test_session_civ_silence_is_link_timeout(void)
     mock_stop(&mock);
 }
 
+/* A radio that has given up the CI-V stream still answers pings on its
+ * socket and sends nothing else. The IC-7760 and IC-9700 do that about 110 s
+ * after their link drops, to a session that reconnected meanwhile too. */
+void test_session_civ_pings_alone_are_link_timeout(void)
+{
+    struct mock_server mock;
+    struct icom_network_session_config config;
+    struct icom_network_session *s;
+    int waited;
+
+    mock_start(&mock);
+    capability_config(&config, &mock, "IC-7610");
+    config.liveness_timeout_ms = 1000;
+    s = icom_network_session_alloc(&config);
+    TEST_ASSERT(s != NULL);
+    TEST_ASSERT(icom_network_session_connect(s) == RIG_OK);
+
+    TEST_CHECK(wait_lost(s, 1500) < 0);
+
+    mock.civ_pings_only = 1;
+    waited = wait_lost(s, 3000);
+    TEST_CHECK_(waited >= 0, "still valid 3 s after the CI-V stream stopped");
+    TEST_CHECK_(icom_network_session_loss_reason(s) == RIG_COMM_REASON_LINK_TIMEOUT,
+                "reason %u", icom_network_session_loss_reason(s));
+
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
 /* The radio's CI-V port refuses packets. Where the system reports that (an
  * ICMP port-unreachable reaching a connected UDP socket), it shows up as a
  * socket error on the send or the receive, a CI-V command fails at once
@@ -2135,6 +2164,7 @@ TEST_LIST =
     { "civ_idles_not_requested",     test_session_civ_idles_not_requested },
     { "civ_duplicate_dropped",       test_session_civ_duplicate_dropped },
     { "civ_silence_is_link_timeout", test_session_civ_silence_is_link_timeout },
+    { "civ_pings_alone_are_link_timeout", test_session_civ_pings_alone_are_link_timeout },
     { "civ_port_refusing_is_socket_error", test_session_civ_port_refusing_is_socket_error },
     { "injected_socket_error_is_socket_error", test_session_injected_socket_error_is_socket_error },
     { "socket_error_wins_over_a_silent_link", test_session_socket_error_wins_over_a_silent_link },
