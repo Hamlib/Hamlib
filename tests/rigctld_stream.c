@@ -39,6 +39,12 @@
 #include <unistd.h>
 #include <errno.h>
 
+#ifdef RIGCTLD_COMMANDS_TEST_SENDTO
+extern ssize_t rigctld_commands_test_sendto(int fd, const char *buf, size_t len,
+        int flags, const struct sockaddr *addr, socklen_t addrlen);
+#define sendto rigctld_commands_test_sendto
+#endif
+
 /* Portable socket headers and socket_close() come from stream_proto.h
  * (pulled in via rigctld_stream.h). */
 
