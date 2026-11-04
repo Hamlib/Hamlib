@@ -81,6 +81,12 @@ static struct
     int threads;
     volatile int gone;                  /* unplugged: everything ENODEV */
     int slow_out_ms;                    /* each bulk OUT takes this long */
+    int out_fail;                       /* fail the next N bulk OUTs */
+    int out_errno;                      /* with this (ETIMEDOUT, EPIPE) */
+    int out_short;                      /* take half of the next N bulk OUTs */
+    int halts;                          /* CLEAR_HALTs */
+    int released;                       /* RELEASEINTERFACEs */
+    double first_out, last_out;         /* when bulk OUT data arrived */
     int ctl_fail;                       /* control transfers fail */
     uint8_t rx[RXQ][MPS];
     int rx_len[RXQ];
@@ -90,9 +96,17 @@ static struct
     int claimed[8];
     int reconnected[8];
     int opened, closed;
-    struct { uint8_t type, req; uint16_t value, index; uint8_t data[8]; } ctl[64];
+    struct { uint8_t type, req; uint16_t value, index; uint8_t data[8]; double t; } ctl[64];
     int nctl;
 } F;
+
+static double fake_now(void)
+{
+    struct timespec ts;
+
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (double)ts.tv_sec + ts.tv_nsec / 1e9;
+}
 
 static void fake_reset(void)
 {
@@ -139,6 +153,7 @@ static int fake_ioctl(int fd, unsigned long req, void *arg)
             F.ctl[F.nctl].req = c->bRequest;
             F.ctl[F.nctl].value = c->wValue;
             F.ctl[F.nctl].index = c->wIndex;
+            F.ctl[F.nctl].t = fake_now();
 
             if (!(c->bRequestType & 0x80) && c->data)
             {
@@ -168,18 +183,38 @@ static int fake_ioctl(int fd, unsigned long req, void *arg)
 
         if (!(b->ep & 0x80))
         {
+            unsigned int len = b->len;
+
             if (F.slow_out_ms) { usleep((useconds_t)F.slow_out_ms * 1000); }
 
             pthread_mutex_lock(&F.lock);
 
-            if (F.tx_len + b->len <= sizeof(F.tx))
+            if (F.out_fail > 0)
             {
-                memcpy(F.tx + F.tx_len, b->data, b->len);
-                F.tx_len += b->len;
+                F.out_fail--;
+                pthread_mutex_unlock(&F.lock);
+                errno = F.out_errno;
+                return -1;
             }
 
+            if (F.out_short > 0 && len > 1)
+            {
+                F.out_short--;
+                len /= 2;
+            }
+
+            if (F.tx_len + len <= sizeof(F.tx))
+            {
+                memcpy(F.tx + F.tx_len, b->data, len);
+                F.tx_len += len;
+            }
+
+            F.last_out = fake_now();
+
+            if (F.first_out == 0) { F.first_out = F.last_out; }
+
             pthread_mutex_unlock(&F.lock);
-            return (int)b->len;
+            return (int)len;
         }
 
         /* IN: packets until the buffer is full or one is short */
@@ -235,6 +270,13 @@ static int fake_ioctl(int fd, unsigned long req, void *arg)
     if (req == USBDEVFS_RELEASEINTERFACE)
     {
         F.claimed[*(unsigned int *)arg & 7] = 0;
+        F.released++;
+        return 0;
+    }
+
+    if (req == USBDEVFS_CLEAR_HALT)
+    {
+        F.halts++;
         return 0;
     }
 
@@ -337,6 +379,17 @@ static void cp2105(void)
     n = interface(F.desc, n, 1, 2, 0xff, 0);
     n = endpoint(F.desc, n, 0x82, 2);
     n = endpoint(F.desc, n, 0x02, 2);
+    F.desc_len = n;
+}
+
+/* a vendor-class chip with bulk endpoints that no driver here knows */
+static void unknown_chip(void)
+{
+    size_t n = device(F.desc, 0x1234, 0x5678, 0);
+
+    n = interface(F.desc, n, 0, 2, 0xff, 0);
+    n = endpoint(F.desc, n, 0x81, 2);
+    n = endpoint(F.desc, n, 0x01, 2);
     F.desc_len = n;
 }
 
@@ -867,6 +920,196 @@ static void test_cdc_acm(void)
     CHECK(!F.claimed[0] && !F.claimed[1], "CDC interfaces not released");
 }
 
+
+/* serial_setup() checks for a port before it looks at its descriptor */
+static void test_null_port(void)
+{
+    CHECK(serial_setup(NULL) == -RIG_EINVAL, "serial_setup(NULL) did not refuse");
+}
+
+/* wait until the adapter has n bytes, up to secs */
+static int tx_has(size_t n, double secs)
+{
+    double end = now() + secs;
+
+    while (F.tx_len < n && now() < end) { usleep(1000); }
+
+    return F.tx_len >= n;
+}
+
+/* A bulk OUT that times out, stalls or takes part of a packet: what the
+ * port took still reaches the adapter, in order; one that never goes fails
+ * the port instead of dropping the bytes. */
+static void test_tx_retries(void)
+{
+    uint8_t big[100];
+    uint8_t b[4];
+    int fd, i, failed = 0;
+    double t;
+
+    fake_reset();
+    cp2105();
+    sysfs(0x10c4, 0xea70);
+    fd = open_port("usb:10c4:ea70");
+    CHECK(fd >= 0, "open = %d", fd);
+
+    F.out_errno = ETIMEDOUT;
+    F.out_fail = 2;
+    CHECK(write(fd, "ABCD", 4) == 4, "write");
+    CHECK(tx_has(4, 3) && !memcmp(F.tx, "ABCD", 4), "timed-out packets lost: %zu sent",
+          F.tx_len);
+    CHECK(write(fd, "EFGH", 4) == 4, "write");
+    CHECK(tx_has(8, 3) && !memcmp(F.tx, "ABCDEFGH", 8),
+          "the write after a timeout: %zu sent", F.tx_len);
+
+    F.out_errno = EPIPE;
+    F.out_fail = 1;
+    CHECK(write(fd, "IJKL", 4) == 4, "write");
+    CHECK(tx_has(12, 3) && !memcmp(F.tx + 8, "IJKL", 4), "stalled packet lost");
+    CHECK(F.halts >= 1, "the stall was not cleared");
+
+    for (i = 0; i < (int)sizeof(big); i++) { big[i] = (uint8_t)i; }
+
+    F.out_short = 2;
+    CHECK(write(fd, big, sizeof(big)) == (int)sizeof(big), "write");
+    CHECK(tx_has(12 + sizeof(big), 3) && !memcmp(F.tx + 12, big, sizeof(big)),
+          "short writes lost bytes: %zu of %zu sent", F.tx_len - 12, sizeof(big));
+    usb_serial_close(fd);
+
+    /* the adapter takes nothing any more */
+    fake_reset();
+    cp2105();
+    sysfs(0x10c4, 0xea70);
+    fd = open_port("usb:10c4:ea70");
+    F.out_errno = ETIMEDOUT;
+    F.out_fail = 1 << 30;
+    CHECK(write(fd, "x", 1) == 1, "write");
+    t = now();
+
+    while (now() - t < 5.0 && !failed)
+    {
+        failed = write(fd, "y", 1) < 0 || (read(fd, b, sizeof(b)) < 0 && errno != EAGAIN);
+        usleep(10 * 1000);
+    }
+
+    CHECK(failed, "an adapter that takes no output: the port still looked alive");
+    usb_serial_close(fd);
+    CHECK(slots_free() == USBSER_MAX, "failed port: slot not freed");
+}
+
+/* Close waits for what the chip took to go out on the line before it
+ * disables the UART: 60 bytes at 1200 baud are half a second. */
+static void test_close_drains(void)
+{
+    hamlib_port_t rp;
+    uint8_t out[60];
+    double off = 0, t;
+    int fd, i;
+
+    fake_reset();
+    cp2105();
+    sysfs(0x10c4, 0xea70);
+    port(&rp, "usb:10c4:ea70");
+    rp.parm.serial.rate = 1200;
+    fd = usb_serial_open(&rp);
+    CHECK(fd >= 0, "open = %d", fd);
+    memset(out, 'd', sizeof(out));
+    CHECK(write(fd, out, sizeof(out)) == (int)sizeof(out), "write");
+    CHECK(tx_has(sizeof(out), 2), "the adapter did not get the bytes");
+    t = now();
+    usb_serial_close(fd);
+
+    for (i = 0; i < F.nctl; i++)
+    {
+        if (F.ctl[i].type == CP_OUT && F.ctl[i].req == CP_IFC_ENABLE && F.ctl[i].value == 0)
+        {
+            off = F.ctl[i].t;
+        }
+    }
+
+    CHECK(off > 0, "the UART was not disabled");
+    CHECK(off - F.first_out >= 0.95 * sizeof(out) * 10 / 1200.0,
+          "the UART went off %.3f s after the bytes, before they were on the line",
+          off - F.first_out);
+    CHECK(now() - t < 2.5, "close took %.1f s", now() - t);
+}
+
+/* "usbfd:N" to a chip no driver here knows: the interface found was never
+ * claimed, so it is not released or given to a kernel driver either */
+static void test_usbfd_unsupported(void)
+{
+    char path[32];
+    int raw, fd;
+
+    fake_reset();
+    unknown_chip();
+    raw = open("/dev/null", O_RDWR);
+    snprintf(path, sizeof(path), "usbfd:%d", raw);
+    fd = open_port(path);
+    CHECK(fd < 0, "an unsupported chip opened");
+    CHECK(F.released == 0 && !F.reconnected[0],
+          "an interface never claimed was released (%d) or given back (%d)",
+          F.released, F.reconnected[0]);
+    CHECK(fcntl(raw, F_GETFD) != -1, "the caller's usbfd was closed");
+    CHECK(slots_free() == USBSER_MAX, "slot not freed");
+    close(raw);
+}
+
+/* FTDI rates: the 14-bit divisor and the rates it can make */
+static void test_ftdi_rates(void)
+{
+    static const struct { int rate, ok; } r[] =
+    {
+        { 183, 0 }, { 184, 1 }, { 9600, 1 }, { 38400, 1 }, { 1600000, 0 },
+        { 1750000, 0 }, { 2000000, 1 }, { 2500000, 0 }, { 3000000, 1 }, { 3600000, 0 }
+    };
+    hamlib_port_t rp;
+    size_t k;
+    int fd, i, divisor;
+
+    for (k = 0; k < sizeof(r) / sizeof(r[0]); k++)
+    {
+        fake_reset();
+        ft232r();
+        sysfs(0x0403, 0x6001);
+        port(&rp, "usb:0403:6001");
+        rp.parm.serial.rate = r[k].rate;
+        fd = usb_serial_open(&rp);
+        CHECK((fd >= 0) == r[k].ok, "%d baud: open = %d", r[k].rate, fd);
+
+        if (fd >= 0)
+        {
+            usb_serial_close(fd);
+        }
+
+        CHECK(slots_free() == USBSER_MAX, "%d baud: slot not freed", r[k].rate);
+    }
+
+    /* 184 baud: 24 MHz / 184 = 130434.8 eighths, 16304 and 3/8 */
+    fake_reset();
+    ft232r();
+    sysfs(0x0403, 0x6001);
+    port(&rp, "usb:0403:6001");
+    rp.parm.serial.rate = 184;
+    fd = usb_serial_open(&rp);
+    divisor = -1;
+
+    for (i = 0; i < F.nctl; i++)
+    {
+        if (F.ctl[i].type == FT_OUT && F.ctl[i].req == FT_SET_BAUD)
+        {
+            divisor = F.ctl[i].value & 0x3fff;
+        }
+    }
+
+    CHECK(divisor == 16304, "184 baud: divisor %d, not 16304", divisor);
+
+    if (fd >= 0)
+    {
+        usb_serial_close(fd);
+    }
+}
+
 int main(void)
 {
     char tmpl[] = "/tmp/testusbserial.XXXXXX";
@@ -891,6 +1134,11 @@ int main(void)
     RUN(test_hamlib_paths);
     RUN(test_ftdi);
     RUN(test_cdc_acm);
+    RUN(test_null_port);
+    RUN(test_tx_retries);
+    RUN(test_close_drains);
+    RUN(test_usbfd_unsupported);
+    RUN(test_ftdi_rates);
 
     {
         char cmd[300];
