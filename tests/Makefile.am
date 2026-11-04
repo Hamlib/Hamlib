@@ -29,6 +29,7 @@ DIRECT_TESTS = \
 	testft991idmeter \
 	testelecraft \
 	testftx1parsers \
+	testg90swr \
 	testgeministatus \
 	testgs100 \
 	testicomts \
@@ -121,6 +122,8 @@ testmorse_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testnetrigctl_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testsendraw_CFLAGS = $(AM_CFLAGS)
 testdaemonclient_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testg90swr_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testg90swr_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testid5100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testid5100_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
 testicomfallback_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
@@ -157,6 +160,9 @@ testasyncio_LDADD = $(PTHREAD_LIBS) $(LDADD)
 testmorse_LDADD = $(PTHREAD_LIBS) $(LDADD)
 # Exercise internal FIFO helpers without adding them to the DLL exports.
 testmorse_SOURCES = testmorse.c $(top_srcdir)/src/fifo.c
+testg90swr_SOURCES = testg90swr.c testicomsock.c testicomsock.h
+testg90swr_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testid5100_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testicomfallback_LDADD = $(PTHREAD_LIBS) $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 testsendraw_SOURCES = testsendraw.c

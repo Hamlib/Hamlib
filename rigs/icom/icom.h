@@ -452,6 +452,7 @@ extern const struct confparams icom_ext_levels[];
 extern const struct confparams icom_ext_funcs[];
 extern const struct confparams icom_ext_parms[];
 extern const struct cmdparams icom_ext_cmds[];
+extern const cal_table_float_t icom_default_swr_cal;
 
 extern struct rig_caps ic703_caps;
 extern struct rig_caps ic705_caps;
