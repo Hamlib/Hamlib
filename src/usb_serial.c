@@ -46,6 +46,7 @@
 #include <stdlib.h>
 #include <sys/ioctl.h>
 #include <termios.h>
+#include <time.h>
 #include <unistd.h>
 
 #define USBSER_MAX 4                    /* adapters open at once */
@@ -85,6 +86,10 @@ struct usbser
     int ctl_if;                         /* CDC-ACM's control interface, or -1 */
     unsigned int ep_in, ep_out;
     unsigned int in_mps;                /* ep_in's wMaxPacketSize */
+    unsigned int out_mps;               /* ep_out's */
+    uint32_t claimed;                   /* interfaces take() claimed, by bit */
+    uint64_t char_ns;                   /* one character on the line */
+    uint64_t tx_done_ns;                /* when the chip has sent what it took */
     unsigned int dev_class, mps0;       /* from the device descriptor */
     unsigned int bcd_usb, bcd_device;
     int ninterfaces;
@@ -95,6 +100,7 @@ struct usbser
     int rts, dtr;
     volatile int run;
     volatile int gone;                  /* the adapter went away */
+    volatile int failed;                /* or stopped taking our output */
     int pumps;                          /* pump threads still running */
     pthread_t rx, tx;
 };
@@ -291,6 +297,26 @@ static int rate_of(const hamlib_port_t *rp)
     return rp->parm.serial.rate > 0 ? rp->parm.serial.rate : 9600;
 }
 
+static uint64_t mono_ns(void)
+{
+    struct timespec t;
+
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    return (uint64_t)t.tv_sec * 1000000000ULL + (uint64_t)t.tv_nsec;
+}
+
+/* One character's time on the line at rp's settings, start bit and all:
+ * how long the chip takes to send what it has accepted. */
+static void line_time(struct usbser *u, const hamlib_port_t *rp)
+{
+    int bits = rp->parm.serial.data_bits > 0 ? rp->parm.serial.data_bits : 8;
+    int stop = rp->parm.serial.stop_bits > 0 ? rp->parm.serial.stop_bits : 1;
+    int parity = rp->parm.serial.parity != RIG_PARITY_NONE;
+
+    u->char_ns = (uint64_t)(1 + bits + parity + stop) * 1000000000ULL
+                 / (uint64_t)rate_of(rp);
+}
+
 /* ---- FTDI (FT232R, FT2232H, FT4232H, FT232H, FT-X) ---- */
 
 #define FT_OUT          0x40            /* vendor, device */
@@ -307,22 +333,36 @@ static uint16_t ft_port(const struct usbser *u) { return (uint16_t)(u->ifno + 1)
 
 static int ft_set_baud(struct usbser *u, int rate)
 {
-    int divisor, sub;
+    int divisor, sub, actual;
     uint16_t value, index = 0;
 
-    if (rate > 3500000 || rate < 183)
+    if (rate <= 0 || rate > 3500000)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: %d baud: out of range\n", __func__, rate);
         return -RIG_EINVAL;
     }
 
-    if (rate >= 2500000) { divisor = 0; sub = 0; }
-    else if (rate >= 1750000) { divisor = 1; sub = 0; }
+    /* divisors 0 and 1 are 3 and 2 Mbaud; between 1 and 2 there are none */
+    if (rate >= 2500000) { divisor = 0; sub = 0; actual = 3000000; }
+    else if (rate >= 1750000) { divisor = 1; sub = 0; actual = 2000000; }
     else
     {
-        divisor = ((24000000 << 1) / rate + 1) >> 1;    /* in 1/8ths, rounded */
-        sub = divisor & 7;
-        divisor >>= 3;
+        int d8 = ((24000000 << 1) / rate + 1) >> 1;     /* in 1/8ths, rounded */
+
+        divisor = d8 >> 3;
+        sub = d8 & 7;
+        actual = d8 >= 16 ? 24000000 / d8 : 0;
+    }
+
+    /* 14 bits of divisor, and a rate the UART at the other end can read:
+     * 183 baud overflowed into the sub-divisor bits, and 1,750,000 became
+     * 2,000,000 */
+    if (divisor > 0x3fff || actual <= 0
+            || (long)(actual > rate ? actual - rate : rate - actual) * 100 > (long)rate * 3)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: %d baud: the chip cannot run within 3%% of it\n",
+                  __func__, rate);
+        return -RIG_EINVAL;
     }
 
     value = (uint16_t)divisor;
@@ -932,6 +972,7 @@ static int find_endpoints(struct usbser *u, int want, unsigned int *vid,
     ssize_t n, i;
     int ifno = -1, cur = -1, best_if = -1, k;
     unsigned int in = 0, out = 0, mps = 0, best_in = 0, best_out = 0, best_mps = 0;
+    unsigned int out_mps = 0, best_out_mps = 0;
 
     memset(cls, 0, sizeof(cls));
     memset(sub_acm, 0, sizeof(sub_acm));
@@ -970,10 +1011,11 @@ static int find_endpoints(struct usbser *u, int want, unsigned int *vid,
                 best_in = in;
                 best_out = out;
                 best_mps = mps;
+                best_out_mps = out_mps;
             }
 
             cur = d[i + 2];
-            in = out = mps = 0;
+            in = out = mps = out_mps = 0;
 
             if (d[i + 3] == 0)                          /* alternate setting 0 */
             {
@@ -1016,6 +1058,7 @@ static int find_endpoints(struct usbser *u, int want, unsigned int *vid,
             else if (!out)
             {
                 out = d[i + 2];
+                out_mps = (unsigned int)(d[i + 4] | (d[i + 5] & 0x07) << 8);
             }
         }
     }
@@ -1026,6 +1069,7 @@ static int find_endpoints(struct usbser *u, int want, unsigned int *vid,
         best_in = in;
         best_out = out;
         best_mps = mps;
+        best_out_mps = out_mps;
     }
 
     if (best_if < 0)
@@ -1040,6 +1084,7 @@ static int find_endpoints(struct usbser *u, int want, unsigned int *vid,
     u->ep_in = best_in;
     u->ep_out = best_out;
     u->in_mps = best_mps;
+    u->out_mps = best_out_mps;
     u->ctl_if = -1;
     u->cdc_data = ifno < 32 && (cls[ifno] == 0x0a || sub_acm[ifno]);
 
@@ -1077,8 +1122,8 @@ static int find_endpoints(struct usbser *u, int want, unsigned int *vid,
  * instead of writes going nowhere until a reply times out. */
 static void pump_done(struct usbser *u)
 {
-    if (__atomic_sub_fetch(&u->pumps, 1, __ATOMIC_ACQ_REL) == 0 && u->gone
-            && u->master >= 0)
+    if (__atomic_sub_fetch(&u->pumps, 1, __ATOMIC_ACQ_REL) == 0
+            && (u->gone || u->failed) && u->master >= 0)
     {
         close(u->master);
         u->master = -1;
@@ -1104,7 +1149,7 @@ static void *rx_pump(void *arg)
         want = sizeof(b);
     }
 
-    while (u->run && !u->gone)
+    while (u->run && !u->gone && !u->failed)
     {
         int n = bulk(u, u->ep_in, b, want, 100);
         int off = 0;
@@ -1133,7 +1178,7 @@ static void *rx_pump(void *arg)
 
         /* the master is non-blocking: with nobody reading the port, this
          * waits for room, but never past a close */
-        while (off < n && u->run && !u->gone)
+        while (off < n && u->run && !u->gone && !u->failed)
         {
             ssize_t w = write(u->master, b + off, (size_t)(n - off));
 
@@ -1156,6 +1201,65 @@ static void *rx_pump(void *arg)
     return NULL;
 }
 
+/* Send n bytes, a packet at a time: a failed bulk OUT may have sent part
+ * of a longer transfer, and nothing says how much.  A packet that times out
+ * (the chip holding back: its FIFO full, flow control) or stalls is sent
+ * again, a short write goes on from where it stopped; when nothing goes for
+ * 2 s the port fails, as an unplugged one does, so the caller sees it
+ * rather than its bytes being dropped while the port looks fine.  Each
+ * packet the chip takes moves tx_done_ns on by its time on the line. */
+static int tx_send(struct usbser *u, const uint8_t *b, size_t n)
+{
+    size_t mps = u->out_mps ? u->out_mps : 64, off = 0;
+    uint64_t give_up = mono_ns() + 2000000000ULL;
+
+    while (off < n)
+    {
+        size_t k = n - off < mps ? n - off : mps;
+        int r = bulk(u, u->ep_out, (void *)(b + off), k, 500);
+
+        if (r > 0)
+        {
+            uint64_t t = mono_ns();
+
+            off += (size_t)r;
+            u->tx_done_ns = (u->tx_done_ns > t ? u->tx_done_ns : t)
+                            + (uint64_t)r * u->char_ns;
+            give_up = t + 2000000000ULL;
+            continue;
+        }
+
+        if (r < 0 && unplugged(errno))
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: adapter gone\n", __func__);
+            u->gone = 1;
+            return -1;
+        }
+
+        if (r < 0 && errno == EPIPE)
+        {
+            unsigned int ep = u->ep_out;
+
+            USBSER_IOCTL(u->usbfd, USBDEVFS_CLEAR_HALT, &ep);
+        }
+
+        if (mono_ns() > give_up)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: the adapter takes no output: %s\n", __func__,
+                      r < 0 ? strerror(errno) : "nothing sent");
+            u->failed = 1;
+            return -1;
+        }
+
+        if (r < 0 && errno != ETIMEDOUT)
+        {
+            hl_usleep(10 * 1000);
+        }
+    }
+
+    return 0;
+}
+
 /* Until close, and then what is still queued: bytes written just before
  * a close reach the adapter. */
 static void *tx_pump(void *arg)
@@ -1163,7 +1267,7 @@ static void *tx_pump(void *arg)
     struct usbser *u = arg;
     uint8_t b[512];
 
-    while (!u->gone)
+    while (!u->gone && !u->failed)
     {
         struct pollfd p;
         ssize_t n;
@@ -1183,17 +1287,9 @@ static void *tx_pump(void *arg)
             continue;
         }
 
-        if (bulk(u, u->ep_out, b, (size_t)n, 1000) != n)
+        if (tx_send(u, b, (size_t)n) < 0)
         {
-            if (unplugged(errno))
-            {
-                rig_debug(RIG_DEBUG_ERR, "%s: adapter gone\n", __func__);
-                u->gone = 1;
-                break;
-            }
-
-            rig_debug(RIG_DEBUG_WARN, "%s: write to the adapter failed: %s\n", __func__,
-                      strerror(errno));
+            break;
         }
     }
 
@@ -1226,11 +1322,14 @@ static void give_back(struct usbser *u, int ifno)
     unsigned int i = (unsigned int)ifno;
     struct usbdevfs_ioctl c;
 
-    if (ifno < 0 || u->usbfd < 0)
+    /* only what take() claimed: an interface found and then refused (an
+     * unsupported chip behind "usbfd:N") is the caller's, left as it is */
+    if (ifno < 0 || ifno >= 32 || u->usbfd < 0 || !(u->claimed & (1U << ifno)))
     {
         return;
     }
 
+    u->claimed &= ~(1U << ifno);
     USBSER_IOCTL(u->usbfd, USBDEVFS_RELEASEINTERFACE, &i);
     c.ifno = ifno;
     c.ioctl_code = USBDEVFS_CONNECT;
@@ -1248,14 +1347,16 @@ static int take(struct usbser *u, int ifno)
     memset(&dc, 0, sizeof(dc));
     dc.interface = i;
 
-    if (USBSER_IOCTL(u->usbfd, USBDEVFS_DISCONNECT_CLAIM, &dc) < 0
-            && USBSER_IOCTL(u->usbfd, USBDEVFS_CLAIMINTERFACE, &i) < 0)
+    if (ifno < 0 || ifno >= 32
+            || (USBSER_IOCTL(u->usbfd, USBDEVFS_DISCONNECT_CLAIM, &dc) < 0
+                && USBSER_IOCTL(u->usbfd, USBDEVFS_CLAIMINTERFACE, &i) < 0))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: cannot claim interface %d: %s\n", __func__,
                   ifno, strerror(errno));
         return -RIG_EIO;
     }
 
+    u->claimed |= 1U << ifno;
     return RIG_OK;
 }
 
@@ -1266,6 +1367,21 @@ static void release(struct usbser *u)
         u->run = 0;
         pthread_join(u->rx, NULL);
         pthread_join(u->tx, NULL);
+    }
+
+    /* USB only says the chip took the bytes: they are still going out at the
+     * line's rate, so wait for that (2 s at most) before the chip's fini
+     * disables its UART (CP210x) or purges its queues (PL2303) */
+    if (!u->gone && u->tx_done_ns)
+    {
+        uint64_t t = mono_ns(), end = u->tx_done_ns + 2 * u->char_ns + 5000000ULL;
+
+        if (end > t)
+        {
+            uint64_t w = end - t;
+
+            hl_usleep((w > 2000000000ULL ? 2000000000ULL : w) / 1000);
+        }
     }
 
     if (u->chip && u->ifno >= 0 && !u->gone)
@@ -1421,6 +1537,8 @@ int usb_serial_open(hamlib_port_t *rp)
         goto fail;
     }
 
+    line_time(u, rp);
+
     u->master = posix_openpt(O_RDWR | O_NOCTTY | O_CLOEXEC);
 
     if (u->master < 0 || grantpt(u->master) || unlockpt(u->master)
@@ -1494,6 +1612,11 @@ int usb_serial_setup(hamlib_port_t *rp)
     if (u)
     {
         r = u->chip->setup(u, rp);
+
+        if (r == RIG_OK)
+        {
+            line_time(u, rp);
+        }
     }
 
     pthread_mutex_unlock(&usbser_lock);

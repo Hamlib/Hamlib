@@ -411,6 +411,11 @@ int HAMLIB_API serial_open(hamlib_port_t *rp)
  */
 int HAMLIB_API serial_setup(hamlib_port_t *rp)
 {
+    if (!rp)
+    {
+        return (-RIG_EINVAL);
+    }
+
     /* A USB-serial chip: raw mode on the pseudo-terminal, the line settings
      * to the chip. */
     if (usb_serial_is_fd(rp->fd))
@@ -450,11 +455,6 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
 #  error "No term control supported!"
 #endif
     term_options_backup_t *term_backup = NULL;
-
-    if (!rp)
-    {
-        return (-RIG_EINVAL);
-    }
 
     fd = rp->fd;
 
