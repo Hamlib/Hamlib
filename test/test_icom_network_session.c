@@ -1676,6 +1676,56 @@ void test_session_retransmit_request(void)
     mock_stop(&mock);
 }
 
+/* The radio asks for a run of lost packets as one [first, last] entry; every
+ * packet in the run is replayed, not only the first. */
+void test_session_retransmit_range(void)
+{
+    struct mock_server mock;
+    struct icom_network_session_config config;
+    struct icom_network_session *s;
+    uint8_t cmd[] = { 0xfe, 0xfe, 0x98, 0xe0, 0x03, 0xfd };
+    int i, waited, sequence;
+
+    mock_start(&mock);
+    capability_config(&config, &mock, "IC-7610");
+    s = icom_network_session_alloc(&config);
+    TEST_ASSERT(s != NULL);
+    TEST_ASSERT(icom_network_session_connect(s) == RIG_OK);
+
+    /* the stream open is sequence 1, so these go out as 2, 3 and 4 */
+    for (i = 0; i < 3; i++)
+    {
+        TEST_CHECK(icom_network_civ_send(s, cmd, sizeof(cmd)) == (int)sizeof(cmd));
+    }
+
+    mock.retransmit_sequence = 2;
+    mock.retransmit_last = 4;
+    mock.ask_retransmit = 1;
+
+    /* each frame arrives once as sent and once more as a replay */
+    for (waited = 0; waited < 200; waited++)
+    {
+        if (mock.civ_frames_seen[2] >= 2 && mock.civ_frames_seen[3] >= 2
+                && mock.civ_frames_seen[4] >= 2)
+        {
+            break;
+        }
+
+        hl_usleep(10000);
+    }
+
+    for (sequence = 2; sequence <= 4; sequence++)
+    {
+        TEST_CHECK_(mock.civ_frames_seen[sequence] >= 2,
+                    "sequence %d arrived %d times, want a replay too", sequence,
+                    mock.civ_frames_seen[sequence]);
+    }
+
+    icom_network_session_disconnect(s);
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
 /* The radio pings the client; the client must answer, or the radio concludes
  * the session is gone. Only the reply direction was exercised before. */
 void test_session_ping_request(void)
@@ -2147,6 +2197,7 @@ TEST_LIST =
     { "starts_winsock",              test_session_starts_winsock },
 #endif
     { "retransmit_request",          test_session_retransmit_request },
+    { "retransmit_range",            test_session_retransmit_range },
     { "ping_request",                test_session_ping_request },
     { "reconnect_cycles",            test_session_reconnect_cycles },
     { "reconnect_after_dirty_close", test_session_reconnect_after_dirty_close },

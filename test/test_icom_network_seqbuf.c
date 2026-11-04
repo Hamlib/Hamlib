@@ -100,6 +100,37 @@ void test_txbuf_oversize_rejected(void)
     TEST_CHECK(icom_network_txbuf_add(&tb, 1, big, sizeof(big), 0) == -1);
 }
 
+/* A range across 0xffff, in a buffer that has wrapped as well, comes out
+ * whole and in the order it was sent. */
+void test_txbuf_range_wraps(void)
+{
+    struct icom_network_txbuf tb;
+    uint8_t d[1];
+    const uint8_t *p;
+    size_t cursor = 0, length = 0;
+    int i, found = 0;
+
+    icom_network_txbuf_init(&tb);
+
+    /* 0xff00 ... 0xffff, 0, 1, 2: the first three slots are reused */
+    for (i = 0; i < ICOM_NETWORK_SEQBUF_MAX + 3; i++)
+    {
+        uint16_t sequence = (uint16_t)(0xff00 + i);
+
+        d[0] = (uint8_t)sequence;
+        icom_network_txbuf_add(&tb, sequence, d, 1, 0);
+    }
+
+    while ((p = icom_network_txbuf_next_in_range(&tb, 0xfffe, 0x0001, &cursor,
+                &length)) != NULL)
+    {
+        TEST_CHECK(length == 1 && p[0] == (uint8_t)(0xfe + found));
+        found++;
+    }
+
+    TEST_CHECK(found == 4);
+}
+
 
 /* --- RX gap / retransmit tracker --- */
 
@@ -284,6 +315,7 @@ TEST_LIST =
     { "txbuf_purge",              test_txbuf_purge },
     { "txbuf_overwrite_oldest",   test_txbuf_overwrite_oldest },
     { "txbuf_oversize_rejected",  test_txbuf_oversize_rejected },
+    { "txbuf_range_wraps",        test_txbuf_range_wraps },
     { "rxtrack_sequential",       test_rxtrack_sequential },
     { "rxtrack_gap_and_recover",  test_rxtrack_gap_and_recover },
     { "rxtrack_due_and_retry_cap", test_rxtrack_due_and_retry_cap },

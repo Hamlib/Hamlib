@@ -852,16 +852,28 @@ static void icom_network_session_handle_retransmit_request(
 
     for (i = 0; i < n; i++)
     {
-        uint16_t sequence = icom_network_get_le16(buf + ICOM_NETWORK_HEADER_LEN + i *
-                            4);
-        size_t packet_length;
+        /* Each entry is a range [first, last]; a radio asks for a run of lost
+         * packets in one (the IC-7760 and IC-9700 do), so replay all of it. */
+        const uint8_t *entry = buf + ICOM_NETWORK_HEADER_LEN + i * 4;
+        uint16_t first = icom_network_get_le16(entry);
+        uint16_t last = icom_network_get_le16(entry + 2);
+        size_t cursor = 0, packet_length;
         const uint8_t *p;
-        pthread_mutex_lock(&s->lock);
-        p = icom_network_txbuf_get(&s->txbuf, sequence, &packet_length);
+        int replayed = 0;
 
-        if (p) { (void)icom_network_session_send_raw(s, p, packet_length); }
+        pthread_mutex_lock(&s->lock);
+
+        while ((p = icom_network_txbuf_next_in_range(&s->txbuf, first, last,
+                    &cursor, &packet_length)) != NULL)
+        {
+            (void)icom_network_session_send_raw(s, p, packet_length);
+            replayed++;
+        }
 
         pthread_mutex_unlock(&s->lock);
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: rig requests retransmit sequences=%u-%u (%d replayed)\n",
+                  __func__, first, last, replayed);
     }
 }
 
