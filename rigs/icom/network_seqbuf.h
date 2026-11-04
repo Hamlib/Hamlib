@@ -62,6 +62,11 @@ int icom_network_txbuf_add(struct icom_network_txbuf *tb, uint16_t sequence,
 const uint8_t *icom_network_txbuf_get(struct icom_network_txbuf *tb,
                                       uint16_t sequence, size_t *length);
 
+/* Next stored packet, oldest first, with sequence in [first, last] modulo 2^16
+ * (*cursor starts at 0); returns its bytes (and sets *length) or NULL. */
+const uint8_t *icom_network_txbuf_next_in_range(struct icom_network_txbuf *tb,
+        uint16_t first, uint16_t last, size_t *cursor, size_t *length);
+
 /* Invalidate entries older than purge_ms. */
 void icom_network_txbuf_purge(struct icom_network_txbuf *tb, int64_t now_ms,
                               int64_t purge_ms);

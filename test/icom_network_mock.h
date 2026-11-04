@@ -69,7 +69,11 @@ struct mock_server
     uint32_t ctrl_client_id;
     HAMLIB_ATOMIC int ask_retransmit;     /* send a retransmit request for below */
     HAMLIB_ATOMIC int retransmit_sequence;
+    /* Above retransmit_sequence: ask for the whole run up to this one in a
+     * single [first, last] entry, as the IC-7760 and IC-9700 do. */
+    HAMLIB_ATOMIC int retransmit_last;
     HAMLIB_ATOMIC int saw_retransmit_reply;
+    HAMLIB_ATOMIC int civ_frames_seen[8];  /* CI-V frames by sequence, 0-7 */
     /* Report audio_port 0 in the status reply, as a radio with no audio
      * path would. Makes the backend's audio_start fail after stream_open
      * has already allocated its buffers. */
