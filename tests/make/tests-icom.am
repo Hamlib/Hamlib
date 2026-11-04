@@ -12,6 +12,14 @@ testg90rit_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testg90rit_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) \
 	$(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 
+check_PROGRAMS += testg90swr
+TESTS += testg90swr
+testg90swr_SOURCES = testg90swr.c testicomsock.c testicomsock.h
+testg90swr_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+testg90swr_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testg90swr_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+
 check_PROGRAMS += testic7760caps
 TESTS += testic7760caps
 testic7760caps_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
