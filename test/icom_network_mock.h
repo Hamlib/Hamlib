@@ -145,6 +145,10 @@ struct mock_server
      * while the control socket carries on, as a radio that stopped serving
      * the CI-V stream does. */
     HAMLIB_ATOMIC int civ_silent;
+    /* Stop serving the CI-V stream, a reopen of it included, but go on
+     * answering pings on its socket, as the IC-7760 and IC-9700 do with a
+     * stream they have given up. */
+    HAMLIB_ATOMIC int civ_pings_only;
     /* Never answer a ping on the CI-V socket. The client pings as soon as its
      * CI-V thread starts, so a reply is typically in flight while connect()
      * is still returning; a test that goes on to silence the stream cannot

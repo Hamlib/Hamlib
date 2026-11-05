@@ -202,7 +202,7 @@ static void mock_send_unsolicited(struct mock_server *m)
     }
 
     if (m->civ_peer_length > 0 && m->civ_idle_ms > 0 && !m->civ_silent
-            && m->civ_fd >= 0
+            && !m->civ_pings_only && m->civ_fd >= 0
             && mock_now_ms() - m->civ_last_idle_ms >= m->civ_idle_ms)
     {
         uint8_t idle[ICOM_NETWORK_HEADER_LEN];
@@ -654,6 +654,8 @@ static void mock_service_civ(struct mock_server *m, uint8_t *buf, int n,
     enum icom_network_packet_kind k = icom_network_packet_classify(buf, n,
                                       ICOM_NETWORK_ROLE_CIV);
     uint16_t type = icom_network_get_le16(buf + ICOM_NETWORK_OFF_TYPE);
+
+    if (m->civ_pings_only && k != ICOM_NETWORK_PACKET_KIND_PING) { return; }
 
     if (!mock_reply_common_control(m->civ_fd, from, k, type, cli))
     {

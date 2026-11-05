@@ -904,11 +904,18 @@ static int icom_network_session_rx_common(struct icom_network_session *s,
 {
     (void)s;
 
-    /* anything at all from the radio proves this socket is alive */
-    sock->last_heard_ms = icom_network_now_ms();
-    sock->error_since_ms = 0;
-
     *kind = icom_network_packet_classify(buf, n, sock->role);
+
+    /* Anything from the radio proves the socket alive, except a ping on the
+     * CI-V socket: a radio that has given up the CI-V stream still answers
+     * those (IC-7760, IC-9700), and it sends idles while it serves it. */
+    if (sock->role != ICOM_NETWORK_ROLE_CIV
+            || *kind != ICOM_NETWORK_PACKET_KIND_PING)
+    {
+        sock->last_heard_ms = icom_network_now_ms();
+    }
+
+    sock->error_since_ms = 0;
 
     switch (*kind)
     {
