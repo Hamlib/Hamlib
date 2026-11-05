@@ -721,6 +721,13 @@ static void mock_service_civ(struct mock_server *m, uint8_t *buf, int n,
 
         if (sequence < 8) { m->civ_frames_seen[sequence]++; }
     }
+
+    if (k == ICOM_NETWORK_PACKET_KIND_CONTROL && type == ICOM_NETWORK_CTL_IDLE)
+    {
+        uint16_t sequence = icom_network_get_le16(buf + ICOM_NETWORK_OFF_SEQUENCE);
+
+        if (sequence < 8) { m->civ_idles_seen[sequence]++; }
+    }
 }
 
 static void mock_service_audio(struct mock_server *m, uint8_t *buf, int n,

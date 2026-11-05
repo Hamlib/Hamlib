@@ -74,6 +74,7 @@ struct mock_server
     HAMLIB_ATOMIC int retransmit_last;
     HAMLIB_ATOMIC int saw_retransmit_reply;
     HAMLIB_ATOMIC int civ_frames_seen[8];  /* CI-V frames by sequence, 0-7 */
+    HAMLIB_ATOMIC int civ_idles_seen[8];   /* idles by sequence, 0-7 */
     /* Report audio_port 0 in the status reply, as a radio with no audio
      * path would. Makes the backend's audio_start fail after stream_open
      * has already allocated its buffers. */
