@@ -532,20 +532,30 @@ static int icom_network_session_recv_timeout(
     return -RIG_EIO;
 }
 
-/* Build only the 16-byte header into packet and send (control opcodes/idle). */
-static int icom_network_session_send_control(struct icom_network_session_socket
-        *s, uint16_t control)
+/* Build only the 16-byte header into packet and send (control opcodes/idle).
+ * The caller holds s->lock. */
+static int icom_network_session_send_control_locked(
+    struct icom_network_session_socket *s, uint16_t control, uint16_t sequence)
 {
     uint8_t packet[ICOM_NETWORK_HEADER_LEN];
-    uint16_t sequence;
-
-    /* Untracked control/idle packets use sequence 0; only tracked data packets
-     * advance send_sequence, which the radio gap-tracks for retransmission. */
-    sequence = 0;
 
     icom_network_packet_build_control(packet, sizeof(packet), control, sequence,
                                       s->local_id, s->remote_id);
-    return icom_network_session_send_tracked(s, packet, sizeof(packet), 0);
+    return icom_network_session_send_raw(s, packet, sizeof(packet));
+}
+
+static int icom_network_session_send_control(struct icom_network_session_socket
+        *s, uint16_t control)
+{
+    int ret;
+
+    /* Untracked control/idle packets use sequence 0; only tracked data packets
+     * advance send_sequence, which the radio gap-tracks for retransmission. */
+    pthread_mutex_lock(&s->lock);
+    ret = icom_network_session_send_control_locked(s, control, 0);
+    pthread_mutex_unlock(&s->lock);
+
+    return ret;
 }
 
 /* defined below; used by icom_network_session_await to keep the link
