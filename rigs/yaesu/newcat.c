@@ -1210,8 +1210,8 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     char c;
     char target_vfo;
+    char original_vfo = '\0';
     int err;
-    struct rig_caps *caps;
     struct rig_cache_snapshot cache;
     struct rig_state *rig_s = STATE(rig);
     struct newcat_priv_data *priv;
@@ -1245,7 +1245,6 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
 
     priv = (struct newcat_priv_data *)rig_s->priv;
-    caps = rig->caps;
 
     newcat_get_vfo_mode(rig, RIG_VFO_A, &vfo_mode);
 
@@ -1359,11 +1358,11 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         if (ptt) { RETURNFUNC(-RIG_ENTARGET); }
     }
 
-    if (RIG_MODEL_FT450 == caps->rig_model)
+    if (is_ft450)
     {
-        /* The FT450 only accepts F[A|B]nnnnnnnn; commands for the
-           current VFO so we must use the VS[0|1]; command to check
-           and select the correct VFO before setting the frequency
+        /* The FT-450/FT-450D only accept F[A|B]nnnnnnnn; commands
+           for the current VFO, so use VS[0|1]; to check and select
+           the correct VFO before setting the frequency
         */
         // Plus we can't do the VFO swap if transmitting
         rig_get_cache_snapshot(rig, &cache);
@@ -1378,17 +1377,15 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             RETURNFUNC(err);
         }
 
-        if (priv->ret_data[2] != target_vfo)
+        /* Keep the original selection independent of ret_data: the band
+           selection and frequency/mode queries below reuse that buffer. */
+        if (priv->ret_data[0] != 'V' || priv->ret_data[1] != 'S'
+                || (priv->ret_data[2] != '0' && priv->ret_data[2] != '1'))
         {
-            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VS%c%c", target_vfo, cat_term);
-            rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
-
-            if (RIG_OK != (err = newcat_set_cmd(rig)))
-            {
-                ERRMSG(err, "newcat_set_cmd failed");
-                RETURNFUNC(err);
-            }
+            RETURNFUNC(-RIG_EPROTO);
         }
+
+        original_vfo = priv->ret_data[2];
     }
 
     // W1HKJ
@@ -1651,18 +1648,15 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         priv->band_index = newcat_band_index(rig, freq);
     }
 
-    else if (RIG_MODEL_FT450 == caps->rig_model)
+    else if (is_ft450)
     {
-        if (c == 'B')
-        {
-            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VS1;F%c%0*"PRIll";VS0;", c,
-                     priv->width_frequency, (int64_t)freq);
-        }
-        else
-        {
-            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "F%c%0*"PRIll";", c,
-                     priv->width_frequency, (int64_t)freq);
-        }
+        /* Band-select may have switched VFOs since the original VS query.
+           Select the target immediately before FA/FB, then restore the
+           VFO that was selected when this operation began. */
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str),
+                 "VS%c;F%c%0*"PRIll";VS%c;",
+                 target_vfo, c, priv->width_frequency, (int64_t)freq,
+                 original_vfo);
     }
     else
     {
@@ -1682,20 +1676,6 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: band changing? old=%d, new=%d\n", __func__,
               newcat_band_index(rig, freq), newcat_band_index(rig, rig_s->current_freq));
-
-    if (RIG_MODEL_FT450 == caps->rig_model && priv->ret_data[2] != target_vfo)
-    {
-        /* revert current VFO */
-        rig_debug(RIG_DEBUG_TRACE, "%s:%d cmd_str = %s\n", __func__, __LINE__,
-                  priv->ret_data);
-
-        if (RIG_OK != (err = newcat_set_cmd(rig)))
-        {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s:%d command err = %d\n", __func__, __LINE__,
-                      err);
-            RETURNFUNC(err);
-        }
-    }
 
     RETURNFUNC(RIG_OK);
 }
