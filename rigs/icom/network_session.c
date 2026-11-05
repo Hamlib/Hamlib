@@ -833,6 +833,30 @@ static void icom_network_session_civ_rx_push(struct icom_network_session *s,
 /* handle an incoming packet on a socket (shared by both threads)      */
 /* ------------------------------------------------------------------ */
 
+/* Answer a request for the sequences [first, last], modulo 2^16, by replaying
+ * the stored packets among them. */
+static void icom_network_session_answer_retransmit(
+    struct icom_network_session_socket *s, uint16_t first, uint16_t last)
+{
+    size_t cursor = 0, packet_length;
+    const uint8_t *p;
+    int replayed = 0;
+
+    pthread_mutex_lock(&s->lock);
+
+    while ((p = icom_network_txbuf_next_in_range(&s->txbuf, first, last,
+                &cursor, &packet_length)) != NULL)
+    {
+        (void)icom_network_session_send_raw(s, p, packet_length);
+        replayed++;
+    }
+
+    pthread_mutex_unlock(&s->lock);
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "%s: rig requests retransmit sequences=%u-%u (%d replayed)\n",
+              __func__, first, last, replayed);
+}
+
 /* Reply to a retransmit request by replaying stored packets. */
 static void icom_network_session_handle_retransmit_request(
     struct icom_network_session_socket *s,
@@ -847,16 +871,8 @@ static void icom_network_session_handle_retransmit_request(
     {
         /* single-sequence form: sequence is in the header */
         uint16_t sequence = icom_network_get_le16(buf + ICOM_NETWORK_OFF_SEQUENCE);
-        size_t packet_length;
-        const uint8_t *p;
-        pthread_mutex_lock(&s->lock);
-        p = icom_network_txbuf_get(&s->txbuf, sequence, &packet_length);
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: rig requests retransmit sequence=%u %s\n",
-                  __func__, sequence, p ? "(replaying)" : "(NOT in txbuf)");
 
-        if (p) { (void)icom_network_session_send_raw(s, p, packet_length); }
-
-        pthread_mutex_unlock(&s->lock);
+        icom_network_session_answer_retransmit(s, sequence, sequence);
         return;
     }
 
@@ -865,25 +881,9 @@ static void icom_network_session_handle_retransmit_request(
         /* Each entry is a range [first, last]; a radio asks for a run of lost
          * packets in one (the IC-7760 and IC-9700 do), so replay all of it. */
         const uint8_t *entry = buf + ICOM_NETWORK_HEADER_LEN + i * 4;
-        uint16_t first = icom_network_get_le16(entry);
-        uint16_t last = icom_network_get_le16(entry + 2);
-        size_t cursor = 0, packet_length;
-        const uint8_t *p;
-        int replayed = 0;
 
-        pthread_mutex_lock(&s->lock);
-
-        while ((p = icom_network_txbuf_next_in_range(&s->txbuf, first, last,
-                    &cursor, &packet_length)) != NULL)
-        {
-            (void)icom_network_session_send_raw(s, p, packet_length);
-            replayed++;
-        }
-
-        pthread_mutex_unlock(&s->lock);
-        rig_debug(RIG_DEBUG_VERBOSE,
-                  "%s: rig requests retransmit sequences=%u-%u (%d replayed)\n",
-                  __func__, first, last, replayed);
+        icom_network_session_answer_retransmit(s, icom_network_get_le16(entry),
+                                               icom_network_get_le16(entry + 2));
     }
 }
 
