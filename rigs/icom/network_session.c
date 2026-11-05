@@ -833,19 +833,38 @@ static void icom_network_session_civ_rx_push(struct icom_network_session *s,
 /* handle an incoming packet on a socket (shared by both threads)      */
 /* ------------------------------------------------------------------ */
 
-/* Answer a request for the sequences [first, last], modulo 2^16, by replaying
- * the stored packets among them. */
+/* Answer a request for the sequences [first, last], modulo 2^16. The stored
+ * packets among them are replayed. Those before the oldest of these were sent
+ * and dropped since (purged or overwritten): each gets an idle of its
+ * sequence, as wfview sends, because the radio holds back what came after a
+ * missing sequence until it has it, for as long as the stream lasts. */
 static void icom_network_session_answer_retransmit(
     struct icom_network_session_socket *s, uint16_t first, uint16_t last)
 {
     size_t cursor = 0, packet_length;
     const uint8_t *p;
-    int replayed = 0;
+    uint16_t sequence, end;
+    int replayed = 0, dropped = 0;
 
     pthread_mutex_lock(&s->lock);
+    p = icom_network_txbuf_next_in_range(&s->txbuf, first, last, &cursor,
+                                         &packet_length);
+    /* the range up to its oldest stored packet, or all of it */
+    end = p ? icom_network_get_le16(p + ICOM_NETWORK_OFF_SEQUENCE)
+          : (uint16_t)(last + 1);
 
-    while ((p = icom_network_txbuf_next_in_range(&s->txbuf, first, last,
-                &cursor, &packet_length)) != NULL)
+    /* stopping at the next sequence to send: none from there on was sent */
+    for (sequence = first; sequence != end
+            && (int16_t)(s->send_sequence - sequence) > 0;
+            sequence = (uint16_t)(sequence + 1))
+    {
+        (void)icom_network_session_send_control_locked(s, ICOM_NETWORK_CTL_IDLE,
+                sequence);
+        dropped++;
+    }
+
+    for (; p != NULL; p = icom_network_txbuf_next_in_range(&s->txbuf, first,
+            last, &cursor, &packet_length))
     {
         (void)icom_network_session_send_raw(s, p, packet_length);
         replayed++;
@@ -853,8 +872,8 @@ static void icom_network_session_answer_retransmit(
 
     pthread_mutex_unlock(&s->lock);
     rig_debug(RIG_DEBUG_VERBOSE,
-              "%s: rig requests retransmit sequences=%u-%u (%d replayed)\n",
-              __func__, first, last, replayed);
+              "%s: rig requests retransmit sequences=%u-%u (%d replayed, %d no "
+              "longer held)\n", __func__, first, last, replayed, dropped);
 }
 
 /* Reply to a retransmit request by replaying stored packets. */
