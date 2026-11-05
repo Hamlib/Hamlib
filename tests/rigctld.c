@@ -1093,7 +1093,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    if (listen(sock_listen, 4) < 0)
+    if (listen(sock_listen, SOMAXCONN) < 0)
     {
         handle_error(RIG_DEBUG_ERR, "listening");
         exit(1);
@@ -1370,7 +1370,7 @@ static FILE *get_fsockout(struct handle_data *handle_data_arg)
     int sock_osfhandle = _open_osfhandle(handle_data_arg->sock, _O_RDONLY);
     return _fdopen(sock_osfhandle, "wb");
 #else
-    return fdopen(handle_data_arg->sock, "wb");
+    return daemon_client_fdopen_dup(handle_data_arg->sock, "wb");
 #endif
 }
 
@@ -1387,7 +1387,7 @@ static FILE *get_fsockin(struct handle_data *handle_data_arg)
 
     return _fdopen(sock_osfhandle,  "rb");
 #else
-    return fdopen(handle_data_arg->sock, "rb");
+    return daemon_client_fdopen_dup(handle_data_arg->sock, "rb");
 #endif
 }
 
@@ -1652,9 +1652,11 @@ handle_exit:
 
 // for everybody else we close the handle after fclose
 #ifndef __MINGW32__
+    /* Each stream closed its own dup; the accepted descriptor is closed here,
+     * exactly once. */
     retcode = close(handle_data_arg->sock);
 
-    if (retcode != 0 && errno != EBADF) { rig_debug(RIG_DEBUG_ERR, "%s: close(handle_data_arg->sock) %s\n", __func__, strerror(errno)); }
+    if (retcode != 0) { rig_debug(RIG_DEBUG_ERR, "%s: close(handle_data_arg->sock) %s\n", __func__, strerror(errno)); }
 
 #endif
 
