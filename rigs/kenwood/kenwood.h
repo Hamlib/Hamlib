@@ -178,6 +178,10 @@ struct kenwood_priv_data
     bool is_k4;
     bool is_k4d;
     bool is_k4hd;
+    bool k4_stream_unusable;
+    bool k4_marker_pending;
+    size_t k4_frame_length;
+    char k4_frame[KENWOOD_MAX_BUF_LEN];
     int no_id;  // if true will not send ID; with every set command
     //int opened; // true once rig_open is called to avoid setting VFOA every open call
     rmode_t modeA;
@@ -204,6 +208,10 @@ extern tone_t kenwood38_ctcss_list[];
 extern tone_t kenwood42_ctcss_list[];
 extern tone_t kenwood51_ctcss_list[];
 
+int kenwood_transaction_k4_set_once(RIG *rig, const char *cmdstr);
+void kenwood_k4_reset(RIG *rig);
+int kenwood_transaction_k4_read(RIG *rig, const char *cmdstr, char *data,
+                                size_t datasize);
 int kenwood_transaction(RIG *rig, const char *cmdstr, char *data, size_t datasize);
 int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
                              size_t buf_size, size_t expected);

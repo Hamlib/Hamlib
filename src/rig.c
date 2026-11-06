@@ -205,7 +205,13 @@ static void morse_busy_store(struct rig_state *rs, bool busy)
 struct rig_private
 {
     int no_get_vfo;     /* the backend found that this rig lacks get_vfo */
+    int (*raw_preflight)(RIG *rig);
 };
+
+void rig_set_raw_preflight(RIG *rig, int (*preflight)(RIG *rig))
+{
+    rig->private_addr->raw_preflight = preflight;
+}
 
 static void no_get_vfo_set(RIG *rig)
 {
@@ -1580,11 +1586,12 @@ int HAMLIB_API rig_open(RIG *rig)
 
     if (caps->rig_open != NULL)
     {
-        /* A RIG_PORT_CUSTOM backend owns its transport and only opens it in
-         * caps->rig_open(), so its power probe has to wait until after that. */
-        int custom_port = (rp->type.rig == RIG_PORT_CUSTOM);
+        /* Custom transports open in the backend; K4 restores stream accounting
+         * there before any query on a reopened connection. */
+        int probe_after_open = rp->type.rig == RIG_PORT_CUSTOM
+                               || caps->rig_model == RIG_MODEL_K4;
 
-        if (!custom_port)
+        if (!probe_after_open)
         {
             rig_open_check_powerstat(rig, skip_init);
         }
@@ -1600,7 +1607,7 @@ int HAMLIB_API rig_open(RIG *rig)
             RETURNFUNC2(status);
         }
 
-        if (custom_port)
+        if (probe_after_open)
         {
             rig_open_check_powerstat(rig, skip_init);
         }
@@ -5882,6 +5889,18 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
         RETURNFUNC(-RIG_EINVAL);
     }
 
+    if (caps->rig_model == RIG_MODEL_K4)
+    {
+        /* K4 verifies fixed physical routing independently of its emulated VFO. */
+        LOCK(1);
+        rig_get_cache_routing_snapshot(rig, &routing);
+        retcode = routing.ptt ? RIG_OK
+                  : caps->set_split_vfo(rig, rx_vfo, split, tx_vfo);
+        LOCK(0);
+        ELAPSED2;
+        RETURNFUNC(retcode);
+    }
+
     // We fix up vfos for non-satmode rigs only
     if (caps->has_get_func & RIG_FUNC_SATMODE)
     {
@@ -5973,7 +5992,6 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
     // Check if RX VFO is the currently active VFO and we don't need to change the VFO
     if (rx_vfo == RIG_VFO_CURR || rx_vfo == routing.current_vfo)
     {
-        // for non-targetable VFOs we will not set split again
         if (routing.split == split && routing.split_vfo == tx_vfo)
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): split already on, ignoring\n", __func__,
@@ -6066,6 +6084,9 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
 }
 
 
+static int rig_get_split_vfo_unlocked(RIG *rig, vfo_t vfo, split_t *split,
+                                       vfo_t *tx_vfo);
+
 /**
  * \brief get the current split mode
  * \param rig   The rig handle
@@ -6085,6 +6106,21 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
                                  vfo_t vfo,
                                  split_t *split,
                                  vfo_t *tx_vfo)
+{
+    int retcode;
+    int lock_k4;
+
+    if (CHECK_RIG_ARG(rig)) { return -RIG_EINVAL; }
+
+    lock_k4 = rig->caps->rig_model == RIG_MODEL_K4;
+    if (lock_k4) { rig_lock(rig, 1); }
+    retcode = rig_get_split_vfo_unlocked(rig, vfo, split, tx_vfo);
+    if (lock_k4) { rig_lock(rig, 0); }
+    return retcode;
+}
+
+static int rig_get_split_vfo_unlocked(RIG *rig, vfo_t vfo, split_t *split,
+                                       vfo_t *tx_vfo)
 {
     const struct rig_caps *caps;
     struct rig_state *rs;
@@ -9036,24 +9072,7 @@ extern int read_icom_frame(hamlib_port_t *p, const unsigned char rxbuffer[],
                            size_t rxbuffer_len);
 
 
-/**
- * \brief Send verbatim data
- *
- * \a reply_len should be max bytes expected + 1
- *
- * If \a term is NULL then will read \a reply_len bytes exactly and reply will not be '\0' terminated.
- * \param rig The rig handle
- * \param send The buffer containing the data to be sent
- * \param send_len The length of send buffer
- * \param reply The buffer that will contain the data to be received
- * \param reply_len The length of the reply buffer
- * \param term The optional 1-char string that will terminate the read
- *
- * \return the number of bytes read if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
- */
-HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
+static int rig_send_raw_unlocked(RIG *rig, const unsigned char *send,
                                 int send_len, unsigned char *reply, int reply_len, unsigned char *term)
 {
     int nbytes;
@@ -9196,6 +9215,47 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
     ELAPSED2;
 
     RETURNFUNC(nbytes >= 0 ? nbytes : -RIG_EPROTO);
+}
+
+/**
+ * \brief Send verbatim data
+ *
+ * \a reply_len should be max bytes expected + 1
+ *
+ * If \a term is NULL then will read \a reply_len bytes exactly and reply will not be '\0' terminated.
+ * \param rig The rig handle
+ * \param send The buffer containing the data to be sent
+ * \param send_len The length of send buffer
+ * \param reply The buffer that will contain the data to be received
+ * \param reply_len The length of the reply buffer
+ * \param term The optional 1-char string that will terminate the read
+ *
+ * \return the number of bytes read if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
+ * set appropriately).
+ */
+HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
+                                int send_len, unsigned char *reply, int reply_len,
+                                unsigned char *term)
+{
+    int retval = RIG_OK;
+    int (*preflight)(RIG *rig) = rig->private_addr->raw_preflight;
+
+    if (reply != NULL && reply_len < 1) { return -RIG_EINVAL; }
+
+    if (preflight)
+    {
+        rig_lock(rig, 1);
+        retval = preflight(rig);
+    }
+
+    if (retval == RIG_OK)
+    {
+        retval = rig_send_raw_unlocked(rig, send, send_len, reply, reply_len, term);
+    }
+
+    if (preflight) { rig_lock(rig, 0); }
+    return retval;
 }
 
 HAMLIB_EXPORT(int) rig_set_lock_mode(RIG *rig, int mode)
