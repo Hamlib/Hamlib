@@ -15,10 +15,18 @@ LVL_KEYSPD
         /* raw data */
         [LVL_RAWSTR]        = { .min = { .i = 0 },     .max = { .i = 255 } },
         /* levels with dB units */
+#if !defined(NO_LVL_PREAMP)
         [LVL_PREAMP]        = { .min = { .i = 0 },     .max = { .i = 20 },   .step = { .i = 10 } },
+#endif
+#if !defined(NO_LVL_ATT)
         [LVL_ATT]           = { .min = { .i = 0 },     .max = { .i = 12 },   .step = { .i = 0 } },
+#endif
+#if !defined(NO_LVL_STRENGTH)
         [LVL_STRENGTH]      = { .min = { .i = 0 },     .max = { .i = 60 },   .step = { .i = 0 } },
+#endif
+#if !defined(NO_LVL_NB)
         [LVL_NB]            = { .min = { .f = 0 },     .max = { .f = 10 },   .step = { .f = 1 } },
+#endif
         /* levels with WPM units */
 #if !defined(NO_LVL_KEYSPD) 
         [LVL_KEYSPD]  = { .min = { .i = 4 },           .max = { .i = 60 },   .step = { .i = 1 } },
@@ -35,22 +43,36 @@ LVL_KEYSPD
         [LVL_BKIN_DLYMS]    = { .min = { .i = 30 },    .max = { .i = 3000 }, .step = { .i = 1 } },
         [LVL_AGC_TIME]      = { .min = { .f = 0.0f },  .max = { .f = 8.0f }, .step = { .f = 0.1f } },
         /* level with misc units */
+#if !defined(NO_LVL_SWR)
         [LVL_SWR]           = { .min = { .f = 0 },     .max = { .f = 5.0 },  .step = { .f = 1.0f/255.0f } },
+#endif
         [LVL_BAND_SELECT]   = { .min = { .i = 0 },     .max = { .i = 16 },   .step = { .i = 1 } },
         /* levels with 0-1 values -- increment based on rig's range */
         [LVL_NR]            = { .min = { .f = 0 },     .max = { .f = 1 },    .step = { .f = 1.0f/15.0f } },
         [LVL_AF]            = { .min = { .f = 0 },     .max = { .f = 1.0 },  .step = { .f = 1.0f/255.0f } },
         [LVL_RF]            = { .min = { .f = 0 },     .max = { .f = 1.0 },  .step = { .f = 1.0f/255.0f } },
+#if !defined(NO_LVL_RFPOWER)
         [LVL_RFPOWER]       = { .min = { .f = .05 },   .max = { .f = 1 },    .step = { .f = 1.0f/255.0f } },
+#endif
         [LVL_RFPOWER_METER] = { .min = { .f = .0 },    .max = { .f = 1 },    .step = { .f = 1.0f/255.0f } },
+#if !defined(NO_LVL_RFPOWER_METER_WATTS)
         [LVL_RFPOWER_METER_WATTS] = { .min = { .f = .0 },    .max = { .f = 100 },    .step = { .f = 1.0f/255.0f } },
+#endif
+#if !defined(NO_LVL_COMP_METER)
         [LVL_COMP_METER]    = { .min = { .f = .0 },    .max = { .f = 1 },    .step = { .f = 1.0f/255.0f } },
+#endif
+#if !defined(NO_LVL_ID_METER)
         [LVL_ID_METER]      = { .min = { .f = .0 },    .max = { .f = 1 },    .step = { .f = 1.0f/255.0f } },
+#endif
+#if !defined(NO_LVL_VD_METER)
         [LVL_VD_METER]      = { .min = { .f = .0 },    .max = { .f = 1 },    .step = { .f = 1.0f/255.0f } },
+#endif
         [LVL_SQL]           = { .min = { .f = 0 },     .max = { .f = 1.0 },  .step = { .f = 1.0f/255.0f } },
         [LVL_MICGAIN]       = { .min = { .f = .0 },    .max = { .f = 1 },    .step = { .f = 1.0f/255.0f } },
         [LVL_MONITOR_GAIN]  = { .min = { .f = .0 },    .max = { .f = 1 },    .step = { .f = 1.0f/255.0f } },
+#if !defined(NO_LVL_COMP)
         [LVL_COMP]          = { .min = { .f = .0 },    .max = { .f = 1 },    .step = { .f = 1.0f/100.0f } },
+#endif
         [LVL_VOXGAIN]       = { .min = { .f = .0 },    .max = { .f = 1 },    .step = { .f = 1.0f/255.0f } },
         [LVL_ANTIVOX]       = { .min = { .f = .0 },    .max = { .f = 1 },    .step = { .f = 1.0f/255.0f } },
         [LVL_ALC]           = { .min = { .f = .0 },    .max = { .f = 1 },    .step = { .f = 1.0f/120.0f } },
