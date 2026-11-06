@@ -62,6 +62,18 @@
 #define FTX1_HEAD_FIELD FTX1_HEAD_FIELD_12V
 
 /*
+ * Power ranges by head type:
+ *   FIELD_BATTERY: 0.5W - 6W (0.5W increments)
+ *   FIELD_12V:     0.5W - 10W (0.5W increments)
+ *   SPA1:          5W - 100W (1W increments) - "Optima" when attached to Field
+ */
+#define FTX1_POWER_MIN_FIELD 0.5f         /* Field head minimum (both modes) */
+#define FTX1_POWER_MAX_FIELD_BATTERY 6.0f /* Field head on battery maximum */
+#define FTX1_POWER_MAX_FIELD_12V 10.0f    /* Field head on 12V maximum */
+#define FTX1_POWER_MIN_SPA1 5             /* Optima/SPA-1 minimum */
+#define FTX1_POWER_MAX_SPA1 100           /* Optima/SPA-1 maximum */
+
+/*
  * FTX1_VFO_TO_P1 - Convert Hamlib VFO to FTX-1 P1 parameter
  *
  * FTX-1 CAT commands use P1=0 for MAIN VFO and P1=1 for SUB VFO.
@@ -133,15 +145,14 @@ static inline int ftx1_vfo_to_p1(RIG *rig, vfo_t vfo)
  * Maps raw RM5 (PO) values to watts (approximate)
  */
 #define FTX1_RFPOWER_METER_CAL { \
-    7, \
+    6, \
     { \
         {0, 0.0f}, \
-        {10, 0.8f}, \
-        {50, 8.0f}, \
-        {100, 26.0f}, \
-        {150, 54.0f}, \
-        {200, 92.0f}, \
-        {250, 140.0f}, \
+        {50, 5.0f}, \
+        {70, 10.0f}, \
+        {95, 20.0f}, \
+        {125, 40.0f}, \
+        {235, 150.0f}, \
     } \
 }
 
