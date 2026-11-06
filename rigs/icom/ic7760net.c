@@ -42,9 +42,11 @@ static const struct icom_network_model ic7760net_model =
     .model_name = "IC-7760 (Network)",
     .radio_name = "IC-7760",
     .rx_only = 0,
-    .iq_capable = 1,
-    /* never exercised over the network */
-    .status = RIG_STATUS_UNTESTED,
+    /* The [LAN] connector carries AF or a 12 kHz IF; I/Q leaves only through
+     * the RF deck's USB port (IC-7760 I/Q Output Reference Guide). */
+    .iq_capable = 0,
+    /* hardware-tested over the network */
+    .status = RIG_STATUS_BETA,
     .version = "20260819.0",
 };
 

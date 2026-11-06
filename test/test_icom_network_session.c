@@ -134,8 +134,10 @@ void test_session_stale_frame_drain(void)
 }
 
 
-/* test router: classify spectrum (cmd 0x27) frames as async and count them */
+/* test router: classify spectrum (cmd 0x27) frames as async, count them and
+ * keep the length of the last one */
 static volatile int test_async_count;
+static volatile size_t test_async_length;
 
 static int test_async_router(void *ctx, const unsigned char *frame,
                              size_t length)
@@ -145,6 +147,7 @@ static int test_async_router(void *ctx, const unsigned char *frame,
     if (length >= 6 && frame[4] == 0x27)
     {
         test_async_count++;
+        test_async_length = length;
         return 1; /* consumed */
     }
 
@@ -559,6 +562,37 @@ void test_session_civ_reply_with_management_length(void)
         TEST_CHECK_(n == want, "packet of 0x%x bytes: got %d-byte frame, expected %d",
                     (unsigned)totals[i], n, want);
     }
+
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
+/* Over the network a radio sends a whole scope line as one CI-V frame (27 00,
+ * division 01 of 01): 704 bytes of data on a 689-point scope (IC-7610), 711
+ * with the frame around them. The backend must get all of it. */
+void test_session_async_long_frame(void)
+{
+    struct mock_server mock;
+    struct icom_network_session *s;
+    uint8_t cmd[] = { 0xfe, 0xfe, 0x98, 0xe0, 0x03, 0xfd };
+    uint8_t rx[256];
+
+    test_async_count = 0;
+    test_async_length = 0;
+    mock_start(&mock);
+    mock.send_spectrum = 1;
+    mock.spectrum_length = 711;
+
+    s = civ_session(&mock);
+    icom_network_session_set_async_cb(s, test_async_router, NULL);
+
+    TEST_ASSERT(icom_network_civ_send(s, cmd, sizeof(cmd)) == (int)sizeof(cmd));
+    TEST_CHECK(icom_network_civ_recv(s, rx, sizeof(rx), 1000) > 0);
+
+    TEST_CHECK(test_async_count >= 1);
+    TEST_CHECK_(test_async_length == 711,
+                "spectrum frame of %zu bytes reached the backend, 711 sent",
+                (size_t)test_async_length);
 
     icom_network_session_free(s);
     mock_stop(&mock);
@@ -2110,6 +2144,7 @@ TEST_LIST =
     { "handshake_and_civ_roundtrip", test_session_handshake_and_civ_roundtrip },
     { "stale_frame_drain",           test_session_stale_frame_drain },
     { "async_routing",               test_session_async_routing },
+    { "async_long_frame",            test_session_async_long_frame },
     { "audio_rx",                    test_session_audio_rx },
     { "failed_connect_releases_slot", test_session_failed_connect_releases_slot },
     { "handshake_recovers_lost_reply", test_session_handshake_recovers_lost_reply },

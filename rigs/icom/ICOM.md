@@ -29,12 +29,15 @@ support differ.
 | 3096 | IC-9700 (Network) | AUDIO_RX, AUDIO_TX, IQ_RX | Beta — hardware tested |
 | 3097 | IC-705 (Network) | AUDIO_RX, AUDIO_TX, IQ_RX | Beta — hardware tested |
 | 3098 | IC-905 (Network) | AUDIO_RX, AUDIO_TX, IQ_RX | Untested over the network |
-| 3099 | IC-7760 (Network) | AUDIO_RX, AUDIO_TX, IQ_RX | Untested over the network |
+| 3099 | IC-7760 (Network) | AUDIO_RX, AUDIO_TX | Beta — hardware tested |
 | 3100 | IC-7300MK2 (Network) | AUDIO_RX, AUDIO_TX, IQ_RX | Untested over the network |
 
 "Untested" means the model descriptor was written from the shared
 implementation but no one has run it against that radio. It is expected to work;
 it has not been shown to.
+
+The IC-7760 offers no `IQ_RX`: its [LAN] connector carries AF or a 12 kHz IF,
+and its I/Q leaves only through the RF deck's USB port.
 
 ## 2. Connecting
 
