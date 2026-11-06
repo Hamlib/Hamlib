@@ -26,6 +26,8 @@
 
 #include <string.h>
 #include <stdio.h>
+#include "hamlib/rig.h"
+#include "hamlib/port.h"
 
 #include "iofunc.h"
 #include "elecraft.h"
@@ -101,6 +103,12 @@ int elecraft_open(RIG *rig)
     struct rig_state *rs = STATE(rig);
     struct hamlib_port *rp = RIGPORT(rig);
     struct kenwood_priv_data *priv = rs->priv;
+
+    if (rig->caps->rig_model == RIG_MODEL_K4
+            && rp->type.rig == RIG_PORT_NETWORK)
+    {
+        kenwood_k4_reset(rig);
+    }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, rig version=%s\n", __func__,
               rig->caps->version);

@@ -205,7 +205,13 @@ static void morse_busy_store(struct rig_state *rs, bool busy)
 struct rig_private
 {
     int no_get_vfo;     /* the backend found that this rig lacks get_vfo */
+    int (*raw_preflight)(RIG *rig);
 };
+
+void rig_set_raw_preflight(RIG *rig, int (*preflight)(RIG *rig))
+{
+    rig->private_addr->raw_preflight = preflight;
+}
 
 static void no_get_vfo_set(RIG *rig)
 {
@@ -1580,11 +1586,12 @@ int HAMLIB_API rig_open(RIG *rig)
 
     if (caps->rig_open != NULL)
     {
-        /* A RIG_PORT_CUSTOM backend owns its transport and only opens it in
-         * caps->rig_open(), so its power probe has to wait until after that. */
-        int custom_port = (rp->type.rig == RIG_PORT_CUSTOM);
+        /* Custom transports open in the backend; K4 restores stream accounting
+         * there before any query on a reopened connection. */
+        int probe_after_open = rp->type.rig == RIG_PORT_CUSTOM
+                               || caps->rig_model == RIG_MODEL_K4;
 
-        if (!custom_port)
+        if (!probe_after_open)
         {
             rig_open_check_powerstat(rig, skip_init);
         }
@@ -1600,7 +1607,7 @@ int HAMLIB_API rig_open(RIG *rig)
             RETURNFUNC2(status);
         }
 
-        if (custom_port)
+        if (probe_after_open)
         {
             rig_open_check_powerstat(rig, skip_init);
         }
@@ -9036,24 +9043,7 @@ extern int read_icom_frame(hamlib_port_t *p, const unsigned char rxbuffer[],
                            size_t rxbuffer_len);
 
 
-/**
- * \brief Send verbatim data
- *
- * \a reply_len should be max bytes expected + 1
- *
- * If \a term is NULL then will read \a reply_len bytes exactly and reply will not be '\0' terminated.
- * \param rig The rig handle
- * \param send The buffer containing the data to be sent
- * \param send_len The length of send buffer
- * \param reply The buffer that will contain the data to be received
- * \param reply_len The length of the reply buffer
- * \param term The optional 1-char string that will terminate the read
- *
- * \return the number of bytes read if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
- */
-HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
+static int rig_send_raw_unlocked(RIG *rig, const unsigned char *send,
                                 int send_len, unsigned char *reply, int reply_len, unsigned char *term)
 {
     int nbytes;
@@ -9196,6 +9186,47 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
     ELAPSED2;
 
     RETURNFUNC(nbytes >= 0 ? nbytes : -RIG_EPROTO);
+}
+
+/**
+ * \brief Send verbatim data
+ *
+ * \a reply_len should be max bytes expected + 1
+ *
+ * If \a term is NULL then will read \a reply_len bytes exactly and reply will not be '\0' terminated.
+ * \param rig The rig handle
+ * \param send The buffer containing the data to be sent
+ * \param send_len The length of send buffer
+ * \param reply The buffer that will contain the data to be received
+ * \param reply_len The length of the reply buffer
+ * \param term The optional 1-char string that will terminate the read
+ *
+ * \return the number of bytes read if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
+ * set appropriately).
+ */
+HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
+                                int send_len, unsigned char *reply, int reply_len,
+                                unsigned char *term)
+{
+    int retval = RIG_OK;
+    int (*preflight)(RIG *rig) = rig->private_addr->raw_preflight;
+
+    if (reply != NULL && reply_len < 1) { return -RIG_EINVAL; }
+
+    if (preflight)
+    {
+        rig_lock(rig, 1);
+        retval = preflight(rig);
+    }
+
+    if (retval == RIG_OK)
+    {
+        retval = rig_send_raw_unlocked(rig, send, send_len, reply, reply_len, term);
+    }
+
+    if (preflight) { rig_lock(rig, 0); }
+    return retval;
 }
 
 HAMLIB_EXPORT(int) rig_set_lock_mode(RIG *rig, int mode)
