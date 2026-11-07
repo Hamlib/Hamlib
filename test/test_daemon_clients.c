@@ -216,8 +216,8 @@ static void dump_log(const struct daemon_proc *proc)
 }
 
 
-static int start_daemon(const struct daemon_spec *spec,
-                        struct daemon_proc *proc)
+static int start_daemon_once(const struct daemon_spec *spec,
+                             struct daemon_proc *proc)
 {
     const char *path = daemon_path(spec->name);
     char port_str[16];
@@ -311,6 +311,29 @@ static void stop_daemon(struct daemon_proc *proc)
         unlink(proc->log_path);
         proc->log_path[0] = '\0';
     }
+}
+
+
+/* pick_free_port() checks the port on 127.0.0.1 and closes its socket before
+ * the daemon binds the port on [::], so the port can already be in use on IPv6,
+ * or be taken in between, and the daemon exits on the bind failure. Retry on a
+ * fresh port, as start_rigctld_opt() in test_netrigctl_stream.c does. */
+static int start_daemon(const struct daemon_spec *spec,
+                        struct daemon_proc *proc)
+{
+    int attempt;
+
+    for (attempt = 0; attempt < 3; attempt++)
+    {
+        if (start_daemon_once(spec, proc) == 0)
+        {
+            return 0;
+        }
+
+        stop_daemon(proc);
+    }
+
+    return -1;
 }
 
 
