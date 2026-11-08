@@ -37,6 +37,7 @@
 #include "cal.h"
 #include "cache.h"
 #include "misc.h"
+#include "rig_internal.h"
 
 #include "kenwood.h"
 #include "ts990s.h"
@@ -279,8 +280,15 @@ static int remove_nonprint(char *s)
  *   RIG_REJECTED - if a negative acknowledge was received or command not
  *          recognized by rig.
  */
-int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
-                        size_t datasize)
+static int k4_stream_failure(RIG *rig, int error);
+static int k4_prepare_stream(RIG *rig);
+static int k4_query(RIG *rig, const char *cmdstr, char *data, size_t datasize);
+static int k4_drain_marker(RIG *rig, const char *command, char *data,
+                           size_t capacity, struct timespec *started, int budget,
+                           int recovering);
+
+static int kenwood_transaction_retry(RIG *rig, const char *cmdstr, char *data,
+                                     size_t datasize)
 {
     char buffer[KENWOOD_MAX_BUF_LEN]; /* use our own buffer since
                                        verification may need a longer
@@ -291,6 +299,10 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
     int len;
     int resp_len;  // Response length
     int retry_read = 0;
+    int command_sent = 0;
+    int write_attempted = 0;
+    int complete_query_rejection = 0;
+    int k4_verification_accounted = 0;
     struct kenwood_priv_data *priv = STATE(rig)->priv;
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
     struct rig_state *rs;
@@ -316,6 +328,8 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
 
     rs = STATE(rig);
     rp = RIGPORT(rig);
+
+    if (RIG_IS_K4 && priv->k4_stream_unusable) { return -RIG_EIO; }
 
     rs->transaction_active = 1;
 
@@ -355,6 +369,12 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
 
 transaction_write:
 
+    if (command_sent && RIG_IS_K4)
+    {
+        if (retval >= 0) { retval = -RIG_EPROTO; }
+        goto transaction_quit;
+    }
+
     if (cmdstr)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: cmdstr = %s\n", __func__, cmdstr);
@@ -381,6 +401,7 @@ transaction_write:
         /* flush anything in the read buffer before command is sent */
         rig_flush(rp);
 
+        write_attempted = 1;
         retval = write_block(rp, (unsigned char *) cmd, len);
 
         free(cmd);
@@ -390,6 +411,8 @@ transaction_write:
             goto transaction_quit;
         }
     }
+
+    command_sent = 1;
 
     // we're not going to do the verify on RX cmd
     // Seems some rigs (like TS-480) return "?" when RX is done while PTT=OFF
@@ -441,6 +464,16 @@ transaction_write:
         {
             goto transaction_quit;
         }
+
+        if (RIG_IS_K4 && strcmp(priv->verify_cmd, "ID;") == 0)
+        {
+            struct timespec started = {0};
+            priv->k4_marker_pending = true;
+            k4_verification_accounted = 1;
+            elapsed_ms(&started, HAMLIB_ELAPSED_SET);
+            retval = k4_drain_marker(rig, NULL, NULL, 0, &started, rp->timeout, 0);
+            goto transaction_quit;
+        }
     }
 
 transaction_read:
@@ -450,6 +483,9 @@ transaction_read:
     // eventually we should be able to get rid of this but requires testing all Kenwood rigs
     len = min(datasize ? datasize + 1 : priv->verify_cmd_len + 48,
               KENWOOD_MAX_BUF_LEN);
+
+    if (RIG_IS_K4) { len = sizeof(buffer); }
+
     retval = read_string(rp, (unsigned char *) buffer, len,
                          cmdtrm_str, strlen(cmdtrm_str), 0, 1);
     rig_debug(RIG_DEBUG_TRACE, "%s: read_string len=%d '%s'\n", __func__,
@@ -513,8 +549,31 @@ transaction_read:
         goto transaction_quit;
     }
 
+    if (RIG_IS_K4 && resp_len > 4 && strncmp(buffer, "ER", 2) == 0)
+    {
+        char *end;
+        long code = strtol(buffer + 2, &end, 10);
+
+        if (isdigit((unsigned char)buffer[2]) && code > 0
+                && (*end == ':' || *end == ';'))
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: K4 reported %s while waiting for %s\n",
+                      __func__, buffer, cmdstr ? cmdstr : "reply");
+            retval = -RIG_ERJCTED;
+            goto transaction_quit;
+        }
+    }
+
     if (resp_len == 2)
     {
+        if (RIG_IS_K4)
+        {
+            retval = buffer[0] == '?' ? -RIG_ERJCTED : -RIG_EPROTO;
+            complete_query_rejection = buffer[0] == '?' && datasize > 0
+                                       && cmdstr && strcmp(cmdstr, "ID") != 0;
+            goto transaction_quit;
+        }
+
         switch (buffer[0])
         {
         case 'N':
@@ -716,6 +775,12 @@ transaction_read:
 
 transaction_quit:
 
+    if (RIG_IS_K4 && write_attempted && retval < 0 && !complete_query_rejection
+            && !k4_verification_accounted)
+    {
+        k4_stream_failure(rig, retval);
+    }
+
     // update the cache
     if (retval == RIG_OK && cmdstr && strcmp(cmdstr, "IF") == 0)
     {
@@ -725,6 +790,315 @@ transaction_quit:
 
     rs->transaction_active = 0;
     RETURNFUNC2(retval);
+}
+
+
+int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
+                        size_t datasize)
+{
+    int retval;
+
+    if (!RIG_IS_K4)
+    {
+        return kenwood_transaction_retry(rig, cmdstr, data, datasize);
+    }
+
+    rig_lock(rig, 1);
+    retval = k4_prepare_stream(rig);
+    if (retval == RIG_OK)
+    {
+        retval = datasize ? k4_query(rig, cmdstr, data, datasize)
+                 : kenwood_transaction_retry(rig, cmdstr, data, datasize);
+    }
+    rig_lock(rig, 0);
+    return retval;
+}
+
+/* A newly opened TCP connection cannot contain replies from the old stream. */
+void kenwood_k4_reset(RIG *rig)
+{
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
+    if (!RIG_IS_K4 || RIGPORT(rig)->type.rig != RIG_PORT_NETWORK) { return; }
+    priv->k4_stream_unusable = false;
+    priv->k4_marker_pending = false;
+    priv->k4_frame_length = 0;
+    priv->cache_start.tv_sec = 0;
+    rig_invalidate_cache(rig);
+    rig_invalidate_cache_current_freq(rig);
+}
+
+static void k4_invalidate_observations(RIG *rig)
+{
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
+    priv->cache_start.tv_sec = 0;
+    rig_invalidate_cache(rig);
+    rig_invalidate_cache_current_freq(rig);
+}
+
+static int k4_stream_failure(RIG *rig, int error)
+{
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
+    priv->k4_stream_unusable = true;
+    k4_invalidate_observations(rig);
+    return error;
+}
+
+static int k4_read_frame(RIG *rig, struct timespec *started, int budget)
+{
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
+    hamlib_port_t *port = RIGPORT(rig);
+
+    while (priv->k4_frame_length < sizeof(priv->k4_frame) - 1)
+    {
+        char byte[2];
+        int remaining = budget - elapsed_ms(started, HAMLIB_ELAPSED_GET);
+        int saved_timeout = port->timeout;
+        int saved_timeout_retry = port->timeout_retry;
+        int retval;
+
+        if (remaining <= 0) { return -RIG_ETIMEOUT; }
+
+        port->timeout = remaining;
+        port->timeout_retry = 0;
+        retval = read_string_direct(port, (unsigned char *)byte, sizeof(byte),
+                                    ";", 1, 0, 1);
+        port->timeout = saved_timeout;
+        port->timeout_retry = saved_timeout_retry;
+
+        if (retval < 0) { return retval; }
+
+        if (retval != 1) { return -RIG_EPROTO; }
+
+        if (byte[0] == ';')
+        {
+            priv->k4_frame[priv->k4_frame_length] = '\0';
+            priv->k4_frame_length = 0;
+            return RIG_OK;
+        }
+
+        priv->k4_frame[priv->k4_frame_length++] = byte[0];
+    }
+
+    return -RIG_EPROTO;
+}
+
+static int k4_drain_marker(RIG *rig, const char *command, char *data,
+                           size_t capacity, struct timespec *started, int budget,
+                           int recovering)
+{
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
+    int error = RIG_OK;
+    int observed = command == NULL;
+    size_t command_length = command ? strlen(command) : 0;
+
+    for (int frames = 0; frames < 128; frames++)
+    {
+        int retval = k4_read_frame(rig, started, budget);
+        const char *frame = priv->k4_frame;
+
+        if (retval != RIG_OK)
+        {
+            if (retval == -RIG_ETIMEOUT && priv->k4_marker_pending)
+            {
+                k4_invalidate_observations(rig);
+                return error != RIG_OK ? error : retval;
+            }
+            return k4_stream_failure(rig, error != RIG_OK ? error : retval);
+        }
+
+        if (strcmp(frame, "ID017") == 0)
+        {
+            priv->k4_marker_pending = false;
+            if (recovering) { return RIG_OK; }
+            if (command && strcmp(command, "ID") == 0)
+            {
+                if (strlen(frame) >= capacity) { error = -RIG_EPROTO; }
+                else { strcpy(data, frame); observed = 1; }
+            }
+            return error != RIG_OK ? error : observed ? RIG_OK : -RIG_EPROTO;
+        }
+
+        if (strncmp(frame, "ID", 2) == 0)
+        {
+            return k4_stream_failure(rig, -RIG_EPROTO);
+        }
+
+        if (frame[0] == '?' && frame[1] == '\0') { error = -RIG_ERJCTED; }
+
+        if (strncmp(frame, "ER", 2) == 0)
+        {
+            char *end;
+            long code = strtol(frame + 2, &end, 10);
+
+            if (strlen(frame) >= 4 && isdigit((unsigned char)frame[2])
+                    && isdigit((unsigned char)frame[3]) && code > 0
+                    && (*end == ':' || *end == '\0')) { error = -RIG_ERJCTED; }
+        }
+
+        if (command && strncmp(frame, command, command_length) == 0
+                && frame[command_length] != '$')
+        {
+            if (strlen(frame) >= capacity) { error = -RIG_EPROTO; }
+            else
+            {
+                strcpy(data, frame);
+                observed = 1;
+            }
+        }
+    }
+
+    /* Complete frames leave the outstanding marker identifiable on the next call. */
+    k4_invalidate_observations(rig);
+    return error != RIG_OK ? error : -RIG_EPROTO;
+}
+
+static int k4_prepare_stream(RIG *rig)
+{
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
+    struct timespec started = {0};
+
+    if (priv->k4_stream_unusable) { return -RIG_EIO; }
+    if (!priv->k4_marker_pending) { return RIG_OK; }
+
+    elapsed_ms(&started, HAMLIB_ELAPSED_SET);
+    return k4_drain_marker(rig, NULL, NULL, 0, &started,
+                           RIGPORT(rig)->timeout, 1);
+}
+
+static int k4_write_command(RIG *rig, const char *command)
+{
+    char buffer[KENWOOD_MAX_BUF_LEN];
+    int length = snprintf(buffer, sizeof(buffer), "%s;", command);
+    int retval;
+
+    if (length < 0 || length >= sizeof(buffer)) { return -RIG_EINVAL; }
+
+    retval = write_block(RIGPORT(rig), (const unsigned char *)buffer, length);
+    if (retval == RIG_OK && strcmp(command, "ID") == 0)
+    {
+        struct kenwood_priv_data *priv = STATE(rig)->priv;
+        priv->k4_marker_pending = true;
+    }
+    return retval == RIG_OK ? retval : k4_stream_failure(rig, retval);
+}
+
+static int k4_set_once(RIG *rig, const char *cmdstr)
+{
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
+    struct timespec started = {0};
+    int budget = RIGPORT(rig)->timeout;
+    int retval;
+
+    if (priv->k4_stream_unusable) { return -RIG_EIO; }
+
+    elapsed_ms(&started, HAMLIB_ELAPSED_SET);
+    retval = k4_write_command(rig, cmdstr);
+    if (retval != RIG_OK) { return retval; }
+    retval = k4_write_command(rig, "ID");
+    if (retval != RIG_OK) { return retval; }
+    return k4_drain_marker(rig, NULL, NULL, 0, &started, budget, 0);
+}
+
+static int k4_query_reply(RIG *rig, const char *command, char *reply,
+                          size_t capacity, struct timespec *started, int budget)
+{
+    int retval = k4_write_command(rig, command);
+    if (retval != RIG_OK) { return retval; }
+
+    /* ID's response is itself the boundary; another ID would leave an orphan. */
+    if (strcmp(command, "ID") != 0)
+    {
+        retval = k4_write_command(rig, "ID");
+        if (retval != RIG_OK) { return retval; }
+    }
+    return k4_drain_marker(rig, command, reply, capacity, started, budget, 0);
+}
+
+static int k4_query(RIG *rig, const char *cmdstr, char *data, size_t datasize)
+{
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
+    struct timespec started = {0};
+    char command[KENWOOD_MAX_BUF_LEN];
+    char reply[KENWOOD_MAX_BUF_LEN];
+    size_t length;
+    int retval;
+
+    if (!cmdstr || !data || !datasize) { return -RIG_EINVAL; }
+    length = strlen(cmdstr);
+    if (length && (cmdstr[length - 1] == ';' || cmdstr[length - 1] == '\r'))
+    { length--; }
+    if (!length || length >= sizeof(command) - 1
+            || memchr(cmdstr, ';', length) || memchr(cmdstr, '\r', length))
+    { return -RIG_EINVAL; }
+    memcpy(command, cmdstr, length);
+    command[length] = '\0';
+
+    if (strcmp(command, "IF") == 0 && priv->cache_start.tv_sec != 0
+            && elapsed_ms(&priv->cache_start, HAMLIB_ELAPSED_GET) < 500)
+    {
+        snprintf(data, datasize, "%s", priv->last_if_response);
+        return RIG_OK;
+    }
+
+    STATE(rig)->transaction_active = 1;
+    if (priv->is_emulation) { RIGPORT(rig)->post_write_delay = 0; }
+    elapsed_ms(&started, HAMLIB_ELAPSED_SET);
+    retval = k4_query_reply(rig, command, reply, sizeof(reply), &started,
+                            RIGPORT(rig)->timeout);
+    STATE(rig)->transaction_active = 0;
+
+    if (retval == RIG_OK)
+    {
+        snprintf(data, datasize, "%s", reply);
+        if (strcmp(command, "IF") == 0)
+        {
+            snprintf(priv->last_if_response, sizeof(priv->last_if_response),
+                     "%s", reply);
+            elapsed_ms(&priv->cache_start, HAMLIB_ELAPSED_SET);
+        }
+    }
+    else { k4_invalidate_observations(rig); }
+    return retval;
+}
+
+static int k4_read_value(RIG *rig, const char *cmdstr, char *data,
+                                size_t datasize)
+{
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
+    struct timespec started = {0};
+    int budget = RIGPORT(rig)->timeout;
+    int retval;
+
+    if (priv->k4_stream_unusable) { return -RIG_EIO; }
+
+    elapsed_ms(&started, HAMLIB_ELAPSED_SET);
+    retval = k4_write_command(rig, "ID");
+    if (retval != RIG_OK) { return retval; }
+    retval = k4_drain_marker(rig, NULL, NULL, 0, &started, budget, 0);
+    if (retval != RIG_OK) { return retval; }
+    return k4_query_reply(rig, cmdstr, data, datasize, &started, budget);
+}
+
+int kenwood_transaction_k4_set_once(RIG *rig, const char *cmdstr)
+{
+    int retval;
+
+    rig_lock(rig, 1);
+    retval = k4_prepare_stream(rig);
+    if (retval == RIG_OK) { retval = k4_set_once(rig, cmdstr); }
+    rig_lock(rig, 0);
+    return retval;
+}
+
+int kenwood_transaction_k4_read(RIG *rig, const char *cmdstr, char *data,
+                                size_t datasize)
+{
+    int retval;
+    rig_lock(rig, 1);
+    retval = k4_prepare_stream(rig);
+    if (retval == RIG_OK) { retval = k4_read_value(rig, cmdstr, data, datasize); }
+    rig_lock(rig, 0);
+    return retval;
 }
 
 
@@ -855,6 +1229,8 @@ int kenwood_init(RIG *rig)
 
     priv = rs->priv;
 
+    if (RIG_IS_K4) { rig_set_raw_preflight(rig, k4_prepare_stream); }
+
     if (RIG_IS_XG3)
     {
         priv->verify_cmd[0] = caps->cmdtrm;
@@ -961,6 +1337,8 @@ int kenwood_init(RIG *rig)
 int kenwood_cleanup(RIG *rig)
 {
     ENTERFUNC;
+
+    if (RIG_IS_K4) { rig_set_raw_preflight(rig, NULL); }
 
     free(STATE(rig)->priv);
     STATE(rig)->priv = NULL;
@@ -3086,7 +3464,7 @@ int kenwood_get_mode_if(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  * to 0 and 255 will result in the minimum and maximum values being set
  * If a rig doesn't behave this way then customize inside that rig's backend
 */
-static int kenwood_get_micgain_minmax(RIG *rig, int *micgain_now,
+static int kenwood_get_micgain_minmax_unlocked(RIG *rig, int *micgain_now,
                                       int *micgain_min,
                                       int *micgain_max,
                                       int restore)
@@ -3101,12 +3479,19 @@ static int kenwood_get_micgain_minmax(RIG *rig, int *micgain_now,
     char *cmd = "MG;MG000;MG;MG255;MG;MG000;";
     int n;
     struct hamlib_port *rp = RIGPORT(rig);
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
 
     ENTERFUNC;
 
+    if (RIG_IS_K4 && priv->k4_stream_unusable) { RETURNFUNC(-RIG_EIO); }
+
     retval = write_block(rp, (unsigned char *) cmd, strlen(cmd));
 
-    if (retval != RIG_OK) { RETURNFUNC(retval); }
+    if (retval != RIG_OK)
+    {
+        if (RIG_IS_K4) { k4_stream_failure(rig, retval); }
+        RETURNFUNC(retval);
+    }
 
     retval = read_string(rp, (unsigned char *) levelbuf, sizeof(levelbuf),
                          NULL, 0, 1, 1);
@@ -3117,6 +3502,7 @@ static int kenwood_get_micgain_minmax(RIG *rig, int *micgain_now,
     {
         rig_debug(RIG_DEBUG_ERR, "%s: expected 19, got %d in '%s'\n", __func__, retval,
                   levelbuf);
+        if (RIG_IS_K4) { k4_stream_failure(rig, -RIG_EPROTO); }
         RETURNFUNC(-RIG_EPROTO);
     }
 
@@ -3126,6 +3512,7 @@ static int kenwood_get_micgain_minmax(RIG *rig, int *micgain_now,
     {
         rig_debug(RIG_DEBUG_ERR, "%s: count not parse 3 values from '%s'\n", __func__,
                   levelbuf);
+        if (RIG_IS_K4) { k4_stream_failure(rig, -RIG_EPROTO); }
         RETURNFUNC(-RIG_EPROTO);
     }
 
@@ -3141,13 +3528,28 @@ static int kenwood_get_micgain_minmax(RIG *rig, int *micgain_now,
     RETURNFUNC(RIG_OK);
 }
 
+static int kenwood_get_micgain_minmax(RIG *rig, int *micgain_now,
+                                      int *micgain_min, int *micgain_max, int restore)
+{
+    int retval;
+    if (RIG_IS_K4) { rig_lock(rig, 1); }
+    retval = RIG_IS_K4 ? k4_prepare_stream(rig) : RIG_OK;
+    if (retval == RIG_OK)
+    {
+        retval = kenwood_get_micgain_minmax_unlocked(
+                     rig, micgain_now, micgain_min, micgain_max, restore);
+    }
+    if (RIG_IS_K4) { rig_lock(rig, 0); }
+    return retval;
+}
+
 /* kenwood_get_power_minmax
  * Kenwood rigs have different power levels by mode and by rig
  * This routine relies on the idea that setting the power
  * to 0 and 255 will result in the minimum and maximum values being set
  * If a rig doesn't behave this way then customize inside that rig's backend
 */
-static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
+static int kenwood_get_power_minmax_unlocked(RIG *rig, int *power_now, int *power_min,
                                     int *power_max,
                                     int restore)
 {
@@ -3167,8 +3569,11 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
     ptt_t ptt;
     struct rig_state *rs = STATE(rig);
     struct hamlib_port *rp = RIGPORT(rig);
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
 
     ENTERFUNC;
+
+    if (RIG_IS_K4 && priv->k4_stream_unusable) { RETURNFUNC(-RIG_EIO); }
 
     if (power_now == NULL || power_min == NULL) { simple_PC = 1; }
 
@@ -3231,7 +3636,11 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
 
     retval = write_block(rp, (unsigned char *) cmd, strlen(cmd));
 
-    if (retval != RIG_OK) { RETURNFUNC(retval); }
+    if (retval != RIG_OK)
+    {
+        if (RIG_IS_K4) { k4_stream_failure(rig, retval); }
+        RETURNFUNC(retval);
+    }
 
     if (RIG_IS_TS890S || RIG_IS_TS480 || simple_PC)
     {
@@ -3254,6 +3663,7 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
                   expected_length,
                   retval,
                   levelbuf);
+        if (RIG_IS_K4) { k4_stream_failure(rig, -RIG_EPROTO); }
         RETURNFUNC(-RIG_EPROTO);
     }
 
@@ -3265,6 +3675,7 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
         {
             rig_debug(RIG_DEBUG_ERR, "%s: count not parse 1 value from '%s'\n", __func__,
                       levelbuf);
+            if (RIG_IS_K4) { k4_stream_failure(rig, -RIG_EPROTO); }
             RETURNFUNC(-RIG_EPROTO);
         }
     }
@@ -3276,6 +3687,7 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
         {
             rig_debug(RIG_DEBUG_ERR, "%s: count not parse 3 values from '%s'\n", __func__,
                       levelbuf);
+            if (RIG_IS_K4) { k4_stream_failure(rig, -RIG_EPROTO); }
             RETURNFUNC(-RIG_EPROTO);
         }
 
@@ -3297,6 +3709,21 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
     }
 
     RETURNFUNC(RIG_OK);
+}
+
+static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
+                                    int *power_max, int restore)
+{
+    int retval;
+    if (RIG_IS_K4) { rig_lock(rig, 1); }
+    retval = RIG_IS_K4 ? k4_prepare_stream(rig) : RIG_OK;
+    if (retval == RIG_OK)
+    {
+        retval = kenwood_get_power_minmax_unlocked(
+                     rig, power_now, power_min, power_max, restore);
+    }
+    if (RIG_IS_K4) { rig_lock(rig, 0); }
+    return retval;
 }
 
 static int kenwood_find_slope_filter_for_frequency(RIG *rig, vfo_t vfo,
@@ -5394,11 +5821,13 @@ int kenwood_get_trn(RIG *rig, int *trn)
 /*
  * kenwood_set_powerstat
  */
-int kenwood_set_powerstat(RIG *rig, powerstat_t status)
+static int kenwood_set_powerstat_unlocked(RIG *rig, powerstat_t status)
 {
     int retval;
     struct hamlib_port *rp = RIGPORT(rig);
     struct kenwood_priv_data *priv = STATE(rig)->priv;
+
+    if (RIG_IS_K4 && priv->k4_stream_unusable) { return -RIG_EIO; }
 
     if ((priv->is_k3 || priv->is_k3s) && status == RIG_POWER_ON)
     {
@@ -5416,7 +5845,11 @@ int kenwood_set_powerstat(RIG *rig, powerstat_t status)
     {
         // When powering on a Kenwood rig needs dummy bytes to wake it up,
         // then wait at least 200ms and within 2 seconds issue the power-on command again
-        write_block(rp, (unsigned char *) "PS1;", 4);
+        retval = write_block(rp, (unsigned char *) "PS1;", 4);
+        if (RIG_IS_K4 && retval != RIG_OK)
+        {
+            return k4_stream_failure(rig, retval);
+        }
         hl_usleep(500000);
     }
 
@@ -5457,10 +5890,20 @@ int kenwood_set_powerstat(RIG *rig, powerstat_t status)
     RETURNFUNC2(retval);
 }
 
+int kenwood_set_powerstat(RIG *rig, powerstat_t status)
+{
+    int retval;
+    if (RIG_IS_K4) { rig_lock(rig, 1); }
+    retval = RIG_IS_K4 ? k4_prepare_stream(rig) : RIG_OK;
+    if (retval == RIG_OK) { retval = kenwood_set_powerstat_unlocked(rig, status); }
+    if (RIG_IS_K4) { rig_lock(rig, 0); }
+    return retval;
+}
+
 /*
  * kenwood_get_powerstat
  */
-int kenwood_get_powerstat(RIG *rig, powerstat_t *status)
+static int kenwood_get_powerstat_unlocked(RIG *rig, powerstat_t *status)
 {
     char pwrbuf[6];
     int result;
@@ -5468,6 +5911,8 @@ int kenwood_get_powerstat(RIG *rig, powerstat_t *status)
     struct kenwood_priv_data *priv = STATE(rig)->priv;
 
     ENTERFUNC;
+
+    if (RIG_IS_K4 && priv->k4_stream_unusable) { RETURNFUNC(-RIG_EIO); }
 
     if (!priv->has_ps)
     {
@@ -5528,8 +5973,9 @@ int kenwood_get_powerstat(RIG *rig, powerstat_t *status)
     // Kenwood rigs in powered-off state require the PS command to be sent
     // after waiting for at least 200ms and within 2 seconds after dummy data
     hl_usleep(500000);
-    // Discard any unsolicited data
-    rig_flush(rp);
+    /* K4 retries must drain their outstanding marker instead of flushing it. */
+    if (RIG_IS_K4 && priv->k4_stream_unusable) { RETURNFUNC(-RIG_EIO); }
+    if (!RIG_IS_K4) { rig_flush(rp); }
 
     result = kenwood_safe_transaction(rig, "PS", pwrbuf, 6, 3);
 
@@ -5541,6 +5987,16 @@ int kenwood_get_powerstat(RIG *rig, powerstat_t *status)
     *status = pwrbuf[2] == '0' ? RIG_POWER_OFF : RIG_POWER_ON;
 
     RETURNFUNC(RIG_OK);
+}
+
+int kenwood_get_powerstat(RIG *rig, powerstat_t *status)
+{
+    int retval;
+    if (RIG_IS_K4) { rig_lock(rig, 1); }
+    retval = RIG_IS_K4 ? k4_prepare_stream(rig) : RIG_OK;
+    if (retval == RIG_OK) { retval = kenwood_get_powerstat_unlocked(rig, status); }
+    if (RIG_IS_K4) { rig_lock(rig, 0); }
+    return retval;
 }
 
 /*
