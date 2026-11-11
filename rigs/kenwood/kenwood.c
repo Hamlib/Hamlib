@@ -4041,7 +4041,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             priv->last_mode_pc = priv->curr_mode;
             // Power min/max can vary so we query to find them out every time
             retval = kenwood_get_power_minmax(rig, &priv->power_now, &priv->power_min,
-                                              &priv->power_max, 0);
+                                              &priv->power_max, 1);
 
             if (retval != RIG_OK) { RETURNFUNC(retval); }
         }

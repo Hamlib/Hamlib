@@ -18,3 +18,10 @@ testts990s_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) \
 
 $(top_builddir)/rigs/kenwood/libhamlib-kenwood.la:
 	$(MAKE) -C $(top_builddir)/rigs/kenwood/ libhamlib-kenwood.la
+
+check_PROGRAMS += testkenwoodrfpower
+TESTS += testkenwoodrfpower
+testkenwoodrfpower_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/kenwood
+testkenwoodrfpower_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testkenwoodrfpower_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/kenwood/libhamlib-kenwood.la $(LDADD)
