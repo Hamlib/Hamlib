@@ -422,11 +422,14 @@ static void mock_reply_civ(struct mock_server *m, const uint8_t *buf, int n,
                            struct sockaddr_in *from, socklen_t from_length,
                            uint32_t cli)
 {
-    uint8_t packet[600];
     uint8_t frame[512];
+    uint8_t line[1024];
+    uint8_t packet[ICOM_NETWORK_CIV_LEN + sizeof(line)];
     struct icom_network_packet_civ civ;
     const uint8_t *reply = mock_nak;
     size_t reply_length = sizeof(mock_nak);
+    const uint8_t *spectrum = mock_spectrum;
+    size_t spectrum_length = sizeof(mock_spectrum);
     int pl;
 
     /* FE FE <to> <from> <cmd> ... FD */
@@ -447,10 +450,21 @@ static void mock_reply_civ(struct mock_server *m, const uint8_t *buf, int n,
         reply_length = (size_t)m->civ_reply_length;
     }
 
+    if (m->spectrum_length > (int)sizeof(mock_spectrum)
+            && m->spectrum_length <= (int)sizeof(line))
+    {
+        /* FE FE E0 98 27 00 <filler> FD */
+        memset(line, 0x41, sizeof(line));
+        memcpy(line, mock_spectrum, 6);
+        line[m->spectrum_length - 1] = 0xfd;
+        spectrum = line;
+        spectrum_length = (size_t)m->spectrum_length;
+    }
+
     if (m->send_spectrum)
     {
-        pl = icom_network_packet_build_civ(packet, sizeof(packet), mock_spectrum,
-                                           sizeof(mock_spectrum), 0xc0, 0,
+        pl = icom_network_packet_build_civ(packet, sizeof(packet), spectrum,
+                                           spectrum_length, 0xc0, 0,
                                            m->civ_sequence++, MOCK_SERVER_ID, cli);
 
         if (pl > 0)
