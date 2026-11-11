@@ -277,6 +277,42 @@ void test_rxtrack_expect_first(void)
     TEST_CHECK(rt.nmissing == 0);
 }
 
+/* A radio still holding the previous client's stream may send one packet of
+ * it, numbered past 0, just after the new stream opens. Once the new stream's
+ * first packet has arrived, its packet with that number is not a copy, and a
+ * lost first packet is still a gap. */
+void test_rxtrack_packet_before_first(void)
+{
+    struct icom_network_rxtrack rt;
+    uint16_t seq;
+
+    icom_network_rxtrack_init(&rt);
+    icom_network_rxtrack_expect(&rt, 0);
+    TEST_CHECK(icom_network_rxtrack_observe(&rt, 23, 0) == ICOM_NETWORK_RX_NEW);
+
+    for (seq = 0; seq <= 22; seq++)
+    {
+        TEST_CHECK_(icom_network_rxtrack_observe(&rt, seq, 0)
+                    == ICOM_NETWORK_RX_RECOVERED, "packet %u", seq);
+    }
+
+    TEST_CHECK(icom_network_rxtrack_observe(&rt, 23, 0) == ICOM_NETWORK_RX_NEW);
+    TEST_CHECK(icom_network_rxtrack_observe(&rt, 23, 0)
+               == ICOM_NETWORK_RX_DUPLICATE);
+    TEST_CHECK(icom_network_rxtrack_observe(&rt, 24, 0) == ICOM_NETWORK_RX_NEW);
+    TEST_CHECK(rt.nmissing == 0);
+
+    /* only that one number is forgotten: a copy of a later packet that came
+     * before the first one is still a copy */
+    icom_network_rxtrack_expect(&rt, 0);
+    icom_network_rxtrack_observe(&rt, 2, 0);
+    icom_network_rxtrack_observe(&rt, 1, 0);
+    TEST_CHECK(icom_network_rxtrack_observe(&rt, 0, 0)
+               == ICOM_NETWORK_RX_RECOVERED);
+    TEST_CHECK(icom_network_rxtrack_observe(&rt, 1, 0)
+               == ICOM_NETWORK_RX_DUPLICATE);
+}
+
 
 TEST_LIST =
 {
@@ -292,5 +328,6 @@ TEST_LIST =
     { "rxtrack_duplicates",       test_rxtrack_duplicates },
     { "rxtrack_restart_is_resync", test_rxtrack_restart_is_resync },
     { "rxtrack_expect_first",     test_rxtrack_expect_first },
+    { "rxtrack_packet_before_first", test_rxtrack_packet_before_first },
     { NULL, NULL }
 };

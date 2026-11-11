@@ -141,6 +141,12 @@ struct mock_server
     HAMLIB_ATOMIC int civ_reply_length;
     /* Send each CI-V reply twice with the same sequence number. */
     HAMLIB_ATOMIC int civ_duplicate_reply;
+    /* Lose this many CI-V replies on the way (they still consume a sequence
+     * number, so the client sees a gap). The last one lost is kept and sent
+     * when a retransmit request names it. */
+    HAMLIB_ATOMIC int civ_drop_replies;
+    uint8_t civ_lost[600];
+    int civ_lost_length;
     /* Act as a radio still holding the previous client's CI-V stream (0 =
      * off, at most 64): first send that stream's packet numbered civ_left_over, in answer
      * to each probe on the CI-V socket or, with civ_left_over_after_open, right

@@ -465,7 +465,13 @@ static void mock_civ_retransmit(struct mock_server *m, const uint8_t *buf,
                         ? icom_network_get_le16(buf + ICOM_NETWORK_HEADER_LEN + i * 4)
                         : icom_network_get_le16(buf + ICOM_NETWORK_OFF_SEQUENCE);
 
-        if (want < m->civ_left_over && m->civ_peer_length == 0)
+        if (m->civ_lost_length > 0 && want == icom_network_get_le16(m->civ_lost
+                + ICOM_NETWORK_OFF_SEQUENCE))
+        {
+            mock_sendto(m->civ_fd, m->civ_lost, m->civ_lost_length, 0,
+                        (struct sockaddr *)from, from_length);
+        }
+        else if (want < m->civ_left_over && m->civ_peer_length == 0)
         {
             m->civ_previous_asked |= (uint64_t)1 << (want & 63);
         }
@@ -533,7 +539,13 @@ static void mock_reply_civ(struct mock_server *m, const uint8_t *buf, int n,
                                        reply_length, 0xc1, 0,
                                        m->civ_sequence++, MOCK_SERVER_ID, cli);
 
-    if (pl > 0)
+    if (pl > 0 && m->civ_drop_replies > 0)
+    {
+        m->civ_drop_replies--;
+        memcpy(m->civ_lost, packet, (size_t)pl);
+        m->civ_lost_length = pl;
+    }
+    else if (pl > 0)
     {
         mock_sendto(m->civ_fd, packet, pl, 0, (struct sockaddr *)from,
                     from_length);

@@ -88,6 +88,12 @@ struct icom_network_rxtrack
     /* Consecutive packets from behind the newest that never arrived before:
      * a run of them is the sender numbering from scratch. */
     unsigned behind_run;
+    /* The first sequence of an expected stream, until it arrives, and the
+     * sequence that came in its place (see icom_network_rxtrack_expect). */
+    int      first_pending;
+    uint16_t first_sequence;
+    int      early_seen;
+    uint16_t early_sequence;
 };
 
 void icom_network_rxtrack_init(struct icom_network_rxtrack *rt);
@@ -137,7 +143,13 @@ void icom_network_rxtrack_reset(struct icom_network_rxtrack *rt);
 /* Start tracking a stream whose first packet will carry the sequence first,
  * so that losing that very packet is noticed from the gap the next one leaves.
  * Without it tracking starts at whatever arrives first, and a lost first
- * packet is never missed. */
+ * packet is never missed.
+ *
+ * If another packet comes in place of that first one, its number is forgotten
+ * when the first one arrives; the gaps stay. A radio still holding the previous
+ * client's stream may send one packet of it, numbered past the start, around
+ * the opening of the new one, and the new stream's packet with that number is
+ * no copy of it. */
 void icom_network_rxtrack_expect(struct icom_network_rxtrack *rt,
                                  uint16_t first);
 
