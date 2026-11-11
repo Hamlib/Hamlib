@@ -187,6 +187,12 @@ int main(void)
             RIG_OK, 14074000.0
         },
         {
+            "multiline response",
+            "<CMD><READBMFRESPONSE><FREQ>14.074000</FREQ>\r\n"
+            "</CMD>\r\n",
+            RIG_OK, 14074000.0
+        },
+        {
             "grouped frequency",
             "<CMD><READBMFRESPONSE><FREQ>1,296.171100</FREQ></CMD>\r\n",
             RIG_OK, 1296171100.0
@@ -214,6 +220,11 @@ int main(void)
         {
             "wrong frequency terminator",
             "<CMD><READBMFRESPONSE><FREQ>14.074000<BAD></CMD>\r\n",
+            -RIG_EPROTO, UNCHANGED_FREQUENCY
+        },
+        {
+            "missing response terminator",
+            "<CMD><READBMFRESPONSE><FREQ>14.074000</FREQ>\r\n",
             -RIG_EPROTO, UNCHANGED_FREQUENCY
         },
         {

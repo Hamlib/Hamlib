@@ -208,7 +208,7 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
     else
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: did not get %s\n", __func__, terminator);
-        retval = -(101 + RIG_EPROTO);
+        retval = -RIG_EPROTO;
     }
 
     RETURNFUNC(retval);
@@ -300,7 +300,13 @@ static int aclog_transaction(RIG *rig, char *cmd, char *value,
 
         if (value)
         {
-            read_transaction(rig, xml, sizeof(xml));    // this might time out -- that's OK
+            retval = read_transaction(rig, xml, sizeof(xml));
+
+            if (retval != RIG_OK)
+            {
+                set_transaction_inactive(rig);
+                RETURNFUNC(retval);
+            }
         }
 
         // we get an unknown response if function does not exist
