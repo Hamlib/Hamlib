@@ -111,6 +111,8 @@ void icom_network_rxtrack_reset(struct icom_network_rxtrack *rt)
     rt->started  = 0;
     rt->nmissing = 0;
     rt->behind_run = 0;
+    rt->first_pending = 0;
+    rt->early_seen = 0;
     memset(rt->received_valid, 0, sizeof(rt->received_valid));
 }
 
@@ -120,6 +122,8 @@ void icom_network_rxtrack_expect(struct icom_network_rxtrack *rt,
     icom_network_rxtrack_reset(rt);
     rt->started = 1;
     rt->last_sequence = (uint16_t)(first - 1);
+    rt->first_pending = 1;
+    rt->first_sequence = first;
 }
 
 static void rxtrack_mark_received(struct icom_network_rxtrack *rt,
@@ -199,6 +203,22 @@ enum icom_network_rx_result icom_network_rxtrack_observe(
         rt->behind_run = 0;
         rxtrack_mark_received(rt, sequence);
         return ICOM_NETWORK_RX_NEW;
+    }
+
+    /* A packet in place of the expected first one (see rxtrack_expect). */
+    if (rt->first_pending && sequence == rt->first_sequence)
+    {
+        rt->first_pending = 0;
+
+        if (rt->early_seen && rxtrack_was_received(rt, rt->early_sequence))
+        {
+            rt->received_valid[rt->early_sequence & 0xff] = 0;
+        }
+    }
+    else if (rt->first_pending && !rt->early_seen)
+    {
+        rt->early_seen = 1;
+        rt->early_sequence = sequence;
     }
 
     /* At or behind the high-water mark: a retransmit we asked for, a copy of

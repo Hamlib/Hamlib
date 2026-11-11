@@ -43,6 +43,8 @@ const uint8_t mock_freq_resp[] =
 
 static const uint8_t mock_nak[] = { 0xfe, 0xfe, 0xe0, 0x98, 0xfa, 0xfd };
 
+#define MOCK_PREVIOUS_CLIENT_ID 0x0a0b0c0du
+
 /* canned spectrum-scope (async) frame: cmd 0x27 subcmd 0x00 */
 const uint8_t mock_spectrum[] =
 { 0xfe, 0xfe, 0xe0, 0x98, 0x27, 0x00, 0x01, 0x02, 0x03, 0x04, 0xfd };
@@ -387,6 +389,24 @@ static void mock_reply_conninfo(struct mock_server *m, const uint8_t *buf, int n
     mock_ctrl_send(m, from, from_length, stp, sizeof(stp), 0);
 }
 
+/* A packet of the previous client's CI-V stream (see civ_left_over). */
+static void mock_civ_send_previous(struct mock_server *m,
+                                   struct sockaddr_in *from,
+                                   socklen_t from_length, uint16_t sequence,
+                                   uint32_t to_id)
+{
+    uint8_t packet[64];
+    int pl = icom_network_packet_build_civ(packet, sizeof(packet), mock_nak,
+                                           sizeof(mock_nak), 0xc1, 0, sequence,
+                                           MOCK_SERVER_ID, to_id);
+
+    if (pl > 0)
+    {
+        mock_sendto(m->civ_fd, packet, pl, 0, (struct sockaddr *)from,
+                    from_length);
+    }
+}
+
 /* The CI-V stream opening. The radio flushes frames left undelivered by the
  * previous client as soon as a new stream opens; a stale NAK is the poisonous
  * variant, so a test can ask for one. */
@@ -394,11 +414,28 @@ static void mock_civ_stream_open(struct mock_server *m, struct sockaddr_in *from
                                  socklen_t from_length, uint32_t cli)
 {
     uint8_t packet[64];
-    int pl;
+    int pl, i;
 
     m->civ_peer = *from;
     m->civ_peer_length = from_length;
     m->civ_client_id = cli;
+
+    if (m->civ_left_over > 0 && m->civ_left_over_after_open)
+    {
+        mock_civ_send_previous(m, from, from_length,
+                               (uint16_t)m->civ_left_over, cli);
+    }
+
+    for (i = 0; i < 64; i++)
+    {
+        if (m->civ_previous_asked & ((uint64_t)1 << i))
+        {
+            mock_civ_send_previous(m, from, from_length, (uint16_t)i,
+                                   MOCK_PREVIOUS_CLIENT_ID);
+        }
+    }
+
+    m->civ_previous_asked = 0;
 
     if (!m->stale_nak) { return; }
 
@@ -411,6 +448,38 @@ static void mock_civ_stream_open(struct mock_server *m, struct sockaddr_in *from
     {
         mock_sendto(m->civ_fd, packet, pl, 0, (struct sockaddr *)from,
                     from_length);
+    }
+}
+
+static void mock_civ_retransmit(struct mock_server *m, const uint8_t *buf,
+                                int n, struct sockaddr_in *from,
+                                socklen_t from_length)
+{
+    int i, count = (n - ICOM_NETWORK_HEADER_LEN) / 4;
+
+    m->civ_retransmit_requests++;
+
+    for (i = 0; i < (count > 0 ? count : 1); i++)
+    {
+        uint16_t want = count > 0
+                        ? icom_network_get_le16(buf + ICOM_NETWORK_HEADER_LEN + i * 4)
+                        : icom_network_get_le16(buf + ICOM_NETWORK_OFF_SEQUENCE);
+
+        if (m->civ_lost_length > 0 && want == icom_network_get_le16(m->civ_lost
+                + ICOM_NETWORK_OFF_SEQUENCE))
+        {
+            mock_sendto(m->civ_fd, m->civ_lost, m->civ_lost_length, 0,
+                        (struct sockaddr *)from, from_length);
+        }
+        else if (want < m->civ_left_over && m->civ_peer_length == 0)
+        {
+            m->civ_previous_asked |= (uint64_t)1 << (want & 63);
+        }
+        else if (want < m->civ_left_over)
+        {
+            mock_civ_send_previous(m, from, from_length, want,
+                                   MOCK_PREVIOUS_CLIENT_ID);
+        }
     }
 }
 
@@ -470,7 +539,13 @@ static void mock_reply_civ(struct mock_server *m, const uint8_t *buf, int n,
                                        reply_length, 0xc1, 0,
                                        m->civ_sequence++, MOCK_SERVER_ID, cli);
 
-    if (pl > 0)
+    if (pl > 0 && m->civ_drop_replies > 0)
+    {
+        m->civ_drop_replies--;
+        memcpy(m->civ_lost, packet, (size_t)pl);
+        m->civ_lost_length = pl;
+    }
+    else if (pl > 0)
     {
         mock_sendto(m->civ_fd, packet, pl, 0, (struct sockaddr *)from,
                     from_length);
@@ -655,12 +730,20 @@ static void mock_service_civ(struct mock_server *m, uint8_t *buf, int n,
                                       ICOM_NETWORK_ROLE_CIV);
     uint16_t type = icom_network_get_le16(buf + ICOM_NETWORK_OFF_TYPE);
 
+    if (m->civ_left_over > 0 && !m->civ_left_over_after_open
+            && k == ICOM_NETWORK_PACKET_KIND_CONTROL
+            && type == ICOM_NETWORK_CTL_PROBE)
+    {
+        mock_civ_send_previous(m, from, from_length,
+                               (uint16_t)m->civ_left_over, cli);
+    }
+
     if (!mock_reply_common_control(m->civ_fd, from, k, type, cli))
     {
         switch (k)
         {
         case ICOM_NETWORK_PACKET_KIND_RETRANSMIT:
-            m->civ_retransmit_requests++;
+            mock_civ_retransmit(m, buf, n, from, from_length);
             break;
 
         case ICOM_NETWORK_PACKET_KIND_OPENCLOSE:
