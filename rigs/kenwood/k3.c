@@ -177,8 +177,7 @@ static int k3_set_nb_level(RIG *rig, float dsp_nb, float if_nb);
 static int k3_get_nb_level(RIG *rig, float *dsp_nb, float *if_nb);
 static int k3_get_bar_graph_level(RIG *rig, float *smeter, float *pwr, float *alc,
                            int *mode_tx);
-static int k4_get_bar_graph_level(RIG *rig, float *swr, float *pwr, float *alc,
-                           int *mode_tx);
+static int k4_get_bar_graph_level(RIG *rig, float *swr, float *alc);
 
 /* K4 functions */
 static int k4_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
@@ -2101,7 +2100,7 @@ static int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (RIG_IS_K4)
         {
-            retval = k4_get_bar_graph_level(rig, NULL, NULL, &alc, &tx_mode);
+            retval = k4_get_bar_graph_level(rig, NULL, &alc);
             tx_mode = 1;  // Assume ALC is zero when in Tx so we don't care about ptt status
         }
         else
@@ -2137,13 +2136,26 @@ static int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (RIG_IS_K4)
         {
-            retval = k4_get_bar_graph_level(rig, NULL, &pwr, NULL, &tx_mode);
-            tx_mode = 1;  // Does K4 return pwr=0 when in Rx?  Hope so.
+            retval = kenwood_safe_transaction(rig, "PO", levelbuf,
+                                              sizeof(levelbuf), 6);
+
+            if (retval != RIG_OK)
+            {
+                return retval;
+            }
+
+            if (strspn(levelbuf + 2, "0123456789") != 4)
+            {
+                return -RIG_EPROTO;
+            }
+
+            // PO reports tenths of a watt in both power ranges.
+            val->f = atoi(levelbuf + 2) /
+                     (level == RIG_LEVEL_RFPOWER_METER_WATTS ? 10.0f : 1000.0f);
+            return RIG_OK;
         }
-        else
-        {
-            retval = k3_get_bar_graph_level(rig, NULL, &pwr, NULL, &tx_mode);
-        }
+
+        retval = k3_get_bar_graph_level(rig, NULL, &pwr, NULL, &tx_mode);
 
         if (retval != RIG_OK)
         {
@@ -2350,7 +2362,7 @@ static int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_SWR:
         if (RIG_IS_K4)
         {
-            return k4_get_bar_graph_level(rig, &val->f, NULL, NULL, NULL);
+            return k4_get_bar_graph_level(rig, &val->f, NULL);
         }
         else
         {
@@ -2735,8 +2747,7 @@ static int k3_get_nb_level(RIG *rig, float *dsp_nb, float *if_nb)
     return RIG_OK;
 }
 
-int k4_get_bar_graph_level(RIG *rig, float *swr, float *pwr, float *alc,
-                           int *mode_tx)
+static int k4_get_bar_graph_level(RIG *rig, float *swr, float *alc)
 {
     int retval;
     int ialc, icmp, ifwd, iswr;
@@ -2757,8 +2768,6 @@ int k4_get_bar_graph_level(RIG *rig, float *swr, float *pwr, float *alc,
     }
 
     if (swr) { *swr = iswr / 10.0; }
-
-    if (pwr) { *pwr = ifwd / 100.0; } // pwr is returned in 0-1 sscale
 
     if (alc) { *alc = ialc; }
 

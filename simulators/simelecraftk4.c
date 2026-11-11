@@ -297,6 +297,11 @@ int main(int argc, char *argv[])
             SNPRINTF(buf, sizeof(buf), "PC0980;");
             WRITE(fd, buf, strlen(buf));
         }
+        else if (strncmp(buf, "PO;", 3) == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "PO0003;");
+            WRITE(fd, buf, strlen(buf));
+        }
         else if (strncmp(buf, "PA;", 3) == 0)
         {
             SNPRINTF(buf, sizeof(buf), "PA%d;", preampA);
