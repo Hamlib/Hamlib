@@ -1,5 +1,5 @@
 /*
- * Hamlib Elecraft K4 VFO and mode response tests
+ * Hamlib Elecraft response tests
  * Copyright (c) 2026 by Hamlib Team
  *
  * This library is free software; you can redistribute it and/or
@@ -8,6 +8,7 @@
  * version 2.1 of the License, or (at your option) any later version.
  */
 
+#include <math.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <string.h>
@@ -468,6 +469,151 @@ static int run_split_mode_set_case(int is_k4, rmode_t mode)
     return 0;
 }
 
+static int run_meter_case(const char *name, setting_t level,
+                          const char *command,
+                          const char *response, int expected_retval,
+                          float expected_value)
+{
+    struct peer_case test =
+    {
+        .fd = -1,
+        .commands = &command,
+        .responses = &response,
+        .count = 1,
+        .status = -1
+    };
+    int sockets[2];
+    pthread_t thread;
+    RIG *rig;
+    value_t value = { .f = -1.0f };
+    int retval;
+
+    if (open_test_connection(sockets) != 0) { return 1; }
+
+    test.fd = sockets[1];
+
+    if (pthread_create(&thread, NULL, run_peer, &test) != 0)
+    {
+        close_test_socket(sockets[0]);
+        close_test_socket(sockets[1]);
+        return 1;
+    }
+
+    rig = rig_init(RIG_MODEL_K4);
+
+    if (rig == NULL)
+    {
+        close_test_socket(sockets[0]);
+        close_test_socket(sockets[1]);
+        pthread_join(thread, NULL);
+        return 1;
+    }
+
+    RIGPORT(rig)->fd = sockets[0];
+    RIGPORT(rig)->type.rig = RIG_PORT_NETWORK;
+    RIGPORT(rig)->timeout = 500;
+    RIGPORT(rig)->retry = 0;
+
+    retval = rig->caps->get_level(rig, RIG_VFO_CURR, level, &value);
+
+    RIGPORT(rig)->fd = -1;
+    rig_cleanup(rig);
+    close_test_socket(sockets[0]);
+    pthread_join(thread, NULL);
+    close_test_socket(sockets[1]);
+
+    if (test.status != 0 || retval != expected_retval
+            || fabsf(value.f - (retval == RIG_OK ? expected_value : -1.0f))
+            > 0.00001f)
+    {
+        fprintf(stderr, "%s: expected %d/%.4f, got %d/%.4f (peer %d)\n",
+                name, expected_retval, expected_value, retval, value.f,
+                test.status);
+        return 1;
+    }
+
+    return 0;
+}
+
+static int test_meters(void)
+{
+    static const struct
+    {
+        const char *name;
+        setting_t level;
+        const char *command;
+        const char *response;
+        int retval;
+        float value;
+    } cases[] =
+    {
+        {
+            "2w", RIG_LEVEL_RFPOWER_METER_WATTS,
+            "PO;", "PO0020;", RIG_OK, 2.0f
+        },
+        {
+            "20w", RIG_LEVEL_RFPOWER_METER_WATTS,
+            "PO;", "PO0200;", RIG_OK, 20.0f
+        },
+        {
+            "minimum-nonzero-output", RIG_LEVEL_RFPOWER_METER_WATTS,
+            "PO;", "PO0001;", RIG_OK, 0.1f
+        },
+        {
+            "110w", RIG_LEVEL_RFPOWER_METER_WATTS,
+            "PO;", "PO1100;", RIG_OK, 110.0f
+        },
+        {
+            "zero-output", RIG_LEVEL_RFPOWER_METER_WATTS,
+            "PO;", "PO0000;", RIG_OK, 0.0f
+        },
+        {
+            "2w-normalized", RIG_LEVEL_RFPOWER_METER,
+            "PO;", "PO0020;", RIG_OK, 0.02f
+        },
+        {
+            "20w-normalized", RIG_LEVEL_RFPOWER_METER,
+            "PO;", "PO0200;", RIG_OK, 0.2f
+        },
+        {
+            "swr", RIG_LEVEL_SWR,
+            "TM;", "TM003004020012;", RIG_OK, 1.2f
+        },
+        {
+            "alc", RIG_LEVEL_ALC,
+            "TM;", "TM003004020012;", RIG_OK, 3.0f
+        },
+        {
+            "malformed-power-response", RIG_LEVEL_RFPOWER_METER_WATTS,
+            "PO;", "PO00X0;", -RIG_EPROTO, 0.0f
+        },
+        {
+            "short-power-response", RIG_LEVEL_RFPOWER_METER_WATTS,
+            "PO;", "PO020;", -RIG_EPROTO, 0.0f
+        },
+        {
+            "power-query-unavailable", RIG_LEVEL_RFPOWER_METER_WATTS,
+            "PO;", "N;", -RIG_ENAVAIL, 0.0f
+        },
+        {
+            "malformed-tm-response", RIG_LEVEL_SWR,
+            "TM;", "TM00300402X012;", -RIG_EPROTO, 0.0f
+        }
+    };
+    size_t i;
+
+    for (i = 0; i < sizeof(cases) / sizeof(cases[0]); i++)
+    {
+        if (run_meter_case(cases[i].name, cases[i].level, cases[i].command,
+                           cases[i].response, cases[i].retval, cases[i].value))
+        {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 int main(void)
 {
     int failed = 0;
@@ -632,6 +778,8 @@ int main(void)
     }
 
     failed = run_split_mode_set_case(1, RIG_MODE_RTTYR);
+
+    if (!failed) { failed = test_meters(); }
 
 cleanup:
 #ifdef _WIN32
