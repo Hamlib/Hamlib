@@ -37,18 +37,6 @@
 #define FTX1_MIC_GAIN_MAX 100
 #define FTX1_SMETER_MAX 255
 
-/*
- * Power ranges by head type:
- *   FIELD_BATTERY: 0.5W - 6W (0.5W increments)
- *   FIELD_12V:     0.5W - 10W (0.5W increments)
- *   SPA1:          5W - 100W (1W increments) - "Optima" when attached to Field
- */
-#define FTX1_POWER_MIN_FIELD 0.5f         /* Field head minimum (both modes) */
-#define FTX1_POWER_MAX_FIELD_BATTERY 6.0f /* Field head on battery maximum */
-#define FTX1_POWER_MAX_FIELD_12V 10.0f    /* Field head on 12V maximum */
-#define FTX1_POWER_MIN_SPA1 5             /* Optima/SPA-1 minimum */
-#define FTX1_POWER_MAX_SPA1 100           /* Optima/SPA-1 maximum */
-
 /* Set AF Gain (AG P1 P2P3P4;) */
 int ftx1_set_af_gain(RIG *rig, vfo_t vfo, float val)
 {
