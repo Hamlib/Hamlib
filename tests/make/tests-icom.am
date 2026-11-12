@@ -1,0 +1,94 @@
+check_PROGRAMS += testg90af
+TESTS += testg90af
+testg90af_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+testg90af_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testg90af_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+
+check_PROGRAMS += testg90rit
+TESTS += testg90rit
+testg90rit_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+testg90rit_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testg90rit_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+
+check_PROGRAMS += testg90swr
+TESTS += testg90swr
+testg90swr_SOURCES = testg90swr.c testicomsock.c testicomsock.h
+testg90swr_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+testg90swr_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testg90swr_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+
+check_PROGRAMS += testic7760caps
+TESTS += testic7760caps
+testic7760caps_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+testic7760caps_LDADD = $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+
+check_PROGRAMS += testic7760civ
+TESTS += testic7760civ
+testic7760civ_SOURCES = testic7760civ.c testicomsock.c testicomsock.h
+testic7760civ_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+testic7760civ_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testic7760civ_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+
+check_PROGRAMS += testic9700civ
+TESTS += testic9700civ
+testic9700civ_SOURCES = testic9700civ.c testicomsock.c testicomsock.h
+testic9700civ_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+testic9700civ_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testic9700civ_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+
+check_PROGRAMS += testicomant
+TESTS += testicomant
+testicomant_SOURCES = testicomant.c testicomsock.c testicomsock.h
+testicomant_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+testicomant_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testicomant_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+
+check_PROGRAMS += testicomfallback
+TESTS += testicomfallback
+testicomfallback_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+testicomfallback_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testicomfallback_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+
+check_PROGRAMS += testicomgetvfo
+TESTS += testicomgetvfo
+testicomgetvfo_SOURCES = testicomgetvfo.c testicomsock.c testicomsock.h \
+	$(RIGCOMMONSRC)
+testicomgetvfo_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+testicomgetvfo_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testicomgetvfo_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(READLINE_LIBS) \
+	$(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+
+check_PROGRAMS += testicomscan
+TESTS += testicomscan
+testicomscan_SOURCES = testicomscan.c testicomsock.c testicomsock.h
+testicomscan_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+testicomscan_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testicomscan_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+
+check_PROGRAMS += testicomscope
+TESTS += testicomscope
+testicomscope_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+testicomscope_LDADD = $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+
+check_PROGRAMS += testicomts
+TESTS += testicomts
+testicomts_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+testicomts_LDADD = $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+
+check_PROGRAMS += testid5100
+TESTS += testid5100
+testid5100_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
+testid5100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testid5100_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+
+$(top_builddir)/rigs/icom/libhamlib-icom.la:
+	$(MAKE) -C $(top_builddir)/rigs/icom/ libhamlib-icom.la

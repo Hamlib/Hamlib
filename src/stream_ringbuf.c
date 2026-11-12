@@ -64,7 +64,7 @@ int stream_ringbuf_init(struct rig_stream_ringbuf *rb, size_t capacity)
 
     /* Reject sizes whose power-of-two rounding would wrap to 0, which would
      * otherwise yield a live zero-capacity ring that silently drops data. */
-    if (capacity > (SIZE_MAX >> 1) + 1)
+    if (capacity > STREAM_RINGBUF_MAX_CAPACITY)
     {
         return -1;
     }
@@ -171,9 +171,19 @@ size_t stream_ringbuf_write_record(struct rig_stream_ringbuf *rb,
                                    const void *hdr, size_t hdr_len,
                                    const void *payload, size_t len)
 {
-    size_t total = hdr_len + len;
-
     pthread_mutex_lock(&rb->lock);
+    size_t stored = stream_ringbuf_write_record_locked(rb, hdr, hdr_len,
+        payload, len);
+    pthread_mutex_unlock(&rb->lock);
+    return stored;
+}
+
+
+size_t stream_ringbuf_write_record_locked(struct rig_stream_ringbuf *rb,
+        const void *hdr, size_t hdr_len,
+        const void *payload, size_t len)
+{
+    size_t total = hdr_len + len;
 
     /* All or nothing: a partial record would strand the reader mid-frame,
      * and overwriting the oldest bytes would destroy record alignment.
@@ -181,7 +191,6 @@ size_t stream_ringbuf_write_record(struct rig_stream_ringbuf *rb,
      * so the caller decides whether a failure is a real drop. */
     if (total > rb->capacity - rb->count)
     {
-        pthread_mutex_unlock(&rb->lock);
         return 0;
     }
 
@@ -211,7 +220,6 @@ size_t stream_ringbuf_write_record(struct rig_stream_ringbuf *rb,
     }
 
     pthread_cond_signal(&rb->data_available);
-    pthread_mutex_unlock(&rb->lock);
 
     return total;
 }
@@ -243,8 +251,10 @@ size_t stream_ringbuf_peek_locked(struct rig_stream_ringbuf *rb,
 
 /* Wait for readable data. Caller holds rb->lock.
  * timeout_ms < 0 blocks until data or shutdown; 0 polls; > 0 bounds the wait.
- * Returns 0 when data is available, -1 on timeout (bumps underrun_count) or
- * when the ring is closing. */
+ * Returns 0 when data is available, -1 on timeout (bumps underrun_count),
+ * when the ring is closing, or when it has failed and holds nothing more.
+ * A failed ring still hands out what it already holds: that data was produced
+ * before the source died and is as valid as any other. */
 int stream_ringbuf_wait_data_locked(struct rig_stream_ringbuf *rb,
                                     int timeout_ms)
 {
@@ -258,15 +268,20 @@ int stream_ringbuf_wait_data_locked(struct rig_stream_ringbuf *rb,
         return 0;
     }
 
+    if (rb->failed)
+    {
+        return -1;
+    }
+
     /* Block indefinitely: wait until data arrives or the ring is closed. */
     if (timeout_ms < 0)
     {
-        while (rb->count == 0 && !rb->closing)
+        while (rb->count == 0 && !rb->closing && !rb->failed)
         {
             pthread_cond_wait(&rb->data_available, &rb->lock);
         }
 
-        return rb->closing ? -1 : 0;
+        return (rb->closing || rb->count == 0) ? -1 : 0;
     }
 
     struct timespec ts;
@@ -284,7 +299,10 @@ int stream_ringbuf_wait_data_locked(struct rig_stream_ringbuf *rb,
 
     while (rb->count == 0)
     {
-        if (rb->closing)
+        /* A closing or failed ring is not a starved one: return at once, and
+         * do not book an underrun against a stream that is shutting down or
+         * whose source is gone. */
+        if (rb->closing || rb->failed)
         {
             return -1;
         }
@@ -294,6 +312,16 @@ int stream_ringbuf_wait_data_locked(struct rig_stream_ringbuf *rb,
 
         if (ret == ETIMEDOUT)
         {
+            if (rb->count > 0)
+            {
+                return 0;
+            }
+
+            if (rb->closing || rb->failed)
+            {
+                return -1;
+            }
+
             /* An underrun is the producer falling behind, which it cannot do
              * before it has produced anything. A consumer that starts first
              * and reads while the stream is still coming up is early, not

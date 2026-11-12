@@ -292,6 +292,195 @@ static void test_skip_samples_link_attribution(void)
 }
 
 
+/* stream_fill_gap() needs the backend's own format; a native stream's
+ * backend_config equals config. */
+static void stream_setup_native(struct rig_stream *s, size_t capacity,
+                                rig_stream_format_t format, int frame_bytes,
+                                int sample_rate)
+{
+    stream_setup(s, capacity);
+    s->config.format = format;
+    s->config.sample_rate = sample_rate;
+    s->frame_bytes = frame_bytes;
+    s->backend_config = s->config;
+}
+
+
+/* Audio concealment: silence fills the hole, the index stays continuous, and
+ * the read reports the loss as GAP|CONCEALED with nothing in dropped_samples. */
+static void test_fill_gap_conceals_audio(void)
+{
+    struct rig_stream s;
+    struct rig_stream_read_info info;
+    unsigned char out[512];
+
+    stream_setup_native(&s, 4096, RIG_STREAM_FORMAT_PCM_S16, 2, 48000);
+
+    write_frames(&s, 10);
+    stream_ringbuf_read(&s.ringbuf, out, 20, 10);
+    stream_consume_account(&s, 0, 10, &info);
+
+    TEST_CHECK(stream_fill_gap(&s, 100, RIG_STREAM_DROP_GAP) == RIG_OK);
+    write_frames(&s, 10);
+
+    uint64_t first = stream_first_readable_index(&s);
+    TEST_CHECK_(first == 10, "first=%llu (a fill is not a hole)",
+                (unsigned long long)first);
+
+    size_t got = stream_ringbuf_read(&s.ringbuf, out, 200, 10);
+    TEST_CHECK(got == 200);
+    stream_consume_account(&s, first, 100, &info);
+
+    int silent = 1;
+
+    for (size_t i = 0; i < got; i++)
+    {
+        silent = silent && out[i] == 0;
+    }
+
+    TEST_CHECK_(silent, "the fill must be S16 silence");
+    TEST_CHECK(info.dropped_samples == 0);
+    TEST_CHECK_(info.drop_flags == (RIG_STREAM_DROP_GAP
+                                    | RIG_STREAM_DROP_CONCEALED),
+                "drop_flags=0x%x", info.drop_flags);
+    TEST_CHECK(s.gap_count == 1);
+    TEST_CHECK(s.gaps_unknown == 0);
+    TEST_CHECK(s.concealed_samples_gap == 100);
+    TEST_CHECK(s.dropped_samples_gap == 0);
+
+    stream_teardown(&s);
+}
+
+
+/* Silence for unsigned bytes is the midpoint, not zero. */
+static void test_fill_gap_u8_silence(void)
+{
+    struct rig_stream s;
+    unsigned char out[64];
+
+    stream_setup_native(&s, 1024, RIG_STREAM_FORMAT_PCM_U8, 1, 8000);
+
+    TEST_CHECK(stream_fill_gap(&s, 32, RIG_STREAM_DROP_GAP) == RIG_OK);
+    TEST_CHECK(stream_ringbuf_read(&s.ringbuf, out, sizeof(out), 10) == 32);
+
+    int midpoint = 1;
+
+    for (int i = 0; i < 32; i++)
+    {
+        midpoint = midpoint && out[i] == 0x80;
+    }
+
+    TEST_CHECK_(midpoint, "PCM_U8 silence must be 0x80");
+
+    stream_teardown(&s);
+}
+
+
+/* A backend queue overflow is a LOCAL overrun: it counts where ring overruns
+ * do, never in the remote counters, and reads as OVERRUN|CONCEALED. */
+static void test_fill_gap_local_overrun(void)
+{
+    struct rig_stream s;
+    struct rig_stream_read_info info;
+    struct rig_stream_stats st;
+    unsigned char out[64];
+    RIG *rig = rig_init(RIG_MODEL_DUMMY);
+
+    TEST_ASSERT(rig != NULL);
+    stream_setup_native(&s, 1024, RIG_STREAM_FORMAT_PCM_S16, 2, 48000);
+
+    TEST_CHECK(stream_fill_gap(&s, 16, RIG_STREAM_DROP_OVERRUN) == RIG_OK);
+    stream_ringbuf_read(&s.ringbuf, out, 32, 10);
+    stream_consume_account(&s, 0, 16, &info);
+
+    TEST_CHECK_(info.drop_flags == (RIG_STREAM_DROP_OVERRUN
+                                    | RIG_STREAM_DROP_CONCEALED),
+                "drop_flags=0x%x", info.drop_flags);
+    TEST_CHECK(s.remote_overruns == 0);
+    TEST_CHECK(s.concealed_samples_overrun == 16);
+
+    TEST_CHECK(rig_stream_get_stats(rig, &s, &st) == RIG_OK);
+    TEST_CHECK_(st.overruns == 1, "overruns=%u", st.overruns);
+    TEST_CHECK(st.remote_overruns == 0);
+    TEST_CHECK(st.concealed_samples_overrun == 16);
+    TEST_CHECK(st.concealed_samples_gap == 0);
+    TEST_CHECK(st.fail_reason == RIG_COMM_REASON_NONE);
+
+    /* The same cause as a sized index hole, for I/Q-style producers. */
+    stream_skip_samples(&s, 30, STREAM_DROP_LOCAL_OVERRUN);
+    write_frames(&s, 4);
+    uint64_t first = stream_first_readable_index(&s);
+    stream_ringbuf_read(&s.ringbuf, out, 8, 10);
+    stream_consume_account(&s, first, 4, &info);
+
+    TEST_CHECK(info.dropped_samples == 30);
+    TEST_CHECK_(info.drop_flags == RIG_STREAM_DROP_OVERRUN,
+                "drop_flags=0x%x (internal marker must not leak)",
+                info.drop_flags);
+    TEST_CHECK(s.remote_overruns == 0);
+    TEST_CHECK(s.dropped_samples_overrun == 30);
+    TEST_CHECK(rig_stream_get_stats(rig, &s, &st) == RIG_OK);
+    TEST_CHECK(st.overruns == 2);
+
+    stream_teardown(&s);
+    rig_cleanup(rig);
+}
+
+
+/* Concealment is capped at one second; the rest becomes a sized hole in the
+ * same event. An unknown size fills nothing and reports an unsized gap. */
+static void test_fill_gap_cap_and_unsized(void)
+{
+    struct rig_stream s;
+    struct rig_stream_read_info info;
+    unsigned char out[4096];
+
+    stream_setup_native(&s, 8192, RIG_STREAM_FORMAT_PCM_S16, 2, 1000);
+
+    TEST_CHECK(stream_fill_gap(&s, 1500, RIG_STREAM_DROP_GAP) == RIG_OK);
+    TEST_CHECK(stream_ringbuf_available(&s.ringbuf) == 2000);
+    TEST_CHECK(s.concealed_samples_gap == 1000);
+    TEST_CHECK(s.dropped_samples_gap == 500);
+    TEST_CHECK(s.gap_count == 1);
+
+    uint64_t first = stream_first_readable_index(&s);
+    TEST_CHECK_(first == 500, "first=%llu", (unsigned long long)first);
+    stream_ringbuf_read(&s.ringbuf, out, 2000, 10);
+    stream_consume_account(&s, first, 1000, &info);
+    TEST_CHECK(info.dropped_samples == 500);
+    TEST_CHECK(info.drop_flags & RIG_STREAM_DROP_CONCEALED);
+
+    TEST_CHECK(stream_fill_gap(&s, 0, RIG_STREAM_DROP_GAP) == RIG_OK);
+    TEST_CHECK(stream_ringbuf_available(&s.ringbuf) == 0);
+    TEST_CHECK(s.gaps_unknown == 1);
+
+    TEST_CHECK(stream_fill_gap(&s, 10, RIG_STREAM_DROP_LINK) == -RIG_EINVAL);
+    TEST_CHECK(stream_fill_gap(NULL, 10, RIG_STREAM_DROP_GAP) == -RIG_EINVAL);
+
+    s.is_codec = 1;
+    TEST_CHECK(stream_fill_gap(&s, 10, RIG_STREAM_DROP_GAP) == -RIG_EINVAL);
+    s.is_codec = 0;
+
+    stream_teardown(&s);
+}
+
+
+/* A concealed loss is still a discontinuity for time consumers. */
+static void test_read_time_concealed_discontinuity(void)
+{
+    struct rig_stream s;
+    struct rig_stream_read_info info;
+
+    stream_setup(&s, 1024);
+    memset(&info, 0, sizeof(info));
+    info.drop_flags = RIG_STREAM_DROP_GAP | RIG_STREAM_DROP_CONCEALED;
+    stream_fill_read_time(&s, &info);
+    TEST_CHECK(info.time_flags & RIG_STREAM_TIME_FLAG_DISCONTINUITY);
+
+    stream_teardown(&s);
+}
+
+
 static void test_get_stats_snapshot(void)
 {
     struct rig_stream s;
@@ -764,6 +953,11 @@ TEST_LIST =
     { "consume_account_overrun",        test_consume_account_overrun_attribution },
     { "consume_account_mixed",          test_consume_account_mixed_causes },
     { "skip_samples_link",              test_skip_samples_link_attribution },
+    { "fill_gap_conceals_audio",        test_fill_gap_conceals_audio },
+    { "fill_gap_u8_silence",            test_fill_gap_u8_silence },
+    { "fill_gap_local_overrun",         test_fill_gap_local_overrun },
+    { "fill_gap_cap_and_unsized",       test_fill_gap_cap_and_unsized },
+    { "read_time_concealed_discontinuity", test_read_time_concealed_discontinuity },
     { "get_stats_snapshot",             test_get_stats_snapshot },
     { "write_status_fifo",              test_write_status_fifo },
     { "anchor_push_get",                test_anchor_push_get },

@@ -18,6 +18,10 @@ on:
   schedule:
     - cron: '39 20 * * 6'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   analyze:
     name: Analyze
@@ -61,12 +65,14 @@ jobs:
     #    and modify them (or add more) to build your code if your project
     #    uses a compiled language
 
-    - run: |
+    - name: Build C/C++
+      if: matrix.language == 'cpp'
+      run: |
        sudo apt install libusb-1.0-0-dev
        sudo apt install libgpiod-dev
        ./bootstrap
        ./configure
-       make
+       make -j4
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3

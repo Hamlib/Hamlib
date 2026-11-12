@@ -26,6 +26,9 @@
 
 extern HAMLIB_EXPORT(int) port_open(hamlib_port_t *p);
 extern HAMLIB_EXPORT(int) port_close(hamlib_port_t *p, rig_port_t port_type);
+extern HAMLIB_EXPORT(int) port_prepare_async(hamlib_port_t *p);
+extern HAMLIB_EXPORT(void) port_cleanup_async(hamlib_port_t *p);
+extern HAMLIB_EXPORT(int) port_async_is_prepared(const hamlib_port_t *p);
 
 
 extern HAMLIB_EXPORT(int) read_block(hamlib_port_t *p,
@@ -39,6 +42,10 @@ extern HAMLIB_EXPORT(int) read_block_direct(hamlib_port_t *p,
 extern HAMLIB_EXPORT(int) write_block(hamlib_port_t *p,
                                       const unsigned char *txbuffer,
                                       size_t count);
+
+extern HAMLIB_EXPORT(int) write_block_sensitive(hamlib_port_t *p,
+                                                const unsigned char *txbuffer,
+                                                size_t count);
 
 extern HAMLIB_EXPORT(int) write_block_sync(hamlib_port_t *p,
                                            const unsigned char *txbuffer,

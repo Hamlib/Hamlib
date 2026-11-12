@@ -30,6 +30,7 @@
 #include "test_debug.h"
 #include "stream.h"
 #include "cache.h"
+#include <limits.h>
 #include <string.h>
 #include <stddef.h>
 #include <unistd.h>
@@ -44,10 +45,13 @@
  * No actual I/O thread — tests write/read the ring buffer directly.
  */
 
+static int stub_stream_open_calls;
+
 static int stub_stream_open(RIG *rig, struct rig_stream *stream)
 {
     (void)rig;
     (void)stream;
+    stub_stream_open_calls++;
     return RIG_OK;
 }
 
@@ -315,6 +319,39 @@ static struct rig_caps stub_caps_codec_stream =
     .stream_close = stub_stream_close,
 };
 
+static const struct rig_stream_caps stub_unbounded_channel_stream_caps[] =
+{
+    {
+        .type = RIG_STREAM_TYPE_AUDIO_RX,
+        .formats = RIG_STREAM_FORMAT_PCM_F32,
+        .sample_rates = { 48000, 0 },
+        .channels = { 0 },
+        .max_streams = 1,
+    },
+    { 0 }
+};
+
+static struct rig_caps stub_caps_unbounded_channel_stream =
+{
+    .rig_model = 7,
+    .model_name = "Stub Unbounded Channels",
+    .mfg_name = "Test",
+    .version = "1.0",
+    .status = RIG_STATUS_STABLE,
+    .rig_type = RIG_TYPE_TRANSCEIVER,
+    .port_type = RIG_PORT_NONE,
+    .timeout = 1000,
+    .retry = 0,
+    .stream_caps = stub_unbounded_channel_stream_caps,
+    .rig_init = stub_rig_init,
+    .rig_cleanup = stub_rig_cleanup,
+    .rig_open = stub_rig_open,
+    .rig_close = stub_rig_close,
+    .stream_open = stub_stream_open,
+    .stream_close = stub_stream_close,
+};
+
+
 /* A native rate chosen so 8000 Hz is just outside libsamplerate's
  * single-stage ratio range while nearby standard and arbitrary rates remain
  * reachable. Both directions exercise RX downsampling and TX upsampling. */
@@ -537,6 +574,94 @@ void test_caps_derived_rates(void)
 
     teardown_rig(rig);
 }
+
+void test_stream_frame_geometry_limits(void)
+{
+    RIG *rig = setup_rig(&stub_caps_unbounded_channel_stream);
+    TEST_ASSERT(rig != NULL);
+
+    struct rig_stream_config *cfg = rig_stream_config_alloc();
+    TEST_ASSERT(cfg != NULL);
+    cfg->type = RIG_STREAM_TYPE_AUDIO_RX;
+    cfg->format = RIG_STREAM_FORMAT_PCM_F32;
+    cfg->sample_rate = 48000;
+    cfg->channels = INT_MAX;
+    cfg->buffer_bytes = 4096;
+
+    rig_stream_t *stream = NULL;
+    TEST_CHECK(rig_stream_open(rig, cfg, &stream) == -RIG_EINVAL);
+    TEST_CHECK(stream == NULL);
+
+    cfg->format = RIG_STREAM_FORMAT_PCM_F32;
+    cfg->channels = INT_MAX / 4;
+    cfg->buffer_bytes = 0;
+    cfg->buffer_duration_ms = UINT_MAX;
+    TEST_CHECK(rig_stream_open(rig, cfg, &stream) == -RIG_EINVAL);
+    TEST_CHECK(stream == NULL);
+
+    rig_stream_config_free(cfg);
+    teardown_rig(rig);
+}
+
+void test_stream_buffer_geometry_limits(void)
+{
+    RIG *rig = setup_rig(&stub_caps_codec_stream);
+    TEST_ASSERT(rig != NULL);
+    struct rig_stream_state *ss = STATE(rig)->stream_state;
+    TEST_ASSERT(ss != NULL);
+
+    struct rig_stream_config *cfg = rig_stream_config_alloc();
+    TEST_ASSERT(cfg != NULL);
+    cfg->type = RIG_STREAM_TYPE_AUDIO_RX;
+    cfg->sample_rate = 48000;
+    cfg->channels = 1;
+
+    const struct
+    {
+        rig_stream_format_t format;
+        size_t buffer_bytes;
+        uint32_t duration_ms;
+    } cases[] =
+    {
+        { RIG_STREAM_FORMAT_PCM_S16, STREAM_RINGBUF_MAX_CAPACITY + 1, 0 },
+        { RIG_STREAM_FORMAT_PCM_S16, SIZE_MAX, 0 },
+        { RIG_STREAM_FORMAT_OPUS, STREAM_RINGBUF_MAX_CAPACITY + 1, 0 },
+        { RIG_STREAM_FORMAT_OPUS, SIZE_MAX, 0 },
+#if SIZE_MAX == UINT32_MAX
+        /* Both derived sizes fit size_t but cannot round up to a ring. */
+        { RIG_STREAM_FORMAT_PCM_S16, 0, 30000000 },
+        { RIG_STREAM_FORMAT_OPUS, 0, 20000000 },
+#endif
+    };
+
+    for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++)
+    {
+        cfg->format = cases[i].format;
+        cfg->buffer_bytes = cases[i].buffer_bytes;
+        cfg->buffer_duration_ms = cases[i].duration_ms;
+        int next_id = ss->stream_next_id[cfg->type];
+        int open_calls = stub_stream_open_calls;
+        rig_stream_t *stream = NULL;
+
+        TEST_CHECK(rig_stream_open(rig, cfg, &stream) == -RIG_EINVAL);
+        TEST_MSG("case %zu", i);
+        TEST_CHECK(stream == NULL);
+        TEST_CHECK(ss->stream_next_id[cfg->type] == next_id);
+        TEST_CHECK(stub_stream_open_calls == open_calls);
+    }
+
+    cfg->format = RIG_STREAM_FORMAT_PCM_S16;
+    cfg->buffer_bytes = 4096;
+    cfg->buffer_duration_ms = 0;
+    rig_stream_t *stream = NULL;
+    TEST_ASSERT(rig_stream_open(rig, cfg, &stream) == RIG_OK);
+    TEST_ASSERT(stream != NULL);
+    TEST_CHECK(stream->ringbuf.capacity == 4096);
+    rig_stream_close(rig, stream);
+    rig_stream_config_free(cfg);
+    teardown_rig(rig);
+}
+
 
 void test_rate_ratio_limits(void)
 {
@@ -874,6 +999,7 @@ void test_codec_frame_read_api(void)
     TEST_CHECK(stats.codec_frames == (uint64_t)(2 + 40 - drops));
     TEST_MSG("codec_frames %llu, expected %d",
              (unsigned long long)stats.codec_frames, 2 + 40 - drops);
+    TEST_CHECK(rig_stream_get_samples_written(st) == (2 + 40) * 480);
 
     /* Drain, then produce one more frame: its start index sits past the
      * dropped-frame hole and the read reports the loss. */
@@ -887,6 +1013,7 @@ void test_codec_frame_read_api(void)
     TEST_CHECK(rig_stream_read(rig, st, buf, sizeof(buf), &got, 100,
                                &info) == RIG_OK);
     TEST_CHECK(info.dropped_samples == (uint32_t)drops * 480);
+    TEST_CHECK(info.sample_index == (2 + 40) * 480);
     TEST_MSG("dropped_samples %u", info.dropped_samples);
     TEST_CHECK((info.drop_flags & RIG_STREAM_DROP_OVERRUN) != 0);
 
@@ -924,6 +1051,7 @@ void test_codec_frame_write_api(void)
     }
 
     struct rig_stream_write_info winfo;
+
     memset(&winfo, 0, sizeof(winfo));
     winfo.codec_frame_samples = 480;
 
@@ -977,7 +1105,150 @@ void test_codec_frame_write_api(void)
     TEST_CHECK(rig_stream_get_stats(rig, st, &stats) == RIG_OK);
     TEST_CHECK(stats.overruns == 0);
     TEST_CHECK(stats.dropped_samples_overrun == 0);
+    TEST_CHECK(stats.codec_frames == (uint64_t)(2 + accepted));
+    TEST_CHECK(rig_stream_get_samples_written(st)
+               == (uint64_t)(2 + accepted) * 480);
+    TEST_CHECK(written == 0);
 
+    for (int i = 0; i < accepted; i++)
+    {
+        TEST_CHECK(stream_backend_read_frame(st, buf, sizeof(buf), &len,
+                                             &dur, &idx, 100) == RIG_OK);
+        TEST_CHECK(idx == (uint64_t)(2 + i) * 480);
+    }
+
+    TEST_CHECK(rig_stream_write(rig, st, frame, sizeof(frame), &written,
+                                100, &winfo) == RIG_OK);
+    TEST_CHECK(stream_backend_read_frame(st, buf, sizeof(buf), &len, &dur,
+                                         &idx, 100) == RIG_OK);
+    TEST_CHECK(idx == (uint64_t)(2 + accepted) * 480);
+    TEST_CHECK(rig_stream_get_stats(rig, st, &stats) == RIG_OK);
+    TEST_CHECK(stats.codec_frames == (uint64_t)(3 + accepted));
+    TEST_CHECK(rig_stream_get_samples_written(st)
+               == (uint64_t)(3 + accepted) * 480);
+
+    rig_stream_close(rig, st);
+    teardown_rig(rig);
+}
+
+
+enum { CODEC_PUBLICATION_FRAMES = 4096 };
+
+struct codec_publication_ctx
+{
+    rig_stream_t *stream;
+    pthread_mutex_t lock;
+    pthread_cond_t consumed;
+    uint32_t acknowledged;
+    int stop;
+    int failed;
+};
+
+static void *codec_publication_producer(void *arg)
+{
+    struct codec_publication_ctx *ctx = arg;
+
+    for (uint32_t frame = 0; frame < CODEC_PUBLICATION_FRAMES; frame++)
+    {
+        if (stream_backend_write_frame(ctx->stream, &frame, sizeof(frame),
+                                       480) != (ssize_t)sizeof(frame))
+        {
+            ctx->failed = 1;
+            break;
+        }
+
+        pthread_mutex_lock(&ctx->lock);
+
+        while (ctx->acknowledged <= frame && !ctx->stop)
+        {
+            pthread_cond_wait(&ctx->consumed, &ctx->lock);
+        }
+
+        int stop = ctx->stop;
+        pthread_mutex_unlock(&ctx->lock);
+
+        if (stop)
+        {
+            break;
+        }
+    }
+
+    return NULL;
+}
+
+
+/* Receiving a frame must imply that its production is already observable. */
+void test_codec_frame_publication(void)
+{
+    RIG *rig = setup_rig(&stub_caps_codec_stream);
+    TEST_ASSERT(rig != NULL);
+    struct rig_stream_config *cfg = rig_stream_config_alloc();
+    TEST_ASSERT(cfg != NULL);
+    cfg->type = RIG_STREAM_TYPE_AUDIO_RX;
+    cfg->format = RIG_STREAM_FORMAT_OPUS;
+    cfg->sample_rate = 48000;
+    cfg->channels = 1;
+
+    rig_stream_t *st = NULL;
+    TEST_ASSERT(rig_stream_open(rig, cfg, &st) == RIG_OK && st != NULL);
+    rig_stream_config_free(cfg);
+
+    struct codec_publication_ctx ctx = { .stream = st };
+    pthread_mutex_init(&ctx.lock, NULL);
+    pthread_cond_init(&ctx.consumed, NULL);
+    pthread_t producer;
+    TEST_ASSERT(pthread_create(&producer, NULL, codec_publication_producer,
+                               &ctx) == 0);
+
+    for (uint32_t frame = 0; frame < CODEC_PUBLICATION_FRAMES; frame++)
+    {
+        uint32_t payload = UINT32_MAX;
+        size_t got = 0;
+        struct rig_stream_read_info info;
+        int ret = rig_stream_read(rig, st, &payload, sizeof(payload), &got,
+                                  2000, &info);
+
+        if (!TEST_CHECK(ret == RIG_OK))
+        {
+            break;
+        }
+
+        /* Inspect before acknowledging: producer completion must not be
+         * what makes the consumed frame's accounting visible. */
+        struct rig_stream_stats stats;
+        TEST_CHECK(rig_stream_get_stats(rig, st, &stats) == RIG_OK);
+        uint64_t position = rig_stream_get_samples_written(st);
+        TEST_CHECK(stats.codec_frames >= (uint64_t)frame + 1);
+        TEST_MSG("read frame %u, codec_frames %llu", frame,
+                 (unsigned long long)stats.codec_frames);
+        TEST_CHECK(position >= info.sample_index + info.codec_frame_samples);
+        TEST_MSG("read frame %u, producer position %llu", frame,
+                 (unsigned long long)position);
+        TEST_CHECK(got == sizeof(payload) && payload == frame);
+        TEST_CHECK(info.sample_index == (uint64_t)frame * 480);
+        TEST_CHECK(info.codec_frame_samples == 480);
+
+        pthread_mutex_lock(&ctx.lock);
+        ctx.acknowledged = frame + 1;
+        pthread_cond_signal(&ctx.consumed);
+        pthread_mutex_unlock(&ctx.lock);
+    }
+
+    pthread_mutex_lock(&ctx.lock);
+    ctx.stop = 1;
+    pthread_cond_signal(&ctx.consumed);
+    pthread_mutex_unlock(&ctx.lock);
+    pthread_join(producer, NULL);
+    TEST_CHECK(ctx.failed == 0);
+    TEST_CHECK(ctx.acknowledged == CODEC_PUBLICATION_FRAMES);
+    struct rig_stream_stats stats;
+    TEST_CHECK(rig_stream_get_stats(rig, st, &stats) == RIG_OK);
+    TEST_CHECK(stats.codec_frames == CODEC_PUBLICATION_FRAMES);
+    TEST_CHECK(stats.overruns == 0);
+    TEST_CHECK(rig_stream_get_samples_written(st)
+               == (uint64_t)CODEC_PUBLICATION_FRAMES * 480);
+    pthread_cond_destroy(&ctx.consumed);
+    pthread_mutex_destroy(&ctx.lock);
     rig_stream_close(rig, st);
     teardown_rig(rig);
 }
@@ -2102,6 +2373,49 @@ void test_close_unknown_stream(void)
 }
 
 
+static int failed_close_calls;
+
+static int stub_stream_close_failed(RIG *rig, struct rig_stream *stream)
+{
+    (void)rig;
+    (void)stream;
+    ++failed_close_calls;
+    return -RIG_EIO;
+}
+
+void test_close_error_releases_stream(void)
+{
+    static struct rig_caps caps;
+    caps = stub_caps_with_stream;
+    caps.rig_model = 8;
+    caps.stream_close = stub_stream_close_failed;
+    failed_close_calls = 0;
+    RIG *rig = setup_rig(&caps);
+    TEST_ASSERT(rig != NULL);
+    struct rig_stream_caps profile = stub_stream_caps[0];
+    profile.max_streams = 1;
+    TEST_ASSERT(stream_set_session_caps(rig, &profile, 1) == RIG_OK);
+    struct rig_stream_config *config = rig_stream_config_alloc();
+    TEST_ASSERT(config != NULL);
+    config->type = RIG_STREAM_TYPE_AUDIO_RX;
+    config->format = RIG_STREAM_FORMAT_PCM_S16;
+    config->sample_rate = 48000;
+    config->channels = 1;
+
+    for (int i = 0; i < 2; ++i)
+    {
+        rig_stream_t *stream = NULL;
+        TEST_ASSERT(rig_stream_open(rig, config, &stream) == RIG_OK);
+        TEST_CHECK(rig_stream_close(rig, stream) == -RIG_EIO);
+        stream = NULL;
+        TEST_CHECK(failed_close_calls == i + 1);
+    }
+
+    rig_stream_config_free(config);
+    teardown_rig(rig);
+    TEST_CHECK(failed_close_calls == 2);
+}
+
 /* The generic (frontend, all-streams) stream conf tokens round-trip through
  * rig_set_conf / rig_get_conf2 and reject out-of-range input. */
 void test_stream_conf_tokens(void)
@@ -2193,7 +2507,35 @@ struct close_race_ctx
     rig_stream_t *stream;
     int read_ret;
     size_t got;
+    /* When the reader entered rig_stream_read(), and a flag published after
+     * it so a waiting test that sees the flag has the timestamp too. Without
+     * this the test can only guess that the reader got there, and a reader
+     * that never started looks exactly like one the close released. */
+    int64_t entered_ms;
+    HAMLIB_ATOMIC int entered;
+    int64_t returned_ms;
 };
+
+static int64_t api_now_ms(void)
+{
+    struct timespec ts;
+
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (int64_t)ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
+}
+
+/* Wait for the reader to reach its read call, or give up. */
+static int wait_entered(struct close_race_ctx *c, int timeout_ms)
+{
+    int waited;
+
+    for (waited = 0; waited < timeout_ms && !c->entered; waited += 5)
+    {
+        usleep(5 * 1000);
+    }
+
+    return c->entered;
+}
 
 static void *blocked_reader(void *arg)
 {
@@ -2201,8 +2543,11 @@ static void *blocked_reader(void *arg)
     unsigned char buf[256];
     size_t got = 0;
 
+    c->entered_ms = api_now_ms();
+    c->entered = 1;
     c->read_ret = rig_stream_read(c->rig, c->stream, buf, sizeof(buf),
                                   &got, 5000, NULL);
+    c->returned_ms = api_now_ms();
     c->got = got;
     return NULL;
 }
@@ -2217,6 +2562,8 @@ static void *block_forever_reader(void *arg)
     unsigned char buf[256];
     size_t got = 0;
 
+    c->entered_ms = api_now_ms();
+    c->entered = 1;
     c->read_ret = rig_stream_read(c->rig, c->stream, buf, sizeof(buf),
                                   &got, -1, NULL);
     c->got = got;
@@ -2247,7 +2594,10 @@ void test_read_block_forever_until_close(void)
     pthread_t th;
     TEST_ASSERT(pthread_create(&th, NULL, block_forever_reader, &ctx) == 0);
 
-    /* With no producer, an infinite wait must still be blocking after a delay. */
+    /* "Still blocking" only says something once the reader is actually in the
+     * read; otherwise a thread that never ran reads as one that blocked. */
+    TEST_CHECK_(wait_entered(&ctx, 2000), "the reader never reached its read");
+
     usleep(200 * 1000);
     TEST_CHECK_(block_forever_done == 0,
                 "read(timeout<0) returned before any data or close");
@@ -2283,16 +2633,351 @@ void test_close_wakes_blocked_reader(void)
     pthread_t th;
     TEST_ASSERT(pthread_create(&th, NULL, blocked_reader, &ctx) == 0);
 
-    /* Let the reader reach the blocking wait, then close it out from under. */
-    usleep(150 * 1000);
+    /* The reader has to be in the read for the close to race it at all: a
+     * reader that never started would be refused by the registry and return
+     * the same -RIG_ENAVAIL, so the test would pass having exercised
+     * nothing. */
+    TEST_CHECK_(wait_entered(&ctx, 2000), "the reader never reached its read");
+
+    int64_t closed_ms = api_now_ms();
     TEST_CHECK(rig_stream_close(rig, stream) == RIG_OK);
 
     pthread_join(th, NULL);
 
+    TEST_CHECK_(ctx.entered_ms <= closed_ms,
+                "the read began %lld ms after the close",
+                (long long)(ctx.entered_ms - closed_ms));
+
     /* Woken by close, not by its own 5 s timeout. */
+    TEST_CHECK_(ctx.returned_ms - ctx.entered_ms < 4000,
+                "the read took %lld ms, so it timed out rather than being "
+                "woken", (long long)(ctx.returned_ms - ctx.entered_ms));
     TEST_CHECK(ctx.read_ret == -RIG_ENAVAIL);
     TEST_CHECK(ctx.got == 0);
 
+    teardown_rig(rig);
+}
+
+
+static rig_stream_t *open_audio_rx_stub(RIG *rig)
+{
+    struct rig_stream_config *cfg = rig_stream_config_alloc();
+    rig_stream_t *stream = NULL;
+
+    TEST_ASSERT(cfg != NULL);
+    cfg->type = RIG_STREAM_TYPE_AUDIO_RX;
+    cfg->format = RIG_STREAM_FORMAT_PCM_S16;
+    cfg->sample_rate = 48000;
+    cfg->channels = 1;
+    TEST_ASSERT(rig_stream_open(rig, cfg, &stream) == RIG_OK);
+    rig_stream_config_free(cfg);
+
+    return stream;
+}
+
+static long ms_since(const struct timespec *t0)
+{
+    struct timespec t1;
+
+    clock_gettime(CLOCK_MONOTONIC, &t1);
+    return (t1.tv_sec - t0->tv_sec) * 1000
+           + (t1.tv_nsec - t0->tv_nsec) / 1000000;
+}
+
+/* A reader in a timed wait wakes as soon as the source is marked failed: it
+ * gets -RIG_EIO well before its deadline, no underrun is booked against the
+ * dead stream, and the reason shows in the stats. */
+void test_failed_wakes_timed_reader(void)
+{
+    RIG *rig = setup_rig(&stub_caps_with_stream);
+    TEST_ASSERT(rig != NULL);
+
+    rig_stream_t *stream = open_audio_rx_stub(rig);
+    unsigned char buf[64];
+    size_t got = 0;
+
+    /* Produce and drain, so a starved wait would otherwise count. */
+    memset(buf, 1, sizeof(buf));
+    stream_backend_write(stream, buf, 32);
+    TEST_CHECK(rig_stream_read(rig, stream, buf, sizeof(buf), &got, 100,
+                               NULL) == RIG_OK);
+
+    struct close_race_ctx ctx = { rig, stream, 999, 0 };
+    struct timespec t0;
+    pthread_t th;
+
+    clock_gettime(CLOCK_MONOTONIC, &t0);
+    TEST_ASSERT(pthread_create(&th, NULL, blocked_reader, &ctx) == 0);
+    usleep(150 * 1000);
+    stream_mark_failed(stream, RIG_COMM_REASON_LINK_TIMEOUT);
+    pthread_join(th, NULL);
+
+    TEST_CHECK_(ctx.read_ret == -RIG_EIO, "read returned %d", ctx.read_ret);
+    TEST_CHECK_(ms_since(&t0) < 2000, "woke after %ld ms (deadline 5000)",
+                ms_since(&t0));
+
+    struct rig_stream_stats st;
+    TEST_CHECK(rig_stream_get_stats(rig, stream, &st) == RIG_OK);
+    TEST_CHECK_(st.underruns == 0, "underruns=%u", st.underruns);
+    TEST_CHECK_(st.fail_reason == RIG_COMM_REASON_LINK_TIMEOUT,
+                "fail_reason=%u", st.fail_reason);
+
+    rig_stream_close(rig, stream);
+    teardown_rig(rig);
+}
+
+/* Data produced before the failure is still delivered; -RIG_EIO follows once
+ * the ring is empty, and keeps coming. The first reason recorded wins. */
+void test_failed_read_drains_then_eio(void)
+{
+    RIG *rig = setup_rig(&stub_caps_with_stream);
+    TEST_ASSERT(rig != NULL);
+
+    rig_stream_t *stream = open_audio_rx_stub(rig);
+    unsigned char buf[64];
+    size_t got = 0;
+
+    memset(buf, 7, sizeof(buf));
+    stream_backend_write(stream, buf, 40);
+    stream_mark_failed(stream, RIG_COMM_REASON_PEER_DISCONNECT);
+    stream_mark_failed(stream, RIG_COMM_REASON_SOCKET_ERROR);
+
+    TEST_CHECK(rig_stream_read(rig, stream, buf, sizeof(buf), &got, 100,
+                               NULL) == RIG_OK);
+    TEST_CHECK_(got == 40, "got=%zu", got);
+
+    TEST_CHECK(rig_stream_read(rig, stream, buf, sizeof(buf), &got, 100,
+                               NULL) == -RIG_EIO);
+    TEST_CHECK(got == 0);
+    TEST_CHECK(rig_stream_read(rig, stream, buf, sizeof(buf), &got, -1,
+                               NULL) == -RIG_EIO);
+
+    struct rig_stream_stats st;
+    TEST_CHECK(rig_stream_get_stats(rig, stream, &st) == RIG_OK);
+    TEST_CHECK(st.fail_reason == RIG_COMM_REASON_PEER_DISCONNECT);
+    TEST_CHECK(st.underruns == 0);
+
+    rig_stream_close(rig, stream);
+    teardown_rig(rig);
+}
+
+/* With both closing and failed set, both result paths agree on -RIG_ENAVAIL:
+ * a deliberate close is the application's own action, not an I/O error. */
+void test_closing_wins_over_failed(void)
+{
+    RIG *rig = setup_rig(&stub_caps_with_stream);
+    TEST_ASSERT(rig != NULL);
+
+    rig_stream_t *stream = open_audio_rx_stub(rig);
+    unsigned char buf[64];
+    size_t got = 0;
+
+    /* Pre-wait path: both flags already set. */
+    pthread_mutex_lock(&stream->ringbuf.lock);
+    stream->ringbuf.closing = 1;
+    stream->ringbuf.failed = 1;
+    pthread_mutex_unlock(&stream->ringbuf.lock);
+
+    TEST_CHECK(rig_stream_read(rig, stream, buf, sizeof(buf), &got, 100,
+                               NULL) == -RIG_ENAVAIL);
+
+    /* Post-wait path: a blocked reader woken with both flags set. */
+    pthread_mutex_lock(&stream->ringbuf.lock);
+    stream->ringbuf.closing = 0;
+    stream->ringbuf.failed = 0;
+    pthread_mutex_unlock(&stream->ringbuf.lock);
+
+    struct close_race_ctx ctx = { rig, stream, 999, 0 };
+    pthread_t th;
+    TEST_ASSERT(pthread_create(&th, NULL, blocked_reader, &ctx) == 0);
+    usleep(150 * 1000);
+
+    pthread_mutex_lock(&stream->ringbuf.lock);
+    stream->ringbuf.failed = 1;
+    stream->ringbuf.closing = 1;
+    pthread_cond_broadcast(&stream->ringbuf.data_available);
+    pthread_mutex_unlock(&stream->ringbuf.lock);
+    pthread_join(th, NULL);
+
+    TEST_CHECK_(ctx.read_ret == -RIG_ENAVAIL, "read returned %d",
+                ctx.read_ret);
+
+    pthread_mutex_lock(&stream->ringbuf.lock);
+    stream->ringbuf.closing = 0;
+    pthread_mutex_unlock(&stream->ringbuf.lock);
+
+    rig_stream_close(rig, stream);
+    teardown_rig(rig);
+}
+
+
+/* The drain-then-EIO rule holds for codec streams too: a whole frame received
+ * before the failure is still read, and nothing produced after it enters. */
+void test_failed_codec_read_drains_then_eio(void)
+{
+    RIG *rig = setup_rig(&stub_caps_codec_stream);
+    TEST_ASSERT(rig != NULL);
+
+    struct rig_stream_config *cfg = rig_stream_config_alloc();
+    rig_stream_t *st = NULL;
+
+    TEST_ASSERT(cfg != NULL);
+    cfg->type = RIG_STREAM_TYPE_AUDIO_RX;
+    cfg->format = RIG_STREAM_FORMAT_OPUS;
+    cfg->sample_rate = 48000;
+    cfg->channels = 1;
+    TEST_ASSERT(rig_stream_open(rig, cfg, &st) == RIG_OK && st != NULL);
+    rig_stream_config_free(cfg);
+
+    uint8_t frame[120], buf[2048];
+    size_t got = 0;
+
+    memset(frame, 0x33, sizeof(frame));
+    TEST_CHECK(stream_backend_write_frame(st, frame, sizeof(frame), 960)
+               == (ssize_t)sizeof(frame));
+
+    stream_mark_failed(st, RIG_COMM_REASON_SOCKET_ERROR);
+
+    /* Produced after the failure: refused. */
+    TEST_CHECK(stream_backend_write_frame(st, frame, sizeof(frame), 960) == 0);
+
+    TEST_CHECK(rig_stream_read(rig, st, buf, sizeof(buf), &got, 100, NULL)
+               == RIG_OK);
+    TEST_CHECK_(got == sizeof(frame), "got %zu", got);
+    TEST_CHECK(rig_stream_read(rig, st, buf, sizeof(buf), &got, 100, NULL)
+               == -RIG_EIO);
+
+    rig_stream_close(rig, st);
+    teardown_rig(rig);
+}
+
+
+/* A concealed loss is reported in the application's sample domain: a backend
+ * running at 48 kHz that conceals 4800 native samples on a stream the
+ * application opened at 16 kHz has concealed 1600 of its samples. */
+void test_fill_gap_scaled_under_rate_conversion(void)
+{
+    RIG *rig = setup_rig(&stub_caps_with_stream);
+    TEST_ASSERT(rig != NULL);
+
+    struct rig_stream_config *cfg = rig_stream_config_alloc();
+    rig_stream_t *stream = NULL;
+
+    TEST_ASSERT(cfg != NULL);
+    cfg->type = RIG_STREAM_TYPE_AUDIO_RX;
+    cfg->format = RIG_STREAM_FORMAT_PCM_S16;
+    cfg->sample_rate = 16000;
+    cfg->channels = 1;
+
+    if (rig_stream_open(rig, cfg, &stream) != RIG_OK)
+    {
+        /* Rate conversion not available in this build. */
+        rig_stream_config_free(cfg);
+        teardown_rig(rig);
+        return;
+    }
+
+    rig_stream_config_free(cfg);
+    TEST_CHECK(rig_stream_get_conversions(stream) & RIG_STREAM_CONV_RATE);
+    TEST_CHECK(stream->backend_config.sample_rate == 48000);
+
+    TEST_CHECK(stream_fill_gap(stream, 4800, RIG_STREAM_DROP_GAP) == RIG_OK);
+
+    struct rig_stream_stats st;
+    TEST_CHECK(rig_stream_get_stats(rig, stream, &st) == RIG_OK);
+    TEST_CHECK_(st.concealed_samples_gap == 1600, "concealed=%llu",
+                (unsigned long long)st.concealed_samples_gap);
+    TEST_CHECK(st.gaps == 1);
+
+    rig_stream_close(rig, stream);
+    teardown_rig(rig);
+}
+
+
+struct failed_writer_ctx
+{
+    RIG *rig;
+    rig_stream_t *stream;
+    int ret;
+};
+
+static void *blocked_codec_writer(void *arg)
+{
+    struct failed_writer_ctx *c = arg;
+    struct rig_stream_write_info winfo;
+    uint8_t frame[400];
+    size_t written = 0;
+
+    memset(&winfo, 0, sizeof(winfo));
+    winfo.codec_frame_samples = 480;
+    memset(frame, 0x11, sizeof(frame));
+    c->ret = rig_stream_write(c->rig, c->stream, frame, sizeof(frame),
+                              &written, 5000, &winfo);
+    return NULL;
+}
+
+/* The TX side of the same contract: a writer waiting for ring space wakes with
+ * -RIG_EIO, later writes are refused outright, and the write-status waiter
+ * delivers the events recorded before the failure and then -RIG_EIO. */
+void test_failed_tx_write_and_status(void)
+{
+    RIG *rig = setup_rig(&stub_caps_codec_stream);
+    TEST_ASSERT(rig != NULL);
+
+    struct rig_stream_config *cfg = rig_stream_config_alloc();
+    TEST_ASSERT(cfg != NULL);
+    cfg->type = RIG_STREAM_TYPE_AUDIO_TX;
+    cfg->format = RIG_STREAM_FORMAT_OPUS;
+    cfg->sample_rate = 48000;
+    cfg->channels = 1;
+    cfg->buffer_bytes = 1024;
+
+    rig_stream_t *st = NULL;
+    TEST_ASSERT(rig_stream_open(rig, cfg, &st) == RIG_OK && st != NULL);
+    rig_stream_config_free(cfg);
+
+    /* Fill the ring so the next codec write has to wait for space. */
+    struct rig_stream_write_info winfo;
+    uint8_t frame[400];
+    size_t written = 0;
+    memset(&winfo, 0, sizeof(winfo));
+    winfo.codec_frame_samples = 480;
+    memset(frame, 0x22, sizeof(frame));
+    TEST_CHECK(rig_stream_write(rig, st, frame, sizeof(frame), &written, 100,
+                                &winfo) == RIG_OK);
+    TEST_CHECK(rig_stream_write(rig, st, frame, sizeof(frame), &written, 100,
+                                &winfo) == RIG_OK);
+
+    struct rig_stream_write_status ev;
+    memset(&ev, 0, sizeof(ev));
+    ev.event = RIG_STREAM_WRITE_EVENT_UNDERRUN;
+    stream_record_write_status(st, &ev, 0);
+
+    struct failed_writer_ctx ctx = { rig, st, 999 };
+    struct timespec t0;
+    pthread_t th;
+
+    clock_gettime(CLOCK_MONOTONIC, &t0);
+    TEST_ASSERT(pthread_create(&th, NULL, blocked_codec_writer, &ctx) == 0);
+    usleep(150 * 1000);
+    stream_mark_failed(st, RIG_COMM_REASON_LINK_TIMEOUT);
+    pthread_join(th, NULL);
+
+    TEST_CHECK_(ctx.ret == -RIG_EIO, "blocked write returned %d", ctx.ret);
+    TEST_CHECK_(ms_since(&t0) < 2000, "writer woke after %ld ms",
+                ms_since(&t0));
+
+    TEST_CHECK(rig_stream_write(rig, st, frame, sizeof(frame), &written, 0,
+                                &winfo) == -RIG_EIO);
+    TEST_CHECK(written == 0);
+
+    struct rig_stream_write_status got;
+    TEST_CHECK(rig_stream_wait_write_status(rig, st, &got, 100) == RIG_OK);
+    TEST_CHECK(got.event == RIG_STREAM_WRITE_EVENT_UNDERRUN);
+    TEST_CHECK(rig_stream_wait_write_status(rig, st, &got, 1000)
+               == -RIG_EIO);
+
+    rig_stream_close(rig, st);
     teardown_rig(rig);
 }
 
@@ -2548,12 +3233,15 @@ TEST_LIST =
     { "get_stream_caps",          test_get_stream_caps },
     { "caps_derived_formats",     test_caps_derived_formats },
     { "caps_derived_rates",       test_caps_derived_rates },
+    { "stream_frame_geometry_limits", test_stream_frame_geometry_limits },
+    { "stream_buffer_geometry_limits", test_stream_buffer_geometry_limits },
     { "rate_ratio_limits",        test_rate_ratio_limits },
     { "caps_derived_channels",    test_caps_derived_channels },
     { "channel_list_exact",       test_channel_list_exact },
     { "codec_format_native_only", test_codec_format_native_only },
     { "codec_frame_read_api",     test_codec_frame_read_api },
     { "codec_frame_write_api",    test_codec_frame_write_api },
+    { "codec_frame_publication",  test_codec_frame_publication },
     { "caps_codec_only_not_widened", test_caps_codec_only_not_widened },
     { "caps_pre_open_raw",        test_caps_pre_open_raw },
     { "conversions_getter",       test_conversions_getter },
@@ -2583,7 +3271,14 @@ TEST_LIST =
     { "mute_while_paused",        test_mute_while_paused },
     { "default_buffer_size",      test_default_buffer_size },
     { "close_unknown_stream",     test_close_unknown_stream },
+    { "close_error_releases_stream", test_close_error_releases_stream },
     { "close_wakes_blocked_reader", test_close_wakes_blocked_reader },
+    { "failed_wakes_timed_reader", test_failed_wakes_timed_reader },
+    { "failed_read_drains_then_eio", test_failed_read_drains_then_eio },
+    { "closing_wins_over_failed", test_closing_wins_over_failed },
+    { "failed_tx_write_and_status", test_failed_tx_write_and_status },
+    { "fill_gap_scaled_under_rate_conversion", test_fill_gap_scaled_under_rate_conversion },
+    { "failed_codec_read_drains_then_eio", test_failed_codec_read_drains_then_eio },
     { "close_waits_for_inflight_call", test_close_waits_for_inflight_call },
     { "read_block_forever_until_close", test_read_block_forever_until_close },
     { "caps_struct_layout",       test_caps_struct_layout },

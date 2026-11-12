@@ -74,6 +74,7 @@
 #include "hamlibdatetime.h"
 #include "cache.h"
 #include "stream.h"
+#include "rig_internal.h"
 
 /**
  * \brief Hamlib short license name
@@ -200,6 +201,24 @@ static void morse_busy_store(struct rig_state *rs, bool busy)
     __atomic_store_n(&rs->morse_busy, busy, __ATOMIC_RELAXED);
 }
 
+/* Per-rig bookkeeping of the core, kept out of the installed headers */
+struct rig_private
+{
+    int no_get_vfo;     /* the backend found that this rig lacks get_vfo */
+};
+
+static void no_get_vfo_set(RIG *rig)
+{
+    // Set under the API mutex but read outside it; it publishes no other state.
+    __atomic_store_n(&rig->private_addr->no_get_vfo, 1, __ATOMIC_RELAXED);
+}
+
+int HAMLIB_API rig_has_get_vfo(RIG *rig)
+{
+    return rig->caps->get_vfo != NULL
+           && !__atomic_load_n(&rig->private_addr->no_get_vfo, __ATOMIC_RELAXED);
+}
+
 /*
  * Data structure to track the opened rig (by rig_open)
  */
@@ -279,7 +298,7 @@ typedef struct async_data_handler_priv_data_s
     async_data_handler_args args;
 } async_data_handler_priv_data;
 
-static int async_data_handler_start(RIG *rig);
+static int start_pthread(pthread_t *thread, void *(*routine)(void *), void *arg);
 static int async_data_handler_stop(RIG *rig);
 static void *async_data_handler(void *arg);
 
@@ -295,7 +314,6 @@ typedef struct morse_data_handler_priv_data_s
     int keyspd;
 } morse_data_handler_priv_data;
 
-static int morse_data_handler_start(RIG *rig);
 static int morse_data_handler_stop(RIG *rig);
 int morse_data_handler_set_keyspd(RIG *rig, int keyspd);
 static void *morse_data_handler(void *arg);
@@ -594,6 +612,9 @@ static void vaporize(RIG *rig)
         free(STATE(rig));
         STATE(rig) = NULL;
     }
+
+    free(rig->private_addr);
+    rig->private_addr = NULL;
     /* Other buffers go here, as they are converted
      *  to pointers/calloc - WIP
      */
@@ -723,6 +744,15 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     if (!rig->cache_addr)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: Cache allocation failed\n", __func__);
+        vaporize(rig);
+        return NULL;
+    }
+
+    rig->private_addr = calloc(1, sizeof(struct rig_private));
+
+    if (!rig->private_addr)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: Private data allocation failed\n", __func__);
         vaporize(rig);
         return NULL;
     }
@@ -1042,6 +1072,48 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
  *
  * \sa rig_init(), rig_close()
  */
+/* Report the rig's power state during open and clear auto_power_on when it is
+ * already on. Split out of rig_open() because the probe has to run at
+ * different points depending on who owns the transport: for an ordinary port
+ * the core has already opened it, but a RIG_PORT_CUSTOM backend only opens its
+ * own transport inside caps->rig_open(), so probing before that would talk to
+ * a closed port. */
+static void rig_open_check_powerstat(RIG *rig, int skip_init)
+{
+    struct rig_state *rs = STATE(rig);
+    powerstat_t powerflag;
+    int status;
+
+    if (rig->caps->get_powerstat == NULL || skip_init)
+    {
+        return;
+    }
+
+    status = rig_get_powerstat(rig, &powerflag);
+
+    if (status == RIG_OK && (powerflag == RIG_POWER_OFF
+                             || powerflag == RIG_POWER_STANDBY)
+            && rs->auto_power_on == 0)
+    {
+        // rig_open() should succeed even if the rig is powered off, so simply log power status
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: rig power is off, use --set-conf=auto_power_on=1 or set_powerstat if power on is wanted\n",
+                  __func__);
+    }
+
+    // don't need auto_power_on if power is already on
+    if (status == RIG_OK && powerflag == RIG_POWER_ON) { rs->auto_power_on = 0; }
+
+    if (status == -RIG_ETIMEOUT)
+    {
+        // rig_open() should succeed even if get_powerstat() fails,
+        // as many rigs cannot get power status while powered off
+        rig_debug(RIG_DEBUG_ERR, "%s: Some rigs cannot get_powerstat while off\n",
+                  __func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: Known rigs: K3, K3S\n", __func__);
+    }
+}
+
 int HAMLIB_API rig_open(RIG *rig)
 {
     struct rig_caps *caps;
@@ -1123,7 +1195,6 @@ int HAMLIB_API rig_open(RIG *rig)
               "%s: async_data_enable=%d, async_data_supported=%d\n", __func__,
               rs->async_data_enabled, caps->async_data_supported);
     rs->async_data_enabled = rs->async_data_enabled && caps->async_data_supported;
-    rp->asyncio = rs->async_data_enabled;
 
     if (strlen(rp->pathname) > 0)
     {
@@ -1492,8 +1563,12 @@ int HAMLIB_API rig_open(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: %p rs->comm_state==1?=%d\n", __func__,
               &rs->comm_state,
               rs->comm_state);
-    hl_usleep(100 *
-              1000); // wait a bit after opening to give some serial ports time
+    // The wait is for the rig port, which port_open() does not open for RIG_PORT_NONE
+    if (rp->type.rig != RIG_PORT_NONE)
+    {
+        hl_usleep(100 *
+                  1000); // wait a bit after opening to give some serial ports time
+    }
 
 
     /*
@@ -1505,32 +1580,13 @@ int HAMLIB_API rig_open(RIG *rig)
 
     if (caps->rig_open != NULL)
     {
-        if (caps->get_powerstat != NULL && !skip_init)
+        /* A RIG_PORT_CUSTOM backend owns its transport and only opens it in
+         * caps->rig_open(), so its power probe has to wait until after that. */
+        int custom_port = (rp->type.rig == RIG_PORT_CUSTOM);
+
+        if (!custom_port)
         {
-            powerstat_t powerflag;
-            status = rig_get_powerstat(rig, &powerflag);
-
-            if (status == RIG_OK && (powerflag == RIG_POWER_OFF
-                                     || powerflag == RIG_POWER_STANDBY)
-                    && rs->auto_power_on == 0)
-            {
-                // rig_open() should succeed even if the rig is powered off, so simply log power status
-                rig_debug(RIG_DEBUG_ERR,
-                          "%s: rig power is off, use --set-conf=auto_power_on=1 or set_powerstat if power on is wanted\n",
-                          __func__);
-            }
-
-            // don't need auto_power_on if power is already on
-            if (status == RIG_OK && powerflag == RIG_POWER_ON) { STATE(rig)->auto_power_on = 0; }
-
-            if (status == -RIG_ETIMEOUT)
-            {
-                // rig_open() should succeed even if get_powerstat() fails,
-                // as many rigs cannot get power status while powered off
-                rig_debug(RIG_DEBUG_ERR, "%s: Some rigs cannot get_powerstat while off\n",
-                          __func__);
-                rig_debug(RIG_DEBUG_ERR, "%s: Known rigs: K3, K3S\n", __func__);
-            }
+            rig_open_check_powerstat(rig, skip_init);
         }
 
         status = caps->rig_open(rig);
@@ -1542,6 +1598,11 @@ int HAMLIB_API rig_open(RIG *rig)
             rs->comm_state = 0;
             rs->comm_status = RIG_COMM_STATUS_ERROR;
             RETURNFUNC2(status);
+        }
+
+        if (custom_port)
+        {
+            rig_open_check_powerstat(rig, skip_init);
         }
     }
 
@@ -1591,7 +1652,7 @@ int HAMLIB_API rig_open(RIG *rig)
         RETURNFUNC2(RIG_OK);
     }
 
-    status = async_data_handler_start(rig);
+    status = rig_async_data_handler_start(rig, start_pthread);
 
     if (status < 0)
     {
@@ -1603,13 +1664,15 @@ int HAMLIB_API rig_open(RIG *rig)
     // Some models don't support CW so don't need morse handler
     if (rig->caps->send_morse)
     {
-        status = morse_data_handler_start(rig);
+        status = rig_morse_data_handler_start(rig, start_pthread);
 
         if (status < 0)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: cw_data_handler_start failed: %.23000s\n", __func__,
                       rigerror(status));
+            async_data_handler_stop(rig);
             port_close(rp, rp->type.rig);
+            rs->comm_status = RIG_COMM_STATUS_ERROR;
             RETURNFUNC2(status);
         }
     }
@@ -1785,6 +1848,17 @@ int HAMLIB_API rig_close(RIG *rig)
         network_multicast_publisher_stop(rig);
     }
 
+    /* Streams go first, before the backend closes and before the ports do.
+     * Their threads run on backend resources, so a backend that releases
+     * anything in rig_close would be pulling it out from under a thread that
+     * is still reading it; and a stream_close that has to tell the radio to
+     * stop needs the link it is told over to still be open. */
+    if (rs->stream_state)
+    {
+        rig_stream_state_cleanup(rs->stream_state);
+        rs->stream_state = NULL;
+    }
+
     // Let the backend say 73 to the rig.
     // and ignore the return code.
     if (caps->rig_close)
@@ -1892,13 +1966,6 @@ int HAMLIB_API rig_close(RIG *rig)
     dcdp->fd = pttp->fd = -1;
 
     port_close(rp, rp->type.rig);
-
-    /* Clean up streaming subsystem state */
-    if (rs->stream_state)
-    {
-        rig_stream_state_cleanup(rs->stream_state);
-        rs->stream_state = NULL;
-    }
 
     // zero split so it will allow it to be set again on open for rigctld
     rig_set_cache_split(rig, RIG_SPLIT_OFF, RIG_VFO_NONE);
@@ -3476,7 +3543,7 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
         RETURNFUNC(RIG_OK);
     }
 
-    if (rig->caps->get_vfo)
+    if (rig_has_get_vfo(rig))
     {
         retcode = rig_get_vfo(rig, &curr_vfo);
 
@@ -3581,7 +3648,6 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
  */
 int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
 {
-    const struct rig_caps *caps;
     struct rig_state *rs;
     int retcode = -RIG_EINTERNAL;
     int cache_ms;
@@ -3598,11 +3664,10 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
     ENTERFUNC;
     ELAPSED1;
 
-    caps = rig->caps;
     rs = STATE(rig);
 
 //    if (caps->get_vfo == NULL && RIG_ICOM != RIG_BACKEND_NUM(rig->caps->rig_model))
-    if (caps->get_vfo == NULL)
+    if (!rig_has_get_vfo(rig))
     {
         rig_debug(RIG_DEBUG_WARN, "%s: no get_vfo\n", __func__);
         ELAPSED2;
@@ -3631,7 +3696,12 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
     HAMLIB_TRACE;
     LOCK(1);
 
-    if (rig->caps->get_vfo)
+    if (!rig_has_get_vfo(rig))
+    {
+        // The refusal came in while this caller waited for the lock
+        retcode = -RIG_ENAVAIL;
+    }
+    else
     {
         retcode = rig->caps->get_vfo(rig, &result_vfo);
 
@@ -3640,15 +3710,17 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
             rig_observe_current_vfo(rig, result_vfo);
             *vfo = result_vfo;
         }
-        else
+        else if (retcode == -RIG_ENAVAIL
+                 && RIG_ICOM == RIG_BACKEND_NUM(rig->caps->rig_model))
         {
-            if (RIG_ICOM == RIG_BACKEND_NUM(rig->caps->rig_model))
-            {
-                rig->caps->get_vfo = NULL;
-                *vfo = RIG_VFO_A;
-                LOCK(0);
-                RETURNFUNC(RIG_OK);
-            }
+            /* icom_get_vfo() found the rig lacks 07 D2; a refusal in standby
+               or a timeout goes to the caller.  rig_caps is one static per
+               model, shared by every rig opened from it, so remember this
+               on the handle */
+            no_get_vfo_set(rig);
+            *vfo = RIG_VFO_A;
+            LOCK(0);
+            RETURNFUNC(RIG_OK);
         }
     }
 
@@ -4826,11 +4898,14 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     rig_get_cache_routing_snapshot(rig, &routing);
     tx_vfo = routing.tx_vfo;
 
-    rig_get_freq(rig, tx_vfo, &tfreq);
-
-    if (tfreq == tx_freq)
+    // While transmitting, setting the TX frequency again can drop PTT on the
+    // band check in rig_set_freq() or stall on rigs that refuse it during TX
+    if (routing.ptt != RIG_PTT_OFF
+            && rig_get_freq(rig, tx_vfo, &tfreq) == RIG_OK
+            && tfreq == tx_freq)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: freq set not needed\n", __func__);
+        rig_debug(RIG_DEBUG_TRACE, "%s: TX freq already set while transmitting\n",
+                  __func__);
         ELAPSED2;
         RETURNFUNC2(RIG_OK);
     }
@@ -8489,10 +8564,17 @@ void rig_lock(RIG *rig, int lock)
 
 #define MAX_FRAME_LENGTH 1024
 
-static int async_data_handler_start(RIG *rig)
+static int start_pthread(pthread_t *thread, void *(*routine)(void *), void *arg)
+{
+    return pthread_create(thread, NULL, routine, arg);
+}
+
+int rig_async_data_handler_start(RIG *rig,
+                                 hamlib_thread_start_t thread_start)
 {
     struct rig_state *rs = STATE(rig);
     async_data_handler_priv_data *async_data_handler_priv;
+    int status;
 
     ENTERFUNC;
 
@@ -8506,39 +8588,53 @@ static int async_data_handler_start(RIG *rig)
 
     sleep(2);  // give other things a chance to finish opening up the rig
 
-    rs->async_data_handler_thread_run = 1;
+    status = port_prepare_async(RIGPORT(rig));
+
+    if (status < 0)
+    {
+        RETURNFUNC(status);
+    }
+
     rs->async_data_handler_priv_data = calloc(1,
                                        sizeof(async_data_handler_priv_data));
 
     if (rs->async_data_handler_priv_data == NULL)
     {
+        port_cleanup_async(RIGPORT(rig));
         RETURNFUNC(-RIG_ENOMEM);
     }
 
     async_data_handler_priv = (async_data_handler_priv_data *)
                               rs->async_data_handler_priv_data;
     async_data_handler_priv->args.rig = rig;
-    int err = pthread_create(&async_data_handler_priv->thread_id, NULL,
-                             async_data_handler, &async_data_handler_priv->args);
+    // Raised before the thread exists, so this write does not race the thread
+    RIGPORT(rig)->asyncio = 1;
+    rs->async_data_handler_thread_run = 1;
+    int err = thread_start(&async_data_handler_priv->thread_id,
+                           async_data_handler, &async_data_handler_priv->args);
 
     if (err)
     {
+        rs->async_data_handler_thread_run = 0;
+        free(rs->async_data_handler_priv_data);
+        rs->async_data_handler_priv_data = NULL;
+        port_cleanup_async(RIGPORT(rig));
         rig_debug(RIG_DEBUG_ERR, "%s: pthread_create error: %s\n", __func__,
-                  strerror(errno));
+                  strerror(err));
         RETURNFUNC(-RIG_EINTERNAL);
     }
 
     RETURNFUNC(RIG_OK);
 }
 
-static int morse_data_handler_start(RIG *rig)
+int rig_morse_data_handler_start(RIG *rig,
+                                 hamlib_thread_start_t thread_start)
 {
     struct rig_state *rs = STATE(rig);
     morse_data_handler_priv_data *morse_data_handler_priv;
 
     ENTERFUNC;
 
-    rs->morse_data_handler_thread_run = 1;
     rs->morse_data_handler_priv_data = calloc(1,
                                        sizeof(morse_data_handler_priv_data));
 
@@ -8546,6 +8642,21 @@ static int morse_data_handler_start(RIG *rig)
     {
         RETURNFUNC(-RIG_ENOMEM);
     }
+
+    // Created here, not in the thread, as rig_open() may return before the thread runs
+    if (rs->fifo_morse == NULL)
+    {
+        rs->fifo_morse = calloc(1, sizeof(FIFO_RIG));
+
+        if (rs->fifo_morse == NULL)
+        {
+            free(rs->morse_data_handler_priv_data);
+            rs->morse_data_handler_priv_data = NULL;
+            RETURNFUNC(-RIG_ENOMEM);
+        }
+    }
+
+    initFIFO(rs->fifo_morse);
 
     morse_data_handler_priv = (morse_data_handler_priv_data *)
                               rs->morse_data_handler_priv_data;
@@ -8556,13 +8667,19 @@ static int morse_data_handler_start(RIG *rig)
     morse_data_handler_priv->keyspd = keyspd.i;
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): keyspd=%d\n", __func__, __LINE__,
               keyspd.i);
-    int err = pthread_create(&morse_data_handler_priv->thread_id, NULL,
-                             morse_data_handler, &morse_data_handler_priv->args);
+    rs->morse_data_handler_thread_run = 1;
+    int err = thread_start(&morse_data_handler_priv->thread_id,
+                           morse_data_handler, &morse_data_handler_priv->args);
 
     if (err)
     {
+        rs->morse_data_handler_thread_run = 0;
+        free(rs->morse_data_handler_priv_data);
+        rs->morse_data_handler_priv_data = NULL;
+        free(rs->fifo_morse);
+        rs->fifo_morse = NULL;
         rig_debug(RIG_DEBUG_ERR, "%s: pthread_create error: %s\n", __func__,
-                  strerror(errno));
+                  strerror(err));
         RETURNFUNC(-RIG_EINTERNAL);
     }
 
@@ -8594,7 +8711,7 @@ static int async_data_handler_stop(RIG *rig)
             if (err)
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: pthread_join error: %s\n", __func__,
-                          strerror(errno));
+                          strerror(err));
                 // just ignore the error
             }
 
@@ -8605,7 +8722,7 @@ static int async_data_handler_stop(RIG *rig)
         rs->async_data_handler_priv_data = NULL;
     }
 
-
+    port_cleanup_async(RIGPORT(rig));
     RETURNFUNC(RIG_OK);
 }
 
@@ -8649,7 +8766,7 @@ static int morse_data_handler_stop(RIG *rig)
             if (err)
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: pthread_join error: %s\n", __func__,
-                          strerror(errno));
+                          strerror(err));
                 // just ignore the error
             }
 
@@ -8768,13 +8885,6 @@ static void *morse_data_handler(void *arg)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: Starting morse data handler thread\n",
               __func__);
 
-    if (rs->fifo_morse == NULL)
-    {
-        rs->fifo_morse = calloc(1, sizeof(FIFO_RIG));
-    }
-
-    initFIFO(rs->fifo_morse);
-
     char *c;
     int qsize = rig->caps->morse_qsize; // if backend overrides qsize
 
@@ -8797,6 +8907,13 @@ static void *morse_data_handler(void *arg)
             }
 
             d = hl_pop(rs->fifo_morse);
+
+            // rig_stop_morse() may have emptied the queue since the peek
+            if (d < 0)
+            {
+                break;
+            }
+
             c[n] = (char) d;
         }
 

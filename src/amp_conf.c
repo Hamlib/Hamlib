@@ -117,7 +117,7 @@ int frontamp_set_conf(AMP *amp, hamlib_token_t token, const char *val)
     switch (token)
     {
     case TOK_PATHNAME:
-        strncpy(ampp->pathname, val, HAMLIB_FILPATHLEN - 1);
+        SNPRINTF(ampp->pathname, sizeof(ampp->pathname), "%s", val);
         break;
 
     case TOK_WRITE_DELAY:
@@ -366,7 +366,7 @@ int frontamp_get_conf2(AMP *amp, hamlib_token_t token, char *val, int val_len)
     switch (token)
     {
     case TOK_PATHNAME:
-        strncpy(val, ampp->pathname, val_len - 1);
+        SNPRINTF(val, val_len, "%s", ampp->pathname);
         break;
 
     case TOK_WRITE_DELAY:
@@ -444,7 +444,7 @@ int frontamp_get_conf2(AMP *amp, hamlib_token_t token, char *val, int val_len)
             return -RIG_EINVAL;
         }
 
-        strncpy(val, s, val_len - 1);
+        SNPRINTF(val, val_len, "%s", s);
         break;
 
     case TOK_HANDSHAKE:
@@ -471,7 +471,7 @@ int frontamp_get_conf2(AMP *amp, hamlib_token_t token, char *val, int val_len)
             return -RIG_EINVAL;
         }
 
-        strncpy(val, s, val_len);
+        SNPRINTF(val, val_len, "%s", s);
         break;
 
     default:

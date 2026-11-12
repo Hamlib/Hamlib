@@ -8757,6 +8757,13 @@ static int get_narrow(RIG *rig, vfo_t vfo)
         RETURNFUNC(-RIG_EPROTO);
     }
 
+    if (narrow != 0 && narrow != 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid narrow value %d from '%s'\n",
+                  __func__, narrow, priv->ret_data);
+        RETURNFUNC(-RIG_EPROTO);
+    }
+
     RETURNFUNC(narrow);
 }
 

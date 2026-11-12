@@ -3,6 +3,9 @@
 #include <errno.h>
 #include <limits.h>
 #include <stdlib.h>
+#ifndef __MINGW32__
+#include <unistd.h>
+#endif
 
 #include "daemon_client.h"
 
@@ -82,3 +85,25 @@ void daemon_client_tracker_release(struct daemon_client_tracker *tracker)
 
     pthread_mutex_unlock(&tracker->mutex);
 }
+
+#ifndef __MINGW32__
+FILE *daemon_client_fdopen_dup(int sock, const char *mode)
+{
+    int fd = dup(sock);
+    FILE *stream;
+
+    if (fd < 0)
+    {
+        return NULL;
+    }
+
+    stream = fdopen(fd, mode);
+
+    if (stream == NULL)
+    {
+        close(fd);
+    }
+
+    return stream;
+}
+#endif

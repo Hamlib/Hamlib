@@ -1484,6 +1484,44 @@ static int g90_get_af_quirk(RIG *rig, value_t *val)
 }
 
 /*
+ * G90 firmware sometimes answers the SWR meter query with a byte whose
+ * low nibble is not a BCD digit (e.g. 0x02 0x2c), which from_bcd_be()
+ * turns into a much higher SWR than the rig shows. Reject such replies.
+ */
+static int g90_get_swr(RIG *rig, value_t *val)
+{
+    unsigned char response[MAXFRAMELEN];
+    int length = sizeof(response), retval, raw;
+
+    retval = icom_transaction(rig, C_RD_SQSM, S_SWR, NULL, 0,
+                              response, &length);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    if (length == 1 && response[0] == NAK)
+    {
+        return -RIG_ERJCTED;
+    }
+
+    if (length != 4 || response[0] != C_RD_SQSM || response[1] != S_SWR
+            || response[2] > 0x09 || (response[3] >> 4) > 9
+            || (response[3] & 0x0f) > 9)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid SWR response, len=%d\n",
+                  __func__, length);
+        return -RIG_EPROTO;
+    }
+
+    raw = from_bcd_be(response + 2, 4);
+    val->f = rig_raw2val_float(raw, rig->caps->swr_cal.size != 0
+                               ? &rig->caps->swr_cal : &icom_default_swr_cal);
+    return RIG_OK;
+}
+
+/*
  * g90_get_level
  * Assumes rig!=NULL, STATE(rig)->priv!=NULL, val!=NULL
  *
@@ -1500,6 +1538,11 @@ static int g90_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     if (level == RIG_LEVEL_AF && priv->g90_af_quirk)
     {
         return g90_get_af_quirk(rig, val);
+    }
+
+    if (level == RIG_LEVEL_SWR)
+    {
+        return g90_get_swr(rig, val);
     }
 
     if (level == RIG_LEVEL_RFPOWER)

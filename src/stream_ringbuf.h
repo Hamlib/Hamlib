@@ -30,8 +30,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-/* HAMLIB_ATOMIC is defined in hamlib/rig.h */
-
+#define STREAM_RINGBUF_MAX_CAPACITY ((SIZE_MAX >> 1) + 1)
 
 /* Ring buffer for streaming audio/I/Q data between producer and consumer. */
 struct rig_stream_ringbuf
@@ -46,6 +45,9 @@ struct rig_stream_ringbuf
     pthread_mutex_t lock;
     pthread_cond_t data_available;  /* Signal when data written */
     int closing;                    /* 1 = shutting down; wakes blocked reader */
+    int failed;                     /* 1 = source died; read reports -RIG_EIO
+                                       rather than the -RIG_ENAVAIL of a
+                                       deliberate close */
     int use_monotonic;              /* 1 if condvar uses CLOCK_MONOTONIC */
     HAMLIB_ATOMIC int overrun_count;
     HAMLIB_ATOMIC int underrun_count;
@@ -78,11 +80,16 @@ size_t stream_ringbuf_read(struct rig_stream_ringbuf *rb,
 /* Write hdr+payload as ONE atomic record iff the whole record fits in the
  * free space; never overwrites existing data (codec streams drop the
  * NEWEST frame on overflow — policy in stream.c). Returns hdr_len+len on
- * success, or 0 when the record does not fit (bumps overrun_count;
- * write_total is not advanced for a dropped record). */
+ * success, or 0 when the record does not fit. A rejected record changes
+ * neither write_total nor overrun_count. */
 size_t stream_ringbuf_write_record(struct rig_stream_ringbuf *rb,
                                    const void *hdr, size_t hdr_len,
                                    const void *payload, size_t len);
+
+/* Write one record with the same semantics while the caller holds rb->lock. */
+size_t stream_ringbuf_write_record_locked(struct rig_stream_ringbuf *rb,
+        const void *hdr, size_t hdr_len,
+        const void *payload, size_t len);
 
 /* Copy up to len readable bytes WITHOUT consuming them (read_pos and
  * count unchanged). Caller holds rb->lock. Returns bytes copied. */
@@ -97,10 +104,12 @@ void stream_ringbuf_reset(struct rig_stream_ringbuf *rb);
 
 /* Lower-level primitives for consumers that need to snapshot additional
  * state atomically with the read.  The caller must hold rb->lock around
- * both calls (see the enriched-read path in stream.c). */
+ * both calls. */
 
 /* Wait for readable data.  Returns 0 when data is available, -1 on timeout
- * (bumps underrun_count). */
+ * (bumps underrun_count), on close, or on a failed ring with nothing left to
+ * read (neither bumps underrun_count).  A failed ring still returns 0 while
+ * it holds data. */
 int stream_ringbuf_wait_data_locked(struct rig_stream_ringbuf *rb,
                                     int timeout_ms);
 

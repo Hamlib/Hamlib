@@ -47,7 +47,7 @@ enum { ENUM_1A_03_UNK, ENUM_1A_03_YES, ENUM_1A_03_NO };
 
 static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo);
 static int icom_set_default_vfo(RIG *rig);
-static int icom_get_spectrum_vfo(RIG *rig, vfo_t vfo);
+static int icom_get_spectrum_vfo(RIG *rig, vfo_t vfo, unsigned char *scope);
 static int icom_get_spectrum_edge_frequency_range(RIG *rig, vfo_t vfo,
         int *range_id);
 static void icom_set_x25x26_ability(RIG *rig, int status);
@@ -3021,11 +3021,30 @@ int icom_get_vfo(RIG *rig, vfo_t *vfo)
 
     ENTERFUNC;
 
-    // TODO: Detect if the command is available for IC-7600 and IC-7800
-    // -> If not, return cached or -RIG_ENAVAIL?
-
     retval = icom_transaction(rig, C_SET_VFO, S_BAND_SEL, NULL, 0, ackbuf,
                               &ack_len);
+
+    /* A rig in standby may refuse everything (IC-7760) and wake up meanwhile;
+       one answering 03 and refusing 07 D2 again lacks it (IC-7800 < 3.10) */
+    if (retval == -RIG_ERJCTED)
+    {
+        ack_len = sizeof(ackbuf);
+
+        if (icom_transaction(rig, C_RD_FREQ, -1, NULL, 0, ackbuf,
+                             &ack_len) == RIG_OK)
+        {
+            ack_len = sizeof(ackbuf);
+            retval = icom_transaction(rig, C_SET_VFO, S_BAND_SEL, NULL, 0,
+                                      ackbuf, &ack_len);
+
+            if (retval == -RIG_ERJCTED)
+            {
+                rig_debug(RIG_DEBUG_WARN,
+                          "%s: rig answers 03 but refuses 07 D2\n", __func__);
+                RETURNFUNC(-RIG_ENAVAIL);
+            }
+        }
+    }
 
     if (retval != RIG_OK)
     {
@@ -3044,6 +3063,18 @@ int icom_get_vfo(RIG *rig, vfo_t *vfo)
     }
 
     RETURNFUNC(RIG_OK);
+}
+
+/* The VFO that icom_set_vfo() selects for RIG_VFO_TX. */
+static vfo_t icom_tx_vfo(RIG *rig, int satmode)
+{
+    if (VFO_HAS_A_B_ONLY && satmode) { return RIG_VFO_B; }
+
+    if (VFO_HAS_MAIN_SUB_ONLY) { return RIG_VFO_SUB; }
+
+    if (VFO_HAS_MAIN_SUB_A_B_ONLY && satmode) { return RIG_VFO_SUB; }
+
+    return RIG_VFO_A;
 }
 
 /*
@@ -3094,11 +3125,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: vfo line#%d vfo=%s\n", __func__, __LINE__,
                   rig_strvfo(vfo));
-        vfo = RIG_VFO_A;
-
-        if (VFO_HAS_A_B_ONLY && routing.satmode) { vfo = RIG_VFO_B; }
-        else if (VFO_HAS_MAIN_SUB_ONLY) { vfo = RIG_VFO_SUB; }
-        else if (VFO_HAS_MAIN_SUB_A_B_ONLY && routing.satmode) { vfo = RIG_VFO_SUB; }
+        vfo = icom_tx_vfo(rig, routing.satmode);
     }
 
     else if ((vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN) && VFO_HAS_DUAL)
@@ -3935,7 +3962,13 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             RETURNFUNC(-RIG_EINVAL);
         }
 
-        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        retval = icom_get_spectrum_vfo(rig, vfo, &cmdbuf[0]);
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
         cmdbuf[1] = icom_val;
         break;
 
@@ -3944,7 +3977,13 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         lvl_sc = S_SCP_SPN;
         cmd_len = 6;
 
-        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        retval = icom_get_spectrum_vfo(rig, vfo, &cmdbuf[0]);
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
         // Spectrum span is represented as a +/- value for Icom rigs
         to_bcd(cmdbuf + 1, val.i / 2, 5 * 2);
         break;
@@ -3978,7 +4017,13 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             break;
         }
 
-        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        retval = icom_get_spectrum_vfo(rig, vfo, &cmdbuf[0]);
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
         cmdbuf[1] = icom_val;
         break;
 
@@ -3990,7 +4035,13 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         lvl_sc = S_SCP_REF;
         cmd_len = 4;
 
-        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        retval = icom_get_spectrum_vfo(rig, vfo, &cmdbuf[0]);
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
 
         // Spectrum reference level is represented at 0.01dB accuracy, but needs to be rounded to nearest 0.5dB
         to_bcd_be(cmdbuf + 1, abs((int) icom_db), 2 * 2);
@@ -4078,7 +4129,13 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             RETURNFUNC(-RIG_EINVAL);
         }
 
-        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        retval = icom_get_spectrum_vfo(rig, vfo, &cmdbuf[0]);
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
         to_bcd(cmdbuf + 1, val.i, 5 * 2);
         break;
 
@@ -4330,7 +4387,13 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         lvl_cn = C_CTL_SCP;
         lvl_sc = S_SCP_MOD;
         cmd_len = 1;
-        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        retval = icom_get_spectrum_vfo(rig, vfo, &cmdbuf[0]);
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
         break;
 
     case RIG_LEVEL_SPECTRUM_SPAN:
@@ -4338,7 +4401,13 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         lvl_sc = S_SCP_SPN;
 
         cmd_len = 1;
-        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        retval = icom_get_spectrum_vfo(rig, vfo, &cmdbuf[0]);
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
         break;
 
     case RIG_LEVEL_SPECTRUM_SPEED:
@@ -4346,7 +4415,13 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         lvl_sc = S_SCP_SWP;
 
         cmd_len = 1;
-        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        retval = icom_get_spectrum_vfo(rig, vfo, &cmdbuf[0]);
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
         break;
 
     case RIG_LEVEL_SPECTRUM_REF:
@@ -4354,7 +4429,13 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         lvl_sc = S_SCP_REF;
 
         cmd_len = 1;
-        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        retval = icom_get_spectrum_vfo(rig, vfo, &cmdbuf[0]);
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
         break;
 
     case RIG_LEVEL_SPECTRUM_EDGE_LOW:
@@ -4395,7 +4476,13 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         lvl_sc = S_SCP_ATT;
         cmd_len = 1;
 
-        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        retval = icom_get_spectrum_vfo(rig, vfo, &cmdbuf[0]);
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
         break;
 
     case RIG_LEVEL_AGC_TIME:
@@ -4879,7 +4966,13 @@ int icom_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t val)
         lvl_cn = C_CTL_SCP;
         lvl_sc = S_SCP_EDG;
         cmd_len = 2;
-        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        retval = icom_get_spectrum_vfo(rig, vfo, &cmdbuf[0]);
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC2(retval);
+        }
+
         cmdbuf[1] = val.i + 1;
         break;
 
@@ -4892,7 +4985,13 @@ int icom_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t val)
         lvl_cn = C_CTL_SCP;
         lvl_sc = S_SCP_VBW;
         cmd_len = 2;
-        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        retval = icom_get_spectrum_vfo(rig, vfo, &cmdbuf[0]);
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC2(retval);
+        }
+
         cmdbuf[1] = val.i;
         break;
 
@@ -4905,7 +5004,13 @@ int icom_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t val)
         lvl_cn = C_CTL_SCP;
         lvl_sc = S_SCP_RBW;
         cmd_len = 2;
-        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        retval = icom_get_spectrum_vfo(rig, vfo, &cmdbuf[0]);
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC2(retval);
+        }
+
         cmdbuf[1] = val.i;
         break;
 
@@ -4990,21 +5095,39 @@ int icom_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val)
         lvl_cn = C_CTL_SCP;
         lvl_sc = S_SCP_EDG;
         cmd_len = 1;
-        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        retval = icom_get_spectrum_vfo(rig, vfo, &cmdbuf[0]);
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
         break;
 
     case TOK_SCOPE_VBW:
         lvl_cn = C_CTL_SCP;
         lvl_sc = S_SCP_VBW;
         cmd_len = 1;
-        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        retval = icom_get_spectrum_vfo(rig, vfo, &cmdbuf[0]);
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
         break;
 
     case TOK_SCOPE_RBW:
         lvl_cn = C_CTL_SCP;
         lvl_sc = S_SCP_RBW;
         cmd_len = 1;
-        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        retval = icom_get_spectrum_vfo(rig, vfo, &cmdbuf[0]);
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
         break;
 
     default:
@@ -7227,7 +7350,13 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         fct_sc = S_SCP_HLD;
 
         fct_len = 2;
-        fctbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        retval = icom_get_spectrum_vfo(rig, vfo, &fctbuf[0]);
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
         fctbuf[1] = status;
         break;
 
@@ -7507,7 +7636,13 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         fct_cn = C_CTL_SCP;
         fct_sc = S_SCP_HLD;
 
-        fctbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        retval = icom_get_spectrum_vfo(rig, vfo, &fctbuf[0]);
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
         fct_len = 1;
         break;
 
@@ -8382,6 +8517,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
  */
 int icom_get_powerstat(RIG *rig, powerstat_t *status)
 {
+    const struct icom_priv_caps *priv_caps = rig->caps->priv;
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf), retval;
 
@@ -8411,18 +8547,7 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status)
 
     HAMLIB_TRACE;
 
-    if (RIG_IS_IC2730
-            || RIG_IS_IC705
-            || RIG_IS_IC7100
-            || RIG_IS_IC7300
-            || RIG_IS_IC7300MK2
-            || RIG_IS_IC7600
-            || RIG_IS_IC7610
-            || RIG_IS_IC7700
-            || RIG_IS_IC7800
-            || RIG_IS_IC785X
-            || RIG_IS_IC9700
-            || RIG_IS_IC905)
+    if (priv_caps != NULL && priv_caps->power_status_read_not_supported)
     {
         freq_t freq;
         hamlib_port_t *rp = RIGPORT(rig);
@@ -8612,18 +8737,9 @@ int icom_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
             RETURNFUNC2(-RIG_EINVAL);
         }
 
+        // The RX antenna option is carried by the antenna selection frame
         antopt_len = 1;
         antopt[0] = option.i;
-        // we have to set the rx option by itself apparently
-        rig_debug(RIG_DEBUG_TRACE, "%s: setting antopt=%d\n", __func__, antopt[0]);
-        retval = icom_transaction(rig, C_CTL_ANT, i_ant,
-                                  antopt, antopt_len, ackbuf, &ack_len);
-
-        if (retval != RIG_OK)
-        {
-            RETURNFUNC2(retval);
-        }
-
         rig_debug(RIG_DEBUG_TRACE,
                   "%s: antack_len=%d so antopt_len=%d, antopt=0x%02x\n",
                   __func__, priv_caps->antack_len, antopt_len, antopt[0]);
@@ -8914,7 +9030,7 @@ int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
             RETURNFUNC(retval);
         }
 
-        scan_sc = S_SCAN_START;
+        scan_sc = S_SCAN_SLCTN;
         break;
 
     case RIG_SCAN_PRIO:
@@ -9222,6 +9338,26 @@ int icom_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq,
     RETURNFUNC(RIG_OK);
 }
 
+/*
+ * 27 00 sends the edges of a Fixed or SCROLL scope as five BCD bytes
+ * each, with an F in the 1 GHz digit (the high nibble of the last byte)
+ * marking a negative frequency.  The guide only ever sets it on the
+ * lower edge, for a scope scrolled below 0 Hz.
+ */
+static freq_t icom_scope_edge_freq(const unsigned char *bcd)
+{
+    unsigned char digits[5];
+
+    if ((bcd[4] & 0xf0) != 0xf0)
+    {
+        return (freq_t) from_bcd(bcd, 5 * 2);
+    }
+
+    memcpy(digits, bcd, sizeof(digits));
+    digits[4] &= 0x0f;
+    return -(freq_t) from_bcd(digits, 5 * 2);
+}
+
 static int icom_parse_spectrum_frame(RIG *rig, size_t length,
                                      const unsigned char *frame_data)
 {
@@ -9243,7 +9379,7 @@ static int icom_parse_spectrum_frame(RIG *rig, size_t length,
     division = (int) from_bcd(frame_data + 1, 1 * 2);
     max_division = (int) from_bcd(frame_data + 2, 1 * 2);
 
-    // The first byte indicates spectrum scope ID/VFO: 0 = Main, 1 = Sub
+    // The first byte is the scope, SCOPE_MAIN or SCOPE_SUB
     int spectrum_id = frame_data[0];
 
     if (spectrum_id >= priv->spectrum_scope_count)
@@ -9299,8 +9435,8 @@ static int icom_parse_spectrum_frame(RIG *rig, size_t length,
                 cache->spectrum_mode = RIG_SPECTRUM_MODE_FIXED_SCROLL;
             }
 
-            cache->spectrum_low_edge_freq = (freq_t) from_bcd(frame_data + 4, 5 * 2);
-            cache->spectrum_high_edge_freq = (freq_t) from_bcd(frame_data + 9, 5 * 2);
+            cache->spectrum_low_edge_freq = icom_scope_edge_freq(frame_data + 4);
+            cache->spectrum_high_edge_freq = icom_scope_edge_freq(frame_data + 9);
             cache->spectrum_span_freq = (cache->spectrum_high_edge_freq -
                                          cache->spectrum_low_edge_freq);
             cache->spectrum_center_freq = cache->spectrum_high_edge_freq -
@@ -9899,14 +10035,56 @@ static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
     RETURNFUNC2(RIG_OK);
 }
 
-static int icom_get_spectrum_vfo(RIG *rig, vfo_t vfo)
+/* Puts the scope byte for vfo, SCOPE_MAIN or SCOPE_SUB, in *scope. */
+static int icom_get_spectrum_vfo(RIG *rig, vfo_t vfo, unsigned char *scope)
 {
+    *scope = SCOPE_MAIN;
+
     if (STATE(rig)->targetable_vfo & RIG_TARGETABLE_SPECTRUM)
     {
-        RETURNFUNC2(ICOM_GET_VFO_NUMBER(vfo));
+        /* the scope byte names the receiver, 00 Main or 01 Sub, never the
+           VFO letter: on an IC-9700 MAIN_B is still the Main scope.  Only
+           a rig without VFO A/B knows B as another name for Sub.  On a rig
+           with A/B on both receivers a bare A or B is a VFO of the band
+           the rig has selected, which only the rig can tell: without its
+           answer there is no scope to address. */
+        vfo_t sub_scope = RIG_VFO_SUB | RIG_VFO_SUB_A | RIG_VFO_SUB_B;
+        vfo_t receivers = sub_scope | RIG_VFO_MAIN | RIG_VFO_MAIN_A
+                          | RIG_VFO_MAIN_B;
+
+        if (vfo == RIG_VFO_CURR)
+        {
+            vfo = rig_get_current_vfo_state(rig);
+        }
+        else if (vfo == RIG_VFO_TX)
+        {
+            struct rig_cache_routing_snapshot routing;
+
+            rig_get_cache_routing_snapshot(rig, &routing);
+            vfo = icom_tx_vfo(rig, routing.satmode);
+        }
+
+        if (VFO_HAS_MAIN_SUB_ONLY)
+        {
+            sub_scope |= RIG_VFO_B;
+        }
+        else if (VFO_HAS_MAIN_SUB_A_B_ONLY && !(vfo & receivers))
+        {
+            int retval = icom_get_vfo(rig, &vfo);
+
+            if (retval != RIG_OK)
+            {
+                RETURNFUNC2(retval);
+            }
+        }
+
+        if (vfo & sub_scope)
+        {
+            *scope = SCOPE_SUB;
+        }
     }
 
-    RETURNFUNC2(0);
+    RETURNFUNC2(RIG_OK);
 }
 
 static int icom_get_spectrum_edge_frequency_range(RIG *rig, vfo_t vfo,
@@ -10199,7 +10377,8 @@ static int icom_get_vfo_number_x25x26(RIG *rig, vfo_t vfo)
     rig_get_cache_routing_snapshot(rig, &routing);
 
     // Rigs with *only* Main/Sub VFOs can directly address VFOs: 0 = Main, 1 = Sub
-    if (RIG_IS_IC7600 || RIG_IS_IC7610 || RIG_IS_IC7800 || RIG_IS_IC785X)
+    if (RIG_IS_IC7600 || RIG_IS_IC7610 || RIG_IS_IC7760 || RIG_IS_IC7800
+            || RIG_IS_IC785X)
     {
         vfo_t actual_vfo = vfo_fixup_from_snapshot(
                                rig, vfo, routing.split, &routing,
@@ -10268,6 +10447,8 @@ DECLARE_INITRIG_BACKEND(icom)
 
     rig_register(&ic703_caps);
     rig_register(&ic705_caps);
+    ic705net_init_caps();
+    rig_register(&ic705net_caps);
     rig_register(&ic706_caps);
     rig_register(&ic706mkii_caps);
     rig_register(&ic706mkiig_caps);
@@ -10299,8 +10480,14 @@ DECLARE_INITRIG_BACKEND(icom)
     rig_register(&ic7200_caps);
     rig_register(&ic7300_caps);
     rig_register(&ic7300mk2_caps);
+    ic7300mk2net_init_caps();
+    rig_register(&ic7300mk2net_caps);
     rig_register(&ic7610_caps);
+    ic7610net_init_caps();
+    rig_register(&ic7610net_caps);
     rig_register(&ic7760_caps);
+    ic7760net_init_caps();
+    rig_register(&ic7760net_caps);
     rig_register(&ic781_caps);
     rig_register(&ic707_caps);
     rig_register(&ic728_caps);
@@ -10309,10 +10496,14 @@ DECLARE_INITRIG_BACKEND(icom)
     rig_register(&ic820h_caps);
     rig_register(&ic821h_caps);
     rig_register(&ic905_caps);
+    ic905net_init_caps();
+    rig_register(&ic905net_caps);
     rig_register(&ic910_caps);
     rig_register(&ic9100_caps);
     rig_register(&ic970_caps);
     rig_register(&ic9700_caps);
+    ic9700net_init_caps();
+    rig_register(&ic9700net_caps);
 
     rig_register(&icrx7_caps);
     rig_register(&icr6_caps);

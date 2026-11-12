@@ -125,7 +125,7 @@ struct rigctld_stream
     int multicast_ttl;
 
     /* Subscribe tracking (unicast RX only) */
-    time_t last_subscribe;
+    struct timespec last_subscribe;     /* CLOCK_MONOTONIC */
     int subscribe_timeout_s;
 
     /* Pump thread */
@@ -146,6 +146,14 @@ struct rigctld_stream
     HAMLIB_ATOMIC int packet_count;
     HAMLIB_ATOMIC uint32_t gap_count;
     HAMLIB_ATOMIC int send_drops;
+
+    /* The backend stream's source died (a read or write returned -RIG_EIO).
+     * The feeder stops using the backend and answers the client with ERROR
+     * frames until the stream is closed or the client goes quiet. */
+    HAMLIB_ATOMIC int backend_failed;
+    uint32_t fail_reason;                   /* RIG_COMM_REASON_* */
+    int32_t fail_error;                     /* the Hamlib error code */
+    struct timespec last_error_sent;
 
     /* Metadata */
     int metadata_interval_ms;
@@ -244,9 +252,9 @@ struct rigctld_stream *rigctld_stream_alloc(void);
  * For full cleanup, stop the feeder and close resources before calling. */
 void rigctld_stream_free(struct rigctld_stream *stream);
 
-/* Close backend stream, UDP socket, and free memory.
- * Does NOT stop the feeder thread — caller must handle that. */
-void rigctld_stream_cleanup_resources(struct rigctld_stream *stream);
+/* Close backend stream, UDP socket, and free memory, returning any backend
+ * close error. Caller must stop the feeder thread first. */
+int rigctld_stream_cleanup_resources(struct rigctld_stream *stream);
 
 /* Create a UDP socket bound to an ephemeral port on INADDR_ANY.
  * On success, sets *sock_fd and *port and returns 0.
@@ -263,6 +271,12 @@ int rigctld_stream_registry_next_id(struct rigctld_stream_registry *reg);
  * samples_since is in frames (per-channel sample instants). */
 int rigctld_stream_metadata_refresh_due(int refresh_ms, int sample_rate,
                                         uint64_t samples_since);
+
+/* Whether timeout_s seconds have passed from since to now, both read from
+ * CLOCK_MONOTONIC.  Counted in milliseconds: in whole seconds the timeout
+ * would lapse up to a second early. */
+int rigctld_stream_timed_out(const struct timespec *since,
+                             const struct timespec *now, int timeout_s);
 
 /* Generate an unpredictable, non-zero subscribe token from the platform
  * cryptographic RNG. Token 0 is reserved as the "unset" sentinel. */
@@ -312,6 +326,11 @@ int rigctld_stream_registry_multicast_in_use(
  * Returns 0 on success, -1 on failure. */
 int rigctld_stream_send_control_reply(struct rigctld_stream *stream,
                                       uint16_t control_flag);
+
+/* Tell the stream's client that the backend source failed: an ERROR frame
+ * carrying stream->fail_error and stream->fail_reason, sent with seq 0.
+ * Returns 0 on success, -1 on failure. */
+int rigctld_stream_send_error(struct rigctld_stream *stream);
 
 /* Forward one write-status event to the client as a WRITE_STATUS packet.
  * The TX feeder normally drains these from the backend stream's event FIFO;

@@ -36,6 +36,8 @@ int make_cmd_frame(unsigned char frame[], unsigned char re_id, unsigned char ctr
                    unsigned char cmd, int subcmd,
                    const unsigned char *data, int data_len);
 int icom_frame_fix_preamble(int frame_len, unsigned char *frame);
+int icom_frame_matches_cmd(unsigned char cmd, int subcmd,
+                           const unsigned char *frame, int frame_len);
 
 int icom_transaction (RIG *rig, int cmd, int subcmd, const unsigned char *payload, int payload_len, unsigned char *data, int *data_len);
 int read_icom_frame(hamlib_port_t *p, const unsigned char rxbuffer[], size_t rxbuffer_len);

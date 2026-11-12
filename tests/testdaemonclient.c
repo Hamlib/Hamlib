@@ -5,6 +5,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifndef __MINGW32__
+#include <sys/socket.h>
+#include <unistd.h>
+#endif
+
 #include "daemon_client.h"
 
 #define THREAD_COUNT 64
@@ -216,11 +221,72 @@ static void test_concurrent_limit(void)
     daemon_client_tracker_destroy(&test.tracker);
 }
 
+#ifndef __MINGW32__
+/*
+ * Closing a stream must close only the stream's own descriptor, leaving the
+ * accepted socket open for the handler to close once.
+ */
+static void test_fdopen_dup(void)
+{
+    int sockets[2];
+    char byte = 0;
+    FILE *stream;
+    int free_fd;
+
+    if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) != 0)
+    {
+        check(0, "socketpair");
+        return;
+    }
+
+    stream = daemon_client_fdopen_dup(sockets[0], "wb");
+    check(stream != NULL, "a stream on a duplicate of the socket");
+
+    if (stream != NULL)
+    {
+        check(fileno(stream) != sockets[0], "the stream has a descriptor of its own");
+        check(fputc('a', stream) == 'a' && fflush(stream) == 0, "writing to the stream");
+        check(read(sockets[1], &byte, 1) == 1 && byte == 'a',
+              "the socket receiving what the stream wrote");
+        check(fclose(stream) == 0, "closing the stream");
+        check(write(sockets[0], "b", 1) == 1,
+              "the socket is still open after the stream is closed");
+        check(read(sockets[1], &byte, 1) == 1 && byte == 'b',
+              "the socket still works after the stream is closed");
+    }
+
+    check(daemon_client_fdopen_dup(-1, "rb") == NULL, "a bad descriptor");
+
+    /* A stream that cannot be opened must not leave its duplicate open */
+    free_fd = dup(sockets[0]);
+    close(free_fd);
+    stream = daemon_client_fdopen_dup(sockets[0], "");
+
+    if (stream == NULL)
+    {
+        int next_fd = dup(sockets[0]);
+
+        check(next_fd == free_fd, "a failed open closing its duplicate");
+        close(next_fd);
+    }
+    else
+    {
+        fclose(stream);
+    }
+
+    close(sockets[0]);
+    close(sockets[1]);
+}
+#endif
+
 int main(void)
 {
     test_parser();
     test_exact_limit_and_release();
     test_concurrent_limit();
+#ifndef __MINGW32__
+    test_fdopen_dup();
+#endif
 
     return failures ? 1 : 0;
 }

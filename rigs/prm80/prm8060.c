@@ -136,6 +136,7 @@ struct rig_caps prm8060_caps =
 
     .rig_init =   prm80_init,
     .rig_cleanup = prm80_cleanup,
+    .rig_open =   prm80_open,
     .get_mode =   prm80_get_mode,
     .set_freq =   prm80_set_freq,
     .get_freq =   prm80_get_freq,

@@ -13,6 +13,9 @@
 #include <string.h>
 
 #include <hamlib/rig.h>
+#include <hamlib/rig_state.h>
+
+#include "event.h"
 
 #define THREAD_COUNT 8
 #define PADDING_SIZE 1536
@@ -68,10 +71,12 @@ static void *worker(void *arg)
     }
 
     pthread_mutex_lock(&context->gate->mutex);
+
     while (!context->gate->open)
     {
         pthread_cond_wait(&context->gate->condition, &context->gate->mutex);
     }
+
     pthread_mutex_unlock(&context->gate->mutex);
 
     rig_debug(RIG_DEBUG_TRACE, "%s", message);
@@ -80,7 +85,8 @@ static void *worker(void *arg)
 
 static int test_concurrent_history(void)
 {
-    struct start_gate gate = {
+    struct start_gate gate =
+    {
         PTHREAD_MUTEX_INITIALIZER,
         PTHREAD_COND_INITIALIZER,
         0
@@ -97,6 +103,7 @@ static int test_concurrent_history(void)
     {
         contexts[thread].gate = &gate;
         contexts[thread].thread = thread;
+
         if (pthread_create(&threads[thread], NULL, worker,
                            &contexts[thread]) != 0)
         {
@@ -130,7 +137,9 @@ static int test_concurrent_history(void)
         {
             return 0;
         }
+
         expected_length += strlen(expected);
+
         if (strstr(debugmsgsave, expected) == NULL)
         {
             fprintf(stderr,
@@ -169,6 +178,7 @@ static int test_rolling_history(void)
     rig_set_debug(RIG_DEBUG_NONE);
 
     history = debugmsgsave;
+
     for (line = HISTORY_LINE_COUNT - RETAINED_LINE_COUNT;
             line < HISTORY_LINE_COUNT; ++line)
     {
@@ -182,6 +192,7 @@ static int test_rolling_history(void)
             fprintf(stderr, "history did not retain line %u in order\n", line);
             return 0;
         }
+
         history += written;
     }
 
@@ -195,9 +206,45 @@ static int test_rolling_history(void)
     return 1;
 }
 
+static int test_short_spectrum_lines(void)
+{
+    static const size_t lengths[] = { 0, 1, 2, 119, 120 };
+    struct rig_state state = { 0 };
+    RIG rig = { 0 };
+    unsigned char data[120] = { 0 };
+    struct rig_spectrum_line line =
+    {
+        .data_level_max = 255,
+        .spectrum_data = data
+    };
+    size_t i;
+
+    rig.state_addr = &state;
+    rig_set_debug_callback(ignore_debug_output, NULL);
+    rig_set_debug(RIG_DEBUG_TRACE);
+
+    for (i = 0; i < sizeof(lengths) / sizeof(lengths[0]); ++i)
+    {
+        line.spectrum_data_length = lengths[i];
+
+        if (rig_fire_spectrum_event(&rig, &line) != RIG_OK)
+        {
+            fprintf(stderr, "spectrum event failed for length %zu\n", lengths[i]);
+            rig_set_debug_callback(NULL, NULL);
+            rig_set_debug(RIG_DEBUG_NONE);
+            return 0;
+        }
+    }
+
+    rig_set_debug_callback(NULL, NULL);
+    rig_set_debug(RIG_DEBUG_NONE);
+    return 1;
+}
+
 int main(void)
 {
-    if (!test_concurrent_history() || !test_rolling_history())
+    if (!test_concurrent_history() || !test_rolling_history()
+            || !test_short_spectrum_lines())
     {
         return EXIT_FAILURE;
     }
