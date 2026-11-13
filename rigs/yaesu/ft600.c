@@ -1,7 +1,15 @@
 /*
- * ft600.c - Yaesu System 600 CAT codec + Hamlib backend.
+ * hamlib - (C) Frank Singleton 2000-2003
+ *          (C) Stephane Fillod 2000-2010
  *
- * ft600.c - (C) 2026 soxxz
+ * ft600.c -(C) Kārlis Millers YL3ALK 2019
+ *
+ * This shared library provides an API for communicating
+ * via serial interface to an FT-600 using the "CAT" interface.
+ * The starting point for this code was Chris Karpinsky's ft100 implementation.
+ *
+ * ft600.c - Yaesu System 600 CAT codec + Hamlib backend.
+ *          (C) 2026 soxxz
  *
  *   This library is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU Lesser General Public
@@ -199,18 +207,23 @@
 #define FT600_MODE_ST_J2B         0x05
 
 /*
- * Passband handling.  The radio has exactly two filter positions per mode:
- * CW 500/250 Hz, J2B 2400/500 Hz; LSB/USB are fixed 2400 Hz and AM 6000 Hz.
- * A request below the midpoint of the wide and narrow widths selects the
- * narrow position; <= 0 (RIG_PASSBAND_NORMAL) keeps the radio default =
- * wide.
+ * Passband handling.  The radio has exactly two filter positions per mode.
+ * Widths are the -6 dB points from the Yaesu System 600 user manual's
+ * Selectivity table: "J2B/J3E/A3E-Narrow/H3E-Narrow/A1A-Wide 2.2 kHz
+ * (-6 dB), 5.0 kHz (-60 dB); A1A-Narrow 500 Hz (-6 dB), 1.2 kHz (-60 dB);
+ * A3E 6.0 kHz (-6 dB), 12.0 kHz (-60 dB)".  So CW is 2200/500 Hz (the
+ * A1A-N position is the optional YF-112C 500 Hz filter), J2B is 2200/500
+ * Hz, LSB/USB are fixed at 2200 Hz and AM at 6000 Hz.  A request below the
+ * midpoint of the wide and narrow widths selects the narrow position;
+ * <= 0 (RIG_PASSBAND_NORMAL) keeps the radio default = wide (the panel
+ * boots in WIDE).
  */
-#define FT600_PASSBAND_LSB_HZ     2400
-#define FT600_PASSBAND_USB_HZ     2400
-#define FT600_PASSBAND_CW_W_HZ    500
-#define FT600_PASSBAND_CW_N_HZ    250
+#define FT600_PASSBAND_LSB_HZ     2200
+#define FT600_PASSBAND_USB_HZ     2200
+#define FT600_PASSBAND_CW_W_HZ    2200
+#define FT600_PASSBAND_CW_N_HZ    500
 #define FT600_PASSBAND_AM_HZ      6000
-#define FT600_PASSBAND_J2B_W_HZ   2400
+#define FT600_PASSBAND_J2B_W_HZ   2200
 #define FT600_PASSBAND_J2B_N_HZ   500
 
 
@@ -242,21 +255,35 @@ static void sys600_frame(uint8_t op, uint8_t p1, uint8_t p2, uint8_t p3,
 }
 
 /*
- * Convert Hz to the four BCD parameter bytes F1..F4 for SET Freq 0Ah/8Ah.
- * 8 BCD digits at 10 Hz resolution, zero padded on the left: F1 = (100s of
- * MHz)(10s of MHz) ... F4 = (100s of Hz)(10s of Hz).  Rounding is half up
- * to the nearest 10 Hz.  Returns 0, or -1 if the frequency needs more than
- * 8 BCD digits.
+ * Round Hz to the radio's 10 Hz SET-Freq grid (half up) and return the
+ * result in 10 Hz units.  This is exactly what sys600_freq_to_bcd encodes,
+ * so read-back verification compares against this value: a request like
+ * 14074005 Hz is sent (and read back) as 14074010 Hz, and comparing the
+ * read-back against the original request would reject a successful set.
  */
-static int sys600_freq_to_bcd(uint32_t hz, uint8_t out[4])
+static uint32_t sys600_freq_units10(uint32_t hz)
 {
     uint32_t units = hz / 10u;
-    uint8_t d[8];
-    int i;
 
     if (hz % 10u >= 5u) {
         units++;
     }
+    return units;
+}
+
+/*
+ * Convert Hz to the four BCD parameter bytes F1..F4 for SET Freq 0Ah/8Ah.
+ * 8 BCD digits at 10 Hz resolution, zero padded on the left: F1 = (100s of
+ * MHz)(10s of MHz) ... F4 = (100s of Hz)(10s of Hz).  Rounding is half up
+ * to the nearest 10 Hz (sys600_freq_units10).  Returns 0, or -1 if the
+ * frequency needs more than 8 BCD digits.
+ */
+static int sys600_freq_to_bcd(uint32_t hz, uint8_t out[4])
+{
+    uint32_t units = sys600_freq_units10(hz);
+    uint8_t d[8];
+    int i;
+
     if (units > 99999999u) {
         return -1;
     }
@@ -836,7 +863,7 @@ static int ft600_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     uint8_t frame[FT600_FRAME_LEN];
     uint8_t bcd[4];
     uint8_t rec[FT600_REC_LEN];
-    uint32_t rx_hz, tx_hz;
+    uint32_t rx_hz, tx_hz, want_hz;
     int ret;
 
     (void)vfo; /* 0Ah always targets the current operating VFO */
@@ -861,19 +888,23 @@ static int ft600_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         return ret;
     }
 
-    /* Read-back confirm: the Rx sub-record must now match. */
+    /* Read-back confirm: the Rx sub-record must now match.  The comparison
+     * is against the ENCODED frequency - the BCD command rounds to the
+     * radio's 10 Hz grid, so 14074005 Hz goes on the wire (and comes back)
+     * as 14074010 Hz and must not be reported as a failed set. */
     ret = sys600_read_status(rig, rec);
     if (ret != RIG_OK)
     {
         return ret;
     }
 
+    want_hz = sys600_freq_units10((uint32_t)freq) * 10u;
     sys600_decode_record(rec, &rx_hz, &tx_hz);
-    if (rx_hz != (uint32_t)freq)
+    if (rx_hz != want_hz)
     {
         rig_debug(RIG_DEBUG_ERR,
-                  "%s: set did not stick: asked %.0f Hz, radio reports %u Hz\n",
-                  __func__, (double)freq, (unsigned)rx_hz);
+                  "%s: set did not stick: asked %.0f Hz (sent %u Hz), radio reports %u Hz\n",
+                  __func__, (double)freq, (unsigned)want_hz, (unsigned)rx_hz);
         return -RIG_EPROTO;
     }
 
@@ -911,9 +942,10 @@ static int ft600_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 /*
  * Choose between the radio's two filter positions for a mode.  The panel has
- * exactly two: a wide and a narrow passband (CW 500/250 Hz, J2B 2400/500 Hz).
- * A request below the midpoint picks the narrow position; width <= 0
- * (RIG_PASSBAND_NORMAL) keeps the radio default, which is the wide position.
+ * exactly two: a wide and a narrow passband (CW 2200/500 Hz, J2B 2200/500
+ * Hz - see FT600_PASSBAND_*).  A request below the midpoint picks the
+ * narrow position; width <= 0 (RIG_PASSBAND_NORMAL) keeps the radio
+ * default, which is the wide position.
  */
 static int sys600_narrow(pbwidth_t width, pbwidth_t wide_hz, pbwidth_t narrow_hz)
 {
@@ -928,10 +960,11 @@ static int sys600_narrow(pbwidth_t width, pbwidth_t wide_hz, pbwidth_t narrow_hz
 static int sys600_rmode_to_cmd(rmode_t mode, pbwidth_t width, uint8_t *cmd)
 {
     /* The CAT MODE command carries a *filter position*, not a passband: CW is
-     * 500 Hz (A1A-W) or 250 Hz (A1A-N), J2B is 2400 Hz (wide) or 500 Hz
-     * (narrow).  Pick the closer of the two so that asking for 500 Hz CW
-     * selects the 500 Hz filter instead of silently landing on 250 Hz.
-     * width <= 0 (RIG_PASSBAND_NORMAL) keeps the radio default = wide. */
+     * 2200 Hz (A1A-W) or 500 Hz (A1A-N), J2B is 2200 Hz (wide) or 500 Hz
+     * (narrow) - the user manual's Selectivity table.  Pick the closer of
+     * the two so that asking for 500 Hz CW selects the A1A-N position
+     * instead of silently landing on A1A-W.  width <= 0
+     * (RIG_PASSBAND_NORMAL) keeps the radio default = wide. */
     switch (mode)
     {
     case RIG_MODE_LSB:
@@ -1013,13 +1046,17 @@ static int ft600_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     /* The status byte must match the requested mode GROUP: the radio
      * answers 02h for BOTH CW widths - A1A-N switches the narrow filter but
-     * leaves the mode byte at 02h - so both CW bytes are accepted here and
-     * the width is confirmed from Flag2 below.  (The manual documents a
-     * separate "03h = A1A-N" status code this radio never reports.)  All
+     * leaves the mode byte at 02h - so EITHER CW byte is accepted for
+     * EITHER CW request and the width is confirmed from Flag2 below.  (The
+     * manual documents a separate "03h = A1A-N" status code this radio
+     * never reports; rejecting it here would fail a successful narrow-CW
+     * set - and abort the memory write that goes through this path.)  All
      * four J2B command codes report the single status byte 05h. */
     if (rec[FT600_REC_RX_MODE] != want_status &&
-            !(want_status == FT600_MODE_ST_CW_W &&
-              rec[FT600_REC_RX_MODE] == FT600_MODE_ST_CW_N))
+            !((want_status == FT600_MODE_ST_CW_W ||
+               want_status == FT600_MODE_ST_CW_N) &&
+              (rec[FT600_REC_RX_MODE] == FT600_MODE_ST_CW_W ||
+               rec[FT600_REC_RX_MODE] == FT600_MODE_ST_CW_N)))
     {
         rig_debug(RIG_DEBUG_ERR,
                   "%s: set did not stick: asked status mode 0x%x, radio reports 0x%x\n",
@@ -1089,8 +1126,8 @@ static int ft600_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 /*
  * Get operating mode + passband.  The status mode byte selects the mode
  * family; for status 5 (J2B) the sideband comes from Flag2 bit5 (see the
- * case below).  Passband from the Flag2 narrow bits: CW -> 250 if
- * A1A-narrow else 500; J2B -> 500 if J2B-narrow else 2400; LSB/USB -> 2400;
+ * case below).  Passband from the Flag2 narrow bits: CW -> 500 if
+ * A1A-narrow else 2200; J2B -> 500 if J2B-narrow else 2200; LSB/USB -> 2200;
  * AM -> 6000.  A flags read failure falls back to the wide values.
  */
 static int ft600_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
@@ -1230,19 +1267,69 @@ static int sys600_record_mode(uint8_t st, rmode_t *mode, pbwidth_t *width)
 }
 
 /*
- * Set VFO: the protocol has a single operating VFO.  RIG_VFO_A recalls the
- * VFO (05h); RIG_VFO_MEM would need a channel number (02h), so it and any
- * other VFO return -RIG_ENIMPL rather than a silent no-op.
+ * Set VFO: the protocol has a single operating VFO.
+ *
+ *   RIG_VFO_A   -> Recall VFO (05h), then wait out the deaf window: right
+ *                  after a VFO<->memory transition the radio ignores every
+ *                  command for ~150 ms (see ft600_set_mem), so without the
+ *                  settle the next client command is dropped.
+ *   RIG_VFO_MEM -> Recall Memory (02h) on the last-selected channel (U=1).
+ *                  This exists because the frontend saves the current VFO
+ *                  and restores it after a non-targetable operation
+ *                  (src/rig.c, rig_set_mode): an operation targeting A while
+ *                  the radio is in memory mode switches away with 05h and
+ *                  must be able to switch back, otherwise the radio is left
+ *                  changed.  Rejecting MEM here would break that restore.
+ *   anything else (VFO B, ...) -> -RIG_ENIMPL: single-VFO radio.
  */
 static int ft600_set_vfo(RIG *rig, vfo_t vfo)
 {
     uint8_t frame[FT600_FRAME_LEN];
+    int ret;
 
     if (vfo == RIG_VFO_A)
     {
         /* Recall VFO (05h): return to the last-used VFO */
         sys600_frame(FT600_OP_RECALL_VFO, 0, 0, 0, 0, frame);
-        return write_block(RIGPORT(rig), frame, FT600_FRAME_LEN);
+        ret = write_block(RIGPORT(rig), frame, FT600_FRAME_LEN);
+        if (ret != RIG_OK)
+        {
+            return ret;
+        }
+
+        hl_usleep(FT600_MEM_RECALL_SETTLE_MS * 1000);
+        return RIG_OK;
+    }
+
+    if (vfo == RIG_VFO_MEM)
+    {
+        uint8_t num;
+
+        /* The radio names the last-selected channel even while in VFO
+         * operation, so recalling it re-enters memory mode on the channel
+         * that was active before. */
+        ret = sys600_read_memory_number(rig, &num);
+        if (ret != RIG_OK)
+        {
+            return ret;
+        }
+
+        if (num > FT600_MAX_MEM_CH - 1)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: out-of-range memory index %u\n",
+                      __func__, (unsigned)num);
+            return -RIG_EPROTO;
+        }
+
+        sys600_frame(FT600_OP_RECALL_MEM, (uint8_t)(num + 1), 0, 0, 0, frame);
+        ret = write_block(RIGPORT(rig), frame, FT600_FRAME_LEN);
+        if (ret != RIG_OK)
+        {
+            return ret;
+        }
+
+        hl_usleep(FT600_MEM_RECALL_SETTLE_MS * 1000);
+        return RIG_OK;
     }
 
     return -RIG_ENIMPL;
@@ -1387,7 +1474,7 @@ static int ft600_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq)
     uint8_t frame[FT600_FRAME_LEN];
     uint8_t bcd[4];
     uint8_t rec[FT600_REC_LEN];
-    uint32_t rx_hz, tx_hz;
+    uint32_t rx_hz, tx_hz, want_hz;
     int ret;
 
     (void)vfo;
@@ -1416,12 +1503,15 @@ static int ft600_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq)
         return ret;
     }
 
+    /* Compare against the encoded (10 Hz-rounded) frequency, exactly like
+     * ft600_set_freq: a valid off-grid request must not fail verification. */
+    want_hz = sys600_freq_units10((uint32_t)freq) * 10u;
     sys600_decode_record(rec, &rx_hz, &tx_hz);
-    if (tx_hz != (uint32_t)freq)
+    if (tx_hz != want_hz)
     {
         rig_debug(RIG_DEBUG_ERR,
-                  "%s: set did not stick: asked %.0f Hz, radio reports %u Hz\n",
-                  __func__, (double)freq, (unsigned)tx_hz);
+                  "%s: set did not stick: asked %.0f Hz (sent %u Hz), radio reports %u Hz\n",
+                  __func__, (double)freq, (unsigned)want_hz, (unsigned)tx_hz);
         return -RIG_EPROTO;
     }
 
@@ -1816,6 +1906,7 @@ static int sys600_save_state(RIG *rig, struct sys600_saved_state *s)
  * never left on an intermediate frequency/mode. */
 static int sys600_restore_state(RIG *rig, const struct sys600_saved_state *s)
 {
+    uint8_t frame[FT600_FRAME_LEN];
     int first_err = RIG_OK;
     int ret;
 
@@ -1825,12 +1916,27 @@ static int sys600_restore_state(RIG *rig, const struct sys600_saved_state *s)
         first_err = ret;
     }
 
-    /* When Rx == Tx the 0Ah above already dragged the Tx record along (0Ah
-     * follows the split state); otherwise restore it.  Doing it after Rx
-     * also covers "the VFO was split before we wrote a channel". */
+    /* Always restore the Tx sub-record.  Skipping it when the saved state
+     * was simplex (Rx == Tx) assumed 0Ah would drag Tx along, but 0Ah only
+     * follows Tx while the radio is NOT split - and programming a split
+     * channel above leaves it split.  Example: simplex at 7.1 MHz, store a
+     * 14/14.2 MHz split channel; Rx is restored to 7.1 MHz but Tx would
+     * stay at 14.2 MHz with split active.  When the saved Tx equals the
+     * saved Rx, copy Rx->Tx (85h) instead of a separate set: that restores
+     * the frequency and clears the split the store left behind.  Doing it
+     * after Rx also covers "the VFO was split before we wrote a channel". */
     if (s->tx_hz != s->rx_hz)
     {
         ret = ft600_set_split_freq(rig, RIG_VFO_CURR, s->tx_hz);
+        if (ret != RIG_OK && first_err == RIG_OK)
+        {
+            first_err = ret;
+        }
+    }
+    else
+    {
+        sys600_frame(FT600_OP_RX_TO_TX, 0, 0, 0, 0, frame); /* 85h: Rx->Tx */
+        ret = write_block(RIGPORT(rig), frame, FT600_FRAME_LEN);
         if (ret != RIG_OK && first_err == RIG_OK)
         {
             first_err = ret;
@@ -2045,6 +2151,7 @@ static int sys600_verify_channel(RIG *rig, int ch, const channel_t *chan,
     uint8_t rec[FT600_REC_LEN];
     uint32_t rx_hz, tx_hz;
     uint8_t want_mode = sys600_record_code(cmd);
+    uint32_t want_rx, want_tx;
     int ret;
 
     ret = sys600_read_mem_record(rig, ch, rec);
@@ -2054,24 +2161,29 @@ static int sys600_verify_channel(RIG *rig, int ch, const channel_t *chan,
         return ret;
     }
 
+    /* Same 10 Hz-grid rounding as the SET commands: compare against the
+     * encoded frequency, not the raw channel field. */
+    want_rx = sys600_freq_units10((uint32_t)chan->freq) * 10u;
+    want_tx = sys600_freq_units10((uint32_t)chan->tx_freq) * 10u;
+
     sys600_decode_record(rec, &rx_hz, &tx_hz);
 
-    if ((freq_t)rx_hz != chan->freq || rec[FT600_REC_RX_MODE] != want_mode)
+    if (rx_hz != want_rx || rec[FT600_REC_RX_MODE] != want_mode)
     {
         rig_debug(RIG_DEBUG_ERR,
                   "%s: channel %d stored %.0f Hz/mode 0x%02x, wanted "
-                  "%.0f Hz/mode 0x%02x\n", __func__, ch, (double)rx_hz,
-                  (unsigned)rec[FT600_REC_RX_MODE], (double)chan->freq,
+                  "%u Hz/mode 0x%02x\n", __func__, ch, (double)rx_hz,
+                  (unsigned)rec[FT600_REC_RX_MODE], (unsigned)want_rx,
                   want_mode);
         return -RIG_EIO;
     }
 
     if (chan->split == RIG_SPLIT_ON && chan->tx_freq > 0 &&
-            (freq_t)tx_hz != chan->tx_freq)
+            tx_hz != want_tx)
     {
         rig_debug(RIG_DEBUG_ERR,
-                  "%s: channel %d stored Tx %.0f Hz, wanted %.0f Hz\n",
-                  __func__, ch, (double)tx_hz, (double)chan->tx_freq);
+                  "%s: channel %d stored Tx %.0f Hz, wanted %u Hz\n",
+                  __func__, ch, (double)tx_hz, (unsigned)want_tx);
         return -RIG_EIO;
     }
 
@@ -2330,11 +2442,11 @@ struct rig_caps ft600_caps =
      * sys600_rmode_to_cmd() maps that width to the wide position.
      * LSB/USB/AM have a single fixed filter. */
     .filters =            {
-        {RIG_MODE_LSB | RIG_MODE_USB,       Hz(2400)},
+        {RIG_MODE_LSB | RIG_MODE_USB,       Hz(2200)},
+        {RIG_MODE_CW,                       Hz(2200)},
         {RIG_MODE_CW,                       Hz(500)},
-        {RIG_MODE_CW,                       Hz(250)},
         {RIG_MODE_AM,                       Hz(6000)},
-        {RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, Hz(2400)},
+        {RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, Hz(2200)},
         {RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, Hz(500)},
         RIG_FLT_END,
     },
