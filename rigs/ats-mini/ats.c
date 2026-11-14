@@ -224,6 +224,55 @@ static int p_ats_update_state(RIG *rig) {
     return RIG_OK;
 }
 
+#define MINI_STEP_MATCH_TOLERANCE_HZ 1
+
+// the radio has no direct step command, cycle with "S" until the step matches
+static int p_ats_set_step(RIG *rig, shortfreq_t ts) {
+    struct ats_mini_mon_data *mon_data = STATE(rig)->priv;
+
+    int res = p_ats_update_state(rig);
+    if (res != RIG_OK) {
+        return res;
+    }
+
+    freq_t start_step = mon_data->step;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: start %.0f Hz, requested %ld Hz\n",
+              __func__, (double) start_step, (long) ts);
+
+    while (1) {
+        freq_t diff = mon_data->step - (freq_t) ts;
+        if (diff < 0) {
+            diff = -diff;
+        }
+        if (diff < MINI_STEP_MATCH_TOLERANCE_HZ) {
+            break;
+        }
+
+        res = p_ats_write(rig, (const unsigned char *) "S");
+        if (res != RIG_OK) {
+            return res;
+        }
+
+        res = p_ats_update_state(rig);
+        if (res != RIG_OK) {
+            return res;
+        }
+
+        freq_t start_diff = mon_data->step - start_step;
+        if (start_diff < 0) {
+            start_diff = -start_diff;
+        }
+        if (start_diff < MINI_STEP_MATCH_TOLERANCE_HZ) {
+            rig_debug(RIG_DEBUG_ERR, "%s: CANNOT reach requested step %ld Hz "
+                      "(cycled back to start %.0f Hz) - not available in current mode?\n",
+                      __func__, (long) ts, (double) start_step);
+            return -RIG_EINVAL;
+        }
+    }
+
+    return RIG_OK;
+}
+
 static int p_ats_set_band(RIG *rig, mini_band_id_t band_id) {
     struct ats_mini_mon_data *mon_data = STATE(rig)->priv;
 
@@ -483,6 +532,26 @@ static int ats_mini_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
     return RIG_OK;
 }
 
+static int ats_mini_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts) {
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    return p_ats_set_step(rig, ts);
+}
+
+static int ats_mini_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts) {
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    int res = p_ats_update_state(rig);
+    if (res != RIG_OK) {
+        return res;
+    }
+
+    struct ats_mini_mon_data *mon_data = STATE(rig)->priv;
+    *ts = (shortfreq_t) mon_data->step;
+
+    return RIG_OK;
+}
+
 static int ats_mini_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
@@ -620,6 +689,8 @@ struct rig_caps ats_mini_caps = {
     .get_info = ats_mini_info,
     .get_freq = ats_mini_get_freq,
     .set_freq = ats_mini_set_freq,
+    .get_ts = ats_mini_get_ts,
+    .set_ts = ats_mini_set_ts,
     .get_mode = ats_mini_get_mode,
     .set_mode = ats_mini_set_mode,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS,
