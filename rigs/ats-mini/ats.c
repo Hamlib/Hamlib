@@ -24,11 +24,29 @@
 
 #include "hamlib/config.h"
 #include "hamlib/rig.h"
+#include "hamlib/port.h"
 #include "hamlib/rig_state.h"
+#include "iofunc.h"
 #include "register.h"
 #include "serial.h"
 
 #include "ats.h"
+
+// parse values like "500", "1k", "2.2k", "1M" into a plain number (Hz)
+static double p_ats_parse_scaled_value(const char *token) {
+    char *endptr = NULL;
+    double val = strtod(token, &endptr);
+
+    if (endptr && *endptr != '\0') {
+        if (*endptr == 'k' || *endptr == 'K') {
+            val *= 1000.0;
+        } else if (*endptr == 'M') {
+            val *= 1000000.0;
+        }
+    }
+
+    return val;
+}
 
 static int p_ats_write(RIG *rig, const unsigned char *cmd) {
     int res_uart = write_block(RIGPORT(rig), cmd, strlen((const char *)cmd));
@@ -65,6 +83,12 @@ static int p_ats_update_state(RIG *rig) {
             continue;
         }
 
+        if (idx >= (MINI_UART_BUFF_SIZE - 1)) {
+            rig_debug(RIG_DEBUG_ERR, "%s: line too long without newline\n", __func__);
+            p_ats_write(rig, (const unsigned char *)"t");
+            return -RIG_EPROTO;
+        }
+
         buff[idx] = c;
         idx++;
         if (c == '\n') {
@@ -92,9 +116,18 @@ static int p_ats_update_state(RIG *rig) {
         // rig_debug(RIG_DEBUG_VERBOSE, "%s, parse '%s'\n", __func__, token);
         token = strtok(0, ",");
         idx++;
+
+        if (!token) {
+            break;
+        }
+
         switch (idx) {
             case 1: {
-                tmp_mon_data->freq = Hz(strtod(token, NULL) * 1000);
+                tmp_mon_data->freq_raw = strtod(token, NULL);
+                break;
+            }
+            case 2: {
+                tmp_mon_data->bfo_hz = strtod(token, NULL);
                 break;
             }
             case 4: {
@@ -121,11 +154,11 @@ static int p_ats_update_state(RIG *rig) {
                 break;
             }
             case 6: {
-                tmp_mon_data->step = strtod(token, NULL);
+                tmp_mon_data->step = Hz(p_ats_parse_scaled_value(token));
                 break;
             }
             case 7: {
-                tmp_mon_data->bandwidth = strtod(token, NULL);
+                tmp_mon_data->bandwidth = Hz(p_ats_parse_scaled_value(token));
                 break;
             }
             case 8: {
@@ -158,7 +191,21 @@ static int p_ats_update_state(RIG *rig) {
         }
     }
 
+    if (idx < MINI_MON_MIN_FIELDS) {
+        rig_debug(RIG_DEBUG_ERR, "%s: short monitor line (%u fields)\n", __func__, idx);
+        free(tmp_mon_data);
+        return -RIG_EPROTO;
+    }
+
     struct ats_mini_mon_data *mon_data = STATE(rig)->priv;
+
+    // FM frequency is reported in 10 kHz units, AM/SSB in kHz
+    // SSB needs the BFO offset (Hz) added for the real tuned frequency
+    if (tmp_mon_data->mode == RIG_MODE_FM) {
+        tmp_mon_data->freq = Hz(tmp_mon_data->freq_raw * 10000);
+    } else {
+        tmp_mon_data->freq = Hz(tmp_mon_data->freq_raw * 1000) + (freq_t) tmp_mon_data->bfo_hz;
+    }
 
     if (tmp_mon_data->seq_no != mon_data->seq_no) {
         mon_data->freq = tmp_mon_data->freq;
@@ -174,6 +221,55 @@ static int p_ats_update_state(RIG *rig) {
     }
 
     free(tmp_mon_data);
+    return RIG_OK;
+}
+
+#define MINI_STEP_MATCH_TOLERANCE_HZ 1
+
+// the radio has no direct step command, cycle with "S" until the step matches
+static int p_ats_set_step(RIG *rig, shortfreq_t ts) {
+    struct ats_mini_mon_data *mon_data = STATE(rig)->priv;
+
+    int res = p_ats_update_state(rig);
+    if (res != RIG_OK) {
+        return res;
+    }
+
+    freq_t start_step = mon_data->step;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: start %.0f Hz, requested %ld Hz\n",
+              __func__, (double) start_step, (long) ts);
+
+    while (1) {
+        freq_t diff = mon_data->step - (freq_t) ts;
+        if (diff < 0) {
+            diff = -diff;
+        }
+        if (diff < MINI_STEP_MATCH_TOLERANCE_HZ) {
+            break;
+        }
+
+        res = p_ats_write(rig, (const unsigned char *) "S");
+        if (res != RIG_OK) {
+            return res;
+        }
+
+        res = p_ats_update_state(rig);
+        if (res != RIG_OK) {
+            return res;
+        }
+
+        freq_t start_diff = mon_data->step - start_step;
+        if (start_diff < 0) {
+            start_diff = -start_diff;
+        }
+        if (start_diff < MINI_STEP_MATCH_TOLERANCE_HZ) {
+            rig_debug(RIG_DEBUG_ERR, "%s: CANNOT reach requested step %ld Hz "
+                      "(cycled back to start %.0f Hz) - not available in current mode?\n",
+                      __func__, (long) ts, (double) start_step);
+            return -RIG_EINVAL;
+        }
+    }
+
     return RIG_OK;
 }
 
@@ -369,6 +465,46 @@ static const char *ats_mini_info(RIG *rig) {
     return info;
 }
 
+#define MINI_FREQ_REPLY_TIMEOUT_MS 100
+#define MINI_FREQ_REPLY_MAX_LINES 3
+
+// The radio echoes the "F" command ("F<hz>\r\n") and adds
+// "\r\nError: Frequency is out of range for the current band\r\n" if the
+// frequency is rejected. Consume the reply so the next monitor read does not
+// see it, and report a rejected frequency. A short timeout is used, so a
+// firmware that sends no echo only costs one timeout.
+static int p_ats_read_freq_reply(RIG *rig, freq_t freq) {
+    hamlib_port_t *rp = RIGPORT(rig);
+    int saved_timeout = rp->timeout;
+    short saved_retry = rp->timeout_retry;
+    int res = RIG_OK;
+    int i;
+
+    rp->timeout = MINI_FREQ_REPLY_TIMEOUT_MS;
+    rp->timeout_retry = 0;
+
+    for (i = 0; i < MINI_FREQ_REPLY_MAX_LINES; i++) {
+        unsigned char buff[MINI_UART_BUFF_SIZE];
+        int len = read_string(rp, buff, sizeof(buff), "\n", 1, 0, 1);
+
+        if (len <= 0) {
+            break;
+        }
+
+        if (strncmp((const char *) buff, "Error", 5) == 0) {
+            rig_debug(RIG_DEBUG_ERR, "%s: radio rejected %.0f Hz: %s\n",
+                      __func__, (double) freq, (char *) buff);
+            res = -RIG_EINVAL;
+            break;
+        }
+    }
+
+    rp->timeout = saved_timeout;
+    rp->timeout_retry = saved_retry;
+
+    return res;
+}
+
 static int ats_mini_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
@@ -379,7 +515,7 @@ static int ats_mini_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
         return res;
     }
 
-    return RIG_OK;
+    return p_ats_read_freq_reply(rig, freq);
 }
 
 static int ats_mini_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
@@ -392,6 +528,26 @@ static int ats_mini_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 
     struct ats_mini_mon_data *mon_data = STATE(rig)->priv;
     *freq = mon_data->freq;
+
+    return RIG_OK;
+}
+
+static int ats_mini_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts) {
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    return p_ats_set_step(rig, ts);
+}
+
+static int ats_mini_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts) {
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
+
+    int res = p_ats_update_state(rig);
+    if (res != RIG_OK) {
+        return res;
+    }
+
+    struct ats_mini_mon_data *mon_data = STATE(rig)->priv;
+    *ts = (shortfreq_t) mon_data->step;
 
     return RIG_OK;
 }
@@ -533,6 +689,8 @@ struct rig_caps ats_mini_caps = {
     .get_info = ats_mini_info,
     .get_freq = ats_mini_get_freq,
     .set_freq = ats_mini_set_freq,
+    .get_ts = ats_mini_get_ts,
+    .set_ts = ats_mini_set_ts,
     .get_mode = ats_mini_get_mode,
     .set_mode = ats_mini_set_mode,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS,
