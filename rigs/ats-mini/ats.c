@@ -24,7 +24,9 @@
 
 #include "hamlib/config.h"
 #include "hamlib/rig.h"
+#include "hamlib/port.h"
 #include "hamlib/rig_state.h"
+#include "iofunc.h"
 #include "register.h"
 #include "serial.h"
 
@@ -414,6 +416,46 @@ static const char *ats_mini_info(RIG *rig) {
     return info;
 }
 
+#define MINI_FREQ_REPLY_TIMEOUT_MS 100
+#define MINI_FREQ_REPLY_MAX_LINES 3
+
+// The radio echoes the "F" command ("F<hz>\r\n") and adds
+// "\r\nError: Frequency is out of range for the current band\r\n" if the
+// frequency is rejected. Consume the reply so the next monitor read does not
+// see it, and report a rejected frequency. A short timeout is used, so a
+// firmware that sends no echo only costs one timeout.
+static int p_ats_read_freq_reply(RIG *rig, freq_t freq) {
+    hamlib_port_t *rp = RIGPORT(rig);
+    int saved_timeout = rp->timeout;
+    short saved_retry = rp->timeout_retry;
+    int res = RIG_OK;
+    int i;
+
+    rp->timeout = MINI_FREQ_REPLY_TIMEOUT_MS;
+    rp->timeout_retry = 0;
+
+    for (i = 0; i < MINI_FREQ_REPLY_MAX_LINES; i++) {
+        unsigned char buff[MINI_UART_BUFF_SIZE];
+        int len = read_string(rp, buff, sizeof(buff), "\n", 1, 0, 1);
+
+        if (len <= 0) {
+            break;
+        }
+
+        if (strncmp((const char *) buff, "Error", 5) == 0) {
+            rig_debug(RIG_DEBUG_ERR, "%s: radio rejected %.0f Hz: %s\n",
+                      __func__, (double) freq, (char *) buff);
+            res = -RIG_EINVAL;
+            break;
+        }
+    }
+
+    rp->timeout = saved_timeout;
+    rp->timeout_retry = saved_retry;
+
+    return res;
+}
+
 static int ats_mini_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
@@ -424,7 +466,7 @@ static int ats_mini_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
         return res;
     }
 
-    return RIG_OK;
+    return p_ats_read_freq_reply(rig, freq);
 }
 
 static int ats_mini_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
