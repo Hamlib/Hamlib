@@ -36,12 +36,15 @@ struct ats_mini_mon_data {
     int RSSI;
     int SNR;
     int seq_no;
+    double freq_raw;
+    double bfo_hz;
 };
 
 #define MINI_UART_CMD_DLY 10
 #define MINI_UART_TO_CNT 200
 #define MINI_UART_BUFF_SIZE 128
 #define MINI_UART_MAX_TOKEN 20
+#define MINI_MON_MIN_FIELDS 14
 
 typedef enum MINI_BAND_ID {
     MINI_BAND_VHF = 0,
