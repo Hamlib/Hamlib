@@ -260,6 +260,55 @@ static int p_ats_set_band(RIG *rig, mini_band_id_t band_id) {
     return RIG_OK;
 }
 
+#define MINI_BW_MATCH_TOLERANCE_HZ 50
+
+// the radio has no direct bandwidth command, cycle with "W" until the filter matches
+static int p_ats_set_bandwidth(RIG *rig, pbwidth_t width) {
+    struct ats_mini_mon_data *mon_data = STATE(rig)->priv;
+
+    int res = p_ats_update_state(rig);
+    if (res != RIG_OK) {
+        return res;
+    }
+
+    freq_t start_bw = mon_data->bandwidth;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: start %.0f Hz, requested %ld Hz\n",
+              __func__, (double) start_bw, (long) width);
+
+    while (1) {
+        freq_t diff = mon_data->bandwidth - (freq_t) width;
+        if (diff < 0) {
+            diff = -diff;
+        }
+        if (diff < MINI_BW_MATCH_TOLERANCE_HZ) {
+            break;
+        }
+
+        res = p_ats_write(rig, (const unsigned char *)"W");
+        if (res != RIG_OK) {
+            return res;
+        }
+
+        res = p_ats_update_state(rig);
+        if (res != RIG_OK) {
+            return res;
+        }
+
+        freq_t start_diff = mon_data->bandwidth - start_bw;
+        if (start_diff < 0) {
+            start_diff = -start_diff;
+        }
+        if (start_diff < MINI_BW_MATCH_TOLERANCE_HZ) {
+            rig_debug(RIG_DEBUG_ERR, "%s: CANNOT reach requested bandwidth %ld Hz "
+                      "(cycled back to start %.0f Hz)\n",
+                      __func__, (long) width, (double) start_bw);
+            return -RIG_EINVAL;
+        }
+    }
+
+    return RIG_OK;
+}
+
 static int p_ats_set_mode(RIG *rig, rmode_t mode_id) {
     if ((mode_id != RIG_MODE_AM) && (mode_id != RIG_MODE_USB) && (mode_id != RIG_MODE_LSB)
             && ( mode_id != RIG_MODE_FM)) {
@@ -486,7 +535,18 @@ static int ats_mini_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 static int ats_mini_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
-    p_ats_set_mode(rig, mode);
+    int res = p_ats_set_mode(rig, mode);
+    if (res != RIG_OK) {
+        return res;
+    }
+
+    // RIG_PASSBAND_NORMAL (0) and RIG_PASSBAND_NOCHANGE (-1) keep the current filter
+    if (width > 0) {
+        res = p_ats_set_bandwidth(rig, width);
+        if (res != RIG_OK) {
+            return res;
+        }
+    }
 
     return RIG_OK;
 }
