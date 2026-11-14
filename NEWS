@@ -9,6 +9,8 @@ Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 
 Version 5.x -- future
+        * ATS Mini: Recover automatically when the monitor mode toggle is
+          out of sync or a partial monitor line is received.
         * ATS Mini: Fix get_freq in SSB (BFO offset) and FM (10 kHz units),
           fix step/bandwidth values with k/M suffix, fix a crash and
           buffer overrun on short or overlong monitor lines, and fix

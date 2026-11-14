@@ -58,62 +58,40 @@ static int p_ats_write(RIG *rig, const unsigned char *cmd) {
     return RIG_OK;
 }
 
-static int p_ats_update_state(RIG *rig) {
-    unsigned char buff[MINI_UART_BUFF_SIZE] = {0};
+static int p_ats_read_line(RIG *rig, unsigned char *buff, unsigned int buff_size) {
     unsigned int idx = 0, to = 0;
-    int res = RIG_OK;
     char c;
-
-    // rig_debug(RIG_DEBUG_VERBOSE, "%s, start monitor mode\n", __func__);
-    res = p_ats_write(rig, (const unsigned char *)"t");
-    if (res != RIG_OK) {
-        return res;
-    }
 
     while (1) {
         int nb_uart = read_block(RIGPORT(rig), (unsigned char *) &c, 1);
 
         if (to > MINI_UART_TO_CNT) {
-            rig_debug(RIG_DEBUG_ERR, "%s: read_block TIMEOUT\n", __func__);
             return -RIG_ETIMEOUT;
         }
         if (nb_uart <= 0) {
-            // rig_debug(RIG_DEBUG_ERR, "%s: read_block failed: %d\n", __func__, n_b);
             to++;
             continue;
         }
 
-        if (idx >= (MINI_UART_BUFF_SIZE - 1)) {
+        if (idx >= (buff_size - 1)) {
             rig_debug(RIG_DEBUG_ERR, "%s: line too long without newline\n", __func__);
-            p_ats_write(rig, (const unsigned char *)"t");
             return -RIG_EPROTO;
         }
 
         buff[idx] = c;
         idx++;
         if (c == '\n') {
-            // rig_debug(RIG_DEBUG_VERBOSE, "%s: read_block finished\n", __func__);
-            break;
+            buff[idx] = '\0';
+            return RIG_OK;
         }
     }
-    rig_debug(RIG_DEBUG_VERBOSE, "%s, monitor '%s'\n", __func__, (char *)buff);
+}
 
-    // rig_debug(RIG_DEBUG_VERBOSE, "%s, stop monitor mode\n", __func__);
-    res = p_ats_write(rig, (const unsigned char *)"t");
-    if (res != RIG_OK) {
-        return res;
-    }
+static int p_ats_parse_line(char *buff, struct ats_mini_mon_data *tmp_mon_data) {
+    unsigned int idx = 0;
+    char *token = strtok(buff, ",");
 
-    struct ats_mini_mon_data *tmp_mon_data = (struct ats_mini_mon_data *)
-            calloc(1, sizeof(struct ats_mini_mon_data));
-    if (!tmp_mon_data) {
-        return -RIG_ENOMEM;
-    }
-
-    idx = 0;
-    char *token = strtok((char *) buff, ",");
     while (token) {
-        // rig_debug(RIG_DEBUG_VERBOSE, "%s, parse '%s'\n", __func__, token);
         token = strtok(0, ",");
         idx++;
 
@@ -132,8 +110,7 @@ static int p_ats_update_state(RIG *rig) {
             }
             case 4: {
                 if (strlen(token) >= MINI_BANDNAME_LEN) {
-                    rig_debug(RIG_DEBUG_ERR, "UNEXPECTED bandname");
-                    free(tmp_mon_data);
+                    rig_debug(RIG_DEBUG_ERR, "%s: UNEXPECTED bandname\n", __func__);
                     return -RIG_EPROTO;
                 }
                 memcpy(tmp_mon_data->bandname, token, (MINI_BANDNAME_LEN - 1));
@@ -186,15 +163,78 @@ static int p_ats_update_state(RIG *rig) {
         }
         if (idx > MINI_UART_MAX_TOKEN) {
             rig_debug(RIG_DEBUG_ERR, "%s: parse failure\n", __func__);
-            free(tmp_mon_data);
             return -RIG_EPROTO;
         }
     }
 
     if (idx < MINI_MON_MIN_FIELDS) {
-        rig_debug(RIG_DEBUG_ERR, "%s: short monitor line (%u fields)\n", __func__, idx);
-        free(tmp_mon_data);
+        rig_debug(RIG_DEBUG_WARN, "%s: short monitor line (%u fields)\n", __func__, idx);
         return -RIG_EPROTO;
+    }
+
+    return RIG_OK;
+}
+
+static int p_ats_update_state(RIG *rig) {
+    unsigned char buff[MINI_UART_BUFF_SIZE] = {0};
+    int res, off_res, attempt;
+    int resynced = 0;
+
+    struct ats_mini_mon_data *tmp_mon_data = (struct ats_mini_mon_data *)
+            calloc(1, sizeof(struct ats_mini_mon_data));
+    if (!tmp_mon_data) {
+        return -RIG_ENOMEM;
+    }
+
+    // start monitor mode
+    res = p_ats_write(rig, (const unsigned char *)"t");
+    if (res != RIG_OK) {
+        free(tmp_mon_data);
+        return res;
+    }
+
+    for (attempt = 0; attempt < MINI_UART_MAX_LINE_RETRIES; attempt++) {
+        res = p_ats_read_line(rig, buff, MINI_UART_BUFF_SIZE);
+
+        if (res == -RIG_ETIMEOUT && !resynced) {
+            // no data: the radio was most likely already in monitor mode and
+            // our toggle switched it off, toggle once more to get back in sync
+            rig_debug(RIG_DEBUG_WARN, "%s: no monitor data, resyncing toggle\n", __func__);
+            resynced = 1;
+            res = p_ats_write(rig, (const unsigned char *)"t");
+            if (res != RIG_OK) {
+                break;
+            }
+            attempt--;
+            continue;
+        }
+        if (res == -RIG_ETIMEOUT) {
+            break;
+        }
+
+        if (res == RIG_OK) {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s, monitor '%s'\n", __func__, (char *)buff);
+            memset(tmp_mon_data, 0, sizeof(struct ats_mini_mon_data));
+            res = p_ats_parse_line((char *) buff, tmp_mon_data);
+            if (res == RIG_OK) {
+                break;
+            }
+        }
+
+        // partial or malformed line (e.g. we started reading mid-line), try the next one
+        rig_debug(RIG_DEBUG_WARN, "%s: bad monitor line, retry %d/%d\n",
+                  __func__, attempt + 1, MINI_UART_MAX_LINE_RETRIES);
+    }
+
+    // stop monitor mode
+    off_res = p_ats_write(rig, (const unsigned char *)"t");
+    if (res == RIG_OK) {
+        res = off_res;
+    }
+    if (res != RIG_OK) {
+        rig_debug(RIG_DEBUG_ERR, "%s: no valid monitor data: %s\n", __func__, rigerror(res));
+        free(tmp_mon_data);
+        return res;
     }
 
     struct ats_mini_mon_data *mon_data = STATE(rig)->priv;
