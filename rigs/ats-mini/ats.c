@@ -94,7 +94,11 @@ static int p_ats_update_state(RIG *rig) {
         idx++;
         switch (idx) {
             case 1: {
-                tmp_mon_data->freq = Hz(strtod(token, NULL) * 1000);
+                tmp_mon_data->freq_raw = strtod(token, NULL);
+                break;
+            }
+            case 2: {
+                tmp_mon_data->bfo_hz = strtod(token, NULL);
                 break;
             }
             case 4: {
@@ -159,6 +163,14 @@ static int p_ats_update_state(RIG *rig) {
     }
 
     struct ats_mini_mon_data *mon_data = STATE(rig)->priv;
+
+    // FM frequency is reported in 10 kHz units, AM/SSB in kHz
+    // SSB needs the BFO offset (Hz) added for the real tuned frequency
+    if (tmp_mon_data->mode == RIG_MODE_FM) {
+        tmp_mon_data->freq = Hz(tmp_mon_data->freq_raw * 10000);
+    } else {
+        tmp_mon_data->freq = Hz(tmp_mon_data->freq_raw * 1000) + (freq_t) tmp_mon_data->bfo_hz;
+    }
 
     if (tmp_mon_data->seq_no != mon_data->seq_no) {
         mon_data->freq = tmp_mon_data->freq;

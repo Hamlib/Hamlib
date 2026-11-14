@@ -36,6 +36,8 @@ struct ats_mini_mon_data {
     int RSSI;
     int SNR;
     int seq_no;
+    double freq_raw;
+    double bfo_hz;
 };
 
 #define MINI_UART_CMD_DLY 10
