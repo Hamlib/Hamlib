@@ -30,6 +30,22 @@
 
 #include "ats.h"
 
+// parse values like "500", "1k", "2.2k", "1M" into a plain number (Hz)
+static double p_ats_parse_scaled_value(const char *token) {
+    char *endptr = NULL;
+    double val = strtod(token, &endptr);
+
+    if (endptr && *endptr != '\0') {
+        if (*endptr == 'k' || *endptr == 'K') {
+            val *= 1000.0;
+        } else if (*endptr == 'M') {
+            val *= 1000000.0;
+        }
+    }
+
+    return val;
+}
+
 static int p_ats_write(RIG *rig, const unsigned char *cmd) {
     int res_uart = write_block(RIGPORT(rig), cmd, strlen((const char *)cmd));
     if (res_uart != RIG_OK) {
@@ -125,11 +141,11 @@ static int p_ats_update_state(RIG *rig) {
                 break;
             }
             case 6: {
-                tmp_mon_data->step = strtod(token, NULL);
+                tmp_mon_data->step = Hz(p_ats_parse_scaled_value(token));
                 break;
             }
             case 7: {
-                tmp_mon_data->bandwidth = strtod(token, NULL);
+                tmp_mon_data->bandwidth = Hz(p_ats_parse_scaled_value(token));
                 break;
             }
             case 8: {
