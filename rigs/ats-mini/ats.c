@@ -24,11 +24,29 @@
 
 #include "hamlib/config.h"
 #include "hamlib/rig.h"
+#include "hamlib/port.h"
 #include "hamlib/rig_state.h"
+#include "iofunc.h"
 #include "register.h"
 #include "serial.h"
 
 #include "ats.h"
+
+// parse values like "500", "1k", "2.2k", "1M" into a plain number (Hz)
+static double p_ats_parse_scaled_value(const char *token) {
+    char *endptr = NULL;
+    double val = strtod(token, &endptr);
+
+    if (endptr && *endptr != '\0') {
+        if (*endptr == 'k' || *endptr == 'K') {
+            val *= 1000.0;
+        } else if (*endptr == 'M') {
+            val *= 1000000.0;
+        }
+    }
+
+    return val;
+}
 
 static int p_ats_write(RIG *rig, const unsigned char *cmd) {
     int res_uart = write_block(RIGPORT(rig), cmd, strlen((const char *)cmd));
@@ -40,67 +58,59 @@ static int p_ats_write(RIG *rig, const unsigned char *cmd) {
     return RIG_OK;
 }
 
-static int p_ats_update_state(RIG *rig) {
-    unsigned char buff[MINI_UART_BUFF_SIZE] = {0};
+static int p_ats_read_line(RIG *rig, unsigned char *buff, unsigned int buff_size) {
     unsigned int idx = 0, to = 0;
-    int res = RIG_OK;
     char c;
-
-    // rig_debug(RIG_DEBUG_VERBOSE, "%s, start monitor mode\n", __func__);
-    res = p_ats_write(rig, (const unsigned char *)"t");
-    if (res != RIG_OK) {
-        return res;
-    }
 
     while (1) {
         int nb_uart = read_block(RIGPORT(rig), (unsigned char *) &c, 1);
 
         if (to > MINI_UART_TO_CNT) {
-            rig_debug(RIG_DEBUG_ERR, "%s: read_block TIMEOUT\n", __func__);
             return -RIG_ETIMEOUT;
         }
         if (nb_uart <= 0) {
-            // rig_debug(RIG_DEBUG_ERR, "%s: read_block failed: %d\n", __func__, n_b);
             to++;
             continue;
+        }
+
+        if (idx >= (buff_size - 1)) {
+            rig_debug(RIG_DEBUG_ERR, "%s: line too long without newline\n", __func__);
+            return -RIG_EPROTO;
         }
 
         buff[idx] = c;
         idx++;
         if (c == '\n') {
-            // rig_debug(RIG_DEBUG_VERBOSE, "%s: read_block finished\n", __func__);
-            break;
+            buff[idx] = '\0';
+            return RIG_OK;
         }
     }
-    rig_debug(RIG_DEBUG_VERBOSE, "%s, monitor '%s'\n", __func__, (char *)buff);
+}
 
-    // rig_debug(RIG_DEBUG_VERBOSE, "%s, stop monitor mode\n", __func__);
-    res = p_ats_write(rig, (const unsigned char *)"t");
-    if (res != RIG_OK) {
-        return res;
-    }
+static int p_ats_parse_line(char *buff, struct ats_mini_mon_data *tmp_mon_data) {
+    unsigned int idx = 0;
+    char *token = strtok(buff, ",");
 
-    struct ats_mini_mon_data *tmp_mon_data = (struct ats_mini_mon_data *)
-            calloc(1, sizeof(struct ats_mini_mon_data));
-    if (!tmp_mon_data) {
-        return -RIG_ENOMEM;
-    }
-
-    idx = 0;
-    char *token = strtok((char *) buff, ",");
     while (token) {
-        // rig_debug(RIG_DEBUG_VERBOSE, "%s, parse '%s'\n", __func__, token);
         token = strtok(0, ",");
         idx++;
+
+        if (!token) {
+            break;
+        }
+
         switch (idx) {
             case 1: {
-                tmp_mon_data->freq = Hz(strtod(token, NULL) * 1000);
+                tmp_mon_data->freq_raw = strtod(token, NULL);
+                break;
+            }
+            case 2: {
+                tmp_mon_data->bfo_hz = strtod(token, NULL);
                 break;
             }
             case 4: {
                 if (strlen(token) >= MINI_BANDNAME_LEN) {
-                    rig_debug(RIG_DEBUG_ERR, "UNEXPECTED bandname");
-                    free(tmp_mon_data);
+                    rig_debug(RIG_DEBUG_ERR, "%s: UNEXPECTED bandname\n", __func__);
                     return -RIG_EPROTO;
                 }
                 memcpy(tmp_mon_data->bandname, token, (MINI_BANDNAME_LEN - 1));
@@ -121,11 +131,11 @@ static int p_ats_update_state(RIG *rig) {
                 break;
             }
             case 6: {
-                tmp_mon_data->step = strtod(token, NULL);
+                tmp_mon_data->step = Hz(p_ats_parse_scaled_value(token));
                 break;
             }
             case 7: {
-                tmp_mon_data->bandwidth = strtod(token, NULL);
+                tmp_mon_data->bandwidth = Hz(p_ats_parse_scaled_value(token));
                 break;
             }
             case 8: {
@@ -153,12 +163,89 @@ static int p_ats_update_state(RIG *rig) {
         }
         if (idx > MINI_UART_MAX_TOKEN) {
             rig_debug(RIG_DEBUG_ERR, "%s: parse failure\n", __func__);
-            free(tmp_mon_data);
             return -RIG_EPROTO;
         }
     }
 
+    if (idx < MINI_MON_MIN_FIELDS) {
+        rig_debug(RIG_DEBUG_WARN, "%s: short monitor line (%u fields)\n", __func__, idx);
+        return -RIG_EPROTO;
+    }
+
+    return RIG_OK;
+}
+
+static int p_ats_update_state(RIG *rig) {
+    unsigned char buff[MINI_UART_BUFF_SIZE] = {0};
+    int res, off_res, attempt;
+    int resynced = 0;
+
+    struct ats_mini_mon_data *tmp_mon_data = (struct ats_mini_mon_data *)
+            calloc(1, sizeof(struct ats_mini_mon_data));
+    if (!tmp_mon_data) {
+        return -RIG_ENOMEM;
+    }
+
+    // start monitor mode
+    res = p_ats_write(rig, (const unsigned char *)"t");
+    if (res != RIG_OK) {
+        free(tmp_mon_data);
+        return res;
+    }
+
+    for (attempt = 0; attempt < MINI_UART_MAX_LINE_RETRIES; attempt++) {
+        res = p_ats_read_line(rig, buff, MINI_UART_BUFF_SIZE);
+
+        if (res == -RIG_ETIMEOUT && !resynced) {
+            // no data: the radio was most likely already in monitor mode and
+            // our toggle switched it off, toggle once more to get back in sync
+            rig_debug(RIG_DEBUG_WARN, "%s: no monitor data, resyncing toggle\n", __func__);
+            resynced = 1;
+            res = p_ats_write(rig, (const unsigned char *)"t");
+            if (res != RIG_OK) {
+                break;
+            }
+            attempt--;
+            continue;
+        }
+        if (res == -RIG_ETIMEOUT) {
+            break;
+        }
+
+        if (res == RIG_OK) {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s, monitor '%s'\n", __func__, (char *)buff);
+            memset(tmp_mon_data, 0, sizeof(struct ats_mini_mon_data));
+            res = p_ats_parse_line((char *) buff, tmp_mon_data);
+            if (res == RIG_OK) {
+                break;
+            }
+        }
+
+        // partial or malformed line (e.g. we started reading mid-line), try the next one
+        rig_debug(RIG_DEBUG_WARN, "%s: bad monitor line, retry %d/%d\n",
+                  __func__, attempt + 1, MINI_UART_MAX_LINE_RETRIES);
+    }
+
+    // stop monitor mode
+    off_res = p_ats_write(rig, (const unsigned char *)"t");
+    if (res == RIG_OK) {
+        res = off_res;
+    }
+    if (res != RIG_OK) {
+        rig_debug(RIG_DEBUG_ERR, "%s: no valid monitor data: %s\n", __func__, rigerror(res));
+        free(tmp_mon_data);
+        return res;
+    }
+
     struct ats_mini_mon_data *mon_data = STATE(rig)->priv;
+
+    // FM frequency is reported in 10 kHz units, AM/SSB in kHz
+    // SSB needs the BFO offset (Hz) added for the real tuned frequency
+    if (tmp_mon_data->mode == RIG_MODE_FM) {
+        tmp_mon_data->freq = Hz(tmp_mon_data->freq_raw * 10000);
+    } else {
+        tmp_mon_data->freq = Hz(tmp_mon_data->freq_raw * 1000) + (freq_t) tmp_mon_data->bfo_hz;
+    }
 
     if (tmp_mon_data->seq_no != mon_data->seq_no) {
         mon_data->freq = tmp_mon_data->freq;
@@ -369,6 +456,46 @@ static const char *ats_mini_info(RIG *rig) {
     return info;
 }
 
+#define MINI_FREQ_REPLY_TIMEOUT_MS 100
+#define MINI_FREQ_REPLY_MAX_LINES 3
+
+// The radio echoes the "F" command ("F<hz>\r\n") and adds
+// "\r\nError: Frequency is out of range for the current band\r\n" if the
+// frequency is rejected. Consume the reply so the next monitor read does not
+// see it, and report a rejected frequency. A short timeout is used, so a
+// firmware that sends no echo only costs one timeout.
+static int p_ats_read_freq_reply(RIG *rig, freq_t freq) {
+    hamlib_port_t *rp = RIGPORT(rig);
+    int saved_timeout = rp->timeout;
+    short saved_retry = rp->timeout_retry;
+    int res = RIG_OK;
+    int i;
+
+    rp->timeout = MINI_FREQ_REPLY_TIMEOUT_MS;
+    rp->timeout_retry = 0;
+
+    for (i = 0; i < MINI_FREQ_REPLY_MAX_LINES; i++) {
+        unsigned char buff[MINI_UART_BUFF_SIZE];
+        int len = read_string(rp, buff, sizeof(buff), "\n", 1, 0, 1);
+
+        if (len <= 0) {
+            break;
+        }
+
+        if (strncmp((const char *) buff, "Error", 5) == 0) {
+            rig_debug(RIG_DEBUG_ERR, "%s: radio rejected %.0f Hz: %s\n",
+                      __func__, (double) freq, (char *) buff);
+            res = -RIG_EINVAL;
+            break;
+        }
+    }
+
+    rp->timeout = saved_timeout;
+    rp->timeout_retry = saved_retry;
+
+    return res;
+}
+
 static int ats_mini_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
@@ -379,7 +506,7 @@ static int ats_mini_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
         return res;
     }
 
-    return RIG_OK;
+    return p_ats_read_freq_reply(rig, freq);
 }
 
 static int ats_mini_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
