@@ -81,6 +81,12 @@ static int p_ats_update_state(RIG *rig) {
             continue;
         }
 
+        if (idx >= (MINI_UART_BUFF_SIZE - 1)) {
+            rig_debug(RIG_DEBUG_ERR, "%s: line too long without newline\n", __func__);
+            p_ats_write(rig, (const unsigned char *)"t");
+            return -RIG_EPROTO;
+        }
+
         buff[idx] = c;
         idx++;
         if (c == '\n') {
@@ -108,6 +114,11 @@ static int p_ats_update_state(RIG *rig) {
         // rig_debug(RIG_DEBUG_VERBOSE, "%s, parse '%s'\n", __func__, token);
         token = strtok(0, ",");
         idx++;
+
+        if (!token) {
+            break;
+        }
+
         switch (idx) {
             case 1: {
                 tmp_mon_data->freq_raw = strtod(token, NULL);
@@ -176,6 +187,12 @@ static int p_ats_update_state(RIG *rig) {
             free(tmp_mon_data);
             return -RIG_EPROTO;
         }
+    }
+
+    if (idx < MINI_MON_MIN_FIELDS) {
+        rig_debug(RIG_DEBUG_ERR, "%s: short monitor line (%u fields)\n", __func__, idx);
+        free(tmp_mon_data);
+        return -RIG_EPROTO;
     }
 
     struct ats_mini_mon_data *mon_data = STATE(rig)->priv;
