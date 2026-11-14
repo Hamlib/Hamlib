@@ -9,6 +9,7 @@ DISTCLEANFILES =
 bin_PROGRAMS = 
 
 check_PROGRAMS = \
+	simat778uv \
 	simatd578 \
 	simeasycomm \
 	simelecraft \
