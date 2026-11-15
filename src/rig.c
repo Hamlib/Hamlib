@@ -205,12 +205,15 @@ static void morse_busy_store(struct rig_state *rs, bool busy)
 struct rig_private
 {
     int no_get_vfo;     /* the backend found that this rig lacks get_vfo */
-    int (*raw_preflight)(RIG *rig);
+    rig_raw_prepare_t raw_prepare;
+    rig_raw_complete_t raw_complete;
 };
 
-void rig_set_raw_preflight(RIG *rig, int (*preflight)(RIG *rig))
+void rig_set_raw_hooks(RIG *rig, rig_raw_prepare_t prepare,
+                       rig_raw_complete_t complete)
 {
-    rig->private_addr->raw_preflight = preflight;
+    rig->private_addr->raw_prepare = prepare;
+    rig->private_addr->raw_complete = complete;
 }
 
 static void no_get_vfo_set(RIG *rig)
@@ -9159,7 +9162,8 @@ extern int read_icom_frame(hamlib_port_t *p, const unsigned char rxbuffer[],
 
 
 static int rig_send_raw_unlocked(RIG *rig, const unsigned char *send,
-                                int send_len, unsigned char *reply, int reply_len, unsigned char *term)
+                                 int send_len, unsigned char *reply, int reply_len, unsigned char *term,
+                                 int *write_result)
 {
     int nbytes;
     int retval;
@@ -9189,6 +9193,7 @@ static int rig_send_raw_unlocked(RIG *rig, const unsigned char *send,
     else
     {
         retval = write_block(rp, send, send_len);
+        *write_result = retval;
 
         if (retval < 0)
         {
@@ -9325,22 +9330,29 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
                                 unsigned char *term)
 {
     int retval = RIG_OK;
-    int (*preflight)(RIG *rig) = rig->private_addr->raw_preflight;
+    int write_result = RIG_OK;
+    rig_raw_complete_t complete = rig->private_addr->raw_complete;
+    rig_raw_prepare_t prepare = rig->private_addr->raw_prepare;
 
     if (reply != NULL && reply_len < 1) { return -RIG_EINVAL; }
 
-    if (preflight)
-    {
-        rig_lock(rig, 1);
-        retval = preflight(rig);
-    }
+    if (prepare || complete) { rig_lock(rig, 1); }
+
+    if (prepare) { retval = prepare(rig, send, send_len); }
 
     if (retval == RIG_OK)
     {
-        retval = rig_send_raw_unlocked(rig, send, send_len, reply, reply_len, term);
+        retval = rig_send_raw_unlocked(rig, send, send_len, reply, reply_len,
+                                       term, &write_result);
+
+        if (complete)
+        {
+            complete(rig, write_result);
+        }
     }
 
-    if (preflight) { rig_lock(rig, 0); }
+    if (prepare || complete) { rig_lock(rig, 0); }
+
     return retval;
 }
 

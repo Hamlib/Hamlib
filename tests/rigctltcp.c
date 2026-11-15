@@ -1225,7 +1225,11 @@ void *handle_socket(void *arg)
             if (cmd[0] != 0)
             {
                 memset(reply, 0, sizeof(reply));
-                rig_flush(RIGPORT(my_rig));
+                /* K4 raw I/O retains partial replies across timeouts. */
+                if (my_rig->caps->rig_model != RIG_MODEL_K4)
+                {
+                    rig_flush(RIGPORT(my_rig));
+                }
                 retcode = rig_send_raw(my_rig, cmd, nbytes, reply, sizeof(reply),
                                        term);
 
