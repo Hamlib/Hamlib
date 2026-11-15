@@ -1703,13 +1703,16 @@ static int run_recovery_case(enum recovery_reader reader, int partial,
     return 0;
 }
 
-static int run_failed_write_reset_case(void)
+static int run_failed_write_reset_case(int raw_write)
 {
-    static const char *commands[] = { "ID;", "FA;", "ID;", "AI;", "FA;", "ID;" };
+    static const char *commands[] = { "ID;", "FA;", "ID;", "TQ;", "RVM;", "ID;", "FA;", "ID;" };
     static const char *responses[] =
-    { "ID017;", "FA00028076000;", "ID017;", "AI0;", "FA00028076000;", "ID017;" };
+    {
+        "ID017;", "FA00028076000;", "ID017;", "TQ0;",
+        "RVM03.38;", "ID017;", "FA00028076000;", "ID017;"
+    };
     struct peer_case peer = { .commands = commands, .responses = responses,
-                              .count = 6, .status = -1 };
+                              .count = 8, .status = -1 };
     RIG *rig = rig_init(RIG_MODEL_K4);
     struct kenwood_priv_data *priv;
     pthread_t thread;
@@ -1725,8 +1728,12 @@ static int run_failed_write_reset_case(void)
     RIGPORT(rig)->type.rig = RIG_PORT_NETWORK;
     RIGPORT(rig)->timeout = 160;
 
-    if (kenwood_transaction_k4_set_once(rig, "FA00028075000") == RIG_OK
-            || !priv->k4_stream_unusable) { failed = 1; }
+    int write_result = raw_write
+                       ? rig_send_raw(rig, (const unsigned char *)"ID;", 3,
+                                      NULL, 0, NULL)
+                       : kenwood_transaction_k4_set_once(rig, "FA00028075000");
+
+    if (write_result >= RIG_OK || !priv->k4_stream_unusable) { failed = 1; }
 
     RIGPORT(rig)->type.rig = RIG_PORT_SERIAL;
     kenwood_k4_reset(rig);
@@ -1765,10 +1772,10 @@ static int run_failed_write_reset_case(void)
 
     STATE(rig)->comm_state = 1;
 
-    if (rig_send_raw(rig, (const unsigned char *)"AI;", 3,
+    if (rig_send_raw(rig, (const unsigned char *)"TQ;", 3,
                      (unsigned char *)reply, sizeof(reply),
                      (unsigned char *)";") != 4
-            || memcmp(reply, "AI0;", 4) != 0) { failed = 1; }
+            || memcmp(reply, "TQ0;", 4) != 0) { failed = 1; }
 
     if (kenwood_transaction(rig, "FA", reply, sizeof(reply)) != RIG_OK
             || strcmp(reply, "FA00028076000") != 0) { failed = 1; }
@@ -1790,6 +1797,272 @@ static int run_failed_write_reset_case(void)
 
     return 0;
 }
+
+
+struct raw_exchange_case
+{
+    const char *name;
+    const char *command;
+    const char *response;
+    const char *late_response;
+    int capacity;
+    int expected;
+    const char *marker;
+    int in_place;
+    int partial_marker;
+    int raw_ids;
+};
+
+struct raw_exchange_peer
+{
+    int fd;
+    const struct raw_exchange_case *test;
+    int released;
+    int status;
+    pthread_mutex_t mutex;
+    pthread_cond_t condition;
+};
+
+static void *run_raw_exchange_peer(void *arg)
+{
+    struct raw_exchange_peer *peer = arg;
+    const struct raw_exchange_case *test = peer->test;
+    char byte;
+
+    for (size_t i = 0; i < strlen(test->command); i++)
+    {
+        if (read_test_socket(peer->fd, &byte, 1) != 1
+                || byte != test->command[i]) { return NULL; }
+    }
+
+    if (test->response
+            && write_all(peer->fd, test->response, strlen(test->response)) != 0)
+    { return NULL; }
+
+    pthread_mutex_lock(&peer->mutex);
+
+    while (!peer->released)
+    {
+        pthread_cond_wait(&peer->condition, &peer->mutex);
+    }
+
+    pthread_mutex_unlock(&peer->mutex);
+
+    if (test->late_response
+            && write_all(peer->fd, test->late_response,
+                         strlen(test->late_response)) != 0) { return NULL; }
+
+    if (test->marker)
+    {
+        const int id_marker = strcmp(test->marker, "ID;") == 0;
+        const char *boundary = id_marker ? "RVM03.38;ID017;" :
+                               strcmp(test->marker, "RVM;") == 0 ? "ID017;RVM03.38;" :
+                               "ID017;RVD01.47;";
+
+        if (test->raw_ids)
+        {
+            if (expect_peer_command(peer->fd, "RVM;") != 0
+                    || write_all(peer->fd, "RVM03.38;", 9) != 0) { return NULL; }
+            for (int i = 0; i <= test->raw_ids; i++)
+            {
+                if (expect_peer_command(peer->fd, "ID;") != 0
+                        || write_all(peer->fd, "ID017;", 6) != 0) { return NULL; }
+            }
+            boundary = "RVM03.38;";
+        }
+        else if (expect_peer_command(peer->fd, id_marker ? "RVM;" : "ID;") != 0)
+        { return NULL; }
+
+        if (expect_peer_command(peer->fd, test->marker) != 0) { return NULL; }
+        if (test->partial_marker)
+        {
+            size_t prefix = strlen(boundary) - 2;
+            if (write_all(peer->fd, boundary, prefix) != 0) { return NULL; }
+            pthread_mutex_lock(&peer->mutex);
+            while (peer->released < 2) { pthread_cond_wait(&peer->condition, &peer->mutex); }
+            pthread_mutex_unlock(&peer->mutex);
+            boundary += prefix;
+        }
+        if (write_all(peer->fd, boundary, strlen(boundary)) != 0) { return NULL; }
+        if (expect_peer_command(peer->fd, "TQ;") != 0
+                || expect_peer_command(peer->fd, "ID;") != 0
+                || write_all(peer->fd, "TQ0;ID017;", 10) != 0) { return NULL; }
+    }
+
+    /* EOF proves blocked calls sent nothing after the raw exchange. */
+    if (read_test_socket(peer->fd, &byte, 1) == 0) { peer->status = 0; }
+
+    return NULL;
+}
+
+static int run_raw_exchange_case(const struct raw_exchange_case *test)
+{
+    int sockets[2];
+    pthread_t thread;
+    int failed = 0;
+    unsigned char reply[64] = {0};
+    ptt_t ptt = RIG_PTT_ON;
+    freq_t frequency = 0;
+    struct raw_exchange_peer peer =
+    {
+        .test = test, .status = -1,
+        .mutex = PTHREAD_MUTEX_INITIALIZER,
+        .condition = PTHREAD_COND_INITIALIZER
+    };
+    RIG *rig = rig_init(RIG_MODEL_K4);
+
+    if (!rig) { return 1; }
+
+    if (open_test_connection(sockets) != 0) { rig_cleanup(rig); return 1; }
+
+    peer.fd = sockets[1];
+    bound_peer_reads(peer.fd);
+    RIGPORT(rig)->fd = sockets[0];
+    RIGPORT(rig)->rig = rig;
+    RIGPORT(rig)->type.rig = RIG_PORT_NETWORK;
+    RIGPORT(rig)->timeout = 160;
+    RIGPORT(rig)->retry = 0;
+    STATE(rig)->comm_state = 1;
+    STATE(rig)->twiddle_timeout = 0;
+    rig_set_vfo_state(rig, RIG_VFO_A, RIG_VFO_B);
+    rig_invalidate_cache(rig);
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
+
+    if (pthread_create(&thread, NULL, run_raw_exchange_peer, &peer) != 0)
+    {
+        close_test_socket(sockets[0]);
+        close_test_socket(sockets[1]);
+        RIGPORT(rig)->fd = -1;
+        STATE(rig)->comm_state = 0;
+        rig_cleanup(rig);
+        return 1;
+    }
+
+    /* Rejected arguments must not create a raw exchange or poison the stream. */
+    if (rig_send_raw(rig, (const unsigned char *)"ID;", 3, reply, 0,
+                     (unsigned char *)";") != -RIG_EINVAL
+            || priv->k4_stream_unusable) { failed = 1; }
+
+    const unsigned char *request = (const unsigned char *)test->command;
+    if (test->in_place)
+    {
+        memcpy(reply, request, strlen(test->command));
+        request = reply;
+    }
+
+    int first = rig_send_raw(rig, request, strlen(test->command),
+                             test->capacity ? reply : NULL, test->capacity,
+                             (unsigned char *)";");
+
+    if (first != test->expected) { failed = 1; }
+
+    if (first > 0 && memcmp(reply, test->response, first) != 0) { failed = 1; }
+
+    pthread_mutex_lock(&peer.mutex);
+    peer.released = 1;
+    pthread_cond_signal(&peer.condition);
+    pthread_mutex_unlock(&peer.mutex);
+    if (test->partial_marker)
+    {
+        if (rig_send_raw(rig, (const unsigned char *)"MD;", 3, reply, sizeof(reply),
+                         (unsigned char *)";") != -RIG_ETIMEOUT
+                || priv->k4_frame_length != strlen("RVM03.3")) { failed = 1; }
+        pthread_mutex_lock(&peer.mutex);
+        peer.released = 2;
+        pthread_cond_signal(&peer.condition);
+        pthread_mutex_unlock(&peer.mutex);
+    }
+    RIGPORT(rig)->timeout = 1000;
+    int second = rig_get_ptt(rig, RIG_VFO_A, &ptt);
+
+    if (test->marker)
+    {
+        if (second != RIG_OK || ptt != RIG_PTT_OFF) { failed = 1; }
+    }
+    else
+    {
+        if (second != -RIG_EIO
+                || rig_get_freq(rig, RIG_VFO_A, &frequency) != -RIG_EIO
+                || rig_send_raw(rig, (const unsigned char *)"ID;", 3,
+                                reply, sizeof(reply), (unsigned char *)";")
+                != -RIG_EIO) { failed = 1; }
+
+        RIGPORT(rig)->type.rig = RIG_PORT_SERIAL;
+        kenwood_k4_reset(rig);
+
+        if (!priv->k4_stream_unusable) { failed = 1; }
+
+        RIGPORT(rig)->type.rig = RIG_PORT_NETWORK;
+    }
+
+    finish_test_writes(sockets[0]);
+    pthread_join(thread, NULL);
+    close_test_socket(sockets[0]);
+    close_test_socket(sockets[1]);
+    RIGPORT(rig)->fd = -1;
+    STATE(rig)->comm_state = 0;
+    rig_cleanup(rig);
+    pthread_cond_destroy(&peer.condition);
+    pthread_mutex_destroy(&peer.mutex);
+
+    if (failed || peer.status != 0)
+    {
+        fprintf(stderr, "%s: raw=%d query=%d failed=%d peer=%d\n",
+                test->name, first, second, failed, peer.status);
+        return 1;
+    }
+
+    return 0;
+}
+
+static int run_raw_exchange_cases(void)
+{
+    char long_tail[KENWOOD_MAX_BUF_LEN + sizeof("ID017;TQ1;")];
+    memset(long_tail, 'X', KENWOOD_MAX_BUF_LEN);
+    strcpy(long_tail + KENWOOD_MAX_BUF_LEN, "ID017;TQ1;");
+
+    const struct raw_exchange_case cases[] =
+    {
+        { "raw-read-only", "", "AI0;", NULL, 64, 4, "ID;" },
+        { "raw-oversize-tail", "IF;", "IF", long_tail, 64, -RIG_ETIMEOUT, "ID;" },
+        { "raw-id-timeout", "ID;", NULL, "ID017;", 64, -RIG_ETIMEOUT, "RVM;" },
+        { "raw-id-partial", "ID;", "ID", "017;", 64, -RIG_ETIMEOUT, "RVM;" },
+        { "raw-id-write-only", "ID;", NULL, "ID017;", 0, RIG_OK, "RVM;" },
+        { "raw-compound-id", "ID;ID;", "ID017;", "ID017;TQ1;", 64, 6, "RVM;" },
+        { "raw-compound-version", "ID;RVM;", "ID017;", "RVM03.38;", 64, 6, "RVD;" },
+        { "raw-all-markers", "ID;RVM;RVD;", "TQ0;", "ID017;RVM03.38;RVD01.47;", 64, 4,
+          "RVM;", .raw_ids = 1 },
+        { "raw-all-markers-repeated-id", "ID;ID;RV;", "TQ0;",
+          "ID017;ID017;RVM03.38;RVD01.47;TQ1;", 64, 4, "RVM;", .raw_ids = 2 },
+        { "raw-capacity", "ID;", "ID017;", NULL, 4, -RIG_EINVAL, "RVM;" },
+        { "raw-malformed-id", "ID;", "ID019;", NULL, 64, 6, "RVM;" },
+        { "raw-partial-tail-matches-marker", "IF;", "IF", "ID017;TQ1;", 64, -RIG_ETIMEOUT, "ID;" },
+        { "raw-command-rejected", "MD8;", "?;", NULL, 64, 2, "ID;" },
+        { "raw-wrong-prefix", "TQ;", "FT1;", "TQ1;", 64, 4, "ID;" },
+        { "raw-malformed-boolean", "TQ;", "TQ2;", NULL, 64, 4, "ID;" },
+        { "raw-malformed-frequency", "FA;", "FA00028X75000;", NULL, 64, 14, "ID;" },
+        { "raw-ai-query", "AI;", "AI0;", NULL, 64, 4, "ID;" },
+        { "raw-mode-query", "MD;", "MD6;", NULL, 64, 4, "ID;" },
+        { "raw-sub-mode-query", "MD$;", "MD$2;", NULL, 64, 5, "ID;" },
+        { "raw-setter-write-only", "AI0;", NULL, NULL, 0, RIG_OK, "ID;" },
+        { "raw-compound-query", "MD;TQ;", "MD6;", "TQ1;", 64, 4, "ID;" },
+        { "raw-partial-marker", "ID;", "ID017;", NULL, 64, 6, "RVM;", 0, 1 },
+        { "raw-id-in-place", "ID;", "ID017;", NULL, 64, 6, "RVM;", 1 },
+        { "raw-fa-complete", "FA;", "FA00028075000;", NULL, 64, 14, "ID;" },
+        { "raw-fb-complete", "FB;", "FB00014074000;", NULL, 64, 14, "ID;" },
+        { "raw-ft-complete", "FT;", "FT1;", NULL, 64, 4, "ID;" },
+        { "raw-tq-complete", "TQ;", "TQ1;", NULL, 64, 4, "ID;" },
+        { "raw-unterminated", "FA", NULL, NULL, 0, RIG_OK, NULL }
+    };
+
+    for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++)
+    {
+        if (run_raw_exchange_case(&cases[i]) != 0) { return 1; }
+    }
+
+    return run_failed_write_reset_case(1);
+}
+
 
 struct query_failure_case
 {
@@ -2295,7 +2568,7 @@ static int run_setter_cases(void)
                 || run_recovery_case(reader, 0, 1, "?;") != 0) { return 1; }
     }
 
-    return run_failed_write_reset_case();
+    return run_failed_write_reset_case(0);
 }
 
 int main(void)
@@ -2487,6 +2760,7 @@ int main(void)
     if (!failed) { failed = test_meters(); }
     if (!failed) { failed = run_setter_cases(); }
     if (!failed) { failed = run_query_cases(); }
+    if (!failed) { failed = run_raw_exchange_cases(); }
 
 cleanup:
 #ifdef _WIN32
