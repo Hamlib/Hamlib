@@ -274,6 +274,153 @@ static int mcast_port(int slot)
     return 20000 + ((int)(getpid() % 2000) * 8) + slot;
 }
 
+
+struct multicast_capture
+{
+    int active;
+    struct sockaddr_in destination;
+    unsigned int errors;
+    unsigned int packets;
+    unsigned int data_packets;
+    uint16_t stream_id;
+    uint64_t last_timestamp;
+    unsigned char first_data[RIG_STREAM_MAX_DATAGRAM];
+    size_t first_data_len;
+};
+
+static pthread_mutex_t multicast_lock = PTHREAD_MUTEX_INITIALIZER;
+static struct multicast_capture multicast_capture;
+
+
+static struct multicast_capture multicast_snapshot(void)
+{
+    struct multicast_capture snapshot;
+    pthread_mutex_lock(&multicast_lock);
+    snapshot = multicast_capture;
+    pthread_mutex_unlock(&multicast_lock);
+    return snapshot;
+}
+
+
+/* Activate before stream_open starts a feeder; reset only after its join. */
+static void multicast_capture_begin(int slot)
+{
+    pthread_mutex_lock(&multicast_lock);
+    memset(&multicast_capture, 0, sizeof(multicast_capture));
+    multicast_capture.active = 1;
+    multicast_capture.destination.sin_family = AF_INET;
+    multicast_capture.destination.sin_addr.s_addr = inet_addr(MCAST_GROUP);
+    multicast_capture.destination.sin_port = htons(mcast_port(slot));
+    pthread_mutex_unlock(&multicast_lock);
+}
+
+
+static void multicast_capture_reset(void)
+{
+    pthread_mutex_lock(&multicast_lock);
+    memset(&multicast_capture, 0, sizeof(multicast_capture));
+    pthread_mutex_unlock(&multicast_lock);
+}
+
+
+/* Only rigctld_stream.c uses this hook; client-side and unicast I/O stay real. */
+ssize_t rigctld_commands_test_sendto(int fd, const char *buf, size_t len,
+                                     int flags, const struct sockaddr *addr, socklen_t addrlen)
+{
+    int is_multicast = 0;
+
+    if (addr && addr->sa_family == AF_INET
+            && addrlen >= sizeof(struct sockaddr_in))
+    {
+        uint32_t ip = ntohl(((const struct sockaddr_in *)addr)->sin_addr.s_addr);
+        is_multicast = (ip & 0xf0000000U) == 0xe0000000U;
+    }
+    else if (addr && addr->sa_family == AF_INET6
+             && addrlen >= sizeof(struct sockaddr_in6))
+    {
+        is_multicast = IN6_IS_ADDR_MULTICAST(
+                           &((const struct sockaddr_in6 *)addr)->sin6_addr);
+    }
+
+    pthread_mutex_lock(&multicast_lock);
+    struct multicast_capture *capture = &multicast_capture;
+
+    if (!capture->active && !is_multicast)
+    {
+        pthread_mutex_unlock(&multicast_lock);
+        return sendto(fd, buf, len, flags, addr, addrlen);
+    }
+
+    /* Unexpected destinations must never escape onto the real network. */
+    int valid = capture->active && addr && addr->sa_family == AF_INET
+                && addrlen >= sizeof(struct sockaddr_in) && flags == 0;
+
+    if (valid)
+    {
+        const struct sockaddr_in *destination = (const struct sockaddr_in *)addr;
+        valid = destination->sin_addr.s_addr == capture->destination.sin_addr.s_addr
+                && destination->sin_port == capture->destination.sin_port;
+    }
+
+    struct rig_stream_packet_header hdr;
+
+    valid = valid && buf && len <= RIG_STREAM_MAX_DATAGRAM
+            && stream_packet_header_unpack((const unsigned char *)buf, len, &hdr) == 0
+            && len == RIG_STREAM_HEADER_SIZE + (size_t)hdr.payload_len;
+
+    if (valid)
+    {
+        valid = hdr.type == RIG_STREAM_TYPE_AUDIO_RX
+                && hdr.format == RIG_STREAM_FMT_ID_PCM_S16
+                && hdr.sample_rate == 48000 && hdr.channels == 1
+                && (capture->packets == 0 || hdr.stream_id == capture->stream_id);
+    }
+
+    if (valid && pkt_is_data(&hdr))
+    {
+        size_t data_len = pkt_data_len(&hdr);
+        valid = data_len > 0 && data_len % 2 == 0
+                && (capture->data_packets == 0
+                    || hdr.timestamp > capture->last_timestamp);
+
+        if (valid)
+        {
+            if (capture->data_packets == 0)
+            {
+                memcpy(capture->first_data, buf, len);
+                capture->first_data_len = len;
+            }
+
+            capture->data_packets++;
+            capture->last_timestamp = hdr.timestamp;
+        }
+    }
+
+    if (valid)
+    {
+        capture->stream_id = hdr.stream_id;
+        capture->packets++;
+    }
+    else
+    {
+        capture->errors++;
+    }
+
+    pthread_mutex_unlock(&multicast_lock);
+
+    if (!valid)
+    {
+#ifdef _WIN32
+        WSASetLastError(WSAEINVAL);
+#else
+        errno = EINVAL;
+#endif
+        return -1;
+    }
+
+    return (ssize_t)len;
+}
+
 /* Run a \stream_open whose multicast address belongs to this process. */
 static int run_mcast_open(RIG *rig, const char *prefix, int slot,
                           const char *suffix, char *outbuf, size_t outbuf_size)
@@ -356,6 +503,10 @@ static void stream_test_end(RIG *rig)
 {
     rigctld_stream_registry_destroy(&g_stream_registry);
     test_rig_teardown(rig);
+    TEST_CHECK(multicast_snapshot().errors == 0);
+    TEST_MSG("unexpected or malformed multicast sends: %u",
+             multicast_snapshot().errors);
+    multicast_capture_reset();
 }
 
 static int parse_open_response(const char *buf, int *stream_id, int *udp_port)
@@ -5251,6 +5402,94 @@ void test_cmd_close_by_client_idempotent(void)
 
 /* --- Multicast streaming tests --- */
 
+static void multicast_expect_progress(int stream_id, unsigned int minimum)
+{
+    WAIT_UNTIL_MS(multicast_snapshot().data_packets >= minimum, FEEDER_TAKEUP_MS);
+    struct multicast_capture captured = multicast_snapshot();
+    TEST_CHECK(captured.errors == 0);
+    TEST_CHECK(captured.data_packets >= minimum);
+    TEST_MSG("captured %u data packets, expected at least %u",
+             captured.data_packets, minimum);
+    TEST_CHECK(captured.stream_id == stream_id);
+
+    struct rig_stream_packet_header hdr;
+
+    if (TEST_CHECK(stream_packet_header_unpack(captured.first_data,
+            captured.first_data_len, &hdr) == 0))
+    {
+        TEST_CHECK(hdr.stream_id == stream_id);
+        TEST_CHECK(pkt_is_data(&hdr));
+        TEST_CHECK(pkt_data_len(&hdr) > 0);
+
+        if (minimum >= 2)
+        {
+            TEST_CHECK(captured.last_timestamp > hdr.timestamp);
+        }
+    }
+}
+
+
+static void multicast_close(RIG *rig, int stream_id)
+{
+    struct rigctld_stream *s = rigctld_stream_registry_find_by_id(
+                                   &g_stream_registry, stream_id);
+    int fd = s ? s->udp_sock : -1;
+    TEST_CHECK(s != NULL);
+    char cmd[64], buf[1024];
+    snprintf(cmd, sizeof(cmd), "\\stream_close %d", stream_id);
+    TEST_CHECK(run_cmd(rig, cmd, buf, sizeof(buf)) == 0);
+    TEST_CHECK(rigctld_stream_registry_find_by_id(
+                   &g_stream_registry, stream_id) == NULL);
+    TEST_CHECK(rigctld_stream_registry_count(&g_stream_registry) == 0);
+    TEST_CHECK(!socket_is_open(fd));
+}
+
+
+void test_multicast_send_capture_rejects_invalid(void)
+{
+    multicast_capture_begin(0);
+    struct sockaddr_in destination = multicast_snapshot().destination;
+    unsigned char pkt[RIG_STREAM_HEADER_SIZE + 2] = { 0 };
+    struct rig_stream_packet_header hdr = { 0 };
+    hdr.version = RIG_STREAM_PROTOCOL_VERSION;
+    hdr.type = RIG_STREAM_TYPE_AUDIO_RX;
+    hdr.stream_id = 7;
+    hdr.sample_rate = 48000;
+    hdr.format = RIG_STREAM_FMT_ID_PCM_S16;
+    hdr.channels = 1;
+    hdr.payload_len = 2;
+    stream_packet_header_pack(&hdr, pkt);
+
+    /* No socket exists: only a captured send can succeed. */
+    TEST_CHECK(rigctld_commands_test_sendto(-1, (const char *)pkt, sizeof(pkt),
+                                            0, (struct sockaddr *)&destination, sizeof(destination))
+               == (ssize_t)sizeof(pkt));
+    TEST_CHECK(multicast_snapshot().data_packets == 1);
+    pkt[RIG_STREAM_HEADER_SIZE] = 42;
+    TEST_CHECK(multicast_snapshot().first_data[RIG_STREAM_HEADER_SIZE] == 0);
+
+    destination.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    TEST_CHECK(rigctld_commands_test_sendto(-1, (const char *)pkt, sizeof(pkt),
+                                            0, (struct sockaddr *)&destination, sizeof(destination)) == -1);
+    destination = multicast_snapshot().destination;
+    destination.sin_port = htons(mcast_port(1));
+    TEST_CHECK(rigctld_commands_test_sendto(-1, (const char *)pkt, sizeof(pkt),
+                                            0, (struct sockaddr *)&destination, sizeof(destination)) == -1);
+    destination = multicast_snapshot().destination;
+    TEST_CHECK(rigctld_commands_test_sendto(-1, (const char *)pkt, 1,
+                                            0, (struct sockaddr *)&destination, sizeof(destination)) == -1);
+    TEST_CHECK(rigctld_commands_test_sendto(-1, (const char *)pkt, sizeof(pkt) - 1,
+                                            0, (struct sockaddr *)&destination, sizeof(destination)) == -1);
+    TEST_CHECK(multicast_snapshot().errors == 4);
+    TEST_CHECK(multicast_snapshot().packets == 1);
+
+    multicast_capture_reset();
+    TEST_CHECK(rigctld_commands_test_sendto(-1, (const char *)pkt, sizeof(pkt),
+                                            0, (struct sockaddr *)&destination, sizeof(destination)) == -1);
+    TEST_CHECK(multicast_snapshot().errors == 1);
+    multicast_capture_reset();
+}
+
 
 /* Parse multicast address from ext_resp output (e.g. "multicast: 239.1.2.3\n") */
 static int parse_ext_str(const char *buf, const char *key,
@@ -5281,10 +5520,11 @@ static int parse_ext_str(const char *buf, const char *key,
 void test_cmd_stream_open_multicast_ipv4(void)
 {
     RIG *rig = stream_test_begin();
+    multicast_capture_begin(0);
     char buf[1024];
 
     int ret = run_mcast_open(rig, "\\stream_open AUDIO_RX PCM_S16 48000", 0, "",
-        buf, sizeof(buf));
+                             buf, sizeof(buf));
     TEST_CHECK(ret == 0);
     TEST_MSG("stream_open returned %d", ret);
 
@@ -5307,14 +5547,13 @@ void test_cmd_stream_open_multicast_ipv4(void)
     /* Verify stream is registered as multicast */
     struct rigctld_stream *s = rigctld_stream_registry_find_by_id(
                                    &g_stream_registry, stream_id);
-    TEST_CHECK(s != NULL);
-    TEST_CHECK(s->multicast == 1);
-    TEST_MSG("multicast flag: got %d, expected 1", s->multicast);
+    if (TEST_CHECK(s != NULL))
+    {
+        TEST_CHECK(s->multicast == 1);
+    }
 
-    /* Clean up */
-    char close_cmd[64];
-    snprintf(close_cmd, sizeof(close_cmd), "\\stream_close %d", stream_id);
-    run_cmd(rig, close_cmd, buf, sizeof(buf));
+    multicast_expect_progress(stream_id, 2);
+    multicast_close(rig, stream_id);
 
     stream_test_end(rig);
 }
@@ -5323,17 +5562,19 @@ void test_cmd_stream_open_multicast_ipv4(void)
 void test_cmd_stream_open_multicast_tx_rejected(void)
 {
     RIG *rig = stream_test_begin();
+    multicast_capture_begin(0);
     char buf[1024];
 
     /* TX multicast should be rejected */
     int ret = run_mcast_open(rig, "\\stream_open AUDIO_TX PCM_S16 48000", 0, "",
-        buf, sizeof(buf));
+                             buf, sizeof(buf));
     TEST_CHECK(ret != 0);
     TEST_MSG("TX multicast should be rejected, got ret=%d", ret);
 
     /* No streams should be registered */
     TEST_CHECK(rigctld_stream_registry_count(&g_stream_registry) == 0);
 
+    TEST_CHECK(multicast_snapshot().packets == 0);
     stream_test_end(rig);
 }
 
@@ -5341,6 +5582,7 @@ void test_cmd_stream_open_multicast_tx_rejected(void)
 void test_cmd_stream_open_multicast_bad_addr(void)
 {
     RIG *rig = stream_test_begin();
+    multicast_capture_begin(0);
     char buf[1024];
 
     /* Non-multicast address should be rejected */
@@ -5352,6 +5594,7 @@ void test_cmd_stream_open_multicast_bad_addr(void)
 
     TEST_CHECK(rigctld_stream_registry_count(&g_stream_registry) == 0);
 
+    TEST_CHECK(multicast_snapshot().packets == 0);
     stream_test_end(rig);
 }
 
@@ -5359,29 +5602,31 @@ void test_cmd_stream_open_multicast_bad_addr(void)
 void test_cmd_stream_open_multicast_duplicate(void)
 {
     RIG *rig = stream_test_begin();
+    multicast_capture_begin(0);
     char buf[1024];
 
     /* First open should succeed */
     int ret = run_mcast_open(rig, "\\stream_open AUDIO_RX PCM_S16 48000", 0, "",
-        buf, sizeof(buf));
+                             buf, sizeof(buf));
     TEST_CHECK(ret == 0);
 
     int stream_id = -1, udp_port = -1;
     parse_open_response(buf, &stream_id, &udp_port);
 
+    multicast_expect_progress(stream_id, 2);
+    unsigned int previous = multicast_snapshot().data_packets;
+
     /* Second open with same group:port should fail */
     ret = run_mcast_open(rig, "\\stream_open AUDIO_RX PCM_S16 48000", 0, "",
-        buf, sizeof(buf));
+                         buf, sizeof(buf));
     TEST_CHECK(ret != 0);
     TEST_MSG("duplicate group:port should be rejected, got ret=%d", ret);
 
     /* Only 1 stream should be registered */
     TEST_CHECK(rigctld_stream_registry_count(&g_stream_registry) == 1);
 
-    /* Clean up */
-    char close_cmd[64];
-    snprintf(close_cmd, sizeof(close_cmd), "\\stream_close %d", stream_id);
-    run_cmd(rig, close_cmd, buf, sizeof(buf));
+    multicast_expect_progress(stream_id, previous + 2);
+    multicast_close(rig, stream_id);
 
     stream_test_end(rig);
 }
@@ -5390,10 +5635,12 @@ void test_cmd_stream_open_multicast_duplicate(void)
 void test_cmd_stream_open_multicast_ttl_override(void)
 {
     RIG *rig = stream_test_begin();
+    multicast_capture_begin(1);
     char buf[1024];
 
-    int ret = run_mcast_open(rig, "\\stream_open AUDIO_RX PCM_S16 48000", 1, " ttl=4",
-        buf, sizeof(buf));
+    int ret = run_mcast_open(rig, "\\stream_open AUDIO_RX PCM_S16 48000", 1,
+                             " ttl=4",
+                             buf, sizeof(buf));
     TEST_CHECK(ret == 0);
     TEST_MSG("stream_open returned %d", ret);
 
@@ -5402,14 +5649,19 @@ void test_cmd_stream_open_multicast_ttl_override(void)
 
     struct rigctld_stream *s = rigctld_stream_registry_find_by_id(
                                    &g_stream_registry, stream_id);
-    TEST_CHECK(s != NULL);
-    TEST_CHECK(s->multicast == 1);
-    TEST_CHECK(s->multicast_ttl == 4);
-    TEST_MSG("ttl: got %d, expected 4", s->multicast_ttl);
+    if (TEST_CHECK(s != NULL))
+    {
+        TEST_CHECK(s->multicast == 1);
+        TEST_CHECK(s->multicast_ttl == 4);
+        unsigned int ttl = 0;
+        socklen_t ttl_len = sizeof(ttl);
+        TEST_CHECK(getsockopt(s->udp_sock, IPPROTO_IP, IP_MULTICAST_TTL,
+                              (char *)&ttl, &ttl_len) == 0);
+        TEST_CHECK(ttl == 4);
+    }
 
-    char close_cmd[64];
-    snprintf(close_cmd, sizeof(close_cmd), "\\stream_close %d", stream_id);
-    run_cmd(rig, close_cmd, buf, sizeof(buf));
+    multicast_expect_progress(stream_id, 2);
+    multicast_close(rig, stream_id);
 
     stream_test_end(rig);
 }
@@ -5598,10 +5850,12 @@ void test_cmd_stream_open_kv_transport_buffer(void)
 void test_cmd_stream_status_multicast(void)
 {
     RIG *rig = stream_test_begin();
+    multicast_capture_begin(2);
     char buf[1024];
 
-    int ret = run_mcast_open(rig, "\\stream_open AUDIO_RX PCM_S16 48000", 2, " ttl=3",
-        buf, sizeof(buf));
+    int ret = run_mcast_open(rig, "\\stream_open AUDIO_RX PCM_S16 48000", 2,
+                             " ttl=3",
+                             buf, sizeof(buf));
     TEST_CHECK(ret == 0);
 
     int stream_id = -1, udp_port = -1;
@@ -5625,9 +5879,8 @@ void test_cmd_stream_status_multicast(void)
     TEST_CHECK(ttl == 3);
     TEST_MSG("status ttl: got %d, expected 3", ttl);
 
-    char close_cmd[64];
-    snprintf(close_cmd, sizeof(close_cmd), "\\stream_close %d", stream_id);
-    run_cmd(rig, close_cmd, buf, sizeof(buf));
+    multicast_expect_progress(stream_id, 2);
+    multicast_close(rig, stream_id);
 
     stream_test_end(rig);
 }
@@ -5923,36 +6176,42 @@ void test_rx_resubscribe_resets_timeout(void)
 void test_rx_multicast_no_timeout(void)
 {
     RIG *rig = stream_test_begin();
+    multicast_capture_begin(3);
     TEST_CHECK(rig != NULL);
     char buf[1024];
 
-    int ret = run_mcast_open(rig, "\\stream_open AUDIO_RX PCM_S16 48000", 3, "",
-        buf, sizeof(buf));
+    int ret = run_mcast_open(rig, "\\stream_open AUDIO_RX PCM_S16 48000", 3,
+                             " keepalive_timeout=5",
+                             buf, sizeof(buf));
     TEST_CHECK(ret == 0);
 
     int stream_id = -1, udp_port = -1;
     TEST_CHECK(parse_open_response(buf, &stream_id, &udp_port) == 0);
 
-    /* Shorten keepalive timeout */
-    struct rigctld_stream *s = rigctld_stream_registry_find_by_id(
-                                   &g_stream_registry, stream_id);
-    TEST_CHECK(s != NULL);
+    multicast_expect_progress(stream_id, 2);
+    struct timespec start, now;
+    clock_gettime(CLOCK_MONOTONIC, &start);
 
-    if (s)
+    do
     {
-        s->subscribe_timeout_s = 2;
+        struct timespec pause = { 0, 10000000L };
+        nanosleep(&pause, NULL);
+        clock_gettime(CLOCK_MONOTONIC, &now);
     }
+    while ((now.tv_sec - start.tv_sec) * 1000
+            + (now.tv_nsec - start.tv_nsec) / 1000000 < 6000);
 
-    /* Wait past timeout — multicast should stay alive */
-    sleep(3);
+    unsigned int previous = multicast_snapshot().data_packets;
+    multicast_expect_progress(stream_id, previous + 2);
+    pthread_mutex_lock(&g_stream_registry.lock);
+    struct rigctld_stream *s = rigctld_stream_registry_find_by_id_unlocked(
+                                   &g_stream_registry, stream_id);
+    int alive = s && !s->auto_closed;
+    pthread_mutex_unlock(&g_stream_registry.lock);
+    TEST_CHECK(alive);
+    TEST_MSG("multicast feeder must keep sending without client keepalives");
 
-    s = rigctld_stream_registry_find_by_id(&g_stream_registry, stream_id);
-    TEST_CHECK(s != NULL && s->auto_closed == 0);
-    TEST_MSG("multicast stream should be exempt from keepalive timeout");
-
-    char close_cmd[64];
-    snprintf(close_cmd, sizeof(close_cmd), "\\stream_close %d", stream_id);
-    run_cmd(rig, close_cmd, buf, sizeof(buf));
+    multicast_close(rig, stream_id);
 
     stream_test_end(rig);
 }
@@ -6744,6 +7003,7 @@ TEST_LIST =
     { "kv_parse_via_stream_open",            test_kv_parse_via_stream_open },
 
     /* Multicast streaming */
+    { "multicast_send_capture_rejects_invalid", test_multicast_send_capture_rejects_invalid },
     { "cmd_stream_open_multicast_ipv4",     test_cmd_stream_open_multicast_ipv4 },
     { "cmd_stream_open_multicast_tx_rejected", test_cmd_stream_open_multicast_tx_rejected },
     { "cmd_stream_open_multicast_bad_addr", test_cmd_stream_open_multicast_bad_addr },
