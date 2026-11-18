@@ -76,3 +76,5 @@ testtunercontrol
 testtunercontrol_marker
 testtunercontrol_stub.sh
 tuner_control.log
+testusbserial
+testusbserial.sh

@@ -151,7 +151,7 @@ AM_PROG_CC_C_O
 AC_CHECK_HEADERS([errno.h fcntl.h getopt.h limits.h locale.h malloc.h \
 netdb.h sgtty.h stddef.h termio.h termios.h values.h \
 arpa/inet.h dev/ppbus/ppbconf.hdev/ppbus/ppi.h \
-linux/hidraw.h linux/ioctl.h linux/parport.h linux/ppdev.h  netinet/in.h \
+linux/hidraw.h linux/ioctl.h linux/parport.h linux/ppdev.h linux/usbdevice_fs.h netinet/in.h \
 sys/ioccom.h sys/ioctl.h sys/param.h sys/socket.h sys/stat.h sys/time.h \
 sys/select.h glob.h ])
 
