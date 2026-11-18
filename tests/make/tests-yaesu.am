@@ -22,6 +22,3 @@ TESTS += testnewcatwidth
 testnewcatwidth_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testnewcatwidth_LDADD = $(PTHREAD_LIBS) \
 	$(top_builddir)/rigs/yaesu/libhamlib-yaesu.la $(LDADD)
-
-$(top_builddir)/rigs/yaesu/libhamlib-yaesu.la:
-	$(MAKE) -C $(top_builddir)/rigs/yaesu/ libhamlib-yaesu.la

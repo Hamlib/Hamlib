@@ -61,8 +61,8 @@ dnl AS_IF([test "x$enable_static" = "xyes" && test "x$enable_shared" = "xyes"], 
 dnl     AC_MSG_ERROR([Both --enable-static and --enable-shared cannot be enabled at the same time.])
 dnl ])
 
-dnl New backends must be listed here!  Also the new Makefile path must be
-dnl added to AC_CONFIG_FILES near the end of this file.  See README.developer
+dnl New backends must be listed here and their local.mk fragments included
+dnl in the top-level Makefile.am. See README.developer.
 dnl Beware of duplication should a backend directory include both rig and
 dnl rotor definitions, e.g. "dummy".  Optional backends will not be listed
 dnl here but will be added later, e.g. "winradio".
@@ -470,6 +470,8 @@ AS_IF([test x"$cf_with_indi_support" != "xno"],
 	[ROT_BACKEND_OPTIONAL_LIST="$ROT_BACKEND_OPTIONAL_LIST rotators/indi"]
 )
 
+AM_CONDITIONAL([BUILD_INDI], [test "x$cf_with_indi_support" != "xno"])
+
 dnl Check if libgd-dev is installed, so we can enable rigmatrix
 AC_MSG_CHECKING([whether to build HTML rig feature matrix])
 AC_ARG_ENABLE([html-matrix],
@@ -875,6 +877,8 @@ dnl Check for libdl and set DL_LIBS if found--used for linradio WR-G313 backend.
       ],
       [RIG_BACKEND_OPTIONAL_LIST="$RIG_BACKEND_OPTIONAL_LIST rigs/winradio"])
 
+AM_CONDITIONAL([BUILD_WINRADIO], [test "x$cf_with_winradio" = "xyes"])
+
 dnl Set conditional compilation for G-313.
 AS_CASE(["$host_os"],
 	[mingw* | pw32* | cygwin ], [
@@ -972,9 +976,6 @@ AC_SUBST([AM_CXXFLAGS])
 
 
 AC_CONFIG_FILES([Makefile
-amplifiers/elecraft/Makefile
-amplifiers/expert/Makefile
-amplifiers/gemini/Makefile
 bindings/Makefile
 c++/Makefile
 doc/hamlib.cfg
@@ -982,72 +983,6 @@ doc/Makefile
 include/Makefile
 lib/Makefile
 macros/Makefile
-rigs/adat/Makefile
-rigs/alinco/Makefile
-rigs/anytone/Makefile
-rigs/aor/Makefile
-rigs/ats-mini/Makefile
-rigs/barrett/Makefile
-rigs/codan/Makefile
-rigs/commradio/Makefile
-rigs/dorji/Makefile
-rigs/drake/Makefile
-rigs/dummy/Makefile
-rigs/elad/Makefile
-rigs/flexradio/Makefile
-rigs/gomspace/Makefile
-rigs/guohetec/Makefile
-rigs/harris/Makefile
-rigs/icmarine/Makefile
-rigs/icom/Makefile
-rigs/jrc/Makefile
-rigs/kachina/Makefile
-rigs/kenwood/Makefile
-rigs/kit/Makefile
-rigs/lowe/Makefile
-rigs/mds/Makefile
-rigs/motorola/Makefile
-rigs/pcr/Makefile
-rigs/prm80/Makefile
-rigs/racal/Makefile
-rigs/rft/Makefile
-rigs/rs/Makefile
-rigs/simplecat/Makefile
-rigs/skanti/Makefile
-rigs/tapr/Makefile
-rigs/tci/Makefile
-rigs/tentec/Makefile
-rigs/tuner/Makefile
-rigs/uniden/Makefile
-rigs/winradio/Makefile
-rigs/wj/Makefile
-rigs/yaesu/Makefile
-rotators/amsat/Makefile
-rotators/androidsensor/Makefile
-rotators/apex/Makefile
-rotators/ars/Makefile
-rotators/celestron/Makefile
-rotators/cnctrk/Makefile
-rotators/easycomm/Makefile
-rotators/ether6/Makefile
-rotators/flir/Makefile
-rotators/fodtrack/Makefile
-rotators/grbltrk/Makefile
-rotators/gs232a/Makefile
-rotators/heathkit/Makefile
-rotators/indi/Makefile
-rotators/ioptron/Makefile
-rotators/m2/Makefile
-rotators/meade/Makefile
-rotators/prosistel/Makefile
-rotators/radant/Makefile
-rotators/rotorez/Makefile
-rotators/saebrtrack/Makefile
-rotators/sartek/Makefile
-rotators/satel/Makefile
-rotators/skywatcher/Makefile
-rotators/spid/Makefile
-rotators/ts7400/Makefile
 scripts/Makefile
 security/Makefile
 simulators/Makefile
