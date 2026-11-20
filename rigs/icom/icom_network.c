@@ -126,6 +126,15 @@ static int icom_network_open(RIG *rig)
         priv->netsession = NULL;
     }
 
+    /* The session hands transceive and scope frames to icom_process_async_frame()
+     * itself; the frontend's async reader would wait on a port with no descriptor. */
+    if (STATE(rig)->async_data_enabled)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: async frames come through the network session\n", __func__);
+        STATE(rig)->async_data_enabled = 0;
+    }
+
     memset(&config, 0, sizeof(config));
     /* the radio host comes from the -r/rig_pathname argument, host[:port];
      * refuse one that does not fit rather than connect to a truncated name */
