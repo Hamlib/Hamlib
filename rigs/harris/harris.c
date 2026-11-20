@@ -34,6 +34,8 @@
 #include "iofunc.h"
 #include "harris.h"
 #include "prc138.h"
+#include "rf5800.h"
+#include "rf350k.h"
 
 static const float bw_ssb[] = {1.5, 2.0, 2.4, 2.7, 3.0, 0};
 static const float bw_cw[]  = {0.35, 0.68, 1.0, 1.5, 0};
@@ -438,6 +440,8 @@ DECLARE_INITRIG_BACKEND(harris)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
     rig_register((struct rig_caps *)&prc138_caps);
+    rig_register((struct rig_caps *)&rf5800_caps);
+    rig_register((struct rig_caps *)&rf350k_caps);
     return RIG_OK;
 }
 
