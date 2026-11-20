@@ -34,6 +34,16 @@
 
 /* --- TX replay buffer --- */
 
+/* The stored packet with this sequence, or NULL. */
+static const uint8_t *stored(struct icom_network_txbuf *tb, uint16_t sequence,
+                             size_t *length)
+{
+    size_t cursor = 0;
+
+    return icom_network_txbuf_next_in_range(tb, sequence, sequence, &cursor,
+                                            length);
+}
+
 void test_txbuf_add_get(void)
 {
     struct icom_network_txbuf tb;
@@ -46,11 +56,11 @@ void test_txbuf_add_get(void)
     TEST_CHECK(icom_network_txbuf_add(&tb, 1, a, 3, 0) == 0);
     TEST_CHECK(icom_network_txbuf_add(&tb, 2, b, 2, 0) == 0);
 
-    p = icom_network_txbuf_get(&tb, 1, &length);
+    p = stored(&tb, 1, &length);
     TEST_CHECK(p != NULL && length == 3 && memcmp(p, a, 3) == 0);
-    p = icom_network_txbuf_get(&tb, 2, &length);
+    p = stored(&tb, 2, &length);
     TEST_CHECK(p != NULL && length == 2 && memcmp(p, b, 2) == 0);
-    TEST_CHECK(icom_network_txbuf_get(&tb, 99, &length) == NULL);
+    TEST_CHECK(stored(&tb, 99, &length) == NULL);
 }
 
 void test_txbuf_purge(void)
@@ -60,12 +70,12 @@ void test_txbuf_purge(void)
 
     icom_network_txbuf_init(&tb);
     icom_network_txbuf_add(&tb, 7, a, 1, 1000);
-    TEST_CHECK(icom_network_txbuf_get(&tb, 7, NULL) != NULL);
+    TEST_CHECK(stored(&tb, 7, NULL) != NULL);
 
     icom_network_txbuf_purge(&tb, 5000, 10000);     /* not old enough */
-    TEST_CHECK(icom_network_txbuf_get(&tb, 7, NULL) != NULL);
+    TEST_CHECK(stored(&tb, 7, NULL) != NULL);
     icom_network_txbuf_purge(&tb, 12000, 10000);    /* now older than 10s */
-    TEST_CHECK(icom_network_txbuf_get(&tb, 7, NULL) == NULL);
+    TEST_CHECK(stored(&tb, 7, NULL) == NULL);
 }
 
 void test_txbuf_overwrite_oldest(void)
@@ -81,11 +91,11 @@ void test_txbuf_overwrite_oldest(void)
     {
         icom_network_txbuf_add(&tb, (uint16_t)(1000 + i), d, 1, 0);
     }
-    TEST_CHECK(icom_network_txbuf_get(&tb, 1000, NULL) != NULL);
+    TEST_CHECK(stored(&tb, 1000, NULL) != NULL);
 
     icom_network_txbuf_add(&tb, 9999, d, 1, 0);
-    TEST_CHECK(icom_network_txbuf_get(&tb, 1000, NULL) == NULL);
-    TEST_CHECK(icom_network_txbuf_get(&tb, 9999, NULL) != NULL);
+    TEST_CHECK(stored(&tb, 1000, NULL) == NULL);
+    TEST_CHECK(stored(&tb, 9999, NULL) != NULL);
 
     /* too-large packet not stored */
     TEST_CHECK(icom_network_txbuf_add(&tb, 1, d,

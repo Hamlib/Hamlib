@@ -65,24 +65,6 @@ int icom_network_txbuf_add(struct icom_network_txbuf *tb, uint16_t sequence,
     return 0;
 }
 
-const uint8_t *icom_network_txbuf_get(struct icom_network_txbuf *tb,
-                                      uint16_t sequence, size_t *length)
-{
-    size_t i;
-
-    for (i = 0; i < ICOM_NETWORK_SEQBUF_MAX; i++)
-    {
-        if (tb->e[i].valid && tb->e[i].sequence == sequence)
-        {
-            if (length) { *length = tb->e[i].length; }
-
-            return tb->e[i].data;
-        }
-    }
-
-    return NULL;
-}
-
 const uint8_t *icom_network_txbuf_next_in_range(struct icom_network_txbuf *tb,
         uint16_t first, uint16_t last, size_t *cursor, size_t *length)
 {
