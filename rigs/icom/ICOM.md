@@ -318,8 +318,12 @@ included: it numbers its idles in the same sequence as its CI-V frames, so
 tracking only the frames saw a false gap for every idle. A CI-V frame that
 arrives twice is delivered once, since a repeated ACK or reply would be taken as
 the answer to the next command. A sender that starts counting again (a reopened
-stream) is recognised and tracking restarts from it. Audio and I/Q follow their
-own rules, below.
+stream) is recognised and tracking restarts from it. A packet addressed to
+another client is dropped: a radio still holding the previous client's stream
+may send that client's packets, e.g. in answer to a retransmit request. It may
+also send one packet of the previous stream around the opening of the new one,
+so the number received in place of a stream's first packet is forgotten once
+that packet arrives. Audio and I/Q follow their own rules, below.
 
 Packets are classified by the socket they arrive on. Lengths alone are
 ambiguous: a CI-V or audio packet can be exactly as long as a token or status

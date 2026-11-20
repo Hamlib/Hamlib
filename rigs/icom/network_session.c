@@ -579,8 +579,9 @@ static void icom_network_session_request_retransmits(struct
  * replies, so skipping them would leave a false gap for each, and those gaps
  * would be asked for over and over.
  *
- * Returns ICOM_NETWORK_RX_DUPLICATE for a packet already received, which the
- * caller discards. Packets that are not tracked are always new. */
+ * Returns ICOM_NETWORK_RX_DUPLICATE for a packet already received or addressed
+ * to another client, which the caller discards. Packets that are not tracked
+ * are always new. */
 static enum icom_network_rx_result icom_network_session_track_rx(
     struct icom_network_session_socket *sock, const uint8_t *buf, int n)
 {
@@ -594,6 +595,18 @@ static enum icom_network_rx_result icom_network_session_track_rx(
     sequence = icom_network_get_le16(buf + ICOM_NETWORK_OFF_SEQUENCE);
 
     if (type != ICOM_NETWORK_PACKET_TYPE_DATA) { return ICOM_NETWORK_RX_NEW; }
+
+    /* Not of this stream: the receiver (0x0c) is another client, whose
+     * packets a radio still holding its stream may send here. */
+    if (icom_network_get_be32(buf + ICOM_NETWORK_OFF_REMOTE_ID)
+            != sock->local_id)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: %s sequence %u for another client "
+                  "dropped\n", __func__,
+                  icom_network_session_role_name(sock->role),
+                  (unsigned)sequence);
+        return ICOM_NETWORK_RX_DUPLICATE;
+    }
 
     /* Sequence 0 is the radio's first tracked packet on a stream, but it is
      * also what untracked packets carry. Track it only where the numbering
