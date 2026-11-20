@@ -567,7 +567,25 @@ int HAMLIB_API longlat2locator(double longitude,
         int divisions = 1;
 
         /* The 1e-6 here guards against floating point rounding errors */
-        ordinate = fmod(ordinate + 270.000001, 180.0);
+        if (x_or_y == 0)
+        {
+            ordinate = fmod(ordinate + 270.000001, 180.0);
+        }
+        else
+        {
+            /* Latitude does not wrap around, so keep 90 degrees in the last
+             * row instead of letting fmod() move it to the first one. */
+            ordinate += 90.000001;
+
+            if (ordinate >= 180.0)
+            {
+                ordinate = nextafter(180.0, 0.0);
+            }
+            else if (ordinate < 0.0)
+            {
+                ordinate = 0.0;
+            }
+        }
 
         for (pair = 0;  pair < pair_count;  ++pair)
         {
