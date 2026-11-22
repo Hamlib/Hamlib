@@ -63,3 +63,53 @@ Notes
   NDK's libc++_shared.so or linked statically.
 - Only the Hamlib C/C++ library is built; language bindings (Python, Perl,
   etc.) have not been tested in this configuration.
+
+
+USB-serial rigs without a kernel driver
+---------------------------------------
+
+An Android app cannot open /dev/ttyUSB* (and some phone kernels have no
+driver for the chip at all), so Hamlib can drive the rig's USB-serial
+bridge itself through Linux usbfs.  Give the rig a pathname that starts
+with "usb:" or "usbfd:" instead of a serial device:
+
+    usb:                       the first supported adapter
+    usb:VVVV:PPPP              the first with this vendor:product (hex)
+    usb:VVVV:PPPP:SERIAL       ...and this serial number string
+    usb:/dev/bus/usb/BBB/DDD   this usbfs node
+    usbfd:N                    an open usbfs file descriptor
+
+Any of them may end in "@N" for interface N of a chip with several ports,
+such as the CP2105's second UART (an FT-710's Standard COM port, for
+RTS/DTR keying): "usb:10c4:ea70@1".
+
+On Android the app asks UsbManager for permission, opens the device with
+UsbManager.openDevice() and passes UsbDeviceConnection.getFileDescriptor()
+as "usbfd:N".  On other Linux systems the "usb:" forms open the node
+under /dev/bus/usb themselves (the user needs access to it, e.g. a udev
+rule).  A kernel driver bound to the chip is detached while Hamlib has it.
+
+The serial settings (rate, data bits, parity, stop bits) and RTS/DTR go to
+the chip, so RTS/DTR PTT works as on a tty.  Supported chips:
+
+    Silicon Labs CP210x  10c4:ea60, ea70, ea71  Icom IC-7100/IC-7300,
+                                                Yaesu FT-710, many cables
+    FTDI                 0403:6001, 6010, 6011,  FT232R, FT2232H, FT4232H,
+                         6014, 6015              FT232H, FT-X
+    WCH CH340/CH341      1a86:7523, 5523
+    Prolific PL2303      067b:2303, 23a3-23f3    01, T, HX and HXN types
+    CDC-ACM              any vendor:product      by interface class
+
+A CDC-ACM device has no fixed id: name it by vendor:product, as "usb:"
+alone looks only for the chips above.  FTDI, CH34x and PL2303 support
+hardware handshake (RTS/CTS); CP210x and CDC-ACM run without it, and say
+so.  CTS, DSR and DCD are not read from a CDC-ACM device.  A framing the
+chip cannot do (FTDI: 7 or 8 data bits only) fails to open rather than
+opening as 8N1.
+
+    rigctl -m 3070 -s 19200 -r "usb:10c4:ea60:IC-7100 02010347 A" f
+    rigctl -m 1049 -s 38400 -r usb:10c4:ea70@0 f
+
+A radio with two CP210x ports (the IC-7100) needs the serial number to
+pick the CAT one.  Only Linux (Android included) supports this; elsewhere
+a "usb:" pathname fails to open with RIG_ENIMPL.
