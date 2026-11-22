@@ -228,8 +228,8 @@ void frameParse(int fd, unsigned char *frame, int len)
         }
         else
         {
-            printf("set split %d\n", 1);
             split = frame[5];
+            printf("set split %d\n", split);
             n = acknak(fd, frame, ACK);
 
             if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
