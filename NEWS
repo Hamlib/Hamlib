@@ -9,6 +9,10 @@ Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 
 Version 5.x -- future
+        * ATS Mini: Fix get_freq in SSB (BFO offset) and FM (10 kHz units),
+          fix step/bandwidth values with k/M suffix, fix a crash and
+          buffer overrun on short or overlong monitor lines, and fix
+          set_freq failing on the radio's command echo.
         * Fix: Keep PTT overrides local to each rig instance without changing
           model capabilities. GitHub PR #2255.
         * rigctl/rigctld: Honor explicit PTT NONE selections and default to
