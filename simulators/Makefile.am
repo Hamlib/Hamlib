@@ -55,6 +55,8 @@ check_PROGRAMS = \
 	simpowersdr \
 	simpstrotator \
 	simqrplabs \
+	simrf350k \
+	simrf5800 \
 	simrotorez \
 	simspid \
 	simtmd700 \
@@ -80,17 +82,27 @@ simelecraft_CFLAGS = $(AM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_builddir)/src
 simkenwood_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/src
 simyaesu_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/src
 simid5100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/src
+simrf350k_CFLAGS = $(AM_CFLAGS) -I$(top_builddir)/src
+simrf5800_CFLAGS = $(AM_CFLAGS) -I$(top_builddir)/src
 
 simelecraft_LDADD = $(PTHREAD_LIBS) $(READLINE_LIBS) $(LDADD)
 simkenwood_LDADD = $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 simyaesu_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 simid5100_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
+simrf350k_LDADD = $(NET_LIBS) $(LDADD)
+simrf5800_LDADD = $(NET_LIBS) $(LDADD)
 
 # Linker options
 simelecraft_LDFLAGS = $(WINEXELDFLAGS)
 simkenwood_LDFLAGS = $(WINEXELDFLAGS)
 simyaesu_LDFLAGS = $(WINEXELDFLAGS)
 simid5100_LDFLAGS = $(WINEXELDFLAGS)
+simrf350k_LDFLAGS = $(WINEXELDFLAGS)
+simrf5800_LDFLAGS = $(WINEXELDFLAGS)
+
+# the socket shim the two simulators share
+simrf350k_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/harris
+simrf5800_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/harris
 
 EXTRA_DIST = sim.h simft990.dat
 

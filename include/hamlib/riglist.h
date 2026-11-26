@@ -1157,6 +1157,10 @@
 ///@{
 /// Model of the `RIG_HARRIS` backend family.
 #define RIG_MODEL_PRC138 RIG_MAKE_MODEL(RIG_HARRIS, 1)
+/// Model of the `RIG_HARRIS` backend family.
+#define RIG_MODEL_RF5800H RIG_MAKE_MODEL(RIG_HARRIS, 2)
+/// Model of the `RIG_HARRIS` backend family.
+#define RIG_MODEL_RF350K RIG_MAKE_MODEL(RIG_HARRIS, 3)
 ///@}
 
 /** Convenience type definition for rig model. */
