@@ -544,6 +544,25 @@ int ftx1_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             ret = ftx1_get_meter(rig, 4, &ival);  /* RM4=ALC */
             if (ret == RIG_OK) val->f = rig_raw2val_float(ival, &rig->caps->alc_cal);
             return ret;
+        case RIG_LEVEL_RFPOWER_METER_WATTS:
+        case RIG_LEVEL_RFPOWER_METER:
+            ret = ftx1_get_meter(rig, 5, &ival);  /* RM5=RF Power */
+            if (ret != RIG_OK)
+                return ret;
+            val->f = rig_raw2val_float(ival, &rig->caps->rfpower_meter_cal);
+            if (ftx1_has_spa1(rig)) {
+                if (level == RIG_LEVEL_RFPOWER_METER)
+                    val->f /= FTX1_POWER_MAX_SPA1;
+            } else {
+                val->f /= 10;
+                if (level == RIG_LEVEL_RFPOWER_METER) {
+                    if (ftx1_get_head_type(rig) == FTX1_HEAD_FIELD_BATTERY)
+                        val->f /= FTX1_POWER_MAX_FIELD_BATTERY;
+                    else
+                        val->f /= FTX1_POWER_MAX_FIELD_12V;
+                }
+            }
+            return ret;
         case RIG_LEVEL_IF:
             {
                 int on, shift_hz;
