@@ -4845,6 +4845,11 @@ int HAMLIB_API rig_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
 }
 
 
+static bool rig_has_fixed_k3_split(const struct rig_caps *caps)
+{
+    return caps->rig_model == RIG_MODEL_K3 || caps->rig_model == RIG_MODEL_K3S;
+}
+
 /**
  * \brief set the split frequencies
  * \param rig   The rig handle
@@ -4882,6 +4887,15 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, curr_vfo=%s, tx_freq=%.0f\n",
               __func__,
               rig_strvfo(vfo), rig_strvfo(routing.current_vfo), tx_freq);
+
+    if (rig_has_fixed_k3_split(caps) && caps->set_split_freq_mode
+            && routing.ptt == RIG_PTT_OFF)
+    {
+        retcode = caps->set_split_freq_mode(rig, RIG_VFO_B, tx_freq,
+                                             RIG_MODE_NONE, RIG_PASSBAND_NOCHANGE);
+        ELAPSED2;
+        RETURNFUNC2(retcode);
+    }
 
     // Always use the previously selected TX VFO for split. The targeted VFO will have no effect.
     tx_vfo = routing.tx_vfo;
@@ -5251,6 +5265,27 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
 
     caps = rig->caps;
     rig_get_cache_routing_snapshot(rig, &routing);
+
+    if (rig_has_fixed_k3_split(caps) && caps->set_split_mode
+            && routing.ptt == RIG_PTT_OFF)
+    {
+        if (tx_mode == RIG_MODE_NONE)
+        {
+            retcode = caps->get_split_mode(rig, RIG_VFO_B, &tx_mode, &cache_width);
+
+            if (retcode != RIG_OK) { RETURNFUNC(retcode); }
+        }
+
+        retcode = caps->set_split_mode(rig, RIG_VFO_B, tx_mode, tx_width);
+
+        if (retcode == RIG_OK)
+        {
+            retcode = rig_set_split_vfo(rig, RIG_VFO_A, RIG_SPLIT_ON, RIG_VFO_B);
+        }
+
+        ELAPSED2;
+        RETURNFUNC(retcode);
+    }
 
     // Always use the previously selected TX VFO for split. The targeted VFO will have no effect.
     tx_vfo = routing.tx_vfo;
@@ -5642,6 +5677,22 @@ int HAMLIB_API rig_set_split_freq_mode(RIG *rig,
     caps = rig->caps;
     rig_get_cache_routing_snapshot(rig, &routing);
 
+    if (rig_has_fixed_k3_split(caps) && caps->set_split_freq_mode)
+    {
+        /* These rigs can address B directly before split is possible. */
+        if (routing.ptt == RIG_PTT_OFF)
+        {
+            retcode = caps->set_split_freq_mode(rig, RIG_VFO_B, tx_freq,
+                                                 tx_mode, tx_width);
+        }
+        else
+        {
+            retcode = rig_set_split_freq(rig, vfo, tx_freq);
+        }
+        ELAPSED2;
+        RETURNFUNC(retcode);
+    }
+
     // Always use the previously selected TX VFO for split. The targeted VFO will have no effect.
     tx_vfo = routing.tx_vfo;
 
@@ -5888,6 +5939,24 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
     {
         ELAPSED2;
         RETURNFUNC(-RIG_EINVAL);
+    }
+
+    if (rig_has_fixed_k3_split(caps))
+    {
+        /* The backend checks FT and publishes the actual fixed A/B routing. */
+        if (tx_vfo == RIG_VFO_CURR || tx_vfo == RIG_VFO_TX
+                || tx_vfo == RIG_VFO_OTHER)
+        {
+            tx_vfo = split == RIG_SPLIT_ON ? RIG_VFO_B : RIG_VFO_A;
+        }
+        else if (tx_vfo == RIG_VFO_SUB)
+        {
+            tx_vfo = RIG_VFO_B;
+        }
+
+        retcode = caps->set_split_vfo(rig, rx_vfo, split, tx_vfo);
+        ELAPSED2;
+        RETURNFUNC(retcode);
     }
 
     // We fix up vfos for non-satmode rigs only
