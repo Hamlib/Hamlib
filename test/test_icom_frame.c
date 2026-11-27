@@ -20,18 +20,29 @@
 /* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 /* Tests for the CI-V frame helpers shared by every Icom rig (rigs/icom/frame.c),
- * serial and network alike: how a reply is matched to the command it answers. */
+ * serial and network alike: how a reply is matched to the command it answers,
+ * and what becomes of a frame the radio sends on its own in the middle of a
+ * transaction. */
 
 #ifdef HAVE_CONFIG_H
 #include "hamlib/config.h"
 #endif
 
 #include "acutest.h"
+#include "test_debug.h"
 
 #include <string.h>
 
+#ifndef _WIN32
+#include <sys/socket.h>
+#include <unistd.h>
+#endif
+
 #include "hamlib/rig.h"
+#include "hamlib/port.h"
+#include "cache.h"
 #include "frame.h"
+#include "icom.h"
 #include "icom_defs.h"
 
 #define RADIO 0x56   /* the IC-746's default CI-V address */
@@ -112,6 +123,216 @@ void test_short_frame_does_not_match(void)
     TEST_CHECK(icom_frame_matches_cmd(C_CTL_MEM, -1, frame, 5));
 }
 
+/* A socket pair stands in for the radio's USB port; Windows has no
+ * socketpair(). */
+#ifndef _WIN32
+
+#define IC7300 0x94  /* the IC-7300's default CI-V address */
+#define SCOPE_LINE_LENGTH 475   /* IC-7300 over USB: 9 x 50 + 25 */
+
+struct spectrum_seen
+{
+    int lines;
+    size_t length;
+    unsigned char data[SCOPE_LINE_LENGTH];
+};
+
+static int on_spectrum(RIG *rig, struct rig_spectrum_line *line, rig_ptr_t arg)
+{
+    struct spectrum_seen *seen = arg;
+
+    (void) rig;
+    seen->lines++;
+    seen->length = line->spectrum_data_length;
+
+    if (line->spectrum_data_length <= sizeof(seen->data))
+    {
+        memcpy(seen->data, line->spectrum_data, line->spectrum_data_length);
+    }
+
+    return RIG_OK;
+}
+
+/* One `27 00` division to the controller: main scope, division `division` of
+ * 11. The first carries the center mode, 14.100 MHz +/- 25 kHz and no data;
+ * the others carry `length` bytes of the line, starting at `data`. */
+static size_t scope_division(unsigned char *frame, int division,
+                             const unsigned char *data, size_t length)
+{
+    static const unsigned char header[] =
+    {
+        0x00,                           /* center mode */
+        0x00, 0x00, 0x10, 0x14, 0x00,   /* 14.100000 MHz */
+        0x00, 0x50, 0x02, 0x00, 0x00,   /* +/- 25 kHz */
+        0x00                            /* in range */
+    };
+    size_t n = 0;
+
+    frame[n++] = PR;
+    frame[n++] = PR;
+    frame[n++] = CTRLID;
+    frame[n++] = IC7300;
+    frame[n++] = C_CTL_SCP;
+    frame[n++] = S_SCP_DAT;
+    frame[n++] = 0x00;                                  /* main scope */
+    frame[n++] = (unsigned char)((division / 10) << 4 | division % 10);
+    frame[n++] = 0x11;                                  /* of 11 */
+
+    if (division == 1)
+    {
+        memcpy(frame + n, header, sizeof(header));
+        n += sizeof(header);
+    }
+    else
+    {
+        memcpy(frame + n, data, length);
+        n += length;
+    }
+
+    frame[n++] = FI;
+    return n;
+}
+
+/* What the radio returns for an `03` frequency read on a port that echoes:
+ * the command itself, then the answer, 14.100000 MHz. */
+static const unsigned char freq_echo[] =
+{
+    PR, PR, IC7300, CTRLID, C_RD_FREQ, FI
+};
+static const unsigned char freq_answer[] =
+{
+    PR, PR, CTRLID, IC7300, C_RD_FREQ, 0x00, 0x00, 0x10, 0x14, 0x00, FI
+};
+
+/* An IC-7300 whose USB port echoes, on one end of a socket pair. */
+static RIG *echoing_ic7300(int fd)
+{
+    RIG *rig = rig_init(RIG_MODEL_IC7300);
+    struct icom_priv_data *priv;
+
+    if (rig == NULL)
+    {
+        return NULL;
+    }
+
+    STATE(rig)->comm_state = 1;
+    rig_set_current_vfo_state(rig, RIG_VFO_A);
+    RIGPORT(rig)->fd = fd;
+    RIGPORT(rig)->type.rig = RIG_PORT_NETWORK;
+    RIGPORT(rig)->retry = 0;
+    RIGPORT(rig)->timeout = 100;
+    priv = STATE(rig)->priv;
+    priv->serial_USB_echo_off = 0;
+    return rig;
+}
+
+static void release_ic7300(RIG *rig, int sockets[2])
+{
+    STATE(rig)->comm_state = 0;
+    RIGPORT(rig)->fd = -1;
+    rig_cleanup(rig);
+    close(sockets[0]);
+    close(sockets[1]);
+}
+
+/* Run the `03` read and check it got its own answer. */
+static void check_freq_read(RIG *rig)
+{
+    unsigned char reply[MAXFRAMELEN];
+    int reply_len = 0;
+
+    TEST_CHECK(icom_transaction(rig, C_RD_FREQ, -1, NULL, 0, reply,
+                                &reply_len) == RIG_OK);
+    TEST_CHECK_(reply_len == 6 && memcmp(reply, freq_answer + 4, 6) == 0,
+                "answer of %d bytes", reply_len);
+}
+
+/* The regression: with "CI-V USB Echo Back" on, the radio can push a whole
+ * scope line between a command and its echo. Each division read there was
+ * parsed with the length of the frame sent instead of the one read; after a
+ * 6-byte command such as the `03` frequency read that length wraps, and the
+ * third division copied about SIZE_MAX bytes. The line must come through
+ * whole, and the read must still get its own answer. */
+void test_scope_line_during_echo_read(void)
+{
+    unsigned char line[SCOPE_LINE_LENGTH];
+    unsigned char frame[MAXFRAMELEN];
+    struct spectrum_seen seen;
+    int sockets[2];
+    int division;
+    size_t i;
+    RIG *rig;
+
+    for (i = 0; i < sizeof(line); i++)
+    {
+        line[i] = (unsigned char)(i % 0xa0);
+    }
+
+    TEST_ASSERT(socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) == 0);
+
+    for (division = 1; division <= 11; division++)
+    {
+        size_t offset = division > 1 ? (size_t)(division - 2) * 50 : 0;
+        size_t length = division == 11 ? 25 : 50;
+        size_t n = scope_division(frame, division, line + offset, length);
+
+        TEST_ASSERT(write(sockets[1], frame, n) == (ssize_t) n);
+    }
+
+    TEST_ASSERT(write(sockets[1], freq_echo, sizeof(freq_echo))
+                == sizeof(freq_echo));
+    TEST_ASSERT(write(sockets[1], freq_answer, sizeof(freq_answer))
+                == sizeof(freq_answer));
+
+    rig = echoing_ic7300(sockets[0]);
+    TEST_ASSERT(rig != NULL);
+    memset(&seen, 0, sizeof(seen));
+    TEST_ASSERT(rig_set_spectrum_callback(rig, on_spectrum, &seen) == RIG_OK);
+
+    check_freq_read(rig);
+
+    TEST_CHECK(seen.lines == 1);
+    TEST_CHECK_(seen.length == sizeof(line), "line length %zu", seen.length);
+    TEST_CHECK(seen.length == sizeof(line)
+               && memcmp(seen.data, line, sizeof(line)) == 0);
+
+    release_ic7300(rig, sockets);
+}
+
+/* A lone FC, the jam byte of a CI-V collision, read before the echo. Taken
+ * with the length of the command sent, it passed for a broadcast frequency
+ * frame and set the frequency to 0 Hz. It is no frame at all: the read must
+ * go on to the echo and the answer and leave the frequency alone. */
+void test_collision_byte_during_echo_read(void)
+{
+    static const unsigned char collision[] = { COL };
+    freq_t freq = 0;
+    int cache_ms = 0;
+    int sockets[2];
+    RIG *rig;
+
+    TEST_ASSERT(socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) == 0);
+    TEST_ASSERT(write(sockets[1], collision, sizeof(collision))
+                == sizeof(collision));
+    TEST_ASSERT(write(sockets[1], freq_echo, sizeof(freq_echo))
+                == sizeof(freq_echo));
+    TEST_ASSERT(write(sockets[1], freq_answer, sizeof(freq_answer))
+                == sizeof(freq_answer));
+
+    rig = echoing_ic7300(sockets[0]);
+    TEST_ASSERT(rig != NULL);
+    TEST_ASSERT(rig_set_cache_freq(rig, RIG_VFO_A, 14100000) == RIG_OK);
+
+    check_freq_read(rig);
+
+    TEST_CHECK(rig_get_cache_freq(rig, RIG_VFO_A, &freq, &cache_ms) == RIG_OK);
+    TEST_CHECK_(freq == 14100000, "cached frequency %.0f Hz", freq);
+
+    release_ic7300(rig, sockets);
+}
+
+#endif /* !_WIN32 */
+
 TEST_LIST =
 {
     { "reply_to_own_command_matches", test_reply_to_own_command_matches },
@@ -119,5 +340,9 @@ TEST_LIST =
     { "other_replies_do_not_match",   test_other_replies_do_not_match },
     { "no_subcmd_matches_on_cmd",     test_no_subcmd_matches_on_cmd },
     { "short_frame_does_not_match",   test_short_frame_does_not_match },
+#ifndef _WIN32
+    { "scope_line_during_echo_read",  test_scope_line_during_echo_read },
+    { "collision_byte_during_echo_read", test_collision_byte_during_echo_read },
+#endif
     { NULL, NULL }
 };
