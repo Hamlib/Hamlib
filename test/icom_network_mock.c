@@ -202,7 +202,7 @@ static void mock_send_unsolicited(struct mock_server *m)
     }
 
     if (m->civ_peer_length > 0 && m->civ_idle_ms > 0 && !m->civ_silent
-            && m->civ_fd >= 0
+            && !m->civ_pings_only && m->civ_fd >= 0
             && mock_now_ms() - m->civ_last_idle_ms >= m->civ_idle_ms)
     {
         uint8_t idle[ICOM_NETWORK_HEADER_LEN];
@@ -218,8 +218,23 @@ static void mock_send_unsolicited(struct mock_server *m)
     if (m->civ_peer_length > 0 && m->ask_retransmit)
     {
         uint16_t want = (uint16_t)m->retransmit_sequence;
-        pl = icom_network_packet_build_retransmit(packet, sizeof(packet), &want, 1,
-                MOCK_SERVER_ID, m->civ_client_id);
+
+        if (m->retransmit_last > m->retransmit_sequence)
+        {
+            pl = ICOM_NETWORK_HEADER_LEN + 4;
+            icom_network_packet_build_header(packet, sizeof(packet), pl,
+                                             ICOM_NETWORK_PACKET_TYPE_RETRANSMIT, 0,
+                                             MOCK_SERVER_ID, m->civ_client_id);
+            icom_network_put_le16(packet + ICOM_NETWORK_HEADER_LEN, want);
+            icom_network_put_le16(packet + ICOM_NETWORK_HEADER_LEN + 2,
+                                  (uint16_t)m->retransmit_last);
+        }
+        else
+        {
+            pl = icom_network_packet_build_retransmit(packet, sizeof(packet), &want, 1,
+                    MOCK_SERVER_ID, m->civ_client_id);
+        }
+
         m->ask_retransmit = 0;
 
         if (pl > 0)
@@ -655,6 +670,8 @@ static void mock_service_civ(struct mock_server *m, uint8_t *buf, int n,
                                       ICOM_NETWORK_ROLE_CIV);
     uint16_t type = icom_network_get_le16(buf + ICOM_NETWORK_OFF_TYPE);
 
+    if (m->civ_pings_only && k != ICOM_NETWORK_PACKET_KIND_PING) { return; }
+
     if (!mock_reply_common_control(m->civ_fd, from, k, type, cli))
     {
         switch (k)
@@ -698,6 +715,20 @@ static void mock_service_civ(struct mock_server *m, uint8_t *buf, int n,
             && k != ICOM_NETWORK_PACKET_KIND_PING)
     {
         m->saw_retransmit_reply++;
+    }
+
+    if (k == ICOM_NETWORK_PACKET_KIND_CIV)
+    {
+        uint16_t sequence = icom_network_get_le16(buf + ICOM_NETWORK_OFF_SEQUENCE);
+
+        if (sequence < 8) { m->civ_frames_seen[sequence]++; }
+    }
+
+    if (k == ICOM_NETWORK_PACKET_KIND_CONTROL && type == ICOM_NETWORK_CTL_IDLE)
+    {
+        uint16_t sequence = icom_network_get_le16(buf + ICOM_NETWORK_OFF_SEQUENCE);
+
+        if (sequence < 8) { m->civ_idles_seen[sequence]++; }
     }
 }
 

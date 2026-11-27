@@ -3144,7 +3144,15 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         RETURNFUNC(retcode);
     }
 
-    rig_set_cache_mode(rig, vfo, mode, width);
+    if (caps->rig_model == RIG_MODEL_K3 || caps->rig_model == RIG_MODEL_K3S)
+    {
+        /* The radio can quantize a width or recall one with the new mode. */
+        rig_invalidate_cache_mode(rig, vfo);
+    }
+    else
+    {
+        rig_set_cache_mode(rig, vfo, mode, width);
+    }
 
     ELAPSED2;
     LOCK(0);
@@ -7242,6 +7250,15 @@ int HAMLIB_API rig_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
                   caps->vfo_op, rig_has_vfo_op(rig, op));
         ELAPSED2;
         RETURNFUNC(-RIG_ENAVAIL);
+    }
+
+    if ((caps->rig_model == RIG_MODEL_K3 || caps->rig_model == RIG_MODEL_K3S)
+            && (op == RIG_OP_UP || op == RIG_OP_DOWN))
+    {
+        // K3 steps address A or B directly, without changing the active VFO.
+        retcode = caps->vfo_op(rig, vfo_fixup_current(rig, vfo), op);
+        ELAPSED2;
+        RETURNFUNC(retcode);
     }
 
     if (vfo == RIG_VFO_CURR

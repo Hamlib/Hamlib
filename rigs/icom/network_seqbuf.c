@@ -65,18 +65,26 @@ int icom_network_txbuf_add(struct icom_network_txbuf *tb, uint16_t sequence,
     return 0;
 }
 
-const uint8_t *icom_network_txbuf_get(struct icom_network_txbuf *tb,
-                                      uint16_t sequence, size_t *length)
+const uint8_t *icom_network_txbuf_next_in_range(struct icom_network_txbuf *tb,
+        uint16_t first, uint16_t last, size_t *cursor, size_t *length)
 {
-    size_t i;
+    uint16_t span = (uint16_t)(last - first);
 
-    for (i = 0; i < ICOM_NETWORK_SEQBUF_MAX; i++)
+    /* from head on, the slots come in the order they were written */
+    while (*cursor < ICOM_NETWORK_SEQBUF_MAX)
     {
-        if (tb->e[i].valid && tb->e[i].sequence == sequence)
-        {
-            if (length) { *length = tb->e[i].length; }
+        struct icom_network_txentry *e =
+            &tb->e[(tb->head + *cursor) % ICOM_NETWORK_SEQBUF_MAX];
+        /* past first, counted modulo 2^16, so that a range may wrap */
+        uint16_t offset = (uint16_t)(e->sequence - first);
 
-            return tb->e[i].data;
+        (*cursor)++;
+
+        if (e->valid && offset <= span)
+        {
+            if (length) { *length = e->length; }
+
+            return e->data;
         }
     }
 

@@ -97,7 +97,7 @@ test_rigctld_commands_SOURCES = test_rigctld_commands.c \
     $(top_srcdir)/tests/dumpcaps.c \
     $(top_srcdir)/tests/dumpstate.c \
     $(top_srcdir)/tests/rig_tests.c
-test_rigctld_commands_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/tests -I$(top_builddir)/src -I$(top_builddir)/security
+test_rigctld_commands_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/tests -I$(top_builddir)/src -I$(top_builddir)/security -DRIGCTLD_COMMANDS_TEST_SENDTO
 test_rigctld_commands_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 test_rigctld_commands_LDADD = $(LDADD) $(PTHREAD_LIBS) $(READLINE_LIBS) $(NET_LIBS)
 
@@ -144,11 +144,7 @@ EXTRA_DIST = acutest.h test_debug.h
 checkprogs: $(check_PROGRAMS)
 .PHONY: checkprogs
 
-$(top_builddir)/src/libhamlib.la:
-	$(MAKE) -C $(top_builddir)/src/ libhamlib.la
+include $(top_srcdir)/src/hamlib-library.am
 
-$(top_builddir)/lib/libmisc.la:
-	$(MAKE) -C $(top_builddir)/lib/ libmisc.la
-
-$(top_builddir)/simulators/simflex$(EXEEXT):
+$(top_builddir)/simulators/simflex$(EXEEXT): update-hamlib-library
 	$(MAKE) -C $(top_builddir)/simulators simflex$(EXEEXT)

@@ -678,6 +678,35 @@ void test_session_civ_silence_is_link_timeout(void)
     mock_stop(&mock);
 }
 
+/* A radio that has given up the CI-V stream still answers pings on its
+ * socket and sends nothing else. The IC-7760 and IC-9700 do that about 110 s
+ * after their link drops, to a session that reconnected meanwhile too. */
+void test_session_civ_pings_alone_are_link_timeout(void)
+{
+    struct mock_server mock;
+    struct icom_network_session_config config;
+    struct icom_network_session *s;
+    int waited;
+
+    mock_start(&mock);
+    capability_config(&config, &mock, "IC-7610");
+    config.liveness_timeout_ms = 1000;
+    s = icom_network_session_alloc(&config);
+    TEST_ASSERT(s != NULL);
+    TEST_ASSERT(icom_network_session_connect(s) == RIG_OK);
+
+    TEST_CHECK(wait_lost(s, 1500) < 0);
+
+    mock.civ_pings_only = 1;
+    waited = wait_lost(s, 3000);
+    TEST_CHECK_(waited >= 0, "still valid 3 s after the CI-V stream stopped");
+    TEST_CHECK_(icom_network_session_loss_reason(s) == RIG_COMM_REASON_LINK_TIMEOUT,
+                "reason %u", icom_network_session_loss_reason(s));
+
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
 /* The radio's CI-V port refuses packets. Where the system reports that (an
  * ICMP port-unreachable reaching a connected UDP socket), it shows up as a
  * socket error on the send or the receive, a CI-V command fails at once
@@ -1676,6 +1705,165 @@ void test_session_retransmit_request(void)
     mock_stop(&mock);
 }
 
+/* The radio asks for a run of lost packets as one [first, last] entry; every
+ * packet in the run is replayed, not only the first. */
+void test_session_retransmit_range(void)
+{
+    struct mock_server mock;
+    struct icom_network_session_config config;
+    struct icom_network_session *s;
+    uint8_t cmd[] = { 0xfe, 0xfe, 0x98, 0xe0, 0x03, 0xfd };
+    int i, waited, sequence;
+
+    mock_start(&mock);
+    capability_config(&config, &mock, "IC-7610");
+    s = icom_network_session_alloc(&config);
+    TEST_ASSERT(s != NULL);
+    TEST_ASSERT(icom_network_session_connect(s) == RIG_OK);
+
+    /* the stream open is sequence 1, so these go out as 2, 3 and 4 */
+    for (i = 0; i < 3; i++)
+    {
+        TEST_CHECK(icom_network_civ_send(s, cmd, sizeof(cmd)) == (int)sizeof(cmd));
+    }
+
+    mock.retransmit_sequence = 2;
+    mock.retransmit_last = 4;
+    mock.ask_retransmit = 1;
+
+    /* each frame arrives once as sent and once more as a replay */
+    for (waited = 0; waited < 200; waited++)
+    {
+        if (mock.civ_frames_seen[2] >= 2 && mock.civ_frames_seen[3] >= 2
+                && mock.civ_frames_seen[4] >= 2)
+        {
+            break;
+        }
+
+        hl_usleep(10000);
+    }
+
+    for (sequence = 2; sequence <= 4; sequence++)
+    {
+        TEST_CHECK_(mock.civ_frames_seen[sequence] >= 2,
+                    "sequence %d arrived %d times, want a replay too", sequence,
+                    mock.civ_frames_seen[sequence]);
+    }
+
+    icom_network_session_disconnect(s);
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
+/* The radio asks for packets the session no longer holds, here pushed out of
+ * the transmit buffer by newer ones. Each is answered with an idle of its
+ * sequence: the radio holds back what came after it until it has every
+ * sequence, so without an answer it would wait for as long as the stream
+ * lasts. */
+void test_session_retransmit_dropped(void)
+{
+    struct mock_server mock;
+    struct icom_network_session_config config;
+    struct icom_network_session *s;
+    uint8_t cmd[] = { 0xfe, 0xfe, 0x98, 0xe0, 0x03, 0xfd };
+    int i, answered = 0, waited, sequence;
+
+    mock_start(&mock);
+    capability_config(&config, &mock, "IC-7610");
+    s = icom_network_session_alloc(&config);
+    TEST_ASSERT(s != NULL);
+    TEST_ASSERT(icom_network_session_connect(s) == RIG_OK);
+
+    /* The stream open is sequence 1 and the frames follow from 2; a full
+     * buffer later, 1 to 4 are no longer held. Each reply is read before the
+     * next frame goes out, as a client does: a burst of replies overflows a
+     * small socket buffer (Linux), and the request can be lost with them. */
+    for (i = 0; i < ICOM_NETWORK_SEQBUF_MAX + 3; i++)
+    {
+        uint8_t rx[64];
+
+        answered += icom_network_civ_send(s, cmd, sizeof(cmd)) == (int)sizeof(cmd)
+                    && icom_network_civ_recv(s, rx, sizeof(rx), 1000) > 0;
+    }
+
+    TEST_CHECK(answered == ICOM_NETWORK_SEQBUF_MAX + 3);
+
+    mock.retransmit_sequence = 2;
+    mock.retransmit_last = 4;
+    mock.ask_retransmit = 1;
+
+    for (waited = 0; waited < 200; waited++)
+    {
+        if (mock.civ_idles_seen[2] && mock.civ_idles_seen[3]
+                && mock.civ_idles_seen[4])
+        {
+            break;
+        }
+
+        hl_usleep(10000);
+    }
+
+    for (sequence = 2; sequence <= 4; sequence++)
+    {
+        TEST_CHECK_(mock.civ_idles_seen[sequence] == 1,
+                    "sequence %d answered by %d idles, want 1", sequence,
+                    mock.civ_idles_seen[sequence]);
+    }
+
+    icom_network_session_disconnect(s);
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
+/* A request for packets not sent yet gets no idle: the radio would take it
+ * for that sequence and drop the real packet when it comes. */
+void test_session_retransmit_not_sent(void)
+{
+    struct mock_server mock;
+    struct icom_network_session_config config;
+    struct icom_network_session *s;
+    uint8_t cmd[] = { 0xfe, 0xfe, 0x98, 0xe0, 0x03, 0xfd };
+    int waited;
+
+    mock_start(&mock);
+    capability_config(&config, &mock, "IC-7610");
+    s = icom_network_session_alloc(&config);
+    TEST_ASSERT(s != NULL);
+    TEST_ASSERT(icom_network_session_connect(s) == RIG_OK);
+
+    /* the stream open is sequence 1, so this goes out as 2 */
+    TEST_CHECK(icom_network_civ_send(s, cmd, sizeof(cmd)) == (int)sizeof(cmd));
+
+    /* ask for 3 and 4 first, then for 2: once 2 is replayed, the answer to
+     * the first request has come too */
+    mock.retransmit_sequence = 3;
+    mock.retransmit_last = 4;
+    mock.ask_retransmit = 1;
+
+    for (waited = 0; waited < 200 && mock.ask_retransmit; waited++)
+    {
+        hl_usleep(10000);
+    }
+
+    mock.retransmit_sequence = 2;
+    mock.retransmit_last = 0;
+    mock.ask_retransmit = 1;
+
+    for (waited = 0; waited < 200 && mock.civ_frames_seen[2] < 2; waited++)
+    {
+        hl_usleep(10000);
+    }
+
+    TEST_CHECK_(mock.civ_frames_seen[2] >= 2, "sequence 2 not replayed");
+    TEST_CHECK_(mock.civ_idles_seen[3] == 0 && mock.civ_idles_seen[4] == 0,
+                "idles for unsent 3 and 4: %d and %d", mock.civ_idles_seen[3],
+                mock.civ_idles_seen[4]);
+
+    icom_network_session_disconnect(s);
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
 /* The radio pings the client; the client must answer, or the radio concludes
  * the session is gone. Only the reply direction was exercised before. */
 void test_session_ping_request(void)
@@ -2135,6 +2323,7 @@ TEST_LIST =
     { "civ_idles_not_requested",     test_session_civ_idles_not_requested },
     { "civ_duplicate_dropped",       test_session_civ_duplicate_dropped },
     { "civ_silence_is_link_timeout", test_session_civ_silence_is_link_timeout },
+    { "civ_pings_alone_are_link_timeout", test_session_civ_pings_alone_are_link_timeout },
     { "civ_port_refusing_is_socket_error", test_session_civ_port_refusing_is_socket_error },
     { "injected_socket_error_is_socket_error", test_session_injected_socket_error_is_socket_error },
     { "socket_error_wins_over_a_silent_link", test_session_socket_error_wins_over_a_silent_link },
@@ -2147,6 +2336,9 @@ TEST_LIST =
     { "starts_winsock",              test_session_starts_winsock },
 #endif
     { "retransmit_request",          test_session_retransmit_request },
+    { "retransmit_range",            test_session_retransmit_range },
+    { "retransmit_dropped",          test_session_retransmit_dropped },
+    { "retransmit_not_sent",         test_session_retransmit_not_sent },
     { "ping_request",                test_session_ping_request },
     { "reconnect_cycles",            test_session_reconnect_cycles },
     { "reconnect_after_dirty_close", test_session_reconnect_after_dirty_close },

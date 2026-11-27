@@ -69,7 +69,12 @@ struct mock_server
     uint32_t ctrl_client_id;
     HAMLIB_ATOMIC int ask_retransmit;     /* send a retransmit request for below */
     HAMLIB_ATOMIC int retransmit_sequence;
+    /* Above retransmit_sequence: ask for the whole run up to this one in a
+     * single [first, last] entry, as the IC-7760 and IC-9700 do. */
+    HAMLIB_ATOMIC int retransmit_last;
     HAMLIB_ATOMIC int saw_retransmit_reply;
+    HAMLIB_ATOMIC int civ_frames_seen[8];  /* CI-V frames by sequence, 0-7 */
+    HAMLIB_ATOMIC int civ_idles_seen[8];   /* idles by sequence, 0-7 */
     /* Report audio_port 0 in the status reply, as a radio with no audio
      * path would. Makes the backend's audio_start fail after stream_open
      * has already allocated its buffers. */
@@ -145,6 +150,10 @@ struct mock_server
      * while the control socket carries on, as a radio that stopped serving
      * the CI-V stream does. */
     HAMLIB_ATOMIC int civ_silent;
+    /* Stop serving the CI-V stream, a reopen of it included, but go on
+     * answering pings on its socket, as the IC-7760 and IC-9700 do with a
+     * stream they have given up. */
+    HAMLIB_ATOMIC int civ_pings_only;
     /* Never answer a ping on the CI-V socket. The client pings as soon as its
      * CI-V thread starts, so a reply is typically in flight while connect()
      * is still returning; a test that goes on to silence the stream cannot

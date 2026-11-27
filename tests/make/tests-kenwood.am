@@ -15,6 +15,3 @@ TESTS += testts990s
 testts990s_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 testts990s_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) \
 	$(top_builddir)/rigs/kenwood/libhamlib-kenwood.la $(LDADD)
-
-$(top_builddir)/rigs/kenwood/libhamlib-kenwood.la:
-	$(MAKE) -C $(top_builddir)/rigs/kenwood/ libhamlib-kenwood.la

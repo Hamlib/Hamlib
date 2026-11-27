@@ -34,6 +34,16 @@
 
 /* --- TX replay buffer --- */
 
+/* The stored packet with this sequence, or NULL. */
+static const uint8_t *stored(struct icom_network_txbuf *tb, uint16_t sequence,
+                             size_t *length)
+{
+    size_t cursor = 0;
+
+    return icom_network_txbuf_next_in_range(tb, sequence, sequence, &cursor,
+                                            length);
+}
+
 void test_txbuf_add_get(void)
 {
     struct icom_network_txbuf tb;
@@ -46,11 +56,11 @@ void test_txbuf_add_get(void)
     TEST_CHECK(icom_network_txbuf_add(&tb, 1, a, 3, 0) == 0);
     TEST_CHECK(icom_network_txbuf_add(&tb, 2, b, 2, 0) == 0);
 
-    p = icom_network_txbuf_get(&tb, 1, &length);
+    p = stored(&tb, 1, &length);
     TEST_CHECK(p != NULL && length == 3 && memcmp(p, a, 3) == 0);
-    p = icom_network_txbuf_get(&tb, 2, &length);
+    p = stored(&tb, 2, &length);
     TEST_CHECK(p != NULL && length == 2 && memcmp(p, b, 2) == 0);
-    TEST_CHECK(icom_network_txbuf_get(&tb, 99, &length) == NULL);
+    TEST_CHECK(stored(&tb, 99, &length) == NULL);
 }
 
 void test_txbuf_purge(void)
@@ -60,12 +70,12 @@ void test_txbuf_purge(void)
 
     icom_network_txbuf_init(&tb);
     icom_network_txbuf_add(&tb, 7, a, 1, 1000);
-    TEST_CHECK(icom_network_txbuf_get(&tb, 7, NULL) != NULL);
+    TEST_CHECK(stored(&tb, 7, NULL) != NULL);
 
     icom_network_txbuf_purge(&tb, 5000, 10000);     /* not old enough */
-    TEST_CHECK(icom_network_txbuf_get(&tb, 7, NULL) != NULL);
+    TEST_CHECK(stored(&tb, 7, NULL) != NULL);
     icom_network_txbuf_purge(&tb, 12000, 10000);    /* now older than 10s */
-    TEST_CHECK(icom_network_txbuf_get(&tb, 7, NULL) == NULL);
+    TEST_CHECK(stored(&tb, 7, NULL) == NULL);
 }
 
 void test_txbuf_overwrite_oldest(void)
@@ -81,11 +91,11 @@ void test_txbuf_overwrite_oldest(void)
     {
         icom_network_txbuf_add(&tb, (uint16_t)(1000 + i), d, 1, 0);
     }
-    TEST_CHECK(icom_network_txbuf_get(&tb, 1000, NULL) != NULL);
+    TEST_CHECK(stored(&tb, 1000, NULL) != NULL);
 
     icom_network_txbuf_add(&tb, 9999, d, 1, 0);
-    TEST_CHECK(icom_network_txbuf_get(&tb, 1000, NULL) == NULL);
-    TEST_CHECK(icom_network_txbuf_get(&tb, 9999, NULL) != NULL);
+    TEST_CHECK(stored(&tb, 1000, NULL) == NULL);
+    TEST_CHECK(stored(&tb, 9999, NULL) != NULL);
 
     /* too-large packet not stored */
     TEST_CHECK(icom_network_txbuf_add(&tb, 1, d,
@@ -98,6 +108,37 @@ void test_txbuf_oversize_rejected(void)
     static uint8_t big[ICOM_NETWORK_SEQBUF_PKTMAX + 8];
     icom_network_txbuf_init(&tb);
     TEST_CHECK(icom_network_txbuf_add(&tb, 1, big, sizeof(big), 0) == -1);
+}
+
+/* A range across 0xffff, in a buffer that has wrapped as well, comes out
+ * whole and in the order it was sent. */
+void test_txbuf_range_wraps(void)
+{
+    struct icom_network_txbuf tb;
+    uint8_t d[1];
+    const uint8_t *p;
+    size_t cursor = 0, length = 0;
+    int i, found = 0;
+
+    icom_network_txbuf_init(&tb);
+
+    /* 0xff00 ... 0xffff, 0, 1, 2: the first three slots are reused */
+    for (i = 0; i < ICOM_NETWORK_SEQBUF_MAX + 3; i++)
+    {
+        uint16_t sequence = (uint16_t)(0xff00 + i);
+
+        d[0] = (uint8_t)sequence;
+        icom_network_txbuf_add(&tb, sequence, d, 1, 0);
+    }
+
+    while ((p = icom_network_txbuf_next_in_range(&tb, 0xfffe, 0x0001, &cursor,
+                &length)) != NULL)
+    {
+        TEST_CHECK(length == 1 && p[0] == (uint8_t)(0xfe + found));
+        found++;
+    }
+
+    TEST_CHECK(found == 4);
 }
 
 
@@ -284,6 +325,7 @@ TEST_LIST =
     { "txbuf_purge",              test_txbuf_purge },
     { "txbuf_overwrite_oldest",   test_txbuf_overwrite_oldest },
     { "txbuf_oversize_rejected",  test_txbuf_oversize_rejected },
+    { "txbuf_range_wraps",        test_txbuf_range_wraps },
     { "rxtrack_sequential",       test_rxtrack_sequential },
     { "rxtrack_gap_and_recover",  test_rxtrack_gap_and_recover },
     { "rxtrack_due_and_retry_cap", test_rxtrack_due_and_retry_cap },

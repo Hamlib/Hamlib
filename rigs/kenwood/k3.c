@@ -2208,14 +2208,50 @@ static int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     }
 
     case RIG_LEVEL_AGC:
-        retval = kenwood_safe_transaction(rig, "GT", levelbuf, sizeof(levelbuf), 5);
-
-        if (retval != RIG_OK)
+        if (RIG_IS_K3 || RIG_IS_K3S)
         {
-            return retval;
-        }
+            retval = kenwood_transaction(rig, "GT", levelbuf, sizeof(levelbuf));
 
-        sscanf(levelbuf + 2, "%d", &lvl);
+            if (retval != RIG_OK)
+            {
+                return retval;
+            }
+
+            len = strlen(levelbuf);
+
+            if ((len != 5 && len != 6) || levelbuf[2] != '0'
+                    || levelbuf[3] != '0')
+            {
+                return -RIG_EPROTO;
+            }
+
+            lvl = levelbuf[4] - '0';
+
+            if (len == 6)
+            {
+                if ((lvl != 2 && lvl != 4)
+                        || (levelbuf[5] != '0' && levelbuf[5] != '1'))
+                {
+                    return -RIG_EPROTO;
+                }
+
+                if (levelbuf[5] == '0')
+                {
+                    lvl = 0;
+                }
+            }
+        }
+        else
+        {
+            retval = kenwood_safe_transaction(rig, "GT", levelbuf, sizeof(levelbuf), 5);
+
+            if (retval != RIG_OK)
+            {
+                return retval;
+            }
+
+            sscanf(levelbuf + 2, "%d", &lvl);
+        }
 
         if (lvl == 0)
         {
@@ -2580,6 +2616,45 @@ static int k3_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
     switch (op)
     {
+    case RIG_OP_UP:
+    case RIG_OP_DOWN:
+        if (RIG_IS_K3 || RIG_IS_K3S)
+        {
+            if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_VFO)
+            {
+                vfo = rig_get_current_vfo_state(rig);
+            }
+
+            const char *command;
+
+            switch (vfo)
+            {
+            case RIG_VFO_A:
+            case RIG_VFO_MAIN:
+            case RIG_VFO_CURR:
+            case RIG_VFO_NONE:
+                command = op == RIG_OP_UP ? "UP" : "DN";
+                break;
+
+            case RIG_VFO_B:
+            case RIG_VFO_SUB:
+                command = op == RIG_OP_UP ? "UPB" : "DNB";
+                break;
+
+            default:
+                RETURNFUNC(-RIG_ENTARGET);
+            }
+
+            int retval = kenwood_transaction(rig, command, NULL, 0);
+
+            // VFO linking can move both frequencies with a single step.
+            rig_set_cache_freq(rig, RIG_VFO_A, 0);
+            rig_set_cache_freq(rig, RIG_VFO_B, 0);
+            RETURNFUNC(retval);
+        }
+
+        RETURNFUNC(kenwood_vfo_op(rig, vfo, op));
+
     case RIG_OP_TUNE: // KX2 K3 K3S KX3 K4 -- K2 needs SWH20 to it's in k2.c
         switch (rig->caps->rig_model)
         {
@@ -2622,6 +2697,31 @@ static int k3_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
     switch (func)
     {
+    case RIG_FUNC_NB:
+        if (RIG_IS_K3 || RIG_IS_K3S)
+        {
+            char buf[16];
+            int retval = kenwood_transaction(rig, "NB", buf, sizeof(buf));
+
+            if (retval != RIG_OK)
+            {
+                return retval;
+            }
+
+            size_t len = strlen(buf);
+
+            if ((len != 3 && len != 4) || (buf[2] != '0' && buf[2] != '1')
+                    || (len == 4 && buf[3] != '0'))
+            {
+                return -RIG_EPROTO;
+            }
+
+            *status = buf[2] - '0';
+            return RIG_OK;
+        }
+
+        return kenwood_get_func(rig, vfo, func, status);
+
     case RIG_FUNC_RIT:
         return get_kenwood_func(rig, "RT", status);
 

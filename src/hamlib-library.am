@@ -1,0 +1,7 @@
+.PHONY: update-hamlib-library
+update-hamlib-library:
+	$(MAKE) -C $(top_builddir)/src libhamlib.la
+
+# Normal prerequisites expose library timestamps refreshed by the submake.
+$(top_builddir)/src/libhamlib.la $(top_builddir)/lib/libmisc.la: update-hamlib-library
+	@test -f "$@"

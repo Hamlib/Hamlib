@@ -186,6 +186,93 @@ static void *run_peer(void *arg)
     return NULL;
 }
 
+static int test_k3_agc_and_nb(void)
+{
+    static const char *commands[] =
+    {
+        "GT;", "GT;", "GT;", "GT;", "GT;", "GT;", "GT;", "GT;", "GT;",
+        "NB;", "NB;", "NB;", "NB;", "NB;", "NB;", "NB;"
+    };
+    static const char *responses[] =
+    {
+        "GT000;", "GT002;", "GT004;", "GT0020;", "GT0040;", "GT0021;", "GT0041;",
+        "GT0042;", "GT0050;",
+        "NB0;", "NB1;", "NB00;", "NB10;", "NB20;", "NB11;", "NB100;"
+    };
+    static const int expected[] =
+    {
+        RIG_AGC_OFF, RIG_AGC_FAST, RIG_AGC_SLOW, RIG_AGC_OFF, RIG_AGC_OFF,
+        RIG_AGC_FAST, RIG_AGC_SLOW, -RIG_EPROTO, -RIG_EPROTO,
+        0, 1, 0, 1, -RIG_EPROTO, -RIG_EPROTO, -RIG_EPROTO
+    };
+    struct peer_case peer =
+    {
+        .commands = commands,
+        .responses = responses,
+        .count = sizeof(commands) / sizeof(commands[0]),
+        .status = -1
+    };
+    int sockets[2], failed = 0;
+    pthread_t thread;
+    RIG *rig = rig_init(RIG_MODEL_K3);
+
+    if (rig == NULL) { return 1; }
+
+    if (open_test_connection(sockets) != 0)
+    {
+        rig_cleanup(rig);
+        return 1;
+    }
+
+    peer.fd = sockets[1];
+
+    if (pthread_create(&thread, NULL, run_peer, &peer) != 0)
+    {
+        close_test_socket(sockets[0]);
+        close_test_socket(sockets[1]);
+        rig_cleanup(rig);
+        return 1;
+    }
+
+    RIGPORT(rig)->fd = sockets[0];
+    RIGPORT(rig)->type.rig = RIG_PORT_NETWORK;
+    RIGPORT(rig)->timeout = 500;
+    RIGPORT(rig)->retry = 0;
+
+    for (size_t i = 0; i < peer.count; i++)
+    {
+        int retval, actual;
+
+        if (strcmp(commands[i], "GT;") == 0)
+        {
+            value_t level = { .i = -1 };
+            retval = rig->caps->get_level(rig, RIG_VFO_A, RIG_LEVEL_AGC, &level);
+            actual = level.i;
+        }
+        else
+        {
+            actual = -1;
+            retval = rig->caps->get_func(rig, RIG_VFO_A, RIG_FUNC_NB, &actual);
+        }
+
+        if (retval != (expected[i] < 0 ? expected[i] : RIG_OK)
+                || actual != (expected[i] < 0 ? -1 : expected[i]))
+        {
+            fprintf(stderr, "K3 %s reply %s: expected %d, got result %d, value %d\n",
+                    commands[i], responses[i], expected[i], retval, actual);
+            failed = 1;
+        }
+    }
+
+    RIGPORT(rig)->fd = -1;
+    close_test_socket(sockets[0]);
+    pthread_join(thread, NULL);
+    close_test_socket(sockets[1]);
+    rig_cleanup(rig);
+
+    return failed || peer.status != 0;
+}
+
 static int run_case(const char *name, const char *fr, const char *ft,
                     const char *tq, int expected_retval,
                     vfo_t expected_vfo, vfo_t expected_rx_vfo,
@@ -279,6 +366,103 @@ static int run_case(const char *name, const char *fr, const char *ft,
     }
 
     return 0;
+}
+
+static int test_k3_vfo_steps(void)
+{
+    static const char *commands[] =
+    {
+        "UPB;", "ID;", "FB;", "FA;",
+        "DNB;", "ID;", "FB;", "FA;",
+        "UP;", "ID;", "FA;", "FB;"
+    };
+    static const char *responses[] =
+    {
+        NULL, "ID017;", "FB00007236010;", "FA00007155390;",
+        NULL, "ID017;", "FB00007236000;", "FA00007155390;",
+        NULL, "ID017;", "FA00007155400;", "FB00007236010;"
+    };
+    static const struct
+    {
+        vfo_t vfo;
+        vfo_op_t operation;
+        freq_t wanted;
+        freq_t other;
+    } steps[] =
+    {
+        { RIG_VFO_B,    RIG_OP_UP,   7236010, 7155390 },
+        { RIG_VFO_B,    RIG_OP_DOWN, 7236000, 7155390 },
+        { RIG_VFO_CURR, RIG_OP_UP,   7155400, 7236010 }
+    };
+    struct peer_case test =
+    {
+        .commands = commands,
+        .responses = responses,
+        .count = sizeof(commands) / sizeof(commands[0]),
+        .status = -1
+    };
+    int sockets[2];
+    pthread_t thread;
+    RIG *rig = rig_init(RIG_MODEL_K3);
+    int result = 1;
+
+    if (rig == NULL) { return 1; }
+
+    if (open_test_connection(sockets) != 0)
+    {
+        rig_cleanup(rig);
+        return 1;
+    }
+
+    test.fd = sockets[1];
+
+    if (pthread_create(&thread, NULL, run_peer, &test) != 0)
+    {
+        close_test_socket(sockets[0]);
+        close_test_socket(sockets[1]);
+        rig_cleanup(rig);
+        return 1;
+    }
+
+    STATE(rig)->comm_state = 1;
+    RIGPORT(rig)->fd = sockets[0];
+    RIGPORT(rig)->type.rig = RIG_PORT_NETWORK;
+    RIGPORT(rig)->timeout = 500;
+    RIGPORT(rig)->retry = 0;
+    rig_set_current_vfo_state(rig, RIG_VFO_A);
+    rig_set_cache_timeout_ms(rig, HAMLIB_CACHE_ALL, HAMLIB_CACHE_ALWAYS);
+    rig_set_cache_freq(rig, RIG_VFO_A, 7155390);
+    rig_set_cache_freq(rig, RIG_VFO_B, 7236000);
+
+    for (size_t i = 0; i < sizeof(steps) / sizeof(steps[0]); ++i)
+    {
+        vfo_t vfo = steps[i].vfo == RIG_VFO_CURR ? RIG_VFO_A : steps[i].vfo;
+        vfo_t other_vfo = vfo == RIG_VFO_A ? RIG_VFO_B : RIG_VFO_A;
+        freq_t freq = 0;
+        freq_t other = 0;
+
+        if (rig_vfo_op(rig, steps[i].vfo, steps[i].operation) != RIG_OK
+                || rig_get_freq(rig, vfo, &freq) != RIG_OK
+                || rig_get_freq(rig, other_vfo, &other) != RIG_OK
+                || freq != steps[i].wanted || other != steps[i].other
+                || rig_get_current_vfo_state(rig) != RIG_VFO_A)
+        {
+            fprintf(stderr, "K3 step %zu: unexpected operation or readback\n", i);
+            goto cleanup;
+        }
+    }
+
+    result = 0;
+
+cleanup:
+    STATE(rig)->comm_state = 0;
+    RIGPORT(rig)->fd = -1;
+    rig_cleanup(rig);
+    close_test_socket(sockets[0]);
+    pthread_join(thread, NULL);
+    close_test_socket(sockets[1]);
+
+    return result || test.status != 0;
 }
 
 static int run_mode_get_case(const char *name, int split, int is_k4,
@@ -614,6 +798,93 @@ static int test_meters(void)
     return 0;
 }
 
+static int run_k3_passband_readback(void)
+{
+    static const char *const commands[] =
+    {
+        "MD;", "BW;", "MD$;", "BW$;", "MD1;", "ID;", "BW0239;", "ID;",
+        "MD;", "BW;",
+        "MD;", "BW;", "MD;", "BW;", "MD$;", "BW$;", "MD2;", "ID;",
+        "MD;", "BW;"
+    };
+    static const char *const responses[] =
+    {
+        "MD1;", "BW0390;", "MD$1;", "BW$0400;", NULL, "ID017;", NULL, "ID017;",
+        "MD1;", "BW0235;",
+        "MD1;", "BW0235;", "MD1;", "BW0235;", "MD$1;", "BW$0390;", NULL, "ID017;",
+        "MD2;", "BW0290;"
+    };
+    struct peer_case test =
+    {
+        .commands = commands,
+        .responses = responses,
+        .count = sizeof(commands) / sizeof(commands[0]),
+        .status = -1
+    };
+    RIG *rig = rig_init(RIG_MODEL_K3);
+    int sockets[2];
+    pthread_t thread;
+    int failed = 1;
+    rmode_t mode = RIG_MODE_NONE;
+    pbwidth_t width = 0;
+
+    if (rig == NULL) { return 1; }
+
+    if (open_test_connection(sockets) != 0)
+    {
+        rig_cleanup(rig);
+        return 1;
+    }
+
+    test.fd = sockets[1];
+
+    if (pthread_create(&thread, NULL, run_peer, &test) != 0)
+    {
+        close_test_socket(sockets[0]);
+        close_test_socket(sockets[1]);
+        rig_cleanup(rig);
+        return 1;
+    }
+
+    STATE(rig)->comm_state = 1;
+    ((struct kenwood_priv_data *)STATE(rig)->priv)->is_k3 = 1;
+    RIGPORT(rig)->fd = sockets[0];
+    RIGPORT(rig)->type.rig = RIG_PORT_NETWORK;
+    RIGPORT(rig)->timeout = 500;
+    RIGPORT(rig)->retry = 0;
+    rig_set_current_vfo_state(rig, RIG_VFO_A);
+    rig_set_cache_timeout_ms(rig, HAMLIB_CACHE_ALL, 10000);
+
+    if (rig_set_mode(rig, RIG_VFO_A, RIG_MODE_LSB, 2390) != RIG_OK
+            || rig_get_mode(rig, RIG_VFO_A, &mode, &width) != RIG_OK
+            || mode != RIG_MODE_LSB || width != 2350)
+    {
+        fprintf(stderr, "K3 mode readback did not report the quantized width "
+                        "(got %ld Hz)\n", width);
+        goto cleanup;
+    }
+
+    if (rig_set_mode(rig, RIG_VFO_A, RIG_MODE_USB, RIG_PASSBAND_NOCHANGE) != RIG_OK
+            || rig_get_mode(rig, RIG_VFO_A, &mode, &width) != RIG_OK
+            || mode != RIG_MODE_USB || width != 2900)
+    {
+        fprintf(stderr, "K3 mode readback did not report the recalled width "
+                        "(got %ld Hz)\n", width);
+        goto cleanup;
+    }
+
+    failed = 0;
+
+cleanup:
+    STATE(rig)->comm_state = 0;
+    RIGPORT(rig)->fd = -1;
+    rig_cleanup(rig);
+    close_test_socket(sockets[0]);
+    pthread_join(thread, NULL);
+    close_test_socket(sockets[1]);
+    return failed || test.status != 0;
+}
+
 int main(void)
 {
     int failed = 0;
@@ -660,6 +931,12 @@ int main(void)
         goto cleanup;
     }
 
+    if (test_k3_agc_and_nb() != 0)
+    {
+        failed = 1;
+        goto cleanup;
+    }
+
     if (run_case("malformed-fr", "FRX;", NULL, NULL, -RIG_EPROTO,
                  RIG_VFO_NONE, RIG_VFO_NONE, RIG_VFO_NONE) != 0)
     {
@@ -695,9 +972,21 @@ int main(void)
         goto cleanup;
     }
 
+    if (run_k3_passband_readback() != 0)
+    {
+        failed = 1;
+        goto cleanup;
+    }
+
     if (run_case("invalid-tq-value", "FR0;", "FT0;", "TQ7;",
                  -RIG_EPROTO, RIG_VFO_NONE, RIG_VFO_NONE,
                  RIG_VFO_NONE) != 0)
+    {
+        failed = 1;
+        goto cleanup;
+    }
+
+    if (test_k3_vfo_steps() != 0)
     {
         failed = 1;
         goto cleanup;

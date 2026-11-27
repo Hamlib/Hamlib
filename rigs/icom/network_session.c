@@ -532,20 +532,30 @@ static int icom_network_session_recv_timeout(
     return -RIG_EIO;
 }
 
-/* Build only the 16-byte header into packet and send (control opcodes/idle). */
-static int icom_network_session_send_control(struct icom_network_session_socket
-        *s, uint16_t control)
+/* Build only the 16-byte header into packet and send (control opcodes/idle).
+ * The caller holds s->lock. */
+static int icom_network_session_send_control_locked(
+    struct icom_network_session_socket *s, uint16_t control, uint16_t sequence)
 {
     uint8_t packet[ICOM_NETWORK_HEADER_LEN];
-    uint16_t sequence;
-
-    /* Untracked control/idle packets use sequence 0; only tracked data packets
-     * advance send_sequence, which the radio gap-tracks for retransmission. */
-    sequence = 0;
 
     icom_network_packet_build_control(packet, sizeof(packet), control, sequence,
                                       s->local_id, s->remote_id);
-    return icom_network_session_send_tracked(s, packet, sizeof(packet), 0);
+    return icom_network_session_send_raw(s, packet, sizeof(packet));
+}
+
+static int icom_network_session_send_control(struct icom_network_session_socket
+        *s, uint16_t control)
+{
+    int ret;
+
+    /* Untracked control/idle packets use sequence 0; only tracked data packets
+     * advance send_sequence, which the radio gap-tracks for retransmission. */
+    pthread_mutex_lock(&s->lock);
+    ret = icom_network_session_send_control_locked(s, control, 0);
+    pthread_mutex_unlock(&s->lock);
+
+    return ret;
 }
 
 /* defined below; used by icom_network_session_await to keep the link
@@ -823,6 +833,49 @@ static void icom_network_session_civ_rx_push(struct icom_network_session *s,
 /* handle an incoming packet on a socket (shared by both threads)      */
 /* ------------------------------------------------------------------ */
 
+/* Answer a request for the sequences [first, last], modulo 2^16. The stored
+ * packets among them are replayed. Those before the oldest of these were sent
+ * and dropped since (purged or overwritten): each gets an idle of its
+ * sequence, as wfview sends, because the radio holds back what came after a
+ * missing sequence until it has it, for as long as the stream lasts. */
+static void icom_network_session_answer_retransmit(
+    struct icom_network_session_socket *s, uint16_t first, uint16_t last)
+{
+    size_t cursor = 0, packet_length;
+    const uint8_t *p;
+    uint16_t sequence, end;
+    int replayed = 0, dropped = 0;
+
+    pthread_mutex_lock(&s->lock);
+    p = icom_network_txbuf_next_in_range(&s->txbuf, first, last, &cursor,
+                                         &packet_length);
+    /* the range up to its oldest stored packet, or all of it */
+    end = p ? icom_network_get_le16(p + ICOM_NETWORK_OFF_SEQUENCE)
+          : (uint16_t)(last + 1);
+
+    /* stopping at the next sequence to send: none from there on was sent */
+    for (sequence = first; sequence != end
+            && (int16_t)(s->send_sequence - sequence) > 0;
+            sequence = (uint16_t)(sequence + 1))
+    {
+        (void)icom_network_session_send_control_locked(s, ICOM_NETWORK_CTL_IDLE,
+                sequence);
+        dropped++;
+    }
+
+    for (; p != NULL; p = icom_network_txbuf_next_in_range(&s->txbuf, first,
+            last, &cursor, &packet_length))
+    {
+        (void)icom_network_session_send_raw(s, p, packet_length);
+        replayed++;
+    }
+
+    pthread_mutex_unlock(&s->lock);
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "%s: rig requests retransmit sequences=%u-%u (%d replayed, %d no "
+              "longer held)\n", __func__, first, last, replayed, dropped);
+}
+
 /* Reply to a retransmit request by replaying stored packets. */
 static void icom_network_session_handle_retransmit_request(
     struct icom_network_session_socket *s,
@@ -837,31 +890,19 @@ static void icom_network_session_handle_retransmit_request(
     {
         /* single-sequence form: sequence is in the header */
         uint16_t sequence = icom_network_get_le16(buf + ICOM_NETWORK_OFF_SEQUENCE);
-        size_t packet_length;
-        const uint8_t *p;
-        pthread_mutex_lock(&s->lock);
-        p = icom_network_txbuf_get(&s->txbuf, sequence, &packet_length);
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: rig requests retransmit sequence=%u %s\n",
-                  __func__, sequence, p ? "(replaying)" : "(NOT in txbuf)");
 
-        if (p) { (void)icom_network_session_send_raw(s, p, packet_length); }
-
-        pthread_mutex_unlock(&s->lock);
+        icom_network_session_answer_retransmit(s, sequence, sequence);
         return;
     }
 
     for (i = 0; i < n; i++)
     {
-        uint16_t sequence = icom_network_get_le16(buf + ICOM_NETWORK_HEADER_LEN + i *
-                            4);
-        size_t packet_length;
-        const uint8_t *p;
-        pthread_mutex_lock(&s->lock);
-        p = icom_network_txbuf_get(&s->txbuf, sequence, &packet_length);
+        /* Each entry is a range [first, last]; a radio asks for a run of lost
+         * packets in one (the IC-7760 and IC-9700 do), so replay all of it. */
+        const uint8_t *entry = buf + ICOM_NETWORK_HEADER_LEN + i * 4;
 
-        if (p) { (void)icom_network_session_send_raw(s, p, packet_length); }
-
-        pthread_mutex_unlock(&s->lock);
+        icom_network_session_answer_retransmit(s, icom_network_get_le16(entry),
+                                               icom_network_get_le16(entry + 2));
     }
 }
 
@@ -904,11 +945,18 @@ static int icom_network_session_rx_common(struct icom_network_session *s,
 {
     (void)s;
 
-    /* anything at all from the radio proves this socket is alive */
-    sock->last_heard_ms = icom_network_now_ms();
-    sock->error_since_ms = 0;
-
     *kind = icom_network_packet_classify(buf, n, sock->role);
+
+    /* Anything from the radio proves the socket alive, except a ping on the
+     * CI-V socket: a radio that has given up the CI-V stream still answers
+     * those (IC-7760, IC-9700), and it sends idles while it serves it. */
+    if (sock->role != ICOM_NETWORK_ROLE_CIV
+            || *kind != ICOM_NETWORK_PACKET_KIND_PING)
+    {
+        sock->last_heard_ms = icom_network_now_ms();
+    }
+
+    sock->error_since_ms = 0;
 
     switch (*kind)
     {
