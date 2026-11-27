@@ -2390,6 +2390,106 @@ static int run_query_cases(void)
     return run_query_contract_case(0) || run_query_contract_case(1);
 }
 
+struct combined_split_peer
+{
+    int fd;
+    int frequency_set;
+    int mode_set;
+    int data_set;
+    int split;
+    int reject_mode;
+    int failed;
+};
+
+static void *run_combined_split_peer(void *arg)
+{
+    struct combined_split_peer *peer = arg;
+    char cmd[32];
+
+    while (read_command(peer->fd, cmd, sizeof(cmd)) == 0)
+    {
+        const char *reply = NULL;
+        if (strcmp(cmd, "ID;") == 0) { reply = "ID017;"; }
+        else if (strcmp(cmd, "FR;") == 0) { reply = "FR0;"; }
+        else if (strcmp(cmd, "TQ;") == 0) { reply = "TQ0;"; }
+        else if (strcmp(cmd, "FT;") == 0) { reply = peer->split ? "FT1;" : "FT0;"; }
+        else if (strcmp(cmd, "FB;") == 0)
+        {
+            reply = peer->frequency_set ? "FB00007075000;" : "FB00007074000;";
+        }
+        else if (strcmp(cmd, "MD$;") == 0) { reply = peer->mode_set ? "MD$6;" : "MD$2;"; }
+        else if (strcmp(cmd, "DT$;") == 0) { reply = peer->data_set ? "DT$0;" : "DT$2;"; }
+        else if (strcmp(cmd, "BW$;") == 0) { reply = "BW$0280;"; }
+        else if (strcmp(cmd, "FB00007075000;") == 0) { peer->frequency_set = 1; }
+        else if (strcmp(cmd, "MD$6;") == 0 && peer->frequency_set) { peer->mode_set = 1; }
+        else if (strcmp(cmd, "DT$0;") == 0 && peer->mode_set) { peer->data_set = !peer->reject_mode; }
+        else if (strcmp(cmd, "FT1;") == 0 && peer->data_set) { peer->split = 1; }
+        else
+        {
+            fprintf(stderr, "K4 combined split: unexpected %s (frequency=%d mode=%d data=%d)\n",
+                    cmd, peer->frequency_set, peer->mode_set, peer->data_set);
+            peer->failed = 1;
+            shutdown_test_socket(peer->fd);
+            break;
+        }
+        if (reply && write_all(peer->fd, reply, strlen(reply)) != 0)
+        {
+            peer->failed = 1;
+            break;
+        }
+    }
+    return NULL;
+}
+
+static int run_k4_combined_split_case(split_t initial_split, int reject_mode)
+{
+    struct combined_split_peer peer = { .split = initial_split, .reject_mode = reject_mode };
+    int sockets[2];
+    pthread_t thread;
+    RIG *rig = rig_init(RIG_MODEL_K4);
+
+    if (!rig) { return 1; }
+    if (open_test_connection(sockets) != 0) { rig_cleanup(rig); return 1; }
+
+    peer.fd = sockets[1];
+    bound_peer_reads(peer.fd);
+    RIGPORT(rig)->fd = sockets[0];
+    RIGPORT(rig)->type.rig = RIG_PORT_NETWORK;
+    RIGPORT(rig)->timeout = 500;
+    RIGPORT(rig)->retry = 0;
+    STATE(rig)->comm_state = 1;
+    STATE(rig)->twiddle_timeout = 0;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
+    priv->is_k4 = 1;
+    priv->split = initial_split;
+    rig_set_vfo_state(rig, RIG_VFO_A, RIG_VFO_B);
+    rig_set_split_routing_state(rig, initial_split, RIG_VFO_A,
+                                initial_split ? RIG_VFO_B : RIG_VFO_A);
+
+    int failed = pthread_create(&thread, NULL, run_combined_split_peer, &peer) != 0;
+    if (!failed)
+    {
+        int rc = rig_set_split_freq_mode(rig, RIG_VFO_CURR, 7075000, RIG_MODE_PKTUSB,
+                                         RIG_PASSBAND_NOCHANGE);
+        finish_test_writes(sockets[0]);
+        pthread_join(thread, NULL);
+        if (rc != (reject_mode ? -RIG_ERJCTED : RIG_OK) || peer.failed
+                || !peer.frequency_set || !peer.mode_set || peer.data_set != !reject_mode
+                || peer.split != !reject_mode)
+        {
+            fprintf(stderr, "K4 combined initial split=%d reject_mode=%d: rc=%d peer=%d\n",
+                    initial_split, reject_mode, rc, peer.failed);
+            failed = 1;
+        }
+    }
+    RIGPORT(rig)->fd = -1;
+    STATE(rig)->comm_state = 0;
+    close_test_socket(sockets[0]);
+    close_test_socket(sockets[1]);
+    rig_cleanup(rig);
+    return failed;
+}
+
 static int run_setter_cases(void)
 {
     static const struct setter_case cases[] =
@@ -2545,6 +2645,10 @@ static int run_setter_cases(void)
           .requested = 1, .readback_error = "FTX;", .expected_retval = -RIG_EPROTO }
     };
     size_t i;
+
+    if (run_k4_combined_split_case(RIG_SPLIT_OFF, 0)
+            || run_k4_combined_split_case(RIG_SPLIT_OFF, 1)
+            || run_k4_combined_split_case(RIG_SPLIT_ON, 0)) { return 1; }
 
     for (i = 0; i < sizeof(cases) / sizeof(cases[0]); i++)
     {

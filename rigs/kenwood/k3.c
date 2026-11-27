@@ -193,6 +193,10 @@ static int k4_get_bar_graph_level(RIG *rig, float *swr, float *alc);
 
 /* K4 functions */
 static int k4_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+static int k4_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq,
+                                  rmode_t mode, pbwidth_t width);
+static int k3_write_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width,
+                         int both_vfos);
 static int k4_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo);
 static int k4_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *txvfo);
 static int k4_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
@@ -665,6 +669,7 @@ struct rig_caps k4_caps =
     .rig_open =     elecraft_open,
     .rig_close =        elecraft_close,
     .set_freq =     k4_set_freq,
+    .set_split_freq_mode = k4_set_split_freq_mode,
     .get_freq =     kenwood_get_freq,
     .set_mode =     k3_set_mode,
     .get_mode =     k3_get_mode,
@@ -1190,12 +1195,6 @@ static int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 static int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     int err, err2;
-    char cmd_m[5];
-    char buf[KENWOOD_MAX_BUF_LEN];
-    char *dtcmd;
-    const int k3_packet = (RIG_IS_K3 || RIG_IS_K3S)
-                          && (mode == RIG_MODE_PKTUSB || mode == RIG_MODE_PKTLSB);
-    struct kenwood_priv_caps *caps = kenwood_caps(rig);
     struct kenwood_priv_data *priv = STATE(rig)->priv;
 
     ENTERFUNC;
@@ -1229,6 +1228,22 @@ static int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                   __LINE__, rig_strrmode(tmodeA), rig_strrmode(tmodeB), rig_strrmode(mode),
                   twidth, width);
     }
+
+    err = k3_write_mode(rig, vfo, mode, width, priv->split);
+    RETURNFUNC(err);
+}
+
+static int k3_write_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width,
+                         int both_vfos)
+{
+    const int k3_packet = (RIG_IS_K3 || RIG_IS_K3S)
+                          && (mode == RIG_MODE_PKTUSB || mode == RIG_MODE_PKTLSB);
+    char cmd_m[5];
+    char buf[KENWOOD_MAX_BUF_LEN];
+    char *dtcmd;
+    struct kenwood_priv_caps *caps = kenwood_caps(rig);
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
+    int err;
 
     dtcmd = "DT";
 
@@ -1281,7 +1296,7 @@ static int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: unsupported mode '%s'\n",
                   __func__, rig_strrmode(mode));
-        RETURNFUNC(-RIG_EINVAL);
+        return -RIG_EINVAL;
     }
 
     if (kmode <= 9)
@@ -1304,7 +1319,7 @@ static int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         SNPRINTF(buf, sizeof(buf), "MD%c", c);
     }
 
-    if (priv->split)
+    if (both_vfos)
     {
         // then we keep both VFOS in the same mode
         SNPRINTF(buf, sizeof(buf), "MD%c;MD$%c", c, c);
@@ -1327,7 +1342,7 @@ static int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         err = kenwood_transaction(rig, buf, NULL, 0);
     }
 
-    if (err != RIG_OK) { RETURNFUNC(err); }
+    if (err != RIG_OK) { return err; }
 
     if (width != RIG_PASSBAND_NOCHANGE)
     {
@@ -1384,7 +1399,7 @@ static int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
         if (err != RIG_OK)
         {
-            RETURNFUNC(err);
+            return err;
         }
     }
 
@@ -1398,11 +1413,11 @@ static int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
         if (err != RIG_OK)
         {
-            RETURNFUNC(err);
+            return err;
         }
     }
 
-    RETURNFUNC(RIG_OK);
+    return RIG_OK;
 }
 
 static int k4_read_value(RIG *rig, const char *command, freq_t *value)
@@ -1643,6 +1658,42 @@ static int k4_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 
     k4_invalidate_state(rig);
     return retval;
+}
+
+static int k4_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq,
+                                  rmode_t mode, pbwidth_t width)
+{
+    rmode_t current;
+    pbwidth_t current_width;
+    int err = rig_set_freq(rig, RIG_VFO_B, freq);
+
+    if (err != RIG_OK) { return err; }
+
+    if (mode != RIG_MODE_NONE || width != RIG_PASSBAND_NOCHANGE)
+    {
+        err = k3_get_split_mode(rig, RIG_VFO_B, &current, &current_width);
+
+        if (err != RIG_OK) { return err; }
+
+        if (mode == RIG_MODE_NONE) { mode = current; }
+
+        if (mode != current || width != RIG_PASSBAND_NOCHANGE)
+        {
+            /* Only B belongs to this request, even if split was already on. */
+            err = k3_write_mode(rig, RIG_VFO_B, mode, width, 0);
+            k4_invalidate_state(rig);
+
+            if (err != RIG_OK) { return err; }
+
+            err = k3_get_split_mode(rig, RIG_VFO_B, &current, &current_width);
+
+            if (err != RIG_OK) { return err; }
+
+            if (mode != current) { return -RIG_ERJCTED; }
+        }
+    }
+
+    return rig_set_split_vfo(rig, RIG_VFO_A, RIG_SPLIT_ON, RIG_VFO_B);
 }
 
 /* Elecraft rigs don't really know about swappings vfos.
