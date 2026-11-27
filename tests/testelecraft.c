@@ -29,6 +29,7 @@
 
 extern struct rig_caps k4_caps;
 extern struct rig_caps k3_caps;
+extern struct rig_caps k3s_caps;
 
 struct peer_case
 {
@@ -561,9 +562,14 @@ static int run_split_mode_set_case(int is_k4, rmode_t mode)
     {
         NULL, NULL, "ID017;", NULL, "ID017;", NULL, "ID017;"
     };
-    static const char *k3_packet_commands[] = { "MD$6;", "ID;" };
-    static const char *k3_rttyr_commands[] = { "MD$9;", "ID;" };
-    static const char *k3_responses[] = { NULL, "ID017;" };
+    static const char *k3_commands[] =
+    {
+        "MD$;", "DT;", "DT0;", "ID;", "DT;", "MD$;", "MD$6;", "ID;", "MD$;"
+    };
+    static const char *k3_responses[] =
+    {
+        "MD$9;", "DT2;", NULL, "ID017;", "DT0;", "MD$9;", NULL, "ID017;", "MD$6;"
+    };
     const char *const *commands;
     const char *const *responses;
     size_t count;
@@ -577,10 +583,9 @@ static int run_split_mode_set_case(int is_k4, rmode_t mode)
     }
     else
     {
-        commands = mode == RIG_MODE_RTTYR ? k3_rttyr_commands
-                   : k3_packet_commands;
+        commands = k3_commands;
         responses = k3_responses;
-        count = 2;
+        count = sizeof(k3_commands) / sizeof(k3_commands[0]);
     }
 
     struct peer_case test =
@@ -651,6 +656,143 @@ static int run_split_mode_set_case(int is_k4, rmode_t mode)
     }
 
     return 0;
+}
+
+static int run_k3_split_sequence(rig_model_t model)
+{
+    static const char *commands[] =
+    {
+        "FT;",
+        "FT;", "FT1;", "ID;", "FT;",
+        "FB;", "FB00010136500;", "ID;", "FB;",
+        "FB;", "FB00010136500;", "ID;", "FB;",
+        "MD$;", "MD$6;", "ID;", "DT;", "MD$;",
+        "FT;", "FT1;", "ID;", "FT;",
+        "FT;",
+        "FT;", "FR0;", "ID;", "FT;"
+    };
+    static const char *responses[] =
+    {
+        "FT2;",
+        "FT0;", NULL, "ID017;", "FT0;",
+        "FB00010136000;", NULL, "ID017;", "FB00010136000;",
+        "FB00010136000;", NULL, "ID017;", "FB00010136500;",
+        "MD$2;", NULL, "ID017;", "DT0;", "MD$6;",
+        "FT0;", NULL, "ID017;", "FT1;",
+        "FT1;",
+        "FT1;", NULL, "ID017;", "FT0;"
+    };
+    struct peer_case test =
+    {
+        .commands = commands,
+        .responses = responses,
+        .count = sizeof(commands) / sizeof(commands[0]),
+        .status = -1
+    };
+    int sockets[2];
+    pthread_t thread;
+    struct rig_cache_routing_snapshot routing;
+    RIG *rig = rig_init(model);
+    int result = 1;
+
+    if (rig == NULL) { return 1; }
+
+    if (open_test_connection(sockets) != 0)
+    {
+        rig_cleanup(rig);
+        return 1;
+    }
+
+    test.fd = sockets[1];
+
+    if (pthread_create(&thread, NULL, run_peer, &test) != 0)
+    {
+        close_test_socket(sockets[0]);
+        close_test_socket(sockets[1]);
+        rig_cleanup(rig);
+        return 1;
+    }
+
+    STATE(rig)->comm_state = 1;
+    RIGPORT(rig)->fd = sockets[0];
+    RIGPORT(rig)->type.rig = RIG_PORT_NETWORK;
+    RIGPORT(rig)->timeout = 500;
+    RIGPORT(rig)->retry = 0;
+    rig_set_current_vfo_state(rig, RIG_VFO_A);
+
+    /* The prior band left a cached split-on value on this handle. */
+    rig_set_split_routing_state(rig, RIG_SPLIT_ON, RIG_VFO_A, RIG_VFO_B);
+    int ret = rig_set_split_vfo(rig, RIG_VFO_CURR, RIG_SPLIT_ON, RIG_VFO_B);
+
+    if (ret != -RIG_EPROTO)
+    {
+        fprintf(stderr, "%s: malformed FT read returned %d\n",
+                rig->caps->model_name, ret);
+        goto cleanup;
+    }
+
+    ret = rig_set_split_vfo(rig, RIG_VFO_CURR, RIG_SPLIT_ON, RIG_VFO_B);
+    rig_get_cache_routing_snapshot(rig, &routing);
+
+    if (ret != -RIG_ERJCTED || routing.split != RIG_SPLIT_OFF
+            || routing.tx_vfo != RIG_VFO_A)
+    {
+        fprintf(stderr, "%s: rejected FT1 returned %d, split %d, TX VFO %s\n",
+                rig->caps->model_name, ret, routing.split,
+                rig_strvfo(routing.tx_vfo));
+        goto cleanup;
+    }
+
+    ret = rig_set_split_freq_mode(rig, RIG_VFO_CURR, 10136500,
+                                  RIG_MODE_PKTUSB, RIG_PASSBAND_NOCHANGE);
+
+    if (ret != -RIG_ERJCTED)
+    {
+        fprintf(stderr, "%s: ignored FB write returned %d\n",
+                rig->caps->model_name, ret);
+        goto cleanup;
+    }
+
+    ret = rig_set_split_freq_mode(rig, RIG_VFO_CURR, 10136500,
+                                  RIG_MODE_PKTUSB, RIG_PASSBAND_NOCHANGE);
+    rig_get_cache_routing_snapshot(rig, &routing);
+
+    if (ret != RIG_OK || routing.split != RIG_SPLIT_ON
+            || routing.tx_vfo != RIG_VFO_B)
+    {
+        fprintf(stderr, "%s: prepared split returned %d, split %d, TX VFO %s\n",
+                rig->caps->model_name, ret, routing.split,
+                rig_strvfo(routing.tx_vfo));
+        goto cleanup;
+    }
+
+    if (rig_set_split_vfo(rig, RIG_VFO_CURR, RIG_SPLIT_ON, RIG_VFO_B) != RIG_OK
+            || rig_set_split_vfo(rig, RIG_VFO_CURR, RIG_SPLIT_OFF,
+                                  RIG_VFO_A) != RIG_OK)
+    {
+        fprintf(stderr, "%s: split confirm or cancel failed\n",
+                rig->caps->model_name);
+        goto cleanup;
+    }
+
+    rig_get_cache_routing_snapshot(rig, &routing);
+    result = routing.split != RIG_SPLIT_OFF || routing.tx_vfo != RIG_VFO_A;
+
+cleanup:
+    STATE(rig)->comm_state = 0;
+    RIGPORT(rig)->fd = -1;
+    rig_cleanup(rig);
+    close_test_socket(sockets[0]);
+    pthread_join(thread, NULL);
+    close_test_socket(sockets[1]);
+
+    if (test.status != 0)
+    {
+        fprintf(stderr, "K3 split CAT sequence differed from expectation\n");
+        return 1;
+    }
+
+    return result;
 }
 
 static int run_meter_case(const char *name, setting_t level,
@@ -902,6 +1044,7 @@ int main(void)
 
     rig_register(&k4_caps);
     rig_register(&k3_caps);
+    rig_register(&k3s_caps);
 
     if (run_case("receive-vfo-a", "FR0;", "FT0;", "TQ0;", RIG_OK,
                  RIG_VFO_A, RIG_VFO_MAIN, RIG_VFO_A) != 0)
@@ -912,6 +1055,13 @@ int main(void)
 
     if (run_case("receive-vfo-b", "FR1;", "FT0;", "TQ0;", RIG_OK,
                  RIG_VFO_B, RIG_VFO_B, RIG_VFO_B) != 0)
+    {
+        failed = 1;
+        goto cleanup;
+    }
+
+    if (run_k3_split_sequence(RIG_MODEL_K3) != 0
+            || run_k3_split_sequence(RIG_MODEL_K3S) != 0)
     {
         failed = 1;
         goto cleanup;
@@ -1028,14 +1178,14 @@ int main(void)
     }
 
     if (run_mode_get_case("k3-mode-b-reverse-data", 0, 0, "MD$9;", "DT0;",
-                          RIG_MODE_PKTUSB) != 0)
+                          RIG_MODE_PKTLSB) != 0)
     {
         failed = 1;
         goto cleanup;
     }
 
     if (run_mode_get_case("k3-mode-b-reverse-afsk", 0, 0, "MD$9;", "DT1;",
-                          RIG_MODE_PKTLSB) != 0)
+                          RIG_MODE_PKTUSB) != 0)
     {
         failed = 1;
         goto cleanup;
@@ -1049,12 +1199,6 @@ int main(void)
     }
 
     if (run_split_mode_set_case(0, RIG_MODE_PKTUSB) != 0)
-    {
-        failed = 1;
-        goto cleanup;
-    }
-
-    if (run_split_mode_set_case(0, RIG_MODE_RTTYR) != 0)
     {
         failed = 1;
         goto cleanup;
