@@ -555,6 +555,153 @@ static int run_mode_get_case(const char *name, int split, int is_k4,
     return 0;
 }
 
+enum split_query
+{
+    SPLIT_FREQ,
+    SPLIT_MODE,
+    SPLIT_FREQ_MODE
+};
+
+static int run_k3_split_get_case(enum split_query query, bool split,
+                                 bool retry_malformed)
+{
+    const char *commands[5];
+    const char *responses[5];
+    size_t count = 0;
+    struct peer_case test =
+    {
+        .commands = commands,
+        .responses = responses,
+        .status = -1
+    };
+    int sockets[2];
+    pthread_t thread;
+    freq_t freq = -1;
+    rmode_t mode = RIG_MODE_CW;
+    pbwidth_t width = -1;
+    int result = 1;
+
+    RIG *rig = rig_init(RIG_MODEL_K3);
+
+    if (rig == NULL) { return 1; }
+
+    bool uses_if = rig->caps->get_split_vfo == kenwood_get_split_vfo_if;
+    const char *status_command = uses_if ? "IF;" : "FT;";
+    const char *split_on = uses_if ? "IF00007155390     -000000 0001001001 ;"
+                           : "FT1;";
+    const char *split_off = uses_if ? "IF00007155390     -000000 0001000001 ;"
+                            : "FT0;";
+
+    if (retry_malformed)
+    {
+        commands[count] = status_command;
+        responses[count++] = uses_if ? "IF00007155390     -000000 0001002001 ;"
+                             : "FT2;";
+    }
+
+    commands[count] = status_command;
+    responses[count++] = split ? split_on : split_off;
+
+    if (split && query != SPLIT_MODE)
+    {
+        commands[count] = "FB;";
+        responses[count++] = "FB00007236000;";
+    }
+
+    if (split && query != SPLIT_FREQ)
+    {
+        commands[count] = "MD$;";
+        responses[count++] = "MD$1;";
+        commands[count] = "BW$;";
+        responses[count++] = "BW$0400;";
+    }
+
+    test.count = count;
+
+    if (open_test_connection(sockets) != 0)
+    {
+        rig_cleanup(rig);
+        return 1;
+    }
+
+    test.fd = sockets[1];
+
+    if (pthread_create(&thread, NULL, run_peer, &test) != 0)
+    {
+        close_test_socket(sockets[0]);
+        close_test_socket(sockets[1]);
+        rig_cleanup(rig);
+        return 1;
+    }
+
+    RIGPORT(rig)->fd = sockets[0];
+    RIGPORT(rig)->type.rig = RIG_PORT_NETWORK;
+    RIGPORT(rig)->timeout = 500;
+    RIGPORT(rig)->retry = 0;
+    STATE(rig)->comm_state = 1;
+    rig_set_current_vfo_state(rig, RIG_VFO_A);
+
+    if (retry_malformed)
+    {
+        int ret = rig_get_split_freq_mode(rig, RIG_VFO_CURR, &freq, &mode, &width);
+
+        if (ret != -RIG_EPROTO)
+        {
+            fprintf(stderr, "Malformed K3 split response returned %d\n", ret);
+            goto cleanup;
+        }
+
+        /* The Kenwood wire cache retains any well-framed IF reply. Force
+         * only that cache to expire to exercise retry of unknown routing. */
+        if (uses_if)
+        {
+            struct kenwood_priv_data *priv = STATE(rig)->priv;
+            elapsed_ms(&priv->cache_start, HAMLIB_ELAPSED_INVALIDATE);
+        }
+    }
+
+    int ret;
+
+    switch (query)
+    {
+    case SPLIT_FREQ:
+        ret = rig_get_split_freq(rig, RIG_VFO_CURR, &freq);
+        break;
+
+    case SPLIT_MODE:
+        ret = rig_get_split_mode(rig, RIG_VFO_CURR, &mode, &width);
+        break;
+
+    case SPLIT_FREQ_MODE:
+    default:
+        ret = rig_get_split_freq_mode(rig, RIG_VFO_CURR, &freq, &mode, &width);
+        break;
+    }
+
+    if (ret == RIG_OK && (query == SPLIT_MODE || freq == (split ? 7236000 : 0))
+            && (query == SPLIT_FREQ
+                || (mode == (split ? RIG_MODE_LSB : RIG_MODE_NONE)
+                    && width == (split ? 4000 : 0))))
+    {
+        result = 0;
+    }
+    else
+    {
+        fprintf(stderr, "K3 split query %d returned %d, freq %.0f, mode %s, "
+                        "width %ld\n", query, ret, freq, rig_strrmode(mode), width);
+    }
+
+cleanup:
+    RIGPORT(rig)->fd = -1;
+    STATE(rig)->comm_state = 0;
+    rig_cleanup(rig);
+    close_test_socket(sockets[0]);
+    pthread_join(thread, NULL);
+    close_test_socket(sockets[1]);
+
+    return result || test.status != 0;
+}
+
 static int run_split_mode_set_case(int is_k4, rmode_t mode)
 {
     static const char *k4_packet_commands[] =
@@ -2799,6 +2946,15 @@ int main(void)
 
     if (run_mode_get_case("mode-b-data-offset", 0, 1, "MD$6;", "DT$1;",
                           RIG_MODE_PKTLSB) != 0)
+    {
+        failed = 1;
+        goto cleanup;
+    }
+
+    if (run_k3_split_get_case(SPLIT_FREQ, true, false)
+            || run_k3_split_get_case(SPLIT_MODE, true, false)
+            || run_k3_split_get_case(SPLIT_FREQ_MODE, true, true)
+            || run_k3_split_get_case(SPLIT_FREQ_MODE, false, false))
     {
         failed = 1;
         goto cleanup;
