@@ -535,6 +535,99 @@ static int run_meter_case(const char *name, setting_t level,
     return 0;
 }
 
+static int run_k3_offset_case(const char *name, bool xit,
+                              const char *const commands[],
+                              const char *const responses[], size_t count,
+                              int expected)
+{
+    const char *expected_commands[7], *expected_responses[7];
+    struct peer_case test =
+    {
+        .commands = expected_commands,
+        .responses = expected_responses,
+        .count = count + 1,
+        .status = -1
+    };
+    int sockets[2];
+    pthread_t thread;
+    RIG *rig = rig_init(RIG_MODEL_K3);
+    int retval, status, checkpoint;
+
+    if (rig == NULL) { return 1; }
+
+    memcpy(expected_commands, commands, count * sizeof(*commands));
+    memcpy(expected_responses, responses, count * sizeof(*responses));
+    expected_commands[count] = "AI;";
+    expected_responses[count] = "AI0;";
+
+    if (open_test_connection(sockets) != 0)
+    {
+        rig_cleanup(rig);
+        return 1;
+    }
+
+    test.fd = sockets[1];
+
+    if (pthread_create(&thread, NULL, run_peer, &test) != 0)
+    {
+        close_test_socket(sockets[0]);
+        close_test_socket(sockets[1]);
+        rig_cleanup(rig);
+        return 1;
+    }
+
+    STATE(rig)->comm_state = 1;
+    RIGPORT(rig)->fd = sockets[0];
+    RIGPORT(rig)->type.rig = RIG_PORT_NETWORK;
+    RIGPORT(rig)->timeout = 500;
+    RIGPORT(rig)->retry = 0;
+
+    retval = xit ? rig_set_xit(rig, RIG_VFO_CURR, 0)
+             : rig_set_rit(rig, RIG_VFO_CURR, 0);
+    checkpoint = get_kenwood_func(rig, "AI", &status);
+
+    STATE(rig)->comm_state = 0;
+    RIGPORT(rig)->fd = -1;
+    rig_cleanup(rig);
+    close_test_socket(sockets[0]);
+    pthread_join(thread, NULL);
+    close_test_socket(sockets[1]);
+
+    if (test.status != 0 || retval != expected || checkpoint != RIG_OK)
+    {
+        fprintf(stderr, "K3 %s: expected %d, got %d (peer %d)\n",
+                name, expected, retval, test.status);
+        return 1;
+    }
+
+    return 0;
+}
+
+static int test_k3_offset_disable(void)
+{
+    static const char *rit[] = { "RT0;", "ID;", "RT;", "XT;", "RC;", "ID;" };
+    static const char *xit[] = { "XT0;", "ID;", "XT;", "RT;", "RC;", "ID;" };
+    static const char *rit_only[] = { NULL, "ID017;", "RT0;", "XT0;", NULL, "ID017;" };
+    static const char *xit_only[] = { NULL, "ID017;", "XT0;", "RT0;", NULL, "ID017;" };
+    static const char *preserve_xit[] = { NULL, "ID017;", "RT0;", "XT1;" };
+    static const char *preserve_rit[] = { NULL, "ID017;", "XT0;", "RT1;" };
+    static const char *rejected[] = { NULL, "ID017;", "RT1;" };
+    static const char *malformed[] = { NULL, "ID017;", "XT0;", "RT2;" };
+
+    return run_k3_offset_case("disable sole RIT", false, rit, rit_only, 6,
+                              RIG_OK)
+           || run_k3_offset_case("disable sole XIT", true, xit, xit_only, 6,
+                                 RIG_OK)
+           || run_k3_offset_case("disable RIT while XIT remains active", false,
+                                 rit, preserve_xit, 4, RIG_OK)
+           || run_k3_offset_case("disable XIT while RIT remains active", true,
+                                 xit, preserve_rit, 4, RIG_OK)
+           || run_k3_offset_case("RIT disable rejected", false, rit, rejected,
+                                 3, -RIG_ERJCTED)
+           || run_k3_offset_case("XIT disable with malformed RIT status", true,
+                                 xit, malformed, 4, -RIG_EPROTO);
+}
+
 static int test_meters(void)
 {
     static const struct
@@ -683,6 +776,12 @@ int main(void)
 
     if (run_case("invalid-fr-value", "FR9;", NULL, NULL, -RIG_EPROTO,
                  RIG_VFO_NONE, RIG_VFO_NONE, RIG_VFO_NONE) != 0)
+    {
+        failed = 1;
+        goto cleanup;
+    }
+
+    if (test_k3_offset_disable() != 0)
     {
         failed = 1;
         goto cleanup;

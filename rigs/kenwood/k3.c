@@ -176,7 +176,7 @@ static int k3_send_voice_mem(RIG *rig, vfo_t vfo, int ch);
 static int k3_stop_morse(RIG *rig, vfo_t vfo);
 
 /* Private helper functions */
-static int set_rit_xit(RIG *rig, shortfreq_t rit);
+static int set_rit_xit(RIG *rig, shortfreq_t rit, bool xit);
 static int k3_set_nb_level(RIG *rig, float dsp_nb, float if_nb);
 static int k3_get_nb_level(RIG *rig, float *dsp_nb, float *if_nb);
 static int k3_get_bar_graph_level(RIG *rig, float *smeter, float *pwr,
@@ -1527,7 +1527,7 @@ static int k3_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token,
 
 /*
  * k3_set_rit() -- Differs from from generic Kenwood function as K3 can set
- * RIT to an arbitrary offset.  When rit == 0, the RIT offset is cleared.
+ * RIT to an arbitrary offset.
  */
 static int k3_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
@@ -1535,7 +1535,7 @@ static int k3_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    err = set_rit_xit(rig, rit);
+    err = set_rit_xit(rig, rit, false);
 
     if (err != RIG_OK)
     {
@@ -1548,7 +1548,7 @@ static int k3_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 
 /*
  * k3_set_xit() -- Differs from from generic Kenwood function as K3 can set
- * XIT to an arbitrary offset.  When rit == 0, the XIT offset is cleared.
+ * XIT to an arbitrary offset.
  */
 static int k3_set_xit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
@@ -1556,7 +1556,7 @@ static int k3_set_xit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    err = set_rit_xit(rig, rit);
+    err = set_rit_xit(rig, rit, true);
 
     if (err != RIG_OK)
     {
@@ -2644,12 +2644,7 @@ static int k3_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
 /* Private K3 helper functions */
 
-/*
- * set_rit_xit() -- Differs from from generic Kenwood function as K3 can set
- * RIT/XIT to an arbitrary offset.  When rit == 0, the RIT/XIT offset is
- * cleared.
- */
-static int set_rit_xit(RIG *rig, shortfreq_t rit)
+static int set_rit_xit(RIG *rig, shortfreq_t rit, bool xit)
 {
     int err;
 
@@ -2657,15 +2652,30 @@ static int set_rit_xit(RIG *rig, shortfreq_t rit)
 
     if (rit == 0)
     {
-        /* Clear offset and return */
-        err = kenwood_transaction(rig, "RC", NULL, 0);
-
-        if (err != RIG_OK)
+        if (RIG_IS_K3 || RIG_IS_K3S)
         {
-            return err;
+            int enabled;
+            err = kenwood_transaction(rig, xit ? "XT0" : "RT0", NULL, 0);
+
+            if (err != RIG_OK) { return err; }
+
+            err = get_kenwood_func(rig, xit ? "XT" : "RT", &enabled);
+
+            if (err != RIG_OK) { return err; }
+
+            if (enabled != 0) { return enabled == 1 ? -RIG_ERJCTED : -RIG_EPROTO; }
+
+            /* RIT and XIT share RO. Clear it only when both are disabled. */
+            err = get_kenwood_func(rig, xit ? "RT" : "XT", &enabled);
+
+            if (err != RIG_OK) { return err; }
+
+            if (enabled == 1) { return RIG_OK; }
+
+            if (enabled != 0) { return -RIG_EPROTO; }
         }
 
-        return RIG_OK;
+        return kenwood_transaction(rig, "RC", NULL, 0);
     }
 
     /* Set offset */
