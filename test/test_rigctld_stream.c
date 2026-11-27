@@ -40,6 +40,10 @@
 #include <limits.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <time.h>
+#ifndef _WIN32
+#include <poll.h>
+#endif
 
 /* On Windows, Winsock initialization for the raw-socket tests below comes
  * from the constructor in rigctld_stream.c, which is linked into this
@@ -1158,6 +1162,25 @@ void test_registry_next_id(void)
 
 /* --- UDP socket creation tests --- */
 
+static void check_socket_nonblocking(int fd)
+{
+#ifdef _WIN32
+    DWORD timeout = 100;
+    TEST_ASSERT(setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO,
+                           (const char *)&timeout, sizeof(timeout)) == 0);
+    char byte;
+    int n = recvfrom(fd, &byte, 1, 0, NULL, NULL);
+    int err = WSAGetLastError();
+    TEST_CHECK(n == SOCKET_ERROR);
+    TEST_CHECK(err == WSAEWOULDBLOCK);
+#else
+    int flags = fcntl(fd, F_GETFL, 0);
+    TEST_CHECK(flags >= 0);
+    TEST_CHECK((flags & O_NONBLOCK) != 0);
+#endif
+}
+
+
 void test_udp_socket_create_happy_path(void)
 {
     int fd = -1;
@@ -1175,6 +1198,7 @@ void test_udp_socket_create_happy_path(void)
 
     if (fd >= 0)
     {
+        check_socket_nonblocking(fd);
         close(fd);
     }
 }
@@ -1455,6 +1479,7 @@ void test_multicast_socket_create_ipv4(void)
 
     if (fd >= 0)
     {
+        check_socket_nonblocking(fd);
         close(fd);
     }
 }
@@ -1489,6 +1514,7 @@ void test_multicast_socket_create_ipv6(void)
 
     if (fd >= 0)
     {
+        check_socket_nonblocking(fd);
         close(fd);
     }
 }
@@ -2784,6 +2810,7 @@ void test_write_status_emit(void)
     struct rigctld_stream stream;
     memset(&stream, 0, sizeof(stream));
     stream.udp_sock = tx_fd;
+    stream.running = 1;
     stream.type = RIG_STREAM_TYPE_AUDIO_TX;
     stream.stream_id = 5;
     stream.subscribe_token = 0xDEADBEEF;
@@ -2827,6 +2854,427 @@ void test_write_status_emit(void)
 
     close(rx_fd);
     close(tx_fd);
+}
+
+
+struct send_backpressure_fixture
+{
+    struct rigctld_stream stream;
+    HAMLIB_ATOMIC int attempts;
+    HAMLIB_ATOMIC int waits;
+    HAMLIB_ATOMIC int allow_first;
+    HAMLIB_ATOMIC int accepted;
+    HAMLIB_ATOMIC int finished;
+    HAMLIB_ATOMIC int stop_finished;
+    int invalid_wait;
+    int error_case;
+    int error_accept_on_attempt;
+    int error_hard_failure;
+    int error_stop_on_wait;
+    unsigned char packet[RIG_STREAM_HEADER_SIZE
+                         + RIG_STREAM_WRITE_STATUS_WIRE_SIZE];
+    size_t packet_len;
+    uint32_t seq;
+    int changed;
+    int results[2];
+};
+
+static struct send_backpressure_fixture *send_backpressure;
+
+enum { SEND_TEST_WATCHDOG_MS = 5000 };
+
+
+/* Only the selected socket is intercepted; other suite cases use real I/O. */
+ssize_t rigctld_stream_test_sendto(int fd, const char *buf, size_t len,
+                                   int flags, const struct sockaddr *addr,
+                                   socklen_t addrlen)
+{
+    struct send_backpressure_fixture *f = send_backpressure;
+
+    if (!f || fd != f->stream.udp_sock)
+    {
+        return sendto(fd, buf, len, flags, addr, addrlen);
+    }
+
+    if (f->error_hard_failure || (f->error_case && f->attempts >= 2))
+    {
+        f->attempts++;
+#ifdef _WIN32
+        WSASetLastError(WSAENETDOWN);
+#else
+        errno = ENETDOWN;
+#endif
+        return -1;
+    }
+
+    struct rig_stream_packet_header hdr;
+
+    size_t expected_len = RIG_STREAM_HEADER_SIZE + (f->error_case
+        ? RIG_STREAM_ERROR_WIRE_SIZE
+        : RIG_STREAM_WRITE_STATUS_WIRE_SIZE);
+
+    if (len != expected_len
+            || stream_packet_header_unpack((const unsigned char *)buf,
+                                           len, &hdr) != 0)
+    {
+        f->changed = 1;
+    }
+    else
+    {
+        if (hdr.seq != (uint32_t)f->accepted
+                || hdr.control != (f->error_case ? RIG_STREAM_CTRL_ERROR
+                                   : RIG_STREAM_CTRL_WRITE_STATUS))
+        {
+            f->changed = 1;
+        }
+
+        if (f->packet_len == 0 || hdr.seq != f->seq)
+        {
+            memcpy(f->packet, buf, len);
+            f->packet_len = len;
+            f->seq = hdr.seq;
+        }
+        else if (memcmp(f->packet, buf, len) != 0)
+        {
+            f->changed = 1;
+        }
+
+    }
+
+    f->attempts++;
+
+    if (f->error_case ? f->attempts == f->error_accept_on_attempt
+            : f->allow_first && f->accepted == 0)
+    {
+        f->accepted++;
+        return (ssize_t)len;
+    }
+
+#ifdef _WIN32
+    WSASetLastError(WSAEWOULDBLOCK);
+#else
+    errno = EAGAIN;
+#endif
+    return -1;
+}
+
+
+static int wait_for_send_state(HAMLIB_ATOMIC int *state, int expected)
+{
+    struct timespec start, now;
+    clock_gettime(CLOCK_MONOTONIC, &start);
+
+    do
+    {
+        if (*state == expected)
+        {
+            return 1;
+        }
+
+        usleep(1000);
+        clock_gettime(CLOCK_MONOTONIC, &now);
+    }
+    while ((now.tv_sec - start.tv_sec) * 1000
+            + (now.tv_nsec - start.tv_nsec) / 1000000 < SEND_TEST_WATCHDOG_MS);
+
+    return *state == expected;
+}
+
+
+static int scripted_write_wait(struct send_backpressure_fixture *f)
+{
+    int phase = ++f->waits;
+
+    if (f->error_case)
+    {
+        if (f->error_stop_on_wait)
+        {
+            f->stream.running = 0;
+        }
+
+        return 0;
+    }
+
+    if (phase == 1)
+    {
+        return 0;
+    }
+
+    if (phase == 2)
+    {
+        if (!wait_for_send_state(&f->allow_first, 1))
+        {
+            abort();
+        }
+
+        return 1;
+    }
+
+    if (!wait_for_send_state(&f->stream.running, 0))
+    {
+        abort();
+    }
+
+    return 0;
+}
+
+
+#ifdef _WIN32
+int rigctld_stream_test_select_write(int nfds, fd_set *fds,
+                                     struct timeval *timeout)
+{
+    struct send_backpressure_fixture *f = send_backpressure;
+
+    if (!f || !FD_ISSET(f->stream.udp_sock, fds))
+    {
+        return select(nfds, NULL, fds, NULL, timeout);
+    }
+
+    if (fds->fd_count != 1 || !timeout
+            || timeout->tv_sec != 0 || timeout->tv_usec != 100000)
+    {
+        f->invalid_wait = 1;
+    }
+
+    int ready = scripted_write_wait(f);
+
+    if (!ready)
+    {
+        FD_ZERO(fds);
+    }
+
+    return ready;
+}
+#else
+int rigctld_stream_test_poll_write(struct pollfd *fds, nfds_t count,
+                                   int timeout_ms)
+{
+    struct send_backpressure_fixture *f = send_backpressure;
+
+    if (!f || count == 0 || fds[0].fd != f->stream.udp_sock)
+    {
+        return poll(fds, count, timeout_ms);
+    }
+
+    if (count != 1 || fds[0].events != POLLOUT || timeout_ms != 100)
+    {
+        f->invalid_wait = 1;
+    }
+
+    int ready = scripted_write_wait(f);
+    fds[0].revents = ready ? POLLOUT : 0;
+    return ready;
+}
+#endif
+
+
+static void *backpressure_test_feeder(void *arg)
+{
+    struct send_backpressure_fixture *f = arg;
+    struct rig_stream_write_status ev = { 0 };
+    ev.event = RIG_STREAM_WRITE_EVENT_LATE;
+    ev.sample_index = 12345;
+
+    f->results[0] = rigctld_stream_emit_write_status(&f->stream, &ev);
+    f->results[1] = rigctld_stream_emit_write_status(&f->stream, &ev);
+    f->finished = 1;
+    return NULL;
+}
+
+
+static void *backpressure_stop_watchdog(void *arg)
+{
+    struct send_backpressure_fixture *f = arg;
+
+    if (!wait_for_send_state(&f->stop_finished, 1))
+    {
+        abort();
+    }
+
+    return NULL;
+}
+
+
+void test_udp_send_backpressure_shutdown(void)
+{
+    struct send_backpressure_fixture f = { 0 };
+    int port;
+    TEST_ASSERT(rigctld_stream_udp_socket_create(&f.stream.udp_sock, &port) == 0);
+    f.stream.running = 1;
+    f.stream.type = RIG_STREAM_TYPE_AUDIO_TX;
+    f.stream.config.sample_rate = 48000;
+    f.stream.config.channels = 1;
+    f.stream.config.format = RIG_STREAM_FORMAT_PCM_S16;
+    f.stream.format_id = RIG_STREAM_FMT_ID_PCM_S16;
+    send_backpressure = &f;
+
+    if (TEST_CHECK(pthread_create(&f.stream.feeder_thread, NULL,
+                                  backpressure_test_feeder, &f) == 0))
+    {
+        f.stream.feeder_started = 1;
+        TEST_CHECK(wait_for_send_state(&f.waits, 2));
+        TEST_CHECK(f.attempts == 2);
+        TEST_CHECK(f.finished == 0);
+        TEST_CHECK(f.stream.packet_count == 0);
+        TEST_CHECK(f.stream.send_drops == 0);
+
+        f.allow_first = 1;
+        TEST_CHECK(wait_for_send_state(&f.waits, 3));
+        TEST_CHECK(f.attempts == 4);
+        TEST_CHECK(f.finished == 0);
+
+        pthread_t watchdog;
+
+        if (pthread_create(&watchdog, NULL,
+                           backpressure_stop_watchdog, &f) != 0)
+        {
+            abort();
+        }
+
+        TEST_CHECK(rigctld_stream_feeder_stop(&f.stream) == 0);
+        f.stop_finished = 1;
+        pthread_join(watchdog, NULL);
+        TEST_CHECK(f.invalid_wait == 0);
+        TEST_CHECK(f.results[0] == 0);
+        TEST_CHECK(f.results[1] == -1);
+        TEST_CHECK(f.changed == 0);
+        TEST_CHECK(f.accepted == 1);
+        TEST_CHECK(f.stream.seq == 2);
+        TEST_CHECK(f.stream.packet_count == 1);
+        TEST_CHECK(f.stream.send_drops == 0);
+        TEST_CHECK(f.stream.feeder_started == 0);
+        TEST_CHECK(f.attempts == 4);
+    }
+
+    send_backpressure = NULL;
+    socket_close(f.stream.udp_sock);
+}
+
+
+#ifndef _WIN32
+void test_multicast_send_high_fd_retry(void)
+{
+    struct send_backpressure_fixture f = { 0 };
+    f.stream.udp_sock = FD_SETSIZE;
+    f.stream.running = 1;
+    f.stream.multicast = 1;
+    f.stream.type = RIG_STREAM_TYPE_AUDIO_RX;
+    f.error_case = 1;
+    f.error_accept_on_attempt = 2;
+
+    send_backpressure = &f;
+    int result = rigctld_stream_send_error(&f.stream);
+    send_backpressure = NULL;
+
+    TEST_CHECK(result == 0);
+    TEST_CHECK(f.waits == 1);
+    TEST_CHECK(f.attempts == 2);
+    TEST_CHECK(f.accepted == 1);
+    TEST_CHECK(f.invalid_wait == 0);
+    TEST_CHECK(f.changed == 0);
+}
+#endif
+
+
+static void check_error_reminder(const struct timespec *deadline,
+                                 const struct timespec *before,
+                                 const struct timespec *after, long delay_ms)
+{
+    int64_t due_ns = (int64_t)deadline->tv_sec * 1000000000 + deadline->tv_nsec;
+    int64_t before_ns = (int64_t)before->tv_sec * 1000000000 + before->tv_nsec;
+    int64_t after_ns = (int64_t)after->tv_sec * 1000000000 + after->tv_nsec;
+    int64_t delay_ns = (int64_t)delay_ms * 1000000;
+
+    TEST_CHECK(deadline->tv_nsec >= 0 && deadline->tv_nsec < 1000000000L);
+    TEST_CHECK(due_ns - before_ns >= delay_ns);
+    TEST_CHECK(due_ns - after_ns <= delay_ns);
+}
+
+
+void test_udp_error_send_backpressure(void)
+{
+    static const struct
+    {
+        int multicast;
+        int accept_on_attempt;
+        int hard_failure;
+        int stop_on_wait;
+        int attempts;
+        int waits;
+        long reminder_ms;
+    } cases[] =
+    {
+        { 0, 2, 0, 0, 2, 1, 250 },
+        { 1, 2, 0, 0, 2, 1, 1000 },
+        { 1, 0, 0, 0, 2, 1, 100 },
+        { 0, 0, 1, 0, 1, 0, 250 },
+        { 0, 0, 0, 1, 1, 1, 0 }
+    };
+    int fd, port;
+    TEST_ASSERT(rigctld_stream_udp_socket_create(&fd, &port) == 0);
+
+    for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++)
+    {
+        struct send_backpressure_fixture f = { 0 };
+        struct timespec before, after;
+        f.stream.udp_sock = fd;
+        f.stream.running = 1;
+        f.stream.type = cases[i].multicast ? RIG_STREAM_TYPE_AUDIO_RX
+                        : RIG_STREAM_TYPE_AUDIO_TX;
+        f.stream.multicast = cases[i].multicast;
+        f.stream.stream_id = 7;
+        f.stream.source_id = 3;
+        f.stream.subscribe_token = 0x12345678;
+        f.stream.fail_error = -RIG_EIO;
+        f.stream.fail_reason = RIG_COMM_REASON_LINK_TIMEOUT;
+        f.error_case = 1;
+        f.error_accept_on_attempt = cases[i].accept_on_attempt;
+        f.error_hard_failure = cases[i].hard_failure;
+        f.error_stop_on_wait = cases[i].stop_on_wait;
+
+        send_backpressure = &f;
+        clock_gettime(CLOCK_MONOTONIC, &before);
+        int result = rigctld_stream_send_error(&f.stream);
+        clock_gettime(CLOCK_MONOTONIC, &after);
+        send_backpressure = NULL;
+
+        TEST_CHECK(result == (cases[i].accept_on_attempt ? 0 : -1));
+        TEST_CHECK(f.attempts == cases[i].attempts);
+        TEST_CHECK(f.waits == cases[i].waits);
+        TEST_CHECK(f.invalid_wait == 0);
+        TEST_CHECK(f.changed == 0);
+        TEST_CHECK(f.stream.seq == 0);
+        TEST_CHECK(f.stream.packet_count == 0);
+        TEST_CHECK(f.stream.send_drops == 0);
+
+        if (!cases[i].hard_failure)
+        {
+            unsigned char expected[RIG_STREAM_HEADER_SIZE + RIG_STREAM_ERROR_WIRE_SIZE];
+            struct rig_stream_packet_header hdr;
+            stream_control_header_init(&hdr, (uint8_t)f.stream.type,
+                                       7, 0x12345678, RIG_STREAM_CTRL_ERROR);
+            hdr.source_id = 3;
+            hdr.payload_len = RIG_STREAM_ERROR_WIRE_SIZE;
+            stream_packet_header_pack(&hdr, expected);
+            stream_error_block_pack(-RIG_EIO, RIG_COMM_REASON_LINK_TIMEOUT,
+                                    expected + RIG_STREAM_HEADER_SIZE);
+            TEST_CHECK(f.packet_len == sizeof(expected));
+            TEST_CHECK(memcmp(f.packet, expected, sizeof(expected)) == 0);
+        }
+
+        if (cases[i].stop_on_wait)
+        {
+            TEST_CHECK(f.stream.next_error_reminder.tv_sec == 0);
+            TEST_CHECK(f.stream.next_error_reminder.tv_nsec == 0);
+        }
+        else
+        {
+            check_error_reminder(&f.stream.next_error_reminder, &before,
+                                 &after, cases[i].reminder_ms);
+        }
+    }
+
+    socket_close(fd);
 }
 
 
@@ -2960,6 +3408,11 @@ TEST_LIST =
     { "write_status_short_buffer", test_write_status_short_buffer },
     { "write_status_wire_layout", test_write_status_wire_layout },
     { "write_status_emit", test_write_status_emit },
+    { "udp_send_backpressure_shutdown", test_udp_send_backpressure_shutdown },
+#ifndef _WIN32
+    { "multicast_send_high_fd_retry", test_multicast_send_high_fd_retry },
+#endif
+    { "udp_error_send_backpressure", test_udp_error_send_backpressure },
     { "ctrl_time_combination_rule", test_ctrl_time_combination_rule },
     { "header_big_endian_byte_order", test_header_big_endian_byte_order },
     { "source_id_derive",             test_source_id_derive },

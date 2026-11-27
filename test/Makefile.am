@@ -71,7 +71,7 @@ test_dummy_stream_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 test_dummy_stream_LDADD = $(LDADD) $(PTHREAD_LIBS)
 
 test_rigctld_stream_SOURCES = test_rigctld_stream.c $(top_srcdir)/tests/rigctld_stream.c
-test_rigctld_stream_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/tests
+test_rigctld_stream_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/tests -DRIGCTLD_STREAM_TEST_SENDTO
 test_rigctld_stream_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 test_rigctld_stream_LDADD = $(LDADD) $(PTHREAD_LIBS) $(NET_LIBS)
 

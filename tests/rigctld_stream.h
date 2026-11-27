@@ -153,7 +153,7 @@ struct rigctld_stream
     HAMLIB_ATOMIC int backend_failed;
     uint32_t fail_reason;                   /* RIG_COMM_REASON_* */
     int32_t fail_error;                     /* the Hamlib error code */
-    struct timespec last_error_sent;
+    struct timespec next_error_reminder;
 
     /* Metadata */
     int metadata_interval_ms;
