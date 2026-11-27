@@ -281,6 +281,103 @@ static int run_case(const char *name, const char *fr, const char *ft,
     return 0;
 }
 
+static int test_k3_vfo_steps(void)
+{
+    static const char *commands[] =
+    {
+        "UPB;", "ID;", "FB;", "FA;",
+        "DNB;", "ID;", "FB;", "FA;",
+        "UP;", "ID;", "FA;", "FB;"
+    };
+    static const char *responses[] =
+    {
+        NULL, "ID017;", "FB00007236010;", "FA00007155390;",
+        NULL, "ID017;", "FB00007236000;", "FA00007155390;",
+        NULL, "ID017;", "FA00007155400;", "FB00007236010;"
+    };
+    static const struct
+    {
+        vfo_t vfo;
+        vfo_op_t operation;
+        freq_t wanted;
+        freq_t other;
+    } steps[] =
+    {
+        { RIG_VFO_B,    RIG_OP_UP,   7236010, 7155390 },
+        { RIG_VFO_B,    RIG_OP_DOWN, 7236000, 7155390 },
+        { RIG_VFO_CURR, RIG_OP_UP,   7155400, 7236010 }
+    };
+    struct peer_case test =
+    {
+        .commands = commands,
+        .responses = responses,
+        .count = sizeof(commands) / sizeof(commands[0]),
+        .status = -1
+    };
+    int sockets[2];
+    pthread_t thread;
+    RIG *rig = rig_init(RIG_MODEL_K3);
+    int result = 1;
+
+    if (rig == NULL) { return 1; }
+
+    if (open_test_connection(sockets) != 0)
+    {
+        rig_cleanup(rig);
+        return 1;
+    }
+
+    test.fd = sockets[1];
+
+    if (pthread_create(&thread, NULL, run_peer, &test) != 0)
+    {
+        close_test_socket(sockets[0]);
+        close_test_socket(sockets[1]);
+        rig_cleanup(rig);
+        return 1;
+    }
+
+    STATE(rig)->comm_state = 1;
+    RIGPORT(rig)->fd = sockets[0];
+    RIGPORT(rig)->type.rig = RIG_PORT_NETWORK;
+    RIGPORT(rig)->timeout = 500;
+    RIGPORT(rig)->retry = 0;
+    rig_set_current_vfo_state(rig, RIG_VFO_A);
+    rig_set_cache_timeout_ms(rig, HAMLIB_CACHE_ALL, HAMLIB_CACHE_ALWAYS);
+    rig_set_cache_freq(rig, RIG_VFO_A, 7155390);
+    rig_set_cache_freq(rig, RIG_VFO_B, 7236000);
+
+    for (size_t i = 0; i < sizeof(steps) / sizeof(steps[0]); ++i)
+    {
+        vfo_t vfo = steps[i].vfo == RIG_VFO_CURR ? RIG_VFO_A : steps[i].vfo;
+        vfo_t other_vfo = vfo == RIG_VFO_A ? RIG_VFO_B : RIG_VFO_A;
+        freq_t freq = 0;
+        freq_t other = 0;
+
+        if (rig_vfo_op(rig, steps[i].vfo, steps[i].operation) != RIG_OK
+                || rig_get_freq(rig, vfo, &freq) != RIG_OK
+                || rig_get_freq(rig, other_vfo, &other) != RIG_OK
+                || freq != steps[i].wanted || other != steps[i].other
+                || rig_get_current_vfo_state(rig) != RIG_VFO_A)
+        {
+            fprintf(stderr, "K3 step %zu: unexpected operation or readback\n", i);
+            goto cleanup;
+        }
+    }
+
+    result = 0;
+
+cleanup:
+    STATE(rig)->comm_state = 0;
+    RIGPORT(rig)->fd = -1;
+    rig_cleanup(rig);
+    close_test_socket(sockets[0]);
+    pthread_join(thread, NULL);
+    close_test_socket(sockets[1]);
+
+    return result || test.status != 0;
+}
+
 static int run_mode_get_case(const char *name, int split, int is_k4,
                              const char *md_response,
                              const char *dt_response,
@@ -698,6 +795,12 @@ int main(void)
     if (run_case("invalid-tq-value", "FR0;", "FT0;", "TQ7;",
                  -RIG_EPROTO, RIG_VFO_NONE, RIG_VFO_NONE,
                  RIG_VFO_NONE) != 0)
+    {
+        failed = 1;
+        goto cleanup;
+    }
+
+    if (test_k3_vfo_steps() != 0)
     {
         failed = 1;
         goto cleanup;
