@@ -352,6 +352,19 @@ int HAMLIB_API dec2dms(double dec,
     min = (int)floor(st);
     st  = 60. * (st - (double)min);
 
+    /* rounding errors can leave the seconds a hair below 60, e.g. 10.2
+     * ends up as 10 11 59.99999..., which prints as 60 seconds; carry it over */
+    if (st > 60. - 1e-9)
+    {
+        st = 0.;
+
+        if (++min == 60)
+        {
+            min = 0;
+            deg++;
+        }
+    }
+
     *degrees = deg;
     *minutes = min;
     *seconds = st;
