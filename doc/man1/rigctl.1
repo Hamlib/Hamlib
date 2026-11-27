@@ -599,10 +599,12 @@ RIT is in Hz and can be + or -.  A value of \(oq0\(cq resets RIT (Receiver
 Incremental Tuning) to match the VFO frequency.
 .IP
 .BR Note :
-RIT needs to be explicitly activated or deactivated with the
+The effect of setting the offset on RIT activation depends on the rig.
+Where supported, use
 .B set_func
-command.  This allows setting the RIT offset independently of its activation
-and allows RIT to remain active while setting the offset to \(oq0\(cq.
+to enable or disable RIT explicitly.
+On the Elecraft K3, RIT and XIT have separate enable flags but share one
+offset. Setting the offset changes it for both and preserves both flags.
 .
 .TP
 .BR j ", " get_rit
@@ -621,10 +623,12 @@ XIT is in Hz and can be + or -.  A value of \(oq0\(cq resets XIT (Transmitter
 Incremental Tuning) to match the VFO frequency.
 .IP
 .BR Note :
-XIT needs to be explicitly activated or deactivated with the
+The effect of setting the offset on XIT activation depends on the rig.
+Where supported, use
 .B set_func
-command.  This allows setting the XIT offset independently of its activation
-and allows XIT to remain active while setting the offset to \(oq0\(cq.
+to enable or disable XIT explicitly.
+On the Elecraft K3, RIT and XIT have separate enable flags but share one
+offset. Setting the offset changes it for both and preserves both flags.
 .
 .TP
 .BR z ", " get_xit

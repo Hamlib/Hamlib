@@ -6173,7 +6173,9 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
  * \param vfo   The target VFO
  * \param rit   The RIT offset to adjust to
  *
- *  Sets the current RIT offset. A value of 0 for \a rit disables RIT.
+ *  Sets the RIT offset in Hz. Zero clears the offset. The effect on
+ *  RIT activation depends on the rig. Where supported, use rig_set_func()
+ *  with RIG_FUNC_RIT to enable or disable RIT explicitly.
  *
  * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
@@ -6323,7 +6325,9 @@ int HAMLIB_API rig_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
  * \param vfo   The target VFO
  * \param xit   The XIT offset to adjust to
  *
- *  Sets the current XIT offset. A value of 0 for \a xit disables XIT.
+ *  Sets the XIT offset in Hz. Zero clears the offset. The effect on
+ *  XIT activation depends on the rig. Where supported, use rig_set_func()
+ *  with RIG_FUNC_XIT to enable or disable XIT explicitly.
  *
  * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
