@@ -614,6 +614,93 @@ static int test_meters(void)
     return 0;
 }
 
+static int run_k3_passband_readback(void)
+{
+    static const char *const commands[] =
+    {
+        "MD;", "BW;", "MD$;", "BW$;", "MD1;", "ID;", "BW0239;", "ID;",
+        "MD;", "BW;",
+        "MD;", "BW;", "MD;", "BW;", "MD$;", "BW$;", "MD2;", "ID;",
+        "MD;", "BW;"
+    };
+    static const char *const responses[] =
+    {
+        "MD1;", "BW0390;", "MD$1;", "BW$0400;", NULL, "ID017;", NULL, "ID017;",
+        "MD1;", "BW0235;",
+        "MD1;", "BW0235;", "MD1;", "BW0235;", "MD$1;", "BW$0390;", NULL, "ID017;",
+        "MD2;", "BW0290;"
+    };
+    struct peer_case test =
+    {
+        .commands = commands,
+        .responses = responses,
+        .count = sizeof(commands) / sizeof(commands[0]),
+        .status = -1
+    };
+    RIG *rig = rig_init(RIG_MODEL_K3);
+    int sockets[2];
+    pthread_t thread;
+    int failed = 1;
+    rmode_t mode = RIG_MODE_NONE;
+    pbwidth_t width = 0;
+
+    if (rig == NULL) { return 1; }
+
+    if (open_test_connection(sockets) != 0)
+    {
+        rig_cleanup(rig);
+        return 1;
+    }
+
+    test.fd = sockets[1];
+
+    if (pthread_create(&thread, NULL, run_peer, &test) != 0)
+    {
+        close_test_socket(sockets[0]);
+        close_test_socket(sockets[1]);
+        rig_cleanup(rig);
+        return 1;
+    }
+
+    STATE(rig)->comm_state = 1;
+    ((struct kenwood_priv_data *)STATE(rig)->priv)->is_k3 = 1;
+    RIGPORT(rig)->fd = sockets[0];
+    RIGPORT(rig)->type.rig = RIG_PORT_NETWORK;
+    RIGPORT(rig)->timeout = 500;
+    RIGPORT(rig)->retry = 0;
+    rig_set_current_vfo_state(rig, RIG_VFO_A);
+    rig_set_cache_timeout_ms(rig, HAMLIB_CACHE_ALL, 10000);
+
+    if (rig_set_mode(rig, RIG_VFO_A, RIG_MODE_LSB, 2390) != RIG_OK
+            || rig_get_mode(rig, RIG_VFO_A, &mode, &width) != RIG_OK
+            || mode != RIG_MODE_LSB || width != 2350)
+    {
+        fprintf(stderr, "K3 mode readback did not report the quantized width "
+                        "(got %ld Hz)\n", width);
+        goto cleanup;
+    }
+
+    if (rig_set_mode(rig, RIG_VFO_A, RIG_MODE_USB, RIG_PASSBAND_NOCHANGE) != RIG_OK
+            || rig_get_mode(rig, RIG_VFO_A, &mode, &width) != RIG_OK
+            || mode != RIG_MODE_USB || width != 2900)
+    {
+        fprintf(stderr, "K3 mode readback did not report the recalled width "
+                        "(got %ld Hz)\n", width);
+        goto cleanup;
+    }
+
+    failed = 0;
+
+cleanup:
+    STATE(rig)->comm_state = 0;
+    RIGPORT(rig)->fd = -1;
+    rig_cleanup(rig);
+    close_test_socket(sockets[0]);
+    pthread_join(thread, NULL);
+    close_test_socket(sockets[1]);
+    return failed || test.status != 0;
+}
+
 int main(void)
 {
     int failed = 0;
@@ -690,6 +777,12 @@ int main(void)
 
     if (run_case("invalid-ft-value", "FR0;", "FT2;", NULL, -RIG_EPROTO,
                  RIG_VFO_NONE, RIG_VFO_NONE, RIG_VFO_NONE) != 0)
+    {
+        failed = 1;
+        goto cleanup;
+    }
+
+    if (run_k3_passband_readback() != 0)
     {
         failed = 1;
         goto cleanup;
