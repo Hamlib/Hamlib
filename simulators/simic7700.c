@@ -211,8 +211,8 @@ void frameParse(int fd, unsigned char *frame, int len)
         }
         else
         {
-            printf("set split %d\n", 1);
             split = frame[5];
+            printf("set split %d\n", split);
             frame[4] = 0xfb;
             frame[5] = 0xfd;
             n = write(fd, frame, 6);

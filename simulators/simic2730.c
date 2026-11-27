@@ -204,14 +204,14 @@ void frameParse(int fd, unsigned char *frame, int len)
         if (frame[5] == 0xfd)
         {
             frame[5] = split;
-            printf("get split %d\n", 1);
+            printf("get split %d\n", split);
             frame[6] = 0xfd;
             dump_hex(frame, 7);
             n = write(fd, frame, 7);
         }
         else
         {
-            printf("set split %d\n", 1);
+            printf("set split %d\n", split);
             frame[4] = 0xfb;
             frame[5] = 0xfd;
             dump_hex(frame, 6);
