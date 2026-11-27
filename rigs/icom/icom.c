@@ -9379,6 +9379,14 @@ static int icom_parse_spectrum_frame(RIG *rig, size_t length,
     division = (int) from_bcd(frame_data + 1, 1 * 2);
     max_division = (int) from_bcd(frame_data + 2, 1 * 2);
 
+    if (division < 1 || max_division < 1 || division > max_division)
+    {
+        rig_debug(RIG_DEBUG_WARN,
+                  "%s: Invalid scope division %d of %d\n",
+                  __func__, division, max_division);
+        RETURNFUNC(-RIG_EPROTO);
+    }
+
     // The first byte is the scope, SCOPE_MAIN or SCOPE_SUB
     int spectrum_id = frame_data[0];
 
@@ -9399,6 +9407,14 @@ static int icom_parse_spectrum_frame(RIG *rig, size_t length,
         if (length < 15)
         {
             rig_debug(RIG_DEBUG_WARN, "%s: Short scope header - len=%zu\n", __func__, length);
+            RETURNFUNC(-RIG_EPROTO);
+        }
+
+        if (max_division > 1 && length > 15)
+        {
+            rig_debug(RIG_DEBUG_WARN,
+                      "%s: Unexpected data in first scope division\n",
+                      __func__);
             RETURNFUNC(-RIG_EPROTO);
         }
 
@@ -9475,14 +9491,15 @@ static int icom_parse_spectrum_frame(RIG *rig, size_t length,
     {
         int frame_length = priv_caps->spectrum_scope_caps.single_frame_data_length;
         int data_frame_index = (max_division > 1) ? (division - 2) : (division - 1);
-        int offset = data_frame_index * frame_length;
+        size_t offset = (size_t) data_frame_index * frame_length;
+        size_t line_length = priv_caps->spectrum_scope_caps.spectrum_line_length;
 
-        if (offset + spectrum_data_length_in_frame >
-                priv_caps->spectrum_scope_caps.spectrum_line_length)
+        if (offset > line_length
+                || spectrum_data_length_in_frame > line_length - offset)
         {
             rig_debug(RIG_DEBUG_ERR,
-                      "%s: too much spectrum scope data received: %d bytes > %d bytes expected\n",
-                      __func__, (int)(offset + spectrum_data_length_in_frame),
+                      "%s: too much spectrum scope data received: %zu bytes > %d bytes expected\n",
+                      __func__, offset + spectrum_data_length_in_frame,
                       priv_caps->spectrum_scope_caps.spectrum_line_length);
             RETURNFUNC(-RIG_EPROTO);
         }

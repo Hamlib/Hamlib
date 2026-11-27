@@ -154,10 +154,11 @@ static int on_spectrum(RIG *rig, struct rig_spectrum_line *line, rig_ptr_t arg)
 }
 
 /* One `27 00` division to the controller: main scope, division `division` of
- * 11. The first carries the center mode, 14.100 MHz +/- 25 kHz and no data;
- * the others carry `length` bytes of the line, starting at `data`. */
+ * `max_division`. The first carries the center mode and 14.100 MHz +/- 25 kHz;
+ * every division also carries `length` bytes starting at `data`. */
 static size_t scope_division(unsigned char *frame, int division,
-                             const unsigned char *data, size_t length)
+                             int max_division, const unsigned char *data,
+                             size_t length)
 {
     static const unsigned char header[] =
     {
@@ -176,14 +177,15 @@ static size_t scope_division(unsigned char *frame, int division,
     frame[n++] = S_SCP_DAT;
     frame[n++] = 0x00;                                  /* main scope */
     frame[n++] = (unsigned char)((division / 10) << 4 | division % 10);
-    frame[n++] = 0x11;                                  /* of 11 */
+    frame[n++] = (unsigned char)((max_division / 10) << 4 | max_division % 10);
 
     if (division == 1)
     {
         memcpy(frame + n, header, sizeof(header));
         n += sizeof(header);
     }
-    else
+
+    if (length > 0)
     {
         memcpy(frame + n, data, length);
         n += length;
@@ -273,8 +275,8 @@ void test_scope_line_during_echo_read(void)
     for (division = 1; division <= 11; division++)
     {
         size_t offset = division > 1 ? (size_t)(division - 2) * 50 : 0;
-        size_t length = division == 11 ? 25 : 50;
-        size_t n = scope_division(frame, division, line + offset, length);
+        size_t length = division == 1 ? 0 : division == 11 ? 25 : 50;
+        size_t n = scope_division(frame, division, 11, line + offset, length);
 
         TEST_ASSERT(write(sockets[1], frame, n) == (ssize_t) n);
     }
@@ -295,6 +297,85 @@ void test_scope_line_during_echo_read(void)
     TEST_CHECK_(seen.length == sizeof(line), "line length %zu", seen.length);
     TEST_CHECK(seen.length == sizeof(line)
                && memcmp(seen.data, line, sizeof(line)) == 0);
+
+    release_ic7300(rig, sockets);
+}
+
+/* A line that fits in one division still carries its samples after the
+ * metadata, and must still be published. */
+void test_single_division_scope_line_is_published(void)
+{
+    unsigned char line[SCOPE_LINE_LENGTH];
+    unsigned char frame[MAXFRAMELEN];
+    struct spectrum_seen seen;
+    int sockets[2];
+    size_t i;
+    size_t n;
+    RIG *rig;
+
+    for (i = 0; i < sizeof(line); i++)
+    {
+        line[i] = (unsigned char)(i % 0xa0);
+    }
+
+    TEST_ASSERT(socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) == 0);
+
+    n = scope_division(frame, 1, 1, line, 50);
+    TEST_ASSERT(write(sockets[1], frame, n) == (ssize_t) n);
+    TEST_ASSERT(write(sockets[1], freq_echo, sizeof(freq_echo))
+                == sizeof(freq_echo));
+    TEST_ASSERT(write(sockets[1], freq_answer, sizeof(freq_answer))
+                == sizeof(freq_answer));
+
+    rig = echoing_ic7300(sockets[0]);
+    TEST_ASSERT(rig != NULL);
+    memset(&seen, 0, sizeof(seen));
+    TEST_ASSERT(rig_set_spectrum_callback(rig, on_spectrum, &seen) == RIG_OK);
+
+    check_freq_read(rig);
+
+    TEST_CHECK(seen.lines == 1);
+    TEST_CHECK_(seen.length == 50, "line length %zu", seen.length);
+    TEST_CHECK(seen.length == 50 && memcmp(seen.data, line, 50) == 0);
+
+    release_ic7300(rig, sockets);
+}
+
+/* A multipart scope header cannot also carry data. It previously produced a
+ * negative destination offset and wrote before the spectrum buffer. */
+void test_scope_data_in_first_division_is_rejected(void)
+{
+    unsigned char line[SCOPE_LINE_LENGTH] = { 0 };
+    unsigned char frame[MAXFRAMELEN];
+    struct spectrum_seen seen;
+    int sockets[2];
+    int division;
+    RIG *rig;
+
+    TEST_ASSERT(socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) == 0);
+
+    for (division = 1; division <= 11; division++)
+    {
+        size_t offset = division > 1 ? (size_t)(division - 2) * 50 : 0;
+        size_t length = division == 11 ? 25 : 50;
+        size_t n = scope_division(frame, division, 11, line + offset, length);
+
+        TEST_ASSERT(write(sockets[1], frame, n) == (ssize_t) n);
+    }
+
+    TEST_ASSERT(write(sockets[1], freq_echo, sizeof(freq_echo))
+                == sizeof(freq_echo));
+    TEST_ASSERT(write(sockets[1], freq_answer, sizeof(freq_answer))
+                == sizeof(freq_answer));
+
+    rig = echoing_ic7300(sockets[0]);
+    TEST_ASSERT(rig != NULL);
+    memset(&seen, 0, sizeof(seen));
+    TEST_ASSERT(rig_set_spectrum_callback(rig, on_spectrum, &seen) == RIG_OK);
+
+    check_freq_read(rig);
+
+    TEST_CHECK(seen.lines == 0);
 
     release_ic7300(rig, sockets);
 }
@@ -342,6 +423,14 @@ TEST_LIST =
     { "short_frame_does_not_match",   test_short_frame_does_not_match },
 #ifndef _WIN32
     { "scope_line_during_echo_read",  test_scope_line_during_echo_read },
+    {
+        "single_division_scope_line_is_published",
+        test_single_division_scope_line_is_published
+    },
+    {
+        "scope_data_in_first_division_is_rejected",
+        test_scope_data_in_first_division_is_rejected
+    },
     { "collision_byte_during_echo_read", test_collision_byte_during_echo_read },
 #endif
     { NULL, NULL }
