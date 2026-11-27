@@ -43,6 +43,9 @@ struct ats_mini_mon_data {
 #define MINI_UART_BUFF_SIZE 128
 #define MINI_UART_MAX_TOKEN 20
 
+#define MINI_VOLUME_MIN 0
+#define MINI_VOLUME_MAX 63
+
 typedef enum MINI_BAND_ID {
     MINI_BAND_VHF = 0,
     MINI_BAND_ALL,
