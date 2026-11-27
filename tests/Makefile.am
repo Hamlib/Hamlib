@@ -53,7 +53,8 @@ noinst_PROGRAMS = rigstreamtest
 
 DAEMONCLIENTSRC = daemon_client.c daemon_client.h
 RIGCOMMONSRC = rigctl_parse.c rigctl_parse.h rigctld_stream.c rigctld_stream.h rigctld_client.c rigctld_client.h $(DAEMONCLIENTSRC) dumpcaps.c dumpstate.c uthash.h rig_tests.c rig_tests.h dumpcaps.h
-ROTCOMMONSRC = rotctl_parse.c rotctl_parse.h dumpcaps_rot.c uthash.h dumpcaps_rot.h
+DMSSRC = dms_display.c dms_display.h
+ROTCOMMONSRC = rotctl_parse.c rotctl_parse.h dumpcaps_rot.c uthash.h dumpcaps_rot.h $(DMSSRC)
 AMPCOMMONSRC = ampctl_parse.c ampctl_parse.h dumpcaps_amp.c uthash.h 
 
 rigctl_SOURCES = rigctl.c $(RIGCOMMONSRC)
@@ -63,6 +64,7 @@ rigctltcp_SOURCES = rigctltcp.c $(RIGCOMMONSRC)
 rigctlsync_SOURCES = rigctlsync.c $(RIGCOMMONSRC)
 rotctl_SOURCES = rotctl.c $(ROTCOMMONSRC)
 rotctld_SOURCES = rotctld.c $(ROTCOMMONSRC) $(DAEMONCLIENTSRC)
+testloc_SOURCES = testloc.c $(DMSSRC)
 ampctl_SOURCES = ampctl.c $(AMPCOMMONSRC)
 ampctld_SOURCES = ampctld.c $(AMPCOMMONSRC) $(DAEMONCLIENTSRC)
 rigmem_SOURCES = rigmem.c memsave.c memload.c memcsv.c

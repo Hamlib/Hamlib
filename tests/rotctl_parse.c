@@ -65,6 +65,7 @@ extern int read_history();
 #include "iofunc.h"
 #include "misc.h"
 #include "dumpcaps_rot.h"
+#include "dms_display.h"
 
 /* HAVE_SSLEEP is defined when Windows Sleep is found
  * HAVE_SLEEP is defined when POSIX sleep is found
@@ -2738,6 +2739,7 @@ declare_proto_rot(dec2d_m_s)
 {
     int deg, min, sw, err;
     double sec, dec_deg;
+    struct dms_display display;
 
     CHKSCN1ARG(sscanf(arg1, "%lf", &dec_deg));
 
@@ -2748,26 +2750,28 @@ declare_proto_rot(dec2d_m_s)
         return err;
     }
 
+    display = dms_round_for_display(deg, min, sec, 1000000);
+
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
         fprintf(fout, "%s: ", cmd->arg2);
     }
 
-    fprintf(fout, "%d%c", deg, resp_sep);
+    fprintf(fout, "%d%c", display.degrees, resp_sep);
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
         fprintf(fout, "%s: ", cmd->arg3);
     }
 
-    fprintf(fout, "%d%c", min, resp_sep);
+    fprintf(fout, "%d%c", display.minutes, resp_sep);
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
         fprintf(fout, "%s: ", cmd->arg4);
     }
 
-    fprintf(fout, "%lf%c", sec, resp_sep);
+    fprintf(fout, "%lf%c", display.seconds, resp_sep);
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
