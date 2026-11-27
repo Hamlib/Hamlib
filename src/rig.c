@@ -5029,6 +5029,26 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 }
 
 
+static bool rig_has_k3_split_readback(const RIG *rig)
+{
+    return rig->caps->rig_model == RIG_MODEL_K3
+           || rig->caps->rig_model == RIG_MODEL_K3S;
+}
+
+static int rig_get_split_read_routing(
+    RIG *rig, vfo_t vfo, struct rig_cache_routing_snapshot *routing)
+{
+    rig_get_cache_routing_snapshot(rig, routing);
+
+    if (rig_has_k3_split_readback(rig))
+    {
+        return rig_get_split_vfo(rig, vfo, &routing->split, &routing->tx_vfo);
+    }
+
+    return RIG_OK;
+}
+
+
 /**
  * \brief get the current split frequencies
  * \param rig   The rig handle
@@ -5066,7 +5086,13 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     }
 
     caps = rig->caps;
-    rig_get_cache_routing_snapshot(rig, &routing);
+    retcode = rig_get_split_read_routing(rig, vfo, &routing);
+
+    if (retcode != RIG_OK)
+    {
+        ELAPSED2;
+        RETURNFUNC(retcode);
+    }
 
     // Always use the previously selected TX VFO for split. The targeted VFO will have no effect.
     tx_vfo = routing.tx_vfo;
@@ -5473,7 +5499,13 @@ int HAMLIB_API rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
     }
 
     caps = rig->caps;
-    rig_get_cache_routing_snapshot(rig, &routing);
+    retcode = rig_get_split_read_routing(rig, vfo, &routing);
+
+    if (retcode != RIG_OK)
+    {
+        ELAPSED2;
+        RETURNFUNC(retcode);
+    }
 
     // Always use the previously selected TX VFO for split. The targeted VFO will have no effect.
     tx_vfo = routing.tx_vfo;
@@ -5779,7 +5811,13 @@ int HAMLIB_API rig_get_split_freq_mode(RIG *rig,
     }
 
     caps = rig->caps;
-    rig_get_cache_routing_snapshot(rig, &routing);
+    retcode = rig_get_split_read_routing(rig, vfo, &routing);
+
+    if (retcode != RIG_OK)
+    {
+        ELAPSED2;
+        RETURNFUNC(retcode);
+    }
 
     // Always use the previously selected TX VFO for split. The targeted VFO will have no effect.
     tx_vfo = routing.tx_vfo;
@@ -6128,7 +6166,10 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cache check age=%dms\n", __func__, cache_ms);
 
-    if (cache_ms < cache_timeout_ms)
+    /* A newly initialized or reopened K3 has no known split routing. */
+    if (cache_ms < cache_timeout_ms
+            && (!rig_has_k3_split_readback(rig)
+                || (*tx_vfo != RIG_VFO_NONE && *tx_vfo != RIG_VFO_CURR)))
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: cache hit age=%dms, split=%d, tx_vfo=%s\n",
                   __func__, cache_ms, *split, rig_strvfo(*tx_vfo));
