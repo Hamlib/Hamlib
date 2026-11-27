@@ -2597,8 +2597,15 @@ int main(void)
         goto cleanup;
     }
 
+    if (run_case("receive-split-on", "FR0;", "FT1;", "TQ0;", RIG_OK,
+                 RIG_VFO_A, RIG_VFO_MAIN, RIG_VFO_B) != 0)
+    {
+        failed = 1;
+        goto cleanup;
+    }
+
     if (run_case("receive-vfo-b", "FR1;", "FT0;", "TQ0;", RIG_OK,
-                 RIG_VFO_B, RIG_VFO_B, RIG_VFO_B) != 0)
+                 RIG_VFO_B, RIG_VFO_B, RIG_VFO_A) != 0)
     {
         failed = 1;
         goto cleanup;
