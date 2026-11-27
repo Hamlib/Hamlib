@@ -305,9 +305,9 @@ again1:
             RETURNFUNC(-RIG_EPROTO);
         }
 
-        if (icom_is_async_frame(rig, frm_len, buf))
+        if (icom_is_async_frame(rig, retval, buf))
         {
-            icom_process_async_frame(rig, frm_len, buf);
+            icom_process_async_frame(rig, retval, buf);
             goto again1;
         }
 
