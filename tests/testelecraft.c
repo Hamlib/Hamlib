@@ -570,6 +570,14 @@ static int run_split_mode_set_case(int is_k4, rmode_t mode)
     {
         "MD$9;", "DT2;", NULL, "ID017;", "DT0;", "MD$9;", NULL, "ID017;", "MD$6;"
     };
+    static const char *k3_rttyr_commands[] =
+    {
+        "MD$;", "DT;", "DT2;", "ID;", "DT;", "MD$;", "MD$9;", "ID;", "MD$;"
+    };
+    static const char *k3_rttyr_responses[] =
+    {
+        "MD$6;", "DT0;", NULL, "ID017;", "DT2;", "MD$6;", NULL, "ID017;", "MD$9;"
+    };
     const char *const *commands;
     const char *const *responses;
     size_t count;
@@ -580,6 +588,12 @@ static int run_split_mode_set_case(int is_k4, rmode_t mode)
                    : k4_packet_commands;
         responses = k4_responses;
         count = 7;
+    }
+    else if (mode == RIG_MODE_RTTYR)
+    {
+        commands = k3_rttyr_commands;
+        responses = k3_rttyr_responses;
+        count = sizeof(k3_rttyr_commands) / sizeof(k3_rttyr_commands[0]);
     }
     else
     {
@@ -1198,7 +1212,8 @@ int main(void)
         goto cleanup;
     }
 
-    if (run_split_mode_set_case(0, RIG_MODE_PKTUSB) != 0)
+    if (run_split_mode_set_case(0, RIG_MODE_PKTUSB) != 0
+            || run_split_mode_set_case(0, RIG_MODE_RTTYR) != 0)
     {
         failed = 1;
         goto cleanup;

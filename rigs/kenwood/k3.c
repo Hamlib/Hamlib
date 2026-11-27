@@ -3342,6 +3342,11 @@ static int k3_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
         if (retval != RIG_OK) { return retval; }
 
+        if (fabs(tfreq - freq) > 1e6)
+        {
+            hl_usleep(200 * 1000);    /* Allow band-memory recall to finish. */
+        }
+
         retval = kenwood_get_freq(rig, vfo, &applied);
 
         if (retval != RIG_OK) { return retval; }
