@@ -2580,6 +2580,45 @@ static int k3_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
     switch (op)
     {
+    case RIG_OP_UP:
+    case RIG_OP_DOWN:
+        if (RIG_IS_K3 || RIG_IS_K3S)
+        {
+            if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_VFO)
+            {
+                vfo = rig_get_current_vfo_state(rig);
+            }
+
+            const char *command;
+
+            switch (vfo)
+            {
+            case RIG_VFO_A:
+            case RIG_VFO_MAIN:
+            case RIG_VFO_CURR:
+            case RIG_VFO_NONE:
+                command = op == RIG_OP_UP ? "UP" : "DN";
+                break;
+
+            case RIG_VFO_B:
+            case RIG_VFO_SUB:
+                command = op == RIG_OP_UP ? "UPB" : "DNB";
+                break;
+
+            default:
+                RETURNFUNC(-RIG_ENTARGET);
+            }
+
+            int retval = kenwood_transaction(rig, command, NULL, 0);
+
+            // VFO linking can move both frequencies with a single step.
+            rig_set_cache_freq(rig, RIG_VFO_A, 0);
+            rig_set_cache_freq(rig, RIG_VFO_B, 0);
+            RETURNFUNC(retval);
+        }
+
+        RETURNFUNC(kenwood_vfo_op(rig, vfo, op));
+
     case RIG_OP_TUNE: // KX2 K3 K3S KX3 K4 -- K2 needs SWH20 to it's in k2.c
         switch (rig->caps->rig_model)
         {
