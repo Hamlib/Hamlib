@@ -16,6 +16,7 @@
 #include <string.h>
 #include "hamlib/rig.h"
 #include "hamlib/rotator.h"
+#include "dms_display.h"
 
 
 int main(int argc, char *argv[])
@@ -24,6 +25,7 @@ int main(int argc, char *argv[])
     double lon1, lat1, lon2, lat2;
     double distance, az, mmm, sec;
     int  deg, min, retcode, loc_len, nesw = 0;
+    struct dms_display display;
 
     if (argc < 2)
     {
@@ -66,7 +68,9 @@ int main(int argc, char *argv[])
         sign = '\0';
     }
 
-    printf("  Longitude:\t%f\t%c%d %d' %.2f\"\n", lon1, sign, deg, min, sec);
+    display = dms_round_for_display(deg, min, sec, 100);
+    printf("  Longitude:\t%f\t%c%d %d' %.2f\"\n", lon1, sign,
+           display.degrees, display.minutes, display.seconds);
 
     /* hamlib function to convert deg, min, sec to decimal degrees */
     lon1 = dms2dec(deg, min, sec, nesw);
@@ -114,7 +118,9 @@ int main(int argc, char *argv[])
         sign = '\0';
     }
 
-    printf("  Latitude:\t%f\t%c%d %d' %.2f\"\n", lat1, sign, deg, min, sec);
+    display = dms_round_for_display(deg, min, sec, 100);
+    printf("  Latitude:\t%f\t%c%d %d' %.2f\"\n", lat1, sign,
+           display.degrees, display.minutes, display.seconds);
 
     /* hamlib function to convert deg, min, sec to decimal degrees */
     lat1 = dms2dec(deg, min, sec, nesw);
@@ -189,7 +195,9 @@ int main(int argc, char *argv[])
         sign = '\0';
     }
 
-    printf("  Longitude:\t%f\t%c%d %d' %.2f\"\n", lon2, sign, deg, min, sec);
+    display = dms_round_for_display(deg, min, sec, 100);
+    printf("  Longitude:\t%f\t%c%d %d' %.2f\"\n", lon2, sign,
+           display.degrees, display.minutes, display.seconds);
 
     /* hamlib function to convert deg, min, sec to decimal degrees */
     lon2 = dms2dec(deg, min, sec, nesw);
@@ -237,7 +245,9 @@ int main(int argc, char *argv[])
         sign = '\0';
     }
 
-    printf("  Latitude:\t%f\t%c%d %d' %.2f\"\n", lat2, sign, deg, min, sec);
+    display = dms_round_for_display(deg, min, sec, 100);
+    printf("  Latitude:\t%f\t%c%d %d' %.2f\"\n", lat2, sign,
+           display.degrees, display.minutes, display.seconds);
 
     /* hamlib function to convert deg, min, sec to decimal degrees */
     lat2 = dms2dec(deg, min, sec, nesw);
@@ -298,8 +308,9 @@ int main(int argc, char *argv[])
         sign = '\0';
     }
 
-    /* Beware printf() rounding error! */
-    printf("Bearing: %.2f, %c%d %d' %.2f\"\n", az, sign, deg, min, sec);
+    display = dms_round_for_display(deg, min, sec, 100);
+    printf("Bearing: %.2f, %c%d %d' %.2f\"\n", az, sign,
+           display.degrees, display.minutes, display.seconds);
 
     exit(0);
 }
