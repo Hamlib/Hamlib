@@ -745,11 +745,10 @@ static int icom_get_usb_echo_off(RIG *rig)
 
     if (ack_len == 1) // then we got an echo of the cmd
     {
-        unsigned char buf[16];
         priv->serial_USB_echo_off = 0;
         // we should have a freq response so we'll read it and don't really care
         // flushing doesn't always work as it depends on timing
-        retval = read_icom_frame(RIGPORT(rig), buf, sizeof(buf));
+        retval = read_icom_frame(RIGPORT(rig), ackbuf, sizeof(ackbuf));
         rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo on detected, get freq retval=%d\n",
                   __func__, retval);
 

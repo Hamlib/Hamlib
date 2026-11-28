@@ -683,19 +683,22 @@ static int read_icom_frame_generic(hamlib_port_t *p,
      * OK, now sometimes we may time out, e.g. the IC7000 can time out
      * during a PTT operation. So, we will ensure that the last thing we
      * read was a proper end marker - if not, we will try again.
+     *
+     * read_string() keeps the last byte of what it is given for a NUL, so
+     * reading stops when only that byte is left.
      */
-    do
+    while (rxbuffer_len - (size_t) read > 1)
     {
         int i;
 
         if (direct)
         {
-            i = read_string_direct(p, rx_ptr, MAXFRAMELEN - read,
+            i = read_string_direct(p, rx_ptr, rxbuffer_len - read,
                                    icom_block_end, icom_block_end_length, 0, 1);
         }
         else
         {
-            i = read_string(p, rx_ptr, MAXFRAMELEN - read,
+            i = read_string(p, rx_ptr, rxbuffer_len - read,
                             icom_block_end, icom_block_end_length, 0, 1);
         }
 
@@ -717,10 +720,18 @@ static int read_icom_frame_generic(hamlib_port_t *p,
         {
             read   += i;
             rx_ptr += i;
+
+            if (rxbuffer[read - 1] == FI || rxbuffer[read - 1] == COL)
+            {
+                break;
+            }
         }
     }
-    while ((read < rxbuffer_len) && (rxbuffer[read - 1] != FI)
-            && (rxbuffer[read - 1] != COL));
+
+    if (read == 0) /* a buffer of 0 or 1 byte holds no frame */
+    {
+        return (read);
+    }
 
     // Check that we have a valid frame preamble (which might be just a single preamble character)
     // Or an error code

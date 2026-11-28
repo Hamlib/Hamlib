@@ -9252,7 +9252,7 @@ static int rig_send_raw_unlocked(RIG *rig, const unsigned char *send,
             else if (*term == 0xfd) // then we want an Icom frame
             {
                 rig_debug(RIG_DEBUG_VERBOSE, "%s: reading icom frame\n", __func__);
-                retval = read_icom_frame(rp, buf, reply_len);
+                retval = read_icom_frame(rp, buf, buf_len);
             }
             else // we'll assume the provided terminator works
             {

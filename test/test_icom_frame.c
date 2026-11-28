@@ -21,8 +21,8 @@
 
 /* Tests for the CI-V frame helpers shared by every Icom rig (rigs/icom/frame.c),
  * serial and network alike: how a reply is matched to the command it answers,
- * and what becomes of a frame the radio sends on its own in the middle of a
- * transaction. */
+ * what becomes of a frame the radio sends on its own in the middle of a
+ * transaction, and that reading a frame keeps to the caller's buffer. */
 
 #ifdef HAVE_CONFIG_H
 #include "hamlib/config.h"
@@ -412,6 +412,170 @@ void test_collision_byte_during_echo_read(void)
     release_ic7300(rig, sockets);
 }
 
+/* The regression: once the `03` probe of the USB echo check gets a one-byte
+ * answer, the check takes it for an echo and reads the next frame into a
+ * 16-byte buffer, while a frame can be as long as a scope division. The
+ * frame must be read whole, so the next command gets its own reply. */
+void test_echo_check_reads_whole_frame(void)
+{
+    /* The probe's echo with a preamble byte lost: the transaction restores
+     * the byte and returns the 03 as a one-byte answer. */
+    static const unsigned char probe_echo[] =
+    {
+        PR, IC7300, CTRLID, C_RD_FREQ, FI
+    };
+    /* The frequency read that follows, on the now echoing port. */
+    static const unsigned char x25_echo[] =
+    {
+        PR, PR, IC7300, CTRLID, C_SEND_SEL_FREQ, 0x00, FI
+    };
+    static const unsigned char x25_answer[] =
+    {
+        PR, PR, CTRLID, IC7300, C_SEND_SEL_FREQ, 0x00,
+        0x00, 0x00, 0x10, 0x14, 0x00, FI
+    };
+    unsigned char line[50] = { 0 };
+    unsigned char frame[MAXFRAMELEN];
+    struct icom_priv_data *priv;
+    int sockets[2];
+    freq_t freq = 0;
+    size_t n;
+    RIG *rig;
+
+    TEST_ASSERT(socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) == 0);
+    TEST_ASSERT(write(sockets[1], probe_echo, sizeof(probe_echo))
+                == sizeof(probe_echo));
+    n = scope_division(frame, 2, 11, line, sizeof(line));
+    TEST_ASSERT(n > 16);
+    TEST_ASSERT(write(sockets[1], frame, n) == (ssize_t) n);
+    TEST_ASSERT(write(sockets[1], x25_echo, sizeof(x25_echo))
+                == sizeof(x25_echo));
+    TEST_ASSERT(write(sockets[1], x25_answer, sizeof(x25_answer))
+                == sizeof(x25_answer));
+
+    rig = echoing_ic7300(sockets[0]);
+    TEST_ASSERT(rig != NULL);
+    priv = STATE(rig)->priv;
+    priv->serial_USB_echo_off = -1;   /* not known yet */
+
+    TEST_CHECK(icom_get_freq(rig, RIG_VFO_CURR, &freq) == RIG_OK);
+    TEST_CHECK_(freq == 14100000, "frequency %.0f Hz", freq);
+
+    release_ic7300(rig, sockets);
+}
+
+/* Room around a buffer handed to the frame reader, filled with a marker so
+ * that any byte written past the buffer shows. */
+#define AROUND 1100
+#define MARKER 0xa5
+
+static int untouched(const unsigned char *p, size_t n)
+{
+    size_t i;
+
+    for (i = 0; i < n; i++)
+    {
+        if (p[i] != MARKER) { return 0; }
+    }
+
+    return 1;
+}
+
+/* The regression: the reader let each read fill MAXFRAMELEN bytes whatever
+ * buffer it was given, so a 16-byte buffer had the 184 bytes behind it
+ * cleared. A frame that fits must come through whole, and nothing past the
+ * buffer may change. */
+void test_frame_read_into_small_buffer(void)
+{
+    unsigned char area[AROUND];
+    int sockets[2];
+    int n;
+    RIG *rig;
+
+    TEST_ASSERT(socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) == 0);
+    TEST_ASSERT(write(sockets[1], freq_answer, sizeof(freq_answer))
+                == sizeof(freq_answer));
+    rig = echoing_ic7300(sockets[0]);
+    TEST_ASSERT(rig != NULL);
+
+    memset(area, MARKER, sizeof(area));
+    n = read_icom_frame(RIGPORT(rig), area, 16);
+
+    TEST_CHECK_(n == sizeof(freq_answer), "read %d bytes", n);
+    TEST_CHECK(memcmp(area, freq_answer, sizeof(freq_answer)) == 0);
+    TEST_CHECK(untouched(area + 16, sizeof(area) - 16));
+
+    release_ic7300(rig, sockets);
+}
+
+/* A buffer of 0 or 1 byte holds no frame: nothing is read, nothing past it
+ * is written, and the frame stays for the next read. */
+void test_frame_read_into_tiny_buffer(void)
+{
+    unsigned char area[AROUND];
+    size_t length;
+    int sockets[2];
+    int n;
+    RIG *rig;
+
+    TEST_ASSERT(socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) == 0);
+    rig = echoing_ic7300(sockets[0]);
+    TEST_ASSERT(rig != NULL);
+
+    for (length = 0; length <= 1; length++)
+    {
+        TEST_ASSERT(write(sockets[1], freq_answer, sizeof(freq_answer))
+                    == sizeof(freq_answer));
+
+        memset(area, MARKER, sizeof(area));
+        n = read_icom_frame(RIGPORT(rig), area, length);
+
+        TEST_CHECK_(n == 0, "%zu-byte buffer: read %d bytes", length, n);
+        TEST_CHECK_(untouched(area + length, sizeof(area) - length),
+                    "%zu-byte buffer: written past it", length);
+
+        n = read_icom_frame(RIGPORT(rig), area, MAXFRAMELEN);
+        TEST_CHECK_(n == sizeof(freq_answer)
+                    && memcmp(area, freq_answer, sizeof(freq_answer)) == 0,
+                    "%zu-byte buffer: the frame after it is %d bytes",
+                    length, n);
+    }
+
+    release_ic7300(rig, sockets);
+}
+
+/* A buffer larger than MAXFRAMELEN takes a longer frame whole; the async
+ * reader thread reads into 1024 bytes through the direct path. */
+void test_long_frame_read_direct(void)
+{
+    unsigned char frame[300];
+    unsigned char area[AROUND];
+    int sockets[2];
+    int n;
+    RIG *rig;
+
+    memset(frame, 0x11, sizeof(frame));
+    frame[0] = PR;
+    frame[1] = PR;
+    frame[2] = CTRLID;
+    frame[3] = IC7300;
+    frame[sizeof(frame) - 1] = FI;
+
+    TEST_ASSERT(socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) == 0);
+    TEST_ASSERT(write(sockets[1], frame, sizeof(frame)) == sizeof(frame));
+    rig = echoing_ic7300(sockets[0]);
+    TEST_ASSERT(rig != NULL);
+
+    memset(area, MARKER, sizeof(area));
+    n = read_icom_frame_direct(RIGPORT(rig), area, 1024);
+
+    TEST_CHECK_(n == sizeof(frame), "read %d bytes", n);
+    TEST_CHECK(memcmp(area, frame, sizeof(frame)) == 0);
+    TEST_CHECK(untouched(area + 1024, sizeof(area) - 1024));
+
+    release_ic7300(rig, sockets);
+}
+
 #endif /* !_WIN32 */
 
 TEST_LIST =
@@ -432,6 +596,10 @@ TEST_LIST =
         test_scope_data_in_first_division_is_rejected
     },
     { "collision_byte_during_echo_read", test_collision_byte_during_echo_read },
+    { "echo_check_reads_whole_frame", test_echo_check_reads_whole_frame },
+    { "frame_read_into_small_buffer", test_frame_read_into_small_buffer },
+    { "frame_read_into_tiny_buffer", test_frame_read_into_tiny_buffer },
+    { "long_frame_read_direct",       test_long_frame_read_direct },
 #endif
     { NULL, NULL }
 };
