@@ -688,12 +688,16 @@ int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
         RETURNFUNC2(retval);
     }
 
-    *vfo = STATE(rig)->tx_vfo = RIG_VFO_A;
+    vfo_t tx_vfo = ft ? RIG_VFO_B : RIG_VFO_A;
+    vfo_t rx_vfo = fr ? RIG_VFO_B : RIG_VFO_A;
 
-    if (tq && ft == 1) { *vfo = STATE(rig)->tx_vfo = RIG_VFO_B; }
-    else if (tq && ft == 0) { *vfo = STATE(rig)->tx_vfo = RIG_VFO_A; }
+    *vfo = tq ? tx_vfo : rx_vfo;
+    STATE(rig)->tx_vfo = tx_vfo;
 
-    if (!tq && fr == 1) { *vfo = STATE(rig)->rx_vfo = STATE(rig)->tx_vfo = RIG_VFO_B; }
+    if (!tq && fr)
+    {
+        STATE(rig)->rx_vfo = rx_vfo;
+    }
 
     RETURNFUNC2(RIG_OK);
 }

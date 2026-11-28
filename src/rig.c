@@ -1584,7 +1584,10 @@ int HAMLIB_API rig_open(RIG *rig)
 
     if (caps->get_vfo && rig_get_vfo(rig, &rs->current_vfo) == RIG_OK)
     {
-        rs->tx_vfo = rs->current_vfo;
+        if (caps->rig_model != RIG_MODEL_K4)
+        {
+            rs->tx_vfo = rs->current_vfo;
+        }
     }
     else
     {
