@@ -180,8 +180,6 @@ struct rig_list
 //! @endcond
 
 
-// This size has to be > than the max# of rigs for any manufacturer
-// A fatal error will occur when running rigctl if this value is too small
 //! @cond Doxygen_Suppress
 #define RIGLSTHASHSZ 65535
 #define HASH_FUNC(a) ((a)%RIGLSTHASHSZ)
@@ -198,9 +196,6 @@ static struct rig_list *rig_hash_table[RIGLSTHASHSZ] = { NULL, };
 static int rig_lookup_backend(rig_model_t rig_model);
 
 
-/*
- * Basically, this is a hash insert function that doesn't check for dup!
- */
 //! @cond Doxygen_Suppress
 int HAMLIB_API rig_register(struct rig_caps *caps)
 {
@@ -210,6 +205,11 @@ int HAMLIB_API rig_register(struct rig_caps *caps)
     //rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!caps)
+    {
+        return -RIG_EINVAL;
+    }
+
+    if (rig_get_caps(caps->rig_model) != NULL)
     {
         return -RIG_EINVAL;
     }
@@ -230,14 +230,7 @@ int HAMLIB_API rig_register(struct rig_caps *caps)
 
     hval = HASH_FUNC(caps->rig_model);
 
-    if (rig_hash_table[hval])
-    {
-        printf("Hash collision!!! Fatal error!!\n");
-        exit(1);
-    }
-
     p->caps = caps;
-    // p->handle = NULL;
     p->next = rig_hash_table[hval];
     rig_hash_table[hval] = p;
 

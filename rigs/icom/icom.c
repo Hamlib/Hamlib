@@ -27,6 +27,7 @@
 #include <unistd.h>     /* UNIX standard function definitions */
 // cppcheck-suppress *
 #include <math.h>
+#include <pthread.h>
 
 #include "hamlib/rig.h"
 #include "hamlib/port.h"
@@ -10524,16 +10525,28 @@ static int icom_get_vfo_number_x25x26(RIG *rig, vfo_t vfo)
     return vfo_number;
 }
 
+static void icom_init_network_caps(void)
+{
+    ic705net_init_caps();
+    ic7300mk2net_init_caps();
+    ic7610net_init_caps();
+    ic7760net_init_caps();
+    ic905net_init_caps();
+    ic9700net_init_caps();
+}
+
 /*
  * initrigs_icom is called by rig_backend_load
  */
 DECLARE_INITRIG_BACKEND(icom)
 {
+    static pthread_once_t network_caps_once = PTHREAD_ONCE_INIT;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
+    pthread_once(&network_caps_once, icom_init_network_caps);
     rig_register(&ic703_caps);
     rig_register(&ic705_caps);
-    ic705net_init_caps();
     rig_register(&ic705net_caps);
     rig_register(&ic706_caps);
     rig_register(&ic706mkii_caps);
@@ -10566,13 +10579,10 @@ DECLARE_INITRIG_BACKEND(icom)
     rig_register(&ic7200_caps);
     rig_register(&ic7300_caps);
     rig_register(&ic7300mk2_caps);
-    ic7300mk2net_init_caps();
     rig_register(&ic7300mk2net_caps);
     rig_register(&ic7610_caps);
-    ic7610net_init_caps();
     rig_register(&ic7610net_caps);
     rig_register(&ic7760_caps);
-    ic7760net_init_caps();
     rig_register(&ic7760net_caps);
     rig_register(&ic781_caps);
     rig_register(&ic707_caps);
@@ -10582,13 +10592,11 @@ DECLARE_INITRIG_BACKEND(icom)
     rig_register(&ic820h_caps);
     rig_register(&ic821h_caps);
     rig_register(&ic905_caps);
-    ic905net_init_caps();
     rig_register(&ic905net_caps);
     rig_register(&ic910_caps);
     rig_register(&ic9100_caps);
     rig_register(&ic970_caps);
     rig_register(&ic9700_caps);
-    ic9700net_init_caps();
     rig_register(&ic9700net_caps);
 
     rig_register(&icrx7_caps);
