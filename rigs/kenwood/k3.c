@@ -30,6 +30,7 @@
 #include <ctype.h>
 
 #include "hamlib/rig.h"
+#include "hamlib/port.h"
 
 #include "idx_builtin.h"
 #include "cache.h"
@@ -187,6 +188,9 @@ static int k3_get_bar_graph_level(RIG *rig, float *smeter, float *pwr, float *al
 static int k4_get_bar_graph_level(RIG *rig, float *swr, float *alc);
 
 /* K4 functions */
+static int k4_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+static int k4_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo);
+static int k4_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *txvfo);
 static int k4_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 static int k4_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 static int k4_send_voice_mem(RIG *rig, vfo_t vfo, int ch);
@@ -658,7 +662,7 @@ struct rig_caps k4_caps =
     .rig_cleanup =      kenwood_cleanup,
     .rig_open =     elecraft_open,
     .rig_close =        elecraft_close,
-    .set_freq =     kenwood_set_freq,
+    .set_freq =     k4_set_freq,
     .get_freq =     kenwood_get_freq,
     .set_mode =     k3_set_mode,
     .get_mode =     k3_get_mode,
@@ -666,8 +670,8 @@ struct rig_caps k4_caps =
     .get_vfo =      elecraft_get_vfo_tq,
     .set_split_mode =   k3_set_split_mode,
     .get_split_mode =   k3_get_split_mode,
-    .set_split_vfo =    kenwood_set_split_vfo,
-    .get_split_vfo =    kenwood_get_split_vfo_if,
+    .set_split_vfo =    k4_set_split_vfo,
+    .get_split_vfo =    k4_get_split_vfo,
     .set_rit =      k3_set_rit,
     .get_rit =      kenwood_get_rit,
     .set_xit =      k3_set_xit,
@@ -1399,6 +1403,243 @@ static int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     RETURNFUNC(RIG_OK);
 }
 
+static int k4_read_value(RIG *rig, const char *command, freq_t *value)
+{
+    char reply[KENWOOD_MAX_BUF_LEN];
+    size_t length = command[1] == 'T' ? 3 : 13;
+    size_t i;
+    int retval = kenwood_transaction_k4_read(rig, command, reply, sizeof(reply));
+
+    if (retval != RIG_OK) { return retval; }
+
+    if (strlen(reply) != length) { return -RIG_EPROTO; }
+
+    for (i = 2; i < length; i++)
+    {
+        if (!isdigit((unsigned char)reply[i])) { return -RIG_EPROTO; }
+    }
+
+    *value = strtod(reply + 2, NULL);
+
+    if (command[1] == 'T')
+    {
+        if (*value > 1) { return -RIG_EPROTO; }
+    }
+    else if (*value < 100000 || *value > 54000000)
+    {
+        return -RIG_EPROTO;
+    }
+
+    return RIG_OK;
+}
+
+static int k4_confirm_value(RIG *rig, const char *command, freq_t requested,
+                            freq_t *observed, int *confirmed, int matches)
+{
+    struct timespec started = {0};
+    freq_t previous = -1;
+    int retval;
+
+    *confirmed = 0;
+    elapsed_ms(&started, HAMLIB_ELAPSED_SET);
+
+    if (matches) { hl_usleep(50 * 1000); }
+
+    do
+    {
+        retval = k4_read_value(rig, command, observed);
+
+        if (retval != RIG_OK) { return retval; }
+
+        matches = *observed == requested ? matches + 1 : 0;
+
+        /* CAT replies are untagged: a matching notification can precede rollback.
+         * Confirm with another query after the existing frequency settle interval.
+         */
+        if (matches == 2)
+        {
+            *confirmed = 1;
+            return RIG_OK;
+        }
+
+        if (elapsed_ms(&started, HAMLIB_ELAPSED_GET) >= RIGPORT(rig)->timeout)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: K4 %s requested %.0f, retained %.0f\n",
+                      __func__, command, requested, *observed);
+
+            if (*observed != requested && *observed == previous)
+            {
+                *confirmed = 1;
+                return -RIG_ERJCTED;
+            }
+
+            return -RIG_ETIMEOUT;
+        }
+
+        previous = *observed;
+        hl_usleep(50 * 1000);
+    }
+    while (1);
+}
+
+static void k4_invalidate_state(RIG *rig)
+{
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
+
+    priv->cache_start.tv_sec = 0;
+    rig_invalidate_cache(rig);
+}
+
+static void k3_observe_split(RIG *rig, split_t split)
+{
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
+    vfo_t txvfo = split == RIG_SPLIT_ON ? RIG_VFO_B : RIG_VFO_A;
+
+    priv->split = split;
+    priv->tx_vfo = txvfo;
+    STATE(rig)->rx_vfo = RIG_VFO_A;
+    STATE(rig)->tx_vfo = txvfo;
+    CACHE(rig)->split = split;
+    CACHE(rig)->split_vfo = txvfo;
+    elapsed_ms(&CACHE(rig)->time_split, HAMLIB_ELAPSED_SET);
+}
+
+static int k4_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
+{
+    char command[3];
+    char setter[16];
+    freq_t observed;
+    int confirmed = 0;
+    int retval;
+
+    if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_VFO) { vfo = STATE(rig)->current_vfo; }
+
+    if (vfo == RIG_VFO_RX) { vfo = STATE(rig)->rx_vfo; }
+
+    if (vfo == RIG_VFO_TX) { vfo = STATE(rig)->tx_vfo; }
+
+    if (vfo == RIG_VFO_MAIN) { vfo = RIG_VFO_A; }
+
+    if (vfo == RIG_VFO_SUB) { vfo = RIG_VFO_B; }
+
+    if (vfo != RIG_VFO_A && vfo != RIG_VFO_B) { return -RIG_EINVAL; }
+
+    freq = trunc(freq);
+    SNPRINTF(command, sizeof(command), "F%c", vfo == RIG_VFO_A ? 'A' : 'B');
+    rig_set_cache_freq(rig, vfo, 0);
+    retval = k4_read_value(rig, command, &observed);
+
+    if (retval != RIG_OK) { return retval; }
+
+    if (observed == freq)
+    {
+        retval = k4_confirm_value(rig, command, freq, &observed, &confirmed, 1);
+    }
+    else
+    {
+        SNPRINTF(setter, sizeof(setter), "%s%011"PRIll, command, (int64_t)freq);
+        k4_invalidate_state(rig);
+        retval = kenwood_transaction_k4_set_once(rig, setter);
+
+        if (retval == RIG_OK)
+        {
+            retval = k4_confirm_value(rig, command, freq, &observed, &confirmed, 0);
+        }
+    }
+
+    /* Error returns bypass the core's conversion from CAT Hz to API units. */
+    rig_set_cache_freq(rig, vfo, 0);
+
+    if (confirmed && retval == RIG_OK) { rig_set_cache_freq(rig, vfo, observed); }
+
+    return retval;
+}
+
+static int k4_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *txvfo)
+{
+    freq_t observed;
+    int retval = k4_read_value(rig, "FT", &observed);
+
+    if (retval != RIG_OK)
+    {
+        k4_invalidate_state(rig);
+        return retval;
+    }
+
+    *split = observed == 1 ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
+    *txvfo = *split == RIG_SPLIT_ON ? RIG_VFO_B : RIG_VFO_A;
+    k3_observe_split(rig, *split);
+    return RIG_OK;
+}
+
+static int k4_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
+{
+    freq_t observed;
+    int confirmed = 0;
+    int retval;
+
+    if (vfo == RIG_VFO_OTHER)
+    {
+        vfo = vfo_fixup(rig, vfo, split);
+    }
+
+    if (txvfo == RIG_VFO_OTHER)
+    {
+        txvfo = vfo_fixup(rig, txvfo, split);
+    }
+
+    if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_VFO
+            || vfo == RIG_VFO_RX || vfo == RIG_VFO_MAIN) { vfo = RIG_VFO_A; }
+
+    if (vfo == RIG_VFO_SUB) { vfo = RIG_VFO_B; }
+
+    if (txvfo == RIG_VFO_CURR || txvfo == RIG_VFO_VFO || txvfo == RIG_VFO_TX)
+    { txvfo = split == RIG_SPLIT_ON ? RIG_VFO_B : RIG_VFO_A; }
+
+    if (txvfo == RIG_VFO_MAIN || txvfo == RIG_VFO_RX) { txvfo = RIG_VFO_A; }
+
+    if (txvfo == RIG_VFO_SUB) { txvfo = RIG_VFO_B; }
+
+    if ((split != RIG_SPLIT_OFF && split != RIG_SPLIT_ON)
+            || (vfo != RIG_VFO_A && vfo != RIG_VFO_B)
+            || (txvfo != RIG_VFO_A && txvfo != RIG_VFO_B)
+            || (split == RIG_SPLIT_ON
+                && (vfo != RIG_VFO_A || txvfo != RIG_VFO_B)))
+    { return -RIG_EINVAL; }
+
+    k4_invalidate_state(rig);
+    retval = k4_read_value(rig, "FT", &observed);
+
+    if (retval != RIG_OK) { return retval; }
+
+    k3_observe_split(rig, observed == 1 ? RIG_SPLIT_ON : RIG_SPLIT_OFF);
+
+    if (observed == split)
+    {
+        retval = k4_confirm_value(rig, "FT", split, &observed, &confirmed, 1);
+    }
+    else
+    {
+        /* FR cancels K4 split; FT alone changes routing without retuning VFO B. */
+        retval = kenwood_transaction_k4_set_once(rig,
+            split == RIG_SPLIT_ON ? "FT1" : "FT0");
+
+        if (retval == RIG_OK)
+        {
+            retval = k4_confirm_value(rig, "FT", split, &observed, &confirmed, 0);
+        }
+    }
+
+    if (confirmed)
+    {
+        k3_observe_split(rig, observed == 1 ? RIG_SPLIT_ON : RIG_SPLIT_OFF);
+        return retval;
+    }
+
+    k4_invalidate_state(rig);
+    return retval;
+}
+
 /* Elecraft rigs don't really know about swappings vfos.
  * We just emulate them so rigctl can work correctly.
  */
@@ -1593,7 +1834,6 @@ static int k3_set_xit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 static int k3_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
     char buf[5];
-    struct kenwood_priv_data *priv = STATE(rig)->priv;
     int err = kenwood_safe_transaction(rig, "FT", buf, sizeof(buf), 3);
 
     if (err != RIG_OK) { return err; }
@@ -1602,13 +1842,7 @@ static int k3_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 
     *split = buf[2] == '1' ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
     *tx_vfo = *split == RIG_SPLIT_ON ? RIG_VFO_B : RIG_VFO_A;
-    priv->split = *split;
-    priv->tx_vfo = *tx_vfo;
-    STATE(rig)->rx_vfo = RIG_VFO_A;
-    STATE(rig)->tx_vfo = *tx_vfo;
-    CACHE(rig)->split = *split;
-    CACHE(rig)->split_vfo = *tx_vfo;
-    elapsed_ms(&CACHE(rig)->time_split, HAMLIB_ELAPSED_SET);
+    k3_observe_split(rig, *split);
     return RIG_OK;
 }
 

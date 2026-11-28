@@ -5971,6 +5971,17 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
         RETURNFUNC(retcode);
     }
 
+    if (caps->rig_model == RIG_MODEL_K4)
+    {
+        /* K4 verifies fixed physical routing independently of its emulated VFO. */
+        LOCK(1);
+        retcode = cachep->ptt ? RIG_OK
+                  : caps->set_split_vfo(rig, rx_vfo, split, tx_vfo);
+        LOCK(0);
+        ELAPSED2;
+        RETURNFUNC(retcode);
+    }
+
     // We fix up vfos for non-satmode rigs only
     if (caps->has_get_func & RIG_FUNC_SATMODE)
     {
@@ -6161,6 +6172,9 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
 }
 
 
+static int rig_get_split_vfo_unlocked(RIG *rig, vfo_t vfo, split_t *split,
+                                       vfo_t *tx_vfo);
+
 /**
  * \brief get the current split mode
  * \param rig   The rig handle
@@ -6180,6 +6194,21 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
                                  vfo_t vfo,
                                  split_t *split,
                                  vfo_t *tx_vfo)
+{
+    int retcode;
+    int lock_k4;
+
+    if (CHECK_RIG_ARG(rig)) { return -RIG_EINVAL; }
+
+    lock_k4 = rig->caps->rig_model == RIG_MODEL_K4;
+    if (lock_k4) { rig_lock(rig, 1); }
+    retcode = rig_get_split_vfo_unlocked(rig, vfo, split, tx_vfo);
+    if (lock_k4) { rig_lock(rig, 0); }
+    return retcode;
+}
+
+static int rig_get_split_vfo_unlocked(RIG *rig, vfo_t vfo, split_t *split,
+                                       vfo_t *tx_vfo)
 {
     const struct rig_caps *caps;
     struct rig_state *rs;
