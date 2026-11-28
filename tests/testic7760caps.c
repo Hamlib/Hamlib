@@ -637,6 +637,9 @@ static int test_tuning_steps_are_reachable(void)
  * CW pitch is 14 09, documented as 300 Hz to 900 Hz in 5 Hz steps, and
  * keying speed is 14 0C, documented as 6 to 48 WPM.  The keyer range is
  * narrower than the icom default of 4 to 60, so it stays overridden.
+ * Command 11 sets 3 to 45 dB of attenuation in 3 dB steps.  The two
+ * preamplifiers of 16 02 give 12 and 20 dB, which no step describes, so
+ * the step is left 0 and the gains are in the preamp list.
  */
 static int test_level_granularity(void)
 {
@@ -651,6 +654,8 @@ static int test_level_granularity(void)
     {
         { "CW pitch", LVL_CWPITCH, 300, 900, 5 },
         { "keying speed", LVL_KEYSPD, 6, 48, 1 },
+        { "attenuator", LVL_ATT, 0, 45, 3 },
+        { "preamp", LVL_PREAMP, 0, 20, 0 },
     };
     size_t i;
     int fail = 0;
@@ -666,6 +671,52 @@ static int test_level_granularity(void)
                     "%s: expected min %d, max %d, step %d; got %d, %d, %d\n",
                     grans[i].name, grans[i].min, grans[i].max, grans[i].step,
                     gran->min.i, gran->max.i, gran->step.i);
+            fail = 1;
+        }
+    }
+
+    return fail;
+}
+
+/*
+ * Float levels are sent as val * 255, so a level set over the whole of
+ * 00 00 ~ 02 55 runs from 0 to 1:
+ * - RF power, 14 0A, from the minimum, which the basic manual shows as
+ *   "< 2 W", to the maximum;
+ * - COMP, 14 0E, 0 to 10, so a step is a tenth;
+ * - NB, 14 12, 0 to 100%; APF position, 14 05; notch position, 14 0D.
+ */
+static int test_float_level_granularity(void)
+{
+    static const struct
+    {
+        const char *name;
+        int idx;
+        float min;
+        float max;
+        float step;
+    } grans[] =
+    {
+        { "RF power", LVL_RFPOWER, 0.0f, 1.0f, 1.0f / 255.0f },
+        { "COMP", LVL_COMP, 0.0f, 1.0f, 1.0f / 10.0f },
+        { "NB", LVL_NB, 0.0f, 1.0f, 1.0f / 255.0f },
+        { "APF", LVL_APF, 0.0f, 1.0f, 1.0f / 255.0f },
+        { "notch", LVL_NOTCHF_RAW, 0.0f, 1.0f, 1.0f / 255.0f },
+    };
+    size_t i;
+    int fail = 0;
+
+    for (i = 0; i < sizeof(grans) / sizeof(grans[0]); i++)
+    {
+        const gran_t *gran = &ic7760_caps.level_gran[grans[i].idx];
+
+        if (gran->min.f != grans[i].min || gran->max.f != grans[i].max
+                || gran->step.f != grans[i].step)
+        {
+            fprintf(stderr,
+                    "%s: expected min %g, max %g, step %g; got %g, %g, %g\n",
+                    grans[i].name, grans[i].min, grans[i].max, grans[i].step,
+                    gran->min.f, gran->max.f, gran->step.f);
             fail = 1;
         }
     }
@@ -997,6 +1048,7 @@ int main(void)
     fail |= test_id_meter_calibration();
     fail |= test_transmit_power_ranges();
     fail |= test_level_granularity();
+    fail |= test_float_level_granularity();
     fail |= test_tuning_steps_are_reachable();
     fail |= test_scan_operations();
     fail |= test_agc_levels();

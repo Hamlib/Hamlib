@@ -270,9 +270,46 @@ struct rig_caps ic7760_caps =
     .level_gran =
     {
 #define NO_LVL_KEYSPD
+#define NO_LVL_PREAMP
+#define NO_LVL_ATT
+#define NO_LVL_STRENGTH
+#define NO_LVL_NB
+#define NO_LVL_RFPOWER
+#define NO_LVL_RFPOWER_METER_WATTS
+#define NO_LVL_COMP_METER
+#define NO_LVL_ID_METER
+#define NO_LVL_VD_METER
+#define NO_LVL_COMP
+#define NO_LVL_SWR
 #include "level_gran_icom.h"
 #undef NO_LVL_KEYSPD
+#undef NO_LVL_PREAMP
+#undef NO_LVL_ATT
+#undef NO_LVL_STRENGTH
+#undef NO_LVL_NB
+#undef NO_LVL_RFPOWER
+#undef NO_LVL_RFPOWER_METER_WATTS
+#undef NO_LVL_COMP_METER
+#undef NO_LVL_ID_METER
+#undef NO_LVL_VD_METER
+#undef NO_LVL_COMP
+#undef NO_LVL_SWR
         [LVL_KEYSPD] = { .min = { .i = 6 }, .max = { .i = 48 }, .step = { .i = 1 } },
+        /* the gains, 12 and 20 dB, are in .preamp */
+        [LVL_PREAMP] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 0 } },
+        [LVL_ATT] = { .min = { .i = 0 }, .max = { .i = 45 }, .step = { .i = 3 } },
+        [LVL_STRENGTH] = { .min = { .i = -54 }, .max = { .i = 60 }, .step = { .i = 0 } },
+        [LVL_NB] = { .min = { .f = 0.0f }, .max = { .f = 1.0f }, .step = { .f = 1.0f / 255.0f } },
+        [LVL_RFPOWER] = { .min = { .f = 0.0f }, .max = { .f = 1.0f }, .step = { .f = 1.0f / 255.0f } },
+        [LVL_COMP] = { .min = { .f = 0.0f }, .max = { .f = 1.0f }, .step = { .f = 1.0f / 10.0f } },
+        [LVL_APF] = { .min = { .f = 0.0f }, .max = { .f = 1.0f }, .step = { .f = 1.0f / 255.0f } },
+        [LVL_NOTCHF_RAW] = { .min = { .f = 0.0f }, .max = { .f = 1.0f }, .step = { .f = 1.0f / 255.0f } },
+        /* meters span their calibration tables, which are not linear */
+        [LVL_RFPOWER_METER_WATTS] = { .min = { .f = 0.0f }, .max = { .f = 250.0f }, .step = { .f = 0.0f } },
+        [LVL_SWR] = { .min = { .f = 1.0f }, .max = { .f = 6.0f }, .step = { .f = 0.0f } },
+        [LVL_COMP_METER] = { .min = { .f = 0.0f }, .max = { .f = 30.0f }, .step = { .f = 0.0f } },
+        [LVL_VD_METER] = { .min = { .f = 0.0f }, .max = { .f = 52.0f }, .step = { .f = 0.0f } },
+        [LVL_ID_METER] = { .min = { .f = 0.0f }, .max = { .f = 15.0f }, .step = { .f = 0.0f } },
         [LVL_SPECTRUM_SPEED] = { .min = { .i = 0 }, .max = { .i = 2 }, .step = { .i = 1 } },
         [LVL_SPECTRUM_REF] = { .min = { .f = -30.0f }, .max = { .f = 10.0f }, .step = { .f = 0.5f } },
         [LVL_SPECTRUM_AVG] = { .min = { .i = 0 }, .max = { .i = 3 }, .step = { .i = 1 } },

@@ -44,6 +44,8 @@ struct peer_case
     atomic_int band_sel_answer;
     /* nonzero: accept 07 D0 and 07 D1, the Main and Sub selection */
     atomic_int ack_band_select;
+    /* what the 15 xx meter reads answer, 0 to 255, or -1 to reject them */
+    atomic_int meter_raw;
 };
 
 static const unsigned char nak[] = { 0xfe, 0xfe, 0xe0, 0xb2, 0xfa, 0xfd };
@@ -90,6 +92,22 @@ static void *run_peer(void *arg)
                 && (frame[5] == 0xd0 || frame[5] == 0xd1) && test->ack_band_select)
         {
             if (write_all(test->fd, ack, sizeof(ack)) != 0) { break; }
+
+            continue;
+        }
+
+        /* a meter answers 15 xx with its level in BCD, 00 00 ~ 02 55 */
+        if (length == 7 && frame[4] == 0x15 && test->meter_raw >= 0)
+        {
+            int raw = test->meter_raw;
+            unsigned char meter[] =
+            { 0xfe, 0xfe, 0xe0, 0xb2, 0x15, 0x00, 0x00, 0x00, 0xfd };
+
+            meter[5] = frame[5];
+            meter[6] = (unsigned char) (raw / 100);
+            meter[7] = (unsigned char) ((raw / 10 % 10) << 4 | raw % 10);
+
+            if (write_all(test->fd, meter, sizeof(meter)) != 0) { break; }
 
             continue;
         }
@@ -170,13 +188,87 @@ static int send_oversized_frame(int fd)
     return write_all(fd, frame, sizeof(frame));
 }
 
+/*
+ * A meter's range is what the meter can read: 00 00 has to come out as
+ * its minimum and 02 55 as its maximum, or a program that scales the
+ * meter by its range draws readings off the scale.  These are the
+ * meters the IC-7760 gives ranges of their own.
+ */
+static int meters_span_their_ranges(RIG *rig, struct peer_case *test)
+{
+    static const struct
+    {
+        const char *name;
+        setting_t level;
+    } meters[] =
+    {
+        { "S-meter", RIG_LEVEL_STRENGTH },
+        { "Po meter", RIG_LEVEL_RFPOWER_METER_WATTS },
+        { "SWR meter", RIG_LEVEL_SWR },
+        { "COMP meter", RIG_LEVEL_COMP_METER },
+        { "Vd meter", RIG_LEVEL_VD_METER },
+        { "Id meter", RIG_LEVEL_ID_METER },
+    };
+    size_t i;
+    int end;
+    int failed = 0;
+
+    for (i = 0; i < sizeof(meters) / sizeof(meters[0]); i++)
+    {
+        const gran_t *gran =
+            &STATE(rig)->level_gran[rig_setting2idx(meters[i].level)];
+        int is_float = RIG_LEVEL_IS_FLOAT(meters[i].level) != 0;
+
+        for (end = 0; end < 2; end++)
+        {
+            value_t val;
+            float got, want;
+            int retval;
+
+            test->meter_raw = end ? 255 : 0;
+            retval = rig_get_level(rig, RIG_VFO_CURR, meters[i].level, &val);
+
+            if (retval != RIG_OK)
+            {
+                fprintf(stderr, "%s at %s: %s\n", meters[i].name,
+                        end ? "02 55" : "00 00", rigerror(retval));
+                failed = 1;
+                continue;
+            }
+
+            got = is_float ? val.f : (float) val.i;
+
+            if (end)
+            {
+                want = is_float ? gran->max.f : (float) gran->max.i;
+            }
+            else
+            {
+                want = is_float ? gran->min.f : (float) gran->min.i;
+            }
+
+            if (got - want > 0.001f || want - got > 0.001f)
+            {
+                fprintf(stderr, "%s reads %g at %s, but its range %s at %g\n",
+                        meters[i].name, got, end ? "02 55" : "00 00",
+                        end ? "ends" : "starts", want);
+                failed = 1;
+            }
+        }
+    }
+
+    test->meter_raw = -1;
+    return failed;
+}
+
 int main(void)
 {
     int sockets[2];
     pthread_t thread;
     struct peer_case test =
     {
-        .fd = -1, .frame_count = 0, .band_sel_answer = -1, .ack_band_select = 0
+        .fd = -1, .frame_count = 0, .band_sel_answer = -1, .ack_band_select = 0,
+        .meter_raw = -1
     };
     unsigned char oversized_reply[MAXFRAMELEN];
     size_t oversized_reply_len = 0;
@@ -215,6 +307,7 @@ int main(void)
     vfo_t selected_after_refusal = RIG_VFO_NONE;
     int main_sel_retval, sub_sel_retval;
     int get_vfo_survived;
+    int meters_failed;
     int ovf_retval, ip_plus_retval;
     int ovf_status = 0;
     rmode_t mode;
@@ -377,6 +470,8 @@ int main(void)
     rig_set_level(rig, RIG_VFO_TX, RIG_LEVEL_SPECTRUM_SPAN, span);
     test.ack_band_select = 0;
 
+    meters_failed = meters_span_their_ranges(rig, &test);
+
     /*
      * A rig that refuses 07 D2 must cost this handle its get_vfo and no
      * one else's.  rig_caps is one static per model, shared by every rig
@@ -387,6 +482,8 @@ int main(void)
     get_vfo_survived = ic7760_caps.get_vfo != NULL;
 
     stop_test_peer(sockets, thread);
+
+    if (meters_failed) { failed = 1; }
 
     if (!get_vfo_survived)
     {
