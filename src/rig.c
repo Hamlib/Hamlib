@@ -1293,6 +1293,8 @@ int HAMLIB_API rig_open(RIG *rig)
         rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %p rs->comm_state==1?=%d\n", __func__,
                   __LINE__, &rs->comm_state,
                   rs->comm_state);
+        /* The reader reads this port, so it stops first, as in rig_close(). */
+        async_data_handler_stop(rig);
         port_close(rp, rp->type.rig);
         rs->comm_state = 0;
         RETURNFUNC2(-RIG_EINVAL);

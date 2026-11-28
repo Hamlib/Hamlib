@@ -6,7 +6,9 @@
  * requested configuration, the pipes carry the reader's responses, and
  * port.asyncio routes frontend reads through those pipes only while the
  * reader owns the physical port.  Starting the reader or the Morse handler
- * either leaves the thread running or leaves nothing behind.
+ * either leaves the thread running or leaves nothing behind.  Only the
+ * reader's start and stop close the pipes, so closing any other port closes
+ * that port alone.
  *
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
@@ -20,6 +22,12 @@
 
 #include <errno.h>
 #include <string.h>
+
+#ifndef _WIN32
+#include <fcntl.h>
+#include <stdlib.h>
+#include <unistd.h>
+#endif
 
 #include "hamlib/port.h"
 #include "hamlib/rig.h"
@@ -300,6 +308,139 @@ static void test_failed_morse_thread_start_rolls_back_state(void)
     TEST_CHECK(rig_cleanup(rig) == RIG_OK);
 }
 
+/* A second rig_open() on an open rig fails and closes the port, so that the
+ * next rig_open() starts over.  The reader reading that port stops with it and
+ * leaves no pipes behind. */
+static void test_second_rig_open_stops_the_reader(void)
+{
+    RIG *rig = new_test_rig(1);
+#ifndef _WIN32
+    int pipe_fd[4];
+    int i;
+#endif
+
+    frame_sent = 0;
+    TEST_ASSERT(rig != NULL);
+    TEST_ASSERT(rig_open(rig) == RIG_OK);
+    TEST_ASSERT(port_async_is_prepared(RIGPORT(rig)));
+#ifndef _WIN32
+    pipe_fd[0] = RIGPORT(rig)->fd_sync_read;
+    pipe_fd[1] = RIGPORT(rig)->fd_sync_write;
+    pipe_fd[2] = RIGPORT(rig)->fd_sync_error_read;
+    pipe_fd[3] = RIGPORT(rig)->fd_sync_error_write;
+#endif
+
+    TEST_CHECK(rig_open(rig) == -RIG_EINVAL);
+    TEST_ASSERT_(!STATE(rig)->async_data_handler_thread_run
+                 && STATE(rig)->async_data_handler_priv_data == NULL,
+                 "the reader still runs on the closed port");
+    TEST_CHECK(!RIGPORT(rig)->asyncio);
+    TEST_CHECK(!port_async_is_prepared(RIGPORT(rig)));
+#ifndef _WIN32
+
+    for (i = 0; i < 4; i++)
+    {
+        TEST_CHECK_(fcntl(pipe_fd[i], F_GETFD) == -1 && errno == EBADF,
+                    "pipe descriptor %d was left open", pipe_fd[i]);
+    }
+
+#endif
+
+    TEST_CHECK(rig_open(rig) == RIG_OK);
+    TEST_CHECK(STATE(rig)->async_data_handler_thread_run);
+    TEST_CHECK(rig_close(rig) == RIG_OK);
+    TEST_CHECK(!port_async_is_prepared(RIGPORT(rig)));
+    TEST_CHECK(rig_cleanup(rig) == RIG_OK);
+}
+
+#ifndef _WIN32
+/* A pseudo-terminal stands in for a serial port; returns its master side. */
+static int open_pty(const char **slave)
+{
+    int master = posix_openpt(O_RDWR | O_NOCTTY);
+
+    if (master >= 0 && grantpt(master) == 0 && unlockpt(master) == 0
+            && (*slave = ptsname(master)) != NULL)
+    {
+        return master;
+    }
+
+    if (master >= 0) { close(master); }
+
+    return -1;
+}
+
+/* PTT and DCD on a serial port of their own are opened with ser_open(), not
+ * port_open(), so the port has no pipes.  rig_close() closes that port and
+ * nothing else, whether descriptor 0 is the application's or the port's. */
+static void test_rig_close_closes_only_its_own_dcd_port(void)
+{
+    int app_owns_fd0;
+
+    for (app_owns_fd0 = 1; app_owns_fd0 >= 0; app_owns_fd0--)
+    {
+        const char *slave = NULL;
+        /* -1 when the test itself was started with descriptor 0 closed. */
+        int saved = dup(0);
+        int null_fd;
+        int master;
+        int dcd_fd;
+        RIG *rig;
+
+        TEST_ASSERT(saved >= 0 || errno == EBADF);
+        null_fd = open("/dev/null", O_RDONLY);
+        TEST_ASSERT(null_fd >= 0);
+
+        if (null_fd != 0)
+        {
+            TEST_ASSERT(dup2(null_fd, 0) == 0);
+            close(null_fd);
+        }
+
+        master = open_pty(&slave);
+        TEST_ASSERT(master > 0);
+
+        rig = new_test_rig(0);
+        TEST_ASSERT(rig != NULL);
+        TEST_ASSERT(rig_set_conf(rig, rig_token_lookup(rig, "dcd_type"), "CTS")
+                    == RIG_OK);
+        TEST_ASSERT(rig_set_conf(rig, rig_token_lookup(rig, "dcd_pathname"),
+                                 slave) == RIG_OK);
+
+        if (!app_owns_fd0) { close(0); }
+
+        TEST_ASSERT(rig_open(rig) == RIG_OK);
+        dcd_fd = DCDPORT(rig)->fd;
+        TEST_CHECK_(app_owns_fd0 ? dcd_fd > 0 : dcd_fd == 0,
+                    "the DCD port got descriptor %d", dcd_fd);
+
+        TEST_CHECK(rig_close(rig) == RIG_OK);
+
+        if (app_owns_fd0)
+        {
+            TEST_CHECK_(fcntl(0, F_GETFD) != -1,
+                        "the application's descriptor 0 was closed");
+        }
+
+        TEST_CHECK_(fcntl(dcd_fd, F_GETFD) == -1 && errno == EBADF,
+                    "the DCD port on descriptor %d was left open", dcd_fd);
+
+        TEST_CHECK(rig_cleanup(rig) == RIG_OK);
+        close(master);
+
+        if (saved >= 0)
+        {
+            TEST_ASSERT(dup2(saved, 0) == 0);
+            close(saved);
+        }
+        else
+        {
+            close(0);
+        }
+    }
+}
+#endif
+
 TEST_LIST =
 {
     { "sync_pipe_is_separate_from_active_routing",
@@ -314,5 +455,11 @@ TEST_LIST =
       test_failed_reader_start_rolls_back_state },
     { "failed_morse_thread_start_rolls_back_state",
       test_failed_morse_thread_start_rolls_back_state },
+    { "second_rig_open_stops_the_reader",
+      test_second_rig_open_stops_the_reader },
+#ifndef _WIN32
+    { "rig_close_closes_only_its_own_dcd_port",
+      test_rig_close_closes_only_its_own_dcd_port },
+#endif
     { NULL, NULL }
 };
