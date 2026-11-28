@@ -5686,7 +5686,8 @@ int HAMLIB_API rig_set_split_freq_mode(RIG *rig,
     rs = STATE(rig);
     cachep = CACHE(rig);
 
-    if (rig_has_fixed_k3_split(caps) && caps->set_split_freq_mode)
+    if ((rig_has_fixed_k3_split(caps) || caps->rig_model == RIG_MODEL_K4)
+            && caps->set_split_freq_mode)
     {
         /* These rigs can address B directly before split is possible. */
         if (cachep->ptt == RIG_PTT_OFF)
