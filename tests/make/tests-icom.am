@@ -75,8 +75,11 @@ testicomscan_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) \
 
 check_PROGRAMS += testicomscope
 TESTS += testicomscope
+testicomscope_SOURCES = testicomscope.c testicomsock.c testicomsock.h
 testicomscope_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/rigs/icom
-testicomscope_LDADD = $(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
+testicomscope_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testicomscope_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) \
+	$(top_builddir)/rigs/icom/libhamlib-icom.la $(LDADD)
 
 check_PROGRAMS += testicomts
 TESTS += testicomts
