@@ -26,6 +26,8 @@
 
 #include <string.h>
 #include <stdio.h>
+#include "hamlib/rig.h"
+#include "hamlib/port.h"
 
 #include "iofunc.h"
 #include "elecraft.h"
@@ -101,6 +103,12 @@ int elecraft_open(RIG *rig)
     struct rig_state *rs = STATE(rig);
     struct hamlib_port *rp = RIGPORT(rig);
     struct kenwood_priv_data *priv = rs->priv;
+
+    if (rig->caps->rig_model == RIG_MODEL_K4
+            && rp->type.rig == RIG_PORT_NETWORK)
+    {
+        kenwood_k4_reset(rig);
+    }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, rig version=%s\n", __func__,
               rig->caps->version);
@@ -680,12 +688,16 @@ int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
         RETURNFUNC2(retval);
     }
 
-    *vfo = STATE(rig)->tx_vfo = RIG_VFO_A;
+    vfo_t tx_vfo = ft ? RIG_VFO_B : RIG_VFO_A;
+    vfo_t rx_vfo = fr ? RIG_VFO_B : RIG_VFO_A;
 
-    if (tq && ft == 1) { *vfo = STATE(rig)->tx_vfo = RIG_VFO_B; }
-    else if (tq && ft == 0) { *vfo = STATE(rig)->tx_vfo = RIG_VFO_A; }
+    *vfo = tq ? tx_vfo : rx_vfo;
+    STATE(rig)->tx_vfo = tx_vfo;
 
-    if (!tq && fr == 1) { *vfo = STATE(rig)->rx_vfo = STATE(rig)->tx_vfo = RIG_VFO_B; }
+    if (!tq && fr)
+    {
+        STATE(rig)->rx_vfo = rx_vfo;
+    }
 
     RETURNFUNC2(RIG_OK);
 }

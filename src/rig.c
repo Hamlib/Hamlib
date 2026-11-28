@@ -1016,6 +1016,42 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
 }
 
 
+static void rig_open_check_powerstat(RIG *rig)
+{
+    struct rig_state *rs = STATE(rig);
+    powerstat_t powerflag;
+    int status;
+
+    if (rig->caps->get_powerstat == NULL || skip_init)
+    {
+        return;
+    }
+
+    status = rig_get_powerstat(rig, &powerflag);
+
+    if (status == RIG_OK && (powerflag == RIG_POWER_OFF
+                             || powerflag == RIG_POWER_STANDBY)
+            && rs->auto_power_on == 0)
+    {
+        // rig_open() should succeed even if the rig is powered off, so simply log power status
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: rig power is off, use --set-conf=auto_power_on=1 or set_powerstat if power on is wanted\n",
+                  __func__);
+    }
+
+    // don't need auto_power_on if power is already on
+    if (status == RIG_OK && powerflag == RIG_POWER_ON) { rs->auto_power_on = 0; }
+
+    if (status == -RIG_ETIMEOUT)
+    {
+        // rig_open() should succeed even if get_powerstat() fails,
+        // as many rigs cannot get power status while powered off
+        rig_debug(RIG_DEBUG_ERR, "%s: Some rigs cannot get_powerstat while off\n",
+                  __func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: Known rigs: K3, K3S\n", __func__);
+    }
+}
+
 /**
  * \brief open the communication to the rig
  * \param rig   The #RIG handle of the radio to be opened
@@ -1518,32 +1554,10 @@ int HAMLIB_API rig_open(RIG *rig)
 
     if (caps->rig_open != NULL)
     {
-        if (caps->get_powerstat != NULL && !skip_init)
+        /* K4 must reset CAT accounting before querying a reopened connection. */
+        if (caps->rig_model != RIG_MODEL_K4)
         {
-            powerstat_t powerflag;
-            status = rig_get_powerstat(rig, &powerflag);
-
-            if (status == RIG_OK && (powerflag == RIG_POWER_OFF
-                                     || powerflag == RIG_POWER_STANDBY)
-                    && rs->auto_power_on == 0)
-            {
-                // rig_open() should succeed even if the rig is powered off, so simply log power status
-                rig_debug(RIG_DEBUG_ERR,
-                          "%s: rig power is off, use --set-conf=auto_power_on=1 or set_powerstat if power on is wanted\n",
-                          __func__);
-            }
-
-            // don't need auto_power_on if power is already on
-            if (status == RIG_OK && powerflag == RIG_POWER_ON) { STATE(rig)->auto_power_on = 0; }
-
-            if (status == -RIG_ETIMEOUT)
-            {
-                // rig_open() should succeed even if get_powerstat() fails,
-                // as many rigs cannot get power status while powered off
-                rig_debug(RIG_DEBUG_ERR, "%s: Some rigs cannot get_powerstat while off\n",
-                          __func__);
-                rig_debug(RIG_DEBUG_ERR, "%s: Known rigs: K3, K3S\n", __func__);
-            }
+            rig_open_check_powerstat(rig);
         }
 
         status = caps->rig_open(rig);
@@ -1557,6 +1571,11 @@ int HAMLIB_API rig_open(RIG *rig)
             rs->comm_status = RIG_COMM_STATUS_ERROR;
             RETURNFUNC2(status);
         }
+
+        if (caps->rig_model == RIG_MODEL_K4)
+        {
+            rig_open_check_powerstat(rig);
+        }
     }
 
     /*
@@ -1565,7 +1584,10 @@ int HAMLIB_API rig_open(RIG *rig)
 
     if (caps->get_vfo && rig_get_vfo(rig, &rs->current_vfo) == RIG_OK)
     {
-        rs->tx_vfo = rs->current_vfo;
+        if (caps->rig_model != RIG_MODEL_K4)
+        {
+            rs->tx_vfo = rs->current_vfo;
+        }
     }
     else
     {
@@ -1900,6 +1922,13 @@ int HAMLIB_API rig_close(RIG *rig)
 
     // zero split so it will allow it to be set again on open for rigctld
     CACHE(rig)->split = 0;
+
+    if (caps->rig_model == RIG_MODEL_K3 || caps->rig_model == RIG_MODEL_K3S)
+    {
+        CACHE(rig)->split_vfo = RIG_VFO_NONE;
+        rs->tx_vfo = RIG_VFO_NONE;
+    }
+
     rs->comm_state = 0;
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %p rs->comm_state==0?=%d\n", __func__,
               __LINE__, &rs->comm_state,
@@ -3070,7 +3099,15 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         RETURNFUNC(retcode);
     }
 
-    rig_set_cache_mode(rig, vfo, mode, width);
+    if (caps->rig_model == RIG_MODEL_K3 || caps->rig_model == RIG_MODEL_K3S)
+    {
+        /* The radio can quantize a width or recall one with the new mode. */
+        rig_invalidate_cache_mode(rig, vfo);
+    }
+    else
+    {
+        rig_set_cache_mode(rig, vfo, mode, width);
+    }
 
     ELAPSED2;
     LOCK(0);
@@ -4791,6 +4828,11 @@ int HAMLIB_API rig_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
 }
 
 
+static bool rig_has_fixed_k3_split(const struct rig_caps *caps)
+{
+    return caps->rig_model == RIG_MODEL_K3 || caps->rig_model == RIG_MODEL_K3S;
+}
+
 /**
  * \brief set the split frequencies
  * \param rig   The rig handle
@@ -4830,6 +4872,15 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, curr_vfo=%s, tx_freq=%.0f\n",
               __func__,
               rig_strvfo(vfo), rig_strvfo(rs->current_vfo), tx_freq);
+
+    if (rig_has_fixed_k3_split(caps) && caps->set_split_freq_mode
+            && cachep->ptt == RIG_PTT_OFF)
+    {
+        retcode = caps->set_split_freq_mode(rig, RIG_VFO_B, tx_freq,
+                                             RIG_MODE_NONE, RIG_PASSBAND_NOCHANGE);
+        ELAPSED2;
+        RETURNFUNC2(retcode);
+    }
 
     // Always use the previously selected TX VFO for split. The targeted VFO will have no effect.
     tx_vfo = rs->tx_vfo;
@@ -4981,6 +5032,19 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 }
 
 
+static int rig_get_split_read_routing(RIG *rig, vfo_t vfo, split_t *split,
+                                      vfo_t *tx_vfo)
+{
+    if (rig_has_fixed_k3_split(rig->caps))
+    {
+        return rig_get_split_vfo(rig, vfo, split, tx_vfo);
+    }
+
+    *split = CACHE(rig)->split;
+    *tx_vfo = STATE(rig)->tx_vfo;
+    return RIG_OK;
+}
+
 /**
  * \brief get the current split frequencies
  * \param rig   The rig handle
@@ -4998,8 +5062,7 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
     const struct rig_caps *caps;
-    const struct rig_state *rs;
-    struct rig_cache *cachep;
+    split_t split;
     int retcode = -RIG_EPROTO, rc2;
     vfo_t tx_vfo;
 
@@ -5019,13 +5082,17 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     }
 
     caps = rig->caps;
-    rs = STATE(rig);
-    cachep = CACHE(rig);
 
     // Always use the previously selected TX VFO for split. The targeted VFO will have no effect.
-    tx_vfo = rs->tx_vfo;
+    retcode = rig_get_split_read_routing(rig, vfo, &split, &tx_vfo);
 
-    if (cachep->split == RIG_SPLIT_OFF || tx_vfo == RIG_VFO_NONE
+    if (retcode != RIG_OK)
+    {
+        ELAPSED2;
+        RETURNFUNC(retcode);
+    }
+
+    if (split == RIG_SPLIT_OFF || tx_vfo == RIG_VFO_NONE
             || tx_vfo == RIG_VFO_CURR)
     {
         // Split frequency not available if split is off
@@ -5065,7 +5132,7 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     }
 
     // Assisted mode: Swap VFOs and try either get_split_freq or get_freq
-    vfo = vfo_fixup(rig, vfo, cachep->split);
+    vfo = vfo_fixup(rig, vfo, split);
 
     if (caps->set_vfo)
     {
@@ -5199,6 +5266,27 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
     caps = rig->caps;
     rs = STATE(rig);
     cachep = CACHE(rig);
+
+    if (rig_has_fixed_k3_split(caps) && caps->set_split_mode
+            && cachep->ptt == RIG_PTT_OFF)
+    {
+        if (tx_mode == RIG_MODE_NONE)
+        {
+            retcode = caps->get_split_mode(rig, RIG_VFO_B, &tx_mode, &cache_width);
+
+            if (retcode != RIG_OK) { RETURNFUNC(retcode); }
+        }
+
+        retcode = caps->set_split_mode(rig, RIG_VFO_B, tx_mode, tx_width);
+
+        if (retcode == RIG_OK)
+        {
+            retcode = rig_set_split_vfo(rig, RIG_VFO_A, RIG_SPLIT_ON, RIG_VFO_B);
+        }
+
+        ELAPSED2;
+        RETURNFUNC(retcode);
+    }
 
     // Always use the previously selected TX VFO for split. The targeted VFO will have no effect.
     tx_vfo = rs->tx_vfo;
@@ -5409,7 +5497,7 @@ int HAMLIB_API rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
 {
     const struct rig_caps *caps;
     const struct rig_state *rs;
-    struct rig_cache *cachep;
+    split_t split;
     int retcode, rc2;
     vfo_t curr_vfo, tx_vfo;
 
@@ -5430,12 +5518,17 @@ int HAMLIB_API rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
 
     caps = rig->caps;
     rs = STATE(rig);
-    cachep = CACHE(rig);
 
     // Always use the previously selected TX VFO for split. The targeted VFO will have no effect.
-    tx_vfo = rs->tx_vfo;
+    retcode = rig_get_split_read_routing(rig, vfo, &split, &tx_vfo);
 
-    if (cachep->split == RIG_SPLIT_OFF || tx_vfo == RIG_VFO_NONE
+    if (retcode != RIG_OK)
+    {
+        ELAPSED2;
+        RETURNFUNC(retcode);
+    }
+
+    if (split == RIG_SPLIT_OFF || tx_vfo == RIG_VFO_NONE
             || tx_vfo == RIG_VFO_CURR)
     {
         // Split mode and filter width are not available if split is off
@@ -5593,6 +5686,23 @@ int HAMLIB_API rig_set_split_freq_mode(RIG *rig,
     rs = STATE(rig);
     cachep = CACHE(rig);
 
+    if ((rig_has_fixed_k3_split(caps) || caps->rig_model == RIG_MODEL_K4)
+            && caps->set_split_freq_mode)
+    {
+        /* These rigs can address B directly before split is possible. */
+        if (cachep->ptt == RIG_PTT_OFF)
+        {
+            retcode = caps->set_split_freq_mode(rig, RIG_VFO_B, tx_freq,
+                                                 tx_mode, tx_width);
+        }
+        else
+        {
+            retcode = rig_set_split_freq(rig, vfo, tx_freq);
+        }
+        ELAPSED2;
+        RETURNFUNC(retcode);
+    }
+
     // Always use the previously selected TX VFO for split. The targeted VFO will have no effect.
     tx_vfo = rs->tx_vfo;
 
@@ -5717,8 +5827,7 @@ int HAMLIB_API rig_get_split_freq_mode(RIG *rig,
                                        pbwidth_t *tx_width)
 {
     const struct rig_caps *caps;
-    const struct rig_state *rs;
-    struct rig_cache *cachep;
+    split_t split;
     vfo_t tx_vfo;
     int retcode;
 
@@ -5738,13 +5847,17 @@ int HAMLIB_API rig_get_split_freq_mode(RIG *rig,
     }
 
     caps = rig->caps;
-    rs = STATE(rig);
-    cachep = CACHE(rig);
 
     // Always use the previously selected TX VFO for split. The targeted VFO will have no effect.
-    tx_vfo = rs->tx_vfo;
+    retcode = rig_get_split_read_routing(rig, vfo, &split, &tx_vfo);
 
-    if (cachep->split == RIG_SPLIT_OFF || tx_vfo == RIG_VFO_NONE
+    if (retcode != RIG_OK)
+    {
+        ELAPSED2;
+        RETURNFUNC(retcode);
+    }
+
+    if (split == RIG_SPLIT_OFF || tx_vfo == RIG_VFO_NONE
             || tx_vfo == RIG_VFO_CURR)
     {
         // Split frequency, mode and filter width are not available if split is off
@@ -5842,6 +5955,35 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
     {
         ELAPSED2;
         RETURNFUNC(-RIG_EINVAL);
+    }
+
+    if (rig_has_fixed_k3_split(caps))
+    {
+        /* The backend checks FT and publishes the actual fixed A/B routing. */
+        if (tx_vfo == RIG_VFO_CURR || tx_vfo == RIG_VFO_TX
+                || tx_vfo == RIG_VFO_OTHER)
+        {
+            tx_vfo = split == RIG_SPLIT_ON ? RIG_VFO_B : RIG_VFO_A;
+        }
+        else if (tx_vfo == RIG_VFO_SUB)
+        {
+            tx_vfo = RIG_VFO_B;
+        }
+
+        retcode = caps->set_split_vfo(rig, rx_vfo, split, tx_vfo);
+        ELAPSED2;
+        RETURNFUNC(retcode);
+    }
+
+    if (caps->rig_model == RIG_MODEL_K4)
+    {
+        /* K4 verifies fixed physical routing independently of its emulated VFO. */
+        LOCK(1);
+        retcode = cachep->ptt ? RIG_OK
+                  : caps->set_split_vfo(rig, rx_vfo, split, tx_vfo);
+        LOCK(0);
+        ELAPSED2;
+        RETURNFUNC(retcode);
     }
 
     // We fix up vfos for non-satmode rigs only
@@ -6034,6 +6176,9 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
 }
 
 
+static int rig_get_split_vfo_unlocked(RIG *rig, vfo_t vfo, split_t *split,
+                                       vfo_t *tx_vfo);
+
 /**
  * \brief get the current split mode
  * \param rig   The rig handle
@@ -6053,6 +6198,21 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
                                  vfo_t vfo,
                                  split_t *split,
                                  vfo_t *tx_vfo)
+{
+    int retcode;
+    int lock_k4;
+
+    if (CHECK_RIG_ARG(rig)) { return -RIG_EINVAL; }
+
+    lock_k4 = rig->caps->rig_model == RIG_MODEL_K4;
+    if (lock_k4) { rig_lock(rig, 1); }
+    retcode = rig_get_split_vfo_unlocked(rig, vfo, split, tx_vfo);
+    if (lock_k4) { rig_lock(rig, 0); }
+    return retcode;
+}
+
+static int rig_get_split_vfo_unlocked(RIG *rig, vfo_t vfo, split_t *split,
+                                       vfo_t *tx_vfo)
 {
     const struct rig_caps *caps;
     struct rig_state *rs;
@@ -6099,7 +6259,10 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
     cache_ms = elapsed_ms(&cachep->time_split, HAMLIB_ELAPSED_GET);
     rig_debug(RIG_DEBUG_TRACE, "%s: cache check age=%dms\n", __func__, cache_ms);
 
-    if (cache_ms < cachep->timeout_ms)
+    if (cache_ms < cachep->timeout_ms
+            && (!rig_has_fixed_k3_split(caps)
+                || (cachep->split_vfo != RIG_VFO_NONE
+                    && cachep->split_vfo != RIG_VFO_CURR)))
     {
         *split = cachep->split;
         *tx_vfo = cachep->split_vfo;
@@ -7216,6 +7379,15 @@ int HAMLIB_API rig_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
                   caps->vfo_op, rig_has_vfo_op(rig, op));
         ELAPSED2;
         RETURNFUNC(-RIG_ENAVAIL);
+    }
+
+    if ((caps->rig_model == RIG_MODEL_K3 || caps->rig_model == RIG_MODEL_K3S)
+            && (op == RIG_OP_UP || op == RIG_OP_DOWN))
+    {
+        // K3 steps address A or B directly, without changing the active VFO.
+        retcode = caps->vfo_op(rig, vfo_fixup(rig, vfo, CACHE(rig)->split), op);
+        ELAPSED2;
+        RETURNFUNC(retcode);
     }
 
     if (vfo == RIG_VFO_CURR
@@ -9001,25 +9173,16 @@ extern int read_icom_frame(hamlib_port_t *p, const unsigned char rxbuffer[],
                            size_t rxbuffer_len);
 
 
-/**
- * \brief Send verbatim data
- *
- * \a reply_len should be max bytes expected + 1
- *
- * If \a term is NULL then will read \a reply_len bytes exactly and reply will not be '\0' terminated.
- * \param rig The rig handle
- * \param send The buffer containing the data to be sent
- * \param send_len The length of send buffer
- * \param reply The buffer that will contain the data to be received
- * \param reply_len The length of the reply buffer
- * \param term The optional 1-char string that will terminate the read
- *
- * \return the number of bytes read if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
- */
-HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
-                                int send_len, unsigned char *reply, int reply_len, unsigned char *term)
+void rig_set_raw_hooks(RIG *rig, rig_raw_prepare_t prepare,
+                       rig_raw_complete_t complete)
+{
+    CACHE(rig)->raw_prepare = prepare;
+    CACHE(rig)->raw_complete = complete;
+}
+
+static int rig_send_raw_unlocked(RIG *rig, const unsigned char *send,
+                                 int send_len, unsigned char *reply, int reply_len, unsigned char *term,
+                                 int *write_result)
 {
     int nbytes;
     int retval;
@@ -9049,6 +9212,7 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
     else
     {
         retval = write_block(rp, send, send_len);
+        *write_result = retval;
 
         if (retval < 0)
         {
@@ -9161,6 +9325,54 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
     ELAPSED2;
 
     RETURNFUNC(nbytes >= 0 ? nbytes : -RIG_EPROTO);
+}
+
+/**
+ * \brief Send verbatim data
+ *
+ * \a reply_len should be max bytes expected + 1
+ *
+ * If \a term is NULL then will read \a reply_len bytes exactly and reply will not be '\0' terminated.
+ * \param rig The rig handle
+ * \param send The buffer containing the data to be sent
+ * \param send_len The length of send buffer
+ * \param reply The buffer that will contain the data to be received
+ * \param reply_len The length of the reply buffer
+ * \param term The optional 1-char string that will terminate the read
+ *
+ * \return the number of bytes read if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
+ * set appropriately).
+ */
+HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
+                                int send_len, unsigned char *reply, int reply_len,
+                                unsigned char *term)
+{
+    int retval = RIG_OK;
+    int write_result = RIG_OK;
+    rig_raw_complete_t complete = CACHE(rig)->raw_complete;
+    rig_raw_prepare_t prepare = CACHE(rig)->raw_prepare;
+
+    if (reply != NULL && reply_len < 1) { return -RIG_EINVAL; }
+
+    if (prepare || complete) { rig_lock(rig, 1); }
+
+    if (prepare) { retval = prepare(rig, send, send_len); }
+
+    if (retval == RIG_OK)
+    {
+        retval = rig_send_raw_unlocked(rig, send, send_len, reply, reply_len,
+                                       term, &write_result);
+
+        if (complete)
+        {
+            complete(rig, write_result);
+        }
+    }
+
+    if (prepare || complete) { rig_lock(rig, 0); }
+
+    return retval;
 }
 
 HAMLIB_EXPORT(int) rig_set_lock_mode(RIG *rig, int mode)

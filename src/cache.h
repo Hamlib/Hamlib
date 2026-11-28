@@ -25,6 +25,7 @@
 #define _CACHE_H
 
 #include "hamlib/rig.h"
+#include "rig_internal.h"
 
 __BEGIN_DECLS
 
@@ -114,6 +115,8 @@ struct rig_cache {
     struct timespec time_ptt;
     struct timespec time_split;
     int satmode; // if rig is in satellite mode
+    rig_raw_prepare_t raw_prepare;
+    rig_raw_complete_t raw_complete;
 };
 
 /* Access macros */
@@ -124,6 +127,8 @@ struct rig_cache {
  * Does not include those marked as part of HAMLIB_API
  */
 int rig_set_cache_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+int rig_invalidate_cache_mode(RIG *rig, vfo_t vfo);
+void rig_invalidate_cache(RIG *rig);
 int rig_set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq);
 void rig_cache_show(RIG *rig, const char *func, int line);
 

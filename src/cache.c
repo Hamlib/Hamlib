@@ -33,10 +33,13 @@
  * @{
  */
 
-int rig_set_cache_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
+static int update_cache_mode(RIG *rig, vfo_t vfo, rmode_t mode,
+                             pbwidth_t width, int invalidate)
 {
     struct rig_cache *cachep = CACHE(rig);
     struct rig_state *rs = STATE(rig);
+
+    int action = invalidate ? HAMLIB_ELAPSED_INVALIDATE : HAMLIB_ELAPSED_SET;
 
     ENTERFUNC;
 
@@ -69,12 +72,17 @@ int rig_set_cache_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         cachep->modeCurr = mode;
 
-        if (width > 0)
+        if (width > 0 || invalidate)
         {
             cachep->widthCurr = width;
         }
 
-        elapsed_ms(&cachep->time_modeCurr, HAMLIB_ELAPSED_SET);
+        elapsed_ms(&cachep->time_modeCurr, action);
+
+        if (invalidate)
+        {
+            elapsed_ms(&cachep->time_widthCurr, HAMLIB_ELAPSED_INVALIDATE);
+        }
     }
 
     switch (vfo)
@@ -100,10 +108,10 @@ int rig_set_cache_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     case RIG_VFO_MAIN_A:
         cachep->modeMainA = mode;
 
-        if (width > 0) { cachep->widthMainA = width; }
+        if (width > 0 || invalidate) { cachep->widthMainA = width; }
 
-        elapsed_ms(&cachep->time_modeMainA, HAMLIB_ELAPSED_SET);
-        elapsed_ms(&cachep->time_widthMainA, HAMLIB_ELAPSED_SET);
+        elapsed_ms(&cachep->time_modeMainA, action);
+        elapsed_ms(&cachep->time_widthMainA, action);
         break;
 
     case RIG_VFO_B:
@@ -111,40 +119,64 @@ int rig_set_cache_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     case RIG_VFO_MAIN_B:
         cachep->modeMainB = mode;
 
-        if (width > 0) { cachep->widthMainB = width; }
+        if (width > 0 || invalidate) { cachep->widthMainB = width; }
 
-        elapsed_ms(&cachep->time_modeMainB, HAMLIB_ELAPSED_SET);
-        elapsed_ms(&cachep->time_widthMainB, HAMLIB_ELAPSED_SET);
+        elapsed_ms(&cachep->time_modeMainB, action);
+        elapsed_ms(&cachep->time_widthMainB, action);
         break;
 
     case RIG_VFO_C:
     case RIG_VFO_MAIN_C:
         cachep->modeMainC = mode;
 
-        if (width > 0) { cachep->widthMainC = width; }
+        if (width > 0 || invalidate) { cachep->widthMainC = width; }
 
-        elapsed_ms(&cachep->time_modeMainC, HAMLIB_ELAPSED_SET);
-        elapsed_ms(&cachep->time_widthMainC, HAMLIB_ELAPSED_SET);
+        elapsed_ms(&cachep->time_modeMainC, action);
+        elapsed_ms(&cachep->time_widthMainC, action);
         break;
 
     case RIG_VFO_SUB_A:
         cachep->modeSubA = mode;
-        elapsed_ms(&cachep->time_modeSubA, HAMLIB_ELAPSED_SET);
+        elapsed_ms(&cachep->time_modeSubA, action);
+
+        if (invalidate)
+        {
+            cachep->widthSubA = 0;
+            elapsed_ms(&cachep->time_widthSubA, HAMLIB_ELAPSED_INVALIDATE);
+        }
         break;
 
     case RIG_VFO_SUB_B:
         cachep->modeSubB = mode;
-        elapsed_ms(&cachep->time_modeSubB, HAMLIB_ELAPSED_SET);
+        elapsed_ms(&cachep->time_modeSubB, action);
+
+        if (invalidate)
+        {
+            cachep->widthSubB = 0;
+            elapsed_ms(&cachep->time_widthSubB, HAMLIB_ELAPSED_INVALIDATE);
+        }
         break;
 
     case RIG_VFO_SUB_C:
         cachep->modeSubC = mode;
-        elapsed_ms(&cachep->time_modeSubC, HAMLIB_ELAPSED_SET);
+        elapsed_ms(&cachep->time_modeSubC, action);
+
+        if (invalidate)
+        {
+            cachep->widthSubC = 0;
+            elapsed_ms(&cachep->time_widthSubC, HAMLIB_ELAPSED_INVALIDATE);
+        }
         break;
 
     case RIG_VFO_MEM:
         cachep->modeMem = mode;
-        elapsed_ms(&cachep->time_modeMem, HAMLIB_ELAPSED_SET);
+        elapsed_ms(&cachep->time_modeMem, action);
+
+        if (invalidate)
+        {
+            cachep->widthMem = 0;
+            elapsed_ms(&cachep->time_widthMem, HAMLIB_ELAPSED_INVALIDATE);
+        }
         break;
 
     default:
@@ -155,6 +187,22 @@ int rig_set_cache_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     rig_cache_show(rig, __func__, __LINE__);
     RETURNFUNC(RIG_OK);
+}
+
+int rig_set_cache_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
+{
+    return update_cache_mode(rig, vfo, mode, width, 0);
+}
+
+int rig_invalidate_cache_mode(RIG *rig, vfo_t vfo)
+{
+    return update_cache_mode(rig, vfo, RIG_MODE_NONE, 0, 1);
+}
+
+void rig_invalidate_cache(RIG *rig)
+{
+    rig_set_cache_freq(rig, RIG_VFO_ALL, 0);
+    elapsed_ms(&CACHE(rig)->time_freqCurr, HAMLIB_ELAPSED_INVALIDATE);
 }
 
 int rig_set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)

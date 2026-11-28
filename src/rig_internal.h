@@ -22,4 +22,11 @@ rig_async_data_handler_start(RIG *rig, hamlib_thread_start_t thread_start);
 extern HAMLIB_EXPORT(int)
 rig_morse_data_handler_start(RIG *rig, hamlib_thread_start_t thread_start);
 
+typedef int (*rig_raw_prepare_t)(RIG *rig, const unsigned char *send, int send_len);
+typedef void (*rig_raw_complete_t)(RIG *rig, int write_result);
+
+/* Backend accounting around public raw I/O, under the API lock. */
+void rig_set_raw_hooks(RIG *rig, rig_raw_prepare_t prepare,
+                       rig_raw_complete_t complete);
+
 #endif /* HAMLIB_RIG_INTERNAL_H */
