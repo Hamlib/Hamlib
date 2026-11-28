@@ -146,6 +146,37 @@ struct mock_server
     HAMLIB_ATOMIC int civ_reply_length;
     /* Send each CI-V reply twice with the same sequence number. */
     HAMLIB_ATOMIC int civ_duplicate_reply;
+    /* Send the previous client's packet (a NAK addressed to it) right before
+     * the next CI-V reply, with the reply's number. */
+    HAMLIB_ATOMIC int civ_foreign_before_reply;
+    /* Scripted CI-V. Setting civ_script_go sends civ_script_count packets to
+     * the CI-V client, in the order listed, with the sequence numbers in
+     * civ_script; packet i carries the frame FE FE E0 98 03 <sequence low
+     * byte> civ_script_tag[i] FD, so a test can tell the packets apart and
+     * give two of them with one number other content. The flag clears once
+     * sent. */
+    uint16_t civ_script[32];
+    uint8_t civ_script_tag[32];
+    HAMLIB_ATOMIC int civ_script_count;
+    HAMLIB_ATOMIC int civ_script_go;
+    /* Lose this many CI-V replies on the way (they still consume a sequence
+     * number, so the client sees a gap). The last one lost is kept and sent
+     * when a retransmit request names it. */
+    HAMLIB_ATOMIC int civ_drop_replies;
+    uint8_t civ_lost[600];
+    int civ_lost_length;
+    /* Act as a radio still holding the previous client's CI-V stream (0 =
+     * off, at most 64): send that stream's packet numbered civ_left_over, in
+     * answer to each probe on the CI-V socket or, with
+     * civ_left_over_after_open, right after the stream open or, with
+     * civ_left_over_after_reply, after the next CI-V reply. A retransmit
+     * request for a lower number gets that stream's packet, addressed to the
+     * previous client, but not before the stream is open: one asked for
+     * earlier is sent with the open. */
+    HAMLIB_ATOMIC int civ_left_over;
+    HAMLIB_ATOMIC int civ_left_over_after_open;
+    HAMLIB_ATOMIC int civ_left_over_after_reply;
+    uint64_t civ_previous_asked;
     /* Stop sending anything on the CI-V socket (idles, replies, ping replies)
      * while the control socket carries on, as a radio that stopped serving
      * the CI-V stream does. */

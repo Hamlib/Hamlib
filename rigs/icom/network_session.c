@@ -75,6 +75,7 @@ static void icom_network_session_close_fd(int fd)
 }
 
 #include "hamlib/rig.h"
+#include "misc.h"
 #include "network_proto.h"
 #include "network_seqbuf.h"
 #include "network_session.h"
@@ -589,14 +590,16 @@ static void icom_network_session_request_retransmits(struct
  * replies, so skipping them would leave a false gap for each, and those gaps
  * would be asked for over and over.
  *
- * Returns ICOM_NETWORK_RX_DUPLICATE for a packet already received, which the
- * caller discards. Packets that are not tracked are always new. */
+ * Returns ICOM_NETWORK_RX_DUPLICATE for a packet already received or addressed
+ * to another client, which the caller discards. Packets that are not tracked
+ * are always new. */
 static enum icom_network_rx_result icom_network_session_track_rx(
     struct icom_network_session_socket *sock, const uint8_t *buf, int n)
 {
     struct icom_network_rxtrack *rt = &sock->rxtrack;
     enum icom_network_rx_result result;
     uint16_t type, sequence;
+    uint32_t digest;
 
     if (n < ICOM_NETWORK_HEADER_LEN) { return ICOM_NETWORK_RX_NEW; }
 
@@ -604,6 +607,18 @@ static enum icom_network_rx_result icom_network_session_track_rx(
     sequence = icom_network_get_le16(buf + ICOM_NETWORK_OFF_SEQUENCE);
 
     if (type != ICOM_NETWORK_PACKET_TYPE_DATA) { return ICOM_NETWORK_RX_NEW; }
+
+    /* Not of this stream: the receiver (0x0c) is another client, whose
+     * packets a radio still holding its stream may send here. */
+    if (icom_network_get_be32(buf + ICOM_NETWORK_OFF_REMOTE_ID)
+            != sock->local_id)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: %s sequence %u for another client "
+                  "dropped\n", __func__,
+                  icom_network_session_role_name(sock->role),
+                  (unsigned)sequence);
+        return ICOM_NETWORK_RX_DUPLICATE;
+    }
 
     /* Sequence 0 is the radio's first tracked packet on a stream, but it is
      * also what untracked packets carry. Track it only where the numbering
@@ -616,7 +631,9 @@ static enum icom_network_rx_result icom_network_session_track_rx(
         return ICOM_NETWORK_RX_NEW;
     }
 
-    result = icom_network_rxtrack_observe(rt, sequence, icom_network_now_ms());
+    digest = CRC32_function(buf, (uint32_t)n);
+    result = icom_network_rxtrack_observe(rt, sequence, digest,
+                                          icom_network_now_ms());
 
     if (sequence == 0 && result == ICOM_NETWORK_RX_DUPLICATE)
     {
@@ -626,14 +643,11 @@ static enum icom_network_rx_result icom_network_session_track_rx(
     if (result == ICOM_NETWORK_RX_RESYNC)
     {
         /* Too many outstanding gaps, a jump far beyond the replay window, or
-         * the radio numbering from scratch: the missing set can no longer be
-         * recovered by retransmits, so drop it and start again here rather
-         * than asking forever. */
+         * the radio numbering from scratch: the tracker has dropped the gaps
+         * retransmits can no longer recover, rather than asking forever. */
         rig_debug(RIG_DEBUG_WARN, "%s: %s sequence resync at %u\n", __func__,
                   icom_network_session_role_name(sock->role),
                   (unsigned)sequence);
-        icom_network_rxtrack_reset(rt);
-        icom_network_rxtrack_observe(rt, sequence, icom_network_now_ms());
         sock->resyncs++;
     }
     else if (result == ICOM_NETWORK_RX_DUPLICATE)
