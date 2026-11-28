@@ -24,7 +24,10 @@
 #include "hamlib/port.h"
 #include "hamlib/rig_state.h"
 
+#include "cache.h"
+
 extern struct rig_caps k4_caps;
+extern struct rig_caps k3_caps;
 
 struct peer_case
 {
@@ -272,6 +275,103 @@ static int run_case(const char *name, const char *fr, const char *ft,
     return 0;
 }
 
+static int test_k3_vfo_steps(void)
+{
+    static const char *commands[] =
+    {
+        "UPB;", "ID;", "FB;", "FA;",
+        "DNB;", "ID;", "FB;", "FA;",
+        "UP;", "ID;", "FA;", "FB;"
+    };
+    static const char *responses[] =
+    {
+        NULL, "ID017;", "FB00007236010;", "FA00007155390;",
+        NULL, "ID017;", "FB00007236000;", "FA00007155390;",
+        NULL, "ID017;", "FA00007155400;", "FB00007236010;"
+    };
+    static const struct
+    {
+        vfo_t vfo;
+        vfo_op_t operation;
+        freq_t wanted;
+        freq_t other;
+    } steps[] =
+    {
+        { RIG_VFO_B,    RIG_OP_UP,   7236010, 7155390 },
+        { RIG_VFO_B,    RIG_OP_DOWN, 7236000, 7155390 },
+        { RIG_VFO_CURR, RIG_OP_UP,   7155400, 7236010 }
+    };
+    struct peer_case test =
+    {
+        .commands = commands,
+        .responses = responses,
+        .count = sizeof(commands) / sizeof(commands[0]),
+        .status = -1
+    };
+    int sockets[2];
+    pthread_t thread;
+    RIG *rig = rig_init(RIG_MODEL_K3);
+    int result = 1;
+
+    if (rig == NULL) { return 1; }
+
+    if (open_test_connection(sockets) != 0)
+    {
+        rig_cleanup(rig);
+        return 1;
+    }
+
+    test.fd = sockets[1];
+
+    if (pthread_create(&thread, NULL, run_peer, &test) != 0)
+    {
+        close_test_socket(sockets[0]);
+        close_test_socket(sockets[1]);
+        rig_cleanup(rig);
+        return 1;
+    }
+
+    STATE(rig)->comm_state = 1;
+    RIGPORT(rig)->fd = sockets[0];
+    RIGPORT(rig)->type.rig = RIG_PORT_NETWORK;
+    RIGPORT(rig)->timeout = 500;
+    RIGPORT(rig)->retry = 0;
+    STATE(rig)->current_vfo = RIG_VFO_A;
+    rig_set_cache_timeout_ms(rig, HAMLIB_CACHE_ALL, HAMLIB_CACHE_ALWAYS);
+    rig_set_cache_freq(rig, RIG_VFO_A, 7155390);
+    rig_set_cache_freq(rig, RIG_VFO_B, 7236000);
+
+    for (size_t i = 0; i < sizeof(steps) / sizeof(steps[0]); ++i)
+    {
+        vfo_t vfo = steps[i].vfo == RIG_VFO_CURR ? RIG_VFO_A : steps[i].vfo;
+        vfo_t other_vfo = vfo == RIG_VFO_A ? RIG_VFO_B : RIG_VFO_A;
+        freq_t freq = 0;
+        freq_t other = 0;
+
+        if (rig_vfo_op(rig, steps[i].vfo, steps[i].operation) != RIG_OK
+                || rig_get_freq(rig, vfo, &freq) != RIG_OK
+                || rig_get_freq(rig, other_vfo, &other) != RIG_OK
+                || freq != steps[i].wanted || other != steps[i].other
+                || STATE(rig)->current_vfo != RIG_VFO_A)
+        {
+            fprintf(stderr, "K3 step %zu: unexpected operation or readback\n", i);
+            goto cleanup;
+        }
+    }
+
+    result = 0;
+
+cleanup:
+    STATE(rig)->comm_state = 0;
+    RIGPORT(rig)->fd = -1;
+    rig_cleanup(rig);
+    close_test_socket(sockets[0]);
+    pthread_join(thread, NULL);
+    close_test_socket(sockets[1]);
+
+    return result || test.status != 0;
+}
+
 static int run_meter_case(const char *name, setting_t level,
                           const char *command,
                           const char *response, int expected_retval,
@@ -433,6 +533,7 @@ int main(void)
 #endif
 
     rig_register(&k4_caps);
+    rig_register(&k3_caps);
 
     if (run_case("receive-vfo-a", "FR0;", "FT0;", "TQ0;", RIG_OK,
                  RIG_VFO_A, RIG_VFO_MAIN, RIG_VFO_A) != 0)
@@ -502,6 +603,7 @@ int main(void)
                       RIG_VFO_NONE);
 
     if (!failed) { failed = test_meters(); }
+    if (!failed) { failed = test_k3_vfo_steps(); }
 
 cleanup:
 #ifdef _WIN32
