@@ -25,10 +25,12 @@
 #include "hamlib/rig_state.h"
 
 #include "cache.h"
+#include "misc.h"
 #include "../rigs/kenwood/kenwood.h"
 
 extern struct rig_caps k4_caps;
 extern struct rig_caps k3_caps;
+extern struct rig_caps k3s_caps;
 
 struct peer_case
 {
@@ -38,6 +40,15 @@ struct peer_case
     size_t count;
     int status;
 };
+
+static void set_split_routing(RIG *rig, split_t split, vfo_t tx_vfo)
+{
+    STATE(rig)->rx_vfo = RIG_VFO_A;
+    STATE(rig)->tx_vfo = tx_vfo;
+    CACHE(rig)->split = split;
+    CACHE(rig)->split_vfo = tx_vfo;
+    elapsed_ms(&CACHE(rig)->time_split, HAMLIB_ELAPSED_SET);
+}
 
 static int close_test_socket(int fd)
 {
@@ -460,6 +471,323 @@ cleanup:
     return result || test.status != 0;
 }
 
+static int run_k3_mode_get_case(const char *name, int split,
+                             const char *md_response,
+                             const char *dt_response,
+                             rmode_t expected_mode)
+{
+    static const char *commands[] = { "MD$;", "DT;", "BW$;" };
+    const char *responses[] = { md_response, dt_response, "BW$0482;" };
+    struct peer_case test =
+    {
+        .fd = -1,
+        .commands = commands,
+        .responses = responses,
+        .count = 3,
+        .status = -1
+    };
+    int sockets[2];
+    pthread_t thread;
+    RIG *rig;
+    struct kenwood_priv_data *priv;
+    rmode_t mode = RIG_MODE_NONE;
+    pbwidth_t width = 0;
+    int retval;
+
+    if (open_test_connection(sockets) != 0) { return 1; }
+
+    test.fd = sockets[1];
+
+    if (pthread_create(&thread, NULL, run_peer, &test) != 0)
+    {
+        close_test_socket(sockets[0]);
+        close_test_socket(sockets[1]);
+        return 1;
+    }
+
+    rig = rig_init(RIG_MODEL_K3);
+
+    if (rig == NULL)
+    {
+        close_test_socket(sockets[0]);
+        close_test_socket(sockets[1]);
+        pthread_join(thread, NULL);
+        return 1;
+    }
+
+    priv = STATE(rig)->priv;
+    priv->is_k3 = 1;
+    RIGPORT(rig)->fd = sockets[0];
+    RIGPORT(rig)->type.rig = RIG_PORT_NETWORK;
+    RIGPORT(rig)->timeout = 500;
+    RIGPORT(rig)->retry = 0;
+
+    if (split)
+    {
+        retval = rig->caps->get_split_mode(rig, RIG_VFO_B, &mode, &width);
+    }
+    else
+    {
+        retval = rig->caps->get_mode(rig, RIG_VFO_B, &mode, &width);
+    }
+
+    RIGPORT(rig)->fd = -1;
+    rig_cleanup(rig);
+    close_test_socket(sockets[0]);
+    pthread_join(thread, NULL);
+    close_test_socket(sockets[1]);
+
+    if (test.status != 0 || retval != RIG_OK || mode != expected_mode
+            || width != 4820)
+    {
+        fprintf(stderr,
+                "%s: expected status/retval/mode/width 0/%d/%llu/4820, "
+                "got %d/%d/%llu/%ld\n",
+                name, RIG_OK, (unsigned long long)expected_mode, test.status,
+                retval, (unsigned long long)mode, (long)width);
+        return 1;
+    }
+
+    return 0;
+}
+
+static int run_k3_split_mode_set_case(rmode_t mode)
+{
+    static const char *k3_commands[] =
+    {
+        "MD$;", "DT;", "DT0;", "ID;", "DT;", "MD$;", "MD$6;", "ID;", "MD$;"
+    };
+    static const char *k3_responses[] =
+    {
+        "MD$9;", "DT2;", NULL, "ID017;", "DT0;", "MD$9;", NULL, "ID017;", "MD$6;"
+    };
+    static const char *k3_rttyr_commands[] =
+    {
+        "MD$;", "DT;", "DT2;", "ID;", "DT;", "MD$;", "MD$9;", "ID;", "MD$;"
+    };
+    static const char *k3_rttyr_responses[] =
+    {
+        "MD$6;", "DT0;", NULL, "ID017;", "DT2;", "MD$6;", NULL, "ID017;", "MD$9;"
+    };
+    const char *const *commands;
+    const char *const *responses;
+    size_t count;
+
+    if (mode == RIG_MODE_RTTYR)
+    {
+        commands = k3_rttyr_commands;
+        responses = k3_rttyr_responses;
+        count = sizeof(k3_rttyr_commands) / sizeof(k3_rttyr_commands[0]);
+    }
+    else
+    {
+        commands = k3_commands;
+        responses = k3_responses;
+        count = sizeof(k3_commands) / sizeof(k3_commands[0]);
+    }
+
+    struct peer_case test =
+    {
+        .fd = -1,
+        .commands = commands,
+        .responses = responses,
+        .count = count,
+        .status = -1
+    };
+
+    int sockets[2];
+
+    pthread_t thread;
+
+    RIG *rig;
+
+    struct kenwood_priv_data *priv;
+
+    int retval;
+
+    if (open_test_connection(sockets) != 0) { return 1; }
+
+    test.fd = sockets[1];
+
+    if (pthread_create(&thread, NULL, run_peer, &test) != 0)
+    {
+        close_test_socket(sockets[0]);
+        close_test_socket(sockets[1]);
+        return 1;
+    }
+
+    rig = rig_init(RIG_MODEL_K3);
+
+    if (rig == NULL)
+    {
+        close_test_socket(sockets[0]);
+        close_test_socket(sockets[1]);
+        pthread_join(thread, NULL);
+        return 1;
+    }
+
+    priv = STATE(rig)->priv;
+    priv->is_k3 = 1;
+    priv->split = 1;
+    RIGPORT(rig)->fd = sockets[0];
+    RIGPORT(rig)->type.rig = RIG_PORT_NETWORK;
+    RIGPORT(rig)->timeout = 500;
+    RIGPORT(rig)->retry = 0;
+
+    retval = rig->caps->set_split_mode(rig, RIG_VFO_B, mode,
+                                       RIG_PASSBAND_NOCHANGE);
+
+    RIGPORT(rig)->fd = -1;
+    rig_cleanup(rig);
+    close_test_socket(sockets[0]);
+    pthread_join(thread, NULL);
+    close_test_socket(sockets[1]);
+
+    if (test.status != 0 || retval != RIG_OK)
+    {
+        fprintf(stderr,
+                "k3-%s-split-mode-set: expected status/retval 0/%d, "
+                "got %d/%d\n", rig_strrmode(mode),
+                RIG_OK, test.status, retval);
+        return 1;
+    }
+
+    return 0;
+}
+
+static int run_k3_split_sequence(rig_model_t model)
+{
+    static const char *commands[] =
+    {
+        "FT;",
+        "FT;", "FT1;", "ID;", "FT;",
+        "FB;", "FB00010136500;", "ID;", "FB;",
+        "FB;", "FB00010136500;", "ID;", "FB;",
+        "MD$;", "MD$6;", "ID;", "DT;", "MD$;",
+        "FT;", "FT1;", "ID;", "FT;",
+        "FT;",
+        "FT;", "FR0;", "ID;", "FT;"
+    };
+    static const char *responses[] =
+    {
+        "FT2;",
+        "FT0;", NULL, "ID017;", "FT0;",
+        "FB00010136000;", NULL, "ID017;", "FB00010136000;",
+        "FB00010136000;", NULL, "ID017;", "FB00010136500;",
+        "MD$2;", NULL, "ID017;", "DT0;", "MD$6;",
+        "FT0;", NULL, "ID017;", "FT1;",
+        "FT1;",
+        "FT1;", NULL, "ID017;", "FT0;"
+    };
+    struct peer_case test =
+    {
+        .commands = commands,
+        .responses = responses,
+        .count = sizeof(commands) / sizeof(commands[0]),
+        .status = -1
+    };
+    int sockets[2];
+    pthread_t thread;
+    RIG *rig = rig_init(model);
+    int result = 1;
+
+    if (rig == NULL) { return 1; }
+
+    if (open_test_connection(sockets) != 0)
+    {
+        rig_cleanup(rig);
+        return 1;
+    }
+
+    test.fd = sockets[1];
+
+    if (pthread_create(&thread, NULL, run_peer, &test) != 0)
+    {
+        close_test_socket(sockets[0]);
+        close_test_socket(sockets[1]);
+        rig_cleanup(rig);
+        return 1;
+    }
+
+    STATE(rig)->comm_state = 1;
+    RIGPORT(rig)->fd = sockets[0];
+    RIGPORT(rig)->type.rig = RIG_PORT_NETWORK;
+    RIGPORT(rig)->timeout = 500;
+    RIGPORT(rig)->retry = 0;
+    STATE(rig)->current_vfo = RIG_VFO_A;
+
+    /* The prior band left a cached split-on value on this handle. */
+    set_split_routing(rig, RIG_SPLIT_ON, RIG_VFO_B);
+    int ret = rig_set_split_vfo(rig, RIG_VFO_CURR, RIG_SPLIT_ON, RIG_VFO_B);
+
+    if (ret != -RIG_EPROTO)
+    {
+        fprintf(stderr, "%s: malformed FT read returned %d\n",
+                rig->caps->model_name, ret);
+        goto cleanup;
+    }
+
+    ret = rig_set_split_vfo(rig, RIG_VFO_CURR, RIG_SPLIT_ON, RIG_VFO_B);
+
+    if (ret != -RIG_ERJCTED || CACHE(rig)->split != RIG_SPLIT_OFF
+            || STATE(rig)->tx_vfo != RIG_VFO_A)
+    {
+        fprintf(stderr, "%s: rejected FT1 returned %d, split %d, TX VFO %s\n",
+                rig->caps->model_name, ret, CACHE(rig)->split,
+                rig_strvfo(STATE(rig)->tx_vfo));
+        goto cleanup;
+    }
+
+    ret = rig_set_split_freq_mode(rig, RIG_VFO_CURR, 10136500,
+                                  RIG_MODE_PKTUSB, RIG_PASSBAND_NOCHANGE);
+
+    if (ret != -RIG_ERJCTED)
+    {
+        fprintf(stderr, "%s: ignored FB write returned %d\n",
+                rig->caps->model_name, ret);
+        goto cleanup;
+    }
+
+    ret = rig_set_split_freq_mode(rig, RIG_VFO_CURR, 10136500,
+                                  RIG_MODE_PKTUSB, RIG_PASSBAND_NOCHANGE);
+
+    if (ret != RIG_OK || CACHE(rig)->split != RIG_SPLIT_ON
+            || STATE(rig)->tx_vfo != RIG_VFO_B)
+    {
+        fprintf(stderr, "%s: prepared split returned %d, split %d, TX VFO %s\n",
+                rig->caps->model_name, ret, CACHE(rig)->split,
+                rig_strvfo(STATE(rig)->tx_vfo));
+        goto cleanup;
+    }
+
+    if (rig_set_split_vfo(rig, RIG_VFO_CURR, RIG_SPLIT_ON, RIG_VFO_B) != RIG_OK
+            || rig_set_split_vfo(rig, RIG_VFO_CURR, RIG_SPLIT_OFF,
+                                  RIG_VFO_A) != RIG_OK)
+    {
+        fprintf(stderr, "%s: split confirm or cancel failed\n",
+                rig->caps->model_name);
+        goto cleanup;
+    }
+
+    result = CACHE(rig)->split != RIG_SPLIT_OFF || STATE(rig)->tx_vfo != RIG_VFO_A;
+
+cleanup:
+    STATE(rig)->comm_state = 0;
+    RIGPORT(rig)->fd = -1;
+    rig_cleanup(rig);
+    close_test_socket(sockets[0]);
+    pthread_join(thread, NULL);
+    close_test_socket(sockets[1]);
+
+    if (test.status != 0)
+    {
+        fprintf(stderr, "K3 split CAT sequence differed from expectation\n");
+        return 1;
+    }
+
+    return result;
+}
+
 static int run_k3_passband_readback(void)
 {
     static const char *const commands[] =
@@ -709,6 +1037,7 @@ int main(void)
 
     rig_register(&k4_caps);
     rig_register(&k3_caps);
+    rig_register(&k3s_caps);
 
     if (run_case("receive-vfo-a", "FR0;", "FT0;", "TQ0;", RIG_OK,
                  RIG_VFO_A, RIG_VFO_MAIN, RIG_VFO_A) != 0)
@@ -781,6 +1110,22 @@ int main(void)
     if (!failed) { failed = test_k3_agc_and_nb(); }
     if (!failed) { failed = test_k3_vfo_steps(); }
     if (!failed) { failed = run_k3_passband_readback(); }
+    if (!failed)
+    {
+        failed = run_k3_split_sequence(RIG_MODEL_K3)
+                 || run_k3_split_sequence(RIG_MODEL_K3S);
+    }
+    if (!failed)
+    {
+        failed = run_k3_mode_get_case("k3-mode-b-reverse-data", 0,
+                                      "MD$9;", "DT0;", RIG_MODE_PKTLSB)
+                 || run_k3_mode_get_case("k3-mode-b-reverse-afsk", 0,
+                                         "MD$9;", "DT1;", RIG_MODE_PKTUSB)
+                 || run_k3_mode_get_case("k3-split-shared-data", 1,
+                                         "MD$6;", "DT1;", RIG_MODE_PKTLSB)
+                 || run_k3_split_mode_set_case(RIG_MODE_PKTUSB)
+                 || run_k3_split_mode_set_case(RIG_MODE_RTTYR);
+    }
 
 cleanup:
 #ifdef _WIN32

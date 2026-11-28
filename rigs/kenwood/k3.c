@@ -148,6 +148,11 @@ static struct kenwood_priv_caps k3_priv_caps  =
 
 /* K3 specific function declarations */
 static int k3_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+static int k3_set_data_mode(RIG *rig, vfo_t vfo, char md, char dt);
+static int k3_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
+static int k3_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
+static int k3_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
+                                  rmode_t tx_mode, pbwidth_t tx_width);
 static int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 static int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 static int k3_get_vfo(RIG *rig, vfo_t *vfo);
@@ -323,8 +328,9 @@ struct rig_caps k3_caps =
     .get_vfo =      k3_get_vfo,
     .set_split_mode =   k3_set_split_mode,
     .get_split_mode =   k3_get_split_mode,
-    .set_split_vfo =    kenwood_set_split_vfo,
-    .get_split_vfo =    kenwood_get_split_vfo_if,
+    .set_split_freq_mode = k3_set_split_freq_mode,
+    .set_split_vfo =    k3_set_split_vfo,
+    .get_split_vfo =    k3_get_split_vfo,
     .set_rit =      k3_set_rit,
     .get_rit =      kenwood_get_rit,
     .set_xit =      k3_set_xit,
@@ -485,8 +491,9 @@ struct rig_caps k3s_caps =
     .get_vfo =      k3_get_vfo,
     .set_split_mode =   k3_set_split_mode,
     .get_split_mode =   k3_get_split_mode,
-    .set_split_vfo =    kenwood_set_split_vfo,
-    .get_split_vfo =    kenwood_get_split_vfo_if,
+    .set_split_freq_mode = k3_set_split_freq_mode,
+    .set_split_vfo =    k3_set_split_vfo,
+    .get_split_vfo =    k3_get_split_vfo,
     .set_rit =      k3_set_rit,
     .get_rit =      kenwood_get_rit,
     .set_xit =      k3_set_xit,
@@ -1105,11 +1112,11 @@ static int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         {
         case K3_MODE_DATA_A:
         case K3_MODE_PSK_D:
-            *mode = RIG_MODE_PKTUSB;
+            *mode = RIG_IS_K3 || RIG_IS_K3S ? RIG_MODE_PKTLSB : RIG_MODE_PKTUSB;
             break;
 
         case K3_MODE_AFSK_A:
-            *mode = RIG_MODE_PKTLSB;
+            *mode = RIG_IS_K3 || RIG_IS_K3S ? RIG_MODE_PKTUSB : RIG_MODE_PKTLSB;
             break;
 
         case K3_MODE_FSK_D:
@@ -1178,6 +1185,8 @@ static int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     char cmd_m[5];
     char buf[KENWOOD_MAX_BUF_LEN];
     char *dtcmd;
+    const int k3_packet = (RIG_IS_K3 || RIG_IS_K3S)
+                          && (mode == RIG_MODE_PKTUSB || mode == RIG_MODE_PKTLSB);
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
     struct kenwood_priv_data *priv = STATE(rig)->priv;
 
@@ -1190,8 +1199,8 @@ static int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         vfo = STATE(rig)->current_vfo;
     }
 
-    rmode_t tmodeA, tmodeB;
-    pbwidth_t twidth;
+    rmode_t tmodeA = RIG_MODE_NONE, tmodeB = RIG_MODE_NONE;
+    pbwidth_t twidth = 0;
     err = k3_get_mode(rig, RIG_VFO_A, &tmodeA, &twidth);
     err2 = k3_get_mode(rig, RIG_VFO_B, &tmodeB, &twidth);
 
@@ -1293,7 +1302,22 @@ static int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         SNPRINTF(buf, sizeof(buf), "MD%c;MD$%c", c, c);
     }
 
-    err = kenwood_transaction(rig, buf, NULL, 0);
+    if (k3_packet)
+    {
+        err = k3_set_data_mode(rig, vfo, c, '0');
+
+        if (err == RIG_OK && priv->split)
+        {
+            /* Preserve the existing same-mode behavior when split is active. */
+            vfo_t other = vfo == RIG_VFO_B ? RIG_VFO_A : RIG_VFO_B;
+            rig_invalidate_cache_mode(rig, other);
+            err = k3_set_data_mode(rig, other, c, '0');
+        }
+    }
+    else
+    {
+        err = kenwood_transaction(rig, buf, NULL, 0);
+    }
 
     if (err != RIG_OK) { RETURNFUNC(err); }
 
@@ -1359,8 +1383,8 @@ static int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     /* Now set data sub-mode.  K3 needs to be in a DATA mode before setting
      * the sub-mode.
      */
-    if (mode == RIG_MODE_PKTLSB || mode == RIG_MODE_PKTUSB
-            || mode == RIG_MODE_RTTY || mode == RIG_MODE_RTTYR)
+    if (!k3_packet && (mode == RIG_MODE_PKTLSB || mode == RIG_MODE_PKTUSB
+                       || mode == RIG_MODE_RTTY || mode == RIG_MODE_RTTYR))
     {
         err = kenwood_transaction(rig, cmd_m, NULL, 0);
 
@@ -1563,6 +1587,147 @@ static int k3_set_xit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 }
 
 
+/* VFO A is always the receive VFO. FT reports the applied assignment. */
+static int k3_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
+{
+    char buf[5];
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
+    int err = kenwood_safe_transaction(rig, "FT", buf, sizeof(buf), 3);
+
+    if (err != RIG_OK) { return err; }
+
+    if (buf[2] != '0' && buf[2] != '1') { return -RIG_EPROTO; }
+
+    *split = buf[2] == '1' ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
+    *tx_vfo = *split == RIG_SPLIT_ON ? RIG_VFO_B : RIG_VFO_A;
+    priv->split = *split;
+    priv->tx_vfo = *tx_vfo;
+    STATE(rig)->rx_vfo = RIG_VFO_A;
+    STATE(rig)->tx_vfo = *tx_vfo;
+    CACHE(rig)->split = *split;
+    CACHE(rig)->split_vfo = *tx_vfo;
+    elapsed_ms(&CACHE(rig)->time_split, HAMLIB_ELAPSED_SET);
+    return RIG_OK;
+}
+
+static int k3_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
+{
+    split_t actual;
+    vfo_t actual_tx_vfo;
+    int err;
+
+    if (split != RIG_SPLIT_ON && split != RIG_SPLIT_OFF)
+    {
+        return -RIG_EINVAL;
+    }
+
+    if (split == RIG_SPLIT_ON && tx_vfo != RIG_VFO_B)
+    {
+        return -RIG_ENAVAIL;
+    }
+
+    err = k3_get_split_vfo(rig, vfo, &actual, &actual_tx_vfo);
+
+    if (err != RIG_OK || actual == split) { return err; }
+
+    err = kenwood_transaction(rig, split == RIG_SPLIT_ON ? "FT1" : "FR0",
+                              NULL, 0);
+
+    if (err != RIG_OK) { return err; }
+
+    err = k3_get_split_vfo(rig, vfo, &actual, &actual_tx_vfo);
+
+    if (err != RIG_OK) { return err; }
+
+    return actual == split ? RIG_OK : -RIG_ERJCTED;
+}
+
+static int k3_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
+                                  rmode_t tx_mode, pbwidth_t tx_width)
+{
+    int err = rig_set_freq(rig, RIG_VFO_B, tx_freq);
+
+    if (err != RIG_OK) { return err; }
+
+    if (tx_mode != RIG_MODE_NONE || tx_width != RIG_PASSBAND_NOCHANGE)
+    {
+        if (tx_mode == RIG_MODE_NONE)
+        {
+            pbwidth_t width;
+            err = k3_get_split_mode(rig, RIG_VFO_B, &tx_mode, &width);
+
+            if (err != RIG_OK) { return err; }
+        }
+
+        err = k3_set_split_mode(rig, RIG_VFO_B, tx_mode, tx_width);
+
+        if (err != RIG_OK) { return err; }
+    }
+
+    /* Band recall and incompatible modes can both leave split off. */
+    return k3_set_split_vfo(rig, RIG_VFO_A, RIG_SPLIT_ON, RIG_VFO_B);
+}
+
+static int k3_set_data_mode(RIG *rig, vfo_t vfo, char md, char dt)
+{
+    char buf[6];
+    char mode_cmd[5];
+    char data_cmd[] = "DT0";
+    const char *query = vfo == RIG_VFO_B ? "MD$" : "MD";
+    size_t len = strlen(query);
+    int err = kenwood_safe_transaction(rig, query, buf, sizeof(buf), len + 1);
+
+    if (err != RIG_OK) { return err; }
+
+    /* Select DATA before DT. Changing DT can recall its saved orientation. */
+    if (buf[len] != '6' && buf[len] != '9')
+    {
+        SNPRINTF(mode_cmd, sizeof(mode_cmd), "%s6", query);
+        err = kenwood_transaction(rig, mode_cmd, NULL, 0);
+
+        if (err != RIG_OK) { return err; }
+    }
+
+    err = kenwood_safe_transaction(rig, "DT", buf, sizeof(buf), 3);
+
+    if (err != RIG_OK) { return err; }
+
+    if (buf[2] < '0' || buf[2] > '3') { return -RIG_EPROTO; }
+
+    if (buf[2] != dt)
+    {
+        data_cmd[2] = dt;
+        rig_invalidate_cache_mode(rig, RIG_VFO_A);
+        rig_invalidate_cache_mode(rig, RIG_VFO_B);
+        err = kenwood_transaction(rig, data_cmd, NULL, 0);
+
+        if (err != RIG_OK) { return err; }
+
+        err = kenwood_safe_transaction(rig, "DT", buf, sizeof(buf), 3);
+
+        if (err != RIG_OK) { return err; }
+
+        if (buf[2] < '0' || buf[2] > '3') { return -RIG_EPROTO; }
+
+        if (buf[2] != dt) { return -RIG_ERJCTED; }
+    }
+
+    err = kenwood_safe_transaction(rig, query, buf, sizeof(buf), len + 1);
+
+    if (err != RIG_OK || buf[len] == md) { return err; }
+
+    SNPRINTF(mode_cmd, sizeof(mode_cmd), "%s%c", query, md);
+    err = kenwood_transaction(rig, mode_cmd, NULL, 0);
+
+    if (err != RIG_OK) { return err; }
+
+    err = kenwood_safe_transaction(rig, query, buf, sizeof(buf), len + 1);
+
+    if (err != RIG_OK) { return err; }
+
+    return buf[len] == md ? RIG_OK : -RIG_ERJCTED;
+}
+
 /*
  * The K3 *always* uses VFOB for TX.
  */
@@ -1573,13 +1738,16 @@ static int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_
     int kmode;
     int err;
     char cmd_m[16];
+    char dt = '\0';
     const struct kenwood_priv_data *priv = STATE(rig)->priv;
+    const int is_k3 = RIG_IS_K3 || RIG_IS_K3S;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     switch (tx_mode)
     {
     case RIG_MODE_PKTLSB:
+        dt = '0';
         tx_mode = RIG_MODE_RTTYR; // "DT0" RIG_MODE_RTTY = LSB
         SNPRINTF(cmd_m, sizeof(cmd_m),
                  "DT0;"); /* DATA A mode - DATA-R LSB, suppressed carrier */
@@ -1592,6 +1760,7 @@ static int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_
         break;
 
     case RIG_MODE_PKTUSB:
+        dt = '0';
         tx_mode = RIG_MODE_RTTY; // "DT0" RIG_MODE_RTTYR = USB
         SNPRINTF(cmd_m, sizeof(cmd_m),
                  "DT0;"); /* DATA A mode - DATA on USB, suppressed carrier */
@@ -1604,6 +1773,7 @@ static int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_
         break;
 
     case RIG_MODE_RTTY:
+        dt = '2';
         tx_mode = RIG_MODE_RTTY; // DT1" RIG_MODE_RTTY = LSB and RIG_MODE_RTTYR = USB
         SNPRINTF(cmd_m, sizeof(cmd_m),
                  "DT2;"); /* FSK D mode - direct FSK on LSB optimized for RTTY, VFO dial is MARK */
@@ -1616,6 +1786,7 @@ static int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_
         break;
 
     case RIG_MODE_RTTYR:
+        dt = '2';
         tx_mode = RIG_MODE_RTTYR; // "DT2" RIG_MODE_RTTY = USB and RIG_MODE_RTTYR = USB
         SNPRINTF(cmd_m, sizeof(cmd_m),
                  "DT1;"); /* FSK D mode - direct FSK on USB optimized for RTTY, VFO dial is MARK */
@@ -1679,13 +1850,32 @@ static int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_
         return -RIG_EINVAL;
     }
 
-    SNPRINTF(buf, sizeof(buf), "MD$%c", '0' + kmode);
-    err = kenwood_transaction(rig, buf, NULL, 0);
-
-    if (err != RIG_OK)
+    if (is_k3)
     {
-        return err;
+        rig_invalidate_cache_mode(rig, RIG_VFO_B);
     }
+
+    if (is_k3 && dt)
+    {
+        err = k3_set_data_mode(rig, RIG_VFO_B, '0' + kmode, dt);
+    }
+    else
+    {
+        SNPRINTF(buf, sizeof(buf), "MD$%c", '0' + kmode);
+        err = kenwood_transaction(rig, buf, NULL, 0);
+
+        if (err == RIG_OK && is_k3)
+        {
+            err = kenwood_safe_transaction(rig, "MD$", buf, sizeof(buf), 4);
+
+            if (err == RIG_OK && buf[3] != '0' + kmode)
+            {
+                err = -RIG_ERJCTED;
+            }
+        }
+    }
+
+    if (err != RIG_OK) { return err; }
 
     if (tx_width != RIG_PASSBAND_NOCHANGE)
     {
@@ -1816,6 +2006,8 @@ static int k3_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
             break;
 
         case K3_MODE_FSK_D:
+            if (RIG_IS_K3 || RIG_IS_K3S) { *tx_mode = temp_m; }
+
             break;
 
         default:
@@ -3107,10 +3299,44 @@ int k4_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 static int k3_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     int retval;
-    freq_t tfreq;
+    freq_t tfreq = 0;
+
+    if (!isfinite(freq) || freq <= 0 || freq > 99999999999.0)
+    {
+        return -RIG_EINVAL;
+    }
+
     retval = kenwood_get_freq(rig, vfo, &tfreq);
 
     if (retval != RIG_OK) { return retval; }
+
+    if (vfo == RIG_VFO_A || vfo == RIG_VFO_B)
+    {
+        char command[16];
+        int64_t requested = (int64_t)freq;
+        freq_t applied = 0;
+
+        if (tfreq == requested) { return RIG_OK; }
+
+        SNPRINTF(command, sizeof(command), "F%c%011"PRIll,
+                 vfo == RIG_VFO_A ? 'A' : 'B', requested);
+        retval = kenwood_transaction(rig, command, NULL, 0);
+
+        if (retval != RIG_OK) { return retval; }
+
+        if (fabs(tfreq - freq) > 1e6)
+        {
+            hl_usleep(200 * 1000);    /* Allow band-memory recall to finish. */
+        }
+
+        retval = kenwood_get_freq(rig, vfo, &applied);
+
+        if (retval != RIG_OK) { return retval; }
+
+        /* The K3 can discard the units digit when FINE is disabled. */
+        return applied == requested || applied == requested / 10 * 10
+               ? RIG_OK : -RIG_ERJCTED;
+    }
 
     retval = kenwood_set_freq(rig, vfo, freq);
 
