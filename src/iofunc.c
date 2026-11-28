@@ -387,6 +387,9 @@ int HAMLIB_API port_open(hamlib_port_t *p)
  * \param p rig port descriptor
  * \param port_type equivalent rig port type
  * \return status
+ *
+ * The reader's start and stop create and close the asynchronous pipes; a
+ * port opened by ser_open() or network_open() has none, only zeroed fields.
  */
 int HAMLIB_API port_close(hamlib_port_t *p, rig_port_t port_type)
 {
@@ -423,8 +426,6 @@ int HAMLIB_API port_close(hamlib_port_t *p, rig_port_t port_type)
 
         p->fd = -1;
     }
-
-    port_cleanup_async(p);
 
     return (ret);
 }
