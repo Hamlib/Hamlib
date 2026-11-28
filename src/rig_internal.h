@@ -22,4 +22,7 @@ rig_async_data_handler_start(RIG *rig, hamlib_thread_start_t thread_start);
 extern HAMLIB_EXPORT(int)
 rig_morse_data_handler_start(RIG *rig, hamlib_thread_start_t thread_start);
 
+/* Register a backend stream check performed before public raw I/O. */
+void rig_set_raw_preflight(RIG *rig, int (*preflight)(RIG *rig));
+
 #endif /* HAMLIB_RIG_INTERNAL_H */

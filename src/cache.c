@@ -199,6 +199,12 @@ int rig_invalidate_cache_mode(RIG *rig, vfo_t vfo)
     return update_cache_mode(rig, vfo, RIG_MODE_NONE, 0, 1);
 }
 
+void rig_invalidate_cache(RIG *rig)
+{
+    rig_set_cache_freq(rig, RIG_VFO_ALL, 0);
+    elapsed_ms(&CACHE(rig)->time_freqCurr, HAMLIB_ELAPSED_INVALIDATE);
+}
+
 int rig_set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     int flag = HAMLIB_ELAPSED_SET;

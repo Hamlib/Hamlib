@@ -1016,6 +1016,42 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
 }
 
 
+static void rig_open_check_powerstat(RIG *rig)
+{
+    struct rig_state *rs = STATE(rig);
+    powerstat_t powerflag;
+    int status;
+
+    if (rig->caps->get_powerstat == NULL || skip_init)
+    {
+        return;
+    }
+
+    status = rig_get_powerstat(rig, &powerflag);
+
+    if (status == RIG_OK && (powerflag == RIG_POWER_OFF
+                             || powerflag == RIG_POWER_STANDBY)
+            && rs->auto_power_on == 0)
+    {
+        // rig_open() should succeed even if the rig is powered off, so simply log power status
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: rig power is off, use --set-conf=auto_power_on=1 or set_powerstat if power on is wanted\n",
+                  __func__);
+    }
+
+    // don't need auto_power_on if power is already on
+    if (status == RIG_OK && powerflag == RIG_POWER_ON) { rs->auto_power_on = 0; }
+
+    if (status == -RIG_ETIMEOUT)
+    {
+        // rig_open() should succeed even if get_powerstat() fails,
+        // as many rigs cannot get power status while powered off
+        rig_debug(RIG_DEBUG_ERR, "%s: Some rigs cannot get_powerstat while off\n",
+                  __func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: Known rigs: K3, K3S\n", __func__);
+    }
+}
+
 /**
  * \brief open the communication to the rig
  * \param rig   The #RIG handle of the radio to be opened
@@ -1518,32 +1554,10 @@ int HAMLIB_API rig_open(RIG *rig)
 
     if (caps->rig_open != NULL)
     {
-        if (caps->get_powerstat != NULL && !skip_init)
+        /* K4 must reset CAT accounting before querying a reopened connection. */
+        if (caps->rig_model != RIG_MODEL_K4)
         {
-            powerstat_t powerflag;
-            status = rig_get_powerstat(rig, &powerflag);
-
-            if (status == RIG_OK && (powerflag == RIG_POWER_OFF
-                                     || powerflag == RIG_POWER_STANDBY)
-                    && rs->auto_power_on == 0)
-            {
-                // rig_open() should succeed even if the rig is powered off, so simply log power status
-                rig_debug(RIG_DEBUG_ERR,
-                          "%s: rig power is off, use --set-conf=auto_power_on=1 or set_powerstat if power on is wanted\n",
-                          __func__);
-            }
-
-            // don't need auto_power_on if power is already on
-            if (status == RIG_OK && powerflag == RIG_POWER_ON) { STATE(rig)->auto_power_on = 0; }
-
-            if (status == -RIG_ETIMEOUT)
-            {
-                // rig_open() should succeed even if get_powerstat() fails,
-                // as many rigs cannot get power status while powered off
-                rig_debug(RIG_DEBUG_ERR, "%s: Some rigs cannot get_powerstat while off\n",
-                          __func__);
-                rig_debug(RIG_DEBUG_ERR, "%s: Known rigs: K3, K3S\n", __func__);
-            }
+            rig_open_check_powerstat(rig);
         }
 
         status = caps->rig_open(rig);
@@ -1556,6 +1570,11 @@ int HAMLIB_API rig_open(RIG *rig)
             rs->comm_state = 0;
             rs->comm_status = RIG_COMM_STATUS_ERROR;
             RETURNFUNC2(status);
+        }
+
+        if (caps->rig_model == RIG_MODEL_K4)
+        {
+            rig_open_check_powerstat(rig);
         }
     }
 
@@ -9121,25 +9140,13 @@ extern int read_icom_frame(hamlib_port_t *p, const unsigned char rxbuffer[],
                            size_t rxbuffer_len);
 
 
-/**
- * \brief Send verbatim data
- *
- * \a reply_len should be max bytes expected + 1
- *
- * If \a term is NULL then will read \a reply_len bytes exactly and reply will not be '\0' terminated.
- * \param rig The rig handle
- * \param send The buffer containing the data to be sent
- * \param send_len The length of send buffer
- * \param reply The buffer that will contain the data to be received
- * \param reply_len The length of the reply buffer
- * \param term The optional 1-char string that will terminate the read
- *
- * \return the number of bytes read if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
- */
-HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
-                                int send_len, unsigned char *reply, int reply_len, unsigned char *term)
+void rig_set_raw_preflight(RIG *rig, int (*preflight)(RIG *rig))
+{
+    CACHE(rig)->raw_preflight = preflight;
+}
+
+static int rig_send_raw_unlocked(RIG *rig, const unsigned char *send,
+                                 int send_len, unsigned char *reply, int reply_len, unsigned char *term)
 {
     int nbytes;
     int retval;
@@ -9281,6 +9288,47 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
     ELAPSED2;
 
     RETURNFUNC(nbytes >= 0 ? nbytes : -RIG_EPROTO);
+}
+
+/**
+ * \brief Send verbatim data
+ *
+ * \a reply_len should be max bytes expected + 1
+ *
+ * If \a term is NULL then will read \a reply_len bytes exactly and reply will not be '\0' terminated.
+ * \param rig The rig handle
+ * \param send The buffer containing the data to be sent
+ * \param send_len The length of send buffer
+ * \param reply The buffer that will contain the data to be received
+ * \param reply_len The length of the reply buffer
+ * \param term The optional 1-char string that will terminate the read
+ *
+ * \return the number of bytes read if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
+ * set appropriately).
+ */
+HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
+                                int send_len, unsigned char *reply, int reply_len,
+                                unsigned char *term)
+{
+    int retval = RIG_OK;
+    int (*preflight)(RIG *rig) = CACHE(rig)->raw_preflight;
+
+    if (reply != NULL && reply_len < 1) { return -RIG_EINVAL; }
+
+    if (preflight)
+    {
+        rig_lock(rig, 1);
+        retval = preflight(rig);
+    }
+
+    if (retval == RIG_OK)
+    {
+        retval = rig_send_raw_unlocked(rig, send, send_len, reply, reply_len, term);
+    }
+
+    if (preflight) { rig_lock(rig, 0); }
+    return retval;
 }
 
 HAMLIB_EXPORT(int) rig_set_lock_mode(RIG *rig, int mode)

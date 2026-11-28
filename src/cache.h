@@ -114,6 +114,7 @@ struct rig_cache {
     struct timespec time_ptt;
     struct timespec time_split;
     int satmode; // if rig is in satellite mode
+    int (*raw_preflight)(RIG *rig);
 };
 
 /* Access macros */
@@ -125,6 +126,7 @@ struct rig_cache {
  */
 int rig_set_cache_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int rig_invalidate_cache_mode(RIG *rig, vfo_t vfo);
+void rig_invalidate_cache(RIG *rig);
 int rig_set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq);
 void rig_cache_show(RIG *rig, const char *func, int line);
 
