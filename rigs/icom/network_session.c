@@ -81,7 +81,10 @@ static void icom_network_session_close_fd(int fd)
 #include "network_utils.h"
 
 #define ICOM_NETWORK_SESSION_PACKET_MAX         2048
-#define ICOM_NETWORK_SESSION_CIV_FRAME_MAX   256
+/* All a CI-V packet can carry: over the network a radio sends a whole scope
+ * line as one frame (711 bytes on the IC-7760). */
+#define ICOM_NETWORK_SESSION_CIV_FRAME_MAX \
+    (ICOM_NETWORK_SESSION_PACKET_MAX - ICOM_NETWORK_CIV_LEN)
 #define ICOM_NETWORK_SESSION_CIV_QUEUE_LENGTH   32
 #define ICOM_NETWORK_SESSION_AUDIO_FRAME_MAX 1600
 #define ICOM_NETWORK_SESSION_AUDIO_QUEUE_LENGTH 64

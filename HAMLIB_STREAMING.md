@@ -2255,7 +2255,7 @@ sudo ./tests/rigstreamtest-hw-loss.sh -m 3095 -r IP_ADDRESS \
 ### 12.2 Icom network models
 
 The Icom LAN backend exposes one model per radio. All of them offer
-`AUDIO_RX`, `AUDIO_TX` and `IQ_RX`:
+`AUDIO_RX` and `AUDIO_TX`, and all but the IC-7760 also `IQ_RX`:
 
 | Model | Radio |
 |---|---|
