@@ -1176,8 +1176,10 @@ typedef uint64_t rig_level_e;
 #define RIG_LEVEL_USB_AF               CONSTANT_64BIT_FLAG(50)      /*!< \c ACC/USB AF output level */
 #define RIG_LEVEL_USB_AF_INPUT         CONSTANT_64BIT_FLAG(51)      /*!< \c ACC/USB AF input level */
 #define RIG_LEVEL_AGC_TIME             CONSTANT_64BIT_FLAG(52)      /*!< \c AGC_TIME -- in seconds, rig dependent */
-#define RIG_LEVEL_53           CONSTANT_64BIT_FLAG(53)      /*!< \c Future use */
-#define RIG_LEVEL_54           CONSTANT_64BIT_FLAG(54)      /*!< \c Future use */
+#define RIG_LEVEL_SPECTRUM_EDGE_LOW_KHZ  CONSTANT_64BIT_FLAG(53)  /*!< \c SPECTRUM_EDGE_LOW_KHZ -- Fixed scope low edge, arg int (kHz) */
+#define RIG_LEVEL_SPECTRUM_EDGE_HIGH_KHZ CONSTANT_64BIT_FLAG(54)  /*!< \c SPECTRUM_EDGE_HIGH_KHZ -- Fixed scope high edge, arg int (kHz) */
+#define RIG_LEVEL_53           RIG_LEVEL_SPECTRUM_EDGE_LOW_KHZ
+#define RIG_LEVEL_54           RIG_LEVEL_SPECTRUM_EDGE_HIGH_KHZ
 #define RIG_LEVEL_55           CONSTANT_64BIT_FLAG(55)      /*!< \c Future use */
 #define RIG_LEVEL_56           CONSTANT_64BIT_FLAG(56)      /*!< \c Future use */
 #define RIG_LEVEL_57           CONSTANT_64BIT_FLAG(57)      /*!< \c Future use */

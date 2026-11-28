@@ -27,6 +27,7 @@
 #include <unistd.h>     /* UNIX standard function definitions */
 // cppcheck-suppress *
 #include <math.h>
+#include <limits.h>
 
 #include "hamlib/rig.h"
 #include "hamlib/port.h"
@@ -3550,6 +3551,140 @@ static int icom_get_cmd(RIG *rig, vfo_t vfo, struct cmdparams *par, value_t *val
     RETURNFUNC(RIG_OK);
 }
 
+enum { ICOM_FIXED_SCOPE_PRESET_SIZE = 2 + 2 * 6 };
+
+static int icom_read_fixed_scope_preset(RIG *rig, vfo_t vfo,
+        unsigned char data[ICOM_FIXED_SCOPE_PRESET_SIZE], int *edge_bytes)
+{
+    int range_id;
+    value_t preset;
+    int retval = icom_get_spectrum_edge_frequency_range(rig, vfo, &range_id);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    retval = icom_get_ext_level(rig, vfo, TOK_SCOPE_EDG, &preset);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    if (preset.i < 0 || preset.i > 3)
+    {
+        return -RIG_EPROTO;
+    }
+
+    to_bcd(data, range_id, 2);
+    data[1] = preset.i + 1;
+    *edge_bytes = RIG_IS_IC905 && range_id == 6 ? 6 : 5;
+
+    unsigned char response[MAXFRAMELEN];
+    int response_len;
+    retval = icom_transaction(rig, C_CTL_SCP, S_SCP_FEF, data, 2,
+                              response, &response_len);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    if (response_len != 4 + 2 * *edge_bytes
+            || response[0] != C_CTL_SCP || response[1] != S_SCP_FEF
+            || memcmp(response + 2, data, 2) != 0)
+    {
+        return -RIG_EPROTO;
+    }
+
+    const unsigned char *bcd = response + 4;
+
+    for (int i = 0; i < 2 * *edge_bytes; i++)
+    {
+        if ((bcd[i] & 0xf) > 9 || (bcd[i] >> 4) > 9)
+        {
+            return -RIG_EPROTO;
+        }
+    }
+
+    memcpy(data + 2, bcd, 2 * *edge_bytes);
+    return RIG_OK;
+}
+
+static int icom_fixed_scope_edge_index(setting_t level)
+{
+    return level == RIG_LEVEL_SPECTRUM_EDGE_LOW
+           || level == RIG_LEVEL_SPECTRUM_EDGE_LOW_KHZ ? 0 : 1;
+}
+
+static unsigned int icom_fixed_scope_edge_scale(setting_t level)
+{
+    return level == RIG_LEVEL_SPECTRUM_EDGE_LOW_KHZ
+           || level == RIG_LEVEL_SPECTRUM_EDGE_HIGH_KHZ ? 1000 : 1;
+}
+
+static int icom_get_fixed_scope_edge(RIG *rig, vfo_t vfo, setting_t level,
+                                     value_t *val)
+{
+    unsigned char preset[ICOM_FIXED_SCOPE_PRESET_SIZE];
+    int edge_bytes;
+    int retval = icom_read_fixed_scope_preset(rig, vfo, preset, &edge_bytes);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    int offset = 2 + icom_fixed_scope_edge_index(level) * edge_bytes;
+    unsigned long long frequency = from_bcd(preset + offset, 2 * edge_bytes)
+                                   / icom_fixed_scope_edge_scale(level);
+
+    if (frequency > INT_MAX)
+    {
+        return -RIG_EDOM;
+    }
+
+    val->i = (int)frequency;
+    return RIG_OK;
+}
+
+static int icom_set_fixed_scope_edge(RIG *rig, vfo_t vfo, setting_t level,
+                                     int value)
+{
+    if (value < 0)
+    {
+        return -RIG_EDOM;
+    }
+
+    unsigned char preset[ICOM_FIXED_SCOPE_PRESET_SIZE];
+    int edge_bytes;
+    int retval = icom_read_fixed_scope_preset(rig, vfo, preset, &edge_bytes);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    unsigned long long frequency = (unsigned long long)value
+                                   * icom_fixed_scope_edge_scale(level);
+    unsigned long long limit = edge_bytes == 6 ? 1000000000000ULL : 10000000000ULL;
+
+    if (frequency >= limit)
+    {
+        return -RIG_EDOM;
+    }
+
+    int offset = 2 + icom_fixed_scope_edge_index(level) * edge_bytes;
+    to_bcd(preset + offset, frequency, 2 * edge_bytes);
+
+    unsigned char ack[MAXFRAMELEN];
+    int ack_len;
+    retval = icom_transaction(rig, C_CTL_SCP, S_SCP_FEF, preset,
+                              2 + 2 * edge_bytes, ack, &ack_len);
+    return retval == RIG_OK ? icom_check_ack(ack_len, ack) : retval;
+}
+
 /*
  * icom_set_level
  * Assumes rig!=NULL, STATE(rig)->priv!=NULL
@@ -4053,60 +4188,9 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     case RIG_LEVEL_SPECTRUM_EDGE_LOW:
     case RIG_LEVEL_SPECTRUM_EDGE_HIGH:
-    {
-        int range_id;
-        value_t edge_number_value;
-        value_t opposite_edge_value;
-        setting_t level_opposite_edge =
-            (level == RIG_LEVEL_SPECTRUM_EDGE_LOW) ?
-            RIG_LEVEL_SPECTRUM_EDGE_HIGH : RIG_LEVEL_SPECTRUM_EDGE_LOW;
-
-        lvl_cn = C_CTL_SCP;
-        lvl_sc = S_SCP_FEF;
-        cmd_len = 12;
-
-        // Modify the frequency range currently active
-        retval = icom_get_spectrum_edge_frequency_range(rig, vfo, &range_id);
-
-        if (retval != RIG_OK)
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: error getting spectrum edge frequency range\n",
-                      __func__);
-            RETURNFUNC(retval);
-        }
-
-        // Modify the edge number currently active
-        retval = icom_get_ext_level(rig, vfo, TOK_SCOPE_EDG, &edge_number_value);
-
-        if (retval != RIG_OK)
-        {
-            RETURNFUNC(retval);
-        }
-
-        // Get the current opposite edge frequency
-        retval = icom_get_level(rig, vfo, level_opposite_edge, &opposite_edge_value);
-
-        if (retval != RIG_OK)
-        {
-            RETURNFUNC(retval);
-        }
-
-        to_bcd(cmdbuf, range_id, 1 * 2);
-        to_bcd(cmdbuf + 1, edge_number_value.i + 1, 1 * 2);
-
-        if (level == RIG_LEVEL_SPECTRUM_EDGE_LOW)
-        {
-            to_bcd(cmdbuf + 2, val.i, 5 * 2);
-            to_bcd(cmdbuf + 7, opposite_edge_value.i, 5 * 2);
-        }
-        else
-        {
-            to_bcd(cmdbuf + 2, opposite_edge_value.i, 5 * 2);
-            to_bcd(cmdbuf + 7, val.i, 5 * 2);
-        }
-
-        break;
-    }
+    case RIG_LEVEL_SPECTRUM_EDGE_LOW_KHZ:
+    case RIG_LEVEL_SPECTRUM_EDGE_HIGH_KHZ:
+        RETURNFUNC(icom_set_fixed_scope_edge(rig, vfo, level, val.i));
 
     case RIG_LEVEL_SPECTRUM_ATT:
         lvl_cn = C_CTL_SCP;
@@ -4440,36 +4524,9 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_SPECTRUM_EDGE_LOW:
     case RIG_LEVEL_SPECTRUM_EDGE_HIGH:
-    {
-        int range_id;
-        value_t edge_number_value;
-
-        lvl_cn = C_CTL_SCP;
-        lvl_sc = S_SCP_FEF;
-        cmd_len = 2;
-
-        // Get the frequency range currently active
-        retval = icom_get_spectrum_edge_frequency_range(rig, vfo, &range_id);
-
-        if (retval != RIG_OK)
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: error getting spectrum edge frequency range\n",
-                      __func__);
-            RETURNFUNC(retval);
-        }
-
-        // Get the edge number currently active
-        retval = icom_get_ext_level(rig, vfo, TOK_SCOPE_EDG, &edge_number_value);
-
-        if (retval != RIG_OK)
-        {
-            RETURNFUNC(retval);
-        }
-
-        to_bcd(cmdbuf, range_id, 1 * 2);
-        to_bcd(cmdbuf + 1, edge_number_value.i + 1, 1 * 2);
-        break;
-    }
+    case RIG_LEVEL_SPECTRUM_EDGE_LOW_KHZ:
+    case RIG_LEVEL_SPECTRUM_EDGE_HIGH_KHZ:
+        RETURNFUNC(icom_get_fixed_scope_edge(rig, vfo, level, val));
 
     case RIG_LEVEL_SPECTRUM_ATT:
         lvl_cn = C_CTL_SCP;
@@ -4826,14 +4883,6 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         val->f = db;
         break;
     }
-
-    case RIG_LEVEL_SPECTRUM_EDGE_LOW:
-        val->i = (int) from_bcd(respbuf + cmdhead, 5 * 2);
-        break;
-
-    case RIG_LEVEL_SPECTRUM_EDGE_HIGH:
-        val->i = (int) from_bcd(respbuf + cmdhead + 5, 5 * 2);
-        break;
 
     case RIG_LEVEL_AGC_TIME:
 
@@ -10204,17 +10253,19 @@ static int icom_get_spectrum_edge_frequency_range(RIG *rig, vfo_t vfo,
 
     for (int i = 0; i < ICOM_MAX_SPECTRUM_FREQ_RANGES; i++)
     {
-        int id = priv_caps->spectrum_edge_frequency_ranges[i].range_id;
+        const struct icom_spectrum_edge_frequency_range *range =
+            &priv_caps->spectrum_edge_frequency_ranges[i];
 
-        if (id < 1)
+        if (range->range_id < 1)
         {
             break;
         }
 
-        if (freq >= priv_caps->spectrum_edge_frequency_ranges[i].low_freq
-                && freq < priv_caps->spectrum_edge_frequency_ranges[i].high_freq)
+        if (freq >= range->low_freq
+                && (freq < range->high_freq
+                    || (RIG_IS_IC905 && freq == range->high_freq)))
         {
-            *range_id = id;
+            *range_id = range->range_id;
             RETURNFUNC2(RIG_OK);
         }
     }

@@ -97,7 +97,7 @@
 #define IC905_ALL_TX_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTFM|RIG_MODE_PKTAM|RIG_MODE_DSTAR)
 #define IC905_ALL_RX_MODES (IC905_ALL_TX_MODES|RIG_MODE_WFM)
 #define IC905_OTHER_TX_MODES (RIG_MODE_FM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_DSTAR)
-#define IC905_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF_RAW|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX|RIG_LEVEL_VOXDELAY|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS|RIG_LEVEL_COMP_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_ID_METER|RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB|RIG_LEVEL_SPECTRUM_MODE|RIG_LEVEL_SPECTRUM_SPAN|RIG_LEVEL_SPECTRUM_SPEED|RIG_LEVEL_SPECTRUM_REF|RIG_LEVEL_SPECTRUM_AVG|RIG_LEVEL_SPECTRUM_EDGE_LOW|RIG_LEVEL_SPECTRUM_EDGE_HIGH)
+#define IC905_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF_RAW|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX|RIG_LEVEL_VOXDELAY|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS|RIG_LEVEL_COMP_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_ID_METER|RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB|RIG_LEVEL_SPECTRUM_MODE|RIG_LEVEL_SPECTRUM_SPAN|RIG_LEVEL_SPECTRUM_SPEED|RIG_LEVEL_SPECTRUM_REF|RIG_LEVEL_SPECTRUM_AVG|RIG_LEVEL_SPECTRUM_EDGE_LOW|RIG_LEVEL_SPECTRUM_EDGE_HIGH|RIG_LEVEL_SPECTRUM_EDGE_LOW_KHZ|RIG_LEVEL_SPECTRUM_EDGE_HIGH_KHZ)
 
 #define IC905_RFPOWER_METER_CAL { 13, \
     { \
@@ -187,101 +187,13 @@ static const struct icom_priv_caps IC905_priv_caps =
         .signal_strength_max = 0,
     },
     .spectrum_edge_frequency_ranges = {
-        {
-            .range_id = 1,
-            .low_freq = 30000,
-            .high_freq = 1600000,
-        },
-        {
-            .range_id = 2,
-            .low_freq = 1600000,
-            .high_freq = 2000000,
-        },
-        {
-            .range_id = 3,
-            .low_freq = 2000000,
-            .high_freq = 6000000,
-        },
-        {
-            .range_id = 4,
-            .low_freq = 6000000,
-            .high_freq = 8000000,
-        },
-        {
-            .range_id = 5,
-            .low_freq = 8000000,
-            .high_freq = 11000000,
-        },
-        {
-            .range_id = 6,
-            .low_freq = 11000000,
-            .high_freq = 15000000,
-        },
-        {
-            .range_id = 7,
-            .low_freq = 15000000,
-            .high_freq = 20000000,
-        },
-        {
-            .range_id = 8,
-            .low_freq = 20000000,
-            .high_freq = 22000000,
-        },
-        {
-            .range_id = 9,
-            .low_freq = 22000000,
-            .high_freq = 26000000,
-        },
-        {
-            .range_id = 10,
-            .low_freq = 26000000,
-            .high_freq = 30000000,
-        },
-        {
-            .range_id = 11,
-            .low_freq = 30000000,
-            .high_freq = 45000000,
-        },
-        {
-            .range_id = 12,
-            .low_freq = 45000000,
-            .high_freq = 60000000,
-        },
-        {
-            .range_id = 13,
-            .low_freq = 60000000,
-            .high_freq = 74800000,
-        },
-        {
-            .range_id = 13,
-            .low_freq = 60000000,
-            .high_freq = 74800000,
-        },
-        {
-            .range_id = 14,
-            .low_freq = 74800000,
-            .high_freq = 108000000,
-        },
-        {
-            .range_id = 15,
-            .low_freq = 108000000,
-            .high_freq = 137000000,
-        },
-        {
-            .range_id = 16,
-            .low_freq = 137000000,
-            .high_freq = 200000000,
-        },
-        {
-            .range_id = 17,
-            .low_freq = 400000000,
-            .high_freq = 470000000,
-        },
-        {
-            .range_id = 0,
-            .low_freq = 0,
-            .high_freq = 0,
-        },
+        { .range_id = 1, .low_freq = MHz(144), .high_freq = MHz(148) },
+        { .range_id = 2, .low_freq = MHz(430), .high_freq = MHz(450) },
+        { .range_id = 3, .low_freq = MHz(1240), .high_freq = MHz(1300) },
+        { .range_id = 4, .low_freq = MHz(2300), .high_freq = MHz(2450) },
+        { .range_id = 5, .low_freq = MHz(5650), .high_freq = MHz(5925) },
+        { .range_id = 6, .low_freq = MHz(10000), .high_freq = MHz(10500) },
+        { 0, },
     },
     .extcmds = ic905_extcmds,     /* Custom parameters */
     .x25x26_always = 1,
