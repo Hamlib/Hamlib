@@ -124,6 +124,7 @@ struct rig_cache {
  * Does not include those marked as part of HAMLIB_API
  */
 int rig_set_cache_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+int rig_invalidate_cache_mode(RIG *rig, vfo_t vfo);
 int rig_set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq);
 void rig_cache_show(RIG *rig, const char *func, int line);
 

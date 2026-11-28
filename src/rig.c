@@ -3070,7 +3070,15 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         RETURNFUNC(retcode);
     }
 
-    rig_set_cache_mode(rig, vfo, mode, width);
+    if (caps->rig_model == RIG_MODEL_K3 || caps->rig_model == RIG_MODEL_K3S)
+    {
+        /* The radio can quantize a width or recall one with the new mode. */
+        rig_invalidate_cache_mode(rig, vfo);
+    }
+    else
+    {
+        rig_set_cache_mode(rig, vfo, mode, width);
+    }
 
     ELAPSED2;
     LOCK(0);
