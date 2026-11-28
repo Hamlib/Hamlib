@@ -276,6 +276,93 @@ static int run_case(const char *name, const char *fr, const char *ft,
     return 0;
 }
 
+static int test_k3_agc_and_nb(void)
+{
+    static const char *commands[] =
+    {
+        "GT;", "GT;", "GT;", "GT;", "GT;", "GT;", "GT;", "GT;", "GT;",
+        "NB;", "NB;", "NB;", "NB;", "NB;", "NB;", "NB;"
+    };
+    static const char *responses[] =
+    {
+        "GT000;", "GT002;", "GT004;", "GT0020;", "GT0040;", "GT0021;", "GT0041;",
+        "GT0042;", "GT0050;",
+        "NB0;", "NB1;", "NB00;", "NB10;", "NB20;", "NB11;", "NB100;"
+    };
+    static const int expected[] =
+    {
+        RIG_AGC_OFF, RIG_AGC_FAST, RIG_AGC_SLOW, RIG_AGC_OFF, RIG_AGC_OFF,
+        RIG_AGC_FAST, RIG_AGC_SLOW, -RIG_EPROTO, -RIG_EPROTO,
+        0, 1, 0, 1, -RIG_EPROTO, -RIG_EPROTO, -RIG_EPROTO
+    };
+    struct peer_case peer =
+    {
+        .commands = commands,
+        .responses = responses,
+        .count = sizeof(commands) / sizeof(commands[0]),
+        .status = -1
+    };
+    int sockets[2], failed = 0;
+    pthread_t thread;
+    RIG *rig = rig_init(RIG_MODEL_K3);
+
+    if (rig == NULL) { return 1; }
+
+    if (open_test_connection(sockets) != 0)
+    {
+        rig_cleanup(rig);
+        return 1;
+    }
+
+    peer.fd = sockets[1];
+
+    if (pthread_create(&thread, NULL, run_peer, &peer) != 0)
+    {
+        close_test_socket(sockets[0]);
+        close_test_socket(sockets[1]);
+        rig_cleanup(rig);
+        return 1;
+    }
+
+    RIGPORT(rig)->fd = sockets[0];
+    RIGPORT(rig)->type.rig = RIG_PORT_NETWORK;
+    RIGPORT(rig)->timeout = 500;
+    RIGPORT(rig)->retry = 0;
+
+    for (size_t i = 0; i < peer.count; i++)
+    {
+        int retval, actual;
+
+        if (strcmp(commands[i], "GT;") == 0)
+        {
+            value_t level = { .i = -1 };
+            retval = rig->caps->get_level(rig, RIG_VFO_A, RIG_LEVEL_AGC, &level);
+            actual = level.i;
+        }
+        else
+        {
+            actual = -1;
+            retval = rig->caps->get_func(rig, RIG_VFO_A, RIG_FUNC_NB, &actual);
+        }
+
+        if (retval != (expected[i] < 0 ? expected[i] : RIG_OK)
+                || actual != (expected[i] < 0 ? -1 : expected[i]))
+        {
+            fprintf(stderr, "K3 %s reply %s: expected %d, got result %d, value %d\n",
+                    commands[i], responses[i], expected[i], retval, actual);
+            failed = 1;
+        }
+    }
+
+    RIGPORT(rig)->fd = -1;
+    close_test_socket(sockets[0]);
+    pthread_join(thread, NULL);
+    close_test_socket(sockets[1]);
+    rig_cleanup(rig);
+
+    return failed || peer.status != 0;
+}
+
 static int test_k3_vfo_steps(void)
 {
     static const char *commands[] =
@@ -691,6 +778,7 @@ int main(void)
                       RIG_VFO_NONE);
 
     if (!failed) { failed = test_meters(); }
+    if (!failed) { failed = test_k3_agc_and_nb(); }
     if (!failed) { failed = test_k3_vfo_steps(); }
     if (!failed) { failed = run_k3_passband_readback(); }
 
