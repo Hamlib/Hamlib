@@ -21,6 +21,10 @@
 #include <errno.h>
 #include <string.h>
 
+#ifndef _WIN32
+#include <fcntl.h>
+#endif
+
 #include "hamlib/port.h"
 #include "hamlib/rig.h"
 #include "hamlib/rig_state.h"
@@ -300,6 +304,51 @@ static void test_failed_morse_thread_start_rolls_back_state(void)
     TEST_CHECK(rig_cleanup(rig) == RIG_OK);
 }
 
+/* A second rig_open() on an open rig fails and closes the port, so that the
+ * next rig_open() starts over.  The reader reading that port stops with it and
+ * leaves no pipes behind. */
+static void test_second_rig_open_stops_the_reader(void)
+{
+    RIG *rig = new_test_rig(1);
+#ifndef _WIN32
+    int pipe_fd[4];
+    int i;
+#endif
+
+    frame_sent = 0;
+    TEST_ASSERT(rig != NULL);
+    TEST_ASSERT(rig_open(rig) == RIG_OK);
+    TEST_ASSERT(port_async_is_prepared(RIGPORT(rig)));
+#ifndef _WIN32
+    pipe_fd[0] = RIGPORT(rig)->fd_sync_read;
+    pipe_fd[1] = RIGPORT(rig)->fd_sync_write;
+    pipe_fd[2] = RIGPORT(rig)->fd_sync_error_read;
+    pipe_fd[3] = RIGPORT(rig)->fd_sync_error_write;
+#endif
+
+    TEST_CHECK(rig_open(rig) == -RIG_EINVAL);
+    TEST_ASSERT_(!STATE(rig)->async_data_handler_thread_run
+                 && STATE(rig)->async_data_handler_priv_data == NULL,
+                 "the reader still runs on the closed port");
+    TEST_CHECK(!RIGPORT(rig)->asyncio);
+    TEST_CHECK(!port_async_is_prepared(RIGPORT(rig)));
+#ifndef _WIN32
+
+    for (i = 0; i < 4; i++)
+    {
+        TEST_CHECK_(fcntl(pipe_fd[i], F_GETFD) == -1 && errno == EBADF,
+                    "pipe descriptor %d was left open", pipe_fd[i]);
+    }
+
+#endif
+
+    TEST_CHECK(rig_open(rig) == RIG_OK);
+    TEST_CHECK(STATE(rig)->async_data_handler_thread_run);
+    TEST_CHECK(rig_close(rig) == RIG_OK);
+    TEST_CHECK(!port_async_is_prepared(RIGPORT(rig)));
+    TEST_CHECK(rig_cleanup(rig) == RIG_OK);
+}
+
 TEST_LIST =
 {
     { "sync_pipe_is_separate_from_active_routing",
@@ -314,5 +363,7 @@ TEST_LIST =
       test_failed_reader_start_rolls_back_state },
     { "failed_morse_thread_start_rolls_back_state",
       test_failed_morse_thread_start_rolls_back_state },
+    { "second_rig_open_stops_the_reader",
+      test_second_rig_open_stops_the_reader },
     { NULL, NULL }
 };
