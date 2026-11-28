@@ -412,6 +412,58 @@ void test_collision_byte_during_echo_read(void)
     release_ic7300(rig, sockets);
 }
 
+/* The regression: once the `03` probe of the USB echo check gets a one-byte
+ * answer, the check takes it for an echo and reads the next frame into a
+ * 16-byte buffer, while a frame can be as long as a scope division. The
+ * frame must be read whole, so the next command gets its own reply. */
+void test_echo_check_reads_whole_frame(void)
+{
+    /* The probe's echo with a preamble byte lost: the transaction restores
+     * the byte and returns the 03 as a one-byte answer. */
+    static const unsigned char probe_echo[] =
+    {
+        PR, IC7300, CTRLID, C_RD_FREQ, FI
+    };
+    /* The frequency read that follows, on the now echoing port. */
+    static const unsigned char x25_echo[] =
+    {
+        PR, PR, IC7300, CTRLID, C_SEND_SEL_FREQ, 0x00, FI
+    };
+    static const unsigned char x25_answer[] =
+    {
+        PR, PR, CTRLID, IC7300, C_SEND_SEL_FREQ, 0x00,
+        0x00, 0x00, 0x10, 0x14, 0x00, FI
+    };
+    unsigned char line[50] = { 0 };
+    unsigned char frame[MAXFRAMELEN];
+    struct icom_priv_data *priv;
+    int sockets[2];
+    freq_t freq = 0;
+    size_t n;
+    RIG *rig;
+
+    TEST_ASSERT(socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) == 0);
+    TEST_ASSERT(write(sockets[1], probe_echo, sizeof(probe_echo))
+                == sizeof(probe_echo));
+    n = scope_division(frame, 2, 11, line, sizeof(line));
+    TEST_ASSERT(n > 16);
+    TEST_ASSERT(write(sockets[1], frame, n) == (ssize_t) n);
+    TEST_ASSERT(write(sockets[1], x25_echo, sizeof(x25_echo))
+                == sizeof(x25_echo));
+    TEST_ASSERT(write(sockets[1], x25_answer, sizeof(x25_answer))
+                == sizeof(x25_answer));
+
+    rig = echoing_ic7300(sockets[0]);
+    TEST_ASSERT(rig != NULL);
+    priv = STATE(rig)->priv;
+    priv->serial_USB_echo_off = -1;   /* not known yet */
+
+    TEST_CHECK(icom_get_freq(rig, RIG_VFO_CURR, &freq) == RIG_OK);
+    TEST_CHECK_(freq == 14100000, "frequency %.0f Hz", freq);
+
+    release_ic7300(rig, sockets);
+}
+
 #endif /* !_WIN32 */
 
 TEST_LIST =
@@ -432,6 +484,7 @@ TEST_LIST =
         test_scope_data_in_first_division_is_rejected
     },
     { "collision_byte_during_echo_read", test_collision_byte_during_echo_read },
+    { "echo_check_reads_whole_frame", test_echo_check_reads_whole_frame },
 #endif
     { NULL, NULL }
 };
