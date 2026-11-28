@@ -207,7 +207,11 @@ int cm108_open(hamlib_port_t *port)
                 || (hiddevinfo.vendor == 0x0c76
                     && (hiddevinfo.product == 0x1605
                         || hiddevinfo.product == 0x1607
-                        || hiddevinfo.product == 0x160b))))
+                        || hiddevinfo.product == 0x160b))
+                // Generic
+                || (hiddevinfo.vendor == 0x1209
+                    && (hiddevinfo.product == 0x7388)) // skuep All-In-One-Cable (AIOC)
+            ))
     {
         rig_debug(RIG_DEBUG_VERBOSE,
                   "%s: cm108 compatible device detected\n",
