@@ -69,6 +69,14 @@ void icom_network_txbuf_purge(struct icom_network_txbuf *tb, int64_t now_ms,
 
 /* ---- RX gap / retransmit tracker ---- */
 
+/* A sender that starts numbering again is recognised by a packet this far
+ * behind the newest, or by this many packets in a row from behind that never
+ * arrived before. The radio does it when a stream is reopened: a new session
+ * first gets the previous client's undelivered packets, with their old, high
+ * numbers, and then the new stream counting from zero. */
+#define ICOM_NETWORK_RESTART_DISTANCE ICOM_NETWORK_SEQBUF_MAX
+#define ICOM_NETWORK_RESTART_RUN      4
+
 struct icom_network_missing
 {
     uint16_t sequence;
@@ -82,13 +90,18 @@ struct icom_network_rxtrack
     uint16_t last_sequence;
     struct icom_network_missing missing[ICOM_NETWORK_SEQBUF_MAX];
     size_t   nmissing;
-    /* The most recent sequence received for each low byte, so a packet is
-     * called a duplicate only when that very number did arrive before. */
+    /* The most recent sequence received for each low byte and digests of
+     * the last two different packets with that number, so a packet is called
+     * a duplicate only when that very number did arrive before with the same
+     * content, also when another packet with that number arrived since. */
     uint16_t received[256];
-    uint8_t  received_valid[256];
-    /* Consecutive packets from behind the newest that never arrived before:
-     * a run of them is the sender numbering from scratch. */
+    uint32_t received_digest[256][2];
+    uint8_t  received_count[256];   /* digests held: 0, 1 or 2 */
+    /* Consecutive packets from behind the newest that never arrived before,
+     * and their numbers: a run of them is the sender numbering from scratch,
+     * and they are the first packets of its new stream. */
     unsigned behind_run;
+    uint16_t behind[ICOM_NETWORK_RESTART_RUN - 1];
 };
 
 void icom_network_rxtrack_init(struct icom_network_rxtrack *rt);
@@ -99,28 +112,30 @@ enum icom_network_rx_result
     ICOM_NETWORK_RX_NEW = 0,     /* the next sequence, or one past a gap */
     ICOM_NETWORK_RX_RECOVERED,   /* one that was missing, arriving late */
     ICOM_NETWORK_RX_DUPLICATE,   /* already received, or given up on */
-    ICOM_NETWORK_RX_RESYNC,      /* new, but the gaps can no longer be
-                                    recovered: reset the tracker */
+    ICOM_NETWORK_RX_RESYNC,      /* new, but the gaps could no longer be
+                                    recovered and were dropped */
 };
 
-/* A sender that starts numbering again is recognised by a packet this far
- * behind the newest, or by this many packets in a row from behind that never
- * arrived before. The radio does it when a stream is reopened: a new session
- * first gets the previous client's undelivered packets, with their old, high
- * numbers, and then the new stream counting from zero. */
-#define ICOM_NETWORK_RESTART_DISTANCE ICOM_NETWORK_SEQBUF_MAX
-#define ICOM_NETWORK_RESTART_RUN      4
-
-/* Observe a received data-packet sequence number. Newly-detected gaps are
- * appended to the missing set; an arriving retransmit clears its entry.
- * ICOM_NETWORK_RX_DUPLICATE means this exact sequence was received before and
- * the packet should be discarded. A packet from behind that never arrived
- * (one given up on, or a restarted sender's) is not a duplicate: it is
- * reported as new. ICOM_NETWORK_RX_RESYNC (too many missing, a jump larger
- * than the flush threshold, or a restart) asks the caller to reset the
- * tracker; that packet itself is new. */
+/* Observe a received data-packet sequence number; digest is a checksum of
+ * the packet. Newly-detected gaps are appended to the missing set; a packet
+ * that fills one (ICOM_NETWORK_RX_RECOVERED) clears its entry, a copy does
+ * not, so the gap is asked for until given up on. ICOM_NETWORK_RX_DUPLICATE
+ * means this exact sequence was received before with the same digest,
+ * wherever it falls, and the packet should be discarded. A packet from
+ * behind that never arrived (one given up on, or another stream's with a
+ * number already seen: a restarted sender's, or the one packet of the
+ * previous client's stream that a radio still holding it may send around
+ * the opening of the new one) is not a duplicate: it is reported as new.
+ * ICOM_NETWORK_RX_RESYNC (too many missing, a jump larger than the flush
+ * threshold, or a restart) reports that the gaps were dropped and tracking
+ * goes on from here; that packet itself is new. After a restart it goes on
+ * as if the packets that showed it had come in order. What was received
+ * stays known, a restart included: with no stream in the packet, a new one
+ * byte for byte the same as one received with its number before is taken
+ * for a copy. */
 enum icom_network_rx_result icom_network_rxtrack_observe(
-    struct icom_network_rxtrack *rt, uint16_t sequence, int64_t now_ms);
+    struct icom_network_rxtrack *rt, uint16_t sequence, uint32_t digest,
+    int64_t now_ms);
 
 /* Mark a sequence as received (removes it from the missing set). */
 void icom_network_rxtrack_received(struct icom_network_rxtrack *rt,
@@ -133,12 +148,11 @@ void icom_network_rxtrack_received(struct icom_network_rxtrack *rt,
 size_t icom_network_rxtrack_due(struct icom_network_rxtrack *rt, int64_t now_ms,
                                 int64_t period_ms, uint16_t *out, size_t max);
 
-void icom_network_rxtrack_reset(struct icom_network_rxtrack *rt);
-
 /* Start tracking a stream whose first packet will carry the sequence first,
  * so that losing that very packet is noticed from the gap the next one leaves.
  * Without it tracking starts at whatever arrives first, and a lost first
- * packet is never missed. */
+ * packet is never missed. Nothing of the new stream is received yet, so the
+ * record of received packets starts empty. */
 void icom_network_rxtrack_expect(struct icom_network_rxtrack *rt,
                                  uint16_t first);
 

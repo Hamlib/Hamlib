@@ -114,34 +114,47 @@ void icom_network_rxtrack_init(struct icom_network_rxtrack *rt)
     memset(rt, 0, sizeof(*rt));
 }
 
-void icom_network_rxtrack_reset(struct icom_network_rxtrack *rt)
-{
-    rt->started  = 0;
-    rt->nmissing = 0;
-    rt->behind_run = 0;
-    memset(rt->received_valid, 0, sizeof(rt->received_valid));
-}
-
 void icom_network_rxtrack_expect(struct icom_network_rxtrack *rt,
                                  uint16_t first)
 {
-    icom_network_rxtrack_reset(rt);
+    rt->nmissing = 0;
+    rt->behind_run = 0;
+    memset(rt->received_count, 0, sizeof(rt->received_count));
     rt->started = 1;
     rt->last_sequence = (uint16_t)(first - 1);
 }
 
-static void rxtrack_mark_received(struct icom_network_rxtrack *rt,
-                                  uint16_t sequence)
+static int rxtrack_was_received(const struct icom_network_rxtrack *rt,
+                                uint16_t sequence, uint32_t digest)
 {
-    rt->received[sequence & 0xff] = sequence;
-    rt->received_valid[sequence & 0xff] = 1;
+    unsigned slot = sequence & 0xff;
+
+    return rt->received_count[slot] > 0
+           && rt->received[slot] == sequence
+           && (rt->received_digest[slot][0] == digest
+               || (rt->received_count[slot] > 1
+                   && rt->received_digest[slot][1] == digest));
 }
 
-static int rxtrack_was_received(const struct icom_network_rxtrack *rt,
-                                uint16_t sequence)
+static void rxtrack_mark_received(struct icom_network_rxtrack *rt,
+                                  uint16_t sequence, uint32_t digest)
 {
-    return rt->received_valid[sequence & 0xff]
-           && rt->received[sequence & 0xff] == sequence;
+    unsigned slot = sequence & 0xff;
+
+    if (rxtrack_was_received(rt, sequence, digest)) { return; }
+
+    if (rt->received_count[slot] > 0 && rt->received[slot] == sequence)
+    {
+        rt->received_digest[slot][1] = rt->received_digest[slot][0];
+        rt->received_count[slot] = 2;
+    }
+    else
+    {
+        rt->received[slot] = sequence;
+        rt->received_count[slot] = 1;
+    }
+
+    rt->received_digest[slot][0] = digest;
 }
 
 static int rxtrack_find(const struct icom_network_rxtrack *rt,
@@ -217,61 +230,119 @@ static enum icom_network_rx_result rxtrack_advance(
 
     rt->last_sequence = sequence;
 
-    return rt->nmissing > ICOM_NETWORK_MISSING_FLUSH
-           ? ICOM_NETWORK_RX_RESYNC : ICOM_NETWORK_RX_NEW;
+    if (rt->nmissing > ICOM_NETWORK_MISSING_FLUSH)
+    {
+        rt->nmissing = 0;
+        return ICOM_NETWORK_RX_RESYNC;
+    }
+
+    return ICOM_NETWORK_RX_NEW;
+}
+
+/* The sender numbers from scratch. The packets from behind that showed it are
+ * the new stream's first, except, when this one is far behind, those far from
+ * it: the old stream's, given up on and arriving late. The gaps so far are
+ * dropped and tracking goes on as if the new stream's packets had come in
+ * order. What was received stays known. */
+static void rxtrack_restart(struct icom_network_rxtrack *rt, uint16_t sequence,
+                            int far, int64_t now_ms)
+{
+    uint16_t p[ICOM_NETWORK_RESTART_RUN];
+    unsigned n = 0;
+    unsigned i, j;
+
+    for (i = 0; i < rt->behind_run; i++)
+    {
+        int16_t distance = (int16_t)(rt->behind[i] - sequence);
+
+        if (!far || (distance <= ICOM_NETWORK_MISSING_FLUSH
+                     && distance >= -ICOM_NETWORK_MISSING_FLUSH))
+        {
+            p[n++] = rt->behind[i];
+        }
+    }
+
+    p[n++] = sequence;
+
+    /* oldest first; they are all near this one */
+    for (i = 1; i < n; i++)
+    {
+        for (j = i; j > 0 && (int16_t)(p[j] - sequence)
+                < (int16_t)(p[j - 1] - sequence); j--)
+        {
+            uint16_t t = p[j];
+
+            p[j] = p[j - 1];
+            p[j - 1] = t;
+        }
+    }
+
+    rt->nmissing = 0;
+    rt->behind_run = 0;
+    rt->last_sequence = p[0];
+
+    for (i = 1; i < n; i++)
+    {
+        if (sequence_after(p[i], rt->last_sequence))
+        {
+            rxtrack_advance(rt, p[i], now_ms);
+        }
+    }
 }
 
 enum icom_network_rx_result icom_network_rxtrack_observe(
-    struct icom_network_rxtrack *rt, uint16_t sequence, int64_t now_ms)
+    struct icom_network_rxtrack *rt, uint16_t sequence, uint32_t digest,
+    int64_t now_ms)
 {
+    int index;
+    int far;
+
     if (!rt->started)
     {
         rt->started  = 1;
         rt->last_sequence = sequence;
         rt->behind_run = 0;
-        rxtrack_mark_received(rt, sequence);
+        rxtrack_mark_received(rt, sequence, digest);
         return ICOM_NETWORK_RX_NEW;
     }
 
-    /* At or behind the high-water mark: a retransmit we asked for, a copy of
-     * something already here, or a sender that started counting again. */
-    if (!sequence_after(sequence, rt->last_sequence))
+    /* A copy, wherever its number falls. */
+    if (rxtrack_was_received(rt, sequence, digest))
     {
-        int index = rxtrack_find(rt, sequence);
-
-        if (index >= 0)
-        {
-            rxtrack_remove_at(rt, (size_t)index);
-            rxtrack_mark_received(rt, sequence);
-            rt->behind_run = 0;
-            return ICOM_NETWORK_RX_RECOVERED;
-        }
-
-        if (rxtrack_was_received(rt, sequence))
-        {
-            return ICOM_NETWORK_RX_DUPLICATE;
-        }
-
-        /* Never received: deliver it. A lone one is a packet given up on
-         * that turned up after all; far behind, or several in a row, it is
-         * a restart, and gap tracking has to start again from here. */
-        if ((uint16_t)(rt->last_sequence - sequence) > ICOM_NETWORK_RESTART_DISTANCE
-                || ++rt->behind_run >= ICOM_NETWORK_RESTART_RUN)
-        {
-            icom_network_rxtrack_reset(rt);
-            rt->started = 1;
-            rt->last_sequence = sequence;
-            rxtrack_mark_received(rt, sequence);
-            return ICOM_NETWORK_RX_RESYNC;
-        }
-
-        rxtrack_mark_received(rt, sequence);
-        return ICOM_NETWORK_RX_NEW;
+        return ICOM_NETWORK_RX_DUPLICATE;
     }
 
-    rt->behind_run = 0;
-    rxtrack_mark_received(rt, sequence);
-    return rxtrack_advance(rt, sequence, now_ms);
+    rxtrack_mark_received(rt, sequence, digest);
+
+    if (sequence_after(sequence, rt->last_sequence))
+    {
+        rt->behind_run = 0;
+        return rxtrack_advance(rt, sequence, now_ms);
+    }
+
+    /* At or behind the newest: a retransmit we asked for, or never received
+     * -- a packet given up on that turned up after all or, far behind or
+     * several in a row, a sender that started counting again. */
+    index = rxtrack_find(rt, sequence);
+
+    if (index >= 0)
+    {
+        rxtrack_remove_at(rt, (size_t)index);
+        rt->behind_run = 0;
+        return ICOM_NETWORK_RX_RECOVERED;
+    }
+
+    far = (uint16_t)(rt->last_sequence - sequence)
+          > ICOM_NETWORK_RESTART_DISTANCE;
+
+    if (far || rt->behind_run + 1 >= ICOM_NETWORK_RESTART_RUN)
+    {
+        rxtrack_restart(rt, sequence, far, now_ms);
+        return ICOM_NETWORK_RX_RESYNC;
+    }
+
+    rt->behind[rt->behind_run++] = sequence;
+    return ICOM_NETWORK_RX_NEW;
 }
 
 size_t icom_network_rxtrack_due(struct icom_network_rxtrack *rt, int64_t now_ms,

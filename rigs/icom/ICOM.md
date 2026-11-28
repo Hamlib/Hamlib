@@ -320,8 +320,15 @@ arrives twice is delivered once, since a repeated ACK or reply would be taken as
 the answer to the next command. A sender that starts counting again (a reopened
 stream) is recognised and tracking restarts from it. A packet addressed to
 another client is dropped: a radio still holding the previous client's stream
-may send that client's packets, e.g. in answer to a retransmit request. Audio
-and I/Q follow their own rules, below.
+may send that client's packets, e.g. in answer to a retransmit request. It may
+also send one packet of the previous stream around the opening of the new one,
+so a packet is a copy only when both its number and its content (a CRC-32 of
+the packet) were received before, and never when it is numbered 0, which
+untracked packets carry too; a retransmitted packet is a byte-identical copy
+(measured for CI-V packets on the IC-7760 and IC-9700). A restart does not
+clear what was received, so a packet of the new stream byte for byte the same
+as the old stream's with its number is taken for a copy. Audio and I/Q follow
+their own rules, below.
 
 Packets are classified by the socket they arrive on. Lengths alone are
 ambiguous: a CI-V or audio packet can be exactly as long as a token or status

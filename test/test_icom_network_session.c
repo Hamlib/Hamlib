@@ -679,6 +679,153 @@ void test_session_civ_reply_after_packet_for_previous_client(void)
     mock_stop(&mock);
 }
 
+/* The left-over packet of the previous client's stream, sent before or just
+ * after the open, is not part of the new stream: the new stream's packet with
+ * its number, here the reply to the second command, is not a copy of it. */
+void test_session_civ_reply_numbered_as_left_over_packet(void)
+{
+    struct mock_server mock;
+    struct icom_network_session *s;
+    uint8_t cmd[] = { 0xfe, 0xfe, 0x98, 0xe0, 0x03, 0xfd };
+    uint8_t rx[256];
+    int i, n, after_open;
+
+    for (after_open = 0; after_open <= 1; after_open++)
+    {
+        mock_start(&mock);
+        /* no idles, so that the replies are the new stream's packets 0 and 1 */
+        mock.civ_idle_ms = 0;
+        mock.civ_left_over = 1;
+        mock.civ_left_over_after_open = after_open;
+        s = civ_session(&mock);
+
+        for (i = 1; i <= 2; i++)
+        {
+            TEST_ASSERT(icom_network_civ_send(s, cmd, sizeof(cmd)) == (int)sizeof(cmd));
+            n = icom_network_civ_recv(s, rx, sizeof(rx), 1000);
+            TEST_CHECK_(n == (int)sizeof(mock_freq_resp),
+                        "reply %d, left-over packet %s the open: %d", i,
+                        after_open ? "after" : "before", n);
+        }
+
+        icom_network_session_free(s);
+        mock_stop(&mock);
+    }
+}
+
+/* The same when the left-over packet comes after the new stream's first
+ * packet. It is delivered too, so the reply is the frame after it. */
+void test_session_civ_reply_numbered_as_late_left_over_packet(void)
+{
+    struct mock_server mock;
+    struct icom_network_session *s;
+    uint8_t cmd[] = { 0xfe, 0xfe, 0x98, 0xe0, 0x03, 0xfd };
+    uint8_t rx[256];
+    int n;
+
+    mock_start(&mock);
+    /* no idles, so that the replies are the new stream's packets 0 and 1 */
+    mock.civ_idle_ms = 0;
+    mock.civ_left_over = 1;
+    mock.civ_left_over_after_reply = 1;
+    s = civ_session(&mock);
+
+    TEST_ASSERT(icom_network_civ_send(s, cmd, sizeof(cmd)) == (int)sizeof(cmd));
+    n = icom_network_civ_recv(s, rx, sizeof(rx), 1000);
+    TEST_CHECK_(n == (int)sizeof(mock_freq_resp), "reply 1: %d", n);
+    n = icom_network_civ_recv(s, rx, sizeof(rx), 1000);
+    TEST_CHECK_(n > 0 && n != (int)sizeof(mock_freq_resp),
+                "left-over packet: %d", n);
+
+    TEST_ASSERT(icom_network_civ_send(s, cmd, sizeof(cmd)) == (int)sizeof(cmd));
+    n = icom_network_civ_recv(s, rx, sizeof(rx), 1000);
+    TEST_CHECK_(n == (int)sizeof(mock_freq_resp), "reply 2: %d", n);
+
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
+/* A sender numbering from scratch, with the new stream's first packets out of
+ * order: the restart shows on 3, which came after 4. A copy of 4 is still a
+ * copy, and each frame is read once. */
+void test_session_civ_copy_after_reordered_restart(void)
+{
+    static const uint16_t new_stream[] = { 1, 2, 4, 3, 4 };
+    struct mock_server mock;
+    struct icom_network_session *s;
+    uint8_t rx[256];
+    int i, n, count = 0;
+
+    mock_start(&mock);
+    /* no idles, so that the scripted packets are all the stream carries */
+    mock.civ_idle_ms = 0;
+    s = civ_session(&mock);
+
+    for (i = 0; i <= 10; i++)
+    {
+        mock.civ_script[count] = (uint16_t)i;
+        mock.civ_script_tag[count++] = 0xaa;
+    }
+
+    for (i = 0; i < (int)(sizeof(new_stream) / sizeof(new_stream[0])); i++)
+    {
+        mock.civ_script[count] = new_stream[i];
+        mock.civ_script_tag[count++] = 0xbb;
+    }
+
+    mock.civ_script_count = count;
+    mock.civ_script_go = 1;
+
+    for (i = 0; i < count - 1; i++)
+    {
+        uint8_t tag = i <= 10 ? 0xaa : 0xbb;
+        uint16_t seq = i <= 10 ? (uint16_t)i : new_stream[i - 11];
+
+        n = icom_network_civ_recv(s, rx, sizeof(rx), 1000);
+        TEST_CHECK_(n == 8 && rx[5] == seq && rx[6] == tag,
+                    "frame %d: %d bytes, packet %u/%02x, expected %u/%02x", i,
+                    n, n == 8 ? rx[5] : 0, n == 8 ? rx[6] : 0, seq, tag);
+    }
+
+    n = icom_network_civ_recv(s, rx, sizeof(rx), 300);
+    TEST_CHECK_(n == -RIG_ETIMEOUT, "copy of 4 delivered (%d)", n);
+
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
+/* The first packet of a new CI-V stream, here the reply to the first command,
+ * lost on the way: the next packet shows the gap, and the reply is requested
+ * again. */
+void test_session_civ_lost_first_reply_recovered(void)
+{
+    struct mock_server mock;
+    struct icom_network_session *s;
+    uint8_t cmd[] = { 0xfe, 0xfe, 0x98, 0xe0, 0x03, 0xfd };
+    uint8_t rx[256];
+    int n, waited;
+
+    mock_start(&mock);
+    /* no idles before the reply, so that the reply is the stream's first */
+    mock.civ_idle_ms = 0;
+    mock.civ_drop_replies = 1;
+    s = civ_session(&mock);
+
+    TEST_ASSERT(icom_network_civ_send(s, cmd, sizeof(cmd)) == (int)sizeof(cmd));
+
+    for (waited = 0; waited < 100 && !mock.saw_civ_cmd; waited++)
+    {
+        hl_usleep(10 * 1000);
+    }
+
+    mock.civ_idle_ms = 50;
+    n = icom_network_civ_recv(s, rx, sizeof(rx), 1000);
+    TEST_CHECK_(n == (int)sizeof(mock_freq_resp), "first reply: %d", n);
+
+    icom_network_session_free(s);
+    mock_stop(&mock);
+}
+
 /* A socket error the system would pass on as momentary, and one it would not.
  * The session must tell them apart, and the codes differ per platform. */
 #ifdef __MINGW32__
@@ -2381,6 +2528,10 @@ TEST_LIST =
     { "civ_duplicate_dropped",       test_session_civ_duplicate_dropped },
     { "civ_reply_after_left_over_packet", test_session_civ_reply_after_left_over_packet },
     { "civ_reply_after_packet_for_previous_client", test_session_civ_reply_after_packet_for_previous_client },
+    { "civ_reply_numbered_as_left_over_packet", test_session_civ_reply_numbered_as_left_over_packet },
+    { "civ_reply_numbered_as_late_left_over_packet", test_session_civ_reply_numbered_as_late_left_over_packet },
+    { "civ_copy_after_reordered_restart", test_session_civ_copy_after_reordered_restart },
+    { "civ_lost_first_reply_recovered", test_session_civ_lost_first_reply_recovered },
     { "civ_silence_is_link_timeout", test_session_civ_silence_is_link_timeout },
     { "civ_pings_alone_are_link_timeout", test_session_civ_pings_alone_are_link_timeout },
     { "civ_port_refusing_is_socket_error", test_session_civ_port_refusing_is_socket_error },
