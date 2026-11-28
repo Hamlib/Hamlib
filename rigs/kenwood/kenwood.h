@@ -177,6 +177,10 @@ struct kenwood_priv_data
     int is_k4hd;
     bool k4_stream_unusable;
     bool k4_marker_pending;
+    const char *k4_raw_fence;
+    unsigned k4_raw_ids_needed;
+    bool k4_raw_fence_sent;
+    bool k4_raw_frame_aligned;
     size_t k4_frame_length;
     char k4_frame[KENWOOD_MAX_BUF_LEN];
     int no_id;  // if true will not send ID; with every set command

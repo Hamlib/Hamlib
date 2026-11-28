@@ -818,6 +818,8 @@ void kenwood_k4_reset(RIG *rig)
     struct kenwood_priv_data *priv = STATE(rig)->priv;
     if (!RIG_IS_K4 || RIGPORT(rig)->type.rig != RIG_PORT_NETWORK) { return; }
     priv->k4_stream_unusable = false;
+    priv->k4_raw_fence = NULL;
+    priv->k4_raw_fence_sent = false;
     priv->k4_marker_pending = false;
     priv->k4_frame_length = 0;
     priv->cache_start.tv_sec = 0;
@@ -844,7 +846,7 @@ static int k4_read_frame(RIG *rig, struct timespec *started, int budget)
     struct kenwood_priv_data *priv = STATE(rig)->priv;
     hamlib_port_t *port = RIGPORT(rig);
 
-    while (priv->k4_frame_length < sizeof(priv->k4_frame) - 1)
+    for (;;)
     {
         char byte[2];
         int remaining = budget - elapsed_ms(started, HAMLIB_ELAPSED_GET);
@@ -867,15 +869,24 @@ static int k4_read_frame(RIG *rig, struct timespec *started, int budget)
 
         if (byte[0] == ';')
         {
-            priv->k4_frame[priv->k4_frame_length] = '\0';
+            if (priv->k4_frame_length < sizeof(priv->k4_frame))
+            {
+                priv->k4_frame[priv->k4_frame_length] = '\0';
+            }
+            else { priv->k4_frame[0] = '\0'; }
             priv->k4_frame_length = 0;
             return RIG_OK;
         }
 
-        priv->k4_frame[priv->k4_frame_length++] = byte[0];
+        if (priv->k4_frame_length >= sizeof(priv->k4_frame) - 1 || byte[0] == '\0')
+        {
+            if (!priv->k4_raw_fence) { return -RIG_EPROTO; }
+            /* Raw replies may be longer than a typed CAT result. Discard the
+             * whole frame, including a suffix resembling the recovery fence. */
+            priv->k4_frame_length = sizeof(priv->k4_frame);
+        }
+        else { priv->k4_frame[priv->k4_frame_length++] = byte[0]; }
     }
-
-    return -RIG_EPROTO;
 }
 
 static int k4_drain_marker(RIG *rig, const char *command, char *data,
@@ -957,17 +968,148 @@ static int k4_drain_marker(RIG *rig, const char *command, char *data,
     return error != RIG_OK ? error : -RIG_EPROTO;
 }
 
+/* A raw read (or the caller's flush) may have consumed only the beginning
+ * of a frame. The first probe provides a delimiter before the final reply.
+ * Only accept the selected final reply at a known frame boundary. */
+static int k4_finish_raw(RIG *rig, struct timespec *started)
+{
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
+    const char *fence = priv->k4_raw_fence;
+    int retval;
+
+    if (!priv->k4_raw_fence_sent)
+    {
+        const char *probe = "RVM;ID;";
+        if (!priv->k4_raw_ids_needed && strcmp(fence, "ID") != 0)
+        {
+            probe = strcmp(fence, "RVM") == 0 ? "ID;RVM;" : "ID;RVD;";
+        }
+        retval = write_block(RIGPORT(rig), (const unsigned char *)probe, strlen(probe));
+        if (retval != RIG_OK) { return k4_stream_failure(rig, retval); }
+        priv->k4_raw_fence_sent = true;
+        priv->k4_raw_frame_aligned = false;
+    }
+
+    for (int i = 0; i < 128; i++)
+    {
+        const char *frame = priv->k4_frame;
+        retval = k4_read_frame(rig, started, RIGPORT(rig)->timeout);
+        if (retval == -RIG_ETIMEOUT) { return retval; }
+        if (retval != RIG_OK) { return k4_stream_failure(rig, retval); }
+        if (!priv->k4_raw_frame_aligned)
+        {
+            priv->k4_raw_frame_aligned = true;
+            continue;
+        }
+
+        /* When the batch itself requests every marker type, wait for more
+         * complete ID replies than the batch could have produced. At least
+         * one then belongs to our probe. All earlier raw output has passed,
+         * so a final firmware reply cannot be mistaken for a raw one.
+         * Issue one probe per matching frame to bound buffering. */
+        if (priv->k4_raw_ids_needed)
+        {
+            if (strcmp(frame, "ID017") == 0)
+            {
+                priv->k4_raw_ids_needed--;
+                const char *next = priv->k4_raw_ids_needed ? "ID;" : "RVM;";
+                retval = write_block(RIGPORT(rig), (const unsigned char *)next,
+                                     strlen(next));
+                if (retval != RIG_OK) { return k4_stream_failure(rig, retval); }
+            }
+            continue;
+        }
+
+        if (strcmp(fence, "ID") == 0)
+        {
+            if (strcmp(frame, "ID017") != 0) { continue; }
+        }
+        else if (strlen(frame) != 8 || strncmp(frame, fence, 3) != 0
+                 || !isdigit((unsigned char)frame[3]) || !isdigit((unsigned char)frame[4])
+                 || frame[5] != '.' || !isdigit((unsigned char)frame[6])
+                 || !isdigit((unsigned char)frame[7])) { continue; }
+
+        priv->k4_raw_fence = NULL;
+        priv->k4_raw_fence_sent = false;
+        return RIG_OK;
+    }
+    return -RIG_EPROTO;
+}
+
 static int k4_prepare_stream(RIG *rig)
 {
     struct kenwood_priv_data *priv = STATE(rig)->priv;
     struct timespec started = {0};
 
     if (priv->k4_stream_unusable) { return -RIG_EIO; }
-    if (!priv->k4_marker_pending) { return RIG_OK; }
+    if (!priv->k4_marker_pending && !priv->k4_raw_fence) { return RIG_OK; }
 
     elapsed_ms(&started, HAMLIB_ELAPSED_SET);
+    if (priv->k4_raw_fence) { return k4_finish_raw(rig, &started); }
     return k4_drain_marker(rig, NULL, NULL, 0, &started,
                            RIGPORT(rig)->timeout, 1);
+}
+
+/* Classify before generic raw I/O writes a potentially overlapping reply.
+ * Only complete printable CAT frames can be followed by a new command. */
+static const char *k4_raw_fence(const unsigned char *send, int length, unsigned *ids_needed)
+{
+    unsigned ids = 0;
+    bool rvm = false, rvd = false;
+    int start = 0;
+
+    *ids_needed = 0;
+    if (length == 0) { return "ID"; }
+    if (!send || send[length - 1] != ';') { return NULL; }
+
+    for (int i = 0; i < length; i++)
+    {
+        if (send[i] < 0x20 || send[i] > 0x7e) { return NULL; }
+        if (send[i] != ';') { continue; }
+
+        const unsigned char *cmd = send + start;
+        int size = i - start;
+        if (size < 2 || !isalpha(cmd[0]) || !isalnum(cmd[1])) { return NULL; }
+        if (toupper(cmd[0]) == 'I' && toupper(cmd[1]) == 'D') { ids++; }
+        if (toupper(cmd[0]) == 'R' && toupper(cmd[1]) == 'V')
+        {
+            int selector = size == 3 ? toupper(cmd[2]) : 0;
+            if (selector != 'D') { rvm = true; }
+            if (selector != 'M') { rvd = true; }
+        }
+        start = i + 1;
+    }
+
+    if (!ids) { return "ID"; }
+    if (!rvm) { return "RVM"; }
+    if (!rvd) { return "RVD"; }
+
+    *ids_needed = ids + 1;
+    return "RVM";
+}
+
+static int k4_raw_prepare(RIG *rig, const unsigned char *send, int length)
+{
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
+    int retval;
+
+    if (length < 0 || (length > 0 && !send)) { return -RIG_EINVAL; }
+    retval = k4_prepare_stream(rig);
+    if (retval == RIG_OK)
+    {
+        priv->k4_raw_fence = k4_raw_fence(send, length, &priv->k4_raw_ids_needed);
+    }
+    return retval;
+}
+
+static void k4_raw_complete(RIG *rig, int write_result)
+{
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
+    if (write_result != RIG_OK || !priv->k4_raw_fence)
+    {
+        k4_stream_failure(rig, -RIG_EIO);
+    }
+    else { k4_invalidate_observations(rig); }
 }
 
 static int k4_write_command(RIG *rig, const char *command)
@@ -1237,7 +1379,7 @@ int kenwood_init(RIG *rig)
 
     priv = rs->priv;
 
-    if (RIG_IS_K4) { rig_set_raw_preflight(rig, k4_prepare_stream); }
+    if (RIG_IS_K4) { rig_set_raw_hooks(rig, k4_raw_prepare, k4_raw_complete); }
 
     if (RIG_IS_XG3)
     {
@@ -1334,7 +1476,7 @@ int kenwood_cleanup(RIG *rig)
 {
     ENTERFUNC;
 
-    if (RIG_IS_K4) { rig_set_raw_preflight(rig, NULL); }
+    if (RIG_IS_K4) { rig_set_raw_hooks(rig, NULL, NULL); }
 
     free(STATE(rig)->priv);
     STATE(rig)->priv = NULL;
