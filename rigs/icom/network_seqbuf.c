@@ -194,12 +194,36 @@ static void rxtrack_add_missing(struct icom_network_rxtrack *rt,
     m->last_ms = now_ms - 1000000;
 }
 
+/* The newest goes forward to sequence: everything in between is missing,
+ * unless too much to recover packet by packet. */
+static enum icom_network_rx_result rxtrack_advance(
+    struct icom_network_rxtrack *rt, uint16_t sequence, int64_t now_ms)
+{
+    uint16_t gap = (uint16_t)(sequence - rt->last_sequence);
+    uint16_t s;
+
+    if (gap > ICOM_NETWORK_MISSING_FLUSH)
+    {
+        rt->nmissing = 0;
+        rt->last_sequence = sequence;
+        return ICOM_NETWORK_RX_RESYNC;
+    }
+
+    for (s = (uint16_t)(rt->last_sequence + 1); s != sequence;
+            s = (uint16_t)(s + 1))
+    {
+        rxtrack_add_missing(rt, s, now_ms);
+    }
+
+    rt->last_sequence = sequence;
+
+    return rt->nmissing > ICOM_NETWORK_MISSING_FLUSH
+           ? ICOM_NETWORK_RX_RESYNC : ICOM_NETWORK_RX_NEW;
+}
+
 enum icom_network_rx_result icom_network_rxtrack_observe(
     struct icom_network_rxtrack *rt, uint16_t sequence, int64_t now_ms)
 {
-    uint16_t s;
-    uint16_t gap;
-
     if (!rt->started)
     {
         rt->started  = 1;
@@ -247,28 +271,7 @@ enum icom_network_rx_result icom_network_rxtrack_observe(
 
     rt->behind_run = 0;
     rxtrack_mark_received(rt, sequence);
-
-    /* Forward jump: everything between last_sequence and sequence is missing. */
-    gap = (uint16_t)(sequence - rt->last_sequence);
-
-    if (gap > ICOM_NETWORK_MISSING_FLUSH)
-    {
-        /* Too large to recover packet-by-packet; resync. */
-        rt->nmissing = 0;
-        rt->last_sequence = sequence;
-        return ICOM_NETWORK_RX_RESYNC;
-    }
-
-    for (s = (uint16_t)(rt->last_sequence + 1); s != sequence;
-            s = (uint16_t)(s + 1))
-    {
-        rxtrack_add_missing(rt, s, now_ms);
-    }
-
-    rt->last_sequence = sequence;
-
-    return rt->nmissing > ICOM_NETWORK_MISSING_FLUSH
-           ? ICOM_NETWORK_RX_RESYNC : ICOM_NETWORK_RX_NEW;
+    return rxtrack_advance(rt, sequence, now_ms);
 }
 
 size_t icom_network_rxtrack_due(struct icom_network_rxtrack *rt, int64_t now_ms,
