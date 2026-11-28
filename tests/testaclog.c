@@ -15,6 +15,7 @@
 #if defined(HAVE_SOCKETPAIR) && defined(HAVE_SYS_SOCKET_H) && \
     defined(HAVE_UNISTD_H)
 #define HAVE_ACLOG_SOCKET_TEST 1
+#include <locale.h>
 #include <pthread.h>
 #include <string.h>
 #include <sys/socket.h>
@@ -35,6 +36,7 @@ struct peer_data
 {
     int fd;
     const char *response;
+    int ignore_first_request;
     int status;
 };
 
@@ -86,28 +88,32 @@ static int write_all(int fd, const char *buffer, size_t length)
     return 0;
 }
 
+static int read_frequency_request(int fd)
+{
+    char command[128];
+
+    return read_command(fd, command, sizeof(command)) == 0
+           && strcmp(command, ACLOG_READ_FREQUENCY) == 0;
+}
+
 static void *run_peer(void *arg)
 {
     struct peer_data *peer = arg;
-    char command[128];
+    char extra_request;
 
-    peer->status = read_command(peer->fd, command, sizeof(command));
-
-    if (peer->status == 0 && strcmp(command, ACLOG_READ_FREQUENCY) != 0)
+    if (read_frequency_request(peer->fd)
+            && (!peer->ignore_first_request || read_frequency_request(peer->fd))
+            && write_all(peer->fd, peer->response, strlen(peer->response)) == 0
+            && read(peer->fd, &extra_request, 1) == 0)
     {
-        peer->status = -1;
-    }
-
-    if (peer->status == 0
-            && write_all(peer->fd, peer->response, strlen(peer->response)) != 0)
-    {
-        peer->status = -1;
+        peer->status = 0;
     }
 
     return NULL;
 }
 
-static int run_case(const struct frequency_case *test_case)
+static int run_case(const struct frequency_case *test_case,
+                    int ignore_first_request)
 {
     int sockets[2];
     pthread_t thread;
@@ -115,6 +121,7 @@ static int run_case(const struct frequency_case *test_case)
     {
         .fd = -1,
         .response = test_case->response,
+        .ignore_first_request = ignore_first_request,
         .status = -1
     };
     RIG *rig;
@@ -167,11 +174,31 @@ static int run_case(const struct frequency_case *test_case)
 
     if (frequency != test_case->expected_frequency)
     {
-        fprintf(stderr, "%s: expected frequency %.0f, got %.0f\n",
+        fprintf(stderr, "%s: expected frequency %.17g, got %.17g\n",
                 test_case->name, test_case->expected_frequency, frequency);
         return 1;
     }
 
+    return 0;
+}
+
+static int check_comma_locale(const struct frequency_case *test_case)
+{
+    static const char *locales[] =
+    {
+        "de_DE.UTF-8", "de_DE.utf8", "fr_FR.UTF-8", "fr_FR.utf8"
+    };
+
+    for (size_t i = 0; i < sizeof(locales) / sizeof(locales[0]); ++i)
+    {
+        if (setlocale(LC_NUMERIC, locales[i]) != NULL
+                && strcmp(localeconv()->decimal_point, ",") == 0)
+        {
+            return run_case(test_case, 0);
+        }
+    }
+
+    fprintf(stderr, "testaclog: comma-decimal locale unavailable\n");
     return 0;
 }
 #endif
@@ -196,6 +223,11 @@ int main(void)
             "grouped frequency",
             "<CMD><READBMFRESPONSE><FREQ>1,296.171100</FREQ></CMD>\r\n",
             RIG_OK, 1296171100.0
+        },
+        {
+            "exact Hz conversion",
+            "<CMD><READBMFRESPONSE><FREQ>1,024.000024</FREQ></CMD>\r\n",
+            RIG_OK, 1024000024.0
         },
         {
             "missing frequency",
@@ -228,6 +260,11 @@ int main(void)
             -RIG_EPROTO, UNCHANGED_FREQUENCY
         },
         {
+            "partial response line",
+            "<CMD><READBMFRESPONSE><FREQ>14.074000</FREQ>",
+            -RIG_EPROTO, UNCHANGED_FREQUENCY
+        },
+        {
             "truncated response with valid prefix",
             "<CMD><READBMFRESPONSE><FREQ>14.074000</FREQ>"
             "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
@@ -242,13 +279,13 @@ int main(void)
 
     for (i = 0; i < sizeof(cases) / sizeof(cases[0]); ++i)
     {
-        if (run_case(&cases[i]) != 0)
+        if (run_case(&cases[i], 0) != 0)
         {
             return 1;
         }
     }
 
-    return 0;
+    return run_case(&cases[0], 1) || check_comma_locale(&cases[0]);
 #else
     fprintf(stderr, "testaclog: socketpair unavailable; skipping tests\n");
     return 77;

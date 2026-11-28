@@ -20,8 +20,6 @@
 */
 
 #include <ctype.h>
-#include <errno.h>
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,6 +30,7 @@
 #include "iofunc.h"
 #include "misc.h"
 #include "cache.h"
+#include "rigctl_protocol.h"
 
 #define DEBUG 1
 #define DEBUG_TRACE DEBUG_VERBOSE
@@ -139,20 +138,17 @@ static int check_vfo(vfo_t vfo)
 */
 static int read_transaction(RIG *rig, char *xml, int xml_len)
 {
-    int retval;
-    int retry;
-    char *delims;
-    char *terminator = "</CMD>\r\n";
+    const char *terminator = "</CMD>\r\n";
+    int retry = 2;
+    int saw_data = 0;
 
     ENTERFUNC;
 
-    retry = 2;
-    delims = "\n";
     xml[0] = 0;
 
     do
     {
-        char tmp_buf[MAXXMLLEN];        // plenty big for expected aclog responses hopefully
+        char tmp_buf[MAXXMLLEN];
 
         if (retry < 2)
         {
@@ -160,23 +156,27 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
         }
 
         int len = read_string(RIGPORT(rig), (unsigned char *) tmp_buf, sizeof(tmp_buf),
-                              delims,
-                              strlen(delims), 0, 1);
-        rig_debug(RIG_DEBUG_TRACE, "%s: string='%s'\n", __func__, tmp_buf);
+                              "\n", 1, 0, 1);
 
-        // if our first response we should see the HTTP header
-        if (strlen(xml) == 0 && strstr(tmp_buf, "<CMD>") == NULL)
+        if (len == -RIG_ETIMEOUT)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: Expected '</CMD>', got '%s'\n", __func__,
-                      tmp_buf);
-            continue; // we'll try again
+            // read_string leaves partial text in the buffer on timeout.
+            if (tmp_buf[0] != '\0') { RETURNFUNC(-RIG_EPROTO); }
+
+            continue;
         }
 
-        if (len > 0) { retry = 3; }
+        if (len < 0) { RETURNFUNC(len); }
 
-        if (len <= 0)
+        if (len == 0) { continue; }
+
+        saw_data = 1;
+        rig_debug(RIG_DEBUG_TRACE, "%s: string='%s'\n", __func__, tmp_buf);
+
+        if (xml[0] == '\0' && strstr(tmp_buf, "<CMD>") == NULL)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: read_string error=%d\n", __func__, len);
+            rig_debug(RIG_DEBUG_ERR, "%s: Expected '<CMD>', got '%s'\n", __func__,
+                      tmp_buf);
             continue;
         }
 
@@ -191,27 +191,19 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
                       (int)strlen(tmp_buf), (int)strlen(xml));
             RETURNFUNC(-RIG_EPROTO);
         }
-    }
-    while (retry-- > 0 && strstr(xml, terminator) == NULL);
 
-    if (retry == 0)
-    {
-        rig_debug(RIG_DEBUG_WARN, "%s: retry timeout\n", __func__);
-        RETURNFUNC(-RIG_ETIMEOUT);
-    }
+        if (strstr(xml, terminator))
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: got %s\n", __func__, terminator);
+            RETURNFUNC(RIG_OK);
+        }
 
-    if (strstr(xml, terminator))
-    {
-        rig_debug(RIG_DEBUG_TRACE, "%s: got %s\n", __func__, terminator);
-        retval = RIG_OK;
+        retry = 3;
     }
-    else
-    {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: did not get %s\n", __func__, terminator);
-        retval = -RIG_EPROTO;
-    }
+    while (retry-- > 0);
 
-    RETURNFUNC(retval);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: did not get %s\n", __func__, terminator);
+    RETURNFUNC(saw_data ? -RIG_EPROTO : -RIG_ETIMEOUT);
 }
 
 /*
@@ -257,7 +249,6 @@ static int aclog_transaction(RIG *rig, char *cmd, char *value,
                              int value_len)
 {
     char xml[MAXXMLLEN];
-    int retry = 3;
 
     ENTERFUNC;
     ELAPSED1;
@@ -276,7 +267,7 @@ static int aclog_transaction(RIG *rig, char *cmd, char *value,
         value[0] = 0;
     }
 
-    do
+    for (int retry = 3; ; --retry)
     {
         int retval;
 
@@ -302,6 +293,8 @@ static int aclog_transaction(RIG *rig, char *cmd, char *value,
         {
             retval = read_transaction(rig, xml, sizeof(xml));
 
+            if (retval == -RIG_ETIMEOUT && retry > 0) { continue; }
+
             if (retval != RIG_OK)
             {
                 set_transaction_inactive(rig);
@@ -325,14 +318,7 @@ static int aclog_transaction(RIG *rig, char *cmd, char *value,
             strcpy(value, xml);
         }
 
-    }
-    while (((value && strlen(value) == 0))
-            && retry--); // we'll do retries if needed
-
-    if (value && strlen(value) == 0)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: no value returned\n", __func__);
-        set_transaction_inactive(rig); RETURNFUNC(-RIG_EPROTO);
+        break;
     }
 
     ELAPSED2;
@@ -498,8 +484,6 @@ static int aclog_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     {
         char *end;
         char *write;
-        char *parse_end;
-        long double frequency;
 
         // Move the pointer to the first digit.
         p += strlen("<FREQ>");
@@ -524,23 +508,13 @@ static int aclog_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
             }
         }
 
-        *write = '\0';
-        errno = 0;
-        frequency = strtold(p, &parse_end);
+        // Use the closing tag's space to scale to Hz without rounding twice.
+        memcpy(write, "e6", sizeof("e6"));
 
-        if (p == parse_end || parse_end != write || errno == ERANGE
-                || !isfinite(frequency))
+        if (rigctl_parse_double(p, RIGCTL_DECIMAL_DOT_ONLY, &parsed_freq) != RIG_OK)
         {
             RETURNFUNC(-RIG_EPROTO);
         }
-
-        parsed_freq = frequency * 1e6;
-        rig_debug(RIG_DEBUG_TRACE, "%s: freq=%.0f\n", __func__, parsed_freq);
-    }
-
-    if (!isfinite(parsed_freq))
-    {
-        RETURNFUNC(-RIG_EPROTO);
     }
 
     if (parsed_freq == 0)
@@ -661,10 +635,14 @@ static int aclog_open(RIG *rig)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: returned value=%s\n", __func__, value);
     char version_pgm[64];
-    sscanf(value,
-           "<CMD><PROGRAMRESPONSE><PGM>N3FJP's Amateur Contact Log</PGM><VER>%63[^<]",
-           version_pgm);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: ACLog version=%s\n", __func__, version_pgm);
+
+    if (retval == RIG_OK
+            && sscanf(value, "<CMD><PROGRAMRESPONSE>"
+                      "<PGM>N3FJP's Amateur Contact Log</PGM><VER>%63[^<]",
+                      version_pgm) == 1)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: ACLog version=%s\n", __func__, version_pgm);
+    }
 
     double version_api = 0;
     p = strstr(value, "<APIVER>");
