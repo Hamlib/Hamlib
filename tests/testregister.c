@@ -217,6 +217,39 @@ cleanup:
     return failed;
 }
 
+static int test_reload_preserves_caps(rig_model_t model, rig_model_t base_model)
+{
+    RIG *rig = rig_init(model);
+    struct rig_caps *base = rig_get_caps(base_model);
+    int failed = 1;
+
+    fprintf(stderr, "reload model %u with a live handle\n", model);
+
+    if (rig && base && rig_unregister(model) == RIG_OK)
+    {
+        const char *base_mfg = base->mfg_name;
+        const char *model_mfg = rig->caps->mfg_name;
+
+        /* A different inherited value makes a second copy visible to the handle. */
+        base->mfg_name = "Reload test";
+        failed = check_result("reload missing model", rig_check_backend(model), RIG_OK);
+        base->mfg_name = base_mfg;
+
+        if (rig_get_caps(model) != rig->caps || rig->caps->mfg_name != model_mfg)
+        {
+            fprintf(stderr, "reload replaced or rewrote caps for model %u\n", model);
+            failed = 1;
+        }
+    }
+
+    if (rig)
+    {
+        rig_cleanup(rig);
+    }
+
+    return failed;
+}
+
 int main(void)
 {
     struct rig_caps duplicate = { .rig_model = 0x70000000U };
@@ -294,5 +327,7 @@ int main(void)
                            rig_unregister(duplicate.rig_model), RIG_OK);
     failed |= check_registry(0);
     failed |= test_repeated_loading();
+    failed |= test_reload_preserves_caps(RIG_MODEL_IC705NET, RIG_MODEL_IC705);
+    failed |= test_reload_preserves_caps(RIG_MODEL_FT450D, RIG_MODEL_FT450);
     return failed != 0;
 }

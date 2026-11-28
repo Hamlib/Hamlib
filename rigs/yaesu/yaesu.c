@@ -24,6 +24,7 @@
  *
  */
 
+#include <pthread.h>
 #include <unistd.h>  /* UNIX standard function definitions */
 
 #include "hamlib/rig.h"
@@ -63,19 +64,22 @@ static const struct yaesu_id yaesu_id_list[] =
 };
 
 
-/*
- * initrigs_yaesu is called by rig_backend_load
- */
-
-DECLARE_INITRIG_BACKEND(yaesu)
+static void ft450d_init_caps(void)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "yaesu: %s called\n", __func__);
-
     ft450d_caps = ft450_caps;
     ft450d_caps.rig_model = RIG_MODEL_FT450D;
     ft450d_caps.model_name = "FT-450D";
     ft450d_caps.level_gran[LVL_RFPOWER].min.f = .05;
     ft450d_caps.level_gran[LVL_RFPOWER].step.f = 1.0f / 100.0f;
+}
+
+DECLARE_INITRIG_BACKEND(yaesu)
+{
+    static pthread_once_t ft450d_caps_once = PTHREAD_ONCE_INIT;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "yaesu: %s called\n", __func__);
+
+    pthread_once(&ft450d_caps_once, ft450d_init_caps);
     rig_register(&ft100_caps);
     rig_register(&ft450_caps);
     rig_register(&ft450d_caps);
