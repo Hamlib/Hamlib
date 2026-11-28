@@ -44,6 +44,7 @@
 #include "frame.h"
 #include "icom.h"
 #include "icom_defs.h"
+#include "misc.h"
 
 #define RADIO 0x56   /* the IC-746's default CI-V address */
 
@@ -134,6 +135,10 @@ struct spectrum_seen
 {
     int lines;
     size_t length;
+    freq_t center_freq;
+    freq_t span_freq;
+    freq_t low_edge_freq;
+    freq_t high_edge_freq;
     unsigned char data[SCOPE_LINE_LENGTH];
 };
 
@@ -144,6 +149,10 @@ static int on_spectrum(RIG *rig, struct rig_spectrum_line *line, rig_ptr_t arg)
     (void) rig;
     seen->lines++;
     seen->length = line->spectrum_data_length;
+    seen->center_freq = line->center_freq;
+    seen->span_freq = line->span_freq;
+    seen->low_edge_freq = line->low_edge_freq;
+    seen->high_edge_freq = line->high_edge_freq;
 
     if (line->spectrum_data_length <= sizeof(seen->data))
     {
@@ -183,6 +192,60 @@ static size_t scope_division(unsigned char *frame, int division,
     {
         memcpy(frame + n, header, sizeof(header));
         n += sizeof(header);
+    }
+
+    if (length > 0)
+    {
+        memcpy(frame + n, data, length);
+        n += length;
+    }
+
+    frame[n++] = FI;
+    return n;
+}
+
+/* One `27 00` division with six-byte BCD frequencies, as the IC-905 sends in
+ * the 10 GHz band.  In Center mode `second` is the half-span on the wire;
+ * otherwise it is the upper edge. */
+static size_t scope_division_6byte(unsigned char *frame, int division,
+                                   int max_division, int mode,
+                                   freq_t first, freq_t second,
+                                   const unsigned char *data, size_t length)
+{
+    unsigned char bcd[6];
+    size_t n = 0;
+
+    frame[n++] = PR;
+    frame[n++] = PR;
+    frame[n++] = CTRLID;
+    frame[n++] = IC7300;
+    frame[n++] = C_CTL_SCP;
+    frame[n++] = S_SCP_DAT;
+    frame[n++] = 0x00;                                  /* main scope */
+    frame[n++] = (unsigned char)((division / 10) << 4 | division % 10);
+    frame[n++] = (unsigned char)((max_division / 10) << 4 | max_division % 10);
+
+    if (division == 1)
+    {
+        frame[n++] = (unsigned char) mode;
+        to_bcd(bcd, first, 6 * 2);
+        memcpy(frame + n, bcd, sizeof(bcd));
+        n += sizeof(bcd);
+
+        if (mode == SCOPE_MODE_CENTER)
+        {
+            to_bcd(bcd, second, 5 * 2);
+            memcpy(frame + n, bcd, 5);
+            n += 5;
+        }
+        else
+        {
+            to_bcd(bcd, second, 6 * 2);
+            memcpy(frame + n, bcd, sizeof(bcd));
+            n += sizeof(bcd);
+        }
+
+        frame[n++] = 0x00;                              /* in range */
     }
 
     if (length > 0)
@@ -301,6 +364,117 @@ void test_scope_line_during_echo_read(void)
     release_ic7300(rig, sockets);
 }
 
+/* The IC-905 sends six-byte BCD frequencies in the 10 GHz band, making a
+ * Center mode header 16 bytes.  The line must be parsed, not rejected as a
+ * header carrying data. */
+void test_scope_line_10ghz_center(void)
+{
+    unsigned char line[SCOPE_LINE_LENGTH];
+    unsigned char frame[MAXFRAMELEN];
+    struct spectrum_seen seen;
+    int sockets[2];
+    int division;
+    size_t i;
+    RIG *rig;
+
+    for (i = 0; i < sizeof(line); i++)
+    {
+        line[i] = (unsigned char)(i % 0xa0);
+    }
+
+    TEST_ASSERT(socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) == 0);
+
+    for (division = 1; division <= 11; division++)
+    {
+        size_t offset = division > 1 ? (size_t)(division - 2) * 50 : 0;
+        size_t length = division == 1 ? 0 : division == 11 ? 25 : 50;
+        size_t n = scope_division_6byte(frame, division, 11,
+                                        SCOPE_MODE_CENTER,
+                                        GHz(10), kHz(25),
+                                        line + offset, length);
+
+        TEST_ASSERT(write(sockets[1], frame, n) == (ssize_t) n);
+    }
+
+    TEST_ASSERT(write(sockets[1], freq_echo, sizeof(freq_echo))
+                == sizeof(freq_echo));
+    TEST_ASSERT(write(sockets[1], freq_answer, sizeof(freq_answer))
+                == sizeof(freq_answer));
+
+    rig = echoing_ic7300(sockets[0]);
+    TEST_ASSERT(rig != NULL);
+    memset(&seen, 0, sizeof(seen));
+    TEST_ASSERT(rig_set_spectrum_callback(rig, on_spectrum, &seen) == RIG_OK);
+
+    check_freq_read(rig);
+
+    TEST_CHECK(seen.lines == 1);
+    TEST_CHECK_(seen.length == sizeof(line), "line length %zu", seen.length);
+    TEST_CHECK(seen.center_freq == GHz(10));
+    TEST_CHECK(seen.span_freq == kHz(50));
+    TEST_CHECK(seen.low_edge_freq == GHz(10) - kHz(25));
+    TEST_CHECK(seen.high_edge_freq == GHz(10) + kHz(25));
+    TEST_CHECK(seen.length == sizeof(line)
+               && memcmp(seen.data, line, sizeof(line)) == 0);
+
+    release_ic7300(rig, sockets);
+}
+
+/* Fixed and SCROLL headers carry both edges, so six-byte frequencies make
+ * them 17 bytes. */
+void test_scope_line_10ghz_fixed(void)
+{
+    unsigned char line[SCOPE_LINE_LENGTH];
+    unsigned char frame[MAXFRAMELEN];
+    struct spectrum_seen seen;
+    int sockets[2];
+    int division;
+    size_t i;
+    RIG *rig;
+
+    for (i = 0; i < sizeof(line); i++)
+    {
+        line[i] = (unsigned char)(i % 0xa0);
+    }
+
+    TEST_ASSERT(socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) == 0);
+
+    for (division = 1; division <= 11; division++)
+    {
+        size_t offset = division > 1 ? (size_t)(division - 2) * 50 : 0;
+        size_t length = division == 1 ? 0 : division == 11 ? 25 : 50;
+        size_t n = scope_division_6byte(frame, division, 11,
+                                        SCOPE_MODE_FIXED,
+                                        GHz(10), MHz(10050),
+                                        line + offset, length);
+
+        TEST_ASSERT(write(sockets[1], frame, n) == (ssize_t) n);
+    }
+
+    TEST_ASSERT(write(sockets[1], freq_echo, sizeof(freq_echo))
+                == sizeof(freq_echo));
+    TEST_ASSERT(write(sockets[1], freq_answer, sizeof(freq_answer))
+                == sizeof(freq_answer));
+
+    rig = echoing_ic7300(sockets[0]);
+    TEST_ASSERT(rig != NULL);
+    memset(&seen, 0, sizeof(seen));
+    TEST_ASSERT(rig_set_spectrum_callback(rig, on_spectrum, &seen) == RIG_OK);
+
+    check_freq_read(rig);
+
+    TEST_CHECK(seen.lines == 1);
+    TEST_CHECK_(seen.length == sizeof(line), "line length %zu", seen.length);
+    TEST_CHECK(seen.low_edge_freq == GHz(10));
+    TEST_CHECK(seen.high_edge_freq == MHz(10050));
+    TEST_CHECK(seen.span_freq == MHz(50));
+    TEST_CHECK(seen.center_freq == MHz(10025));
+    TEST_CHECK(seen.length == sizeof(line)
+               && memcmp(seen.data, line, sizeof(line)) == 0);
+
+    release_ic7300(rig, sockets);
+}
+
 /* A line that fits in one division still carries its samples after the
  * metadata, and must still be published. */
 void test_single_division_scope_line_is_published(void)
@@ -337,6 +511,41 @@ void test_single_division_scope_line_is_published(void)
     TEST_CHECK(seen.lines == 1);
     TEST_CHECK_(seen.length == 50, "line length %zu", seen.length);
     TEST_CHECK(seen.length == 50 && memcmp(seen.data, line, 50) == 0);
+
+    release_ic7300(rig, sockets);
+}
+
+/* A single-division 10 GHz header omits the waveform data when out of range
+ * and must still be published. */
+void test_single_division_10ghz_header_is_published(void)
+{
+    unsigned char frame[MAXFRAMELEN];
+    struct spectrum_seen seen;
+    int sockets[2];
+    size_t n;
+    RIG *rig;
+
+    TEST_ASSERT(socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) == 0);
+
+    n = scope_division_6byte(frame, 1, 1, SCOPE_MODE_CENTER,
+                             GHz(10), kHz(25), NULL, 0);
+    TEST_ASSERT(write(sockets[1], frame, n) == (ssize_t) n);
+    TEST_ASSERT(write(sockets[1], freq_echo, sizeof(freq_echo))
+                == sizeof(freq_echo));
+    TEST_ASSERT(write(sockets[1], freq_answer, sizeof(freq_answer))
+                == sizeof(freq_answer));
+
+    rig = echoing_ic7300(sockets[0]);
+    TEST_ASSERT(rig != NULL);
+    memset(&seen, 0, sizeof(seen));
+    TEST_ASSERT(rig_set_spectrum_callback(rig, on_spectrum, &seen) == RIG_OK);
+
+    check_freq_read(rig);
+
+    TEST_CHECK(seen.lines == 1);
+    TEST_CHECK_(seen.length == 0, "line length %zu", seen.length);
+    TEST_CHECK(seen.center_freq == GHz(10));
+    TEST_CHECK(seen.span_freq == kHz(50));
 
     release_ic7300(rig, sockets);
 }
@@ -423,9 +632,15 @@ TEST_LIST =
     { "short_frame_does_not_match",   test_short_frame_does_not_match },
 #ifndef _WIN32
     { "scope_line_during_echo_read",  test_scope_line_during_echo_read },
+    { "scope_line_10ghz_center",      test_scope_line_10ghz_center },
+    { "scope_line_10ghz_fixed",       test_scope_line_10ghz_fixed },
     {
         "single_division_scope_line_is_published",
         test_single_division_scope_line_is_published
+    },
+    {
+        "single_division_10ghz_header_is_published",
+        test_single_division_10ghz_header_is_published
     },
     {
         "scope_data_in_first_division_is_rejected",

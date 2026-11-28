@@ -9339,23 +9339,47 @@ int icom_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq,
 }
 
 /*
- * 27 00 sends the edges of a Fixed or SCROLL scope as five BCD bytes
- * each, with an F in the 1 GHz digit (the high nibble of the last byte)
- * marking a negative frequency.  The guide only ever sets it on the
- * lower edge, for a scope scrolled below 0 Hz.
+ * 27 00 sends the edges of a Fixed or SCROLL scope as five or six BCD
+ * bytes each, with an F in the most significant digit (the high nibble
+ * of the last byte) marking a negative frequency.  The guide only ever
+ * sets it on the lower edge, for a scope scrolled below 0 Hz.
  */
-static freq_t icom_scope_edge_freq(const unsigned char *bcd)
+static freq_t icom_scope_edge_freq(const unsigned char *bcd, int bytes)
 {
-    unsigned char digits[5];
+    unsigned char digits[6];
+    int last = bytes - 1;
 
-    if ((bcd[4] & 0xf0) != 0xf0)
+    if ((bcd[last] & 0xf0) != 0xf0)
     {
-        return (freq_t) from_bcd(bcd, 5 * 2);
+        return (freq_t) from_bcd(bcd, bytes * 2);
     }
 
-    memcpy(digits, bcd, sizeof(digits));
-    digits[4] &= 0x0f;
-    return -(freq_t) from_bcd(digits, 5 * 2);
+    memcpy(digits, bcd, bytes);
+    digits[last] &= 0x0f;
+    return -(freq_t) from_bcd(digits, bytes * 2);
+}
+
+/* A 27 00 header is 15 bytes with 5-byte frequencies.  On the 10 GHz band
+ * the IC-905 sends 6-byte frequencies, which makes a Center mode header 16
+ * bytes and a Fixed or SCROLL header 17 bytes. */
+static int icom_scope_frequency_length(size_t header_length, int scope_mode)
+{
+    if (header_length == 15)
+    {
+        return 5;
+    }
+
+    if (header_length == 16 && scope_mode == SCOPE_MODE_CENTER)
+    {
+        return 6;
+    }
+
+    if (header_length == 17 && scope_mode != SCOPE_MODE_CENTER)
+    {
+        return 6;
+    }
+
+    return 0;
 }
 
 static int icom_parse_spectrum_frame(RIG *rig, size_t length,
@@ -9402,7 +9426,11 @@ static int icom_parse_spectrum_frame(RIG *rig, size_t length,
     if (division == 1)
     {
         int spectrum_scope_mode;
+        int frequency_length;
         int out_of_range;
+        size_t header_length;
+        size_t scope_line_length =
+            priv_caps->spectrum_scope_caps.spectrum_line_length;
 
         if (length < 15)
         {
@@ -9410,24 +9438,62 @@ static int icom_parse_spectrum_frame(RIG *rig, size_t length,
             RETURNFUNC(-RIG_EPROTO);
         }
 
-        if (max_division > 1 && length > 15)
+        if (max_division > 1)
         {
-            rig_debug(RIG_DEBUG_WARN,
-                      "%s: Unexpected data in first scope division\n",
-                      __func__);
-            RETURNFUNC(-RIG_EPROTO);
+            /* A multipart header carries no waveform data, so the frame
+             * length is the header length. */
+            if (length > 17)
+            {
+                rig_debug(RIG_DEBUG_WARN,
+                          "%s: Unexpected data in first scope division\n",
+                          __func__);
+                RETURNFUNC(-RIG_EPROTO);
+            }
+
+            header_length = length;
+        }
+        else if (length <= 17)
+        {
+            /* An out-of-range line omits the waveform data. */
+            header_length = length;
+        }
+        else if (length >= scope_line_length + 15)
+        {
+            /* A complete single-division line: the data follows the header. */
+            header_length = length - scope_line_length;
+        }
+        else
+        {
+            /* A partial single-division line keeps the 5-byte header. */
+            header_length = 15;
         }
 
         spectrum_scope_mode = frame_data[3];
-        out_of_range = frame_data[14];
+        frequency_length = icom_scope_frequency_length(header_length,
+            spectrum_scope_mode);
+
+        if (frequency_length == 0)
+        {
+            rig_debug(RIG_DEBUG_WARN,
+                      "%s: Invalid scope header length %zu for mode %d\n",
+                      __func__, header_length, spectrum_scope_mode);
+            RETURNFUNC(-RIG_EPROTO);
+        }
+
+        out_of_range = frame_data[(spectrum_scope_mode == SCOPE_MODE_CENTER)
+                                  ? 9 + frequency_length
+                                  : 4 + 2 * frequency_length];
         cache->spectrum_mode = RIG_SPECTRUM_MODE_NONE;
 
         switch (spectrum_scope_mode)
         {
         case SCOPE_MODE_CENTER:
             cache->spectrum_mode = RIG_SPECTRUM_MODE_CENTER;
-            cache->spectrum_center_freq = (freq_t) from_bcd(frame_data + 4, 5 * 2);
-            cache->spectrum_span_freq = (freq_t) from_bcd(frame_data + 9, 5 * 2) * 2;
+            cache->spectrum_center_freq = (freq_t) from_bcd(frame_data + 4,
+                frequency_length * 2);
+            cache->spectrum_span_freq = (freq_t) from_bcd(
+                                            frame_data + 4 + frequency_length,
+                                            5 * 2) * 2;
             cache->spectrum_low_edge_freq = cache->spectrum_center_freq -
                                             cache->spectrum_span_freq / 2;
             cache->spectrum_high_edge_freq = cache->spectrum_center_freq +
@@ -9451,8 +9517,11 @@ static int icom_parse_spectrum_frame(RIG *rig, size_t length,
                 cache->spectrum_mode = RIG_SPECTRUM_MODE_FIXED_SCROLL;
             }
 
-            cache->spectrum_low_edge_freq = icom_scope_edge_freq(frame_data + 4);
-            cache->spectrum_high_edge_freq = icom_scope_edge_freq(frame_data + 9);
+            cache->spectrum_low_edge_freq = icom_scope_edge_freq(frame_data + 4,
+                frequency_length);
+            cache->spectrum_high_edge_freq = icom_scope_edge_freq(
+                                                 frame_data + 4 + frequency_length,
+                                                 frequency_length);
             cache->spectrum_span_freq = (cache->spectrum_high_edge_freq -
                                          cache->spectrum_low_edge_freq);
             cache->spectrum_center_freq = cache->spectrum_high_edge_freq -
@@ -9465,8 +9534,8 @@ static int icom_parse_spectrum_frame(RIG *rig, size_t length,
             RETURNFUNC(-RIG_EPROTO);
         }
 
-        spectrum_data_length_in_frame = length - 15;
-        spectrum_data_start_in_frame = frame_data + 15;
+        spectrum_data_length_in_frame = length - header_length;
+        spectrum_data_start_in_frame = frame_data + header_length;
 
         memset(cache->spectrum_data, 0,
                priv_caps->spectrum_scope_caps.spectrum_line_length);

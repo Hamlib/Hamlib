@@ -376,10 +376,11 @@ ssize_t rigctld_commands_test_sendto(int fd, const char *buf, size_t len,
                 && (capture->packets == 0 || hdr.stream_id == capture->stream_id);
     }
 
-    if (valid && pkt_is_data(&hdr))
+    /* Idle time-only packets carry no audio and do not advance sample progress. */
+    if (valid && pkt_is_data(&hdr)
+            && !(hdr.control == RIG_STREAM_CTRL_TIME
+                 && hdr.payload_len == RIG_STREAM_TIME_BLOCK_SIZE))
     {
-        /* Zero-sample data frames are time-only heartbeats; only a silent or
-         * gapped producer emits them, and no multicast test configures one. */
         size_t data_len = pkt_data_len(&hdr);
         valid = data_len > 0 && data_len % 2 == 0
                 && (capture->data_packets == 0
@@ -5484,6 +5485,37 @@ void test_multicast_send_capture_rejects_invalid(void)
                                             0, (struct sockaddr *)&destination, sizeof(destination)) == -1);
     TEST_CHECK(multicast_snapshot().errors == 4);
     TEST_CHECK(multicast_snapshot().packets == 1);
+
+    unsigned char heartbeat[RIG_STREAM_HEADER_SIZE + RIG_STREAM_TIME_BLOCK_SIZE];
+    const struct rig_stream_time_anchor time =
+    {
+        .seconds = 1,
+        .source = RIG_STREAM_TIME_SRC_HOST,
+    };
+    hdr.control = RIG_STREAM_CTRL_TIME;
+    hdr.timestamp = 480;
+    hdr.payload_len = RIG_STREAM_TIME_BLOCK_SIZE;
+    stream_packet_header_pack(&hdr, heartbeat);
+    stream_time_block_pack(&time, heartbeat + RIG_STREAM_HEADER_SIZE);
+    TEST_CHECK(rigctld_commands_test_sendto(-1, (const char *)heartbeat,
+                                            sizeof(heartbeat), 0,
+                                            (struct sockaddr *)&destination,
+                                            sizeof(destination))
+               == (ssize_t)sizeof(heartbeat));
+    struct multicast_capture captured = multicast_snapshot();
+    TEST_CHECK(captured.packets == 2);
+    TEST_CHECK(captured.data_packets == 1);
+    TEST_CHECK(captured.last_timestamp == 0);
+    TEST_CHECK(captured.errors == 4);
+
+    hdr.payload_len--;
+    stream_packet_header_pack(&hdr, heartbeat);
+    TEST_CHECK(rigctld_commands_test_sendto(-1, (const char *)heartbeat,
+                                            sizeof(heartbeat) - 1, 0,
+                                            (struct sockaddr *)&destination,
+                                            sizeof(destination)) == -1);
+    TEST_CHECK(multicast_snapshot().errors == 5);
+    TEST_CHECK(multicast_snapshot().packets == 2);
 
     multicast_capture_reset();
     TEST_CHECK(rigctld_commands_test_sendto(-1, (const char *)pkt, sizeof(pkt),
